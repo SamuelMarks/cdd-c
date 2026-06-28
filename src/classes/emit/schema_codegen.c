@@ -79,7 +79,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 /** @brief CHECK_RC definition */
 #define CHECK_RC(x)                                                            \
@@ -90,27 +90,28 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   } while (0)
 
 /* Write Header Guard Start */
-static int print_header_guard(FILE *hfile, const char *basename) {
+static enum cdd_c_error print_header_guard(FILE *hfile, const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef %s_H\n", basename));
   CHECK_IO(FPRINTF_HOOK(hfile, "#define %s_H\n\n", basename));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* Write Header Guard End */
 /**
  * @brief Executes the print header guard end operation.
  */
-static int print_header_guard_end(FILE *hfile, const char *basename) {
+static enum cdd_c_error print_header_guard_end(FILE *hfile,
+                                               const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#endif /* !%s_H */\n", basename));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates header.
  */
-C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
-                                 JSON_Object *schemas_obj,
-                                 const struct CodegenConfig *config) {
+C_CDD_EXPORT enum cdd_c_error
+generate_header(const char *prefix, const char *basename,
+                JSON_Object *schemas_obj, const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
@@ -131,7 +132,7 @@ C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
 #endif
 #endif
   if (!fp)
-    return errno;
+    return CDD_C_ERROR_SYSTEM;
 
   CHECK_RC(print_header_guard(fp, basename));
   CHECK_IO(FPRINTF_HOOK(fp, "#include <stdlib.h>\n"
@@ -177,13 +178,13 @@ C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
       struct_fields_free(&sf);
       fclose(fp);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     is_object_schema =
@@ -208,13 +209,13 @@ C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
       struct_fields_free(&sf);
       fclose(fp);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     is_object_schema =
@@ -240,9 +241,9 @@ C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
 /**
  * @brief Generates source.
  */
-C_CDD_EXPORT int generate_source(const char *prefix, const char *basename,
-                                 JSON_Object *schemas_obj,
-                                 const struct CodegenConfig *config) {
+C_CDD_EXPORT enum cdd_c_error
+generate_source(const char *prefix, const char *basename,
+                JSON_Object *schemas_obj, const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
@@ -281,7 +282,7 @@ C_CDD_EXPORT int generate_source(const char *prefix, const char *basename,
 #endif
 #endif
   if (!fp)
-    return errno;
+    return CDD_C_ERROR_SYSTEM;
 
   CHECK_IO(
       FPRINTF_HOOK(fp,
@@ -302,13 +303,13 @@ C_CDD_EXPORT int generate_source(const char *prefix, const char *basename,
 
     if (struct_fields_init(&sf) != 0) {
       fclose(fp);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
       struct_fields_free(&sf);
       fclose(fp);
-      return ENOMEM; /* Parse error */
+      return CDD_C_ERROR_MEMORY; /* Parse error */
     }
 
     is_object_schema =
@@ -352,7 +353,7 @@ C_CDD_EXPORT int generate_source(const char *prefix, const char *basename,
 /**
  * @brief Executes the schema2code main operation.
  */
-int schema2code_main(int argc, char **argv) {
+enum cdd_c_error schema2code_main(int argc, char **argv) {
   const char *schema_file, *prefix;
   char *basename = NULL;
   struct CodegenConfig config = {0};
@@ -363,14 +364,14 @@ int schema2code_main(int argc, char **argv) {
   if (argc < 2) {
     if (basename)
       free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
   schema_file = argv[0];
   prefix = argv[1];
   if (get_basename(prefix, &basename) != 0) {
     if (basename)
       free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   for (i = 2; i < argc; ++i) {
@@ -387,7 +388,7 @@ int schema2code_main(int argc, char **argv) {
   if (!root) {
     if (basename)
       free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -399,23 +400,23 @@ int schema2code_main(int argc, char **argv) {
   if (!schemas) {
     json_value_free(root);
     free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   if (generate_header(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
     free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
   if (generate_source(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
     free(basename);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   json_value_free(root);
   free(basename);
-  return EXIT_SUCCESS;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

@@ -244,7 +244,7 @@ typedef struct cdd_ffi_ir_t {
  * @param ir The IR to sort.
  * @return 0 on success, or an error code (e.g., EINVAL or ENOMEM).
  */
-C_CDD_EXPORT int cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir);
+C_CDD_EXPORT enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir);
 
 /**
  * @brief Frees all memory associated with the FFI IR.

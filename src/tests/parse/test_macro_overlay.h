@@ -22,9 +22,12 @@ TEST test_macro_overlay_basic(void) {
   cst.nodes = NULL;
 
   macro_overlay_list_init(&list);
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(NULL, tl, &list));
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(&cst, NULL, &list));
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(&cst, tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(NULL, tl, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(&cst, NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(&cst, tl, NULL));
 
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
 
@@ -54,9 +57,12 @@ TEST test_macro_overlay_with_nodes(void) {
   cst.nodes[0].kind = CST_NODE_MACRO;
 
   macro_overlay_list_init(&list);
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(NULL, tl, &list));
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(&cst, NULL, &list));
-  ASSERT_EQ(EINVAL, cst_build_macro_overlay(&cst, tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(NULL, tl, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(&cst, NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_build_macro_overlay(&cst, tl, NULL));
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
   ASSERT_EQ(1, list.size);
 

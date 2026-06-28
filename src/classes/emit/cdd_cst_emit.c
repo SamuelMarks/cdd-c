@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <stdio.h>
 /**
  * @file cdd_cst_emit.c
  * @brief CST emit implementation
@@ -29,12 +31,13 @@ typedef struct emit_ctx_t {
  * @param len The length of the string to append.
  * @return 0 on success, error code otherwise.
  */
-static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
+static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
+                                   size_t len) {
   if (len == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   if (len > (size_t)-1 - ctx->size - 1) {
     C_CDD_LOG_DEBUG("ENOMEM: Overflow\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   if (ctx->size + len + 1 > ctx->capacity) {
     char *new_buf;
@@ -50,7 +53,7 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
     new_buf = (char *)realloc(ctx->buf, new_cap);
     if (!new_buf) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     ctx->buf = new_buf;
     ctx->capacity = new_cap;
@@ -58,7 +61,7 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
   memcpy(ctx->buf + ctx->size, str, len);
   ctx->size += len;
   ctx->buf[ctx->size] = '\0';
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -67,14 +70,14 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
  * @param t The trivia list.
  * @return 0 on success, error code otherwise.
  */
-static int emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
+static enum cdd_c_error emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   while (t) {
     int rc = append_str(ctx, t->start, t->length);
     if (rc != 0)
       return rc;
     t = t->next;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -83,10 +86,10 @@ static int emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
  * @param tok The token to emit.
  * @return 0 on success, error code otherwise.
  */
-static int emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
+static enum cdd_c_error emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
   int rc;
   if (!tok)
-    return 0;
+    return CDD_C_SUCCESS;
   if (tok->kind == CDD_TOKEN_EOF) {
     return emit_trivia(
         ctx, tok->leading_trivia); /* EOF token only has leading trivia */
@@ -109,10 +112,10 @@ static int emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
  * @param node The node to emit.
  * @return 0 on success, error code otherwise.
  */
-static int emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
+static enum cdd_c_error emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
   size_t i;
   if (!node)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < node->num_children; i++) {
     int rc = 0;
@@ -125,15 +128,15 @@ static int emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
     if (rc != 0)
       return rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
+enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   emit_ctx_t ctx = {0};
   int rc;
 
   if (!tree || !out_str)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = emit_node(&ctx, tree->root);
   if (rc != 0) {
@@ -153,10 +156,10 @@ int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
 #endif
 
     if (!ctx.buf)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     ctx.buf[0] = '\0';
   }
 
   *out_str = ctx.buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }

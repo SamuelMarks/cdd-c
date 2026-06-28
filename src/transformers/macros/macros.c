@@ -28,15 +28,16 @@
  * @param config The transform configuration.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
-                                      const cdd_transform_config_t *config) {
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_macros(cdd_cst_tree_t *tree,
+                     const cdd_transform_config_t *config) {
   cdd_cst_query_result_t calls;
   size_t i;
   int rc;
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* AST Expansion pass */
   /* For now we just implement the simple FOO(42) replacement requested by the

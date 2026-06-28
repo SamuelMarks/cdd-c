@@ -100,10 +100,11 @@ TEST test_make_invalid(void) {
   FILE *tmp = tmpfile();
   ASSERT(tmp);
 
-  ASSERT_EQ(EINVAL, codegen_make_generate(NULL, &cfg));
-  ASSERT_EQ(EINVAL, codegen_make_generate(tmp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, codegen_make_generate(NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, codegen_make_generate(tmp, NULL));
 
-  ASSERT_EQ(EINVAL, codegen_make_generate(tmp, &cfg)); /* No name */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_make_generate(tmp, &cfg)); /* No name */
 
   fclose(tmp);
   g_fail_io_after = -1;
@@ -126,7 +127,7 @@ TEST test_make_io_failure(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, codegen_make_generate(f, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_IO, codegen_make_generate(f, &cfg));
   fclose(f);
   g_fail_io_after = -1;
   PASS();

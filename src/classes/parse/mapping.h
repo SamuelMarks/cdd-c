@@ -19,6 +19,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -77,9 +78,9 @@ extern C_CDD_EXPORT void c_mapping_free(struct OpenApiTypeMapping *out);
  * @param[out] out The result structure.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT int c_mapping_map_type(const char *c_type_in,
-                                           const char *decl_name,
-                                           struct OpenApiTypeMapping *out);
+extern C_CDD_EXPORT enum cdd_c_error
+c_mapping_map_type(const char *c_type_in, const char *decl_name,
+                   struct OpenApiTypeMapping *out);
 
 #ifdef __cplusplus
 }

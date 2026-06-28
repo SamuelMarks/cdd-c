@@ -33,14 +33,14 @@ static int check_io_helper(int rc) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if (check_io_helper(x) < 0)                                                \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #else
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #endif
 
@@ -57,11 +57,12 @@ static int check_io_helper(int rc) {
  * @param[in] config Build configuration.
  * @return 0 on success, EIO/EINVAL on failure.
  */
-static int generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
+static enum cdd_c_error
+generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
   size_t i;
 
   if (!config->project_name || !config->target_name) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* 1. Header */
@@ -130,7 +131,7 @@ static int generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
                    ")\n",
                    config->target_name, config->project_name));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Public Dispatcher --- */
@@ -138,10 +139,11 @@ static int generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
 /**
  * @brief Generates C code for codegen build generate.
  */
-int codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
-                           const struct CodegenBuildConfig *config) {
+enum cdd_c_error
+codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
+                       const struct CodegenBuildConfig *config) {
   if (!fp || !config)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   switch (type) {
   case BUILD_SYS_CMAKE:
@@ -150,11 +152,8 @@ int codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
   case BUILD_SYS_MAKEFILE: /* Future extension */
   case BUILD_SYS_UNKNOWN:
   default:
-#ifdef ENOTSUP
-    return ENOTSUP;
-#else
-    return EINVAL;
-#endif
+
+    return CDD_C_ERROR_SYSTEM;
   }
 }
 

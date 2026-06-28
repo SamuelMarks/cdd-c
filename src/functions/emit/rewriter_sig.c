@@ -81,8 +81,8 @@ static void parsed_sig_free(struct ParsedSig *sig) {
 /**
  * @brief Join tokens into a string.
  */
-static int join_tokens(const struct TokenList *tokens, size_t start, size_t end,
-                       char **out) {
+static enum cdd_c_error join_tokens(const struct TokenList *tokens,
+                                    size_t start, size_t end, char **out) {
   size_t len = 0;
   size_t i;
   char *buf;
@@ -100,7 +100,7 @@ static int join_tokens(const struct TokenList *tokens, size_t start, size_t end,
   buf = (char *)malloc(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = buf;
@@ -110,27 +110,27 @@ static int join_tokens(const struct TokenList *tokens, size_t start, size_t end,
   }
   *p = '\0';
   *out = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Check if token is a storage class specifier.
  */
-static int is_storage_specifier(const struct Token *tok) {
+static enum cdd_c_error is_storage_specifier(const struct Token *tok) {
   switch (tok->kind) {
   case TOKEN_KEYWORD_STATIC:
   case TOKEN_KEYWORD_EXTERN:
   case TOKEN_KEYWORD_INLINE:
   case TOKEN_KEYWORD_NORETURN:
   case TOKEN_KEYWORD_THREAD_LOCAL:
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   case TOKEN_IDENTIFIER: /* Check extensions like __inline */
     if (tok->length == 8 &&
         strncmp((const char *)tok->start, "__inline", 8) == 0)
-      return 1;
-    return 0;
+      return CDD_C_ERROR_UNKNOWN;
+    return CDD_C_SUCCESS;
   default:
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -143,9 +143,10 @@ static int is_storage_specifier(const struct Token *tok) {
  * @param close Kind of closing token.
  * @return Index of the matching closing token, or tokens->size if not found.
  */
-static int find_balanced_end(const struct TokenList *tokens, size_t start,
-                             enum TokenKind open, enum TokenKind close,
-                             size_t *_out_val) {
+static enum cdd_c_error find_balanced_end(const struct TokenList *tokens,
+                                          size_t start, enum TokenKind open,
+                                          enum TokenKind close,
+                                          size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -160,19 +161,19 @@ static int find_balanced_end(const struct TokenList *tokens, size_t start,
 
   if (depth == 0) {
     *_out_val = i - 1;
-    return 0;
+    return CDD_C_SUCCESS;
   } /* Return index of the closer */
   {
     *_out_val = tokens->size;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
  */
-static int check_is_void(const struct TokenList *tokens, size_t start,
-                         size_t end) {
+static enum cdd_c_error check_is_void(const struct TokenList *tokens,
+                                      size_t start, size_t end) {
   size_t i;
   int saw_void = 0;
 
@@ -183,14 +184,14 @@ static int check_is_void(const struct TokenList *tokens, size_t start,
 
     /* If we see a pointer start ('*') or brackets, it's not void */
     if (tokens->tokens[i].kind == TOKEN_STAR) {
-      return 0;
+      return CDD_C_SUCCESS;
     }
 
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_VOID) {
       saw_void = 1;
     } else if (tokens->tokens[i].kind != TOKEN_WHITESPACE) {
       /* Any token other than void or whitespace implies not simple void */
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   return saw_void;
@@ -199,43 +200,44 @@ static int check_is_void(const struct TokenList *tokens, size_t start,
 /**
  * @brief Convert 'void' args string to empty string, or detect if empty.
  */
-static int args_represent_void(const char *args) {
+static enum cdd_c_error args_represent_void(const char *args) {
   const char *p = args;
   while (*p && isspace((unsigned char)*p))
     p++;
   if (*p == '\0')
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* Check for 'void' */
   if (strncmp(p, "void", 4) == 0) {
     p += 4;
     while (*p && isspace((unsigned char)*p))
       p++;
     if (*p == '\0')
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Check if a range contains meaningful tokens (not just
  * whitespace/comments).
  */
-static int has_meaningful_tokens(const struct TokenList *tokens, size_t start,
-                                 size_t end) {
+static enum cdd_c_error has_meaningful_tokens(const struct TokenList *tokens,
+                                              size_t start, size_t end) {
   size_t i;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind != TOKEN_WHITESPACE &&
         tokens->tokens[i].kind != TOKEN_COMMENT) {
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the rewrite signature operation.
  */
-int rewrite_signature(const struct TokenList *tokens, char **out_code) {
+enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
+                                   char **out_code) {
   struct ParsedSig sig;
   size_t i = 0;
   size_t lparen_idx = 0;
@@ -247,7 +249,7 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
   int rc = 0;
 
   if (!tokens || !out_code)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   parsed_sig_init(&sig);
 
   /* 1. Attributes (C23 [[...]]) */
@@ -345,7 +347,7 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
     }
 
     if (!found) {
-      rc = EINVAL;
+      rc = CDD_C_ERROR_INVALID_ARGUMENT;
       goto cleanup;
     }
   }
@@ -372,7 +374,7 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
     size_t rparen = 0;
     find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN, &rparen);
     if (rparen >= tokens->size) {
-      rc = EINVAL;
+      rc = CDD_C_ERROR_INVALID_ARGUMENT;
       goto cleanup;
     }
     rparen_idx = rparen;
@@ -413,7 +415,7 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
                    strlen(sig.args) + strlen(k_r_suffix) + 20;
       *out_code = malloc(len);
       if (!*out_code) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -488,7 +490,7 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
       }
 
       if (!new_args) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
       }
 

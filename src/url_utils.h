@@ -20,6 +20,7 @@ extern "C" {
 /* clang-format off */
 
 #include <stddef.h>
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -86,9 +87,10 @@ struct OpenAPI_KV {
  * @return Newly allocated string containing the joined value, or NULL on
  * allocation failure.
  */
-extern int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
-                                const char *delim, int allow_reserved,
-                                char **_out_val);
+extern enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs,
+                                             size_t n, const char *delim,
+                                             int allow_reserved,
+                                             char **_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -102,7 +104,7 @@ extern int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern int url_encode(const char *str, char **_out_val);
+extern enum cdd_c_error url_encode(const char *str, char **_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -116,7 +118,8 @@ extern int url_encode(const char *str, char **_out_val);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern int url_encode_allow_reserved(const char *str, char **_out_val);
+extern enum cdd_c_error url_encode_allow_reserved(const char *str,
+                                                  char **_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -129,7 +132,7 @@ extern int url_encode_allow_reserved(const char *str, char **_out_val);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern int url_encode_form(const char *str, char **_out_val);
+extern enum cdd_c_error url_encode_form(const char *str, char **_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -148,7 +151,7 @@ extern /**
         * @brief Executes the url encode form allow reserved
         * operation.
         */
-    int
+    enum cdd_c_error
     url_encode_form_allow_reserved(const char *str, char **_out_val);
 
 /**
@@ -157,7 +160,7 @@ extern /**
  * @param[out] qp The structure to initialize.
  * @return 0 on success, EINVAL if qp is NULL.
  */
-extern int url_query_init(struct UrlQueryParams *qp);
+extern enum cdd_c_error url_query_init(struct UrlQueryParams *qp);
 
 /**
  * @brief Free resources associated with a query parameters container.
@@ -175,8 +178,8 @@ extern void url_query_free(struct UrlQueryParams *qp);
  * @param[in] value The parameter value (will be copied).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern int url_query_add(struct UrlQueryParams *qp, const char *key,
-                         const char *value);
+extern enum cdd_c_error url_query_add(struct UrlQueryParams *qp,
+                                      const char *key, const char *value);
 
 /**
  * @brief Add a key-value pair where the value is already percent-encoded.
@@ -190,8 +193,9 @@ extern int url_query_add(struct UrlQueryParams *qp, const char *key,
  * @param[in] value The parameter value (already encoded, will be copied).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
-                                 const char *value);
+extern enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
+                                              const char *key,
+                                              const char *value);
 
 /**
  * @brief Build the final query string starting with '?'.
@@ -205,7 +209,8 @@ extern int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
  *                     If count is 0, allocates an empty string "".
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern int url_query_build(const struct UrlQueryParams *qp, char **out_str);
+extern enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
+                                        char **out_str);
 
 /**
  * @brief Build a application/x-www-form-urlencoded body string.
@@ -217,8 +222,8 @@ extern int url_query_build(const struct UrlQueryParams *qp, char **out_str);
  *                     If count is 0, allocates an empty string "".
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern int url_query_build_form(const struct UrlQueryParams *qp,
-                                char **out_str);
+extern enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
+                                             char **out_str);
 
 #ifdef __cplusplus
 }

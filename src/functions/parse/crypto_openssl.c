@@ -24,43 +24,43 @@
 /**
  * @brief Executes the crypto sha256 operation.
  */
-int crypto_sha256(const void *data, size_t data_len,
-                  unsigned char *out_digest) {
+enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
+                               unsigned char *out_digest) {
   EVP_MD_CTX *mdctx;
   const EVP_MD *md;
   unsigned int len = 0;
   int rc = 0;
 
   if ((!data && data_len > 0) || !out_digest)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   md = EVP_sha256();
   if (!md)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   mdctx = EVP_MD_CTX_new();
   if (!mdctx) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (EVP_DigestInit_ex(mdctx, md, NULL) != 1) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
   if (EVP_DigestUpdate(mdctx, data, data_len) != 1) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
   if (EVP_DigestFinal_ex(mdctx, out_digest, &len) != 1) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
   if (len != CRYPTO_SHA256_SIZE) {
-    rc = EIO; /* Should not happen for SHA256 */
+    rc = CDD_C_ERROR_IO; /* Should not happen for SHA256 */
   }
 
 cleanup:
@@ -71,12 +71,13 @@ cleanup:
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                       size_t data_len, unsigned char *out_mac) {
+enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
+                                    const void *data, size_t data_len,
+                                    unsigned char *out_mac) {
   unsigned int len = 0;
 
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (key_len == 0) {
@@ -97,7 +98,7 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
      For simplicity in C89/Portable context, standard HMAC is used if avail. */
   if (!HMAC(EVP_sha256(), key, (int)key_len, (const unsigned char *)data,
             data_len, out_mac, &len)) {
-    return EIO;
+    return CDD_C_ERROR_IO;
   }
 #else
   /* OpenSSL 1.1 */
@@ -106,12 +107,12 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
         HMAC(EVP_sha256(), key, (int)key_len, (const unsigned char *)data,
              data_len, out_mac, &len);
     if (!result)
-      return EIO;
+      return CDD_C_ERROR_IO;
   }
 #endif
 
   if (len != CRYPTO_SHA256_SIZE)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

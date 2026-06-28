@@ -260,7 +260,7 @@ TEST test_code2schema_main_bad_args(void) {
   /* code2schema expects 2 args: in out */
   char *argv[] = {"bad"};
   /* Passing 1 args */
-  ASSERT_EQ(EXIT_FAILURE, code2schema_main(1, argv));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, code2schema_main(1, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -271,7 +271,7 @@ TEST test_code2schema_parsing_details(void) {
                                "struct Point {};\n"
                                "struct Line { struct Point p1; };\n";
   ASSERT_EQ(0, write_to_file(argv[0], header_content)); /* Write to in-file */
-  ASSERT_EQ(EXIT_SUCCESS,
+  ASSERT_EQ(CDD_C_SUCCESS,
             code2schema_main(2, argv)); /* Call with 2 args (in, out) */
   remove(argv[0]);
   remove(argv[1]);
@@ -310,7 +310,7 @@ TEST test_code2schema_parse_struct_and_enum(void) {
   trim_trailing(NULL);
 
   rc = code2schema_main(2, argv);
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   remove(filename);
   remove(json);
   g_fail_io_after = -1;
@@ -319,7 +319,7 @@ TEST test_code2schema_parse_struct_and_enum(void) {
 
 TEST test_code2schema_file_not_found(void) {
   char *argv[] = {"no_such_file.h", "out.json"};
-  ASSERT_EQ(EXIT_FAILURE, code2schema_main(2, argv));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, code2schema_main(2, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -336,18 +336,26 @@ TEST test_codegen_enum_null_args(void) {
   enum_members_init(&em_valid);
 
   /* Check that the functions don't crash on NULL/invalid arguments and return
-   * EINVAL */
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(NULL, "E", &em_valid, NULL));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, NULL, &em_valid, NULL));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", em_null, NULL));
+   * CDD_C_ERROR_INVALID_ARGUMENT */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(NULL, "E", &em_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(tmp, NULL, &em_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(tmp, "E", em_null, NULL));
 
   /* em_null_members.members is NULL so this triggers validation check */
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", &em_null_members, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(tmp, "E", &em_null_members, NULL));
 
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(NULL, "E", &em_valid, NULL));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, NULL, &em_valid, NULL));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", em_null, NULL));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", &em_null_members, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(NULL, "E", &em_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(tmp, NULL, &em_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(tmp, "E", em_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(tmp, "E", &em_null_members, NULL));
 
   enum_members_free(&em_valid);
   fclose(tmp);
@@ -460,42 +468,66 @@ TEST test_codegen_struct_null_args(void) {
   struct_fields_init(&sf_valid);
   struct_fields_add(&sf_valid, "field", "string", NULL, NULL, NULL);
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_from_jsonObject_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_from_jsonObject_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_jsonObject_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_from_json_func(NULL, "S", NULL));
-  ASSERT_EQ(EINVAL, write_struct_from_json_func(tmp, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_json_func(tmp, NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_json_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_json_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_json_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_eq_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_eq_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_eq_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_eq_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_cleanup_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_cleanup_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_cleanup_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_default_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_default_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_default_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_deepcopy_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_deepcopy_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_deepcopy_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_display_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_display_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_display_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_display_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "S", &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, NULL, &sf_valid, NULL));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, "S", sf_null, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(tmp, "S", sf_null, NULL));
 
   struct_fields_free(&sf_valid);
   fclose(tmp);
@@ -692,7 +724,7 @@ TEST test_code2schema_make_unique_variant_name(void) {
   val = NULL;
 
   /* sanitize fails due to null inside base but we can't really fail it without
-   * ENOMEM or returning NULL */
+   * CDD_C_ERROR_MEMORY or returning NULL */
   ASSERT_EQ(0, make_unique_variant_name(&sf, NULL, 0, &val));
   ASSERT_STR_EQ("Variant", val);
   free(val);
@@ -736,7 +768,7 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
   JSON_Value *schema_val = json_parse_string("{\"type\": \"string\"}");
   char *val2 = NULL;
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             register_inline_schema_c2s(NULL, NULL, NULL, NULL, NULL, &val));
 
   ASSERT_EQ(0, register_inline_schema_c2s(jo, "test", "var", "suf", schema_val,
@@ -781,7 +813,8 @@ TEST test_code2schema_utils(void) {
   s_src[0] = strdup("foo");
   s_src[1] = strdup("bar");
 
-  ASSERT_EQ(EINVAL, copy_string_array_code2schema(NULL, NULL, NULL, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            copy_string_array_code2schema(NULL, NULL, NULL, 0));
   ASSERT_EQ(0, copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
   ASSERT(s_copied != NULL);
   ASSERT_EQ(2, s_count);

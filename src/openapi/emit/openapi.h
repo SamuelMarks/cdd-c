@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 #include "parson.h"
 /* clang-format on */
@@ -35,7 +36,7 @@ extern "C" {
  * @return 0 on success, EINVAL if inputs are invalid, ENOMEM on allocation
  * failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 openapi_write_spec_to_json(const struct OpenAPI_Spec *spec, char **json_out);
 
 /**
@@ -45,8 +46,8 @@ openapi_write_spec_to_json(const struct OpenAPI_Spec *spec, char **json_out);
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int verb_to_str_openapi(enum OpenAPI_Verb verb,
-                                            char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error verb_to_str_openapi(enum OpenAPI_Verb verb,
+                                                         char **_out_val);
 
 /**
  * @brief Converts parameter in to string.
@@ -55,8 +56,8 @@ extern C_CDD_EXPORT int verb_to_str_openapi(enum OpenAPI_Verb verb,
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int param_in_to_str_openapi(enum OpenAPI_ParamIn in,
-                                                char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error
+param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
 
 /**
  * @brief Converts style to string.
@@ -65,8 +66,8 @@ extern C_CDD_EXPORT int param_in_to_str_openapi(enum OpenAPI_ParamIn in,
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int style_to_str_openapi(enum OpenAPI_Style s,
-                                             char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error style_to_str_openapi(enum OpenAPI_Style s,
+                                                          char **_out_val);
 
 /**
  * @brief Converts xml node type to string.
@@ -75,8 +76,8 @@ extern C_CDD_EXPORT int style_to_str_openapi(enum OpenAPI_Style s,
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
-                                                     char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error
+xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
 
 /**
  * @brief Checks if header name is content type.
@@ -84,7 +85,8 @@ extern C_CDD_EXPORT int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
  * @param name The name.
  * @return 1 if true, 0 otherwise.
  */
-extern C_CDD_EXPORT int header_name_is_content_type_openapi(const char *name);
+extern C_CDD_EXPORT enum cdd_c_error
+header_name_is_content_type_openapi(const char *name);
 
 /**
  * @brief Checks if parameter is a reserved header.
@@ -92,7 +94,7 @@ extern C_CDD_EXPORT int header_name_is_content_type_openapi(const char *name);
  * @param p The parameter.
  * @return 1 if true, 0 otherwise.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
 
 /**
@@ -102,15 +104,15 @@ param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
-                                          char **_out_val);
+extern enum cdd_c_error
+oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
 /**
  * @brief Checks if a schema type is primitive.
  *
  * @param type The schema type string.
  * @return 1 if true, 0 otherwise.
  */
-extern int is_schema_primitive_openapi(const char *type);
+extern enum cdd_c_error is_schema_primitive_openapi(const char *type);
 
 /**
  * @brief Merges extra schema object properties.
@@ -119,8 +121,9 @@ extern int is_schema_primitive_openapi(const char *type);
  * @param extras_json The extra json string.
  * @return 0 on success.
  */
-extern int merge_schema_extras_object_openapi(JSON_Object *target,
-                                              const char *extras_json);
+extern enum cdd_c_error
+merge_schema_extras_object_openapi(JSON_Object *target,
+                                   const char *extras_json);
 
 #ifdef __cplusplus
 }

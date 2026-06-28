@@ -16,9 +16,9 @@
  * @param ir Pointer to IR
  * @return Error code
  */
-int cdd_c_ir_init(cdd_c_ir_t *ir) {
+enum cdd_c_error cdd_c_ir_init(cdd_c_ir_t *ir) {
   if (!ir)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   ir->tables = NULL;
   ir->n_tables = 0;
   ir->capacity_tables = 0;
@@ -26,7 +26,7 @@ int cdd_c_ir_init(cdd_c_ir_t *ir) {
   ir->projections = NULL;
   ir->n_projections = 0;
   ir->capacity_projections = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -35,18 +35,19 @@ int cdd_c_ir_init(cdd_c_ir_t *ir) {
  * @param table Table to add
  * @return Error code
  */
-int cdd_c_ir_add_table(cdd_c_ir_t *ir, const struct sql_table_t *table) {
+enum cdd_c_error cdd_c_ir_add_table(cdd_c_ir_t *ir,
+                                    const struct sql_table_t *table) {
   struct sql_table_t *new_tables;
   size_t new_cap;
   if (!ir || !table)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   if (ir->n_tables >= ir->capacity_tables) {
     new_cap = ir->capacity_tables == 0 ? 4 : ir->capacity_tables * 2;
     new_tables = (struct sql_table_t *)realloc(
         ir->tables, new_cap * sizeof(struct sql_table_t));
     if (!new_tables)
-      return -1;
+      return CDD_C_ERROR_UNKNOWN;
     ir->tables = new_tables;
     ir->capacity_tables = new_cap;
   }
@@ -54,27 +55,28 @@ int cdd_c_ir_add_table(cdd_c_ir_t *ir, const struct sql_table_t *table) {
   ir->tables[ir->n_tables] =
       *table; /* Shallow copy: assumes ownership is transferred */
   ir->n_tables++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int duplicate_projection(cdd_c_query_projection_t *dest,
-                                const cdd_c_query_projection_t *src) {
+static enum cdd_c_error
+duplicate_projection(cdd_c_query_projection_t *dest,
+                     const cdd_c_query_projection_t *src) {
   size_t i;
   if (!dest || !src)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   if (cdd_c_query_projection_init(dest) != 0)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   for (i = 0; i < src->n_fields; ++i) {
     if (cdd_c_query_projection_add_field(dest, &src->fields[i]) != 0) {
       cdd_c_query_projection_free(dest);
-      return -1;
+      return CDD_C_ERROR_UNKNOWN;
     }
   }
   if (src->source_table) {
     dest->source_table = (char *)malloc(strlen(src->source_table) + 1);
     if (!dest->source_table) {
       cdd_c_query_projection_free(dest);
-      return -1;
+      return CDD_C_ERROR_UNKNOWN;
     }
     memcpy(dest->source_table, src->source_table,
            strlen(src->source_table) + 1);
@@ -90,7 +92,7 @@ static int duplicate_projection(cdd_c_query_projection_t *dest,
   } else {
     dest->mapping_meta.target_name = NULL;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -99,38 +101,38 @@ static int duplicate_projection(cdd_c_query_projection_t *dest,
  * @param proj Projection to add
  * @return Error code
  */
-int cdd_c_ir_add_projection(cdd_c_ir_t *ir,
-                            const cdd_c_query_projection_t *proj) {
+enum cdd_c_error cdd_c_ir_add_projection(cdd_c_ir_t *ir,
+                                         const cdd_c_query_projection_t *proj) {
   cdd_c_query_projection_t *new_projs;
   size_t new_cap;
   if (!ir || !proj)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   if (ir->n_projections >= ir->capacity_projections) {
     new_cap = ir->capacity_projections == 0 ? 4 : ir->capacity_projections * 2;
     new_projs = (cdd_c_query_projection_t *)realloc(
         ir->projections, new_cap * sizeof(cdd_c_query_projection_t));
     if (!new_projs)
-      return -1;
+      return CDD_C_ERROR_UNKNOWN;
     ir->projections = new_projs;
     ir->capacity_projections = new_cap;
   }
 
   if (duplicate_projection(&ir->projections[ir->n_projections], proj) != 0)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   ir->n_projections++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Free IR.
  * @param ir Pointer to IR
  */
-int cdd_c_ir_free(cdd_c_ir_t *ir) {
+enum cdd_c_error cdd_c_ir_free(cdd_c_ir_t *ir) {
   size_t i;
   if (!ir)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   for (i = 0; i < ir->n_tables; ++i) {
     sql_table_free(&ir->tables[i]);
@@ -151,7 +153,7 @@ int cdd_c_ir_free(cdd_c_ir_t *ir) {
   ir->projections = NULL;
   ir->n_projections = 0;
   ir->capacity_projections = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -160,7 +162,7 @@ int cdd_c_ir_free(cdd_c_ir_t *ir) {
  * @param out_ir Output IR
  * @return Error code
  */
-int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
+enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   struct sql_token_list_t *list = NULL;
   struct sql_table_t *table = NULL;
   cdd_c_query_projection_t *proj = NULL;
@@ -173,7 +175,7 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   int in_select = 0;
 
   if (!sql_data || !out_ir)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   span = az_span_create_from_str((char *)sql_data);
   rc = sql_lex(span, &list);
@@ -235,5 +237,5 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   }
 
   sql_token_list_free(list);
-  return 0;
+  return CDD_C_SUCCESS;
 }

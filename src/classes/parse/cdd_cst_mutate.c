@@ -7,65 +7,69 @@
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-int find_child_index_mutate(cdd_cst_node_t *parent, cdd_cst_node_t *child,
-                            size_t *out_index) {
+enum cdd_c_error find_child_index_mutate(cdd_cst_node_t *parent,
+                                         cdd_cst_node_t *child,
+                                         size_t *out_index) {
   size_t i;
   if (!parent || !child)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < parent->num_children; i++) {
     if (parent->children[i].kind == CDD_CST_CHILD_NODE &&
         parent->children[i].val.node == child) {
       *out_index = i;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-int find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token) {
+enum cdd_c_error find_first_token_mutate(cdd_cst_node_t *node,
+                                         cdd_token_t **out_token) {
   size_t i;
   if (!node || !out_token)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_token = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_token = node->children[i].val.token;
-      return 0;
+      return CDD_C_SUCCESS;
     } else {
       cdd_token_t *t = NULL;
       if (find_first_token_mutate(node->children[i].val.node, &t) == 0) {
         *out_token = t;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-static int find_last_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_tok) {
+static enum cdd_c_error find_last_token_mutate(cdd_cst_node_t *node,
+                                               cdd_token_t **out_tok) {
   size_t i;
   *out_tok = NULL;
   for (i = node->num_children; i > 0; i--) {
     size_t idx = i - 1;
     if (node->children[idx].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[idx].val.token;
-      return 0;
+      return CDD_C_SUCCESS;
     } else {
       cdd_token_t *t = NULL;
       if (find_last_token_mutate(node->children[idx].val.node, &t) == 0) {
         *out_tok = t;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-int clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
+enum cdd_c_error clone_trivia_list_mutate(cdd_trivia_t *head,
+                                          cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
   if (!out_trivia)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
   while (head) {
     cdd_trivia_t *t;
@@ -84,7 +88,7 @@ int clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
         new_head = new_head->next;
         free(tmp);
       }
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     t->kind = head->kind;
     t->start = head->start;
@@ -99,10 +103,11 @@ int clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
     head = head->next;
   }
   *out_trivia = new_head;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int track_synthesized_token_mutate(cdd_cst_tree_t *tree, cdd_token_t *tok) {
+enum cdd_c_error track_synthesized_token_mutate(cdd_cst_tree_t *tree,
+                                                cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
     size_t new_cap =
         tree->synthesized_capacity == 0 ? 16 : tree->synthesized_capacity * 2;
@@ -117,27 +122,29 @@ int track_synthesized_token_mutate(cdd_cst_tree_t *tree, cdd_token_t *tok) {
                                         new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     tree->synthesized_tokens = new_arr;
     tree->synthesized_capacity = new_cap;
   }
   tree->synthesized_tokens[tree->num_synthesized++] = tok;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
-                         cdd_cst_node_t *new_node) {
+enum cdd_c_error cdd_cst_replace_node(cdd_cst_tree_t *tree,
+                                      cdd_cst_node_t *old_node,
+                                      cdd_cst_node_t *new_node) {
   cdd_cst_node_t *parent;
   size_t idx;
   int rc;
   cdd_token_t *old_first, *old_last, *new_first, *new_last;
 
   if (!tree || !old_node || !new_node)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   parent = old_node->parent;
   if (!parent)
-    return EINVAL; /* Cannot replace root directly this way */
+    return CDD_C_ERROR_INVALID_ARGUMENT; /* Cannot replace root directly this
+                                            way */
 
   rc = find_child_index_mutate(parent, old_node, &idx);
   if (rc != 0)
@@ -170,13 +177,14 @@ int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
   /* Note: old_node is NOT freed here. Caller's responsibility if they want to
    * discard it. */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
-                                 cdd_cst_node_t *new_node) {
+enum cdd_c_error cdd_cst_insert_child_node_at(cdd_cst_node_t *parent,
+                                              size_t idx,
+                                              cdd_cst_node_t *new_node) {
   if (!parent || !new_node || idx > parent->num_children)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
@@ -191,7 +199,7 @@ int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
                                            new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
     parent->capacity = new_cap;
@@ -207,15 +215,15 @@ int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
   new_node->parent = parent;
   parent->num_children++;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
-                               cdd_cst_node_t *new_node) {
+enum cdd_c_error cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
+                                            cdd_cst_node_t *new_node) {
   size_t idx;
   int rc;
   if (!target_node || !new_node || !target_node->parent)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = find_child_index_mutate(target_node->parent, target_node, &idx);
   if (rc != 0)
@@ -224,12 +232,12 @@ int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx, new_node);
 }
 
-int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
-                              cdd_cst_node_t *new_node) {
+enum cdd_c_error cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
+                                           cdd_cst_node_t *new_node) {
   size_t idx;
   int rc;
   if (!target_node || !new_node || !target_node->parent)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = find_child_index_mutate(target_node->parent, target_node, &idx);
   if (rc != 0)
@@ -238,14 +246,15 @@ int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
   return cdd_cst_insert_child_node_at(target_node->parent, idx + 1, new_node);
 }
 
-int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
+enum cdd_c_error cdd_cst_detach_node(cdd_cst_tree_t *tree,
+                                     cdd_cst_node_t *node) {
   size_t idx;
   int rc;
   cdd_cst_node_t *parent;
   cdd_token_t *first_tok = NULL, *last_tok = NULL;
 
   if (!tree || !node || !node->parent)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   parent = node->parent;
 
   rc = find_child_index_mutate(parent, node, &idx);
@@ -275,17 +284,17 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
 
   node->parent = NULL; /* explicitly detach */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
-                       cdd_cst_node_t **out_clone) {
+enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
+                                    cdd_cst_node_t **out_clone) {
   cdd_cst_node_t *clone;
   size_t i;
   int rc;
 
   if (!tree || !root || !out_clone)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -300,7 +309,7 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
 #endif
   if (!clone) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   clone->kind = root->kind;
@@ -321,7 +330,7 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
 #endif
     if (!clone->children) {
       free(clone);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     for (i = 0; i < root->num_children; i++) {
@@ -336,7 +345,7 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
 #endif
           new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
         if (!new_tok) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto err;
         }
 
@@ -370,7 +379,7 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   }
 
   *out_clone = clone;
-  return 0;
+  return CDD_C_SUCCESS;
 
 err:
   /* Free partially constructed clone (this implementation is rough and might
@@ -381,25 +390,25 @@ err:
   return rc;
 }
 
-int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
+enum cdd_c_error cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
   size_t i;
   if (!node || idx >= node->num_children)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = idx; i + 1 < node->num_children; i++) {
     node->children[i] = node->children[i + 1];
   }
   node->num_children--;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
-                                cdd_token_t *new_tok) {
+enum cdd_c_error cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
+                                             cdd_token_t *new_tok) {
   if (!node || idx >= node->num_children || !new_tok)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (node->children[idx].kind != CDD_CST_CHILD_TOKEN)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   node->children[idx].val.token = new_tok;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

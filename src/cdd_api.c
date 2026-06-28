@@ -61,7 +61,8 @@ C_CDD_EXPORT int g_cdd_mock_dlopen_success = 0;
 
 #define MAX_ARGS 32
 
-int cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
+enum cdd_c_error
+cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   char *argv[MAX_ARGS];
   int argc = 0;
 
@@ -101,7 +102,8 @@ int cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   return from_openapi_cli_main(argc, argv);
 }
 
-int cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
+enum cdd_c_error
+cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   char *argv[MAX_ARGS];
   int argc = 0;
 
@@ -120,7 +122,7 @@ int cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
   return to_openapi_cli_main(argc, argv);
 }
 
-int cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
+enum cdd_c_error cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   char *argv[MAX_ARGS];
   int argc = 0;
 
@@ -147,7 +149,7 @@ int cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
   return to_docs_json_cli_main(argc, argv);
 }
 
-int cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
+enum cdd_c_error cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
   char *argv[MAX_ARGS];
   int argc = 0;
   char port_str[32];
@@ -173,7 +175,8 @@ int cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
 /**
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  */
-int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   cdd_ffi_ir_t *ir = NULL;
   int rc;
 
@@ -182,7 +185,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   if (!config || !config->input || !config->output_dir ||
       !config->target_langs) {
-    return 1; /* EINVAL */
+    return CDD_C_ERROR_UNKNOWN; /* EINVAL */
   }
 
   /* Read file to string */
@@ -670,5 +673,5 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   free(ir);
   free(file_content);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

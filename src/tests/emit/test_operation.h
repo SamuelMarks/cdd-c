@@ -19,12 +19,19 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 TEST test_operation_is_reserved_header_name(void) {
-  ASSERT_EQ(0, is_reserved_header_name(NULL));
-  ASSERT_EQ(0, is_reserved_header_name(""));
-  ASSERT_EQ(1, is_reserved_header_name("accept"));
-  ASSERT_EQ(1, is_reserved_header_name("Content-Type"));
-  ASSERT_EQ(1, is_reserved_header_name("Authorization"));
-  ASSERT_EQ(0, is_reserved_header_name("X-Custom"));
+  int out = -1;
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name(NULL, &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("", &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("accept", &out));
+  ASSERT_EQ(1, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("Content-Type", &out));
+  ASSERT_EQ(1, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("Authorization", &out));
+  ASSERT_EQ(1, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("X-Custom", &out));
+  ASSERT_EQ(0, out);
   g_fail_io_after = -1;
   PASS();
 }
@@ -77,7 +84,7 @@ TEST test_operation_any_from_json_value(void) {
   JSON_Value *jv = NULL;
 
   /* NULL */
-  ASSERT_EQ(EINVAL, any_from_json_value(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, any_from_json_value(NULL, NULL));
   ASSERT_EQ(0, any_from_json_value(NULL, &out));
 
   /* Types */
@@ -126,10 +133,12 @@ TEST test_operation_parse_link_params_json(void) {
   ASSERT_EQ(0, count);
 
   /* Invalid JSON */
-  ASSERT_EQ(EINVAL, parse_link_params_json("{invalid", &out, &count));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_link_params_json("{invalid", &out, &count));
 
   /* Not object */
-  ASSERT_EQ(EINVAL, parse_link_params_json("\"string\"", &out, &count));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_link_params_json("\"string\"", &out, &count));
 
   /* Empty object */
   ASSERT_EQ(0, parse_link_params_json("{}", &out, &count));
@@ -199,7 +208,8 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   src.variables = (struct DocServerVar *)calloc(1, sizeof(struct DocServerVar));
 
   /* Missing name/default */
-  ASSERT_EQ(EINVAL, copy_doc_server_variables_op(&dst, &src));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            copy_doc_server_variables_op(&dst, &src));
 
   src.variables[0].name = "name";
   src.variables[0].default_value = "def";
@@ -223,7 +233,8 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   /* Test validation for default_value in enum */
   free(src.variables[0].enum_values[1]);
   src.variables[0].enum_values[1] = strdup("e2"); /* removed "def" */
-  ASSERT_EQ(EINVAL, copy_doc_server_variables_op(&dst, &src));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            copy_doc_server_variables_op(&dst, &src));
 
   free(src.variables[0].enum_values[0]);
   free(src.variables[0].enum_values[1]);
@@ -409,8 +420,8 @@ TEST test_operation_add_header_to_response(void) {
   memset(&dh, 0, sizeof(dh));
 
   /* NULLs */
-  ASSERT_EQ(EINVAL, add_header_to_response(NULL, NULL));
-  ASSERT_EQ(EINVAL, add_header_to_response(&resp, &dh));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(&resp, &dh));
 
   dh.name = "X-Test";
   dh.description = "Test header";
@@ -463,15 +474,15 @@ TEST test_operation_add_link_to_response(void) {
   memset(&dl, 0, sizeof(dl));
 
   /* NULLs */
-  ASSERT_EQ(EINVAL, add_link_to_response(NULL, NULL));
-  ASSERT_EQ(EINVAL, add_link_to_response(&resp, &dl));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
   dl.name = "MyLink";
 
   /* Must have EXACTLY one of opId or opRef */
-  ASSERT_EQ(EINVAL, add_link_to_response(&resp, &dl));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
   dl.operation_id = "opId";
   dl.operation_ref = "opRef";
-  ASSERT_EQ(EINVAL, add_link_to_response(&resp, &dl));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
 
   dl.operation_ref = NULL;
 
@@ -492,7 +503,7 @@ TEST test_operation_add_link_to_response(void) {
   ASSERT_EQ(OA_ANY_JSON, resp.links[0].request_body.type);
 
   /* Attempt duplicate */
-  ASSERT_EQ(EINVAL, add_link_to_response(&resp, &dl));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
   ASSERT_EQ(1, resp.n_links);
 
   /* clean up */
@@ -583,20 +594,26 @@ TEST test_operation_copy_schema_ref_basic(void) {
 
 TEST test_operation_response_has_media_type(void) {
   struct OpenAPI_Response resp;
+  int out = -1;
   memset(&resp, 0, sizeof(resp));
 
   /* NULLs */
-  ASSERT_EQ(0, response_has_media_type(NULL, "test"));
-  ASSERT_EQ(0, response_has_media_type(&resp, NULL));
-  ASSERT_EQ(0, response_has_media_type(&resp, "test"));
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(NULL, "test", &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, NULL, &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test", &out));
+  ASSERT_EQ(0, out);
 
   resp.n_content_media_types = 1;
   resp.content_media_types =
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
   resp.content_media_types[0].name = "test";
 
-  ASSERT_EQ(1, response_has_media_type(&resp, "test"));
-  ASSERT_EQ(0, response_has_media_type(&resp, "test2"));
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test", &out));
+  ASSERT_EQ(1, out);
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test2", &out));
+  ASSERT_EQ(0, out);
 
   free(resp.content_media_types);
   g_fail_io_after = -1;
@@ -606,14 +623,22 @@ TEST test_operation_response_has_media_type(void) {
 TEST test_operation_is_struct_pointer(void) {
   int is_dp = 0;
 
-  ASSERT_EQ(0, is_struct_pointer(NULL, &is_dp));
-  ASSERT_EQ(0, is_struct_pointer("int *", &is_dp));
-  ASSERT_EQ(0, is_struct_pointer("struct MyStruct", &is_dp));
+  int out = -1;
+  ASSERT_EQ(CDD_C_SUCCESS, is_struct_pointer(NULL, &is_dp, &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_struct_pointer("int *", &is_dp, &out));
+  ASSERT_EQ(0, out);
+  ASSERT_EQ(CDD_C_SUCCESS, is_struct_pointer("struct MyStruct", &is_dp, &out));
+  ASSERT_EQ(0, out);
 
-  ASSERT_EQ(1, is_struct_pointer("struct MyStruct *", &is_dp));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            is_struct_pointer("struct MyStruct *", &is_dp, &out));
+  ASSERT_EQ(1, out);
   ASSERT_EQ(0, is_dp);
 
-  ASSERT_EQ(1, is_struct_pointer("struct MyStruct **", &is_dp));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            is_struct_pointer("struct MyStruct **", &is_dp, &out));
+  ASSERT_EQ(1, out);
   ASSERT_EQ(1, is_dp);
   g_fail_io_after = -1;
 

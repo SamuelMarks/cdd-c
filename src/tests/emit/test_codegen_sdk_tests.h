@@ -95,7 +95,8 @@ TEST test_gen_sdk_test_basic(void) {
 }
 
 TEST test_gen_sdk_test_nulls(void) {
-  ASSERT_EQ(EINVAL, codegen_sdk_tests_generate(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_sdk_tests_generate(NULL, NULL, NULL));
   g_fail_io_after = -1;
   PASS();
 }

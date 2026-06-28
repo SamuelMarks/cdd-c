@@ -20,6 +20,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
@@ -70,7 +71,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the scan for mixed declarations
                      * operation.
                      */
-    int
+    enum cdd_c_error
     scan_for_mixed_declarations(const struct TokenList *tokens,
                                 struct HoistSiteList *list);
 

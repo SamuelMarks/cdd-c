@@ -15,6 +15,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -49,7 +50,7 @@ struct MakeConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen make generate.
                      */
-    int
+    enum cdd_c_error
     codegen_make_generate(FILE *fp, const struct MakeConfig *config);
 
 #ifdef __cplusplus

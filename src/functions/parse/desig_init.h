@@ -18,6 +18,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
@@ -65,7 +66,7 @@ extern C_CDD_EXPORT void desig_init_list_free(struct DesigInitList *list);
  * @param[out] list The initialized list to populate.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 scan_for_designated_initializers(const struct TokenList *tokens,
                                  struct DesigInitList *list);
 

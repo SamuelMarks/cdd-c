@@ -98,8 +98,9 @@ static void map_scheme_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   }
 }
 
-int cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
-                        const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
+                    const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name;
@@ -114,7 +115,7 @@ int cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   char ret_type_str[256];
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -124,14 +125,14 @@ int cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ss", config->output_dir,
                scheme_lib_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ss", config->output_dir,
                scheme_lib_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -215,5 +216,5 @@ int cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
 
   fprintf(f, ")\n");
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }

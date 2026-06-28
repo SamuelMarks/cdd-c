@@ -53,8 +53,9 @@ static const char *map_ada_type(cdd_ffi_type_t *t) {
   }
 }
 
-int cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
-                     const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
+                 const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   FILE *gpr_f = NULL;
   char filepath[1024];
@@ -67,7 +68,7 @@ int cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   int is_void;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -77,27 +78,27 @@ int cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ads", config->output_dir,
                module_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(gpr_filepath, sizeof(gpr_filepath), "%s\\%s.gpr",
                config->output_dir, lib_name);
   if (fopen_s(&gpr_f, gpr_filepath, "w") != 0) {
     fclose(f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ads", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(gpr_filepath, sizeof(gpr_filepath), "%s/%s.gpr",
                config->output_dir, lib_name);
   gpr_f = fopen(gpr_filepath, "w");
   if (!gpr_f) {
     fclose(f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -191,5 +192,5 @@ int cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   fprintf(gpr_f, "end %s;\n", lib_name);
   fclose(gpr_f);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

@@ -32,8 +32,8 @@ C_CDD_EXPORT int g_extern_c_top_node_fail = 0;
 C_CDD_EXPORT int g_extern_c_bot_node_fail = 0;
 #endif
 
-int cdd_transform_extern_c(cdd_cst_tree_t *tree,
-                           const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
+                                        const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
@@ -42,7 +42,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Check if __cplusplus is already checked */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
@@ -69,7 +69,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
   }
 
   if (found_cpp)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* 2. Find insertion boundary: After #includes and comments, before C
    * declarations */
@@ -103,7 +103,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       if (g_extern_c_top_node_fail)
         bld.error_state = 1;
 #endif
-      if (!cdd_cst_builder_has_error(&bld)) {
+      if (bld.error_state == 0) {
         if (insert_after_node) {
           cdd_cst_insert_node_after(insert_after_node, top_node);
         } else if (tree->root->num_children > 0) {
@@ -133,7 +133,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       if (g_extern_c_bot_node_fail)
         bld.error_state = 1;
 #endif
-      if (!cdd_cst_builder_has_error(&bld)) {
+      if (bld.error_state == 0) {
         if (tree->root->num_children > 0) {
           if (tree->root->children[tree->root->num_children - 1].kind ==
                   CDD_CST_CHILD_TOKEN &&
@@ -155,5 +155,5 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

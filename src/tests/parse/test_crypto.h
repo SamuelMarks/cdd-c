@@ -20,6 +20,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>
@@ -56,9 +57,9 @@ static void bin2hex(const unsigned char *bin, size_t len, char *out) {
  *
  * @return 1 if supported, 0 otherwise.
  */
-static int is_crypto_supported(void) {
+static enum cdd_c_error is_crypto_supported(void) {
   unsigned char buf[CRYPTO_SHA256_SIZE];
-  if (crypto_sha256("test", 4, buf) == ENOSYS) {
+  if (crypto_sha256("test", 4, buf) == CDD_C_ERROR_SYSTEM) {
     return 0;
   }
   return 1;
@@ -82,7 +83,7 @@ TEST test_sha256_empty_string(void) {
     SKIPm("Crypto backend not compiled");
 
   ASSERT_EQ(0, crypto_sha256(NULL, 0, digest));
-  ASSERT_EQ(EINVAL, crypto_sha256("", 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256("", 0, NULL));
 
   ASSERT_EQ(0, crypto_sha256("", 0, digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
@@ -133,9 +134,11 @@ TEST test_hmac_rfc4231_case1(void) {
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
 
-  ASSERT_EQ(EINVAL, crypto_hmac_sha256(NULL, 1, data, strlen(data), mac));
-  ASSERT_EQ(EINVAL, crypto_hmac_sha256(key, sizeof(key), NULL, 1, mac));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(NULL, 1, data, strlen(data), mac));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(key, sizeof(key), NULL, 1, mac));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             crypto_hmac_sha256(key, sizeof(key), data, strlen(data), NULL));
 
   memset(key, 0x0b, sizeof(key));
@@ -185,15 +188,17 @@ TEST test_hmac_empty_keys_or_data(void) {
     SKIPm("Crypto backend not compiled");
 
   /* Null Output */
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             crypto_hmac_sha256(key, strlen(key), data, strlen(data), NULL));
 
   /* Null Key logic varies by backend, but if key_len > 0 and key is null,
-   * EINVAL */
-  ASSERT_EQ(EINVAL, crypto_hmac_sha256(NULL, 5, data, strlen(data), mac));
+   * CDD_C_ERROR_INVALID_ARGUMENT */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(NULL, 5, data, strlen(data), mac));
 
   /* Null Data logic with len > 0 */
-  ASSERT_EQ(EINVAL, crypto_hmac_sha256(key, strlen(key), NULL, 5, mac));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(key, strlen(key), NULL, 5, mac));
 
   /* Valid empty data -> HMAC should run on empty buffer */
   ASSERT_EQ(0, crypto_hmac_sha256(key, strlen(key), "", 0, mac));

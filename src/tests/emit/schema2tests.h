@@ -13,6 +13,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <c_cdd_export.h>
 /* clang-format on */
 
@@ -24,7 +25,8 @@ extern "C" {
  * argv[2]=output_test_file.
  * @return 0 on success, non-zero code on failure.
  */
-extern C_CDD_EXPORT int jsonschema2tests_main(int argc, char **argv);
+extern C_CDD_EXPORT enum cdd_c_error jsonschema2tests_main(int argc,
+                                                           char **argv);
 
 #ifdef __cplusplus
 }

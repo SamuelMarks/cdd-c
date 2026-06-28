@@ -18,7 +18,8 @@ TEST test_cdd_transform_percolate_errors(void) {
                      "int non_void_func() { return 1; }\n";
   cdd_transform_config_t config = {0, 2, 0};
 
-  ASSERT_EQ(EINVAL, cdd_transform_percolate_errors(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
@@ -136,7 +137,8 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
       "void skip_ident_100() { int x; void * x(int y, ...) { return NULL; } ";
   cdd_transform_config_t config = {0, 2, 0};
 
-  ASSERT_EQ(EINVAL, cdd_transform_percolate_errors(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
@@ -156,7 +158,8 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
                      "void skip_ident_2() { int x; void x; }\n";
   cdd_transform_config_t config = {0, 2, 0};
 
-  ASSERT_EQ(EINVAL, cdd_transform_percolate_errors(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));

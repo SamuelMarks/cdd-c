@@ -40,26 +40,26 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #endif
 
-int write_forward_decl(FILE *fp, const char *struct_name) {
+enum cdd_c_error write_forward_decl(FILE *fp, const char *struct_name) {
   if (!fp || !struct_name) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (FPRINTF_HOOK(fp, "struct %s;\n", struct_name) < 0) {
-    return EIO;
+    return CDD_C_ERROR_IO;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int write_enum_declaration_h(FILE *hfile, const char *enum_name,
-                             const struct StructFields *sf,
-                             const struct CodegenConfig *config) {
+enum cdd_c_error write_enum_declaration_h(FILE *hfile, const char *enum_name,
+                                          const struct StructFields *sf,
+                                          const struct CodegenConfig *config) {
   size_t i;
   if (!hfile || !enum_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   CHECK_IO(FPRINTF_HOOK(hfile, "enum %s {\n", enum_name));
   CHECK_IO(FPRINTF_HOOK(hfile, "  %s_UNKNOWN = 0,\n", enum_name));
@@ -84,17 +84,17 @@ int write_enum_declaration_h(FILE *hfile, const char *enum_name,
   if (config && config->enum_guard)
     CHECK_IO(FPRINTF_HOOK(hfile, "#endif\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
-int write_union_declaration_h(FILE *hfile, const char *union_name,
-                              const struct StructFields *sf,
-                              const struct CodegenConfig *config) {
+enum cdd_c_error write_union_declaration_h(FILE *hfile, const char *union_name,
+                                           const struct StructFields *sf,
+                                           const struct CodegenConfig *config) {
   char *_ast_get_type_from_ref_0 = NULL;
   char *_ast_get_type_from_ref_1 = NULL;
   char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   if (!hfile || !union_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   CHECK_IO(FPRINTF_HOOK(hfile, "enum %s_tag {\n", union_name));
   CHECK_IO(FPRINTF_HOOK(hfile, "  %s_UNKNOWN = 0,\n", union_name));
@@ -172,18 +172,19 @@ int write_union_declaration_h(FILE *hfile, const char *union_name,
   if (config && config->utils_guard)
     CHECK_IO(FPRINTF_HOOK(hfile, "#endif\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
-int write_struct_declaration_h(FILE *hfile, const char *struct_name,
-                               const struct StructFields *sf,
-                               const struct CodegenConfig *config) {
+enum cdd_c_error
+write_struct_declaration_h(FILE *hfile, const char *struct_name,
+                           const struct StructFields *sf,
+                           const struct CodegenConfig *config) {
   char *_ast_get_type_from_ref_3 = NULL;
   char *_ast_get_type_from_ref_4 = NULL;
   char *_ast_get_type_from_ref_5 = NULL;
   size_t i;
 
   if (!hfile || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (0) {
     CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef CDD_C_OMIT_OAUTH2_STRUCT\n"));
@@ -306,7 +307,7 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
   if (config && config->utils_guard)
     CHECK_IO(FPRINTF_HOOK(hfile, "#endif\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

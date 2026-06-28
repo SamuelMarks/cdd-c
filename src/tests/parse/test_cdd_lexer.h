@@ -86,7 +86,8 @@ TEST test_cdd_lexer_trivia_only(void) {
  * @return TEST
  */
 TEST test_cdd_lexer_errors(void) {
-  ASSERT_EQ(EINVAL, cdd_lexer_tokenize(az_span_create_from_str(""), NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_lexer_tokenize(az_span_create_from_str(""), NULL));
   cdd_lexer_free_token_list(NULL);
   g_fail_io_after = -1;
 
@@ -270,7 +271,7 @@ TEST test_cdd_lexer_oom(void) {
   g_cdd_cst_alloc_token_fail = 1;
   rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
-  ASSERT_EQ(ENOMEM, rc_t5);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
   if (tl)
     cdd_lexer_free_token_list(tl);
   tl = NULL;
@@ -286,7 +287,7 @@ TEST test_cdd_lexer_oom(void) {
           "92 93 94 95 96 97 98 99"),
       &tl);
   g_cdd_cst_alloc_token_fail = 0;
-  ASSERT_EQ(ENOMEM, rc_t4);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t4);
   if (tl)
     cdd_lexer_free_token_list(tl);
   tl = NULL;

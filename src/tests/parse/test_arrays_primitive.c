@@ -125,7 +125,7 @@ TEST test_code2schema_array_detection(void) {
 
 #include "classes/parse/code2schema.h"
     /* clang-format on */
-    ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
+    ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 
 /* Read JSON output */
@@ -193,7 +193,7 @@ SUITE(arrays_primitive_suite) {
   RUN_TEST(test_code2schema_array_detection);
 }
 
-int main(int argc, char **argv) {
+enum cdd_c_error main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(arrays_primitive_suite);
   GREATEST_MAIN_END();

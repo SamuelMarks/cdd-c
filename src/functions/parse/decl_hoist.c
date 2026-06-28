@@ -43,9 +43,10 @@ void hoist_site_list_free(struct HoistSiteList *list) {
  * @brief Checks if a token kind is a basic type keyword.
  *
  */
-static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
+static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
+                                              int *out_is_basic) {
   if (!out_is_basic)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
@@ -58,9 +59,9 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   case TOKEN_KEYWORD_UNSIGNED:
   case TOKEN_KEYWORD_VOID:
     *out_is_basic = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   default:
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -71,15 +72,15 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
  * statements within the same block (not strictly conforming to C89/C90).
  *
  */
-int scan_for_mixed_declarations(const struct TokenList *tokens,
-                                struct HoistSiteList *list) {
+enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
+                                             struct HoistSiteList *list) {
   size_t i = 0;
   size_t current_block_start = 0;
   int has_seen_statement_in_block = 0;
   size_t depth = 0;
 
   if (!tokens || !list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   while (i < tokens->size) {
     size_t stmt_start = i;
@@ -170,7 +171,7 @@ int scan_for_mixed_declarations(const struct TokenList *tokens,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

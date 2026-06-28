@@ -109,7 +109,7 @@ TEST test_c2openapi_full_flow(void) {
     argv[4] = out_json;
 
     rc = c2openapi_cli_main(5, argv);
-    ASSERT_EQ(EXIT_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
   /* 4. Verify JSON */
@@ -311,7 +311,7 @@ TEST test_c2openapi_with_base_spec(void) {
     argv[3] = src_dir;
     argv[4] = out_json;
     rc = c2openapi_cli_main(5, argv);
-    ASSERT_EQ(EXIT_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
   {
@@ -400,7 +400,7 @@ TEST test_c2openapi_with_self_uri(void) {
     argv[3] = src_dir;
     argv[4] = out_json;
     rc = c2openapi_cli_main(5, argv);
-    ASSERT_EQ(EXIT_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
   {
@@ -463,7 +463,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     argv[1] = src_dir;
     argv[2] = out_json;
     rc = c2openapi_cli_main(3, argv);
-    ASSERT_EQ(EXIT_SUCCESS, rc);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
   }
 
   {

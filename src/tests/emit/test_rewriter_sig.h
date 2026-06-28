@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,7 @@ extern "C" {
  * @brief Helper to run rewrite_signature on a string input and verify against
  * expectation.
  */
-static int test_rewrite(const char *input, const char *expected) {
+static enum cdd_c_error test_rewrite(const char *input, const char *expected) {
   struct TokenList *tl = NULL;
   char *output = NULL;
   int rc;
@@ -182,8 +183,8 @@ TEST test_rewrite_with_const(void) {
 TEST test_rewrite_invalid_input(void) {
   struct TokenList tmpl = {0};
   char *out = NULL;
-  ASSERT_EQ(EINVAL, rewrite_signature(NULL, &out));
-  ASSERT_EQ(EINVAL, rewrite_signature(&tmpl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rewrite_signature(NULL, &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rewrite_signature(&tmpl, NULL));
   g_fail_io_after = -1;
   PASS();
 }

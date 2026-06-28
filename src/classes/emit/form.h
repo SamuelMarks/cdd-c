@@ -13,6 +13,7 @@ extern "C" {
 /* clang-format off */
 #include <stdio.h>
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/struct.h"
 /* clang-format on */
 
@@ -23,7 +24,7 @@ extern "C" {
  * @param sf Struct fields list.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
                                      const struct StructFields *sf);
 

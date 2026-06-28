@@ -22,27 +22,28 @@
  * @param new_children_count Count of new children.
  * @return 0 on success.
  */
-int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
-                            size_t start_idx, size_t consume_count,
-                            cdd_cst_child_t *new_children,
-                            size_t new_children_count) {
+enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
+                                         cdd_cst_node_t **node_ptr,
+                                         size_t start_idx, size_t consume_count,
+                                         cdd_cst_child_t *new_children,
+                                         size_t new_children_count) {
   cdd_cst_node_t *node = node_ptr ? *node_ptr : NULL;
   cdd_cst_node_t *new_node = NULL;
   size_t i;
   int rc;
   if (!tree || !node)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* If start_idx + consume_count goes beyond bounds, clamp or fail. We'll fail
    * safely */
   if (start_idx + consume_count > node->num_children) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cdd_cst_alloc_node(node->kind, &new_node);
   if (!new_node) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   for (i = 0; i < start_idx; i++) {
@@ -94,29 +95,30 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
  * @param out_node Output node.
  * @return 0 on success.
  */
-int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
-                                size_t *out_idx, cdd_cst_node_t **out_node) {
+enum cdd_c_error cdd_cst_find_node_for_token(cdd_cst_node_t *root,
+                                             cdd_token_t *tok, size_t *out_idx,
+                                             cdd_cst_node_t **out_node) {
   size_t i;
   if (!out_node)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_node = NULL;
   if (!root || !tok || !out_idx)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < root->num_children; i++) {
     if (root->children[i].kind == CDD_CST_CHILD_TOKEN &&
         root->children[i].val.token == tok) {
       *out_idx = i;
       *out_node = root;
-      return 0;
+      return CDD_C_SUCCESS;
     } else if (root->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *found = NULL;
       if (cdd_cst_find_node_for_token(root->children[i].val.node, tok, out_idx,
                                       &found) == 0) {
         *out_node = found;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }

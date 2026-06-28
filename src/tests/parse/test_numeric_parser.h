@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -21,7 +22,9 @@ extern "C" {
 /* clang-format on */
 
 /* Helper to check float equality with epsilon */
-static int dbl_eq(double a, double b) { return fabs(a - b) < 1e-9; }
+static enum cdd_c_error dbl_eq(double a, double b) {
+  return fabs(a - b) < 1e-9;
+}
 
 /**
  * @brief test_parse_dec_int
@@ -60,13 +63,13 @@ TEST test_parse_hex_int(void) {
   ASSERT_EQ(0, parse_numeric_literal("0x1p-5", &nv));
   ASSERT_EQ(0, parse_numeric_literal("0X1P+5", &nv));
 #endif
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1e*", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1e*", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("e5", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("p5", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("e5", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("p5", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("0x1p*", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1e-5*", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0x1p*", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1e-5*", &nv));
   g_fail_io_after = -1;
 
   PASS();
@@ -217,31 +220,32 @@ TEST test_parse_hex_float(void) { PASS(); }
 TEST test_parse_errors(void) {
   struct NumericValue nv;
   /* Bad hex */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("0xZZ", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0xZZ", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("0x", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("0b", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0x", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0b", &nv));
 
   /* Bad float suffix */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0z", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0z", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dz", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0dz", &nv));
 
   /* Mixed decimal float suffix (e.g. dL vs dl/DL, spec implies case consistency
      but parser might be strict or loose. Implementation checks [0] and [1]. 'd'
      'L' -> DFP_128. Let's check invalid combo 'dx'. */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1uu", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1uu", &nv));
   ASSERT_EQ(
       0, parse_numeric_literal("1lL", &nv)); /* actually 1lL parses as 1 LL */
   ASSERT_EQ(0, parse_numeric_literal("1lLu", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1lul", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1Lul", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal(
-                        "1uLul",
-                        &nv)); /* check what 1uLul parses as. Oh it might parse.
-                                  Wait, I will just assert EINVAL for 1llL */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1llL", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1lll", &nv));
+  ASSERT_EQ(
+      CDD_C_ERROR_PARSE,
+      parse_numeric_literal(
+          "1uLul", &nv)); /* check what 1uLul parses as. Oh it might parse.
+                             Wait, I will just assert EINVAL for 1llL */
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1llL", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1lll", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1lu", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1Lu", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1llu", &nv));
@@ -258,52 +262,53 @@ TEST test_parse_errors(void) {
   ASSERT_EQ(0, parse_numeric_literal("1Ull", &nv));
 
   ASSERT_EQ(
-      ERANGE,
+      CDD_C_ERROR_PARSE,
       parse_numeric_literal(
           "0b11111111111111111111111111111111111111111111111111111111111111110",
           &nv));
-  ASSERT_EQ(ERANGE, parse_numeric_literal("0x10000000000000000", &nv));
-  ASSERT_EQ(ERANGE,
+  ASSERT_EQ(CDD_C_ERROR_PARSE,
+            parse_numeric_literal("0x10000000000000000", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE,
             parse_numeric_literal("18446744073709551616", &nv)); /* 2^64 */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1X", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1X", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0fX", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0LX", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dfX", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0ddX", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dlX", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0fX", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0LX", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0dfX", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0ddX", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0dlX", &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal("0b1.0", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("0b1.0", &nv));
 
-  ASSERT_EQ(ERANGE, parse_numeric_literal("1e999", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1e999", &nv));
   /* Nothing */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("", &nv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_numeric_literal("", &nv));
   /* NULL */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1", NULL));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("   ", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1llL", &nv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_numeric_literal("1", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_numeric_literal("   ", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1llL", &nv));
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
   ASSERT_EQ(0, parse_numeric_literal("0x1.0p10", &nv));
 #endif
   ASSERT_EQ(0, parse_numeric_literal("1e-1", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dfx", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0ddx", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dlx", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0dfx", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0ddx", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1.0dlx", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1ull", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1.0df", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1.0dd", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1.0dl", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1llx", &nv));
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1ux", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1llx", &nv));
+  ASSERT_EQ(CDD_C_ERROR_PARSE, parse_numeric_literal("1ux", &nv));
 
   /* binary int overflow */
   ASSERT_EQ(
-      ERANGE,
+      CDD_C_ERROR_PARSE,
       parse_numeric_literal(
           "0b10000000000000000000000000000000000000000000000000000000000000000",
           &nv));
 
-  ASSERT_EQ(EINVAL, parse_numeric_literal(NULL, &nv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_numeric_literal(NULL, &nv));
   g_fail_io_after = -1;
   PASS();
 }

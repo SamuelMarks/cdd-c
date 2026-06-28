@@ -54,8 +54,9 @@ static const char *map_crystal_type(cdd_ffi_type_t *t) {
   }
 }
 
-int cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
-                         const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
+                     const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name = config->library_name ? config->library_name : "mylib";
@@ -63,21 +64,21 @@ int cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.cr", config->output_dir,
                lib_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.cr", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -128,5 +129,5 @@ int cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
   /* Optional idiomatic wrapper generator logic could go here */
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }

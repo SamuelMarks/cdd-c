@@ -75,15 +75,15 @@ static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
 C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
 #endif
 
-int cdd_transform_msvc(cdd_cst_tree_t *tree,
-                       const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
+                                    const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Wrap unistd.h and sys/time.h */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
@@ -136,7 +136,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                 bld.error_state = 1;
 #endif
 
-              if (!cdd_cst_builder_has_error(&bld)) {
+              if (bld.error_state == 0) {
                 cdd_cst_replace_node(tree, dir, wrap_node);
                 cdd_cst_free_node(dir);
               } else {
@@ -155,5 +155,5 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
   /* 2. Traverse tokens and replace POSIX identifiers directly */
   replace_msvc_identifiers(tree, tree->root);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

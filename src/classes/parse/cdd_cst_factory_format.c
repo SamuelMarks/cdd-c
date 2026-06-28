@@ -24,8 +24,9 @@
  * @param ... Additional arguments for format.
  * @return 0 on success.
  */
-int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
-                         const char *fmt, ...) {
+enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
+                                      cdd_cst_node_t **out_node,
+                                      const char *fmt, ...) {
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
@@ -36,7 +37,7 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
   int rc;
 
   if (!dest_tree || !out_node || !fmt)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail)
@@ -46,7 +47,7 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
     buf = (char *)malloc(4096);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   va_start(args, fmt);
@@ -69,7 +70,7 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
     if (!result) {
       cdd_cst_tree_free(temp_tree);
       *out_node = NULL;
-      return ENOENT;
+      return CDD_C_ERROR_NOT_FOUND;
     }
 
     for (i = 0; i < temp_tree->root->num_children; i++) {

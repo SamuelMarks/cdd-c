@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "functions/emit/patcher.h"
+#include "cdd_c_error.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
@@ -29,9 +30,9 @@ extern "C" {
  * and adds a text patch containing the check logic.
  *
  * Policies:
- * - NULL pointer check: `if (!ptr) { return ENOMEM; }`
- * - Negative Int check: `if (rc < 0) { return ENOMEM; }`
- * - Non-zero Int check: `if (rc != 0) { return ENOMEM; }`
+ * - NULL pointer check: `if (!ptr) { return CDD_C_ERROR_MEMORY; }`
+ * - Negative Int check: `if (rc < 0) { return CDD_C_ERROR_MEMORY; }`
+ * - Non-zero Int check: `if (rc != 0) { return CDD_C_ERROR_MEMORY; }`
  *
  * @param[in] tokens The token stream of the function body.
  * @param[in] allocs The list of allocation sites identified by analysis.
@@ -42,7 +43,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the strategy inject safety checks
                      * operation.
                      */
-    int
+    enum cdd_c_error
     strategy_inject_safety_checks(const struct TokenList *tokens,
                                   const struct AllocationSiteList *allocs,
                                   struct PatchList *patches);
@@ -51,8 +52,8 @@ extern C_CDD_EXPORT /**
  * @brief Inject safety specifically for `realloc` patterns.
  *
  * Handles the pattern `p = realloc(p, size)` by rewriting it to:
- * `{ void *tmp = realloc(p, size); if (!tmp) return ENOMEM; p = tmp; }`
- * preventing memory leaks on failure.
+ * `{ void *tmp = realloc(p, size); if (!tmp) return CDD_C_ERROR_MEMORY; p =
+ * tmp; }` preventing memory leaks on failure.
  *
  * @param[in] tokens Token stream.
  * @param[in] site The specific allocation site to process.
@@ -60,7 +61,7 @@ extern C_CDD_EXPORT /**
  * @param[in,out] patches Patch list.
  * @return 0 on success (or if pattern doesn't match), ENOMEM on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 strategy_rewrite_realloc(const struct TokenList *tokens,
                          const struct AllocationSite *site, size_t semi_idx,
                          struct PatchList *patches);

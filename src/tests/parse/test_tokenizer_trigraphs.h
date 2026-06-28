@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -27,7 +28,8 @@ extern "C" {
 
 /* Helper setup */
 
-static int tokenize_string(const char *s, struct TokenList **_out_val) {
+static enum cdd_c_error tokenize_string(const char *s,
+                                        struct TokenList **_out_val) {
 
   struct TokenList *tl = NULL;
 

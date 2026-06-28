@@ -1,9 +1,11 @@
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
-static int abort_cb(const struct IncludeInfo *info, void *user_data) {
+static enum cdd_c_error abort_cb(const struct IncludeInfo *info,
+                                 void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
   return 1; /* Abort on first */

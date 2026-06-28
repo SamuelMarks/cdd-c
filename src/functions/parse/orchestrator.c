@@ -89,33 +89,35 @@ struct DependencyGraph {
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
  */
-static int get_token_slice(const struct TokenList *src, size_t start,
-                           size_t end, struct TokenList *dst) {
+static enum cdd_c_error get_token_slice(const struct TokenList *src,
+                                        size_t start, size_t end,
+                                        struct TokenList *dst) {
   if (start >= src->size || end > src->size || start > end)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   dst->tokens = src->tokens + start;
   dst->size = end - start;
   dst->capacity = 0; /* Marker: do not free */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* Helper to find specific token type within range */
 /**
  * @brief Retrieves the token in range.
  */
-static int find_token_in_range(const struct TokenList *tokens, size_t start,
-                               size_t end, enum TokenKind kind,
-                               size_t *_out_val) {
+static enum cdd_c_error find_token_in_range(const struct TokenList *tokens,
+                                            size_t start, size_t end,
+                                            enum TokenKind kind,
+                                            size_t *_out_val) {
   size_t i;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind == kind) {
       *_out_val = i;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = end;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -123,7 +125,7 @@ static int find_token_in_range(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the token eq str operation.
  */
-static int token_eq_str(const struct Token *tok, const char *s) {
+static enum cdd_c_error token_eq_str(const struct Token *tok, const char *s) {
   size_t len = strlen(s);
   return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
 }
@@ -132,8 +134,9 @@ static int token_eq_str(const struct Token *tok, const char *s) {
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  */
-static int extract_func_name(const struct TokenList *tokens, size_t start,
-                             size_t body_start, char **_out_val) {
+static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
+                                          size_t start, size_t body_start,
+                                          char **_out_val) {
   size_t _ast_find_token_in_range_0 = 0;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_0),
@@ -141,7 +144,7 @@ static int extract_func_name(const struct TokenList *tokens, size_t start,
   size_t i;
   if (lparen == body_start) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Backtrack from LPAREN to find Identifier */
@@ -155,41 +158,42 @@ static int extract_func_name(const struct TokenList *tokens, size_t start,
       char *name = malloc(len + 1);
       if (!name) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       memcpy(name, tokens->tokens[i].start, len);
       name[len] = '\0';
       {
         *_out_val = name;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Join tokens into a single string.
  */
-static int join_tokens_str(const struct TokenList *tokens, size_t start,
-                           size_t end, char **_out_val) {
+static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
+                                        size_t start, size_t end,
+                                        char **_out_val) {
   char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
   char *buf, *p;
   if (start >= end) {
     *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
   buf = malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   p = buf;
   for (i = start; i < end; ++i) {
@@ -199,7 +203,7 @@ static int join_tokens_str(const struct TokenList *tokens, size_t start,
   *p = '\0';
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -265,13 +269,13 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
 /**
  * @brief Executes the graph add node operation.
  */
-static int graph_add_node(struct DependencyGraph *g, size_t idx,
-                          const char *name) {
+static enum cdd_c_error graph_add_node(struct DependencyGraph *g, size_t idx,
+                                       const char *name) {
   char *_ast_strdup_1 = NULL;
   g->nodes[idx].node_idx = idx;
   g->nodes[idx].name = (c_cdd_strdup(name, &_ast_strdup_1), _ast_strdup_1);
   if (!g->nodes[idx].name)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   g->nodes[idx].callers = NULL;
   g->nodes[idx].num_callers = 0;
   g->nodes[idx].alloc_callers = 0;
@@ -281,20 +285,20 @@ static int graph_add_node(struct DependencyGraph *g, size_t idx,
   g->nodes[idx].contains_allocs = 0;
   g->nodes[idx].is_main = (strcmp(name, "main") == 0);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the graph add edge operation.
  */
-static int graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
-                          size_t callee_idx) {
+static enum cdd_c_error graph_add_edge(struct DependencyGraph *g,
+                                       size_t caller_idx, size_t callee_idx) {
   struct FuncNode *callee = &g->nodes[callee_idx];
   size_t i;
   /* Prevent duplicate edges */
   for (i = 0; i < callee->num_callers; i++) {
     if (callee->callers[i] == caller_idx)
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   if (callee->num_callers >= callee->alloc_callers) {
@@ -302,13 +306,13 @@ static int graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
     size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     callee->callers = new_arr;
     callee->alloc_callers = new_cap;
   }
   callee->callers[callee->num_callers++] = caller_idx;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -359,7 +363,8 @@ static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
 /**
  * @brief Executes the orchestrate fix operation.
  */
-int orchestrate_fix(const char *source_code, char **const out_code) {
+enum cdd_c_error orchestrate_fix(const char *source_code,
+                                 char **const out_code) {
   size_t _ast_find_token_in_range_3 = 0;
   char *_ast_extract_func_name_4 = NULL;
   char *_ast_join_tokens_str_5 = NULL;
@@ -380,7 +385,7 @@ int orchestrate_fix(const char *source_code, char **const out_code) {
   int rc = 0;
 
   if (!source_code || !out_code)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Parse */
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
@@ -408,7 +413,7 @@ int orchestrate_fix(const char *source_code, char **const out_code) {
   if (graph.count > 0) {
     graph.nodes = calloc(graph.count, sizeof(struct FuncNode));
     if (!graph.nodes) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       goto cleanup;
     }
   }
@@ -522,7 +527,7 @@ int orchestrate_fix(const char *source_code, char **const out_code) {
     if (marked_count > 0) {
       ref_funcs = calloc(marked_count, sizeof(struct RefactoredFunction));
       if (!ref_funcs) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
       }
       {
@@ -547,7 +552,7 @@ int orchestrate_fix(const char *source_code, char **const out_code) {
     size_t current_tok_offset = 0;
     output = (c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3);
     if (!output) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       goto cleanup;
     }
 
@@ -589,7 +594,7 @@ int orchestrate_fix(const char *source_code, char **const out_code) {
                                              : TRANSFORM_VOID_TO_INT;
               trans.arg_name = "out";
               trans.success_code = "0";
-              trans.error_code = "ENOMEM";
+              trans.error_code = "CDD_C_ERROR_MEMORY";
               trans.return_type = node->original_return_type;
             } else {
               new_sig = (join_tokens_str(tokens, start_idx, node->body_start,
@@ -738,24 +743,24 @@ struct FixWalkContext {
 /**
  * @brief Checks if c source.
  */
-static int is_c_source(const char *path, int *out_is_src) {
+static enum cdd_c_error is_c_source(const char *path, int *out_is_src) {
   const char *dot;
   int diff;
   if (!out_is_src)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_src = 0;
   dot = strrchr(path, '.');
   if (!dot)
-    return 0;
+    return CDD_C_SUCCESS;
   c_cdd_stricmp(dot, ".c", &diff);
   *out_is_src = (diff == 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the fix file callback operation.
  */
-static int fix_file_callback(const char *path, void *user_data) {
+static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
   struct FixWalkContext *ctx = (struct FixWalkContext *)user_data;
   char *content = NULL;
   char *result = NULL;
@@ -768,13 +773,13 @@ static int fix_file_callback(const char *path, void *user_data) {
     int is_src = 0;
     is_c_source(path, &is_src);
     if (!is_src)
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   if (read_to_file(path, "r", &content, &sz) != 0) {
     fprintf(stderr, "Failed to read %s\n", path);
     ctx->error_count++;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   rc = orchestrate_fix(content, &result);
@@ -783,7 +788,7 @@ static int fix_file_callback(const char *path, void *user_data) {
   if (rc != 0) {
     fprintf(stderr, "Refactoring failed for %s (code %d)\n", path, rc);
     ctx->error_count++;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Write result */
@@ -810,19 +815,19 @@ static int fix_file_callback(const char *path, void *user_data) {
   }
 
   free(result);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the fix code main operation.
  */
-int fix_code_main(int argc, char **argv) {
+enum cdd_c_error fix_code_main(int argc, char **argv) {
   struct FixWalkContext ctx = {0};
   const char *target;
 
   if (argc < 1 || argc > 2) {
     fprintf(stderr, "Usage: fix <path> [--in-place] OR fix <in.c> <out.c>\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   target = argv[0];
@@ -837,15 +842,15 @@ int fix_code_main(int argc, char **argv) {
     fs_is_directory(target, &is_dir);
     if (is_dir) {
       fprintf(stderr, "Directory requires --in-place\n");
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     }
     /* Single file default output? No, usage requires explicit spec. */
     fprintf(stderr, "Output argument required for single file\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   if (walk_directory(target, fix_file_callback, &ctx) != 0)
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   return (ctx.error_count == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

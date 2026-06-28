@@ -16,11 +16,12 @@
 #include <string.h>
 /* clang-format on */
 /* LCOV_EXCL_START */
-static int process_file(const char *filepath,
-                        int (*transform_fn)(cdd_cst_tree_t *,
-                                            const cdd_transform_config_t *),
-                        const cdd_transform_config_t *config, int is_audit,
-                        int is_dry_run) {
+static enum cdd_c_error
+process_file(const char *filepath,
+             enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
+                                              const cdd_transform_config_t *),
+             const cdd_transform_config_t *config, int is_audit,
+             int is_dry_run) {
   FILE *f;
   long fsize;
   char *str;
@@ -33,7 +34,7 @@ static int process_file(const char *filepath,
   /* LCOV_EXCL_START */
   if (!f) {
     fprintf(stderr, "Error opening %s\n", filepath);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   /* LCOV_EXCL_STOP */
   fseek(f, 0, SEEK_END);
@@ -45,7 +46,7 @@ static int process_file(const char *filepath,
   if (!str) {
     fclose(f);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   fread(str, 1, (size_t)fsize, f);
@@ -96,7 +97,7 @@ static int process_file(const char *filepath,
           fprintf(stderr, "Error opening %s for writing\n", filepath);
           free(str);
           free(out);
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         /* LCOV_EXCL_STOP */
         fwrite(out, 1, strlen(out), out_f);
@@ -115,7 +116,7 @@ static int process_file(const char *filepath,
 }
 
 /** @brief cli_cst_transformer_main */
-int cli_cst_transformer_main(int argc, char **argv) {
+enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
   int i;
   int rc = 0;
   int is_audit = 0;
@@ -123,14 +124,15 @@ int cli_cst_transformer_main(int argc, char **argv) {
   int is_dry_run = 0;
   const char *toolname = NULL;
   cdd_transform_config_t config = {0, 2, 0};
-  int (*transform_fn)(cdd_cst_tree_t *, const cdd_transform_config_t *) = NULL;
+  enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
+                                   const cdd_transform_config_t *) = NULL;
 
   /* LCOV_EXCL_START */
 
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
                     "[--dry-run] <files...>\n");
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* LCOV_EXCL_STOP */
@@ -155,10 +157,10 @@ int cli_cst_transformer_main(int argc, char **argv) {
     fprintf(stdout, "  gnu_standardizer\n");
     fprintf(stdout, "  error_percolator\n");
     fprintf(stdout, "  safe_crt\n");
-    return 0;
+    return CDD_C_SUCCESS;
   } else {
     fprintf(stderr, "Unknown tool: %s\n", toolname);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   for (i = 1; i < argc; i++) {
@@ -173,7 +175,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
               "Usage: cdd-c transformer %s [--audit | --fix] [--dry-run] "
               "<files...>\n",
               toolname);
-      return 0;
+      return CDD_C_SUCCESS;
     } else {
       /* Assume it's a file */
       /* LCOV_EXCL_START */
@@ -181,7 +183,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
         /* Default to fix if neither specified, to be safe or maybe require it?
            ADD_NEW_TOOLS.md says: my-ts-tool --audit /path */
         fprintf(stderr, "Must specify --audit or --fix.\n");
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       /* LCOV_EXCL_STOP */
 

@@ -252,7 +252,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
       "}\n";
   cdd_transform_config_t config = {0, 2, 0};
 
-  ASSERT_EQ(EINVAL, cdd_transform_safe_crt(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_safe_crt(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));

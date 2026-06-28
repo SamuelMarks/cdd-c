@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
@@ -44,7 +45,7 @@ struct CodegenConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write forward decl.
                      */
-    int
+    enum cdd_c_error
     write_forward_decl(FILE *fp, const char *struct_name);
 
 /**
@@ -56,7 +57,7 @@ extern C_CDD_EXPORT /**
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_enum_declaration_h(FILE *hfile, const char *enum_name,
                          const struct StructFields *sf,
                          const struct CodegenConfig *config);
@@ -70,7 +71,7 @@ write_enum_declaration_h(FILE *hfile, const char *enum_name,
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_union_declaration_h(FILE *hfile, const char *union_name,
                           const struct StructFields *sf,
                           const struct CodegenConfig *config);
@@ -84,7 +85,7 @@ write_union_declaration_h(FILE *hfile, const char *union_name,
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_declaration_h(FILE *hfile, const char *struct_name,
                            const struct StructFields *sf,
                            const struct CodegenConfig *config);

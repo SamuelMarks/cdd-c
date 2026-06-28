@@ -94,10 +94,10 @@ static void split_lines(const char *str, size_t len,
 /**
  * @brief Generates block new text.
  */
-static int generate_block_new_text(const struct Block *b,
-                                   struct PatchList *list,
-                                   const struct TokenList *tokens,
-                                   const struct DiffLine *old_lines) {
+static enum cdd_c_error
+generate_block_new_text(const struct Block *b, struct PatchList *list,
+                        const struct TokenList *tokens,
+                        const struct DiffLine *old_lines) {
   const char *block_start_ptr = old_lines[b->old_start_line - 1].text;
   const char *block_end_ptr =
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
@@ -202,8 +202,9 @@ static void append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
 /**
  * @brief Executes the patch list to diff operation.
  */
-int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
-                       const char *filename, char **out_diff) {
+enum cdd_c_error patch_list_to_diff(struct PatchList *list,
+                                    const struct TokenList *tokens,
+                                    const char *filename, char **out_diff) {
   struct DiffLine *old_lines = NULL;
   size_t old_line_count = 0;
   const char *orig_src;
@@ -218,13 +219,13 @@ int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
   size_t current_line_delta = 0;
 
   if (!list || !tokens || !out_diff)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size == 0) {
     *out_diff = (char *)malloc(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   patch_list_sort(list);
@@ -239,7 +240,7 @@ int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
     *out_diff = (char *)malloc(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Build blocks */

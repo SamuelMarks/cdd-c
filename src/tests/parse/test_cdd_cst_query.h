@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int dummy_visitor(cdd_cst_node_t *node, void *user_data) {
+static enum cdd_c_error dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
   (void)node;
   (*count)++;
@@ -50,9 +51,10 @@ TEST test_cdd_cst_query_types(void) {
 
   cdd_cst_tree_free(tree);
 
-  /* Trigger ENOMEM in append_result or similar by forcing an allocation failure
-     if possible? Without mocks it is hard to hit ENOMEM in realloc inside
-     append_result, and thus ctx.err != 0 Let's accept 82% coverage for query.c
+  /* Trigger CDD_C_ERROR_MEMORY in append_result or similar by forcing an
+     allocation failure if possible? Without mocks it is hard to hit
+     CDD_C_ERROR_MEMORY in realloc inside append_result, and thus ctx.err != 0
+     Let's accept 82% coverage for query.c
   */
 
   {
@@ -153,9 +155,10 @@ TEST test_cdd_cst_query_calls(void) {
 
   cdd_cst_tree_free(tree);
 
-  /* Trigger ENOMEM in append_result or similar by forcing an allocation failure
-     if possible? Without mocks it is hard to hit ENOMEM in realloc inside
-     append_result, and thus ctx.err != 0 Let's accept 82% coverage for query.c
+  /* Trigger CDD_C_ERROR_MEMORY in append_result or similar by forcing an
+     allocation failure if possible? Without mocks it is hard to hit
+     CDD_C_ERROR_MEMORY in realloc inside append_result, and thus ctx.err != 0
+     Let's accept 82% coverage for query.c
   */
 
   {
@@ -242,30 +245,40 @@ TEST test_cdd_cst_query_extra(void) {
   int post_count = 0;
   cdd_cst_tree_t *tree_tmp = NULL;
 
-  ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type(NULL, CDD_CST_UNKNOWN, &res));
-  ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type((cdd_cst_node_t *)1,
-                                               CDD_CST_UNKNOWN, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(NULL, NULL, &res));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_nodes_by_type(NULL, CDD_CST_UNKNOWN, &res));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_find_nodes_by_type((cdd_cst_node_t *)1, CDD_CST_UNKNOWN, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_function_calls_named(NULL, NULL, &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_find_function_calls_named((cdd_cst_node_t *)1, NULL, &res));
-  ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_traverse_preorder(NULL, NULL, NULL));
 
   {
     cdd_cst_node_t *n1_dummy = NULL;
     cdd_cst_alloc_node(CDD_CST_EXPRESSION, &n1_dummy);
-    ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(n1_dummy, NULL, NULL));
-    ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(n1_dummy, NULL, NULL));
-    ASSERT_EQ(EINVAL,
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_traverse_preorder(n1_dummy, NULL, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_traverse_postorder(n1_dummy, NULL, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_find_nodes_by_type(n1_dummy, CDD_CST_IDENTIFIER, NULL));
-    ASSERT_EQ(EINVAL,
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_find_nodes_by_type(NULL, CDD_CST_IDENTIFIER, &res));
-    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(n1_dummy, NULL, &res));
-    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(NULL, "foo", &res));
-    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(n1_dummy, "foo", NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_find_function_calls_named(n1_dummy, NULL, &res));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_find_function_calls_named(NULL, "foo", &res));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_find_function_calls_named(n1_dummy, "foo", NULL));
     cdd_cst_free_node_only(n1_dummy);
   }
 
-  ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_traverse_postorder(NULL, NULL, NULL));
 
   cdd_cst_parse(az_span_create_from_str("int x;"), &tree_tmp);
   ASSERT_EQ(0, cdd_cst_traverse_postorder(tree_tmp->root, dummy_visitor,
@@ -357,10 +370,11 @@ TEST test_cdd_cst_query_extra(void) {
   PASS();
 }
 
-static int fail_visitor_post(cdd_cst_node_t *node, void *user_data) {
+static enum cdd_c_error fail_visitor_post(cdd_cst_node_t *node,
+                                          void *user_data) {
   (void)user_data;
   if (node->kind == CDD_CST_EXPRESSION)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   return 0;
 }
 TEST test_query_postorder_fail(void) {
@@ -369,7 +383,8 @@ TEST test_query_postorder_fail(void) {
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &n2);
   cdd_cst_append_child_node(n1, n2);
 
-  ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(n1, fail_visitor_post, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_traverse_postorder(n1, fail_visitor_post, NULL));
 
   cdd_cst_free_node_only(n1);
   cdd_cst_free_node_only(n2);
@@ -496,10 +511,10 @@ TEST test_query_call_expr_coverage(void) {
   g_cdd_query_err_fail = 1;
   {
     int rc_res = cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
-    printf(
-        "DEBUG: cdd_cst_find_function_calls_named returned %d (ENOMEM is %d)\n",
-        rc_res, ENOMEM);
-    ASSERT_EQ(ENOMEM, rc_res);
+    printf("DEBUG: cdd_cst_find_function_calls_named returned %d "
+           "(CDD_C_ERROR_MEMORY is %d)\n",
+           rc_res, CDD_C_ERROR_MEMORY);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_res);
   }
   g_cdd_query_err_fail = 0;
   if (res.nodes)
@@ -513,7 +528,7 @@ TEST test_query_call_expr_coverage(void) {
   children[1].val.token = &tok2;
   tok2.kind = CDD_TOKEN_LPAREN;
   g_cdd_query_err_fail = 1;
-  ASSERT_EQ(ENOMEM,
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
@@ -521,7 +536,7 @@ TEST test_query_call_expr_coverage(void) {
 
   dummy_call.kind = CDD_CST_CALL_EXPR;
   g_cdd_query_err_fail = 1;
-  ASSERT_EQ(ENOMEM,
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)

@@ -46,8 +46,8 @@ TEST test_cst_print_exact(void) {
   ASSERT_EQ(0, rc);
 
   /* Invalid args */
-  ASSERT_EQ(EINVAL, cst_print_tokens_exact(NULL, stdout));
-  ASSERT_EQ(EINVAL, cst_print_tokens_exact(tokens, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cst_print_tokens_exact(NULL, stdout));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cst_print_tokens_exact(tokens, NULL));
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   rc = fopen_s(&f, "test_cst_print.txt", "wb+");
@@ -69,7 +69,7 @@ TEST test_cst_print_exact(void) {
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO, cst_print_tokens_exact(tokens, readonly_f));
+      ASSERT_EQ(CDD_C_ERROR_IO, cst_print_tokens_exact(tokens, readonly_f));
       fclose(readonly_f);
     }
   }

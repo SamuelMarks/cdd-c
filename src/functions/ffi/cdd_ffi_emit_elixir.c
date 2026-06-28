@@ -45,8 +45,9 @@ static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   out_name[j] = '\0';
 }
 
-int cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
-                        const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
+                    const cdd_generate_bindings_config_t *config) {
   FILE *c_f = NULL;
   FILE *ex_f = NULL;
   char c_filepath[1024];
@@ -59,7 +60,7 @@ int cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   int has_functions = 0;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -75,27 +76,27 @@ int cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_nif.c",
                config->output_dir, lib_name);
   if (fopen_s(&c_f, c_filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s\\%s.ex",
                config->output_dir, elixir_module_name);
   if (fopen_s(&ex_f, ex_filepath, "w") != 0) {
     fclose(c_f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_nif.c",
                config->output_dir, lib_name);
   c_f = fopen(c_filepath, "w");
   if (!c_f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s/%s.ex", config->output_dir,
                elixir_module_name);
   ex_f = fopen(ex_filepath, "w");
   if (!ex_f) {
     fclose(c_f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -193,7 +194,7 @@ int cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
               node->name, node->name);
     }
   }
-  fprintf(c_f, "    return 0;\n");
+  fprintf(c_f, "    return CDD_C_SUCCESS;\n");
   fprintf(c_f, "}\n\n");
 
   fprintf(c_f, "ERL_NIF_INIT(Elixir.%s, nif_funcs, load, NULL, NULL, NULL)\n",
@@ -229,5 +230,5 @@ int cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   fprintf(ex_f, "end\n");
   fclose(ex_f);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

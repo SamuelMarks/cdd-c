@@ -191,7 +191,7 @@ TEST test_mapping_coverage(void) {
 
   /* NULL tests */
   c_mapping_init(NULL);
-  ASSERT_EQ(EINVAL, c_mapping_map_type("int", "x", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_mapping_map_type("int", "x", NULL));
   c_mapping_free(NULL);
 
   /* long, short, float, size_t */
@@ -244,8 +244,8 @@ TEST test_mapping_coverage(void) {
     int i;
     g_cdd_strdup_fail = 1;
     rc_oom = c_mapping_map_type("int", "x", &m);
-    printf("RC_OOM=%d ENOMEM=%d\n", rc_oom, ENOMEM);
-    ASSERT_EQ(ENOMEM, rc_oom);
+    printf("RC_OOM=%d CDD_C_ERROR_MEMORY=%d\n", rc_oom, CDD_C_ERROR_MEMORY);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
 
@@ -301,26 +301,29 @@ TEST test_mapping_coverage(void) {
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
     g_cdd_strdup_fail = 1;
-    ASSERT_EQ(ENOMEM, c_mapping_map_type("enum MyEnum", "x", &m));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c_mapping_map_type("enum MyEnum", "x", &m));
     g_cdd_strdup_fail = 0;
 
     g_cdd_strdup_fail = 1;
-    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              c_mapping_map_type("struct MyStruct *", "x[]", &m));
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
 
     g_cdd_strdup_fail = 2;
-    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              c_mapping_map_type("struct MyStruct *", "x[]", &m));
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
 
     g_cdd_strdup_fail = 2;
-    ASSERT_EQ(ENOMEM, c_mapping_map_type("int *", "x", &m));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c_mapping_map_type("int *", "x", &m));
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
 
     g_cdd_strdup_fail = 3;
-    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              c_mapping_map_type("struct MyStruct *", "x[]", &m));
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
   }

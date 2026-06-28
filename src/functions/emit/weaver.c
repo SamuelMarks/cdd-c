@@ -19,9 +19,11 @@
 /**
  * @brief Executes the weaver wrap ifdef operation.
  */
-int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
-                      size_t start_idx, size_t end_idx, const char *condition,
-                      const char *false_code) {
+enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
+                                   const struct TokenList *tokens,
+                                   size_t start_idx, size_t end_idx,
+                                   const char *condition,
+                                   const char *false_code) {
   char *ifdef_str;
   char *endif_str;
   int res;
@@ -30,7 +32,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 
   if (!patches || !tokens || !condition || start_idx > end_idx ||
       end_idx > tokens->size) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* Construct `#ifdef <condition>
@@ -50,7 +52,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #endif
 
   if (!ifdef_str) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(ifdef_str, ifdef_len, "#ifdef %s\\n", condition);
@@ -86,7 +88,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #endif
 
     if (!endif_str) {
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
@@ -109,7 +111,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #endif
 
     if (!endif_str) {
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     strcpy_s(endif_str, endif_len, "#endif\\n");
@@ -124,15 +126,16 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
     return res;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the weaver inject msvc headers operation.
  */
-int weaver_inject_msvc_headers(struct PatchList *patches,
-                               const struct TokenList *tokens,
-                               int include_windows_h, int include_winsock2_h) {
+enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
+                                            const struct TokenList *tokens,
+                                            int include_windows_h,
+                                            int include_winsock2_h) {
   size_t i;
   size_t last_include_idx = 0;
   int found_include = 0;
@@ -142,11 +145,11 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
   int res;
 
   if (!patches || !tokens) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (!include_windows_h && !include_winsock2_h) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < tokens->size; ++i) {
@@ -207,7 +210,7 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
 #endif
 
   if (!str) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   str[0] = '\0';
 
@@ -254,18 +257,19 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
 /**
  * @brief Executes the weaver vla to alloca operation.
  */
-int weaver_vla_to_alloca(struct PatchList *patches,
-                         const struct TokenList *tokens, size_t start_idx,
-                         size_t end_idx, const char *type_str,
-                         const char *var_name, const char *size_expr,
-                         int interactive) {
+enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
+                                      const struct TokenList *tokens,
+                                      size_t start_idx, size_t end_idx,
+                                      const char *type_str,
+                                      const char *var_name,
+                                      const char *size_expr, int interactive) {
   char *str;
   size_t len;
   int res;
 
   if (!patches || !tokens || !type_str || !var_name || !size_expr ||
       start_idx >= end_idx || end_idx > tokens->size) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (interactive) {
@@ -280,7 +284,7 @@ int weaver_vla_to_alloca(struct PatchList *patches,
     if (fgets(user_input, sizeof(user_input), stdin)) {
       if (user_input[0] == 'n' || user_input[0] == 'N') {
         printf("Skipped.\\n");
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -305,7 +309,7 @@ int weaver_vla_to_alloca(struct PatchList *patches,
 #endif
 
   if (!str) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

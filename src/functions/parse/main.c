@@ -107,11 +107,11 @@ static void print_error(int rc, const char *command_name) {
  * @param[in] argv Argument values containing the directory path
  * @return EXIT_SUCCESS or the error code from audit_project
  */
-static int handle_audit(int argc, char **argv) {
+static enum cdd_c_error handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
@@ -179,7 +179,7 @@ static void print_help(const char *prog_name) {
  * @param[in] argv Argument values for the command execution
  * @return EXIT_SUCCESS if code generation completes without error
  */
-int from_openapi_cli_main(int argc, char **argv) {
+enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
   const char *out_dir = NULL;
@@ -235,7 +235,7 @@ int from_openapi_cli_main(int argc, char **argv) {
       puts("  --no-installable-package  Do not generate build system files "
            "(e.g. CMakeLists.txt)");
       puts("  --tests                   Generate composable tests and mocks");
-      return EXIT_SUCCESS;
+      return CDD_C_SUCCESS;
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&
                i + 1 < argc) {
@@ -258,14 +258,14 @@ int from_openapi_cli_main(int argc, char **argv) {
   if (!input_file && !input_dir) {
     fprintf(stderr,
             "Error: -i|--input <spec.json> or --input-dir <dir> required\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   if (input_file) {
     root = json_parse_file(input_file);
     if (!root) {
       fprintf(stderr, "Failed to parse JSON file: %s\n", input_file);
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     }
 
     rc = openapi_load_from_json(root, &spec);
@@ -323,7 +323,7 @@ int from_openapi_cli_main(int argc, char **argv) {
  * options
  * @return EXIT_SUCCESS if parsing and serialization succeed
  */
-int to_openapi_cli_main(int argc, char **argv) {
+enum cdd_c_error to_openapi_cli_main(int argc, char **argv) {
   const char *input_dir =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
   const char *out_file =
@@ -342,7 +342,7 @@ int to_openapi_cli_main(int argc, char **argv) {
           "  -i, --input <dir>       Input directory containing C source code");
       puts("  -o, --output <out.json> Output OpenAPI spec file (default: "
            "openapi.json)");
-      return EXIT_SUCCESS;
+      return CDD_C_SUCCESS;
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&
                i + 1 < argc) {
@@ -355,7 +355,7 @@ int to_openapi_cli_main(int argc, char **argv) {
   }
   if (!input_dir) {
     fprintf(stderr, "Error: -i <directory> required\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
   {
     char snapshot_path[1024];
@@ -399,36 +399,36 @@ int to_openapi_cli_main(int argc, char **argv) {
  * @param[in] argv Passed straight from application main.
  * @return Returns an exit code (0 for success, non-zero for failure).
  */
-int cdd_main(int argc, char **argv);
+enum cdd_c_error cdd_main(int argc, char **argv);
 /**
  * @brief Main entry point dispatcher execution logic.
  *
  * Implements the command routing and prints help or error outputs as needed.
  */
-int cdd_main(int argc, char **argv) {
+enum cdd_c_error cdd_main(int argc, char **argv) {
   int rc = 0;
   const char *cmd;
 
   if (argc < 2) {
     print_help(argc > 0 ? argv[0] : "cdd-c");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cmd = argv[1];
 
   if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
     print_version();
-    return EXIT_SUCCESS;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
     print_help(argv[0]);
-    return EXIT_SUCCESS;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(cmd, "audit") == 0) {
     if (argc < 3)
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     rc = handle_audit(argc - 2, argv + 2);
   } else if (strcmp(cmd, "c2openapi") == 0) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
@@ -436,7 +436,7 @@ int cdd_main(int argc, char **argv) {
     rc = cli_cst_transformer_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     rc = code2schema_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "from_openapi") == 0) {
     rc = from_openapi_cli_main(argc - 1, argv + 1);
@@ -462,18 +462,18 @@ int cdd_main(int argc, char **argv) {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {
       /* Keep previous behavior stub */
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
     fprintf(stderr, "Error: Unknown or incomplete command: %s\n", cmd);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (rc != 0) {
     print_error(rc, cmd);
-    return EXIT_FAILURE;
+    return rc;
   }
 
-  return EXIT_SUCCESS;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

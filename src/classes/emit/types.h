@@ -18,6 +18,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/struct.h" /* Reuses StructFields */
 /* clang-format on */
 
@@ -51,7 +52,7 @@ struct CodegenTypesConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write union to json func.
                      */
-    int
+    enum cdd_c_error
     write_union_to_json_func(FILE *fp, const char *union_name,
                              const struct StructFields *sf,
                              const struct CodegenTypesConfig *config);
@@ -71,7 +72,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for write union from jsonObject
                      * func.
                      */
-    int
+    enum cdd_c_error
     write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                      const struct StructFields *sf,
                                      const struct CodegenTypesConfig *config);
@@ -90,7 +91,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write union from json func.
                      */
-    int
+    enum cdd_c_error
     write_union_from_json_func(FILE *fp, const char *union_name,
                                const struct StructFields *sf,
                                const struct CodegenTypesConfig *config);
@@ -108,7 +109,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write union cleanup func.
                      */
-    int
+    enum cdd_c_error
     write_union_cleanup_func(FILE *fp, const char *union_name,
                              const struct StructFields *sf,
                              const struct CodegenTypesConfig *config);
@@ -131,7 +132,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for write root array to json
                      * func.
                      */
-    int
+    enum cdd_c_error
     write_root_array_to_json_func(FILE *fp, const char *name,
                                   const char *item_type, const char *item_ref,
                                   const struct CodegenTypesConfig *config);
@@ -153,7 +154,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for write root array from json
                      * func.
                      */
-    int
+    enum cdd_c_error
     write_root_array_from_json_func(FILE *fp, const char *name,
                                     const char *item_type, const char *item_ref,
                                     const struct CodegenTypesConfig *config);
@@ -172,7 +173,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for write root array cleanup
                      * func.
                      */
-    int
+    enum cdd_c_error
     write_root_array_cleanup_func(FILE *fp, const char *name,
                                   const char *item_type, const char *item_ref,
                                   const struct CodegenTypesConfig *config);

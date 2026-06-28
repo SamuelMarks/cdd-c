@@ -23,6 +23,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
@@ -48,7 +49,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi aggregator add operation
                      * operation.
                      */
-    int
+    enum cdd_c_error
     openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
                                      const char *route,
                                      struct OpenAPI_Operation *op);
@@ -67,7 +68,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi aggregator add webhook
                      * operation operation.
                      */
-    int
+    enum cdd_c_error
     openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
                                              const char *route,
                                              struct OpenAPI_Operation *op);

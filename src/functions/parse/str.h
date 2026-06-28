@@ -22,6 +22,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "c_cdd_stdbool.h"
 
 /* --- Platform Compatibility Macros --- */
@@ -58,7 +59,7 @@ extern "C" {
  * @return A pointer to the new string, or NULL if allocation failed or input
  * was NULL.
  */
-extern C_CDD_EXPORT int c_cdd_strdup(const char *s, char **out_s);
+extern C_CDD_EXPORT enum cdd_c_error c_cdd_strdup(const char *s, char **out_s);
 
 /* --- Inspection Helpers --- */
 
@@ -70,8 +71,8 @@ extern C_CDD_EXPORT int c_cdd_strdup(const char *s, char **out_s);
  * @param[in] prefix The prefix string to look for.
  * @return true if `str` begins with `prefix`, false otherwise.
  */
-extern C_CDD_EXPORT int c_cdd_str_starts_with(const char *str,
-                                              const char *prefix, int *out_b);
+extern C_CDD_EXPORT enum cdd_c_error
+c_cdd_str_starts_with(const char *str, const char *prefix, int *out_b);
 
 /**
  * @brief Check if two strings are equal (content-wise).
@@ -81,8 +82,8 @@ extern C_CDD_EXPORT int c_cdd_str_starts_with(const char *str,
  * @param[in] b Second string.
  * @return true if strings match or both are NULL, false otherwise.
  */
-extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
-                                        int *out_b);
+extern C_CDD_EXPORT enum cdd_c_error c_cdd_str_equal(const char *a,
+                                                     const char *b, int *out_b);
 
 /**
  * @brief Check if two strings are equal ignoring ASCII case.
@@ -93,8 +94,8 @@ extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
  * @return true if strings match case-insensitively or both are NULL, false
  * otherwise.
  */
-extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
-                                         int *out_b);
+extern C_CDD_EXPORT enum cdd_c_error
+c_cdd_str_iequal(const char *a, const char *b, int *out_b);
 
 /**
  * @brief Compare strings case-insensitively like stricmp/strcasecmp.
@@ -104,8 +105,8 @@ extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
  * @param[out] out_diff The difference between the strings.
  * @return 0 if equal, non-zero otherwise.
  */
-extern C_CDD_EXPORT int c_cdd_stricmp(const char *a, const char *b,
-                                      int *out_diff);
+extern C_CDD_EXPORT enum cdd_c_error c_cdd_stricmp(const char *a, const char *b,
+                                                   int *out_diff);
 
 /**
  * @brief Find the substring after the last occurrence of a character.
@@ -115,8 +116,8 @@ extern C_CDD_EXPORT int c_cdd_stricmp(const char *a, const char *b,
  * @param[in] delimiter The delimiter character (e.g., '/').
  * @return Pointer to character immediately following the last delimiter.
  */
-extern C_CDD_EXPORT int c_cdd_str_after_last(const char *str, int delimiter,
-                                             const char **out_s);
+extern C_CDD_EXPORT enum cdd_c_error
+c_cdd_str_after_last(const char *str, int delimiter, const char **out_s);
 
 /**
  * @brief Check if a pointer reference matches a specific type name.
@@ -126,8 +127,8 @@ extern C_CDD_EXPORT int c_cdd_str_after_last(const char *str, int delimiter,
  * @param[in] type The simple type name.
  * @return true if the extracted name matches `type`.
  */
-extern C_CDD_EXPORT int c_cdd_ref_is_type(const char *ref, const char *type,
-                                          int *out_b);
+extern C_CDD_EXPORT enum cdd_c_error
+c_cdd_ref_is_type(const char *ref, const char *type, int *out_b);
 
 /* --- Modification Helpers --- */
 
@@ -155,7 +156,8 @@ extern C_CDD_EXPORT /**
  * @param[in] quoted The string literal (with quotes).
  * @return Allocated string containing the decoded content, or NULL on error.
  */
-extern C_CDD_EXPORT int c_cdd_destringize(const char *quoted, char **out_s);
+extern C_CDD_EXPORT enum cdd_c_error c_cdd_destringize(const char *quoted,
+                                                       char **out_s);
 
 #ifdef __cplusplus
 }

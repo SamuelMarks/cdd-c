@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "preprocessor.h"
 #include <stddef.h>
 /* clang-format on */
@@ -45,9 +46,9 @@ typedef struct cdd_macro_eval_result_t {
  * @return 0 on success, non-zero on error (e.g. invalid expression or unknown
  * identifier).
  */
-C_CDD_EXPORT int cdd_macro_evaluate(struct PreprocessorContext *ctx,
-                                    const char *expression,
-                                    cdd_macro_eval_result_t *out_result);
+C_CDD_EXPORT enum cdd_c_error
+cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
+                   cdd_macro_eval_result_t *out_result);
 
 /**
  * @brief Frees any allocated memory in the evaluation result.

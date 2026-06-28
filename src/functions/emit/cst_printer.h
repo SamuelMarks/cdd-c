@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/cst.h"
 #include <stdio.h>
 /* clang-format on */
@@ -31,7 +32,7 @@ extern "C" {
 C_CDD_EXPORT /**
               * @brief Executes the cst print tokens exact operation.
               */
-    int
+    enum cdd_c_error
     cst_print_tokens_exact(const struct TokenList *tokens, FILE *out);
 
 #ifdef __cplusplus

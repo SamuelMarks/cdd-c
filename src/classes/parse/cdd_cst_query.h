@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "cdd_cst_node.h"
 /* clang-format on */
 
@@ -16,7 +17,8 @@ extern "C" {
  * @param user_data User provided data pointer.
  * @return 0 to continue, non-zero to halt traversal.
  */
-typedef int (*cdd_cst_visitor_fn)(cdd_cst_node_t *node, void *user_data);
+typedef enum cdd_c_error (*cdd_cst_visitor_fn)(cdd_cst_node_t *node,
+                                               void *user_data);
 
 /**
  * @brief Traverses the CST in pre-order.
@@ -25,9 +27,9 @@ typedef int (*cdd_cst_visitor_fn)(cdd_cst_node_t *node, void *user_data);
  * @param user_data Passed to the callback.
  * @return 0 on success, or the non-zero value returned by the visitor.
  */
-C_CDD_EXPORT int cdd_cst_traverse_preorder(cdd_cst_node_t *root,
-                                           cdd_cst_visitor_fn visitor,
-                                           void *user_data);
+C_CDD_EXPORT enum cdd_c_error
+cdd_cst_traverse_preorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
+                          void *user_data);
 
 /**
  * @brief Traverses the CST in post-order.
@@ -36,9 +38,9 @@ C_CDD_EXPORT int cdd_cst_traverse_preorder(cdd_cst_node_t *root,
  * @param user_data Passed to the callback.
  * @return 0 on success, or the non-zero value returned by the visitor.
  */
-C_CDD_EXPORT int cdd_cst_traverse_postorder(cdd_cst_node_t *root,
-                                            cdd_cst_visitor_fn visitor,
-                                            void *user_data);
+C_CDD_EXPORT enum cdd_c_error
+cdd_cst_traverse_postorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
+                           void *user_data);
 
 /**
  * @brief Result struct for node queries.
@@ -65,9 +67,9 @@ struct cdd_cst_query_result_t {
  * out_result->nodes.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
-                                            enum cdd_cst_node_kind_t kind,
-                                            cdd_cst_query_result_t *out_result);
+C_CDD_EXPORT enum cdd_c_error
+cdd_cst_find_nodes_by_type(cdd_cst_node_t *root, enum cdd_cst_node_kind_t kind,
+                           cdd_cst_query_result_t *out_result);
 
 /**
  * @brief Finds all function call nodes matching a specific name.
@@ -77,7 +79,7 @@ C_CDD_EXPORT int cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
  * out_result->nodes.
  * @return 0 on success.
  */
-C_CDD_EXPORT int
+C_CDD_EXPORT enum cdd_c_error
 cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
                                   cdd_cst_query_result_t *out_result);
 

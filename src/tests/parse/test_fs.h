@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include <errno.h>
@@ -40,7 +41,7 @@ TEST test_get_basename(void) {
   ASSERT_STR_EQ("baz.txt", res);
   free(res);
 
-  ASSERT_EQ(EINVAL, fs_is_directory(NULL, &is_dir));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_is_directory(NULL, &is_dir));
   ASSERT_EQ(
       0, fs_is_directory("/path/that/does/not/exist/ever/ever/ever", &is_dir));
   ASSERT_EQ(0, is_dir);
@@ -70,21 +71,21 @@ TEST test_read_to_file_error(void) {
   char *s = NULL;
 
   rc = read_to_file("file_that_does_not_exist.xyz", "r", &s, &size);
-  ASSERT_EQ(ENOENT, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   ASSERT_EQ(NULL, s);
 
   rc = read_to_file(NULL, "r", &s, &size);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
   PASS();
 }
 
-static int mock_walk_cb(const char *path, void *user_data) {
+static enum cdd_c_error mock_walk_cb(const char *path, void *user_data) {
   int *count = (int *)user_data;
   (*count)++;
   (void)path;
-  return (enum greatest_test_res)0;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_walk_directory(void) {
@@ -163,7 +164,8 @@ TEST test_makedir_check(void) {
 
 TEST test_fs_fopen_error_from(void) {
   enum FopenError err;
-  extern int fopen_error_from(int fopen_error, enum FopenError *_out_val);
+  extern enum cdd_c_error fopen_error_from(int fopen_error,
+                                           enum FopenError *_out_val);
 
   fopen_error_from(0, &err);
   ASSERT_EQ(FOPEN_OK, err);
@@ -185,7 +187,7 @@ TEST test_fs_fopen_error_from(void) {
 }
 
 TEST test_fs_cp(void) {
-  extern int cp(const char *dst, const char *src);
+  extern enum cdd_c_error cp(const char *dst, const char *src);
   FILE *f;
   int rc;
 
@@ -212,7 +214,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   char *out = NULL;
 
   /* get_basename edges */
-  ASSERT_EQ(EINVAL, get_basename("foo", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_basename("foo", NULL));
 
   ASSERT_EQ(0, get_basename("///", &out));
   ASSERT_STR_EQ("/", out);
@@ -220,7 +222,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   out = NULL;
 
   /* get_dirname edges */
-  ASSERT_EQ(EINVAL, get_dirname("foo", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_dirname("foo", NULL));
 
   ASSERT_EQ(0, get_dirname("foo///", &out));
   ASSERT_STR_EQ(".", out);
@@ -267,8 +269,8 @@ TEST test_fs_write_to_file(void) {
   tempdir(&tmp_dir);
   asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C);
 
-  ASSERT_EQ(EINVAL, fs_write_to_file(NULL, "data"));
-  ASSERT_EQ(EINVAL, fs_write_to_file(file_path, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_write_to_file(NULL, "data"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_write_to_file(file_path, NULL));
 
   ASSERT_EQ(0, fs_write_to_file(file_path, "hello world"));
 
@@ -299,7 +301,8 @@ TEST test_fs_dirname_foo(void) {
 
 TEST test_fs_cdd_fopen_too_long(void) {
   enum FopenError err;
-  extern int fopen_error_from(int fopen_error, enum FopenError *_out_val);
+  extern enum cdd_c_error fopen_error_from(int fopen_error,
+                                           enum FopenError *_out_val);
 
   ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
   ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
@@ -316,15 +319,16 @@ TEST test_fs_write_to_file_errors(void) {
 }
 
 TEST test_read_from_fh_errors(void) {
-  extern int read_from_fh(FILE * fh, char **out_data, size_t *out_size);
+  extern enum cdd_c_error read_from_fh(FILE * fh, char **out_data,
+                                       size_t *out_size);
   FILE *f = tmpfile();
   char *data = NULL;
   size_t sz = 0;
 
   /* Test invalid args */
-  ASSERT_EQ(EINVAL, read_from_fh(NULL, &data, &sz));
-  ASSERT_EQ(EINVAL, read_from_fh(f, NULL, &sz));
-  ASSERT_EQ(EINVAL, read_from_fh(f, &data, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(NULL, &data, &sz));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, NULL, &sz));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, &data, NULL));
 
   fclose(f);
   g_fail_io_after = -1;
@@ -351,15 +355,18 @@ TEST test_ascii_wide_conversion(void) {
   ASSERT_STR_EQ("hello", abuf);
 
   /* errors */
-  ASSERT_EQ(EINVAL, ascii_to_wide(NULL, wbuf, 32, &wlen));
-  ASSERT_EQ(EINVAL, ascii_to_wide("test", NULL, 32, &wlen));
-  ASSERT_EQ(EINVAL, ascii_to_wide("test", wbuf, 0, &wlen));
-  ASSERT_EQ(EINVAL, ascii_to_wide("test", wbuf, 32, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, ascii_to_wide(NULL, wbuf, 32, &wlen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            ascii_to_wide("test", NULL, 32, &wlen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            ascii_to_wide("test", wbuf, 0, &wlen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            ascii_to_wide("test", wbuf, 32, NULL));
 
-  ASSERT_EQ(EINVAL, wide_to_ascii(NULL, abuf, 32, &alen));
-  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, NULL, 32, &alen));
-  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 0, &alen));
-  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 32, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(NULL, abuf, 32, &alen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, NULL, 32, &alen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, abuf, 0, &alen));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, abuf, 32, NULL));
   g_fail_io_after = -1;
 
   PASS();

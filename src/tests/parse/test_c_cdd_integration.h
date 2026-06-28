@@ -76,7 +76,7 @@ TEST test_integration_full_pipeline(void) {
   /* 4. Verify Content */
   {
     /* Malloc safety injection */
-    const char *expected_snippet = "if (!p) { return ENOMEM; }";
+    const char *expected_snippet = "if (!p) { return CDD_C_ERROR_MEMORY; }";
     if (!strstr(final_output, expected_snippet)) {
       fprintf(stderr, "Output missing check:\n%s\n", final_output);
       FAIL();
@@ -121,7 +121,7 @@ TEST test_integration_fix_file_io(void) {
   rc = read_to_file(out_file, "r", &read_back, &sz);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(read_back, "return ENOMEM") != NULL);
+  ASSERT(strstr(read_back, "return CDD_C_ERROR_MEMORY") != NULL);
 
   free(read_back);
   remove(in_file);
@@ -177,13 +177,13 @@ TEST test_integration_recursive_fix(void) {
     /* Verify f1 */
     rc = read_to_file(f1, "r", &content, &sz);
     ASSERT_EQ(0, rc);
-    ASSERT(strstr(content, "ENOMEM") != NULL);
+    ASSERT(strstr(content, "CDD_C_ERROR_MEMORY") != NULL);
     free(content);
 
     /* Verify f2 */
     rc = read_to_file(f2, "r", &content, &sz);
     ASSERT_EQ(0, rc);
-    ASSERT(strstr(content, "ENOMEM") != NULL);
+    ASSERT(strstr(content, "CDD_C_ERROR_MEMORY") != NULL);
     free(content);
 
     remove(f2);
@@ -225,7 +225,7 @@ TEST test_integration_fix_file_in_place(void) {
 
   rc = read_to_file(in_file, "r", &read_back, &sz);
   ASSERT_EQ(0, rc);
-  ASSERT(strstr(read_back, "ENOMEM") != NULL);
+  ASSERT(strstr(read_back, "CDD_C_ERROR_MEMORY") != NULL);
 
   free(read_back);
   remove(in_file);
@@ -249,7 +249,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
     char *argv[1];
     argv[0] = root;
     rc = fix_code_main(1, argv);
-    ASSERT_EQ(EXIT_FAILURE, rc);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   }
 
   rmdir(root);
@@ -350,14 +350,14 @@ TEST test_end_to_end_project_lifecycle(void) {
     ASSERT(strstr(content, "*out)") != NULL);
 
     /* Check safety injection */
-    ASSERT(strstr(content, "return ENOMEM;") != NULL);
+    ASSERT(strstr(content, "return CDD_C_ERROR_MEMORY;") != NULL);
 
     /* Verify process_data Propagation */
     ASSERT(strstr(content, "make_data(&d)") != NULL);
     /* Check error propagation: `if (rc != 0) return rc` implies function
      * signature change to int */
     ASSERT(strstr(content, "int process_data()") != NULL);
-    ASSERT(strstr(content, "int rc") != NULL);
+    ASSERT(strstr(content, "enum cdd_c_error rc") != NULL);
     ASSERT(strstr(content, "return rc;") != NULL);
     free(content);
   }

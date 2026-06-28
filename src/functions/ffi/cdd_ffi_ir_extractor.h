@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include "../../src/cdd_api.h"
 /* clang-format on */
@@ -26,10 +27,10 @@ extern "C" {
  * @param out_mangled Pointer to receive the allocated mangled name.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_ffi_mangle_cpp_name(const char *ns_name,
-                                         const char *class_name,
-                                         const char *method_name,
-                                         char **out_mangled);
+C_CDD_EXPORT enum cdd_c_error cdd_ffi_mangle_cpp_name(const char *ns_name,
+                                                      const char *class_name,
+                                                      const char *method_name,
+                                                      char **out_mangled);
 
 /**
  * @brief Extracts public exports into the FFI IR.
@@ -39,7 +40,7 @@ C_CDD_EXPORT int cdd_ffi_mangle_cpp_name(const char *ns_name,
  * @param out_ir The pointer to the resulting FFI IR.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int
+C_CDD_EXPORT enum cdd_c_error
 cdd_ffi_ir_extract_exports(const char *filename, const char *content,
                            const cdd_generate_bindings_config_t *config,
                            cdd_ffi_ir_t **out_ir);

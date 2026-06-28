@@ -26,8 +26,9 @@
  * @brief Generates client GUI bindings based on OpenAPI specs.
  *
  */
-int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
-                                const struct OpenApiClientConfig *config) {
+enum cdd_c_error
+openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
+                            const struct OpenApiClientConfig *config) {
   char path_h[1024];
   char path_c[1024];
   FILE *fp_h = NULL;
@@ -36,7 +37,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !config || !config->filename_base)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -45,7 +46,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     /* LCOV_EXCL_START */
     if (!src_dir)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
     get_basename(config->filename_base, &base_name);
@@ -77,7 +78,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Duplicate check inside the original file; left as is to match logic but we
@@ -87,7 +88,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Header Generation */
@@ -152,7 +153,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  m3_text_field_init(\"Username\");\n");
   fprintf(fp_c, "  m3_text_field_init(\"Password\");\n");
   fprintf(fp_c, "  m3_button_init(\"Login\");\n");
-  fprintf(fp_c, "  return 0;\n");
+  fprintf(fp_c, "  return CDD_C_SUCCESS;\n");
   fprintf(fp_c, "}\n\n");
 
   fprintf(fp_c, "int execute_password_grant(const char* token_endpoint, const "
@@ -200,7 +201,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fclose(fp_h);
   fclose(fp_c);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

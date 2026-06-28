@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -346,9 +347,9 @@ static void reset_op(struct OpenAPI_Operation *op) {
   memset(op, 0, sizeof(*op));
 }
 
-static int find_response_media_type(const struct OpenAPI_Response *resp,
-                                    const char *name,
-                                    const struct OpenAPI_MediaType **_out_val) {
+static enum cdd_c_error
+find_response_media_type(const struct OpenAPI_Response *resp, const char *name,
+                         const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!resp || !name || !resp->content_media_types) {
     *_out_val = NULL;

@@ -32,6 +32,7 @@ extern "C" {
 #include <stddef.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 
 #include "mocks/c_cdd_stdbool.h"
 
@@ -327,7 +328,7 @@ struct TokenList {
 extern C_CDD_EXPORT /**
                      * @brief Executes the tokenize operation.
                      */
-    int
+    enum cdd_c_error
     tokenize(az_span source, struct TokenList **out);
 
 /**
@@ -360,7 +361,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the token matches string operation.
                      */
-    int
+    enum cdd_c_error
     token_matches_string(const struct Token *tok,
 
                          const char *match, int *_out_val);
@@ -383,7 +384,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the token find next operation.
                      */
-    int
+    enum cdd_c_error
     token_find_next(const struct TokenList *list,
 
                     size_t start_idx, size_t end_idx,
@@ -402,7 +403,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the identify keyword or id operation.
                      */
-    int
+    enum cdd_c_error
     identify_keyword_or_id(const uint8_t *start,
 
                            size_t len, enum TokenKind *_out_val);

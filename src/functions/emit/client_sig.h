@@ -17,6 +17,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
@@ -45,7 +46,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen client write
                      * signature.
                      */
-    int
+    enum cdd_c_error
     codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
                                    const struct CodegenSigConfig *config);
 

@@ -94,12 +94,6 @@ option(C_ABSTRACT_HTTP_USE_OPENSSL "Use OpenSSL for cryptography" OFF)
 include(FetchContent)
 if (TARGET c-abstract-http)
     message(STATUS "c-abstract-http already provided by parent")
-elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http/CMakeLists.txt")
-    set(cdd_c_FOUND ON)
-    FetchContent_Declare(cdd_c SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-    set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_SOURCE_DIR}" CACHE PATH "..." FORCE)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http" "${CMAKE_BINARY_DIR}/c-abstract-http")
-    include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http/include")
 else()
     set(c_abstract_http_RESOLVED OFF)
     if(VCPKG_TOOLCHAIN)
@@ -113,6 +107,7 @@ else()
             c-abstract-http
             GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
             GIT_TAG        master
+            PATCH_COMMAND ${CMAKE_COMMAND} -DSRC_DIR=<SOURCE_DIR> -P ${CMAKE_SOURCE_DIR}/cmake/patch_c_abstract_http.cmake
         )
         set(cdd_c_FOUND ON)
         FetchContent_Declare(cdd_c SOURCE_DIR "${CMAKE_SOURCE_DIR}")

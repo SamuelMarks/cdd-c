@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +25,9 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok,
-                         char **_out_val) {
+static enum cdd_c_error token_to_cstr(char *buf, size_t buf_len,
+                                      const struct Token *tok,
+                                      char **_out_val) {
   size_t copy_len;
   if (buf_len == 0) {
     *_out_val = NULL;
@@ -149,7 +151,8 @@ TEST test_tokenizer_error_handling(void) {
   enum TokenKind kind;
   struct Token dummy_tok;
 
-  ASSERT_EQ(EINVAL, token_matches_string(NULL, "match", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            token_matches_string(NULL, "match", NULL));
   ASSERT_EQ(0, token_matches_string(NULL, "match", &is_match));
   ASSERT_EQ(0, is_match);
 
@@ -163,13 +166,16 @@ TEST test_tokenizer_error_handling(void) {
   /* identify_keyword_or_id segfaults when we pass start=NULL but out_val is not
      null? Let's check.
   */
-  ASSERT_EQ(EINVAL, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
 
-  ASSERT_EQ(EINVAL, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
   ASSERT_EQ(0, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, &next_idx));
   ASSERT_EQ(SIZE_MAX, next_idx);
 
-  ASSERT_EQ(EINVAL, identify_keyword_or_id(NULL, 5, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            identify_keyword_or_id(NULL, 5, NULL));
   ASSERT_EQ(0, identify_keyword_or_id(NULL, 5, &kind));
   ASSERT_EQ(TOKEN_IDENTIFIER, kind);
   g_fail_io_after = -1;

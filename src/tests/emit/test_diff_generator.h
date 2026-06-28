@@ -49,10 +49,14 @@ TEST test_diff_generation_basic(void) {
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(EINVAL, patch_list_generate_diff(NULL, &patch_list, "a.c", &diff));
-  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, NULL, "a.c", &diff));
-  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, &patch_list, NULL, &diff));
-  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, &patch_list, "a.c", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_generate_diff(NULL, &patch_list, "a.c", &diff));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_generate_diff(tokens, NULL, "a.c", &diff));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_generate_diff(tokens, &patch_list, NULL, &diff));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_generate_diff(tokens, &patch_list, "a.c", NULL));
 
   rc = patch_list_generate_diff(tokens, &patch_list, "a.c", &diff);
   ASSERT_EQ(0, rc);
@@ -81,7 +85,7 @@ TEST test_diff_generation_basic(void) {
   {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 5555;
-    ASSERT_EQ(ENOMEM,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2));
     g_cdd_fail_alloc = 0;
   }
@@ -105,7 +109,7 @@ TEST test_diff_generation_basic(void) {
     /* Trigger realloc failure */
     diff3 = NULL;
     g_cdd_fail_alloc = 7777;
-    ASSERT_EQ(ENOMEM,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
     g_cdd_fail_alloc = 0;
 
@@ -118,7 +122,7 @@ TEST test_diff_generation_basic(void) {
 
     diff3 = NULL;
     g_cdd_fail_alloc = 6666;
-    ASSERT_EQ(ENOMEM,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3));
     g_cdd_fail_alloc = 0;
 

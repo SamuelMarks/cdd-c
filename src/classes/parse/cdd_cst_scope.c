@@ -13,12 +13,12 @@ extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
 C_CDD_EXPORT int g_cdd_scope_alloc_fail = 0;
 #endif
 
-int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
+enum cdd_c_error cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   cdd_cst_scope_env_t *env;
   cdd_cst_scope_t *global;
 
   if (!out_env)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
 
@@ -29,7 +29,7 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
     env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
   if (!env) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -40,7 +40,7 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
     global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!global) {
     free(env);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   global->kind = CDD_CST_SCOPE_FILE;
 
@@ -48,7 +48,7 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   env->current_scope = global;
 
   *out_env = env;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static void free_symbols(cdd_cst_symbol_t *sym) {
@@ -80,13 +80,13 @@ void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   free(env);
 }
 
-int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
-                        enum cdd_cst_scope_kind_t kind) {
+enum cdd_c_error cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
+                                     enum cdd_cst_scope_kind_t kind) {
   cdd_cst_scope_t *new_scope;
   cdd_cst_scope_t *parent;
 
   if (!env || !env->current_scope)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   parent = env->current_scope;
 
@@ -99,7 +99,7 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
     new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!new_scope) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   new_scope->kind = kind;
@@ -118,7 +118,7 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
           parent->children, new_cap * sizeof(cdd_cst_scope_t *));
     if (!new_arr) {
       free(new_scope);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
     parent->capacity = new_cap;
@@ -127,18 +127,18 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
   parent->children[parent->num_children++] = new_scope;
   env->current_scope = new_scope;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
+enum cdd_c_error cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
   if (!env || !env->current_scope || !env->current_scope->parent)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   env->current_scope = env->current_scope->parent;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int cdd_strdup(const char *s, char **out_s) {
+static enum cdd_c_error cdd_strdup(const char *s, char **out_s) {
   size_t len;
   char *d;
   len = strlen(s);
@@ -151,20 +151,21 @@ static int cdd_strdup(const char *s, char **out_s) {
     d = (char *)malloc(len + 1);
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   memcpy(d, s, len + 1);
   *out_s = d;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
-                             enum cdd_cst_symbol_kind_t kind,
-                             cdd_cst_node_t *decl_node) {
+enum cdd_c_error cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
+                                          const char *name,
+                                          enum cdd_cst_symbol_kind_t kind,
+                                          cdd_cst_node_t *decl_node) {
   cdd_cst_symbol_t *sym;
 
   if (!env || !env->current_scope || !name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
 
@@ -175,14 +176,14 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
     sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
   if (!sym) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (cdd_strdup(name, (char **)&sym->name) != 0)
     sym->name = NULL;
   if (!sym->name) {
     free(sym);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   sym->kind = kind;
   sym->decl_node = decl_node;
@@ -190,22 +191,23 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
   sym->next = env->current_scope->symbols;
   env->current_scope->symbols = sym;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind) {
+enum cdd_c_error cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind) {
   return kind == CDD_CST_SYMBOL_STRUCT_TAG ||
          kind == CDD_CST_SYMBOL_UNION_TAG || kind == CDD_CST_SYMBOL_ENUM_TAG;
 }
 
-int cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env, const char *name,
-                                enum cdd_cst_symbol_kind_t kind,
-                                cdd_cst_symbol_t **out_symbol) {
+enum cdd_c_error cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
+                                             const char *name,
+                                             enum cdd_cst_symbol_kind_t kind,
+                                             cdd_cst_symbol_t **out_symbol) {
   cdd_cst_scope_t *curr;
   int is_tag_lookup = cdd_cst_symbol_is_tag(kind);
 
   if (!env || !name || !out_symbol)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   curr = env->current_scope;
   while (curr) {
@@ -219,7 +221,7 @@ int cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env, const char *name,
         int sym_is_tag = cdd_cst_symbol_is_tag(sym->kind);
         if (is_tag_lookup == sym_is_tag) {
           *out_symbol = sym;
-          return 0;
+          return CDD_C_SUCCESS;
         }
       }
       sym = sym->next;
@@ -227,5 +229,5 @@ int cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env, const char *name,
     curr = curr->parent;
   }
 
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }

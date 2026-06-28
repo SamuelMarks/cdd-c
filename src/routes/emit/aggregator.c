@@ -18,36 +18,36 @@
 /**
  * @brief Comparison function to find a path by route string.
  */
-static int find_path_in_list(struct OpenAPI_Path *paths, size_t n_paths,
-                             const char *route,
-                             struct OpenAPI_Path **_out_val) {
+static enum cdd_c_error find_path_in_list(struct OpenAPI_Path *paths,
+                                          size_t n_paths, const char *route,
+                                          struct OpenAPI_Path **_out_val) {
   size_t i;
   /* LCOV_EXCL_START */
   if (!paths || !route) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < n_paths; ++i) {
     if (paths[i].route && strcmp(paths[i].route, route) == 0) {
       {
         *_out_val = &paths[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Append a new path object to a list.
  */
-static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
-                               const char *route,
-                               struct OpenAPI_Path **out_ptr) {
+static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
+                                            size_t *n_paths, const char *route,
+                                            struct OpenAPI_Path **out_ptr) {
   char *_ast_strdup_0 = NULL;
   size_t new_count;
   struct OpenAPI_Path *new_arr;
@@ -55,7 +55,7 @@ static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
   /* LCOV_EXCL_START */
 
   if (!paths || !n_paths || !route || !out_ptr)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -65,7 +65,7 @@ static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
   /* LCOV_EXCL_START */
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -78,23 +78,24 @@ static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
 
   (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
   if (!(*out_ptr)->route)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the append operation operation.
  */
-static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
-                            struct OpenAPI_Operation *op) {
+static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
+                                         size_t *count,
+                                         struct OpenAPI_Operation *op) {
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 
   /* LCOV_EXCL_START */
 
   if (!ops || !count || !op)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -104,7 +105,7 @@ static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
   /* LCOV_EXCL_START */
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -112,15 +113,15 @@ static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
   (*ops)[new_count - 1] = *op;
   *count = new_count;
   memset(op, 0, sizeof(*op));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the openapi aggregator add operation operation.
  */
-int openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
-                                     const char *route,
-                                     struct OpenAPI_Operation *op) {
+enum cdd_c_error
+openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
+                                 struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_0;
   struct OpenAPI_Path *target_path;
   int rc;
@@ -128,7 +129,7 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !route || !op) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* LCOV_EXCL_STOP */
@@ -166,9 +167,10 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the openapi aggregator add webhook operation operation.
  */
-int openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
-                                             const char *route,
-                                             struct OpenAPI_Operation *op) {
+enum cdd_c_error
+openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
+                                         const char *route,
+                                         struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_1;
   struct OpenAPI_Path *target_path;
   int rc;
@@ -176,7 +178,7 @@ int openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !route || !op) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* LCOV_EXCL_STOP */

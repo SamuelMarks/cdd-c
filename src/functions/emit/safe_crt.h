@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
@@ -69,7 +70,7 @@ C_CDD_EXPORT /**
 C_CDD_EXPORT /**
               * @brief Executes the cst generate safe crt patches operation.
               */
-    int
+    enum cdd_c_error
     cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                                   const struct TokenList *tokens,
                                   struct SafeCrtPatchList *out_patches);

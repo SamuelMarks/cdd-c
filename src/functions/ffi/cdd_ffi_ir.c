@@ -1,3 +1,4 @@
+#include "cdd_c_error.h"
 /* clang-format off */
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include <errno.h>
@@ -42,7 +43,7 @@ static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
  * @param node_idx The index of the current node.
  * @return 0 on success, or an error code.
  */
-static int toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
+static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   cdd_ffi_ir_node_t *node;
   size_t i;
 
@@ -51,11 +52,11 @@ static int toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
        but ideally C structs with pointers can have cycles.
        If it's a pointer to a struct, it shouldn't be a strict dependency,
        but we are simplifying. We'll just return to break the cycle. */
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (ctx->visited[node_idx] == 2) {
     /* Already processed */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   ctx->visited[node_idx] = 1;
@@ -98,32 +99,32 @@ static int toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   /* Shallow copy the node to the sorted array */
   ctx->sorted_nodes[ctx->sorted_count++] = *node;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
+enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   toposort_ctx_t ctx;
   size_t i;
   int res = 0;
 
   if (!ir) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (ir->nodes_count == 0) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   ctx.ir = ir;
   ctx.visited = (int *)calloc(ir->nodes_count, sizeof(int));
   if (!ctx.visited) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   ctx.sorted_nodes =
       (cdd_ffi_ir_node_t *)malloc(ir->nodes_count * sizeof(cdd_ffi_ir_node_t));
   if (!ctx.sorted_nodes) {
     free(ctx.visited);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   ctx.sorted_count = 0;
 
@@ -144,7 +145,7 @@ int cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   ir->nodes_capacity = ir->nodes_count;
 
   free(ctx.visited);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static void free_type_recursive(cdd_ffi_type_t *type) {

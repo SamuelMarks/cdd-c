@@ -196,9 +196,12 @@ TEST test_aggregator_bad_args(void) {
   openapi_spec_init(&spec);
   dummy_op(&op, "x");
 
-  ASSERT_EQ(EINVAL, openapi_aggregator_add_operation(NULL, "/a", &op));
-  ASSERT_EQ(EINVAL, openapi_aggregator_add_operation(&spec, NULL, &op));
-  ASSERT_EQ(EINVAL, openapi_aggregator_add_operation(&spec, "/a", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_operation(NULL, "/a", &op));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_operation(&spec, NULL, &op));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_operation(&spec, "/a", NULL));
 
   /* Since calls failed, ownership RETAINED by op. We must free it manually
    * here. */

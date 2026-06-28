@@ -170,9 +170,9 @@ TEST test_audit_json_output(void) {
   stats.allocations_unchecked = 1;
 
   /* Null checks */
-  ASSERT_EQ(EINVAL, audit_print_json(NULL, &json));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_print_json(NULL, &json));
   ASSERT_EQ(NULL, json);
-  ASSERT_EQ(EINVAL, audit_print_json(&stats, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_print_json(&stats, NULL));
 
   /* Manually inject a violation to test JSON serialization mechanics
    * independent of FS */
@@ -216,8 +216,8 @@ TEST test_audit_stats_null(void) {
   audit_stats_init(NULL); /* Should do nothing safely */
   audit_stats_free(NULL); /* Should return safely */
 
-  ASSERT_EQ(EINVAL, audit_project(NULL, &stats));
-  ASSERT_EQ(EINVAL, audit_project("dummy", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project(NULL, &stats));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project("dummy", NULL));
   audit_print_json(NULL, &_test_json);
   ASSERT(_test_json == NULL);
   g_fail_io_after = -1;
@@ -340,7 +340,7 @@ TEST test_audit_oom(void) {
       g_cdd_fail_alloc_audit = i;
       json = NULL;
       rc = audit_print_json(&stats, &json);
-      if (rc == ENOMEM) {
+      if (rc == CDD_C_ERROR_MEMORY) {
         /* test passed for OOM */
       }
       g_cdd_fail_alloc_audit = 0;

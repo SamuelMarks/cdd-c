@@ -18,13 +18,14 @@
 
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \
-    return EIO;                                                                \
+    return CDD_C_ERROR_IO;                                                     \
   } else                                                                       \
     (void)0
 
 /* --- Helper to write a test for a single operation --- */
-static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
-                                const struct SdkTestsConfig *config) {
+static enum cdd_c_error
+write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
+                     const struct SdkTestsConfig *config) {
   size_t i;
   CHECK_IO(fprintf(fp, "\nTEST test_%s(void) {\n", op->operation_id));
   CHECK_IO(fprintf(fp, "  struct HttpClient client;\n"));
@@ -136,13 +137,14 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
   return 0;
 }
 
-int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
-                               const struct SdkTestsConfig *config) {
+enum cdd_c_error
+codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
+                           const struct SdkTestsConfig *config) {
   size_t i, j;
 
   if (!fp || !spec || !config || !config->client_header ||
       !config->mock_server_url)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Header */
   CHECK_IO(fprintf(fp,
@@ -161,7 +163,7 @@ int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
   for (i = 0; i < spec->n_paths; ++i) {
     for (j = 0; j < spec->paths[i].n_operations; ++j) {
       if (write_test_operation(fp, &spec->paths[i].operations[j], config) != 0)
-        return EIO;
+        return CDD_C_ERROR_IO;
     }
   }
 

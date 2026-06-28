@@ -59,7 +59,7 @@ struct PlainTextKeyBlob {
  * @brief Helper to acquire a cryptographic provider context.
  * Uses MS_ENH_RSA_AES_PROV for SHA-256 support.
  */
-static int acquire_context(HCRYPTPROV *hProv) {
+static enum cdd_c_error acquire_context(HCRYPTPROV *hProv) {
   if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                            CRYPT_VERIFYCONTEXT)) {
     /* If failed, try creating new keyset (rarely needed for VERIFYCONTEXT but
@@ -67,45 +67,45 @@ static int acquire_context(HCRYPTPROV *hProv) {
     if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                                CRYPT_NEWKEYSET | CRYPT_VERIFYCONTEXT)) {
-        return EIO;
+        return CDD_C_ERROR_IO;
       }
     } else {
-      return EIO;
+      return CDD_C_ERROR_IO;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the crypto sha256 operation.
  */
-int crypto_sha256(const void *data, size_t data_len,
-                  unsigned char *out_digest) {
+enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
+                               unsigned char *out_digest) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   DWORD cbHash = CRYPTO_SHA256_SIZE;
   int rc = 0;
 
   if ((!data && data_len > 0) || !out_digest)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (acquire_context(&hProv) != 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   if (!CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash)) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
   if (data_len > 0) {
     if (!CryptHashData(hHash, (const BYTE *)data, (DWORD)data_len, 0)) {
-      rc = EIO;
+      rc = CDD_C_ERROR_IO;
       goto cleanup;
     }
   }
 
   if (!CryptGetHashParam(hHash, HP_HASHVAL, out_digest, &cbHash, 0)) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
@@ -120,8 +120,9 @@ cleanup:
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                       size_t data_len, unsigned char *out_mac) {
+enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
+                                    const void *data, size_t data_len,
+                                    unsigned char *out_mac) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   HCRYPTKEY hKey = 0;
@@ -132,7 +133,7 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   int rc = 0;
 
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* CAPI CryptImportKey fails with 0-length keys, and also small keys might
      trigger NTE_BAD_LEN. HMAC pads keys with 0s to the block size (64 for
@@ -144,14 +145,14 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   }
 
   if (acquire_context(&hProv) != 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* 1. Import the Key */
   /* CAPI requires keys to be imported via blobs. We build a PLAINTEXTKEYBLOB */
   blobSize = (DWORD)(sizeof(BLOBHEADER) + sizeof(DWORD) + key_len);
   pBlob = (struct PlainTextKeyBlob *)malloc(blobSize);
   if (!pBlob) {
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
@@ -169,13 +170,13 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   /* CRYPT_IPSEC_HMAC_KEY flag allows importing generic keys for HMAC */
   if (!CryptImportKey(hProv, (const BYTE *)pBlob, (DWORD)blobSize, 0,
                       CRYPT_IPSEC_HMAC_KEY, &hKey)) {
-    rc = EIO; /* GetLastError() mapping */
+    rc = CDD_C_ERROR_IO; /* GetLastError() mapping */
     goto cleanup;
   }
 
   /* 2. Create HMAC Hash Object */
   if (!CryptCreateHash(hProv, CALG_HMAC, hKey, 0, &hHash)) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
@@ -184,21 +185,21 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   HmacInfo.HashAlgid = CALG_SHA_256;
 
   if (!CryptSetHashParam(hHash, HP_HMAC_INFO, (const BYTE *)&HmacInfo, 0)) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
   /* 4. Hash Data */
   if (data_len > 0) {
     if (!CryptHashData(hHash, (const BYTE *)data, (DWORD)data_len, 0)) {
-      rc = EIO;
+      rc = CDD_C_ERROR_IO;
       goto cleanup;
     }
   }
 
   /* 5. Get Result */
   if (!CryptGetHashParam(hHash, HP_HASHVAL, out_mac, &cbHash, 0)) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
@@ -220,25 +221,26 @@ cleanup:
 /**
  * @brief Executes the crypto sha256 operation.
  */
-int crypto_sha256(const void *data, size_t data_len,
-                  unsigned char *out_digest) {
+enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
+                               unsigned char *out_digest) {
   (void)data;
   (void)data_len;
   (void)out_digest;
-  return ENOTSUP;
+  return CDD_C_ERROR_SYSTEM;
 }
 
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                       size_t data_len, unsigned char *out_mac) {
+enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
+                                    const void *data, size_t data_len,
+                                    unsigned char *out_mac) {
   (void)key;
   (void)key_len;
   (void)data;
   (void)data_len;
   (void)out_mac;
-  return ENOTSUP;
+  return CDD_C_ERROR_SYSTEM;
 }
 
 #endif /* _WIN32 */

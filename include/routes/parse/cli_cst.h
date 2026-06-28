@@ -3,6 +3,7 @@
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 #ifdef __cplusplus
@@ -16,7 +17,7 @@ extern "C" {
  * @param argv Argument values.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cli_cst_transformer_main(int argc, char **argv);
+C_CDD_EXPORT enum cdd_c_error cli_cst_transformer_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

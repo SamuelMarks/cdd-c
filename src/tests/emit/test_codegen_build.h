@@ -36,19 +36,23 @@ TEST test_cbuild_null_args(void) {
   memset(&config, 0, sizeof(config));
 
   /* NULL config */
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_CMAKE, tmp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_build_generate(BUILD_SYS_CMAKE, tmp, NULL));
 
   /* NULL fp */
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_CMAKE, NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_build_generate(BUILD_SYS_CMAKE, NULL, &config));
 
   /* Missing project name */
   config.target_name = "mylib";
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
   /* Missing library target */
   config.project_name = "MyProject";
   config.target_name = NULL;
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
   fclose(tmp);
   g_fail_io_after = -1;
@@ -119,15 +123,12 @@ TEST test_cbuild_unsupported(void) {
   config.project_name = "PetStore";
   config.target_name = "petstore_lib";
 
-#if defined(ENOTSUP) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
-  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
-  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
-  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
-#else
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
-  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
-#endif
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
 
   fclose(tmp);
   g_fail_io_after = -1;
@@ -161,11 +162,12 @@ TEST test_build_system_oom(void) {
     int rc_fp2;
     int rc_fp;
     g_cdd_fail_alloc = 1111;
-    ASSERT_EQ(ENOMEM, generate_cmake_project("test_build_sys_out", "Proj", 0));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              generate_cmake_project("test_build_sys_out", "Proj", 0));
     g_cdd_fail_alloc = 0;
 
     g_cdd_fail_alloc = 2222;
-    ASSERT_EQ(ENOMEM, generate_cmake_project(NULL, "Proj", 0));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
     g_cdd_fail_alloc = 0;
 
     ASSERT_EQ(0, generate_cmake_project(NULL, "Proj", 0));

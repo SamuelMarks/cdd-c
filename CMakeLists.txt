@@ -75,23 +75,11 @@ set(PARSON_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(C_ABSTRACT_HTTP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
 macro(FetchDependencyLocalOrArchive NAME LOCAL_DIR GITHUB_REPO)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}/CMakeLists.txt")
-        FetchContent_Declare(
-            ${NAME}
-            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}"
-        )
-    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../${LOCAL_DIR}/CMakeLists.txt")
-        FetchContent_Declare(
-            ${NAME}
-            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../${LOCAL_DIR}"
-        )
-    else()
-        FetchContent_Declare(
-            ${NAME}
-            GIT_REPOSITORY "https://github.com/${GITHUB_REPO}.git"
-            GIT_TAG "master"
-        )
-    endif()
+    FetchContent_Declare(
+        ${NAME}
+        GIT_REPOSITORY "https://github.com/${GITHUB_REPO}.git"
+        GIT_TAG "master"
+    )
     if(DEFINED BUILD_TESTING)
         set(OLD_BUILD_TESTING "${BUILD_TESTING}")
         set(OLD_BUILD_TESTING_DEFINED TRUE)
@@ -404,8 +392,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
         if (NOT CURL_FOUND AND NOT TARGET CURL::libcurl)
             FetchContent_Declare(
                 curl
-                GIT_REPOSITORY https://github.com/curl/curl.git
-                GIT_TAG curl-8_4_0
+                URL https://github.com/curl/curl/archive/curl-8_4_0.zip
             )
             set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
             set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)

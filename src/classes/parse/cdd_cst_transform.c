@@ -10,8 +10,8 @@
 #include <stdlib.h>
 /* clang-format on */
 
-int cdd_transform_extern_c(cdd_cst_tree_t *tree,
-                           const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
+                                        const cdd_transform_config_t *config) {
   int rc;
   cdd_cst_query_result_t res;
   size_t i;
@@ -21,7 +21,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
   (void)config;
 
   if (!tree || !tree->root) {
-    rc = EINVAL;
+    rc = CDD_C_ERROR_INVALID_ARGUMENT;
     return rc;
   }
 
@@ -50,7 +50,7 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
   }
 
   if (found_cpp)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* 2. Find insertion boundary: After #includes and comments, before C
    * declarations */
@@ -115,18 +115,18 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_transform_msvc(cdd_cst_tree_t *tree,
-                       const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
+                                    const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
   (void)config;
 
   if (!tree || !tree->root) {
-    rc = EINVAL;
+    rc = CDD_C_ERROR_INVALID_ARGUMENT;
     return rc;
   }
 
@@ -224,16 +224,16 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_transform_gnu(cdd_cst_tree_t *tree,
-                      const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
+                                   const cdd_transform_config_t *config) {
   size_t i;
   (void)config;
 
   if (!tree || !tree->root) {
-    rc = EINVAL;
+    rc = CDD_C_ERROR_INVALID_ARGUMENT;
     return rc;
   }
 
@@ -370,5 +370,5 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

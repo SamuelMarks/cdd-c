@@ -31,23 +31,30 @@ TEST test_enum_generation(void) {
   ASSERT_EQ(0, enum_members_init(&em));
 
   /* Invalid args */
-  ASSERT_EQ(EINVAL, enum_members_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_init(NULL));
   enum_members_free(NULL); /* Should not crash */
-  ASSERT_EQ(EINVAL, enum_members_add(NULL, "VAL"));
-  ASSERT_EQ(EINVAL, enum_members_add(&em, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(NULL, "VAL"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(&em, NULL));
 
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(NULL, "MyEnum", &em, &config));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, NULL, &em, &config));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "MyEnum", NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(NULL, "MyEnum", &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(tmp, NULL, &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(tmp, "MyEnum", NULL, &config));
 
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(NULL, "MyEnum", &em, &config));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, NULL, &em, &config));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "MyEnum", NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(NULL, "MyEnum", &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(tmp, NULL, &em, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(tmp, "MyEnum", NULL, &config));
 
   {
     struct EnumMembers bad_em = {0};
-    ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "MyEnum", &bad_em, &config));
-    ASSERT_EQ(EINVAL,
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_to_str_func(tmp, "MyEnum", &bad_em, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               write_enum_from_str_func(tmp, "MyEnum", &bad_em, &config));
   }
 
@@ -95,13 +102,16 @@ TEST test_enum_generation(void) {
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO,
-                write_enum_to_str_func(readonly_f, "MyEnum", &em, &config));
+      {
+        int _rc = write_enum_to_str_func(readonly_f, "MyEnum", &em, &config);
+        printf("write_enum_to_str_func RC WAS %d\\n", _rc);
+        ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+      }
       g_fail_io_after = 0;
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO,
+      ASSERT_EQ(CDD_C_ERROR_IO,
                 write_enum_from_str_func(readonly_f, "MyEnum", &em, &config));
       fclose(readonly_f);
     }
@@ -124,23 +134,23 @@ TEST test_enum_generation_oom(void) {
   struct EnumMembers em;
 #ifdef CDD_BUILD_TESTS
   g_enum_members_init_fail = 1;
-  ASSERT_EQ(ENOMEM, enum_members_init(&em));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_init(&em));
   g_enum_members_init_fail = 0;
 
   ASSERT_EQ(0, enum_members_init(&em));
   em.size = em.capacity; /* Force realloc */
   g_enum_members_add_fail = 1;
-  ASSERT_EQ(ENOMEM, enum_members_add(&em, "TEST"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST"));
 
   em.capacity = 16;
   em.size = 16;
-  ASSERT_EQ(ENOMEM, enum_members_add(&em, "TEST2"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST2"));
   em.capacity = 0;
   em.size = 0;
   g_enum_members_add_fail = 0;
 
   g_enum_members_add_strdup_fail = 1;
-  ASSERT_EQ(ENOMEM, enum_members_add(&em, "TEST"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, enum_members_add(&em, "TEST"));
   g_enum_members_add_strdup_fail = 0;
 
   /* NULL member test for coverage in write_enum_to_str_func / from_str_func */
@@ -185,7 +195,7 @@ TEST test_enum_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 1000; ++i) {
@@ -200,7 +210,7 @@ TEST test_enum_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   config.guard_macro = NULL;
@@ -217,7 +227,7 @@ TEST test_enum_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 1000; ++i) {
@@ -232,7 +242,7 @@ TEST test_enum_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   g_fail_io_after = -1;

@@ -19,6 +19,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -29,7 +30,8 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
+static enum cdd_c_error load_spec_str(const char *json_str,
+                                      struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
   if (!dyn)
@@ -40,10 +42,10 @@ static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
   return rc;
 }
 
-static int load_spec_str_with_context(const char *json_str,
-                                      const char *retrieval_uri,
-                                      struct OpenAPI_DocRegistry *registry,
-                                      struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
+                           struct OpenAPI_DocRegistry *registry,
+                           struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
   if (!dyn)
@@ -54,8 +56,8 @@ static int load_spec_str_with_context(const char *json_str,
   return rc;
 }
 
-static int find_raw_schema_index(const struct OpenAPI_Spec *spec,
-                                 const char *name) {
+static enum cdd_c_error find_raw_schema_index(const struct OpenAPI_Spec *spec,
+                                              const char *name) {
   size_t i;
   if (!spec || !name)
     return -1;
@@ -68,8 +70,9 @@ static int find_raw_schema_index(const struct OpenAPI_Spec *spec,
   return -1;
 }
 
-static int find_scheme(const struct OpenAPI_Spec *spec, const char *name,
-                       struct OpenAPI_SecurityScheme **_out_val) {
+static enum cdd_c_error find_scheme(const struct OpenAPI_Spec *spec,
+                                    const char *name,
+                                    struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
   if (!spec || !name) {
     *_out_val = NULL;
@@ -90,9 +93,9 @@ static int find_scheme(const struct OpenAPI_Spec *spec, const char *name,
   }
 }
 
-static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                           const char *name,
-                           struct OpenAPI_MediaType **_out_val) {
+static enum cdd_c_error find_media_type(const struct OpenAPI_MediaType *mts,
+                                        size_t n, const char *name,
+                                        struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -244,7 +247,7 @@ TEST test_request_body_content_required(void) {
                      "}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -260,7 +263,7 @@ TEST test_param_content_multiple_entries_rejected(void) {
       "plain\":{}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -276,7 +279,7 @@ TEST test_header_content_multiple_entries_rejected(void) {
       "\"application/json\":{},\"text/plain\":{}}}}}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -315,7 +318,7 @@ TEST test_response_code_key_invalid_rejected(void) {
       "\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -342,7 +345,7 @@ TEST test_paths_require_leading_slash(void) {
       "\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -357,7 +360,7 @@ TEST test_paths_ambiguous_templates_rejected(void) {
                      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -370,7 +373,7 @@ TEST test_component_key_regex_rejected(void) {
       "\"components\":{\"schemas\":{\"Bad/Name\":{\"type\":\"string\"}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -383,7 +386,7 @@ TEST test_tag_duplicate_rejected(void) {
       "\"tags\":[{\"name\":\"dup\"},{\"name\":\"dup\"}]}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -396,7 +399,7 @@ TEST test_tag_name_required(void) {
       "\"tags\":[{\"description\":\"missing\"}]}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -409,7 +412,7 @@ TEST test_tag_parent_missing_rejected(void) {
       "\"tags\":[{\"name\":\"child\",\"parent\":\"ghost\"}]}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -423,7 +426,7 @@ TEST test_tag_parent_cycle_rejected(void) {
       "{\"name\":\"b\",\"parent\":\"a\"}]}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -436,7 +439,7 @@ TEST test_external_docs_url_required(void) {
       "\"externalDocs\":{\"description\":\"Docs\"}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -453,7 +456,7 @@ TEST test_operation_id_duplicate_rejected(void) {
                      "}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -472,7 +475,7 @@ TEST test_operation_id_duplicate_in_callback_rejected(void) {
                      "}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -488,7 +491,7 @@ TEST test_parameter_duplicates_rejected(void) {
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -505,7 +508,7 @@ TEST test_querystring_with_query_rejected(void) {
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -523,7 +526,7 @@ TEST test_querystring_duplicate_rejected(void) {
       "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -540,7 +543,7 @@ TEST test_querystring_path_and_operation_mixed_rejected(void) {
       "\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -559,7 +562,7 @@ TEST test_querystring_with_query_in_callback_rejected(void) {
       "\"description\":\"OK\"}}}}}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -574,7 +577,7 @@ TEST test_parameter_missing_name_or_in_rejected(void) {
       "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -590,7 +593,7 @@ TEST test_header_style_non_simple_rejected(void) {
       "\"style\":\"form\"}}}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -608,7 +611,7 @@ TEST test_media_type_encoding_conflict_rejected(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -627,7 +630,7 @@ TEST test_encoding_object_conflict_rejected(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -720,7 +723,7 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -870,7 +873,7 @@ TEST test_param_schema_and_content_conflict(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -887,7 +890,7 @@ TEST test_header_schema_and_content_conflict(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1103,7 +1106,7 @@ TEST test_server_variable_default_required(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -1145,7 +1148,7 @@ TEST test_load_server_duplicate_name_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1247,7 +1250,7 @@ TEST test_load_openapi_version_unsupported_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1261,7 +1264,7 @@ TEST test_load_server_url_query_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1417,7 +1420,7 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1432,7 +1435,7 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1447,7 +1450,7 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1462,7 +1465,7 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1477,7 +1480,7 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1495,7 +1498,7 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1513,7 +1516,7 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1532,7 +1535,7 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1607,7 +1610,7 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1627,7 +1630,7 @@ TEST test_load_header_example_and_examples_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1647,7 +1650,7 @@ TEST test_load_media_example_and_examples_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1664,7 +1667,7 @@ TEST test_load_example_data_value_and_value_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -1682,7 +1685,7 @@ TEST test_load_example_serialized_and_external_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -2095,7 +2098,7 @@ TEST test_load_license_identifier_and_url_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -2110,7 +2113,7 @@ TEST test_load_license_missing_name_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4189,7 +4192,7 @@ TEST test_load_path_template_missing_param(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4205,7 +4208,7 @@ TEST test_load_path_template_param_not_in_route(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4221,7 +4224,7 @@ TEST test_load_path_template_param_not_required(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4234,7 +4237,7 @@ TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4254,7 +4257,7 @@ TEST test_param_style_invalid_for_in_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4275,7 +4278,7 @@ TEST test_param_style_deep_object_scalar_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4294,7 +4297,7 @@ TEST test_server_url_variable_missing_definition_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4314,7 +4317,7 @@ TEST test_server_url_variable_duplicate_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4328,7 +4331,7 @@ TEST test_load_server_missing_url_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4343,7 +4346,7 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4358,7 +4361,7 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();
@@ -4374,7 +4377,7 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
   PASS();

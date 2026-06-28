@@ -24,18 +24,18 @@
 /**
  * @brief Check if a character is a newline.
  */
-static int is_eol(char c) { return c == '\n' || c == '\r'; }
+static enum cdd_c_error is_eol(char c) { return c == '\n' || c == '\r'; }
 
 /**
  * @brief Skip whitespace in a string buffer.
  */
-static int skip_ws(const char *p, const char **_out_val) {
+static enum cdd_c_error skip_ws(const char *p, const char **_out_val) {
   while (*p && isspace((unsigned char)*p) && !is_eol(*p)) {
     p++;
   }
   {
     *_out_val = p;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -47,8 +47,8 @@ static int skip_ws(const char *p, const char **_out_val) {
  * @param next_out [out] Pointer to where the scan stopped.
  * @return Allocated string containing the word, or NULL on failure.
  */
-static int extract_word(const char *str, const char *end, const char **next_out,
-                        char **_out_val) {
+static enum cdd_c_error extract_word(const char *str, const char *end,
+                                     const char **next_out, char **_out_val) {
   const char *_ast_skip_ws_0 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_0), _ast_skip_ws_0);
   const char *word_start = p;
@@ -64,7 +64,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
     *next_out = p;
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -81,7 +81,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
 #endif
   if (!res) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   memcpy(res, word_start, len);
@@ -90,7 +90,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
   *next_out = p;
   {
     *_out_val = res;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -98,7 +98,8 @@ static int extract_word(const char *str, const char *end, const char **next_out,
  * @brief Extract the remainder of the line as text.
  * Trims leading/trailing whitespace.
  */
-static int extract_rest(const char *str, const char *end, char **_out_val) {
+static enum cdd_c_error extract_rest(const char *str, const char *end,
+                                     char **_out_val) {
   const char *_ast_skip_ws_1 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_1), _ast_skip_ws_1);
   const char *e = end;
@@ -113,7 +114,7 @@ static int extract_rest(const char *str, const char *end, char **_out_val) {
   len = (size_t)(e - p);
   if (len == 0) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -129,66 +130,67 @@ static int extract_rest(const char *str, const char *end, char **_out_val) {
 #endif
   if (!res) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   memcpy(res, p, len);
   res[len] = '\0';
   {
     *_out_val = res;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Adds or sets tag.
  */
-static int add_tag(struct DocMetadata *out, const char *tag) {
+static enum cdd_c_error add_tag(struct DocMetadata *out, const char *tag) {
   char *_ast_strdup_0 = NULL;
   char **new_tags;
   if (!out || !tag || !*tag)
-    return 0;
+    return CDD_C_SUCCESS;
   new_tags = (char **)realloc(out->tags, (out->n_tags + 1) * sizeof(char *));
   if (!new_tags) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->tags = new_tags;
   out->tags[out->n_tags] = (c_cdd_strdup(tag, &_ast_strdup_0), _ast_strdup_0);
   if (!out->tags[out->n_tags])
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   out->n_tags++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Adds or sets tag meta.
  */
-static int add_tag_meta(struct DocMetadata *out, struct DocTagMeta *meta) {
+static enum cdd_c_error add_tag_meta(struct DocMetadata *out,
+                                     struct DocTagMeta *meta) {
   struct DocTagMeta *new_meta;
   if (!out || !meta || !meta->name || !*meta->name)
-    return 0;
+    return CDD_C_SUCCESS;
   new_meta = (struct DocTagMeta *)realloc(
       out->tag_meta, (out->n_tag_meta + 1) * sizeof(struct DocTagMeta));
   if (!new_meta) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->tag_meta = new_meta;
   out->tag_meta[out->n_tag_meta] = *meta;
   out->n_tag_meta++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the trim segment operation.
  */
-static int trim_segment(char *s, char **_out_val) {
+static enum cdd_c_error trim_segment(char *s, char **_out_val) {
   char *start;
   char *end;
   if (!s) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   start = s;
   while (*start && isspace((unsigned char)*start))
@@ -199,15 +201,15 @@ static int trim_segment(char *s, char **_out_val) {
   *end = '\0';
   {
     *_out_val = start;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses tags line from the given input.
  */
-static int parse_tags_line(const char *line, const char *end,
-                           struct DocMetadata *out) {
+static enum cdd_c_error parse_tags_line(const char *line, const char *end,
+                                        struct DocMetadata *out) {
   char *_ast_extract_rest_2 = NULL;
   char *_ast_trim_segment_3 = NULL;
   char *rest;
@@ -215,11 +217,11 @@ static int parse_tags_line(const char *line, const char *end,
   int rc = 0;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rest = (extract_rest(line, end, &_ast_extract_rest_2), _ast_extract_rest_2);
   if (!rest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cursor = rest;
   while (cursor && *cursor) {
@@ -247,30 +249,30 @@ static int parse_tags_line(const char *line, const char *end,
 /**
  * @brief Parses bool text from the given input.
  */
-static int parse_bool_text(const char *s, int *out) {
+static enum cdd_c_error parse_bool_text(const char *s, int *out) {
   int diff1, diff2, diff3, diff4;
   if (!s || !out)
-    return 0;
+    return CDD_C_SUCCESS;
   c_cdd_stricmp(s, "true", &diff1);
   c_cdd_stricmp(s, "yes", &diff2);
   if (diff1 == 0 || strcmp(s, "1") == 0 || diff2 == 0) {
     *out = 1;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "false", &diff3);
   c_cdd_stricmp(s, "no", &diff4);
   if (diff3 == 0 || strcmp(s, "0") == 0 || diff4 == 0) {
     *out = 0;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses tag meta line from the given input.
  */
-static int parse_tag_meta_line(const char *line, const char *end,
-                               struct DocMetadata *out) {
+static enum cdd_c_error parse_tag_meta_line(const char *line, const char *end,
+                                            struct DocMetadata *out) {
   char *_ast_extract_word_4 = NULL;
   const char *_ast_skip_ws_5 = NULL;
   char *_ast_trim_segment_6 = NULL;
@@ -290,7 +292,7 @@ static int parse_tag_meta_line(const char *line, const char *end,
   struct DocTagMeta meta;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   memset(&meta, 0, sizeof(meta));
   printf("LINE: %.*s\n", (int)(end - line), line);
@@ -298,7 +300,7 @@ static int parse_tag_meta_line(const char *line, const char *end,
   meta.name =
       (extract_word(cur, end, &cur, &_ast_extract_word_4), _ast_extract_word_4);
   if (!meta.name)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cur = (skip_ws(cur, &_ast_skip_ws_5), _ast_skip_ws_5);
   while (cur < end && *cur == '[') {
@@ -364,51 +366,52 @@ static int parse_tag_meta_line(const char *line, const char *end,
 /**
  * @brief Parses style text from the given input.
  */
-static int parse_style_text(const char *s, enum DocParamStyle *out) {
+static enum cdd_c_error parse_style_text(const char *s,
+                                         enum DocParamStyle *out) {
   int diff;
   if (!s || !out)
-    return 0;
+    return CDD_C_SUCCESS;
   c_cdd_stricmp(s, "form", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_FORM;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "simple", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_SIMPLE;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "matrix", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_MATRIX;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "label", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_LABEL;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "spaceDelimited", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_SPACE_DELIMITED;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "pipeDelimited", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_PIPE_DELIMITED;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "deepObject", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_DEEP_OBJECT;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   c_cdd_stricmp(s, "cookie", &diff);
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_COOKIE;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -446,18 +449,19 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
 /**
  * @brief Parses optional example attr from the given input.
  */
-static int parse_optional_example_attr(const char *attr, char **out_example) {
+static enum cdd_c_error parse_optional_example_attr(const char *attr,
+                                                    char **out_example) {
   char *_ast_trim_segment_14 = NULL;
   char *_ast_strdup_7 = NULL;
   char *val;
   if (!attr || !out_example)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
-    return 0;
+    return CDD_C_SUCCESS;
   val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_14),
          _ast_trim_segment_14);
   if (!val || !*val)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (*out_example)
     free(*out_example);
   *out_example = (c_cdd_strdup(val, &_ast_strdup_7), _ast_strdup_7);
@@ -467,34 +471,35 @@ static int parse_optional_example_attr(const char *attr, char **out_example) {
 /**
  * @brief Parses deprecated line from the given input.
  */
-static int parse_deprecated_line(const char *line, const char *end,
-                                 struct DocMetadata *out) {
+static enum cdd_c_error parse_deprecated_line(const char *line, const char *end,
+                                              struct DocMetadata *out) {
   char *_ast_extract_rest_15 = NULL;
   char *rest;
   int value = 1;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out->deprecated_set = 1;
   rest = (extract_rest(line, end, &_ast_extract_rest_15), _ast_extract_rest_15);
   if (!rest) {
     out->deprecated = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (parse_bool_text(rest, &value))
     out->deprecated = value;
   else
     out->deprecated = 1;
   free(rest);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses external docs line from the given input.
  */
-static int parse_external_docs_line(const char *line, const char *end,
-                                    struct DocMetadata *out) {
+static enum cdd_c_error parse_external_docs_line(const char *line,
+                                                 const char *end,
+                                                 struct DocMetadata *out) {
   char *_ast_extract_word_16 = NULL;
   char *_ast_extract_rest_17 = NULL;
   const char *cur = line;
@@ -502,12 +507,12 @@ static int parse_external_docs_line(const char *line, const char *end,
   char *desc;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   url = (extract_word(cur, end, &cur, &_ast_extract_word_16),
          _ast_extract_word_16);
   if (!url)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (out->external_docs_url)
     free(out->external_docs_url);
@@ -518,14 +523,14 @@ static int parse_external_docs_line(const char *line, const char *end,
     free(out->external_docs_description);
   out->external_docs_description = desc;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses contact line from the given input.
  */
-static int parse_contact_line(const char *line, const char *end,
-                              struct DocMetadata *out) {
+static enum cdd_c_error parse_contact_line(const char *line, const char *end,
+                                           struct DocMetadata *out) {
   char *_ast_extract_rest_18 = NULL;
   char *_ast_trim_segment_19 = NULL;
   char *_ast_trim_segment_20 = NULL;
@@ -544,11 +549,11 @@ static int parse_contact_line(const char *line, const char *end,
   char *open;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rest = (extract_rest(line, end, &_ast_extract_rest_18), _ast_extract_rest_18);
   if (!rest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cursor = rest;
   while ((open = strchr(cursor, '[')) != NULL) {
@@ -617,14 +622,14 @@ static int parse_contact_line(const char *line, const char *end,
     out->contact_email = email;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses license line from the given input.
  */
-static int parse_license_line(const char *line, const char *end,
-                              struct DocMetadata *out) {
+static enum cdd_c_error parse_license_line(const char *line, const char *end,
+                                           struct DocMetadata *out) {
   char *_ast_extract_rest_24 = NULL;
   char *_ast_trim_segment_25 = NULL;
   char *_ast_trim_segment_26 = NULL;
@@ -643,11 +648,11 @@ static int parse_license_line(const char *line, const char *end,
   char *open;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rest = (extract_rest(line, end, &_ast_extract_rest_24), _ast_extract_rest_24);
   if (!rest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cursor = rest;
   while ((open = strchr(cursor, '[')) != NULL) {
@@ -705,14 +710,14 @@ static int parse_license_line(const char *line, const char *end,
       free(url);
     if (identifier)
       free(identifier);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (url && identifier) {
     free(name);
     free(url);
     free(identifier);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (out->license_name)
@@ -729,14 +734,15 @@ static int parse_license_line(const char *line, const char *end,
     out->license_identifier = identifier;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses response header line from the given input.
  */
-static int parse_response_header_line(const char *line, const char *end,
-                                      struct DocMetadata *out) {
+static enum cdd_c_error parse_response_header_line(const char *line,
+                                                   const char *end,
+                                                   struct DocMetadata *out) {
   char *_ast_extract_word_30 = NULL;
   char *_ast_extract_word_31 = NULL;
   const char *_ast_skip_ws_32 = NULL;
@@ -754,14 +760,14 @@ static int parse_response_header_line(const char *line, const char *end,
   const char *cur = line;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_headers = (struct DocResponseHeader *)realloc(
       out->response_headers,
       (out->n_response_headers + 1) * sizeof(struct DocResponseHeader));
   if (!new_headers) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->response_headers = new_headers;
   h = &out->response_headers[out->n_response_headers];
@@ -770,14 +776,14 @@ static int parse_response_header_line(const char *line, const char *end,
   h->code = (extract_word(cur, end, &cur, &_ast_extract_word_30),
              _ast_extract_word_30);
   if (!h->code)
-    return 0;
+    return CDD_C_SUCCESS;
 
   h->name = (extract_word(cur, end, &cur, &_ast_extract_word_31),
              _ast_extract_word_31);
   if (!h->name) {
     free(h->code);
     h->code = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   cur = (skip_ws(cur, &_ast_skip_ws_32), _ast_skip_ws_32);
@@ -829,7 +835,7 @@ static int parse_response_header_line(const char *line, const char *end,
           }
         } else if (parse_optional_example_attr(attr, &h->example) == ENOMEM) {
           free(attr);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         } else {
           parse_optional_bool_attr(attr, "required", &h->required_set,
                                    &h->required);
@@ -846,14 +852,14 @@ static int parse_response_header_line(const char *line, const char *end,
   h->description =
       (extract_rest(cur, end, &_ast_extract_rest_37), _ast_extract_rest_37);
   out->n_response_headers++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses link line from the given input.
  */
-static int parse_link_line(const char *line, const char *end,
-                           struct DocMetadata *out) {
+static enum cdd_c_error parse_link_line(const char *line, const char *end,
+                                        struct DocMetadata *out) {
   char *_ast_extract_word_38 = NULL;
   char *_ast_extract_word_39 = NULL;
   const char *_ast_skip_ws_40 = NULL;
@@ -882,13 +888,13 @@ static int parse_link_line(const char *line, const char *end,
   const char *cur = line;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_links =
       (struct DocLink *)realloc(out->links, (out->n_links + 1) * sizeof(*link));
   if (!new_links) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->links = new_links;
   link = &out->links[out->n_links];
@@ -897,14 +903,14 @@ static int parse_link_line(const char *line, const char *end,
   link->code = (extract_word(cur, end, &cur, &_ast_extract_word_38),
                 _ast_extract_word_38);
   if (!link->code)
-    return 0;
+    return CDD_C_SUCCESS;
 
   link->name = (extract_word(cur, end, &cur, &_ast_extract_word_39),
                 _ast_extract_word_39);
   if (!link->name) {
     free(link->code);
     link->code = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   cur = (skip_ws(cur, &_ast_skip_ws_40), _ast_skip_ws_40);
@@ -1028,7 +1034,7 @@ static int parse_link_line(const char *line, const char *end,
   }
 
   out->n_links++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Core Logic --- */
@@ -1036,11 +1042,11 @@ static int parse_link_line(const char *line, const char *end,
 /**
  * @brief Executes the doc metadata init operation.
  */
-int doc_metadata_init(struct DocMetadata *meta) {
+enum cdd_c_error doc_metadata_init(struct DocMetadata *meta) {
   if (!meta)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(meta, 0, sizeof(*meta));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1296,8 +1302,8 @@ void doc_metadata_free(struct DocMetadata *meta) {
 /**
  * @brief Parses param line from the given input.
  */
-static int parse_param_line(const char *line, const char *end,
-                            struct DocMetadata *out) {
+static enum cdd_c_error parse_param_line(const char *line, const char *end,
+                                         struct DocMetadata *out) {
   char *_ast_extract_word_52 = NULL;
   const char *_ast_skip_ws_53 = NULL;
   char *_ast_trim_segment_54 = NULL;
@@ -1315,7 +1321,7 @@ static int parse_param_line(const char *line, const char *end,
       out->params, (out->n_params + 1) * sizeof(struct DocParam));
   if (!new_params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->params = new_params;
   p = &out->params[out->n_params];
@@ -1326,7 +1332,7 @@ static int parse_param_line(const char *line, const char *end,
              _ast_extract_word_52);
   if (!p->name) {
     /* Malformed param line, ignore but don't crash */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* 2. Check for Attributes [key:val] or [required] */
@@ -1386,7 +1392,7 @@ static int parse_param_line(const char *line, const char *end,
                                    &p->deprecated);
           if (parse_optional_example_attr(attr, &p->example) == ENOMEM) {
             free(attr);
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
         }
         free(attr);
@@ -1403,14 +1409,14 @@ static int parse_param_line(const char *line, const char *end,
       (extract_rest(cur, end, &_ast_extract_rest_56), _ast_extract_rest_56);
 
   out->n_params++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses return line from the given input.
  */
-static int parse_return_line(const char *line, const char *end,
-                             struct DocMetadata *out) {
+static enum cdd_c_error parse_return_line(const char *line, const char *end,
+                                          struct DocMetadata *out) {
   char *_ast_extract_word_57 = NULL;
   const char *_ast_skip_ws_58 = NULL;
   char *_ast_trim_segment_59 = NULL;
@@ -1427,7 +1433,7 @@ static int parse_return_line(const char *line, const char *end,
       out->returns, (out->n_returns + 1) * sizeof(struct DocResponse));
   if (!new_resps) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->returns = new_resps;
   r = &out->returns[out->n_returns];
@@ -1437,7 +1443,7 @@ static int parse_return_line(const char *line, const char *end,
   r->code = (extract_word(cur, end, &cur, &_ast_extract_word_57),
              _ast_extract_word_57);
   if (!r->code) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* 2. Optional Attributes [key:val] */
@@ -1480,7 +1486,7 @@ static int parse_return_line(const char *line, const char *end,
           r->item_schema = 1;
         } else if (parse_optional_example_attr(attr, &r->example) == ENOMEM) {
           free(attr);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         free(attr);
       }
@@ -1496,14 +1502,14 @@ static int parse_return_line(const char *line, const char *end,
       (extract_rest(cur, end, &_ast_extract_rest_62), _ast_extract_rest_62);
 
   out->n_returns++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the split scopes operation.
  */
-static int split_scopes(const char *input, char ***out_scopes,
-                        size_t *out_count) {
+static enum cdd_c_error split_scopes(const char *input, char ***out_scopes,
+                                     size_t *out_count) {
   char *_ast_trim_segment_63 = NULL;
   char *_ast_strdup_34 = NULL;
   char *_ast_strdup_35 = NULL;
@@ -1514,16 +1520,16 @@ static int split_scopes(const char *input, char ***out_scopes,
   size_t n = 0;
 
   if (!out_scopes || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_scopes = NULL;
   *out_count = 0;
   if (!input || !*input)
-    return 0;
+    return CDD_C_SUCCESS;
 
   buf = (c_cdd_strdup(input, &_ast_strdup_34), _ast_strdup_34);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #ifdef _WIN32
@@ -1550,7 +1556,7 @@ static int split_scopes(const char *input, char ***out_scopes,
         free(scopes[i]);
       free(scopes);
       free(buf);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     scopes = new_scopes;
     scopes[n] = (c_cdd_strdup(trimmed, &_ast_strdup_35), _ast_strdup_35);
@@ -1560,7 +1566,7 @@ static int split_scopes(const char *input, char ***out_scopes,
         free(scopes[i]);
       free(scopes);
       free(buf);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     n++;
 #ifdef _WIN32
@@ -1573,14 +1579,14 @@ static int split_scopes(const char *input, char ***out_scopes,
   free(buf);
   *out_scopes = scopes;
   *out_count = n;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses security line from the given input.
  */
-static int parse_security_line(const char *line, const char *end,
-                               struct DocMetadata *out) {
+static enum cdd_c_error parse_security_line(const char *line, const char *end,
+                                            struct DocMetadata *out) {
   char *_ast_extract_word_64 = NULL;
   char *_ast_extract_rest_65 = NULL;
   const char *cur = line;
@@ -1593,12 +1599,12 @@ static int parse_security_line(const char *line, const char *end,
   int rc;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   scheme = (extract_word(cur, end, &cur, &_ast_extract_word_64),
             _ast_extract_word_64);
   if (!scheme)
-    return 0;
+    return CDD_C_SUCCESS;
 
   rest = (extract_rest(cur, end, &_ast_extract_rest_65), _ast_extract_rest_65);
   rc = split_scopes(rest, &scopes, &n_scopes);
@@ -1620,7 +1626,7 @@ static int parse_security_line(const char *line, const char *end,
     free(scheme);
     if (rest)
       free(rest);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->security = new_reqs;
   req = &out->security[out->n_security];
@@ -1632,111 +1638,112 @@ static int parse_security_line(const char *line, const char *end,
 
   if (rest)
     free(rest);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses security type text from the given input.
  */
-static int parse_security_type_text(const char *text,
-                                    enum DocSecurityType *_out_val) {
+static enum cdd_c_error
+parse_security_type_text(const char *text, enum DocSecurityType *_out_val) {
   if (!text) {
     *_out_val = DOC_SEC_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "apiKey") == 0) {
     *_out_val = DOC_SEC_APIKEY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "http") == 0) {
     *_out_val = DOC_SEC_HTTP;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "mutualTLS") == 0) {
     *_out_val = DOC_SEC_MUTUALTLS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "oauth2") == 0) {
     *_out_val = DOC_SEC_OAUTH2;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "openIdConnect") == 0) {
     *_out_val = DOC_SEC_OPENID;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = DOC_SEC_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses security in text from the given input.
  */
-static int parse_security_in_text(const char *text,
-                                  enum DocSecurityIn *_out_val) {
+static enum cdd_c_error parse_security_in_text(const char *text,
+                                               enum DocSecurityIn *_out_val) {
   if (!text) {
     *_out_val = DOC_SEC_IN_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "query") == 0) {
     *_out_val = DOC_SEC_IN_QUERY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "header") == 0) {
     *_out_val = DOC_SEC_IN_HEADER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "cookie") == 0) {
     *_out_val = DOC_SEC_IN_COOKIE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = DOC_SEC_IN_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses oauth flow type text from the given input.
  */
-static int parse_oauth_flow_type_text(const char *text,
-                                      enum DocOAuthFlowType *_out_val) {
+static enum cdd_c_error
+parse_oauth_flow_type_text(const char *text, enum DocOAuthFlowType *_out_val) {
   if (!text) {
     *_out_val = DOC_OAUTH_FLOW_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "implicit") == 0) {
     *_out_val = DOC_OAUTH_FLOW_IMPLICIT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "password") == 0) {
     *_out_val = DOC_OAUTH_FLOW_PASSWORD;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "clientCredentials") == 0) {
     *_out_val = DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "authorizationCode") == 0) {
     *_out_val = DOC_OAUTH_FLOW_AUTHORIZATION_CODE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(text, "deviceAuthorization") == 0) {
     *_out_val = DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = DOC_OAUTH_FLOW_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses oauth scopes from the given input.
  */
-static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
-                              size_t *out_count) {
+static enum cdd_c_error parse_oauth_scopes(const char *input,
+                                           struct DocOAuthScope **out,
+                                           size_t *out_count) {
   char **names = NULL;
   size_t n = 0;
   size_t i;
@@ -1744,7 +1751,7 @@ static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
   int rc;
 
   if (!out || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
 
@@ -1752,14 +1759,14 @@ static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
   if (rc != 0)
     return rc;
   if (n == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   scopes = (struct DocOAuthScope *)calloc(n, sizeof(struct DocOAuthScope));
   if (!scopes) {
     for (i = 0; i < n; ++i)
       free(names[i]);
     free(names);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   for (i = 0; i < n; ++i) {
@@ -1770,14 +1777,15 @@ static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
   free(names);
   *out = scopes;
   *out_count = n;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses security scheme line from the given input.
  */
-static int parse_security_scheme_line(const char *line, const char *end,
-                                      struct DocMetadata *out) {
+static enum cdd_c_error parse_security_scheme_line(const char *line,
+                                                   const char *end,
+                                                   struct DocMetadata *out) {
   char *_ast_extract_word_66 = NULL;
   const char *_ast_skip_ws_67 = NULL;
   char *_ast_trim_segment_68 = NULL;
@@ -1814,14 +1822,14 @@ static int parse_security_scheme_line(const char *line, const char *end,
   struct DocOAuthFlow *current_flow = NULL;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_schemes = (struct DocSecurityScheme *)realloc(
       out->security_schemes,
       (out->n_security_schemes + 1) * sizeof(struct DocSecurityScheme));
   if (!new_schemes) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->security_schemes = new_schemes;
   scheme = &out->security_schemes[out->n_security_schemes];
@@ -1832,7 +1840,7 @@ static int parse_security_scheme_line(const char *line, const char *end,
   scheme->name = (extract_word(cur, end, &cur, &_ast_extract_word_66),
                   _ast_extract_word_66);
   if (!scheme->name)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cur = (skip_ws(cur, &_ast_skip_ws_67), _ast_skip_ws_67);
   while (cur < end && *cur == '[') {
@@ -2015,19 +2023,19 @@ static int parse_security_scheme_line(const char *line, const char *end,
   }
 
   out->n_security_schemes++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the key token.
  */
-static int find_key_token(char *s, const char *key, size_t *key_len,
-                          char **_out_val) {
+static enum cdd_c_error find_key_token(char *s, const char *key,
+                                       size_t *key_len, char **_out_val) {
   char *p;
   size_t klen;
   if (!s || !key) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   klen = strlen(key);
   p = strstr(s, key);
@@ -2038,22 +2046,22 @@ static int find_key_token(char *s, const char *key, size_t *key_len,
         *key_len = klen + 1;
       {
         *_out_val = p;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
     p = strstr(p + klen, key);
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses server line from the given input.
  */
-static int parse_server_line(const char *line, const char *end,
-                             struct DocMetadata *out) {
+static enum cdd_c_error parse_server_line(const char *line, const char *end,
+                                          struct DocMetadata *out) {
   char *_ast_extract_word_86 = NULL;
   char *_ast_extract_rest_87 = NULL;
   char *_ast_find_key_token_88 = NULL;
@@ -2073,12 +2081,12 @@ static int parse_server_line(const char *line, const char *end,
   struct DocServer *srv;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   url = (extract_word(cur, end, &cur, &_ast_extract_word_86),
          _ast_extract_word_86);
   if (!url)
-    return 0;
+    return CDD_C_SUCCESS;
 
   rest = (extract_rest(cur, end, &_ast_extract_rest_87), _ast_extract_rest_87);
   if (rest && *rest) {
@@ -2135,7 +2143,7 @@ static int parse_server_line(const char *line, const char *end,
       free(desc);
     if (rest)
       free(rest);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->servers = new_servers;
   srv = &out->servers[out->n_servers];
@@ -2147,36 +2155,36 @@ static int parse_server_line(const char *line, const char *end,
 
   if (rest)
     free(rest);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the split scopes operation.
  */
-static int split_scopes(const char *input, char ***out_scopes,
-                        size_t *out_count);
+static enum cdd_c_error split_scopes(const char *input, char ***out_scopes,
+                                     size_t *out_count);
 
 /**
  * @brief Executes the split enum values operation.
  */
-static int split_enum_values(const char *input, char ***out_vals,
-                             size_t *out_count) {
+static enum cdd_c_error split_enum_values(const char *input, char ***out_vals,
+                                          size_t *out_count) {
   char *_ast_strdup_49 = NULL;
   char *buf;
   size_t i;
   int rc;
 
   if (!out_vals || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_vals = NULL;
   *out_count = 0;
   if (!input || !*input)
-    return 0;
+    return CDD_C_SUCCESS;
 
   buf = (c_cdd_strdup(input, &_ast_strdup_49), _ast_strdup_49);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; buf[i]; ++i) {
     if (buf[i] == '|')
@@ -2190,8 +2198,8 @@ static int split_enum_values(const char *input, char ***out_vals,
 /**
  * @brief Parses server var line from the given input.
  */
-static int parse_server_var_line(const char *line, const char *end,
-                                 struct DocMetadata *out) {
+static enum cdd_c_error parse_server_var_line(const char *line, const char *end,
+                                              struct DocMetadata *out) {
   char *_ast_extract_word_93 = NULL;
   const char *_ast_skip_ws_94 = NULL;
   char *_ast_trim_segment_95 = NULL;
@@ -2209,12 +2217,12 @@ static int parse_server_var_line(const char *line, const char *end,
   char *enum_raw = NULL;
 
   if (!out || out->n_servers == 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   name = (extract_word(cur, end, &cur, &_ast_extract_word_93),
           _ast_extract_word_93);
   if (!name)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cur = (skip_ws(cur, &_ast_skip_ws_94), _ast_skip_ws_94);
   while (cur < end && *cur == '[') {
@@ -2284,7 +2292,7 @@ static int parse_server_var_line(const char *line, const char *end,
       free(description);
     if (enum_raw)
       free(enum_raw);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
@@ -2299,7 +2307,7 @@ static int parse_server_var_line(const char *line, const char *end,
         free(description);
       if (enum_raw)
         free(enum_raw);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     srv->variables = new_vars;
     var = &srv->variables[srv->n_variables];
@@ -2311,21 +2319,21 @@ static int parse_server_var_line(const char *line, const char *end,
       if (split_enum_values(enum_raw, &var->enum_values, &var->n_enum_values) !=
           0) {
         free(enum_raw);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       free(enum_raw);
     }
     srv->n_variables++;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses encoding line from the given input.
  */
-static int parse_encoding_line(const char *line, const char *end,
-                               struct DocMetadata *out, int kind) {
+static enum cdd_c_error parse_encoding_line(const char *line, const char *end,
+                                            struct DocMetadata *out, int kind) {
   const char *_ast_skip_ws_100 = NULL;
   char *_ast_extract_rest_101 = NULL;
   const char *_ast_skip_ws_102 = NULL;
@@ -2339,13 +2347,13 @@ static int parse_encoding_line(const char *line, const char *end,
   struct DocEncoding *entry;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_arr = (struct DocEncoding *)realloc(
       out->encodings, (out->n_encodings + 1) * sizeof(struct DocEncoding));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->encodings = new_arr;
   entry = &out->encodings[out->n_encodings];
@@ -2366,7 +2374,7 @@ static int parse_encoding_line(const char *line, const char *end,
                      _ast_extract_rest_101);
       if (!entry->name) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
     cur = name_end;
@@ -2416,13 +2424,14 @@ static int parse_encoding_line(const char *line, const char *end,
   }
 
   out->n_encodings++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 /**
  * @brief Parses request body line from the given input.
  */
-static int parse_request_body_line(const char *line, const char *end,
-                                   struct DocMetadata *out) {
+static enum cdd_c_error parse_request_body_line(const char *line,
+                                                const char *end,
+                                                struct DocMetadata *out) {
   const char *_ast_skip_ws_107 = NULL;
   char *_ast_trim_segment_108 = NULL;
   char *_ast_trim_segment_109 = NULL;
@@ -2443,7 +2452,7 @@ static int parse_request_body_line(const char *line, const char *end,
   int item_schema = 0;
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   cur = (skip_ws(cur, &_ast_skip_ws_107), _ast_skip_ws_107);
   while (cur < end && *cur == '[') {
@@ -2489,7 +2498,7 @@ static int parse_request_body_line(const char *line, const char *end,
             free(content_type);
           if (example)
             free(example);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
 
         free(attr);
@@ -2514,7 +2523,7 @@ static int parse_request_body_line(const char *line, const char *end,
       free(description);
     if (example)
       free(example);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   out->request_bodies = new_arr;
   entry = &out->request_bodies[out->n_request_bodies];
@@ -2537,7 +2546,7 @@ static int parse_request_body_line(const char *line, const char *end,
         (c_cdd_strdup(entry->content_type, &_ast_strdup_56), _ast_strdup_56);
     if (!out->request_body_content_type) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
   if (entry->description) {
@@ -2547,17 +2556,17 @@ static int parse_request_body_line(const char *line, const char *end,
         (c_cdd_strdup(entry->description, &_ast_strdup_57), _ast_strdup_57);
     if (!out->request_body_description) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses route line from the given input.
  */
-static int parse_route_line(const char *line, const char *end,
-                            struct DocMetadata *out) {
+static enum cdd_c_error parse_route_line(const char *line, const char *end,
+                                         struct DocMetadata *out) {
   char *_ast_extract_word_112 = NULL;
   char *_ast_extract_word_113 = NULL;
   const char *cur = line;
@@ -2566,7 +2575,7 @@ static int parse_route_line(const char *line, const char *end,
   char *word2 = NULL;
 
   if (!word1)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* Check if word1 is a Verb or Path */
   /* Heuristic: Starts with / is path. Uppercase is verb. */
@@ -2590,13 +2599,13 @@ static int parse_route_line(const char *line, const char *end,
       out->route = word2;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the doc parse block operation.
  */
-int doc_parse_block(const char *comment, struct DocMetadata *out) {
+enum cdd_c_error doc_parse_block(const char *comment, struct DocMetadata *out) {
   char *_ast_extract_rest_114 = NULL;
   char *_ast_extract_rest_115 = NULL;
   char *_ast_extract_rest_116 = NULL;
@@ -2610,7 +2619,7 @@ int doc_parse_block(const char *comment, struct DocMetadata *out) {
   int rc = 0;
 
   if (!comment || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Skip initial marker if present (e.g. block or line comments) via simple
    * scan loop
@@ -2672,7 +2681,7 @@ int doc_parse_block(const char *comment, struct DocMetadata *out) {
         size_t cmd_len = (size_t)(cmd_end - cmd_start);
         cmd = (char *)malloc(cmd_len + 1);
         if (!cmd) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }
         memcpy(cmd, cmd_start, cmd_len);

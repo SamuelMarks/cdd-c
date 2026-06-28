@@ -18,21 +18,21 @@
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int my_strdup(const char *s, char **out_val) {
+static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_val = NULL;
   if (!s)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
   d = (char *)malloc(len);
   if (!d)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
   *out_val = d;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -123,19 +123,19 @@ static void process_token(struct ExtractedBuildInfo *info, const char *tok) {
 /**
  * @brief Executes the scrape makefile operation.
  */
-int scrape_makefile(struct ExtractedBuildInfo *info,
-                    const char *makefile_content) {
+enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
+                                 const char *makefile_content) {
   char *copy;
   char *saveptr;
   char *tok;
 
   if (!info || !makefile_content)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   my_strdup(makefile_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_WIN32)
@@ -153,13 +153,13 @@ int scrape_makefile(struct ExtractedBuildInfo *info,
   }
 
   free(copy);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the scrape configure ac operation.
  */
-int scrape_configure_ac(
+enum cdd_c_error scrape_configure_ac(
     struct ExtractedBuildInfo *info,
     const char
         *configure_ac_content) { /* Minimal implementation: scan similarly to
@@ -169,12 +169,12 @@ int scrape_configure_ac(
   char *tok;
 
   if (!info || !configure_ac_content)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   my_strdup(configure_ac_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_WIN32)
@@ -192,26 +192,27 @@ int scrape_configure_ac(
   }
 
   free(copy);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the build info to cmake operation.
  */
-int build_info_to_cmake(const struct ExtractedBuildInfo *info,
-                        const char *project_name, char **out_cmake) {
+enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
+                                     const char *project_name,
+                                     char **out_cmake) {
   size_t cap = 4096;
   size_t len = 0;
   char *buf;
   size_t i;
 
   if (!info || !project_name || !out_cmake)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   buf = (char *)malloc(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -298,7 +299,7 @@ int build_info_to_cmake(const struct ExtractedBuildInfo *info,
   }
 
   *out_cmake = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

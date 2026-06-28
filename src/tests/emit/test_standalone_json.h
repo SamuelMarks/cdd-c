@@ -27,10 +27,11 @@ TEST test_standalone_json_gen(void) {
   ASSERT_EQ(0, struct_fields_init(&sf));
 
   /* Invalid args */
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_from_json_standalone_func(NULL, "MyStruct", &sf));
-  ASSERT_EQ(EINVAL, write_struct_from_json_standalone_func(tmp, NULL, &sf));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_json_standalone_func(tmp, NULL, &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_from_json_standalone_func(tmp, "MyStruct", NULL));
 
   /* empty struct */

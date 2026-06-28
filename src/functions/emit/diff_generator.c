@@ -14,16 +14,17 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-int patch_list_generate_diff(const struct TokenList *tokens,
-                             const struct PatchList *list, const char *filename,
-                             char **out_diff) {
+enum cdd_c_error patch_list_generate_diff(const struct TokenList *tokens,
+                                          const struct PatchList *list,
+                                          const char *filename,
+                                          char **out_diff) {
   char *diff_buf = NULL;
   size_t diff_cap = 4096;
   size_t diff_len = 0;
   size_t i;
 
   if (!tokens || !list || !filename || !out_diff)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -38,14 +39,14 @@ int patch_list_generate_diff(const struct TokenList *tokens,
 #endif
   if (!diff_buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   diff_buf[0] = '\0';
 
   if (list->size == 0) {
     *out_diff = diff_buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 /* Print header */
@@ -91,7 +92,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
             if (!new_buf) {
               free(diff_buf);
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-              return ENOMEM;
+              return CDD_C_ERROR_MEMORY;
             }
             diff_buf = new_buf;
           }
@@ -121,7 +122,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
         if (!new_buf) {
           free(diff_buf);
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         diff_buf = new_buf;
       }
@@ -136,5 +137,5 @@ int patch_list_generate_diff(const struct TokenList *tokens,
   }
 
   *out_diff = diff_buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }

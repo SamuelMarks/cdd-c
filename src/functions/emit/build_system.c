@@ -41,22 +41,22 @@ static int check_io_helper2(int rc) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if (check_io_helper2(x) < 0)                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #else
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #endif
 
 /**
  * @brief Generates C code for write cmake content.
  */
-static int write_cmake_content(FILE *fp, const char *project_name,
-                               int has_tests) {
+static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
+                                            int has_tests) {
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n\n"));
@@ -280,21 +280,22 @@ static int write_cmake_content(FILE *fp, const char *project_name,
     CHECK_IO(fprintf(fp, "endif ()\n"));
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates cmake project.
  */
-int generate_cmake_project(const char *output_path, const char *project_name,
-                           int has_tests) {
+enum cdd_c_error generate_cmake_project(const char *output_path,
+                                        const char *project_name,
+                                        int has_tests) {
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
   int rc = 0;
 
   if (!project_name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Handle optional path construction */
   if (output_path) {
@@ -313,7 +314,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
       full_path = malloc(len);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(full_path, len, "%s/%s", output_path, filename);
@@ -330,7 +331,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
       full_path = strdup(filename);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -357,7 +358,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
 #endif
 
   if (!fp) {
-    rc = errno ? errno : EIO;
+    rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     free(full_path);
     return rc;
   }
@@ -408,7 +409,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
       rc = write_cmake_content(fp, project_name, has_tests);
       fclose(fp);
     } else {
-      rc = errno ? errno : EIO;
+      rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     }
     free(src_dir);
     free(src_cmake);
@@ -422,7 +423,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
 /**
  * @brief Generates build system main.
  */
-int generate_build_system_main(int argc, char **argv) {
+enum cdd_c_error generate_build_system_main(int argc, char **argv) {
   const char *sys_type;
   const char *out_dir;
   const char *name;
@@ -431,7 +432,7 @@ int generate_build_system_main(int argc, char **argv) {
   if (argc < 3) {
     fprintf(stderr,
             "Usage: generate_build_system <type> <out_dir> <name> [test]\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   sys_type = argv[0];
@@ -445,12 +446,12 @@ int generate_build_system_main(int argc, char **argv) {
     int rc = generate_cmake_project(out_dir, name, has_tests);
     if (rc != 0) {
       fprintf(stderr, "Failed to generate CMakeLists.txt (error %d)\n", rc);
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_IO;
     }
   } else {
     fprintf(stderr, "Unsupported build system type: %s\n", sys_type);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  return EXIT_SUCCESS;
+  return CDD_C_SUCCESS;
 }

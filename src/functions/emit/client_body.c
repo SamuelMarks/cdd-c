@@ -36,7 +36,7 @@
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -46,47 +46,48 @@
 /**
  * @brief Executes the verb to enum str operation.
  */
-static int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
+static enum cdd_c_error verb_to_enum_str(enum OpenAPI_Verb v,
+                                         const char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "HTTP_GET";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_POST: {
     *_out_val = "HTTP_POST";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PUT: {
     *_out_val = "HTTP_PUT";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_DELETE: {
     *_out_val = "HTTP_DELETE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_HEAD: {
     *_out_val = "HTTP_HEAD";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PATCH: {
     *_out_val = "HTTP_PATCH";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_OPTIONS: {
     *_out_val = "HTTP_OPTIONS";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_TRACE: {
     *_out_val = "HTTP_TRACE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_QUERY: {
     *_out_val = "HTTP_QUERY";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = "HTTP_GET";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -94,7 +95,8 @@ static int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
 /**
  * @brief Executes the method str to enum str operation.
  */
-static int method_str_to_enum_str(const char *method, const char **_out_val) {
+static enum cdd_c_error method_str_to_enum_str(const char *method,
+                                               const char **_out_val) {
   int _ast_iequal_0 = false;
   int _ast_iequal_1 = false;
   int _ast_iequal_2 = false;
@@ -107,58 +109,58 @@ static int method_str_to_enum_str(const char *method, const char **_out_val) {
   int _ast_iequal_9 = false;
   if (!method) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0)) {
     *_out_val = "HTTP_GET";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1)) {
     *_out_val = "HTTP_POST";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "put", &_ast_iequal_2), _ast_iequal_2)) {
     *_out_val = "HTTP_PUT";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "delete", &_ast_iequal_3), _ast_iequal_3)) {
     *_out_val = "HTTP_DELETE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "patch", &_ast_iequal_4), _ast_iequal_4)) {
     *_out_val = "HTTP_PATCH";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "head", &_ast_iequal_5), _ast_iequal_5)) {
     *_out_val = "HTTP_HEAD";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "options", &_ast_iequal_6), _ast_iequal_6)) {
     *_out_val = "HTTP_OPTIONS";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "trace", &_ast_iequal_7), _ast_iequal_7)) {
     *_out_val = "HTTP_TRACE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8)) {
     *_out_val = "HTTP_QUERY";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if ((c_cdd_str_iequal(method, "connect", &_ast_iequal_9), _ast_iequal_9)) {
     *_out_val = "HTTP_CONNECT";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the mapped err code operation.
  */
-static int mapped_err_code(int status) {
+static enum cdd_c_error mapped_err_code(int status) {
   if (status == 400)
     return 22; /* EINVAL */
   if (status == 401 || status == 403)
@@ -171,54 +173,55 @@ static int mapped_err_code(int status) {
 /**
  * @brief Retrieves the media type.
  */
-static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                           const char *name,
-                           const struct OpenAPI_MediaType **_out_val) {
+static enum cdd_c_error
+find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
+                const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
       *_out_val = &mts[i];
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the encoding.
  */
-static int find_encoding(const struct OpenAPI_MediaType *mt, const char *name,
-                         struct OpenAPI_Encoding **_out_val) {
+static enum cdd_c_error find_encoding(const struct OpenAPI_MediaType *mt,
+                                      const char *name,
+                                      struct OpenAPI_Encoding **_out_val) {
   size_t i;
   if (!mt || !name || !mt->encoding) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < mt->n_encoding; ++i) {
     if (mt->encoding[i].name && strcmp(mt->encoding[i].name, name) == 0) {
       {
         *_out_val = &mt->encoding[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Checks if primitive type.
  */
-static int is_primitive_type(const char *type) {
+static enum cdd_c_error is_primitive_type(const char *type) {
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -226,61 +229,65 @@ static int is_primitive_type(const char *type) {
 /**
  * @brief Checks if object ref type.
  */
-static int is_object_ref_type(const char *type) {
+static enum cdd_c_error is_object_ref_type(const char *type) {
   if (is_primitive_type(type))
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(type, "object") == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(type, "array") == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(type, "enum") == 0)
-    return 0;
-  return 1;
+    return CDD_C_SUCCESS;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the struct fields all primitive operation.
  */
-static int struct_fields_all_primitive(const struct StructFields *sf) {
+static enum cdd_c_error
+struct_fields_all_primitive(const struct StructFields *sf) {
   size_t i;
   for (i = 0; i < sf->size; ++i) {
     const char *t = sf->fields[i].type;
     if (!is_primitive_type(t))
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the schema has inline operation.
  */
-static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
+static enum cdd_c_error
+schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
-    return 0;
+    return CDD_C_SUCCESS;
   return schema->inline_type != NULL;
 }
 
 /**
  * @brief Executes the media type base len operation.
  */
-static int media_type_base_len(const char *media_type, size_t *_out_val) {
+static enum cdd_c_error media_type_base_len(const char *media_type,
+                                            size_t *_out_val) {
   size_t i = 0;
   if (!media_type) {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   while (media_type[i] && media_type[i] != ';')
     ++i;
   {
     *_out_val = i;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the media type has prefix operation.
  */
-static int media_type_has_prefix(const char *media_type, const char *prefix) {
+static enum cdd_c_error media_type_has_prefix(const char *media_type,
+                                              const char *prefix) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
@@ -289,22 +296,23 @@ static int media_type_has_prefix(const char *media_type, const char *prefix) {
          _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
     char b = prefix[i];
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
     if (a != b)
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the media type has suffix operation.
  */
-static int media_type_has_suffix(const char *media_type, const char *suffix) {
+static enum cdd_c_error media_type_has_suffix(const char *media_type,
+                                              const char *suffix) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
@@ -320,15 +328,16 @@ static int media_type_has_suffix(const char *media_type, const char *suffix) {
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
     if (a != b)
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the media type ieq operation.
  */
-static int media_type_ieq(const char *media_type, const char *expected) {
+static enum cdd_c_error media_type_ieq(const char *media_type,
+                                       const char *expected) {
   size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
@@ -337,60 +346,61 @@ static int media_type_ieq(const char *media_type, const char *expected) {
          _ast_media_type_base_len_2);
   exp_len = strlen(expected);
   if (len != exp_len)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < len; ++i) {
     char a = media_type[i];
     char b = expected[i];
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
     if (a != b)
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the media type is json operation.
  */
-static int media_type_is_json(const char *media_type) {
+static enum cdd_c_error media_type_is_json(const char *media_type) {
   if (media_type_ieq(media_type, "application/json"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   return media_type_has_suffix(media_type, "+json");
 }
 
 /**
  * @brief Executes the media type is form operation.
  */
-static int media_type_is_form(const char *media_type) {
+static enum cdd_c_error media_type_is_form(const char *media_type) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
  * @brief Executes the media type is text plain operation.
  */
-static int media_type_is_text_plain(const char *media_type) {
+static enum cdd_c_error media_type_is_text_plain(const char *media_type) {
   return media_type_ieq(media_type, "text/plain");
 }
 
 /**
  * @brief Executes the media type is multipart operation.
  */
-static int media_type_is_multipart(const char *media_type) {
+static enum cdd_c_error media_type_is_multipart(const char *media_type) {
   return media_type_has_prefix(media_type, "multipart/");
 }
 
 /**
  * @brief Executes the media type is multipart form operation.
  */
-static int media_type_is_multipart_form(const char *media_type) {
+static enum cdd_c_error media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
 /**
  * @brief Executes the first content type entry operation.
  */
-static int first_content_type_entry(const char *content_type, char *buf,
-                                    size_t buf_sz, const char **_out_val) {
+static enum cdd_c_error first_content_type_entry(const char *content_type,
+                                                 char *buf, size_t buf_sz,
+                                                 const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
@@ -404,7 +414,7 @@ static int first_content_type_entry(const char *content_type, char *buf,
     --j;
   buf[j] = '\0';
   *_out_val = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -443,7 +453,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
 /**
  * @brief Executes the header name is content type operation.
  */
-static int header_name_is_content_type(const char *name) {
+static enum cdd_c_error header_name_is_content_type(const char *name) {
   int _ast_iequal_10 = false;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
           _ast_iequal_10) != 0;
@@ -452,90 +462,94 @@ static int header_name_is_content_type(const char *name) {
 /**
  * @brief Executes the media type is textual operation.
  */
-static int media_type_is_textual(const char *media_type) {
+static enum cdd_c_error media_type_is_textual(const char *media_type) {
   if (media_type_is_text_plain(media_type))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (media_type_has_prefix(media_type, "text/"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (media_type_ieq(media_type, "application/xml"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (media_type_has_suffix(media_type, "+xml"))
-    return 1;
-  return 0;
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the media type is binary operation.
  */
-static int media_type_is_binary(const char *media_type) {
+static enum cdd_c_error media_type_is_binary(const char *media_type) {
   if (media_type_is_json(media_type))
-    return 0;
+    return CDD_C_SUCCESS;
   if (media_type_is_form(media_type))
-    return 0;
+    return CDD_C_SUCCESS;
   if (media_type_is_multipart(media_type))
-    return 0;
+    return CDD_C_SUCCESS;
   if (media_type_is_textual(media_type))
-    return 0;
-  return 1;
+    return CDD_C_SUCCESS;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the schema inline is string operation.
  */
-static int schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
+static enum cdd_c_error
+schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
   if (!schema || schema->is_array || !schema->inline_type)
-    return 0;
+    return CDD_C_SUCCESS;
   return strcmp(schema->inline_type, "string") == 0;
 }
 
 /**
  * @brief Executes the response is textual string operation.
  */
-static int response_is_textual_string(const struct OpenAPI_Response *resp) {
+static enum cdd_c_error
+response_is_textual_string(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
-    return 0;
+    return CDD_C_SUCCESS;
   if (!media_type_is_textual(resp->content_type))
-    return 0;
+    return CDD_C_SUCCESS;
   return schema_inline_is_string(&resp->schema);
 }
 
 /**
  * @brief Executes the schema has payload operation.
  */
-static int schema_has_payload(const struct OpenAPI_SchemaRef *schema);
+static enum cdd_c_error
+schema_has_payload(const struct OpenAPI_SchemaRef *schema);
 
 /**
  * @brief Executes the response is binary operation.
  */
-static int response_is_binary(const struct OpenAPI_Response *resp) {
+static enum cdd_c_error
+response_is_binary(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
-    return 0;
+    return CDD_C_SUCCESS;
   if (!media_type_is_binary(resp->content_type))
-    return 0;
-  return 1;
+    return CDD_C_SUCCESS;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Generates C code for write text plain success.
  */
-static int write_text_plain_success(FILE *fp) {
+static enum cdd_c_error write_text_plain_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
   CHECK_IO(fprintf(fp, "        size_t body_len = res->body_len;\n"));
   CHECK_IO(fprintf(fp, "        char *tmp = (char *)malloc(body_len + 1);\n"));
-  CHECK_IO(fprintf(fp, "        if (!tmp) { rc = ENOMEM; }\n"));
+  CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
   CHECK_IO(fprintf(fp, "        else {\n"));
   CHECK_IO(fprintf(fp, "          memcpy(tmp, res->body, body_len);\n"));
   CHECK_IO(fprintf(fp, "          tmp[body_len] = '\\0';\n"));
   CHECK_IO(fprintf(fp, "          *out = tmp;\n"));
   CHECK_IO(fprintf(fp, "        }\n"));
   CHECK_IO(fprintf(fp, "      }\n"));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write binary success.
  */
-static int write_binary_success(FILE *fp) {
+static enum cdd_c_error write_binary_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (out && out_len) {\n"));
   CHECK_IO(fprintf(fp, "        if (!res->body || res->body_len == 0) {\n"));
   CHECK_IO(fprintf(fp, "          *out = NULL;\n"));
@@ -543,36 +557,37 @@ static int write_binary_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "        } else {\n"));
   CHECK_IO(fprintf(fp, "          unsigned char *tmp = "
                        "(unsigned char *)malloc(res->body_len);\n"));
-  CHECK_IO(fprintf(fp, "          if (!tmp) { rc = ENOMEM; }\n"));
+  CHECK_IO(fprintf(fp, "          if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
   CHECK_IO(fprintf(fp,
                    "          else { memcpy(tmp, res->body, res->body_len); "
                    "*out = tmp; *out_len = res->body_len; }\n"));
   CHECK_IO(fprintf(fp, "        }\n"));
   CHECK_IO(fprintf(fp, "      }\n"));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the schema has payload operation.
  */
-static int schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
+static enum cdd_c_error
+schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
-    return 0;
+    return CDD_C_SUCCESS;
   if (schema->ref_name)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (schema_has_inline(schema))
-    return 1;
-  return 0;
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write inline json parse.
  */
-static int write_inline_json_parse(FILE *fp,
-                                   const struct OpenAPI_SchemaRef *schema) {
+static enum cdd_c_error
+write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
   const char *type;
   if (!fp || !schema || !schema->inline_type)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   type = schema->inline_type;
 
@@ -582,10 +597,12 @@ static int write_inline_json_parse(FILE *fp,
                          "char*)res->body);\n"));
     CHECK_IO(fprintf(fp, "        JSON_Array *arr = NULL;\n"));
     CHECK_IO(fprintf(fp, "        size_t count = 0;\n"));
-    CHECK_IO(fprintf(fp, "        if (!val) { rc = EINVAL; }\n"));
+    CHECK_IO(fprintf(
+        fp, "        if (!val) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
     CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
     CHECK_IO(fprintf(fp, "          arr = json_value_get_array(val);\n"));
-    CHECK_IO(fprintf(fp, "          if (!arr) rc = EINVAL;\n"));
+    CHECK_IO(fprintf(
+        fp, "          if (!arr) rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     CHECK_IO(fprintf(fp, "        }\n"));
     CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
     CHECK_IO(fprintf(fp, "          count = json_array_get_count(arr);\n"));
@@ -597,16 +614,18 @@ static int write_inline_json_parse(FILE *fp,
       CHECK_IO(fprintf(fp, "            char **tmp = (char **)calloc(count, "
                            "sizeof(char *));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
-      CHECK_IO(fprintf(fp, "            if (!tmp) { rc = ENOMEM; }\n"));
+      CHECK_IO(
+          fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
       CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
       CHECK_IO(fprintf(fp, "                const char *s = "
                            "json_array_get_string(arr, i);\n"));
-      CHECK_IO(
-          fprintf(fp, "                if (!s) { rc = EINVAL; break; }\n"));
+      CHECK_IO(fprintf(fp, "                if (!s) { rc = "
+                           "CDD_C_ERROR_INVALID_ARGUMENT; break; }\n"));
       CHECK_IO(fprintf(fp, "                tmp[i] = strdup(s);\n"));
-      CHECK_IO(fprintf(fp, "                if (!tmp[i]) { rc = ENOMEM; break; "
-                           "}\n"));
+      CHECK_IO(fprintf(
+          fp, "                if (!tmp[i]) { rc = CDD_C_ERROR_MEMORY; break; "
+              "}\n"));
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
       CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
@@ -621,14 +640,15 @@ static int write_inline_json_parse(FILE *fp,
       CHECK_IO(fprintf(fp, "            int *tmp = (int *)calloc(count, "
                            "sizeof(int));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
-      CHECK_IO(fprintf(fp, "            if (!tmp) { rc = ENOMEM; }\n"));
+      CHECK_IO(
+          fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
       CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
-      CHECK_IO(fprintf(fp,
-                       "                if "
-                       "(json_array_get_value(arr, i) && "
-                       "json_value_get_type(json_array_get_value(arr, i)) != "
-                       "JSONNumber) { rc = EINVAL; break; }\n"));
+      CHECK_IO(fprintf(
+          fp, "                if "
+              "(json_array_get_value(arr, i) && "
+              "json_value_get_type(json_array_get_value(arr, i)) != "
+              "JSONNumber) { rc = CDD_C_ERROR_INVALID_ARGUMENT; break; }\n"));
       CHECK_IO(fprintf(fp,
                        "                tmp[i] = (int)json_array_get_number("
                        "arr, i);\n"));
@@ -640,14 +660,15 @@ static int write_inline_json_parse(FILE *fp,
       CHECK_IO(fprintf(fp, "            double *tmp = (double *)calloc(count, "
                            "sizeof(double));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
-      CHECK_IO(fprintf(fp, "            if (!tmp) { rc = ENOMEM; }\n"));
+      CHECK_IO(
+          fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
       CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
-      CHECK_IO(fprintf(fp,
-                       "                if "
-                       "(json_array_get_value(arr, i) && "
-                       "json_value_get_type(json_array_get_value(arr, i)) != "
-                       "JSONNumber) { rc = EINVAL; break; }\n"));
+      CHECK_IO(fprintf(
+          fp, "                if "
+              "(json_array_get_value(arr, i) && "
+              "json_value_get_type(json_array_get_value(arr, i)) != "
+              "JSONNumber) { rc = CDD_C_ERROR_INVALID_ARGUMENT; break; }\n"));
       CHECK_IO(fprintf(fp,
                        "                tmp[i] = json_array_get_number(arr, "
                        "i);\n"));
@@ -659,14 +680,15 @@ static int write_inline_json_parse(FILE *fp,
       CHECK_IO(fprintf(fp, "            int *tmp = (int *)calloc(count, "
                            "sizeof(int));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
-      CHECK_IO(fprintf(fp, "            if (!tmp) { rc = ENOMEM; }\n"));
+      CHECK_IO(
+          fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
       CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
-      CHECK_IO(fprintf(fp,
-                       "                if "
-                       "(json_array_get_value(arr, i) && "
-                       "json_value_get_type(json_array_get_value(arr, i)) != "
-                       "JSONBoolean) { rc = EINVAL; break; }\n"));
+      CHECK_IO(fprintf(
+          fp, "                if "
+              "(json_array_get_value(arr, i) && "
+              "json_value_get_type(json_array_get_value(arr, i)) != "
+              "JSONBoolean) { rc = CDD_C_ERROR_INVALID_ARGUMENT; break; }\n"));
       CHECK_IO(fprintf(fp,
                        "                tmp[i] = json_array_get_boolean(arr, "
                        "i) ? 1 : 0;\n"));
@@ -675,7 +697,7 @@ static int write_inline_json_parse(FILE *fp,
       CHECK_IO(fprintf(
           fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
     } else {
-      CHECK_IO(fprintf(fp, "            rc = EINVAL;\n"));
+      CHECK_IO(fprintf(fp, "            rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     }
     CHECK_IO(fprintf(fp, "          }\n"));
     CHECK_IO(fprintf(fp, "        }\n"));
@@ -685,57 +707,58 @@ static int write_inline_json_parse(FILE *fp,
     CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
     CHECK_IO(fprintf(fp, "        JSON_Value *val = json_parse_string((const "
                          "char*)res->body);\n"));
-    CHECK_IO(fprintf(fp, "        if (!val) { rc = EINVAL; }\n"));
+    CHECK_IO(fprintf(
+        fp, "        if (!val) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
     CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
     if (strcmp(type, "string") == 0) {
       CHECK_IO(fprintf(
           fp, "          const char *s = json_value_get_string(val);\n"));
-      CHECK_IO(fprintf(fp, "          if (!s) { rc = EINVAL; }\n"));
+      CHECK_IO(fprintf(
+          fp, "          if (!s) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
       CHECK_IO(fprintf(fp, "          if (rc == 0) {\n"));
       CHECK_IO(fprintf(fp, "            *out = strdup(s);\n"));
-      CHECK_IO(fprintf(fp, "            if (!*out) rc = ENOMEM;\n"));
+      CHECK_IO(
+          fprintf(fp, "            if (!*out) rc = CDD_C_ERROR_MEMORY;\n"));
       CHECK_IO(fprintf(fp, "          }\n"));
     } else if (strcmp(type, "integer") == 0) {
       CHECK_IO(fprintf(fp,
                        "          if (json_value_get_type(val) != JSONNumber) "
-                       "{ rc = EINVAL; }\n"));
+                       "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
       CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
                            "(int)json_value_get_number(val);\n"));
     } else if (strcmp(type, "number") == 0) {
       CHECK_IO(fprintf(fp,
                        "          if (json_value_get_type(val) != JSONNumber) "
-                       "{ rc = EINVAL; }\n"));
+                       "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
       CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
                            "json_value_get_number(val);\n"));
     } else if (strcmp(type, "boolean") == 0) {
       CHECK_IO(fprintf(fp,
                        "          if (json_value_get_type(val) != JSONBoolean) "
-                       "{ rc = EINVAL; }\n"));
+                       "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
       CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
                            "json_value_get_boolean(val) ? 1 : 0;\n"));
     } else {
-      CHECK_IO(fprintf(fp, "          rc = EINVAL;\n"));
+      CHECK_IO(fprintf(fp, "          rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     }
     CHECK_IO(fprintf(fp, "        }\n"));
     CHECK_IO(fprintf(fp, "        if (val) json_value_free(val);\n"));
     CHECK_IO(fprintf(fp, "      }\n"));
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write joined form array.
  */
-static int write_joined_form_array(FILE *fp, const char *field,
-                                   const char *len_field,
-                                   const char *items_type, char delim,
-                                   const char *encode_fn, int add_encoded,
-                                   int items_is_object) {
+static enum cdd_c_error write_joined_form_array(
+    FILE *fp, const char *field, const char *len_field, const char *items_type,
+    char delim, const char *encode_fn, int add_encoded, int items_is_object) {
   const int do_encode = (encode_fn && encode_fn[0] != '\0');
 
   if (!fp || !field || !len_field)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   CHECK_IO(fprintf(fp, "  {\n"));
   CHECK_IO(fprintf(fp, "    size_t i;\n"));
@@ -752,23 +775,24 @@ static int write_joined_form_array(FILE *fp, const char *field,
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(
-          fp, "      if (!enc) { free(raw); rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "      if (!enc) { free(raw); rc = "
+                           "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
-      CHECK_IO(fprintf(fp,
-                       "      {\n"
-                       "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                       "        char *tmp = (char *)realloc(joined, joined_len "
-                       "+ extra + 1);\n"
-                       "        if (!tmp) { free(raw); free(enc); rc = ENOMEM; "
-                       "goto cleanup; }\n"
-                       "        joined = tmp;\n"
-                       "        if (i > 0) joined[joined_len++] = '%c';\n"
-                       "        memcpy(joined + joined_len, enc, val_len);\n"
-                       "        joined_len += val_len;\n"
-                       "        joined[joined_len] = '\\0';\n"
-                       "      }\n",
-                       delim));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len "
+          "+ extra + 1);\n"
+          "        if (!tmp) { free(raw); free(enc); rc = CDD_C_ERROR_MEMORY; "
+          "goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (i > 0) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, enc, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim));
       CHECK_IO(fprintf(fp, "      free(enc);\n"));
       CHECK_IO(fprintf(fp, "      free(raw);\n"));
     } else {
@@ -779,7 +803,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { free(raw); rc = ENOMEM; goto cleanup; }\n"
+          "        if (!tmp) { free(raw); rc = CDD_C_ERROR_MEMORY; goto "
+          "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
           "        memcpy(joined + joined_len, raw, val_len);\n"
@@ -798,7 +823,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
       CHECK_IO(fprintf(
           fp,
@@ -806,7 +832,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
           "        memcpy(joined + joined_len, enc, val_len);\n"
@@ -817,19 +844,20 @@ static int write_joined_form_array(FILE *fp, const char *field,
       CHECK_IO(fprintf(fp, "      free(enc);\n"));
     } else {
       CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
-      CHECK_IO(fprintf(fp,
-                       "      {\n"
-                       "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                       "        char *tmp = (char *)realloc(joined, joined_len "
-                       "+ extra + 1);\n"
-                       "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                       "        joined = tmp;\n"
-                       "        if (i > 0) joined[joined_len++] = '%c';\n"
-                       "        memcpy(joined + joined_len, raw, val_len);\n"
-                       "        joined_len += val_len;\n"
-                       "        joined[joined_len] = '\\0';\n"
-                       "      }\n",
-                       delim));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len "
+          "+ extra + 1);\n"
+          "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (i > 0) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, raw, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim));
     }
   } else if (items_type && strcmp(items_type, "number") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -840,7 +868,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
       CHECK_IO(fprintf(
           fp,
@@ -848,7 +877,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
           "        memcpy(joined + joined_len, enc, val_len);\n"
@@ -859,19 +889,20 @@ static int write_joined_form_array(FILE *fp, const char *field,
       CHECK_IO(fprintf(fp, "      free(enc);\n"));
     } else {
       CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
-      CHECK_IO(fprintf(fp,
-                       "      {\n"
-                       "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                       "        char *tmp = (char *)realloc(joined, joined_len "
-                       "+ extra + 1);\n"
-                       "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                       "        joined = tmp;\n"
-                       "        if (i > 0) joined[joined_len++] = '%c';\n"
-                       "        memcpy(joined + joined_len, raw, val_len);\n"
-                       "        joined_len += val_len;\n"
-                       "        joined[joined_len] = '\\0';\n"
-                       "      }\n",
-                       delim));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len "
+          "+ extra + 1);\n"
+          "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (i > 0) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, raw, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim));
     }
   } else if (items_type && strcmp(items_type, "boolean") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -880,7 +911,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
       CHECK_IO(fprintf(
           fp,
@@ -888,7 +920,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
           "        memcpy(joined + joined_len, enc, val_len);\n"
@@ -899,19 +932,20 @@ static int write_joined_form_array(FILE *fp, const char *field,
       CHECK_IO(fprintf(fp, "      free(enc);\n"));
     } else {
       CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
-      CHECK_IO(fprintf(fp,
-                       "      {\n"
-                       "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                       "        char *tmp = (char *)realloc(joined, joined_len "
-                       "+ extra + 1);\n"
-                       "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                       "        joined = tmp;\n"
-                       "        if (i > 0) joined[joined_len++] = '%c';\n"
-                       "        memcpy(joined + joined_len, raw, val_len);\n"
-                       "        joined_len += val_len;\n"
-                       "        joined[joined_len] = '\\0';\n"
-                       "      }\n",
-                       delim));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len "
+          "+ extra + 1);\n"
+          "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (i > 0) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, raw, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim));
     }
   } else {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -919,7 +953,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
       CHECK_IO(fprintf(
           fp,
@@ -927,7 +962,8 @@ static int write_joined_form_array(FILE *fp, const char *field,
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
           "        memcpy(joined + joined_len, enc, val_len);\n"
@@ -938,19 +974,20 @@ static int write_joined_form_array(FILE *fp, const char *field,
       CHECK_IO(fprintf(fp, "      free(enc);\n"));
     } else {
       CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
-      CHECK_IO(fprintf(fp,
-                       "      {\n"
-                       "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-                       "        char *tmp = (char *)realloc(joined, joined_len "
-                       "+ extra + 1);\n"
-                       "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                       "        joined = tmp;\n"
-                       "        if (i > 0) joined[joined_len++] = '%c';\n"
-                       "        memcpy(joined + joined_len, raw, val_len);\n"
-                       "        joined_len += val_len;\n"
-                       "        joined[joined_len] = '\\0';\n"
-                       "      }\n",
-                       delim));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len "
+          "+ extra + 1);\n"
+          "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (i > 0) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, raw, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim));
     }
   }
 
@@ -969,14 +1006,14 @@ static int write_joined_form_array(FILE *fp, const char *field,
   CHECK_IO(fprintf(fp, "    }\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write header param logic.
  */
-static int write_header_param_logic(FILE *fp,
-                                    const struct OpenAPI_Operation *op) {
+static enum cdd_c_error
+write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
   size_t i;
   for (i = 0; i < op->n_parameters; ++i) {
     if (op->parameters[i].in == OA_PARAM_IN_HEADER) {
@@ -997,12 +1034,13 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp, "    char *hdr_json = NULL;\n"));
             CHECK_IO(fprintf(fp, "    size_t i;\n"));
             CHECK_IO(fprintf(fp, "    hdr_val = json_value_init_array();\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_val) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_val) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    hdr_arr = json_value_get_array(hdr_val);\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_arr) { rc = EINVAL; goto cleanup; }\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (!hdr_arr) { rc = "
+                            "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", p->name));
             if (strcmp(item_type, "string") == 0) {
@@ -1010,39 +1048,41 @@ static int write_header_param_logic(FILE *fp,
               CHECK_IO(fprintf(
                   fp,
                   "        if (json_array_append_null(hdr_arr) != JSONSuccess) "
-                  "{ rc = ENOMEM; goto cleanup; }\n"));
+                  "{ rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
               CHECK_IO(fprintf(fp, "      } else {\n"));
               CHECK_IO(fprintf(
                   fp,
                   "        if (json_array_append_string(hdr_arr, %s[i]) != "
-                  "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                  "JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
                   p->name));
               CHECK_IO(fprintf(fp, "      }\n"));
             } else if (strcmp(item_type, "integer") == 0) {
               CHECK_IO(fprintf(
                   fp,
                   "      if (json_array_append_number(hdr_arr, (double)%s[i]) "
-                  "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                  "!= JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
+                  "}\n",
                   p->name));
             } else if (strcmp(item_type, "number") == 0) {
               CHECK_IO(fprintf(
                   fp,
                   "      if (json_array_append_number(hdr_arr, %s[i]) != "
-                  "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                  "JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
                   p->name));
             } else if (strcmp(item_type, "boolean") == 0) {
               CHECK_IO(fprintf(
                   fp,
                   "      if (json_array_append_boolean(hdr_arr, %s[i] ? 1 : 0) "
-                  "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                  "!= JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
+                  "}\n",
                   p->name));
             }
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(
                 fp, "    hdr_json = json_serialize_to_string(hdr_val);\n"));
             CHECK_IO(fprintf(fp, "    json_value_free(hdr_val);\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_json) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_json) { rc = "
+                                 "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
@@ -1062,12 +1102,13 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp, "    char *hdr_json = NULL;\n"));
             CHECK_IO(fprintf(fp, "    size_t i;\n"));
             CHECK_IO(fprintf(fp, "    hdr_val = json_value_init_array();\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_val) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_val) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    hdr_arr = json_value_get_array(hdr_val);\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_arr) { rc = EINVAL; goto cleanup; }\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (!hdr_arr) { rc = "
+                            "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", p->name));
             CHECK_IO(fprintf(fp, "      char *item_json = NULL;\n"));
@@ -1076,7 +1117,7 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
                 fp,
                 "        if (json_array_append_null(hdr_arr) != JSONSuccess) "
-                "{ rc = ENOMEM; goto cleanup; }\n"));
+                "{ rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        continue;\n"));
             CHECK_IO(fprintf(fp, "      }\n"));
             CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
@@ -1085,19 +1126,20 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
                 fp, "      item_val = json_parse_string(item_json);\n"));
             CHECK_IO(fprintf(fp, "      free(item_json);\n"));
+            CHECK_IO(
+                fprintf(fp, "      if (!item_val) { rc = "
+                            "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
             CHECK_IO(fprintf(
-                fp, "      if (!item_val) { rc = EINVAL; goto cleanup; }\n"));
-            CHECK_IO(fprintf(
-                fp,
-                "      if (json_array_append_value(hdr_arr, item_val) != "
-                "JSONSuccess) { json_value_free(item_val); rc = ENOMEM; goto "
-                "cleanup; }\n"));
+                fp, "      if (json_array_append_value(hdr_arr, item_val) != "
+                    "JSONSuccess) { json_value_free(item_val); rc = "
+                    "CDD_C_ERROR_MEMORY; goto "
+                    "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(
                 fp, "    hdr_json = json_serialize_to_string(hdr_val);\n"));
             CHECK_IO(fprintf(fp, "    json_value_free(hdr_val);\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_json) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_json) { rc = "
+                                 "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
@@ -1137,12 +1179,13 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp, "    char *hdr_json = NULL;\n"));
             CHECK_IO(fprintf(fp, "    size_t i;\n"));
             CHECK_IO(fprintf(fp, "    hdr_val = json_value_init_object();\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_val) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_val) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    hdr_obj = json_value_get_object(hdr_val);\n"));
             CHECK_IO(fprintf(fp, "    if (!hdr_obj) { "
-                                 "json_value_free(hdr_val); rc = EINVAL; goto "
+                                 "json_value_free(hdr_val); rc = "
+                                 "CDD_C_ERROR_INVALID_ARGUMENT; goto "
                                  "cleanup; }\n"));
             CHECK_IO(
                 fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", p->name));
@@ -1184,8 +1227,8 @@ static int write_header_param_logic(FILE *fp,
             CHECK_IO(fprintf(
                 fp, "    hdr_json = json_serialize_to_string(hdr_val);\n"));
             CHECK_IO(fprintf(fp, "    json_value_free(hdr_val);\n"));
-            CHECK_IO(fprintf(
-                fp, "    if (!hdr_json) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "    if (!hdr_json) { rc = "
+                                 "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
@@ -1224,13 +1267,13 @@ static int write_header_param_logic(FILE *fp,
                     fp, "    hdr_val = json_value_init_boolean(%s ? 1 : 0);\n",
                     p->name));
               }
-              CHECK_IO(fprintf(
-                  fp, "    if (!hdr_val) { rc = ENOMEM; goto cleanup; }\n"));
+              CHECK_IO(fprintf(fp, "    if (!hdr_val) { rc = "
+                                   "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
               CHECK_IO(fprintf(
                   fp, "    hdr_json = json_serialize_to_string(hdr_val);\n"));
               CHECK_IO(fprintf(fp, "    json_value_free(hdr_val);\n"));
-              CHECK_IO(fprintf(
-                  fp, "    if (!hdr_json) { rc = ENOMEM; goto cleanup; }\n"));
+              CHECK_IO(fprintf(fp, "    if (!hdr_json) { rc = "
+                                   "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
               CHECK_IO(fprintf(fp,
                                "    rc = http_headers_add(&req.headers, "
                                "\"%s\", hdr_json);\n",
@@ -1285,8 +1328,9 @@ static int write_header_param_logic(FILE *fp,
             "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
         CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
                              "joined_len + extra + 1);\n"));
-        CHECK_IO(
-            fprintf(fp, "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp,
+            "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "        joined = tmp;\n"));
         CHECK_IO(fprintf(
             fp, "        if (joined_len > 0) joined[joined_len++] = ',';\n"));
@@ -1339,15 +1383,16 @@ static int write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
         CHECK_IO(fprintf(fp, "      {\n"));
         if (explode) {
-          CHECK_IO(fputs("        size_t key_len = strlen(kv_key);\n"
-                         "        size_t val_len = strlen(kv_raw);\n"
-                         "        size_t extra = key_len + val_len + 1 + "
-                         "(first ? 0 : 1);\n"
-                         "        char *tmp = (char *)realloc(joined, "
-                         "joined_len + extra + 1);\n"
-                         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                         "        joined = tmp;\n",
-                         fp));
+          CHECK_IO(fputs(
+              "        size_t key_len = strlen(kv_key);\n"
+              "        size_t val_len = strlen(kv_raw);\n"
+              "        size_t extra = key_len + val_len + 1 + "
+              "(first ? 0 : 1);\n"
+              "        char *tmp = (char *)realloc(joined, "
+              "joined_len + extra + 1);\n"
+              "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+              "        joined = tmp;\n",
+              fp));
           CHECK_IO(
               fputs("        if (!first) joined[joined_len++] = ',';\n"
                     "        memcpy(joined + joined_len, kv_key, key_len);\n"
@@ -1358,15 +1403,16 @@ static int write_header_param_logic(FILE *fp,
                     "        joined[joined_len] = '\\0';\n",
                     fp));
         } else {
-          CHECK_IO(fputs("        size_t key_len = strlen(kv_key);\n"
-                         "        size_t val_len = strlen(kv_raw);\n"
-                         "        size_t extra = key_len + val_len + 1 + "
-                         "(first ? 0 : 1) + 1;\n"
-                         "        char *tmp = (char *)realloc(joined, "
-                         "joined_len + extra + 1);\n"
-                         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                         "        joined = tmp;\n",
-                         fp));
+          CHECK_IO(fputs(
+              "        size_t key_len = strlen(kv_key);\n"
+              "        size_t val_len = strlen(kv_raw);\n"
+              "        size_t extra = key_len + val_len + 1 + "
+              "(first ? 0 : 1) + 1;\n"
+              "        char *tmp = (char *)realloc(joined, "
+              "joined_len + extra + 1);\n"
+              "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+              "        joined = tmp;\n",
+              fp));
           CHECK_IO(
               fputs("        if (!first) joined[joined_len++] = ',';\n"
                     "        memcpy(joined + joined_len, kv_key, key_len);\n"
@@ -1418,15 +1464,15 @@ static int write_header_param_logic(FILE *fp,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write form urlencoded body.
  */
-static int write_form_urlencoded_body(FILE *fp,
-                                      const struct OpenAPI_Operation *op,
-                                      const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
+                           const struct OpenAPI_Spec *spec) {
   const struct OpenAPI_MediaType *_ast_find_media_type_3;
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_4;
   struct OpenAPI_Encoding *_ast_find_encoding_5;
@@ -1436,7 +1482,7 @@ static int write_form_urlencoded_body(FILE *fp,
   size_t i;
 
   if (!fp || !op || !spec)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
                         "application/x-www-form-urlencoded",
@@ -1451,7 +1497,7 @@ static int write_form_urlencoded_body(FILE *fp,
         fp,
         "  /* Warning: Schema %s definition not found, skipping form body */\n",
         op->req_body.ref_name));
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   CHECK_IO(fprintf(fp, "  /* Form URL-Encoded Body Construction */\n"));
@@ -1503,8 +1549,9 @@ static int write_form_urlencoded_body(FILE *fp,
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "      enc = %s(item_json);\n", enc_fn));
         CHECK_IO(fprintf(fp, "      free(item_json);\n"));
-        CHECK_IO(
-            fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp,
+            "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(
             fp, "      rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
             f->name));
@@ -1521,8 +1568,8 @@ static int write_form_urlencoded_body(FILE *fp,
                              "      char *enc = url_encode_form_allow_reserved"
                              "(req_body->%s[i]);\n",
                              f->name));
-            CHECK_IO(fprintf(
-                fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
@@ -1565,15 +1612,15 @@ static int write_form_urlencoded_body(FILE *fp,
         if (write_joined_form_array(fp, f->name, len_field, items_type, ',',
                                     encode_fn ? encode_fn : "url_encode_form",
                                     add_encoded, items_is_object) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (style == OA_STYLE_SPACE_DELIMITED) {
         if (write_joined_form_array(fp, f->name, len_field, items_type, ' ',
                                     NULL, 0, items_is_object) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (style == OA_STYLE_PIPE_DELIMITED) {
         if (write_joined_form_array(fp, f->name, len_field, items_type, '|',
                                     NULL, 0, items_is_object) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else {
         CHECK_IO(fprintf(
             fp, "  /* Array style not supported for %s in form body */\n",
@@ -1589,7 +1636,8 @@ static int write_form_urlencoded_body(FILE *fp,
             fp,
             "    char *enc = url_encode_form_allow_reserved(req_body->%s);\n",
             f->name));
-        CHECK_IO(fprintf(fp, "    if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp, "    if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(
             fp, "    rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
             f->name));
@@ -1654,8 +1702,9 @@ static int write_form_urlencoded_body(FILE *fp,
                       "      char *enc = "
                       "url_encode_form_allow_reserved(req_body->%s->%s);\n",
                       f->name, pf->name));
-                  CHECK_IO(fprintf(
-                      fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+                  CHECK_IO(fprintf(fp,
+                                   "      if (!enc) { rc = CDD_C_ERROR_MEMORY; "
+                                   "goto cleanup; }\n"));
                   CHECK_IO(fprintf(fp,
                                    "      rc = url_query_add_encoded(&form_qp, "
                                    "\"%s\", enc);\n",
@@ -1753,8 +1802,8 @@ static int write_form_urlencoded_body(FILE *fp,
                              "      char *joined = openapi_kv_join_form(kvs, "
                              "kv_len, \",\", %d);\n",
                              obj_allow_reserved ? 1 : 0));
-            CHECK_IO(fprintf(
-                fp, "      if (!joined) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "      if (!joined) { rc = "
+                                 "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", joined);\n",
@@ -1777,8 +1826,9 @@ static int write_form_urlencoded_body(FILE *fp,
                       "      char *enc = "
                       "url_encode_form_allow_reserved(req_body->%s->%s);\n",
                       f->name, pf->name));
-                  CHECK_IO(fprintf(
-                      fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+                  CHECK_IO(fprintf(fp,
+                                   "      if (!enc) { rc = CDD_C_ERROR_MEMORY; "
+                                   "goto cleanup; }\n"));
                   CHECK_IO(fprintf(fp,
                                    "      rc = url_query_add_encoded(&form_qp, "
                                    "\"%s[%s]\", enc);\n",
@@ -1879,8 +1929,8 @@ static int write_form_urlencoded_body(FILE *fp,
                              "      char *joined = openapi_kv_join_form(kvs, "
                              "kv_len, \"%s\", %d);\n",
                              delim, obj_allow_reserved ? 1 : 0));
-            CHECK_IO(fprintf(
-                fp, "      if (!joined) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "      if (!joined) { rc = "
+                                 "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(
                 fp,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", joined);\n",
@@ -1906,8 +1956,9 @@ static int write_form_urlencoded_body(FILE *fp,
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
           CHECK_IO(fprintf(fp, "    enc = %s(obj_json);\n", enc_fn));
           CHECK_IO(fprintf(fp, "    free(obj_json);\n"));
-          CHECK_IO(
-              fprintf(fp, "    if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "    if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
               f->name));
@@ -1934,14 +1985,14 @@ static int write_form_urlencoded_body(FILE *fp,
       fp, "  http_headers_add(&req.headers, "
           "\"Content-Type\", \"application/x-www-form-urlencoded\");\n\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write cookie param logic.
  */
-static int write_cookie_param_logic(FILE *fp,
-                                    const struct OpenAPI_Operation *op) {
+static enum cdd_c_error
+write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
   size_t i;
   int has_cookie = 0;
 
@@ -1953,7 +2004,7 @@ static int write_cookie_param_logic(FILE *fp,
   }
 
   if (!has_cookie)
-    return 0;
+    return CDD_C_SUCCESS;
 
   CHECK_IO(fprintf(fp, "  /* Cookie Parameters */\n"));
 
@@ -2017,15 +2068,15 @@ static int write_cookie_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp, "        char *key_enc = %s(kv_key);\n",
                              encode_fn));
             CHECK_IO(fprintf(fp, "        char *val_enc = NULL;\n"));
-            CHECK_IO(fprintf(fp, "        if (!key_enc) { rc = ENOMEM; goto "
-                                 "cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp, "        if (!key_enc) { rc = CDD_C_ERROR_MEMORY; goto "
+                    "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        if (kv->type == OA_KV_STRING) {\n"));
             CHECK_IO(
                 fprintf(fp, "          val_enc = %s(kv_raw);\n", encode_fn));
-            CHECK_IO(fprintf(
-                fp,
-                "          if (!val_enc) { free(key_enc); rc = ENOMEM; goto "
-                "cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "          if (!val_enc) { free(key_enc); rc "
+                                 "= CDD_C_ERROR_MEMORY; goto "
+                                 "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        }\n"));
             CHECK_IO(fprintf(fp, "        {\n"));
             CHECK_IO(fprintf(fp, "          const char *out_key = key_enc;\n"));
@@ -2041,9 +2092,10 @@ static int write_cookie_param_logic(FILE *fp,
             CHECK_IO(
                 fprintf(fp, "          char *tmp = (char *)realloc(cookie_str, "
                             "cookie_len + extra + 1);\n"));
-            CHECK_IO(
-                fprintf(fp, "          if (!tmp) { free(key_enc); if (val_enc) "
-                            "free(val_enc); rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "          if (!tmp) { free(key_enc); if (val_enc) "
+                "free(val_enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "          cookie_str = tmp;\n"));
             CHECK_IO(fprintf(fp, "          if (cookie_len) { "
                                  "cookie_str[cookie_len++] = ';'; "
@@ -2073,8 +2125,8 @@ static int write_cookie_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp,
                              "        char *tmp = (char *)realloc(cookie_str, "
                              "cookie_len + extra + 1);\n"));
-            CHECK_IO(fprintf(
-                fp, "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        cookie_str = tmp;\n"));
             CHECK_IO(fprintf(
                 fp, "        if (cookie_len) { cookie_str[cookie_len++] "
@@ -2132,15 +2184,15 @@ static int write_cookie_param_logic(FILE *fp,
             CHECK_IO(fprintf(fp, "        char *key_enc = %s(kv_key);\n",
                              encode_fn));
             CHECK_IO(fprintf(fp, "        char *val_enc = NULL;\n"));
-            CHECK_IO(fprintf(fp, "        if (!key_enc) { rc = ENOMEM; goto "
-                                 "cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp, "        if (!key_enc) { rc = CDD_C_ERROR_MEMORY; goto "
+                    "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        if (kv->type == OA_KV_STRING) {\n"));
             CHECK_IO(
                 fprintf(fp, "          val_enc = %s(kv_raw);\n", encode_fn));
-            CHECK_IO(fprintf(
-                fp,
-                "          if (!val_enc) { free(key_enc); rc = ENOMEM; goto "
-                "cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "          if (!val_enc) { free(key_enc); rc "
+                                 "= CDD_C_ERROR_MEMORY; goto "
+                                 "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        }\n"));
             CHECK_IO(fprintf(fp, "        {\n"));
             CHECK_IO(fprintf(fp, "          const char *out_key = key_enc;\n"));
@@ -2158,7 +2210,7 @@ static int write_cookie_param_logic(FILE *fp,
                              "joined_len + extra + 1);\n"));
             CHECK_IO(fprintf(fp, "          if (!tmp) { free(key_enc); if "
                                  "(val_enc) free(val_enc); "
-                                 "rc = ENOMEM; goto cleanup; }\n"));
+                                 "rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "          joined = tmp;\n"));
             CHECK_IO(fprintf(fp,
                              "          if (joined_len) joined[joined_len++] = "
@@ -2186,8 +2238,8 @@ static int write_cookie_param_logic(FILE *fp,
                              "(joined_len ? 1 : 0);\n"));
             CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
                                  "joined_len + extra + 1);\n"));
-            CHECK_IO(fprintf(
-                fp, "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        joined = tmp;\n"));
             CHECK_IO(fprintf(fp,
                              "        if (joined_len) joined[joined_len++] = "
@@ -2211,9 +2263,10 @@ static int write_cookie_param_logic(FILE *fp,
                                "(cookie_len ? 2 : 0);\n"));
           CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
                                "cookie_len + extra + 1);\n"));
-          CHECK_IO(fprintf(fp,
-                           "      if (!tmp) { free(joined); rc = ENOMEM; goto "
-                           "cleanup; }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "      if (!tmp) { free(joined); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
           CHECK_IO(fprintf(fp, "      cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "      if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2263,9 +2316,8 @@ static int write_cookie_param_logic(FILE *fp,
             if (encode_fn) {
               CHECK_IO(fprintf(fp, "      cookie_enc = %s(%s[i]);\n", encode_fn,
                                p->name));
-              CHECK_IO(fprintf(
-                  fp,
-                  "      if (!cookie_enc) { rc = ENOMEM; goto cleanup; }\n"));
+              CHECK_IO(fprintf(fp, "      if (!cookie_enc) { rc = "
+                                   "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
               CHECK_IO(fprintf(fp, "      cookie_val = cookie_enc;\n"));
             } else {
               CHECK_IO(fprintf(fp, "      cookie_val = %s[i];\n", p->name));
@@ -2282,8 +2334,8 @@ static int write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(fp,
                            "        char *tmp = (char *)realloc(cookie_str, "
                            "cookie_len + extra + 1);\n"));
-          CHECK_IO(fprintf(
-              fp, "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
+                               "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        cookie_str = tmp;\n"));
           CHECK_IO(fprintf(
               fp, "        if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2333,8 +2385,8 @@ static int write_cookie_param_logic(FILE *fp,
             if (encode_fn) {
               CHECK_IO(fprintf(fp, "      raw_enc = %s(%s[i]);\n", encode_fn,
                                p->name));
-              CHECK_IO(fprintf(
-                  fp, "      if (!raw_enc) { rc = ENOMEM; goto cleanup; }\n"));
+              CHECK_IO(fprintf(fp, "      if (!raw_enc) { rc = "
+                                   "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
               CHECK_IO(fprintf(fp, "      raw = raw_enc;\n"));
             } else {
               CHECK_IO(fprintf(fp, "      raw = %s[i];\n", p->name));
@@ -2347,8 +2399,8 @@ static int write_cookie_param_logic(FILE *fp,
               "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
           CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
                                "joined_len + extra + 1);\n"));
-          CHECK_IO(fprintf(
-              fp, "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
+                               "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        joined = tmp;\n"));
           CHECK_IO(fprintf(
               fp, "        if (joined_len > 0) joined[joined_len++] = ',';\n"));
@@ -2369,9 +2421,10 @@ static int write_cookie_param_logic(FILE *fp,
                                "(cookie_len ? 2 : 0);\n"));
           CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
                                "cookie_len + extra + 1);\n"));
-          CHECK_IO(fprintf(fp,
-                           "      if (!tmp) { free(joined); rc = ENOMEM; goto "
-                           "cleanup; }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "      if (!tmp) { free(joined); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
           CHECK_IO(fprintf(fp, "      cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "      if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2394,8 +2447,8 @@ static int write_cookie_param_logic(FILE *fp,
           CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
           CHECK_IO(fprintf(fp, "    char *cookie_val = %s(%s);\n", encode_fn,
                            p->name));
-          CHECK_IO(fprintf(
-              fp, "    if (!cookie_val) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "    if (!cookie_val) { rc = "
+                               "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
           CHECK_IO(
               fprintf(fp, "    size_t name_len = strlen(\"%s\");\n", p->name));
           CHECK_IO(fprintf(fp, "    size_t val_len = strlen(cookie_val);\n"));
@@ -2403,9 +2456,10 @@ static int write_cookie_param_logic(FILE *fp,
                                "(cookie_len ? 2 : 0);\n"));
           CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
                                "cookie_len + extra + 1);\n"));
-          CHECK_IO(
-              fprintf(fp, "    if (!tmp) { free(cookie_val); rc = ENOMEM; goto "
-                          "cleanup; }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "    if (!tmp) { free(cookie_val); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
           CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "    if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2432,8 +2486,9 @@ static int write_cookie_param_logic(FILE *fp,
                                "(cookie_len ? 2 : 0);\n"));
           CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
                                "cookie_len + extra + 1);\n"));
-          CHECK_IO(
-              fprintf(fp, "    if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "    if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "    if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2460,7 +2515,8 @@ static int write_cookie_param_logic(FILE *fp,
                              "(cookie_len ? 2 : 0);\n"));
         CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
                              "cookie_len + extra + 1);\n"));
-        CHECK_IO(fprintf(fp, "    if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp, "    if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
         CHECK_IO(fprintf(fp, "    if (cookie_len) { cookie_str[cookie_len++] = "
                              "';'; cookie_str[cookie_len++] = ' '; }\n"));
@@ -2484,7 +2540,8 @@ static int write_cookie_param_logic(FILE *fp,
                              "(cookie_len ? 2 : 0);\n"));
         CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
                              "cookie_len + extra + 1);\n"));
-        CHECK_IO(fprintf(fp, "    if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp, "    if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
         CHECK_IO(fprintf(fp, "    if (cookie_len) { cookie_str[cookie_len++] = "
                              "';'; cookie_str[cookie_len++] = ' '; }\n"));
@@ -2510,7 +2567,8 @@ static int write_cookie_param_logic(FILE *fp,
                              "(cookie_len ? 2 : 0);\n"));
         CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
                              "cookie_len + extra + 1);\n"));
-        CHECK_IO(fprintf(fp, "    if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp, "    if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
         CHECK_IO(fprintf(fp, "    if (cookie_len) { cookie_str[cookie_len++] = "
                              "';'; cookie_str[cookie_len++] = ' '; }\n"));
@@ -2535,17 +2593,17 @@ static int write_cookie_param_logic(FILE *fp,
   CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write multipart part headers.
  */
-static int write_multipart_part_headers(FILE *fp,
-                                        const struct OpenAPI_Encoding *enc) {
+static enum cdd_c_error
+write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
   size_t h;
   if (!fp || !enc || !enc->headers || enc->n_headers == 0 || !enc->name)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (h = 0; h < enc->n_headers; ++h) {
     const struct OpenAPI_Header *hdr = &enc->headers[h];
@@ -2608,8 +2666,8 @@ static int write_multipart_part_headers(FILE *fp,
                        "            char *tmp = (char *)realloc(%s, %s + "
                        "extra + 1);\n",
                        joined_name, joined_len_name));
-      CHECK_IO(fprintf(
-          fp, "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
+                           "goto cleanup; }\n"));
       CHECK_IO(fprintf(fp, "            %s = tmp;\n", joined_name));
       CHECK_IO(fprintf(fp, "            if (%s > 0) %s[%s++] = ',';\n",
                        joined_len_name, joined_name, joined_len_name));
@@ -2673,7 +2731,8 @@ static int write_multipart_part_headers(FILE *fp,
             "            size_t val_len = strlen(kv_raw);\n"
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1);\n"
             "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
-            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n",
+            "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
+            "}\n",
             first_name, joined_name, joined_len_name));
         CHECK_IO(fprintf(fp,
                          "            %s = tmp;\n"
@@ -2697,7 +2756,8 @@ static int write_multipart_part_headers(FILE *fp,
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1) + "
             "1;\n"
             "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
-            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n",
+            "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
+            "}\n",
             first_name, joined_name, joined_len_name));
         CHECK_IO(fprintf(fp,
                          "            %s = tmp;\n"
@@ -2770,14 +2830,15 @@ static int write_multipart_part_headers(FILE *fp,
       CHECK_IO(fprintf(fp, "      }\n"));
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write multipart body.
  */
-static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
-                                const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_multipart_body(FILE *fp,
+                                             const struct OpenAPI_Operation *op,
+                                             const struct OpenAPI_Spec *spec) {
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
   const struct OpenAPI_MediaType *_ast_find_media_type_8;
   struct OpenAPI_Encoding *_ast_find_encoding_9;
@@ -2799,7 +2860,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
         op->req_body.ref_name));
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
@@ -2858,7 +2919,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "string") == 0) {
         CHECK_IO(fprintf(fp, "    for (i = 0; i < req_body->%s; ++i) {\n",
@@ -2872,7 +2933,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "integer") == 0) {
         CHECK_IO(fprintf(fp, "    for (i = 0; i < req_body->%s; ++i) {\n",
@@ -2888,7 +2949,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "number") == 0) {
         CHECK_IO(fprintf(fp, "    for (i = 0; i < req_body->%s; ++i) {\n",
@@ -2904,7 +2965,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (strcmp(items_type, "boolean") == 0) {
         CHECK_IO(fprintf(fp, "    for (i = 0; i < req_body->%s; ++i) {\n",
@@ -2919,7 +2980,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else {
         CHECK_IO(fprintf(
@@ -2948,7 +3009,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        f->name, ct_arg, f->name, f->name));
       CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
-        return EIO;
+        return CDD_C_ERROR_IO;
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "integer") == 0) {
       const char *content_type =
@@ -2973,7 +3034,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
-        return EIO;
+        return CDD_C_ERROR_IO;
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "number") == 0) {
       const char *content_type =
@@ -2998,7 +3059,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
-        return EIO;
+        return CDD_C_ERROR_IO;
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "boolean") == 0) {
       const char *content_type =
@@ -3024,7 +3085,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                        f->name, ct_arg));
       CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
-        return EIO;
+        return CDD_C_ERROR_IO;
       CHECK_IO(fprintf(fp, "    }\n"));
     } else if (strcmp(f->type, "object") == 0) {
       const char *content_type =
@@ -3057,7 +3118,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
       } else {
         CHECK_IO(fprintf(fp,
@@ -3069,15 +3130,15 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
   CHECK_IO(fprintf(fp, "  rc = http_request_flatten_parts(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n\n"));
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if status range code.
  */
-static int is_status_range_code(const char *code) {
+static enum cdd_c_error is_status_range_code(const char *code) {
   if (!code)
-    return 0;
+    return CDD_C_SUCCESS;
   return strlen(code) == 3 && code[0] >= '1' && code[0] <= '5' &&
          code[1] == 'X' && code[2] == 'X';
 }
@@ -3085,18 +3146,18 @@ static int is_status_range_code(const char *code) {
 /**
  * @brief Executes the status range prefix operation.
  */
-static int status_range_prefix(const char *code) {
+static enum cdd_c_error status_range_prefix(const char *code) {
   if (!is_status_range_code(code))
-    return 0;
+    return CDD_C_SUCCESS;
   return code[0] - '0';
 }
 
 /**
  * @brief Checks if status code literal.
  */
-static int is_status_code_literal(const char *code) {
+static enum cdd_c_error is_status_code_literal(const char *code) {
   if (!code || strlen(code) != 3)
-    return 0;
+    return CDD_C_SUCCESS;
   return code[0] >= '0' && code[0] <= '9' && code[1] >= '0' && code[1] <= '9' &&
          code[2] >= '0' && code[2] <= '9';
 }
@@ -3104,10 +3165,11 @@ static int is_status_code_literal(const char *code) {
 /**
  * @brief Generates C code for codegen client write body.
  */
-int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
-                              const struct OpenAPI_Spec *spec,
-                              const char *path_template,
-                              const char *base_url_expr) {
+enum cdd_c_error codegen_client_write_body(FILE *fp,
+                                           const struct OpenAPI_Operation *op,
+                                           const struct OpenAPI_Spec *spec,
+                                           const char *path_template,
+                                           const char *base_url_expr) {
   const char *_ast_verb_to_enum_str_16 = NULL;
   const char *_ast_method_str_to_enum_str_17 = NULL;
   int query_exists = 0;
@@ -3126,7 +3188,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   int success_inline_is_array = 0;
 
   if (!fp || !op || !path_template)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (spec) {
     security_query = codegen_security_requires_query(op, spec);
@@ -3274,7 +3336,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   /* --- 2. Init & Security --- */
-  CHECK_IO(fprintf(fp, "  if (!ctx || !ctx->send) return EINVAL;\n"));
+  CHECK_IO(fprintf(
+      fp, "  if (!ctx || !ctx->send) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
   if (op->req_body.is_array) {
     CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
                          "*/\n  return 95; /* ENOTSUP */\n"));
@@ -3284,20 +3347,20 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   if (spec) {
     if (codegen_security_write_apply(fp, op, spec) != 0)
-      return EIO;
+      return CDD_C_ERROR_IO;
   }
 
   /* --- 3. Header Param Logic --- */
   if (write_header_param_logic(fp, op) != 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* --- 4. Cookie Param Logic --- */
   if (write_cookie_param_logic(fp, op) != 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* --- 5. Query Param Logic --- */
   if (codegen_url_write_query_params(fp, op, query_exists ? 1 : 0) != 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* --- 6. Body Serialization --- */
   {
@@ -3305,10 +3368,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     if (ct) {
       if (media_type_is_multipart_form(ct)) {
         if (write_multipart_body(fp, op, spec) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (media_type_is_form(ct)) {
         if (write_form_urlencoded_body(fp, op, spec) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (media_type_is_json(ct) && op->req_body.ref_name) {
         CHECK_IO(fprintf(
             fp, "  rc = %s_to_json((const struct %s *)%s, &req_json);\n",
@@ -3327,50 +3390,58 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "    JSON_Array *req_arr = NULL;\n"));
           CHECK_IO(fprintf(fp, "    size_t i;\n"));
           CHECK_IO(fprintf(fp, "    req_val = json_value_init_array();\n"));
-          CHECK_IO(fprintf(
-              fp, "    if (!req_val) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "    if (!req_val) { rc = CDD_C_ERROR_MEMORY; "
+                               "goto cleanup; }\n"));
           CHECK_IO(
               fprintf(fp, "    req_arr = json_value_get_array(req_val);\n"));
-          CHECK_IO(fprintf(
-              fp, "    if (!req_arr) { rc = EINVAL; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (!req_arr) { rc = "
+                           "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "    for (i = 0; i < body_len; ++i) {\n"));
           if (op->req_body.inline_type &&
               strcmp(op->req_body.inline_type, "string") == 0) {
             CHECK_IO(fprintf(fp, "      if (!body[i]) {\n"));
-            CHECK_IO(fprintf(fp,
-                             "        if (json_array_append_null(req_arr) != "
-                             "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "        if (json_array_append_null(req_arr) != "
+                "JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "      } else {\n"));
-            CHECK_IO(fprintf(fp,
-                             "        if (json_array_append_string(req_arr, "
-                             "body[i]) != JSONSuccess) { rc = ENOMEM; goto "
-                             "cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp, "        if (json_array_append_string(req_arr, "
+                    "body[i]) != JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto "
+                    "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "      }\n"));
           } else if (op->req_body.inline_type &&
                      strcmp(op->req_body.inline_type, "integer") == 0) {
-            CHECK_IO(fprintf(fp,
-                             "      if (json_array_append_number(req_arr, "
-                             "(double)body[i]) != JSONSuccess) { rc = ENOMEM; "
-                             "goto cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "      if (json_array_append_number(req_arr, "
+                "(double)body[i]) != JSONSuccess) { rc = CDD_C_ERROR_MEMORY; "
+                "goto cleanup; }\n"));
           } else if (op->req_body.inline_type &&
                      strcmp(op->req_body.inline_type, "number") == 0) {
-            CHECK_IO(fprintf(fp, "      if (json_array_append_number(req_arr, "
-                                 "body[i]) != JSONSuccess) { rc = ENOMEM; goto "
-                                 "cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp, "      if (json_array_append_number(req_arr, "
+                    "body[i]) != JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto "
+                    "cleanup; }\n"));
           } else if (op->req_body.inline_type &&
                      strcmp(op->req_body.inline_type, "boolean") == 0) {
-            CHECK_IO(fprintf(fp,
-                             "      if (json_array_append_boolean(req_arr, "
-                             "body[i] ? 1 : 0) != JSONSuccess) { rc = ENOMEM; "
-                             "goto cleanup; }\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "      if (json_array_append_boolean(req_arr, "
+                "body[i] ? 1 : 0) != JSONSuccess) { rc = CDD_C_ERROR_MEMORY; "
+                "goto cleanup; }\n"));
           } else {
-            CHECK_IO(fprintf(fp, "      rc = EINVAL; goto cleanup;\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "      rc = CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup;\n"));
           }
           CHECK_IO(fprintf(fp, "    }\n"));
         } else if (op->req_body.inline_type &&
                    strcmp(op->req_body.inline_type, "string") == 0) {
-          CHECK_IO(fprintf(
-              fp, "    if (!req_body) { rc = EINVAL; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (!req_body) { rc = "
+                           "CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup; }\n"));
           CHECK_IO(
               fprintf(fp, "    req_val = json_value_init_string(req_body);\n"));
         } else if (op->req_body.inline_type &&
@@ -3387,10 +3458,12 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
               fp, "    req_val = json_value_init_boolean(req_body ? 1 : "
                   "0);\n"));
         } else {
-          CHECK_IO(fprintf(fp, "    rc = EINVAL; goto cleanup;\n"));
+          CHECK_IO(fprintf(
+              fp, "    rc = CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup;\n"));
         }
-        CHECK_IO(
-            fprintf(fp, "    if (!req_val) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp,
+            "    if (!req_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(
             fprintf(fp, "    tmp_json = json_serialize_to_string(req_val);\n"));
         CHECK_IO(fprintf(fp,
@@ -3399,8 +3472,9 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "    req_json = strdup(tmp_json);\n"));
         CHECK_IO(fprintf(fp, "    json_free_serialized_string(tmp_json);\n"));
         CHECK_IO(fprintf(fp, "    json_value_free(req_val);\n"));
-        CHECK_IO(
-            fprintf(fp, "    if (!req_json) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(
+            fp,
+            "    if (!req_json) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(fp, "    req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "    req.body_len = strlen(req_json);\n"));
         CHECK_IO(fprintf(fp, "    http_headers_add(&req.headers, "
@@ -3433,12 +3507,13 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   if (codegen_url_write_builder(fp, path_template, op->parameters,
                                 op->n_parameters, &url_cfg) != 0) {
-    return EIO;
+    return CDD_C_ERROR_IO;
   }
 
   if (query_exists) {
-    CHECK_IO(fprintf(fp, "  if (asprintf(&req.url, \"%%s%%s\", path_str, "
-                         "query_str) == -1) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp, "  if (asprintf(&req.url, \"%%s%%s\", path_str, "
+            "query_str) == -1) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
   } else {
     CHECK_IO(fprintf(fp, "  req.url = url;\n"));
   }
@@ -3476,7 +3551,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       fp, "  } while (rc != 0 && attempt <= ctx->config.retry_count);\n\n"));
 
   CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
-  CHECK_IO(fprintf(fp, "  if (!res) { rc = EIO; goto cleanup; }\n\n"));
+  CHECK_IO(
+      fprintf(fp, "  if (!res) { rc = CDD_C_ERROR_IO; goto cleanup; }\n\n"));
 
   for (i = 0; i < op->n_responses; ++i) {
     const struct OpenAPI_Response *resp = &op->responses[i];
@@ -3542,10 +3618,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     if (resp->code[0] == '2') {
       if (response_is_binary(resp)) {
         if (write_binary_success(fp) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (response_is_textual_string(resp)) {
         if (write_text_plain_success(fp) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
         if (resp->schema.is_array) {
@@ -3561,7 +3637,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "      }\n"));
       } else if (schema_has_inline(&resp->schema)) {
         if (write_inline_json_parse(fp, &resp->schema) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       }
       CHECK_IO(fprintf(fp, "      break;\n"));
     } else {
@@ -3591,10 +3667,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "      handled = 1;\n"));
         if (response_is_binary(resp)) {
           if (write_binary_success(fp) != 0)
-            return EIO;
+            return CDD_C_ERROR_IO;
         } else if (response_is_textual_string(resp)) {
           if (write_text_plain_success(fp) != 0)
-            return EIO;
+            return CDD_C_ERROR_IO;
         } else if (resp->schema.ref_name) {
           CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
           CHECK_IO(fprintf(
@@ -3603,7 +3679,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "      }\n"));
         } else if (schema_has_inline(&resp->schema)) {
           if (write_inline_json_parse(fp, &resp->schema) != 0)
-            return EIO;
+            return CDD_C_ERROR_IO;
         }
         CHECK_IO(fprintf(fp, "    }\n"));
       } else {
@@ -3644,10 +3720,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     if (default_is_success || default_matches_success) {
       if (response_is_binary(default_resp)) {
         if (write_binary_success(fp) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (response_is_textual_string(default_resp)) {
         if (write_text_plain_success(fp) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
         if (default_resp->schema.is_array) {
@@ -3663,10 +3739,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (schema_has_inline(&default_resp->schema)) {
         if (write_inline_json_parse(fp, &default_resp->schema) != 0)
-          return EIO;
+          return CDD_C_ERROR_IO;
       }
     } else {
-      CHECK_IO(fprintf(fp, "    rc = EIO;\n"));
+      CHECK_IO(fprintf(fp, "    rc = CDD_C_ERROR_IO;\n"));
       CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
           fp,
@@ -3674,7 +3750,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    }\n"));
     }
   } else {
-    CHECK_IO(fprintf(fp, "    rc = EIO;\n"));
+    CHECK_IO(fprintf(fp, "    rc = CDD_C_ERROR_IO;\n"));
     CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
     CHECK_IO(fprintf(
         fp, "      ApiError_from_json((const char*)res->body, api_error);\n"));
@@ -3707,7 +3783,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(fprintf(fp, "  if (res) { http_response_free(res); free(res); }\n"));
   CHECK_IO(fprintf(fp, "  return rc;\n}\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

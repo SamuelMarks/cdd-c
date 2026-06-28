@@ -64,8 +64,10 @@ TEST test_scan_for_mixed_declarations_errors(void) {
   struct HoistSiteList list;
   hoist_site_list_init(&list);
 
-  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(NULL, &list));
-  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_mixed_declarations(NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_mixed_declarations(tl, NULL));
 
   hoist_site_list_free(&list);
   free_token_list(tl);
@@ -85,8 +87,10 @@ TEST test_decl_hoist_edges(void) {
 
   hoist_site_list_free(&list);
 
-  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(NULL, &list));
-  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_mixed_declarations(NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_mixed_declarations(tl, NULL));
 
   tokenize(az_span_create_from_str("int main() { int a; return 0; }"), &tl);
   list.capacity = 1;

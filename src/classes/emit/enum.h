@@ -24,6 +24,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "c_cdd_stdbool.h"
 /* clang-format on */
 
@@ -56,7 +57,7 @@ struct CodegenEnumConfig {
  * @param[out] em Pointer to the container to initialize.
  * @return 0 on success, EINVAL if em is NULL, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT int enum_members_init(struct EnumMembers *em);
+extern C_CDD_EXPORT enum cdd_c_error enum_members_init(struct EnumMembers *em);
 
 /**
  * @brief Free memory associated with an EnumMembers container.
@@ -75,8 +76,8 @@ extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *em);
  * @param[in] name Name of the enum member.
  * @return 0 on success, ENOMEM on failure to allocate or resize.
  */
-extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
-                                         const char *name);
+extern C_CDD_EXPORT enum cdd_c_error enum_members_add(struct EnumMembers *em,
+                                                      const char *name);
 
 /**
  * @brief Generate the `_from_str` implementation for an enum.
@@ -95,7 +96,7 @@ extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write enum from str func.
                      */
-    int
+    enum cdd_c_error
     write_enum_from_str_func(FILE *fp, const char *enum_name,
                              const struct EnumMembers *em,
                              const struct CodegenEnumConfig *config);
@@ -115,7 +116,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write enum to str func.
                      */
-    int
+    enum cdd_c_error
     write_enum_to_str_func(FILE *fp, const char *enum_name,
                            const struct EnumMembers *em,
                            const struct CodegenEnumConfig *config);

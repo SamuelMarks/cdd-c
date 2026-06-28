@@ -30,12 +30,13 @@ extern "C" {
 TEST test_refactor_context_lifecycle(void) {
   struct RefactorContext ctx;
 
-  ASSERT_EQ(EINVAL, refactor_context_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, refactor_context_init(NULL));
   ASSERT_EQ(0, refactor_context_init(&ctx));
 
-  ASSERT_EQ(EINVAL, refactor_context_add_function(NULL, "func", REF_VOID_TO_INT,
-                                                  "void"));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      refactor_context_add_function(NULL, "func", REF_VOID_TO_INT, "void"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             refactor_context_add_function(&ctx, NULL, REF_VOID_TO_INT, "void"));
 
   ASSERT_EQ(0, refactor_context_add_function(&ctx, "my_func", REF_VOID_TO_INT,
@@ -86,12 +87,14 @@ TEST test_apply_refactoring_to_string_errors(void) {
 
   refactor_context_init(&ctx);
 
-  ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}", &out));
-  ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, NULL, &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            apply_refactoring_to_string(NULL, "int main() {}", &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            apply_refactoring_to_string(&ctx, NULL, &out));
   /* Tokenize failure. Unclosed string literal is actually not an error in our
    * lexer, but unclosed block comment might be? Wait, what fails tokenizer? */
-  /* Actually, let's just make it return error by using ENOMEM if we could mock
-     it. Instead, since we can't easily mock, let's skip testing
+  /* Actually, let's just make it return error by using CDD_C_ERROR_MEMORY if we
+     could mock it. Instead, since we can't easily mock, let's skip testing
      `find_allocations` failure branch unless we can force it. Let's check if we
      can pass a malformed AST? No, this function tokenizes it itself. */
 

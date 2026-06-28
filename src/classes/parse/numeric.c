@@ -25,7 +25,7 @@
 #define UINT64_MAX _UI64_MAX
 #else
 /** @brief UINT64_MAX macro */
-#define UINT64_MAX ((uint64_t)-1)
+#define UINT64_MAX ((uint64_t) - 1)
 #endif
 #endif
 
@@ -40,18 +40,19 @@
  * @param[in,out] info Structure to populate flags in.
  * @return 0 on success, -1 if invalid characters found.
  */
-static int parse_int_suffixes(const char *str, struct IntegerInfo *info) {
+static enum cdd_c_error parse_int_suffixes(const char *str,
+                                           struct IntegerInfo *info) {
   size_t i = 0;
   while (str[i] != '\0') {
     char c = str[i];
     if (c == 'u' || c == 'U') {
       if (info->is_unsigned) /* Duplicate 'u' not allowed */
-        return -1;
+        return CDD_C_ERROR_UNKNOWN;
       info->is_unsigned = 1;
       i++;
     } else if (c == 'l' || c == 'L') {
       if (info->is_long_long) /* Already LL */
-        return -1;
+        return CDD_C_ERROR_UNKNOWN;
       if (info->is_long) {
         /* Second 'l' becomes 'll', assumes contiguous ll */
         if (str[i + 1] == 'l' || str[i + 1] == 'L') { /* Parser logic glitch? */
@@ -85,18 +86,18 @@ static int parse_int_suffixes(const char *str, struct IntegerInfo *info) {
       }
       i++;
     } else {
-      return -1; /* Invalid char in suffix */
+      return CDD_C_ERROR_UNKNOWN; /* Invalid char in suffix */
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
  */
-static int parse_binary_str(const char *str, char **endptr,
-                            uint64_t *_out_val) {
+static enum cdd_c_error parse_binary_str(const char *str, char **endptr,
+                                         uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;
   while (*p == '0' || *p == '1') {
@@ -111,14 +112,15 @@ static int parse_binary_str(const char *str, char **endptr,
   *endptr = (char *)p;
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses numeric literal from the given input.
  */
-int parse_numeric_literal(const char *str, struct NumericValue *out) {
+enum cdd_c_error parse_numeric_literal(const char *str,
+                                       struct NumericValue *out) {
   int is_hex = 0;
   int is_bin = 0;
   int is_oct = 0;
@@ -128,7 +130,7 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
   char *end_ptr = NULL;
 
   if (!str || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Reset output */
   memset(out, 0, sizeof(*out));
@@ -138,7 +140,7 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
   while (isspace((unsigned char)*p))
     p++;
   if (*p == '\0')
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Detect Base */
   if (*p == '0') {
@@ -182,15 +184,16 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
   /* Dispatch Parsing */
   if (is_float) {
     if (is_bin)
-      return EINVAL; /* binary floats not standard logic usually */
+      return CDD_C_ERROR_PARSE; /* binary floats not standard logic
+                                              usually */
 
     out->kind = NUMERIC_FLOAT;
     errno = 0;
     out->data.floating.value = strtod(str, &end_ptr);
     if (errno == ERANGE)
-      return ERANGE;
+      return CDD_C_ERROR_PARSE;
     if (str == end_ptr)
-      return EINVAL;
+      return CDD_C_ERROR_PARSE;
 
     /* Parse Suffixes */
     if (*end_ptr != '\0') {
@@ -203,22 +206,22 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
         } else if (end_ptr[1] == 'l' || end_ptr[1] == 'L') {
           out->data.floating.is_decimal = DFP_128;
         } else {
-          return EINVAL;
+          return CDD_C_ERROR_PARSE;
         }
         if (end_ptr[2] != '\0')
-          return EINVAL;
+          return CDD_C_ERROR_PARSE;
       }
       /* Standard Binary Float Suffixes */
       else if (*end_ptr == 'f' || *end_ptr == 'F') {
         out->data.floating.is_float = 1;
         if (end_ptr[1] != '\0')
-          return EINVAL; /* Junk after suffix */
+          return CDD_C_ERROR_PARSE; /* Junk after suffix */
       } else if (*end_ptr == 'l' || *end_ptr == 'L') {
         out->data.floating.is_long_double = 1;
         if (end_ptr[1] != '\0')
-          return EINVAL;
+          return CDD_C_ERROR_PARSE;
       } else {
-        return EINVAL; /* Invalid suffix */
+        return CDD_C_ERROR_PARSE; /* Invalid suffix */
       }
     }
   } else {
@@ -240,19 +243,19 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
     }
 
     if (errno == ERANGE)
-      return ERANGE;
+      return CDD_C_ERROR_PARSE;
     if (end_ptr == start_digits)
-      return EINVAL;
+      return CDD_C_ERROR_PARSE;
 
     out->data.integer.value = val;
 
     /* Suffixes */
     if (*end_ptr != '\0') {
       if (parse_int_suffixes(end_ptr, &out->data.integer) != 0) {
-        return EINVAL;
+        return CDD_C_ERROR_PARSE;
       }
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

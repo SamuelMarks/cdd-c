@@ -676,8 +676,8 @@ TEST test_doc_parse_invalid_inputs(void) {
   struct DocMetadata meta;
   doc_metadata_init(&meta);
 
-  ASSERT_EQ(EINVAL, doc_parse_block(NULL, &meta));
-  ASSERT_EQ(EINVAL, doc_parse_block("/* */", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(NULL, &meta));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block("/* */", NULL));
 
   /* Should handle empty string without error */
   ASSERT_EQ(0, doc_parse_block("", &meta));
@@ -762,7 +762,7 @@ TEST test_doc_oom_and_edges(void) {
   g_cdd_fail_alloc = 1;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
   g_cdd_fail_alloc = 0;
-  if (rc_oom == ENOMEM) { /* passed */
+  if (rc_oom == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
     printf("FAILED rc_oom=%d\n", rc_oom);
   }
@@ -772,7 +772,7 @@ TEST test_doc_oom_and_edges(void) {
   g_cdd_fail_alloc = 2;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
   g_cdd_fail_alloc = 0;
-  if (rc_oom == ENOMEM) { /* passed */
+  if (rc_oom == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
     printf("FAILED rc_oom=%d\n", rc_oom);
   }
@@ -782,7 +782,7 @@ TEST test_doc_oom_and_edges(void) {
   g_cdd_fail_alloc = 3;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
   g_cdd_fail_alloc = 0;
-  if (rc_oom == ENOMEM) { /* passed */
+  if (rc_oom == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
     printf("FAILED rc_oom=%d\n", rc_oom);
   }

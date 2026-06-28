@@ -31,12 +31,13 @@ TEST test_cdd_cst_escape_basic(void) {
   cdd_cst_scope_env_t env = {0};
   cdd_cst_symbol_t sym = {0};
 
-  ASSERT_EQ(EINVAL, cdd_cst_analyze_escapes(NULL, &env));
-  ASSERT_EQ(EINVAL, cdd_cst_analyze_escapes(&tree, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_analyze_escapes(NULL, &env));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_analyze_escapes(&tree, NULL));
   ASSERT_EQ(0, cdd_cst_analyze_escapes(&tree, &env));
 
-  ASSERT_EQ(EINVAL, cdd_cst_symbol_escapes(NULL, &escapes));
-  ASSERT_EQ(EINVAL, cdd_cst_symbol_escapes(&sym, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_escapes(NULL, &escapes));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_symbol_escapes(&sym, NULL));
   ASSERT_EQ(0, cdd_cst_symbol_escapes(&sym, &escapes));
   ASSERT_EQ(0, escapes);
   g_fail_io_after = -1;

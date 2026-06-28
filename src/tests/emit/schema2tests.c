@@ -60,8 +60,8 @@ static void to_c_ident(char *out, const size_t outsz, const char *const in) {
 }
 
 /* Generate test function for enum */
-static int write_test_enum(FILE *f, const char *const enum_name,
-                           const JSON_Array *enum_vals) {
+static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
+                                        const JSON_Array *enum_vals) {
   size_t i;
   const size_t n = json_array_get_count(enum_vals);
 
@@ -69,14 +69,14 @@ static int write_test_enum(FILE *f, const char *const enum_name,
   to_c_ident(c_enum_name, sizeof(c_enum_name), enum_name);
 
   if (fprintf(f, "/* Test enum %s to_str/from_str */\n", enum_name) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
   if (fprintf(f,
               "TEST test_%s_to_str_from_str(void) {\n"
               "  char *str = NULL;\n"
               "  enum %s val;\n"
               "  int rc;\n\n",
               c_enum_name, enum_name) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* Test to_str for each enum value */
   for (i = 0; i < n; i++) {
@@ -92,7 +92,7 @@ static int write_test_enum(FILE *f, const char *const enum_name,
                 "  ASSERT_STR_EQ(\"%s\", str);\n"
                 "  free(str);\n\n",
                 enum_name, enum_name, c_val, val) < 0)
-      return EIO;
+      return CDD_C_ERROR_IO;
   }
 
   /* Test from_str for each enum value */
@@ -108,7 +108,7 @@ static int write_test_enum(FILE *f, const char *const enum_name,
                 "  ASSERT_EQ(0, rc);\n"
                 "  ASSERT_EQ(%s_%s, val);\n\n",
                 enum_name, val, enum_name, c_val) < 0)
-      return EIO;
+      return CDD_C_ERROR_IO;
   }
 
   /* Test from_str unknown string */
@@ -117,17 +117,18 @@ static int write_test_enum(FILE *f, const char *const enum_name,
               "  ASSERT_EQ(0, rc);\n"
               "  ASSERT_EQ(%s_UNKNOWN, val);\n\n",
               enum_name, enum_name) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   if (fputs("  PASS();\n}\n", f) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   return 0;
 }
 
 /* Generate test function for struct */
-static int write_test_struct(FILE *f, const char *const struct_name,
-                             const JSON_Object *schema_obj) {
+static enum cdd_c_error write_test_struct(FILE *f,
+                                          const char *const struct_name,
+                                          const JSON_Object *schema_obj) {
   char c_struct_name[128];
   (void)schema_obj;
   to_c_ident(c_struct_name, sizeof(c_struct_name), struct_name);
@@ -152,7 +153,7 @@ static int write_test_struct(FILE *f, const char *const struct_name,
               struct_name, c_struct_name, struct_name, struct_name, struct_name,
               struct_name, struct_name, struct_name, struct_name,
               struct_name) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   /* Add JSON roundtrip test */
   if (fprintf(f,
@@ -184,17 +185,17 @@ static int write_test_struct(FILE *f, const char *const struct_name,
               "}\n\n",
               c_struct_name, struct_name, struct_name, struct_name, struct_name,
               struct_name, struct_name, struct_name, struct_name) < 0)
-    return EIO;
+    return CDD_C_ERROR_IO;
 
   return 0;
 }
 
 /* Main function: load JSON schema and generate tests source */
-int jsonschema2tests_main(int argc, char **argv) {
+enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
   if (argc != 3) {
     fprintf(stderr, "Usage: jsonschema2tests <schema.json> <header_to_test.h> "
                     "<output-test.h>\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
@@ -212,14 +213,14 @@ int jsonschema2tests_main(int argc, char **argv) {
     root_val = json_parse_file(schema_file);
     if (!root_val) {
       fprintf(stderr, "Failed to parse JSON schema file: %s\n", schema_file);
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     }
 
     root_obj = json_value_get_object(root_val);
     if (!root_obj) {
       fprintf(stderr, "Invalid JSON schema document\n");
       json_value_free(root_val);
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     }
 
     /* Look for schemas in common locations */
@@ -234,7 +235,7 @@ int jsonschema2tests_main(int argc, char **argv) {
           stderr,
           "Schema does not contain 'components/schemas' or '$defs' object\n");
       json_value_free(root_val);
-      return EXIT_FAILURE;
+      return CDD_C_ERROR_UNKNOWN;
     }
 
     /* Ensure output directory exists */
@@ -267,7 +268,7 @@ int jsonschema2tests_main(int argc, char **argv) {
       if (err != 0 || f == NULL) {
         fprintf(stderr, "Failed to open output file %s\n", output_file);
         json_value_free(root_val);
-        return EXIT_FAILURE;
+        return CDD_C_ERROR_UNKNOWN;
       }
 #else
 #if defined(_MSC_VER)
@@ -278,7 +279,7 @@ int jsonschema2tests_main(int argc, char **argv) {
       if (!f) {
         fprintf(stderr, "Failed to open output file: %s\n", output_file);
         json_value_free(root_val);
-        return EXIT_FAILURE;
+        return CDD_C_ERROR_UNKNOWN;
       }
 #endif
 
@@ -461,7 +462,7 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       if (asprintf(&p, "%s%s%s", output_dir, PATH_SEP, "test_main.c") == -1) {
         free(output_dir);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       free(output_dir);
 
@@ -473,7 +474,7 @@ int jsonschema2tests_main(int argc, char **argv) {
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
           free(p);
-          return EXIT_FAILURE;
+          return CDD_C_ERROR_UNKNOWN;
         }
 #else
 #if defined(_MSC_VER)
@@ -484,7 +485,7 @@ int jsonschema2tests_main(int argc, char **argv) {
         if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);
           free(p);
-          return EXIT_FAILURE;
+          return CDD_C_ERROR_UNKNOWN;
         }
 #endif
         {

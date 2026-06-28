@@ -23,7 +23,7 @@ extern "C" {
  */
 TEST test_sync_code_wrong_args(void) {
   char *argv[] = {"program", NULL};
-  ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -34,7 +34,7 @@ TEST test_sync_code_wrong_args(void) {
  */
 TEST test_sync_code_main_argc(void) {
   char *argv[] = {"foo.h"};
-  ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -45,7 +45,7 @@ TEST test_sync_code_main_argc(void) {
  */
 TEST test_sync_code_file_missing(void) {
   char *argv[] = {"notfound.h", "impl.c"};
-  ASSERT_EQ(ENOENT, sync_code_main(2, argv));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, sync_code_main(2, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -302,13 +302,13 @@ TEST test_sync_oom(void) {
     rc_s = sync_code_main(2, (char **)argv);
     printf("test_sync_oom rc_s=%d\n", rc_s);
     g_cdd_fail_alloc = 0;
-    if (rc_s != EIO)
+    if (rc_s != CDD_C_ERROR_IO)
       printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
     g_fail_io_after = 0;
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc_s);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc_s);
 
     g_cdd_fprintf_fail = 8002;
     rc_s2 = sync_code_main(2, (char **)argv);

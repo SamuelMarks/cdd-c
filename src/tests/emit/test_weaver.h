@@ -96,11 +96,16 @@ TEST test_weaver_wrap_ifdef_invalid_args(void) {
   struct TokenList tokens;
   tokens.size = 5;
 
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(NULL, &tokens, 0, 5, "C", NULL));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, NULL, 0, 5, "C", NULL));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, &tokens, 0, 5, NULL, NULL));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, &tokens, 5, 4, "C", NULL));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, &tokens, 0, 10, "C", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(NULL, &tokens, 0, 5, "C", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, NULL, 0, 5, "C", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, &tokens, 0, 5, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, &tokens, 5, 4, "C", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, &tokens, 0, 10, "C", NULL));
   g_fail_io_after = -1;
 
   PASS();
@@ -255,9 +260,12 @@ TEST test_weaver_translate_gcc_attributes(void) {
   nodes[4].start_token = 8;
   nodes[4].end_token = 9;
 
-  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(NULL, &tokens, &cst));
-  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(&patches, NULL, &cst));
-  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(&patches, &tokens, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_translate_gcc_attributes(NULL, &tokens, &cst));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_translate_gcc_attributes(&patches, NULL, &cst));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_translate_gcc_attributes(&patches, &tokens, NULL));
 
   res = patch_list_init(&patches);
   ASSERT_EQ(0, res);
@@ -303,9 +311,10 @@ TEST test_weaver_translate_gcc_attributes(void) {
       int rc_wattr;
       g_cdd_fail_alloc = 2001;
       rc_wattr = weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
-      if (rc_wattr != ENOMEM) {
-        printf("wattr=%d ENOMEM=%d\n", rc_wattr, ENOMEM);
-        ASSERT_EQ(ENOMEM, rc_wattr);
+      if (rc_wattr != CDD_C_ERROR_MEMORY) {
+        printf("wattr=%d CDD_C_ERROR_MEMORY=%d\n", rc_wattr,
+               CDD_C_ERROR_MEMORY);
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
       }
       g_cdd_fail_alloc = 0;
     }
@@ -371,17 +380,17 @@ TEST test_weaver_oom(void) {
   g_cdd_fail_alloc = 1;
   r1 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
   g_cdd_fail_alloc = 0;
-  ASSERT_EQ(ENOMEM, r1);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
   g_cdd_fail_alloc = 2;
   r2 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
   g_cdd_fail_alloc = 0;
-  ASSERT_EQ(ENOMEM, r2);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
   g_cdd_fail_alloc = 2;
   r3 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", NULL);
   g_cdd_fail_alloc = 0;
-  ASSERT_EQ(ENOMEM, r3);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
   /* deleted r4 */
 
@@ -390,35 +399,41 @@ TEST test_weaver_oom(void) {
   g_cdd_fail_alloc = 1;
   r6 = weaver_inject_msvc_headers(&patches, tl, 1, 1);
   g_cdd_fail_alloc = 0;
-  ASSERT_EQ(ENOMEM, r6);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r6);
 
   /* deleted r7 */
 
   g_cdd_fail_alloc = 1;
   r8 = weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", "sz", 0);
   g_cdd_fail_alloc = 0;
-  ASSERT_EQ(ENOMEM, r8);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r8);
 
   /* deleted r9 */
 #endif
 
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(NULL, tl, 0, 1, "COND", "else"));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, NULL, 0, 1, "COND", "else"));
-  ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, tl, 0, 1, NULL, "else"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(NULL, tl, 0, 1, "COND", "else"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, NULL, 0, 1, "COND", "else"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_wrap_ifdef(&patches, tl, 0, 1, NULL, "else"));
 
-  ASSERT_EQ(EINVAL, weaver_inject_msvc_headers(NULL, tl, 1, 1));
-  ASSERT_EQ(EINVAL, weaver_inject_msvc_headers(&patches, NULL, 1, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_inject_msvc_headers(NULL, tl, 1, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            weaver_inject_msvc_headers(&patches, NULL, 1, 1));
   ASSERT_EQ(0, weaver_inject_msvc_headers(&patches, tl, 0, 0));
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             weaver_vla_to_alloca(NULL, tl, 0, 1, "type", "name", "sz", 0));
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, NULL, 0, 1, "type", "name",
-                                         "sz", 0));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      weaver_vla_to_alloca(&patches, NULL, 0, 1, "type", "name", "sz", 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             weaver_vla_to_alloca(&patches, tl, 0, 1, NULL, "name", "sz", 0));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             weaver_vla_to_alloca(&patches, tl, 0, 1, "type", NULL, "sz", 0));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", NULL, 0));
 
   free_token_list(tl);

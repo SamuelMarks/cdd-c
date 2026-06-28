@@ -33,13 +33,13 @@
 /**
  * @brief Executes the type def list init operation.
  */
-int type_def_list_init(struct TypeDefList *list) {
+enum cdd_c_error type_def_list_init(struct TypeDefList *list) {
   if (!list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 0;
   list->items = NULL;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -75,9 +75,9 @@ void type_def_list_free(struct TypeDefList *list) {
 /**
  * @brief Adds or sets type def.
  */
-static int add_type_def(struct TypeDefList *list,
-                        const enum TypeDefinitionKind kind, const char *name,
-                        void *details) {
+static enum cdd_c_error add_type_def(struct TypeDefList *list,
+                                     const enum TypeDefinitionKind kind,
+                                     const char *name, void *details) {
   struct TypeDefinition *item;
 
   if (list->size >= list->capacity) {
@@ -86,7 +86,7 @@ static int add_type_def(struct TypeDefList *list,
         list->items, new_cap * sizeof(struct TypeDefinition));
     if (!new_items) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     list->items = new_items;
     list->capacity = new_cap;
@@ -97,7 +97,7 @@ static int add_type_def(struct TypeDefList *list,
   c_cdd_strdup(name, &item->name);
   if (!item->name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (kind == KIND_ENUM)
@@ -106,13 +106,14 @@ static int add_type_def(struct TypeDefList *list,
     item->details.struct_fields = (struct StructFields *)details;
 
   list->size++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c inspector scan file types operation.
  */
-int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
+enum cdd_c_error c_inspector_scan_file_types(const char *filename,
+                                             struct TypeDefList *out) {
   FILE *fp = NULL;
   char line[2048];
   /* Simple State Machine */
@@ -124,7 +125,7 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
   int rc = 0;
 
   if (!filename || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #if defined(_MSC_VER)
   if (fopen_s(&fp, filename, "r") != 0)
@@ -136,8 +137,15 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
   fp = fopen(filename, "r");
 #endif
 #endif
-  if (!fp)
-    return errno ? errno : ENOENT;
+  if (!fp) {
+    if (errno == ENOENT)
+      return CDD_C_ERROR_NOT_FOUND;
+    if (errno == ENOMEM)
+      return CDD_C_ERROR_MEMORY;
+    if (errno == EINVAL)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_ERROR_IO;
+  }
 
   while (fgets(line, sizeof(line), fp)) {
     char *p = line;
@@ -205,14 +213,14 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
             if (is_enum) {
               curr_em = (struct EnumMembers *)calloc(1, sizeof(*curr_em));
               if (!curr_em || enum_members_init(curr_em) != 0) {
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
                 break;
               }
               state = ST_ENUM;
             } else {
               curr_sf = (struct StructFields *)calloc(1, sizeof(*curr_sf));
               if (!curr_sf || struct_fields_init(curr_sf) != 0) {
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
                 break;
               }
               state = ST_STRUCT;
@@ -302,11 +310,11 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
               if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0)
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
               curr_em = NULL;
             } else {
               if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0)
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
               curr_sf = NULL;
             }
           } else {
@@ -352,13 +360,13 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
 /**
  * @brief Executes the func sig list init operation.
  */
-int func_sig_list_init(struct FuncSigList *list) {
+enum cdd_c_error func_sig_list_init(struct FuncSigList *list) {
   if (!list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 0;
   list->items = NULL;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -387,15 +395,16 @@ void func_sig_list_free(struct FuncSigList *list) {
 /**
  * @brief Extracts span text.
  */
-static int extract_span_text(const struct TokenList *tokens, size_t start,
-                             size_t end, char **_out_val) {
+static enum cdd_c_error extract_span_text(const struct TokenList *tokens,
+                                          size_t start, size_t end,
+                                          char **_out_val) {
   size_t total_len = 0;
   size_t i;
   char *buf, *p;
 
   if (start >= end || !tokens) {
     c_cdd_strdup("", _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = start; i < end; i++)
@@ -404,7 +413,7 @@ static int extract_span_text(const struct TokenList *tokens, size_t start,
   buf = (char *)malloc(total_len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   p = buf;
@@ -415,22 +424,22 @@ static int extract_span_text(const struct TokenList *tokens, size_t start,
   *p = '\0';
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the c inspector extract signatures operation.
  */
-int c_inspector_extract_signatures(const char *source_code,
-                                   struct FuncSigList *out) {
+enum cdd_c_error c_inspector_extract_signatures(const char *source_code,
+                                                struct FuncSigList *out) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   int rc;
   size_t i;
 
   if (!source_code || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tl)) != 0)
     return rc;
@@ -493,7 +502,7 @@ int c_inspector_extract_signatures(const char *source_code,
           struct FuncSignature *new_items = (struct FuncSignature *)realloc(
               out->items, c * sizeof(struct FuncSignature));
           if (!new_items) {
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
           }
           out->items = new_items;
@@ -514,7 +523,7 @@ int c_inspector_extract_signatures(const char *source_code,
         out->items[out->size].is_variadic = is_variadic;
 
         if (!out->items[out->size].name || !out->items[out->size].sig) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }
         out->size++;

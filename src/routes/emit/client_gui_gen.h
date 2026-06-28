@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
 /* clang-format on */
@@ -22,7 +23,7 @@ extern "C" {
  * @param[in] config Configuration options for the client.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config);
 

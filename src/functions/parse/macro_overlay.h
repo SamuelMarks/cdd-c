@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
@@ -72,7 +73,7 @@ C_CDD_EXPORT /**
 C_CDD_EXPORT /**
               * @brief Executes the cst build macro overlay operation.
               */
-    int
+    enum cdd_c_error
     cst_build_macro_overlay(const struct CstNodeList *cst,
                             const struct TokenList *tokens,
                             struct MacroOverlayList *overlays);

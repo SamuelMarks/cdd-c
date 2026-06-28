@@ -20,6 +20,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
@@ -55,7 +56,7 @@ extern "C" {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen client write body.
                      */
-    int
+    enum cdd_c_error
     codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec,
                               const char *path_template,

@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,8 @@ extern "C" {
 /* LCOV_EXCL_START */
 
 /* Helper to setup a token list from a string */
-static int setup_patch_tokens(const char *code, struct TokenList **_out_val) {
+static enum cdd_c_error setup_patch_tokens(const char *code,
+                                           struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   int rc = tokenize(az_span_create_from_str((char *)code), &tl);
   if (rc != 0) {
@@ -280,12 +282,13 @@ TEST test_patch_bounds(void) {
   char *res = NULL;
   memset(&tl, 0, sizeof(tl));
   patch_list_init(&pl);
-  ASSERT_EQ(EINVAL, patch_list_init(NULL));
-  ASSERT_EQ(EINVAL, patch_list_add(NULL, 0, 1, strdup("X")));
-  ASSERT_EQ(EINVAL, patch_list_apply(NULL, &tl, &res));
-  ASSERT_EQ(EINVAL, patch_list_apply(&pl, NULL, &res));
-  ASSERT_EQ(EINVAL, patch_list_apply(&pl, &tl, NULL));
-  ASSERT_EQ(EINVAL, patch_list_apply(&pl, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_add(NULL, 0, 1, strdup("X")));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(NULL, &tl, &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, &tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, NULL));
   patch_list_free(&pl);
   patch_list_free(NULL); /* Should not crash */
   g_fail_io_after = -1;
@@ -300,7 +303,7 @@ TEST test_patcher_oom(void) {
     struct TokenList tl2;
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 1000;
-    ASSERT_EQ(ENOMEM, patch_list_init(&list));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&list));
     g_cdd_fail_alloc = 0;
 
     patch_list_init(&list);
@@ -312,7 +315,7 @@ TEST test_patcher_oom(void) {
     {
       char *tmp = strdup("b");
       int rc = patch_list_add(&list, 0, 1, tmp);
-      ASSERT_EQ(ENOMEM, rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_fail_alloc = 0;
 
@@ -351,7 +354,8 @@ TEST test_patcher_invalid(void) {
   extern C_CDD_EXPORT int g_cdd_fail_alloc;
 #endif
 
-  ASSERT_EQ(EINVAL, patch_list_add(NULL, 0, 1, strdup("a")));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            patch_list_add(NULL, 0, 1, strdup("a")));
 
   patch_list_init(&pl2);
 

@@ -55,33 +55,34 @@
 /**
  * @brief Retrieves the server variable.
  */
-int find_server_variable(const struct OpenAPI_Server *srv, const char *name,
-                         const struct OpenAPI_ServerVariable **_out_val) {
+enum cdd_c_error
+find_server_variable(const struct OpenAPI_Server *srv, const char *name,
+                     const struct OpenAPI_ServerVariable **_out_val) {
   size_t i;
   /* LCOV_EXCL_START */
   if (!srv || !name || !srv->variables) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < srv->n_variables; ++i) {
     const struct OpenAPI_ServerVariable *var = &srv->variables[i];
     if (var->name && strcmp(var->name, name) == 0) {
       *_out_val = var;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the render server url default operation.
  */
-int render_server_url_default(const struct OpenAPI_Server *srv,
-                              char **_out_val) {
+enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
+                                           char **_out_val) {
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_0;
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_1;
   const char *url;
@@ -93,7 +94,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
 
   if (!srv || !srv->url) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -108,21 +109,21 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
       /* LCOV_EXCL_START */
       if (!end) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       name_len = (size_t)(end - (url + i + 1));
       /* LCOV_EXCL_START */
       if (name_len == 0) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       name = (char *)malloc(name_len + 1);
       /* LCOV_EXCL_START */
       if (!name) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       memcpy(name, url + i + 1, name_len);
@@ -133,7 +134,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
       /* LCOV_EXCL_START */
       if (!var || !var->default_value) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       out_len += strlen(var->default_value);
@@ -148,7 +149,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -165,7 +166,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
           free(out);
           {
             *_out_val = NULL;
-            return 0;
+            return CDD_C_SUCCESS;
           }
         }
         name_len = (size_t)(end - (url + i + 1));
@@ -173,7 +174,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
           free(out);
           {
             *_out_val = NULL;
-            return 0;
+            return CDD_C_SUCCESS;
           }
         }
         name = (char *)malloc(name_len + 1);
@@ -181,7 +182,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
           free(out);
           {
             *_out_val = NULL;
-            return 0;
+            return CDD_C_SUCCESS;
           }
         }
         memcpy(name, url + i + 1, name_len);
@@ -193,7 +194,7 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
           free(out);
           {
             *_out_val = NULL;
-            return 0;
+            return CDD_C_SUCCESS;
           }
         }
         memcpy(out + out_pos, var->default_value, strlen(var->default_value));
@@ -208,14 +209,14 @@ int render_server_url_default(const struct OpenAPI_Server *srv,
 
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the escape c string literal operation.
  */
-int escape_c_string_literal(const char *s, char **_out_val) {
+enum cdd_c_error escape_c_string_literal(const char *s, char **_out_val) {
   size_t i;
   size_t out_len = 0;
   char *out;
@@ -225,7 +226,7 @@ int escape_c_string_literal(const char *s, char **_out_val) {
 
   if (!s) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -249,7 +250,7 @@ int escape_c_string_literal(const char *s, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; s[i]; ++i) {
@@ -282,34 +283,34 @@ int escape_c_string_literal(const char *s, char **_out_val) {
   out[pos] = '\0';
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the select operation server operation.
  */
-int select_operation_server(const struct OpenAPI_Path *path,
-                            const struct OpenAPI_Operation *op,
-                            struct OpenAPI_Server **_out_val) {
+enum cdd_c_error select_operation_server(const struct OpenAPI_Path *path,
+                                         const struct OpenAPI_Operation *op,
+                                         struct OpenAPI_Server **_out_val) {
   if (op && op->servers && op->n_servers > 0) {
     *_out_val = &op->servers[0];
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (path && path->servers && path->n_servers > 0) {
     *_out_val = &path->servers[0];
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the build base url literal operation.
  */
-int build_base_url_literal(const char *url, char **_out_val) {
+enum cdd_c_error build_base_url_literal(const char *url, char **_out_val) {
   char *_ast_escape_c_string_literal_2 = NULL;
   char *escaped = NULL;
   char *literal = NULL;
@@ -319,7 +320,7 @@ int build_base_url_literal(const char *url, char **_out_val) {
 
   if (!url) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -328,7 +329,7 @@ int build_base_url_literal(const char *url, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!escaped) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   len = strlen(escaped) + 3;
@@ -337,7 +338,7 @@ int build_base_url_literal(const char *url, char **_out_val) {
     free(escaped);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -349,7 +350,7 @@ int build_base_url_literal(const char *url, char **_out_val) {
   free(escaped);
   {
     *_out_val = literal;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -359,7 +360,7 @@ int build_base_url_literal(const char *url, char **_out_val) {
 /**
  * @brief Generates guard.
  */
-int generate_guard(const char *base, char **_out_val) {
+enum cdd_c_error generate_guard(const char *base, char **_out_val) {
   char *g;
   size_t len = strlen(base);
   size_t i;
@@ -368,7 +369,7 @@ int generate_guard(const char *base, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!g) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -384,7 +385,7 @@ int generate_guard(const char *base, char **_out_val) {
   g[len + 2] = '\0';
   {
     *_out_val = g;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -394,14 +395,14 @@ int generate_guard(const char *base, char **_out_val) {
 /**
  * @brief Executes the derive model header operation.
  */
-int derive_model_header(const char *base, char **_out_val) {
+enum cdd_c_error derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
   m = malloc(len + 1);
   /* LCOV_EXCL_START */
   if (!m) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -412,7 +413,7 @@ int derive_model_header(const char *base, char **_out_val) {
 #endif
   {
     *_out_val = m;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -426,20 +427,20 @@ int derive_model_header(const char *base, char **_out_val) {
  * @brief Executes the sanitize tag operation.
  *
  */
-int sanitize_tag(const char *tag, char **_out_val) {
+enum cdd_c_error sanitize_tag(const char *tag, char **_out_val) {
   char *s;
   size_t i;
   /* LCOV_EXCL_START */
   if (!tag) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   s = strdup(tag);
   /* LCOV_EXCL_START */
   if (!s) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -454,27 +455,26 @@ int sanitize_tag(const char *tag, char **_out_val) {
   }
   {
     *_out_val = s;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the param keys match operation.
  */
-int param_keys_match(const struct OpenAPI_Parameter *a,
-                     const struct OpenAPI_Parameter *b) {
+enum cdd_c_error param_keys_match(const struct OpenAPI_Parameter *a,
+                                  const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
 }
 
 /**
  * @brief Executes the build effective parameters operation.
  */
-int build_effective_parameters(const struct OpenAPI_Path *path,
-                               const struct OpenAPI_Operation *op,
-                               struct OpenAPI_Parameter **out_params,
-                               size_t *out_count) {
+enum cdd_c_error build_effective_parameters(
+    const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
+    struct OpenAPI_Parameter **out_params, size_t *out_count) {
   size_t cap = 0;
   size_t count = 0;
   struct OpenAPI_Parameter *params = NULL;
@@ -482,7 +482,7 @@ int build_effective_parameters(const struct OpenAPI_Path *path,
   /* LCOV_EXCL_START */
 
   if (!out_params || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -495,13 +495,13 @@ int build_effective_parameters(const struct OpenAPI_Path *path,
     cap += op->n_parameters;
 
   if (cap == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
   /* LCOV_EXCL_START */
   if (!params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -715,7 +715,7 @@ int build_effective_parameters(const struct OpenAPI_Path *path,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -725,7 +725,8 @@ int build_effective_parameters(const struct OpenAPI_Path *path,
 /**
  * @brief Generates C code for write header preamble.
  */
-int write_header_preamble(FILE *fp, const char *guard, const char *model_decl) {
+enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
+                                       const char *model_decl) {
   CHECK_IO(fprintf(fp, "#ifndef %s\n", guard));
   CHECK_IO(fprintf(fp, "#define %s\n\n", guard));
 
@@ -938,7 +939,7 @@ int write_header_preamble(FILE *fp, const char *guard, const char *model_decl) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -947,7 +948,7 @@ int write_header_preamble(FILE *fp, const char *guard, const char *model_decl) {
 /**
  * @brief Generates C code for write source preamble.
  */
-int write_source_preamble(FILE *fp, const char *header_name) {
+enum cdd_c_error write_source_preamble(FILE *fp, const char *header_name) {
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <string.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
@@ -1157,7 +1158,7 @@ int write_source_preamble(FILE *fp, const char *header_name) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1167,8 +1168,8 @@ int write_source_preamble(FILE *fp, const char *header_name) {
 /**
  * @brief Generates C code for write lifecycle funcs.
  */
-int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
-                          const struct OpenAPI_Spec *spec) {
+enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
+                                       const struct OpenAPI_Spec *spec) {
   char *_ast_render_server_url_default_3 = NULL;
   char *_ast_escape_c_string_literal_4 = NULL;
   char *default_url = NULL;
@@ -1236,7 +1237,8 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "  (*out)->raw_body = strdup(json);\n"
          "  root = json_parse_string(json);\n"));
   CHECK_IO(fprintf(
-      c, "  if(!root) return 0; /* Not JSON, return strict success but object "
+      c, "  if(!root) return CDD_C_SUCCESS; /* Not JSON, return strict success "
+         "but object "
          "only has raw_body */\n"
          "  obj = json_value_get_object(root);\n"
          "  if(obj) {\n"
@@ -1253,7 +1255,7 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "(int)json_object_get_number(obj, \"status\");\n"
          "  }\n"
          "  json_value_free(root);\n"
-         "  return 0;\n"
+         "  return CDD_C_SUCCESS;\n"
          "}\n\n"));
 
   CHECK_IO(fprintf(c,
@@ -1507,7 +1509,7 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1516,47 +1518,47 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 /**
  * @brief Executes the verb to string operation.
  */
-int verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
+enum cdd_c_error verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
     *_out_val = (char *)"GET";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_POST: {
     *_out_val = (char *)"POST";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PUT: {
     *_out_val = (char *)"PUT";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_DELETE: {
     *_out_val = (char *)"DELETE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PATCH: {
     *_out_val = (char *)"PATCH";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_HEAD: {
     *_out_val = (char *)"HEAD";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_OPTIONS: {
     *_out_val = (char *)"OPTIONS";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_TRACE: {
     *_out_val = (char *)"TRACE";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_QUERY: {
     *_out_val = (char *)"QUERY";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = (char *)"UNKNOWN";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -1564,8 +1566,8 @@ int verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
 /**
  * @brief Generates C code for write docblock.
  */
-int write_docblock(FILE *fp, const struct OpenAPI_Path *path,
-                   const struct OpenAPI_Operation *op) {
+enum cdd_c_error write_docblock(FILE *fp, const struct OpenAPI_Path *path,
+                                const struct OpenAPI_Operation *op) {
   const char *_ast_verb_to_string_5 = NULL;
   size_t i;
   CHECK_IO(fprintf(fp, "/**\n"));
@@ -1847,17 +1849,18 @@ int write_docblock(FILE *fp, const struct OpenAPI_Path *path,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 /**
  * @brief Executes the emit operation operation.
  */
 
-int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
-                   const struct OpenAPI_Operation *op,
-                   const struct OpenAPI_Spec *spec,
-                   const struct OpenApiClientConfig *config,
-                   const char *prefix) {
+enum cdd_c_error emit_operation(FILE *hfile, FILE *cfile,
+                                const struct OpenAPI_Path *path,
+                                const struct OpenAPI_Operation *op,
+                                const struct OpenAPI_Spec *spec,
+                                const struct OpenApiClientConfig *config,
+                                const char *prefix) {
   char *_ast_sanitize_tag_6 = NULL;
   struct OpenAPI_Server *_ast_select_operation_server_7;
   char *_ast_render_server_url_default_8 = NULL;
@@ -1877,7 +1880,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
   /* LCOV_EXCL_START */
 
   if (!hfile || !cfile || !path || !op || !config || !prefix)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -1898,7 +1901,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     sanitized_group = (sanitize_tag(effective_op.tags[0], &_ast_sanitize_tag_6),
                        _ast_sanitize_tag_6);
     if (!sanitized_group) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -1912,7 +1915,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     full_group =
         malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
     if (!full_group) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -1931,7 +1934,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     /* Name: Namespace */
     full_group = strdup(config->namespace_prefix);
     if (!full_group) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -1942,7 +1945,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
     /* Name: Tag */
     full_group = strdup(sanitized_group);
     if (!full_group) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -1967,7 +1970,7 @@ int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
           (build_base_url_literal(override_url, &_ast_build_base_url_literal_9),
            _ast_build_base_url_literal_9);
       if (!base_url_expr) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
@@ -2032,8 +2035,9 @@ cleanup:
 /**
  * @brief Executes the openapi client generate operation.
  */
-int openapi_client_generate(const struct OpenAPI_Spec *spec,
-                            const struct OpenApiClientConfig *config) {
+enum cdd_c_error
+openapi_client_generate(const struct OpenAPI_Spec *spec,
+                        const struct OpenApiClientConfig *config) {
   char *_ast_generate_guard_10 = NULL;
   char *_ast_derive_model_header_11 = NULL;
   FILE *hfile = NULL, *cfile = NULL, *mhfile = NULL, *mcfile = NULL;
@@ -2050,7 +2054,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !config || !config->filename_base)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -2061,7 +2065,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     /* LCOV_EXCL_START */
     if (!src_dir)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
@@ -2085,7 +2089,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   mh_name = malloc(strlen(actual_base) + 10); /* _models.h */
   mc_name = malloc(strlen(actual_base) + 10); /* _models.c */
   if (!h_name || !c_name || !mh_name || !mc_name) {
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2146,7 +2150,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     prefix = config->func_prefix;
 
   if (!guard || !model_h) {
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2156,7 +2160,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   model_guard = malloc(strlen(guard) + 8);
   if (!model_guard) {
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2465,102 +2469,102 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   /* --- Write MCP Adapters --- */
   if (fprintf(hfile, "\n/* MCP Client (From) API */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_list_tools(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_call_tool(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern char* %smcp_client_ping(void* params, int req_id);\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_initialize(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern char* %smcp_client_list_resources(void* params, int "
               "req_id);\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern char* %smcp_client_read_resource(void* params, int "
               "req_id);\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_list_prompts(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_get_prompt(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern char* %smcp_client_complete(void* params, int req_id);\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_subscribe(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_unsubscribe(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           hfile,
           "extern char* %smcp_client_set_level(void* params, int req_id);\n",
           prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern char* %smcp_client_create_message(void* params, int "
               "req_id);\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "\n/* Native MCP Adapters */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief Native MCP Tool Adapter\n * Retrieves all "
                      "operations exposed as MCP Tools.\n */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "extern void* %smcp_get_tools(void);\n", prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief Native MCP Resource Adapter\n * Retrieves "
                      "all read-only documentation resources.\n */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "extern void* %smcp_get_resources(void);\n", prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief LLM Execution Router\n * Executes a tool "
                      "by name with JSON arguments.\n */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
               "extern int %smcp_execute_tool(const char* name, "
               "const char* json_args, char** out_result);\n\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile, "\n/* Native MCP Adapters Implementation */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile, "void* %smcp_get_tools(void) {\n", prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  JSON_Array *tools_arr = json_value_get_array(root_val);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < spec->n_paths; ++i) {
     struct OpenAPI_Path *path = &spec->paths[i];
@@ -2568,161 +2572,161 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
       struct OpenAPI_Operation *op = &path->operations[j];
       if (op->operation_id) {
         if (fprintf(cfile, "  {\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    JSON_Value *tool_val = json_value_init_object();\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    JSON_Object *tool_obj = "
                            "json_value_get_object(tool_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_object_set_string(tool_obj, \"name\", \"%s\");\n",
                     op->operation_id) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (op->description || op->summary) {
           if (fprintf(cfile,
                       "    json_object_set_string(tool_obj, \"description\", "
                       "\"%s\");\n",
                       op->description ? op->description : op->summary) < 0)
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
         }
         if (fprintf(cfile, "    {\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(
                 cfile,
                 "      JSON_Value *schema_val = json_value_init_object();\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "      JSON_Object *schema_obj = "
                            "json_value_get_object(schema_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "      json_object_set_string(schema_obj, \"type\", "
                            "\"object\");\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "      json_object_set_value(tool_obj, "
                            "\"inputSchema\", schema_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    }\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_array_append_value(tools_arr, tool_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "  }\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
       }
     }
   }
 
   if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile, "void* %smcp_get_resources(void) {\n", prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  JSON_Array *res_arr = json_value_get_array(root_val);\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (spec->n_defined_schemas > 0) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       if (spec->defined_schema_names[i]) {
         if (fprintf(cfile, "  {\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    JSON_Value *res_val = json_value_init_object();\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    JSON_Object *res_obj = "
                            "json_value_get_object(res_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_object_set_string(res_obj, \"uri\", "
                     "\"schema:///%s\");\n",
                     spec->defined_schema_names[i]) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_object_set_string(res_obj, \"name\", \"%s "
                     "Schema\");\n",
                     spec->defined_schema_names[i]) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    json_object_set_string(res_obj, \"mimeType\", "
                            "\"application/json\");\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    json_array_append_value(res_arr, res_val);\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "  }\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
       }
     }
   }
 
   if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(hfile, "/**\n * @brief Native MCP Resource Reader\n * Reads a "
                      "specific resource by URI.\n */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "extern void* %smcp_read_resource(const char* uri);\n\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile, "void* %smcp_read_resource(const char* uri) {\n", prefix) <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  JSON_Array *res_arr = json_value_get_array(root_val);\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  (void)uri;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (spec->n_defined_schemas > 0) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       if (spec->defined_schema_names[i]) {
         if (fprintf(cfile, "  if (strcmp(uri, \"schema:///%s\") == 0) {\n",
                     spec->defined_schema_names[i]) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    JSON_Value *res_val = json_value_init_object();\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    JSON_Object *res_obj = "
                            "json_value_get_object(res_val);\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_object_set_string(res_obj, \"uri\", "
                     "\"schema:///%s\");\n",
                     spec->defined_schema_names[i]) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    json_object_set_string(res_obj, \"mimeType\", "
                            "\"application/json\");\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile,
                     "    json_object_set_string(res_obj, \"text\", "
                     "\"{}\"); /* TODO: Embed actual schema JSON */\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    json_array_append_value(res_arr, res_val);\n") <
             0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "  }\n") < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
       }
     }
   }
 
   if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile,
               "int %smcp_execute_tool(const char* name, const char* json_args, "
               "char** out_result) {\n  (void)json_args;\n  if (out_result) "
               "*out_result = NULL;\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   for (i = 0; i < spec->n_paths; ++i) {
     struct OpenAPI_Path *path = &spec->paths[i];
     for (j = 0; j < path->n_operations; ++j) {
@@ -2730,357 +2734,357 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
       if (op->operation_id) {
         if (fprintf(cfile, "  if (strcmp(name, \"%s\") == 0) {\n",
                     op->operation_id) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(cfile, "    /* TODO: Parse json_args and call %s%s */\n",
                     prefix, op->operation_id) < 0)
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
         if (fprintf(
                 cfile,
                 "    if (out_result) {\n      *out_result = malloc(128);\n     "
                 " strcpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
-                "   }\n    return 0;\n  }\n") < 0)
-          rc = ENOMEM;
+                "   }\n    return CDD_C_SUCCESS;\n  }\n") < 0)
+          rc = CDD_C_ERROR_MEMORY;
       }
     }
   }
-  if (fprintf(cfile, "  return -1;\n}\n\n") < 0)
-    rc = ENOMEM;
+  if (fprintf(cfile, "  return CDD_C_ERROR_UNKNOWN;\n}\n\n") < 0)
+    rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile, "\n/* MCP Client (From) Implementation */\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_list_tools(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           cfile,
           "  json_object_set_string(req_obj, \"method\", \"tools/list\");\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_call_tool(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           cfile,
           "  json_object_set_string(req_obj, \"method\", \"tools/call\");\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_ping(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"method\", \"ping\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_initialize(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           cfile,
           "  json_object_set_string(req_obj, \"method\", \"initialize\");\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_list_resources(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"resources/list\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_read_resource(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"resources/read\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_list_prompts(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"prompts/list\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_get_prompt(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(
           cfile,
           "  json_object_set_string(req_obj, \"method\", \"prompts/get\");\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_complete(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"completion/complete\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_subscribe(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"resources/subscribe\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_unsubscribe(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"resources/unsubscribe\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_set_level(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"logging/setLevel\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "char* %smcp_client_create_message(void* params, "
               "int req_id) {\n",
               prefix) < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
                      "JSON_Object *req_obj = json_value_get_object(req_val);\n "
                      " char *ret;\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
                      "\"sampling/createMessage\");\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
       0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = 0;
     {
@@ -3434,10 +3438,10 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "static int\n"
           "    is_unreserved(unsigned char c) {\n"
           "  if (isalnum(c))\n"
-          "    return 1;\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
           "  if (c == '-' || c == '.' || c == '_' || c == '~')\n"
-          "    return 1;\n"
-          "  return 0;\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -3465,9 +3469,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  case ',':\n"
           "  case ';':\n"
           "  case '=':\n"
-          "    return 1;\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
           "  default:\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
@@ -3479,7 +3483,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "static int\n"
           "    is_pct_encoded(const char *p) {\n"
           "  if (!p)\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  return (p[0] == '%' && is_hex((unsigned char)p[1]) &&\n"
           "          is_hex((unsigned char)p[2]));\n"
           "}\n"
@@ -3492,17 +3496,17 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  static const char hex[] = \"0123456789ABCDEF\";\n"
           "  {\n"
           "    *_out_val = hex[code & 15];\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
           "static int\n"
           "    is_unreserved_form(unsigned char c) {\n"
           "  if (isalnum(c))\n"
-          "    return 1;\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
           "  if (c == '-' || c == '.' || c == '_' || c == '*')\n"
-          "    return 1;\n"
-          "  return 0;\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -3518,7 +3522,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n"
           "  if (!str) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  /* Pass 1: Calculate required length */\n"
@@ -3534,7 +3538,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  enc = (char *)malloc(needed_len + 1);\n"
           "  if (!enc) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  /* Pass 2: Encode */\n"
@@ -3553,7 +3557,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n"
           "  {\n"
           "    *_out_val = enc;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
@@ -3570,7 +3574,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n"
           "  if (!str) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  /* Pass 1: Calculate required length */\n"
@@ -3591,7 +3595,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  enc = (char *)malloc(needed_len + 1);\n"
           "  if (!enc) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  e = enc;\n"
@@ -3614,7 +3618,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  *e = '\\0';\n"
           "  {\n"
           "    *_out_val = enc;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
@@ -3631,7 +3635,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n"
           "  if (!str) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  for (p = str; *p; p++) {\n"
@@ -3648,7 +3652,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  enc = (char *)malloc(needed_len + 1);\n"
           "  if (!enc) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  e = enc;\n"
@@ -3667,7 +3671,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  *e = '\\0';\n"
           "  {\n"
           "    *_out_val = enc;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
@@ -3687,7 +3691,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n"
           "  if (!str) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  for (p = str; *p; p++) {\n"
@@ -3711,7 +3715,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  enc = (char *)malloc(needed_len + 1);\n"
           "  if (!enc) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  e = enc;\n"
@@ -3740,7 +3744,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  *e = '\\0';\n"
           "  {\n"
           "    *_out_val = enc;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n"
@@ -3749,11 +3753,11 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           " */\n"
           "int url_query_init(struct UrlQueryParams *qp) {\n"
           "  if (!qp)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "  qp->params = NULL;\n"
           "  qp->count = 0;\n"
           "  qp->capacity = 0;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -3785,7 +3789,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  char *_ast_strdup_0 = NULL;\n"
           "  char *_ast_strdup_1 = NULL;\n"
           "  if (!qp || !key || !value)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "\n"
           "  if (qp->count >= qp->capacity) {\n"
           "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
@@ -3794,7 +3798,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "        qp->params, new_cap * sizeof(struct UrlQueryParam));\n"
           "    if (!new_arr) {\n"
           "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    qp->params = new_arr;\n"
           "    qp->capacity = new_cap;\n"
@@ -3803,18 +3807,18 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  qp->params[qp->count].key =\n"
           "      (c_cdd_strdup(key, &_ast_strdup_0), _ast_strdup_0);\n"
           "  if (!qp->params[qp->count].key)\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "\n"
           "  qp->params[qp->count].value =\n"
           "      (c_cdd_strdup(value, &_ast_strdup_1), _ast_strdup_1);\n"
           "  if (!qp->params[qp->count].value) {\n"
           "    free(qp->params[qp->count].key);\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "  }\n"
           "  qp->params[qp->count].value_is_encoded = 0;\n"
           "\n"
           "  qp->count++;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -3826,7 +3830,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  char *_ast_strdup_2 = NULL;\n"
           "  char *_ast_strdup_3 = NULL;\n"
           "  if (!qp || !key || !value)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "\n"
           "  if (qp->count >= qp->capacity) {\n"
           "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
@@ -3835,7 +3839,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "        qp->params, new_cap * sizeof(struct UrlQueryParam));\n"
           "    if (!new_arr) {\n"
           "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    qp->params = new_arr;\n"
           "    qp->capacity = new_cap;\n"
@@ -3844,18 +3848,18 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  qp->params[qp->count].key =\n"
           "      (c_cdd_strdup(key, &_ast_strdup_2), _ast_strdup_2);\n"
           "  if (!qp->params[qp->count].key)\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "\n"
           "  qp->params[qp->count].value =\n"
           "      (c_cdd_strdup(value, &_ast_strdup_3), _ast_strdup_3);\n"
           "  if (!qp->params[qp->count].value) {\n"
           "    free(qp->params[qp->count].key);\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "  }\n"
           "  qp->params[qp->count].value_is_encoded = 1;\n"
           "\n"
           "  qp->count++;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -3876,7 +3880,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  char *ptr = NULL;\n"
           "\n"
           "  if (!qp || !out_str)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "\n"
           "  if (qp->count == 0) {\n"
           "    *out_str = (c_cdd_strdup(\"\", &_ast_strdup_4), "
@@ -3913,7 +3917,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "        free(e_key);\n"
           "      if (e_val)\n"
           "        free(e_val);\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "\n"
           "    total_len += strlen(e_key) + 1; /* key= */\n"
@@ -3929,7 +3933,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  buf = (char *)malloc(total_len + 1);\n"
           "  if (!buf) {\n"
           "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "  }\n"
           "\n"
           "  /* 3. Build */\n"
@@ -3981,7 +3985,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  *ptr = '\\0';\n"
           "\n"
           "  *out_str = buf;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "/**\n"
@@ -4001,13 +4005,13 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  char *ptr;\n"
           "\n"
           "  if (!qp || !out_str)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "\n"
           "  if (qp->count == 0) {\n"
           "    *out_str = (char *)calloc(1, 1);\n"
           "    if (!*out_str)\n"
-          "      return ENOMEM;\n"
-          "    return 0;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "  for (i = 0; i < qp->count; ++i) {\n"
@@ -4018,7 +4022,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    size_t kl, vl;\n"
           "    if (!e_key) {\n"
           "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    if (qp->params[i].value_is_encoded) {\n"
           "      e_val =\n"
@@ -4031,7 +4035,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    }\n"
           "    if (!e_val) {\n"
           "      free(e_key);\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    kl = strlen(e_key);\n"
           "    vl = strlen(e_val);\n"
@@ -4045,7 +4049,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  buf = (char *)malloc(total_len + 1);\n"
           "  if (!buf) {\n"
           "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "    return ENOMEM;\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
           "  }\n"
           "  ptr = buf;\n"
           "\n"
@@ -4057,7 +4061,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    size_t kl, vl;\n"
           "    if (!e_key) {\n"
           "      free(buf);\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    if (qp->params[i].value_is_encoded) {\n"
           "      e_val =\n"
@@ -4071,7 +4075,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    if (!e_val) {\n"
           "      free(e_key);\n"
           "      free(buf);\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    kl = strlen(e_key);\n"
           "    vl = strlen(e_val);\n"
@@ -4087,7 +4091,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  }\n"
           "  *ptr = '\\0';\n"
           "  *out_str = buf;\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "static int\n"
@@ -4098,7 +4102,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  char *tmp;\n"
           "\n"
           "  if (!buf || !len || !cap || !s)\n"
-          "    return EINVAL;\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "\n"
           "  slen = strlen(s);\n"
           "  need = *len + slen + 1;\n"
@@ -4109,7 +4113,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    tmp = (char *)realloc(*buf, new_cap);\n"
           "    if (!tmp) {\n"
           "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
-          "      return ENOMEM;\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
           "    }\n"
           "    *buf = tmp;\n"
           "    *cap = new_cap;\n"
@@ -4117,7 +4121,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  memcpy(*buf + *len, s, slen);\n"
           "  *len += slen;\n"
           "  (*buf)[*len] = '\\0';\n"
-          "  return 0;\n"
+          "  return CDD_C_SUCCESS;\n"
           "}\n"
           "\n"
           "static int\n"
@@ -4126,40 +4130,40 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "                       const char **_out_val) {\n"
           "  if (!kv) {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "  switch (kv->type) {\n"
           "  case OA_KV_STRING: {\n"
           "    *_out_val = kv->value.s ? kv->value.s : NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "  case OA_KV_INTEGER:\n"
           "    if (!buf || buf_len == 0) {\n"
           "      *_out_val = NULL;\n"
-          "      return 0;\n"
+          "      return CDD_C_SUCCESS;\n"
           "    }\n"
           "    sprintf_s_chk(buf, buf_len, \"%d\", kv->value.i);\n"
           "    {\n"
           "      *_out_val = buf;\n"
-          "      return 0;\n"
+          "      return CDD_C_SUCCESS;\n"
           "    }\n"
           "  case OA_KV_NUMBER:\n"
           "    if (!buf || buf_len == 0) {\n"
           "      *_out_val = NULL;\n"
-          "      return 0;\n"
+          "      return CDD_C_SUCCESS;\n"
           "    }\n"
           "    sprintf_s_chk(buf, buf_len, \"%g\", kv->value.n);\n"
           "    {\n"
           "      *_out_val = buf;\n"
-          "      return 0;\n"
+          "      return CDD_C_SUCCESS;\n"
           "    }\n"
           "  case OA_KV_BOOLEAN: {\n"
           "    *_out_val = kv->value.b ? \"true\" : \"false\";\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "  default: {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "  }\n"
           "}\n"
@@ -4189,7 +4193,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    buf = (char *)calloc(1, 1);\n"
           "    {\n"
           "      *_out_val = buf;\n"
-          "      return 0;\n"
+          "      return CDD_C_SUCCESS;\n"
           "    }\n"
           "  }\n"
           "\n"
@@ -4230,7 +4234,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "  }\n"
           "  {\n"
           "    *_out_val = buf;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "\n"
           "oom:\n"
@@ -4242,7 +4246,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           "    free(buf);\n"
           "  {\n"
           "    *_out_val = NULL;\n"
-          "    return 0;\n"
+          "    return CDD_C_SUCCESS;\n"
           "  }\n"
           "}\n"
           "\n");
@@ -4453,7 +4457,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
         }
       }
 
-      fprintf(tfp, "  return 0;\n}\n");
+      fprintf(tfp, "  return CDD_C_SUCCESS;\n}\n");
       fclose(tfp);
     }
   }

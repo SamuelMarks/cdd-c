@@ -71,8 +71,9 @@ static void capitalize_first(char *str) {
   }
 }
 
-int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
-                      const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
+                  const cdd_generate_bindings_config_t *config) {
   FILE *h_file = NULL;
   FILE *m_file = NULL;
   char h_filepath[1024];
@@ -83,7 +84,7 @@ int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
 #if defined(_MSC_VER)
@@ -92,10 +93,10 @@ int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(m_filepath, sizeof(m_filepath), "%s\\%s.m", config->output_dir,
                module_name);
   if (fopen_s(&h_file, h_filepath, "w") != 0)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (fopen_s(&m_file, m_filepath, "w") != 0) {
     fclose(h_file);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(h_filepath, sizeof(h_filepath), "%s/%s.h", config->output_dir,
@@ -104,11 +105,11 @@ int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
                module_name);
   h_file = fopen(h_filepath, "w");
   if (!h_file)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   m_file = fopen(m_filepath, "w");
   if (!m_file) {
     fclose(h_file);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -268,7 +269,7 @@ int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
         if (ret_is_obj) {
           fprintf(m_file, "    return nil;\n");
         } else {
-          fprintf(m_file, "    return 0;\n");
+          fprintf(m_file, "    return CDD_C_SUCCESS;\n");
         }
       }
       fprintf(m_file, "}\n\n");
@@ -277,5 +278,5 @@ int cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   fprintf(m_file, "@end\n");
   fclose(m_file);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

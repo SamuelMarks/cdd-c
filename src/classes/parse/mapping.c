@@ -44,29 +44,30 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
 /**
  * @brief Adds or sets primitive.
  */
-static int set_primitive(struct OpenApiTypeMapping *out, const char *type,
-                         const char *fmt) {
+static enum cdd_c_error set_primitive(struct OpenApiTypeMapping *out,
+                                      const char *type, const char *fmt) {
   out->kind = OA_TYPE_PRIMITIVE;
   c_cdd_strdup(type, &out->oa_type);
   if (!out->oa_type) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   if (fmt) {
     c_cdd_strdup(fmt, &out->oa_format);
     if (!out->oa_format) {
       free(out->oa_type);
       out->oa_type = NULL;
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Adds or sets ref.
  */
-static int set_ref(struct OpenApiTypeMapping *out, const char *ref) {
+static enum cdd_c_error set_ref(struct OpenApiTypeMapping *out,
+                                const char *ref) {
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
@@ -74,13 +75,14 @@ static int set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   c_cdd_strdup(ref, &out->ref_name);
   if (!out->ref_name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static int skip_qualifiers(const char *type, const char **_out_val) {
+static enum cdd_c_error skip_qualifiers(const char *type,
+                                        const char **_out_val) {
   const char *p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
@@ -102,14 +104,14 @@ static int skip_qualifiers(const char *type, const char **_out_val) {
   }
   {
     *_out_val = p;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the clean type str operation.
  */
-static int clean_type_str(const char *in, char **_out_val) {
+static enum cdd_c_error clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
   int rc;
@@ -126,15 +128,16 @@ static int clean_type_str(const char *in, char **_out_val) {
   c_cdd_str_trim_trailing_whitespace(buf);
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the c mapping map type operation.
  */
-int c_mapping_map_type(const char *c_type_in, const char *decl_name,
-                       struct OpenApiTypeMapping *out) {
+enum cdd_c_error c_mapping_map_type(const char *c_type_in,
+                                    const char *decl_name,
+                                    struct OpenApiTypeMapping *out) {
   char *clean = NULL;
   const char *c_type = NULL;
   int is_ptr = 0;
@@ -145,7 +148,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
          c_type);
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   c_mapping_init(out);
 
@@ -209,7 +212,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
       rc = clean_type_str(c_type, &clean);
       if (rc != 0) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 
       /* Skip "struct " (7 chars) or "enum " (5 chars) */
@@ -271,5 +274,5 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
       free(inner_type);
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

@@ -11,8 +11,9 @@
 #include <ctype.h>
 /* clang-format on */
 
-int cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
-                     const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
+                 const cdd_generate_bindings_config_t *config) {
   FILE *c_f = NULL;
   FILE *pkg_f = NULL;
   char c_filepath[1024];
@@ -22,7 +23,7 @@ int cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   cdd_ffi_ir_node_t *node;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -31,27 +32,27 @@ int cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_tcl.c",
                config->output_dir, lib_name);
   if (fopen_s(&c_f, c_filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(pkg_filepath, sizeof(pkg_filepath), "%s\\pkgIndex.tcl",
                config->output_dir);
   if (fopen_s(&pkg_f, pkg_filepath, "w") != 0) {
     fclose(c_f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_tcl.c",
                config->output_dir, lib_name);
   c_f = fopen(c_filepath, "w");
   if (!c_f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(pkg_filepath, sizeof(pkg_filepath), "%s/pkgIndex.tcl",
                config->output_dir);
   pkg_f = fopen(pkg_filepath, "w");
   if (!pkg_f) {
     fclose(c_f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -143,5 +144,5 @@ int cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
           lib_name, lib_name);
   fclose(pkg_f);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

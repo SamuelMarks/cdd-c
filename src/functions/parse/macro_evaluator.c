@@ -639,13 +639,14 @@ static cdd_macro_eval_result_t parse_primary(parser_t *p) {
   return r;
 }
 
-int cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
-                       cdd_macro_eval_result_t *out_result) {
+enum cdd_c_error cdd_macro_evaluate(struct PreprocessorContext *ctx,
+                                    const char *expression,
+                                    cdd_macro_eval_result_t *out_result) {
   parser_t p;
   cdd_macro_eval_result_t r;
 
   if (!expression || !out_result)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   p.ctx = ctx;
   p.err = 0;
@@ -658,7 +659,7 @@ int cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
   next_tok(&p.lex);
 
   if (p.lex.cur.kind == TOK_EOF) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   r = parse_expr(&p);
@@ -667,11 +668,11 @@ int cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
 
   if (p.err || p.lex.cur.kind != TOK_EOF) {
     cdd_macro_eval_result_free(&r);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   *out_result = r;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {

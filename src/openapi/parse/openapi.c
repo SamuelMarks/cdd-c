@@ -18,55 +18,60 @@
 
 /* --- Helper Function Prototypes --- */
 
-static int parse_verb(const char *v, enum OpenAPI_Verb *_out_val);
+static enum cdd_c_error parse_verb(const char *v, enum OpenAPI_Verb *_out_val);
 /**
  * @brief Checks if fixed operation method.
  */
-static int is_fixed_operation_method(const char *method);
+static enum cdd_c_error is_fixed_operation_method(const char *method);
 /**
  * @brief Parses param in from the given input.
  */
-static int parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val);
+static enum cdd_c_error parse_param_in(const char *in,
+                                       enum OpenAPI_ParamIn *_out_val);
 /**
  * @brief Parses param style from the given input.
  */
-static int parse_param_style(const char *s, enum OpenAPI_Style *_out_val);
+static enum cdd_c_error parse_param_style(const char *s,
+                                          enum OpenAPI_Style *_out_val);
 /**
  * @brief Executes the param type is primitive operation.
  */
-static int param_type_is_primitive(const char *type);
+static enum cdd_c_error param_type_is_primitive(const char *type);
 /**
  * @brief Executes the param type is object like operation.
  */
-static int param_type_is_object_like(const struct OpenAPI_Parameter *p);
+static enum cdd_c_error
+param_type_is_object_like(const struct OpenAPI_Parameter *p);
 /**
  * @brief Executes the validate parameter style operation.
  */
-static int validate_parameter_style(const struct OpenAPI_Parameter *p,
-                                    int has_content);
+static enum cdd_c_error
+validate_parameter_style(const struct OpenAPI_Parameter *p, int has_content);
 /**
  * @brief Parses security type from the given input.
  */
-static int parse_security_type(const char *type,
-                               enum OpenAPI_SecurityType *_out_val);
+static enum cdd_c_error
+parse_security_type(const char *type, enum OpenAPI_SecurityType *_out_val);
 /**
  * @brief Parses security in from the given input.
  */
-static int parse_security_in(const char *in, enum OpenAPI_SecurityIn *_out_val);
+static enum cdd_c_error parse_security_in(const char *in,
+                                          enum OpenAPI_SecurityIn *_out_val);
 /**
  * @brief Parses oauth flow type from the given input.
  */
-static int parse_oauth_flow_type(const char *flow,
-                                 enum OpenAPI_OAuthFlowType *_out_val);
+static enum cdd_c_error
+parse_oauth_flow_type(const char *flow, enum OpenAPI_OAuthFlowType *_out_val);
 /**
  * @brief Parses xml node type from the given input.
  */
-static int parse_xml_node_type(const char *node_type,
-                               enum OpenAPI_XmlNodeType *_out_val);
+static enum cdd_c_error parse_xml_node_type(const char *node_type,
+                                            enum OpenAPI_XmlNodeType *_out_val);
 /**
  * @brief Parses any value from the given input.
  */
-static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out);
+static enum cdd_c_error parse_any_value(const JSON_Value *val,
+                                        struct OpenAPI_Any *out);
 /**
  * @brief Frees the memory associated with any value.
  */
@@ -74,47 +79,51 @@ static void free_any_value(struct OpenAPI_Any *val);
 /**
  * @brief Parses any field from the given input.
  */
-static int parse_any_field(const JSON_Object *obj, const char *key,
-                           struct OpenAPI_Any *out, int *out_set);
+static enum cdd_c_error parse_any_field(const JSON_Object *obj, const char *key,
+                                        struct OpenAPI_Any *out, int *out_set);
 /**
  * @brief Parses any array from the given input.
  */
-static int parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
-                           size_t *out_count);
+static enum cdd_c_error parse_any_array(const JSON_Array *arr,
+                                        struct OpenAPI_Any **out,
+                                        size_t *out_count);
 /**
  * @brief Collects schema extras.
  */
-static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
-                                 size_t skip_count, char **out_json);
+static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
+                                              const char **skip_keys,
+                                              size_t skip_count,
+                                              char **out_json);
 /**
  * @brief Collects extensions.
  */
-static int collect_extensions(const JSON_Object *obj, char **out_json);
+static enum cdd_c_error collect_extensions(const JSON_Object *obj,
+                                           char **out_json);
 /**
  * @brief Executes the url has query or fragment operation.
  */
-static int url_has_query_or_fragment(const char *url);
+static enum cdd_c_error url_has_query_or_fragment(const char *url);
 /**
  * @brief Executes the openapi version supported operation.
  */
-static int openapi_version_supported(const char *version);
+static enum cdd_c_error openapi_version_supported(const char *version);
 /**
  * @brief Executes the example fields valid operation.
  */
-static int example_fields_valid(const struct OpenAPI_Example *ex);
+static enum cdd_c_error example_fields_valid(const struct OpenAPI_Example *ex);
 /**
  * @brief Executes the component key is valid operation.
  */
-static int component_key_is_valid(const char *name);
+static enum cdd_c_error component_key_is_valid(const char *name);
 /**
  * @brief Executes the validate component key map operation.
  */
-static int validate_component_key_map(const JSON_Object *obj);
+static enum cdd_c_error validate_component_key_map(const JSON_Object *obj);
 /**
  * @brief Parses schema type from the given input.
  */
-static int parse_schema_type(const JSON_Object *schema, int *out_nullable,
-                             char **_out_val);
+static enum cdd_c_error parse_schema_type(const JSON_Object *schema,
+                                          int *out_nullable, char **_out_val);
 
 /** @brief ResolvedRefTarget structure */
 struct ResolvedRefTarget {
@@ -131,15 +140,17 @@ struct ResolvedRefTarget {
 /**
  * @brief Executes the resolve ref target operation.
  */
-static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
-                              struct ResolvedRefTarget *_out_val);
+static enum cdd_c_error resolve_ref_target(const struct OpenAPI_Spec *spec,
+                                           const char *ref,
+                                           struct ResolvedRefTarget *_out_val);
 
 /**
  * @brief Executes the ref name from prefix operation.
  */
-static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
-                                const char *ref, const char *prefix,
-                                char **_out_val);
+static enum cdd_c_error ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                             const char *ref,
+                                             const char *prefix,
+                                             char **_out_val);
 
 /** @brief multiple_of */
 
@@ -208,13 +219,14 @@ struct SchemaConstraintTarget {
 /**
  * @brief Parses schema constraints from the given input.
  */
-static int parse_schema_constraints(const JSON_Object *schema,
-                                    struct SchemaConstraintTarget *target);
+static enum cdd_c_error
+parse_schema_constraints(const JSON_Object *schema,
+                         struct SchemaConstraintTarget *target);
 /**
  * @brief Parses string enum array from the given input.
  */
-static int parse_string_enum_array(const JSON_Array *arr, char ***out,
-                                   size_t *out_count);
+static enum cdd_c_error parse_string_enum_array(const JSON_Array *arr,
+                                                char ***out, size_t *out_count);
 /**
  * @brief Frees the memory associated with string array.
  */
@@ -222,57 +234,57 @@ static void free_string_array(char **arr, size_t n);
 /**
  * @brief Creates a deep copy of string array.
  */
-static int copy_string_array(char ***dst, size_t *dst_count, char **src,
-                             size_t src_count);
+static enum cdd_c_error copy_string_array(char ***dst, size_t *dst_count,
+                                          char **src, size_t src_count);
 /**
  * @brief Executes the media type is json operation.
  */
-static int media_type_is_json(const char *name);
+static enum cdd_c_error media_type_is_json(const char *name);
 /**
  * @brief Parses example object from the given input.
  */
-static int parse_example_object(const JSON_Object *ex_obj, const char *name,
-                                struct OpenAPI_Example *out,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs);
+static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
+                                             const char *name,
+                                             struct OpenAPI_Example *out,
+                                             const struct OpenAPI_Spec *spec,
+                                             int resolve_refs);
 /**
  * @brief Parses examples object from the given input.
  */
-static int parse_examples_object(const JSON_Object *examples,
-                                 struct OpenAPI_Example **out,
-                                 size_t *out_count,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs);
+static enum cdd_c_error parse_examples_object(const JSON_Object *examples,
+                                              struct OpenAPI_Example **out,
+                                              size_t *out_count,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs);
 /**
  * @brief Parses media examples from the given input.
  */
-static int parse_media_examples(const JSON_Object *media_obj,
-                                struct OpenAPI_Any *example, int *example_set,
-                                struct OpenAPI_Example **examples,
-                                size_t *n_examples,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs);
+static enum cdd_c_error
+parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
+                     int *example_set, struct OpenAPI_Example **examples,
+                     size_t *n_examples, const struct OpenAPI_Spec *spec,
+                     int resolve_refs);
 /**
  * @brief Parses oauth scopes from the given input.
  */
-static int parse_oauth_scopes(const JSON_Object *scopes_obj,
-                              struct OpenAPI_OAuthScope **out,
-                              size_t *out_count);
+static enum cdd_c_error parse_oauth_scopes(const JSON_Object *scopes_obj,
+                                           struct OpenAPI_OAuthScope **out,
+                                           size_t *out_count);
 /**
  * @brief Parses oauth flows from the given input.
  */
-static int parse_oauth_flows(const JSON_Object *flows_obj,
-                             struct OpenAPI_SecurityScheme *out);
+static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
+                                          struct OpenAPI_SecurityScheme *out);
 /**
  * @brief Creates a deep copy of any value.
  */
-static int copy_any_value(struct OpenAPI_Any *dst,
-                          const struct OpenAPI_Any *src);
+static enum cdd_c_error copy_any_value(struct OpenAPI_Any *dst,
+                                       const struct OpenAPI_Any *src);
 /**
  * @brief Creates a deep copy of schema ref.
  */
-static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
-                           const struct OpenAPI_SchemaRef *src);
+static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
+                                        const struct OpenAPI_SchemaRef *src);
 /**
  * @brief Frees the memory associated with example.
  */
@@ -288,361 +300,384 @@ static void free_link(struct OpenAPI_Link *link);
 /**
  * @brief Executes the json pointer unescape operation.
  */
-static int json_pointer_unescape(const char *in, char **_out_val);
+static enum cdd_c_error json_pointer_unescape(const char *in, char **_out_val);
 /**
  * @brief Parses info from the given input.
  */
-static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_info(const JSON_Object *root_obj,
+                                   struct OpenAPI_Spec *out);
 /**
  * @brief Parses external docs from the given input.
  */
-static int parse_external_docs(const JSON_Object *obj,
-                               struct OpenAPI_ExternalDocs *out);
+static enum cdd_c_error parse_external_docs(const JSON_Object *obj,
+                                            struct OpenAPI_ExternalDocs *out);
 /**
  * @brief Parses discriminator object from the given input.
  */
-static int parse_discriminator_object(const JSON_Object *obj,
-                                      struct OpenAPI_Discriminator *out);
+static enum cdd_c_error
+parse_discriminator_object(const JSON_Object *obj,
+                           struct OpenAPI_Discriminator *out);
 /**
  * @brief Parses xml object from the given input.
  */
-static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out);
+static enum cdd_c_error parse_xml_object(const JSON_Object *obj,
+                                         struct OpenAPI_Xml *out);
 /**
  * @brief Parses tags from the given input.
  */
-static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_tags(const JSON_Object *root_obj,
+                                   struct OpenAPI_Spec *out);
 /**
  * @brief Parses server object from the given input.
  */
-static int parse_server_object(const JSON_Object *srv_obj,
-                               struct OpenAPI_Server *out_srv);
+static enum cdd_c_error parse_server_object(const JSON_Object *srv_obj,
+                                            struct OpenAPI_Server *out_srv);
 /**
  * @brief Parses servers array from the given input.
  */
-static int parse_servers_array(const JSON_Object *parent, const char *key,
-                               struct OpenAPI_Server **out_servers,
-                               size_t *out_count);
+static enum cdd_c_error parse_servers_array(const JSON_Object *parent,
+                                            const char *key,
+                                            struct OpenAPI_Server **out_servers,
+                                            size_t *out_count);
 /**
  * @brief Parses security field from the given input.
  */
-static int parse_security_field(const JSON_Object *obj, const char *key,
-                                struct OpenAPI_SecurityRequirementSet **out,
-                                size_t *out_count, int *out_set);
+static enum cdd_c_error
+parse_security_field(const JSON_Object *obj, const char *key,
+                     struct OpenAPI_SecurityRequirementSet **out,
+                     size_t *out_count, int *out_set);
 /**
  * @brief Parses schema ref from the given input.
  */
-static int parse_schema_ref(const JSON_Object *schema,
-                            struct OpenAPI_SchemaRef *out,
-                            const struct OpenAPI_Spec *spec);
+static enum cdd_c_error parse_schema_ref(const JSON_Object *schema,
+                                         struct OpenAPI_SchemaRef *out,
+                                         const struct OpenAPI_Spec *spec);
 /**
  * @brief Creates a deep copy of security requirement sets.
  */
-static int copy_security_requirement_sets(
+static enum cdd_c_error copy_security_requirement_sets(
     struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
     const struct OpenAPI_SecurityRequirementSet *src, size_t src_count);
 /**
  * @brief Creates a deep copy of callback fields.
  */
-static int copy_callback_fields(struct OpenAPI_Callback *dst,
-                                const struct OpenAPI_Callback *src);
+static enum cdd_c_error
+copy_callback_fields(struct OpenAPI_Callback *dst,
+                     const struct OpenAPI_Callback *src);
 /**
  * @brief Creates a deep copy of operation fields.
  */
-static int copy_operation_fields(struct OpenAPI_Operation *dst,
-                                 const struct OpenAPI_Operation *src);
+static enum cdd_c_error
+copy_operation_fields(struct OpenAPI_Operation *dst,
+                      const struct OpenAPI_Operation *src);
 /**
  * @brief Creates a deep copy of path fields.
  */
-static int copy_path_fields(struct OpenAPI_Path *dst,
-                            const struct OpenAPI_Path *src);
+static enum cdd_c_error copy_path_fields(struct OpenAPI_Path *dst,
+                                         const struct OpenAPI_Path *src);
 /**
  * @brief Creates a deep copy of request body fields.
  */
-static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
-                                    const struct OpenAPI_RequestBody *src);
+static enum cdd_c_error
+copy_request_body_fields(struct OpenAPI_RequestBody *dst,
+                         const struct OpenAPI_RequestBody *src);
 /**
  * @brief Creates a deep copy of media type array.
  */
-static int copy_media_type_array(struct OpenAPI_MediaType **dst,
-                                 size_t *dst_count,
-                                 const struct OpenAPI_MediaType *src,
-                                 size_t src_count);
+static enum cdd_c_error
+copy_media_type_array(struct OpenAPI_MediaType **dst, size_t *dst_count,
+                      const struct OpenAPI_MediaType *src, size_t src_count);
 /**
  * @brief Applies schema ref to param.
  */
-static int
+static enum cdd_c_error
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                           const struct OpenAPI_SchemaRef *schema_ref);
 /**
  * @brief Applies schema ref to header.
  */
-static int
+static enum cdd_c_error
 apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
                            const struct OpenAPI_SchemaRef *schema_ref);
 /**
  * @brief Parses header object from the given input.
  */
-static int parse_header_object(const JSON_Object *hdr_obj,
-                               struct OpenAPI_Header *out_hdr,
-                               const struct OpenAPI_Spec *spec,
-                               int resolve_refs);
+static enum cdd_c_error parse_header_object(const JSON_Object *hdr_obj,
+                                            struct OpenAPI_Header *out_hdr,
+                                            const struct OpenAPI_Spec *spec,
+                                            int resolve_refs);
 /**
  * @brief Executes the header name is content type operation.
  */
-static int header_name_is_content_type(const char *name);
+static enum cdd_c_error header_name_is_content_type(const char *name);
 /**
  * @brief Executes the header param is reserved operation.
  */
-static int header_param_is_reserved(const struct OpenAPI_Parameter *param);
+static enum cdd_c_error
+header_param_is_reserved(const struct OpenAPI_Parameter *param);
 /**
  * @brief Parses link object from the given input.
  */
-static int parse_link_object(const JSON_Object *link_obj,
-                             struct OpenAPI_Link *out_link,
-                             const struct OpenAPI_Spec *spec, int resolve_refs);
+static enum cdd_c_error parse_link_object(const JSON_Object *link_obj,
+                                          struct OpenAPI_Link *out_link,
+                                          const struct OpenAPI_Spec *spec,
+                                          int resolve_refs);
 /**
  * @brief Parses headers object from the given input.
  */
-static int parse_headers_object(const JSON_Object *headers,
-                                struct OpenAPI_Header **out_headers,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs, int ignore_content_type);
+static enum cdd_c_error
+parse_headers_object(const JSON_Object *headers,
+                     struct OpenAPI_Header **out_headers, size_t *out_count,
+                     const struct OpenAPI_Spec *spec, int resolve_refs,
+                     int ignore_content_type);
 /**
  * @brief Parses parameter object from the given input.
  */
-static int parse_parameter_object(const JSON_Object *p_obj,
-                                  struct OpenAPI_Parameter *out_param,
-                                  const struct OpenAPI_Spec *spec,
-                                  int resolve_refs);
+static enum cdd_c_error
+parse_parameter_object(const JSON_Object *p_obj,
+                       struct OpenAPI_Parameter *out_param,
+                       const struct OpenAPI_Spec *spec, int resolve_refs);
 /**
  * @brief Parses media type object from the given input.
  */
-static int parse_media_type_object(const JSON_Object *media_obj,
-                                   struct OpenAPI_MediaType *out,
-                                   const struct OpenAPI_Spec *spec,
-                                   int resolve_refs);
+static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
+                                                struct OpenAPI_MediaType *out,
+                                                const struct OpenAPI_Spec *spec,
+                                                int resolve_refs);
 /**
  * @brief Parses content object from the given input.
  */
-static int parse_content_object(const JSON_Object *content,
-                                struct OpenAPI_MediaType **out,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs);
+static enum cdd_c_error parse_content_object(const JSON_Object *content,
+                                             struct OpenAPI_MediaType **out,
+                                             size_t *out_count,
+                                             const struct OpenAPI_Spec *spec,
+                                             int resolve_refs);
 /**
  * @brief Parses encoding object from the given input.
  */
-static int parse_encoding_object(const JSON_Object *enc_obj,
-                                 struct OpenAPI_Encoding *out,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs);
+static enum cdd_c_error parse_encoding_object(const JSON_Object *enc_obj,
+                                              struct OpenAPI_Encoding *out,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs);
 /**
  * @brief Parses encoding map from the given input.
  */
-static int parse_encoding_map(const JSON_Object *enc_obj,
-                              struct OpenAPI_Encoding **out, size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              int resolve_refs);
+static enum cdd_c_error parse_encoding_map(const JSON_Object *enc_obj,
+                                           struct OpenAPI_Encoding **out,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           int resolve_refs);
 /**
  * @brief Parses encoding array from the given input.
  */
-static int parse_encoding_array(const JSON_Array *enc_arr,
-                                struct OpenAPI_Encoding **out,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs);
+static enum cdd_c_error parse_encoding_array(const JSON_Array *enc_arr,
+                                             struct OpenAPI_Encoding **out,
+                                             size_t *out_count,
+                                             const struct OpenAPI_Spec *spec,
+                                             int resolve_refs);
 /**
  * @brief Executes the param key equals operation.
  */
-static int param_key_equals(const struct OpenAPI_Parameter *a,
-                            const struct OpenAPI_Parameter *b);
+static enum cdd_c_error param_key_equals(const struct OpenAPI_Parameter *a,
+                                         const struct OpenAPI_Parameter *b);
 /**
  * @brief Parses parameters array from the given input.
  */
-static int parse_parameters_array(const JSON_Array *arr,
-                                  struct OpenAPI_Parameter **out_params,
-                                  size_t *out_count,
-                                  const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+parse_parameters_array(const JSON_Array *arr,
+                       struct OpenAPI_Parameter **out_params, size_t *out_count,
+                       const struct OpenAPI_Spec *spec);
 /**
  * @brief Parses request body object from the given input.
  */
-static int parse_request_body_object(const JSON_Object *rb_obj,
-                                     struct OpenAPI_RequestBody *out_rb,
-                                     const struct OpenAPI_Spec *spec,
-                                     int resolve_refs, const char *op_id);
+static enum cdd_c_error parse_request_body_object(
+    const JSON_Object *rb_obj, struct OpenAPI_RequestBody *out_rb,
+    const struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id);
 /**
  * @brief Parses response object from the given input.
  */
-static int parse_response_object(const JSON_Object *resp_obj,
-                                 struct OpenAPI_Response *out_resp,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs, const char *op_id,
-                                 const char *resp_code);
+static enum cdd_c_error parse_response_object(const JSON_Object *resp_obj,
+                                              struct OpenAPI_Response *out_resp,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs,
+                                              const char *op_id,
+                                              const char *resp_code);
 /**
  * @brief Parses links object from the given input.
  */
-static int parse_links_object(const JSON_Object *links,
-                              struct OpenAPI_Link **out_links,
-                              size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              int resolve_refs);
+static enum cdd_c_error parse_links_object(const JSON_Object *links,
+                                           struct OpenAPI_Link **out_links,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           int resolve_refs);
 /**
  * @brief Parses responses from the given input.
  */
-static int parse_responses(const JSON_Object *responses,
-                           struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec, const char *op_id);
+static enum cdd_c_error parse_responses(const JSON_Object *responses,
+                                        struct OpenAPI_Operation *out_op,
+                                        const struct OpenAPI_Spec *spec,
+                                        const char *op_id);
 /**
  * @brief Parses operation from the given input.
  */
-static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
-                           struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec, int is_additional,
-                           const char *route_hint);
+static enum cdd_c_error parse_operation(const char *verb_str,
+                                        const JSON_Object *op_obj,
+                                        struct OpenAPI_Operation *out_op,
+                                        const struct OpenAPI_Spec *spec,
+                                        int is_additional,
+                                        const char *route_hint);
 /**
  * @brief Parses callback object from the given input.
  */
-static int parse_callback_object(const JSON_Object *cb_obj,
-                                 struct OpenAPI_Callback *out_cb,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs);
+static enum cdd_c_error parse_callback_object(const JSON_Object *cb_obj,
+                                              struct OpenAPI_Callback *out_cb,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs);
 /**
  * @brief Retrieves the component path item.
  */
-static int find_component_path_item(const struct OpenAPI_Spec *spec,
-                                    const char *ref,
-                                    struct OpenAPI_Path **_out_val);
+static enum cdd_c_error
+find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
+                         struct OpenAPI_Path **_out_val);
 /**
  * @brief Parses callbacks object from the given input.
  */
-static int parse_callbacks_object(const JSON_Object *callbacks,
-                                  struct OpenAPI_Callback **out_callbacks,
-                                  size_t *out_count,
-                                  const struct OpenAPI_Spec *spec,
-                                  int resolve_refs);
+static enum cdd_c_error parse_callbacks_object(
+    const JSON_Object *callbacks, struct OpenAPI_Callback **out_callbacks,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
 /**
  * @brief Parses servers from the given input.
  */
-static int parse_servers(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_servers(const JSON_Object *root_obj,
+                                      struct OpenAPI_Spec *out);
 /**
  * @brief Parses security schemes from the given input.
  */
-static int parse_security_schemes(const JSON_Object *components,
-                                  struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_security_schemes(const JSON_Object *components,
+                                               struct OpenAPI_Spec *out);
 /**
  * @brief Parses component parameters from the given input.
  */
-static int parse_component_parameters(const JSON_Object *components,
-                                      struct OpenAPI_Spec *out);
+static enum cdd_c_error
+parse_component_parameters(const JSON_Object *components,
+                           struct OpenAPI_Spec *out);
 /**
  * @brief Parses component responses from the given input.
  */
-static int parse_component_responses(const JSON_Object *components,
-                                     struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_component_responses(const JSON_Object *components,
+                                                  struct OpenAPI_Spec *out);
 /**
  * @brief Parses component headers from the given input.
  */
-static int parse_component_headers(const JSON_Object *components,
-                                   struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_component_headers(const JSON_Object *components,
+                                                struct OpenAPI_Spec *out);
 /**
  * @brief Parses component request bodies from the given input.
  */
-static int parse_component_request_bodies(const JSON_Object *components,
-                                          struct OpenAPI_Spec *out);
+static enum cdd_c_error
+parse_component_request_bodies(const JSON_Object *components,
+                               struct OpenAPI_Spec *out);
 /**
  * @brief Parses component media types from the given input.
  */
-static int parse_component_media_types(const JSON_Object *components,
-                                       struct OpenAPI_Spec *out);
+static enum cdd_c_error
+parse_component_media_types(const JSON_Object *components,
+                            struct OpenAPI_Spec *out);
 /**
  * @brief Parses component examples from the given input.
  */
-static int parse_component_examples(const JSON_Object *components,
-                                    struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_component_examples(const JSON_Object *components,
+                                                 struct OpenAPI_Spec *out);
 /**
  * @brief Parses component path items from the given input.
  */
-static int parse_component_path_items(const JSON_Object *components,
-                                      struct OpenAPI_Spec *out);
+static enum cdd_c_error
+parse_component_path_items(const JSON_Object *components,
+                           struct OpenAPI_Spec *out);
 /**
  * @brief Parses component links from the given input.
  */
-static int parse_component_links(const JSON_Object *components,
-                                 struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_component_links(const JSON_Object *components,
+                                              struct OpenAPI_Spec *out);
 /**
  * @brief Parses component callbacks from the given input.
  */
-static int parse_component_callbacks(const JSON_Object *components,
-                                     struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_component_callbacks(const JSON_Object *components,
+                                                  struct OpenAPI_Spec *out);
 /**
  * @brief Parses components from the given input.
  */
-static int parse_components(const JSON_Object *components,
-                            struct OpenAPI_Spec *out);
+static enum cdd_c_error parse_components(const JSON_Object *components,
+                                         struct OpenAPI_Spec *out);
 /**
  * @brief Executes the schema is string enum only operation.
  */
-static int schema_is_string_enum_only(const JSON_Object *schema_obj);
+static enum cdd_c_error
+schema_is_string_enum_only(const JSON_Object *schema_obj);
 /**
  * @brief Executes the schema is struct compatible operation.
  */
-static int schema_is_struct_compatible(const JSON_Value *schema_val,
-                                       const JSON_Object *schema_obj);
+static enum cdd_c_error
+schema_is_struct_compatible(const JSON_Value *schema_val,
+                            const JSON_Object *schema_obj);
 /**
  * @brief Parses paths object from the given input.
  */
-static int parse_paths_object(const JSON_Object *paths_obj,
-                              struct OpenAPI_Path **out_paths,
-                              size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              int require_leading_slash, int resolve_refs);
+static enum cdd_c_error parse_paths_object(const JSON_Object *paths_obj,
+                                           struct OpenAPI_Path **out_paths,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           int require_leading_slash,
+                                           int resolve_refs);
 /**
  * @brief Executes the validate unique operation ids operation.
  */
-static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
 /**
  * @brief Collects callback operation ids from paths.
  */
-static int
+static enum cdd_c_error
 collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
                                           size_t n_paths, char ***ids,
                                           size_t *count, size_t *cap);
 /**
  * @brief Collects callback operation ids from callbacks.
  */
-static int collect_callback_operation_ids_from_callbacks(
+static enum cdd_c_error collect_callback_operation_ids_from_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
     size_t *count, size_t *cap);
 /**
  * @brief Executes the component callback is referenced operation.
  */
-static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
-                                            const char *name);
+static enum cdd_c_error
+component_callback_is_referenced(const struct OpenAPI_Spec *spec,
+                                 const char *name);
 /**
  * @brief Executes the validate querystring usage in callbacks operation.
  */
-static int validate_querystring_usage_in_callbacks(
+static enum cdd_c_error validate_querystring_usage_in_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks);
 /**
  * @brief Executes the validate querystring usage in paths callbacks
  * operation.
  */
-static int
+static enum cdd_c_error
 validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
                                               size_t n_paths);
 /**
  * @brief Executes the validate querystring usage in component callbacks
  * operation.
  */
-static int validate_querystring_usage_in_component_callbacks(
+static enum cdd_c_error validate_querystring_usage_in_component_callbacks(
     const struct OpenAPI_Spec *spec);
 /**
  * @brief Parses additional operations from the given input.
  */
-static int parse_additional_operations(const JSON_Object *path_obj,
-                                       struct OpenAPI_Path *path,
-                                       const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+parse_additional_operations(const JSON_Object *path_obj,
+                            struct OpenAPI_Path *path,
+                            const struct OpenAPI_Spec *spec);
 /**
  * @brief Free servers array.
  * @param servers Array of servers
@@ -1846,53 +1881,53 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
 
 /* --- Parsing Helpers --- */
 
-static int parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
+static enum cdd_c_error parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
   if (strcmp(v, "get") == 0) {
     *_out_val = OA_VERB_GET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "post") == 0) {
     *_out_val = OA_VERB_POST;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "put") == 0) {
     *_out_val = OA_VERB_PUT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "delete") == 0) {
     *_out_val = OA_VERB_DELETE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "patch") == 0) {
     *_out_val = OA_VERB_PATCH;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "head") == 0) {
     *_out_val = OA_VERB_HEAD;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "options") == 0) {
     *_out_val = OA_VERB_OPTIONS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "trace") == 0) {
     *_out_val = OA_VERB_TRACE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(v, "query") == 0) {
     *_out_val = OA_VERB_QUERY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_VERB_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Checks if fixed operation method.
  */
-static int is_fixed_operation_method(const char *method) {
+static enum cdd_c_error is_fixed_operation_method(const char *method) {
   int _ast_iequal_0 = false;
   int _ast_iequal_1 = false;
   int _ast_iequal_2 = false;
@@ -1903,7 +1938,7 @@ static int is_fixed_operation_method(const char *method) {
   int _ast_iequal_7 = false;
   int _ast_iequal_8 = false;
   if (!method)
-    return 0;
+    return CDD_C_SUCCESS;
   return (c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0) !=
              0 ||
          (c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1) !=
@@ -1920,93 +1955,95 @@ static int is_fixed_operation_method(const char *method) {
 /**
  * @brief Parses param in from the given input.
  */
-static int parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
+static enum cdd_c_error parse_param_in(const char *in,
+                                       enum OpenAPI_ParamIn *_out_val) {
   if (strcmp(in, "path") == 0) {
     *_out_val = OA_PARAM_IN_PATH;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "query") == 0) {
     *_out_val = OA_PARAM_IN_QUERY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "querystring") == 0) {
     *_out_val = OA_PARAM_IN_QUERYSTRING;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "header") == 0) {
     *_out_val = OA_PARAM_IN_HEADER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "cookie") == 0) {
     *_out_val = OA_PARAM_IN_COOKIE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "body") == 0) {
     *_out_val = OA_PARAM_IN_BODY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "formData") == 0) {
     *_out_val = OA_PARAM_IN_FORM_DATA;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_PARAM_IN_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses param style from the given input.
  */
-static int parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
+static enum cdd_c_error parse_param_style(const char *s,
+                                          enum OpenAPI_Style *_out_val) {
   if (!s) {
     *_out_val = OA_STYLE_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "form") == 0) {
     *_out_val = OA_STYLE_FORM;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "simple") == 0) {
     *_out_val = OA_STYLE_SIMPLE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "matrix") == 0) {
     *_out_val = OA_STYLE_MATRIX;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "label") == 0) {
     *_out_val = OA_STYLE_LABEL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "spaceDelimited") == 0) {
     *_out_val = OA_STYLE_SPACE_DELIMITED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "pipeDelimited") == 0) {
     *_out_val = OA_STYLE_PIPE_DELIMITED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "deepObject") == 0) {
     *_out_val = OA_STYLE_DEEP_OBJECT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(s, "cookie") == 0) {
     *_out_val = OA_STYLE_COOKIE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_STYLE_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the param type is primitive operation.
  */
-static int param_type_is_primitive(const char *type) {
+static enum cdd_c_error param_type_is_primitive(const char *type) {
   if (!type)
-    return 0;
+    return CDD_C_SUCCESS;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -2014,26 +2051,28 @@ static int param_type_is_primitive(const char *type) {
 /**
  * @brief Executes the param type is object like operation.
  */
-static int param_type_is_object_like(const struct OpenAPI_Parameter *p) {
+static enum cdd_c_error
+param_type_is_object_like(const struct OpenAPI_Parameter *p) {
   if (!p || !p->type)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(p->type, "array") == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   return !param_type_is_primitive(p->type);
 }
 
 /**
  * @brief Executes the validate parameter style operation.
  */
-static int validate_parameter_style(const struct OpenAPI_Parameter *p,
-                                    const int has_content) {
+static enum cdd_c_error
+validate_parameter_style(const struct OpenAPI_Parameter *p,
+                         const int has_content) {
   enum OpenAPI_Style style;
   if (!p)
-    return 0;
+    return CDD_C_SUCCESS;
   if (has_content)
-    return 0;
+    return CDD_C_SUCCESS;
   if (p->in == OA_PARAM_IN_QUERYSTRING)
-    return 0;
+    return CDD_C_SUCCESS;
 
   style = p->style;
   switch (p->in) {
@@ -2041,26 +2080,26 @@ static int validate_parameter_style(const struct OpenAPI_Parameter *p,
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_FORM && style != OA_STYLE_SPACE_DELIMITED &&
         style != OA_STYLE_PIPE_DELIMITED && style != OA_STYLE_DEEP_OBJECT)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     break;
   case OA_PARAM_IN_PATH:
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_SIMPLE && style != OA_STYLE_MATRIX &&
         style != OA_STYLE_LABEL)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     break;
   case OA_PARAM_IN_HEADER:
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_SIMPLE)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     break;
   case OA_PARAM_IN_COOKIE:
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_FORM && style != OA_STYLE_COOKIE)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     break;
   default:
@@ -2071,58 +2110,58 @@ static int validate_parameter_style(const struct OpenAPI_Parameter *p,
 
   if (style == OA_STYLE_DEEP_OBJECT) {
     if (p->is_array || !param_type_is_object_like(p))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (style == OA_STYLE_SPACE_DELIMITED || style == OA_STYLE_PIPE_DELIMITED) {
     if (!p->is_array && !param_type_is_object_like(p))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   /* LCOV_EXCL_STOP */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the component key is valid operation.
  */
-static int component_key_is_valid(const char *name) {
+static enum cdd_c_error component_key_is_valid(const char *name) {
   size_t i;
   if (!name || !*name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; name[i]; ++i) {
     const unsigned char c = (unsigned char)name[i];
     if (!(isalnum(c) || c == '.' || c == '-' || c == '_'))
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the validate component key map operation.
  */
-static int validate_component_key_map(const JSON_Object *obj) {
+static enum cdd_c_error validate_component_key_map(const JSON_Object *obj) {
   size_t i, count;
   if (!obj)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(obj);
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(obj, i);
     if (!component_key_is_valid(name))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the header name is content type operation.
  */
-static int header_name_is_content_type(const char *name) {
+static enum cdd_c_error header_name_is_content_type(const char *name) {
   int _ast_iequal_9 = false;
   if (!name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_9),
           _ast_iequal_9) != 0;
 }
@@ -2130,12 +2169,13 @@ static int header_name_is_content_type(const char *name) {
 /**
  * @brief Executes the header param is reserved operation.
  */
-static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
+static enum cdd_c_error
+header_param_is_reserved(const struct OpenAPI_Parameter *param) {
   int _ast_iequal_10 = false;
   int _ast_iequal_11 = false;
   int _ast_iequal_12 = false;
   if (!param || param->in != OA_PARAM_IN_HEADER || !param->name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (c_cdd_str_iequal(param->name, "Accept", &_ast_iequal_10),
           _ast_iequal_10) != 0 ||
          (c_cdd_str_iequal(param->name, "Content-Type", &_ast_iequal_11),
@@ -2147,139 +2187,140 @@ static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
 /**
  * @brief Parses security type from the given input.
  */
-static int parse_security_type(const char *type,
-                               enum OpenAPI_SecurityType *_out_val) {
+static enum cdd_c_error
+parse_security_type(const char *type, enum OpenAPI_SecurityType *_out_val) {
   if (!type) {
     *_out_val = OA_SEC_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(type, "apiKey") == 0) {
     *_out_val = OA_SEC_APIKEY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(type, "http") == 0) {
     *_out_val = OA_SEC_HTTP;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(type, "mutualTLS") == 0) {
     *_out_val = OA_SEC_MUTUALTLS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(type, "oauth2") == 0) {
     *_out_val = OA_SEC_OAUTH2;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(type, "openIdConnect") == 0) {
     *_out_val = OA_SEC_OPENID;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_SEC_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses security in from the given input.
  */
-static int parse_security_in(const char *in,
-                             enum OpenAPI_SecurityIn *_out_val) {
+static enum cdd_c_error parse_security_in(const char *in,
+                                          enum OpenAPI_SecurityIn *_out_val) {
   if (!in) {
     *_out_val = OA_SEC_IN_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "query") == 0) {
     *_out_val = OA_SEC_IN_QUERY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "header") == 0) {
     *_out_val = OA_SEC_IN_HEADER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(in, "cookie") == 0) {
     *_out_val = OA_SEC_IN_COOKIE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_SEC_IN_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses oauth flow type from the given input.
  */
-static int parse_oauth_flow_type(const char *flow,
-                                 enum OpenAPI_OAuthFlowType *_out_val) {
+static enum cdd_c_error
+parse_oauth_flow_type(const char *flow, enum OpenAPI_OAuthFlowType *_out_val) {
   if (!flow) {
     *_out_val = OA_OAUTH_FLOW_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(flow, "implicit") == 0) {
     *_out_val = OA_OAUTH_FLOW_IMPLICIT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(flow, "password") == 0) {
     *_out_val = OA_OAUTH_FLOW_PASSWORD;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(flow, "clientCredentials") == 0) {
     *_out_val = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(flow, "authorizationCode") == 0) {
     *_out_val = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(flow, "deviceAuthorization") == 0) {
     *_out_val = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_OAUTH_FLOW_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses xml node type from the given input.
  */
-static int parse_xml_node_type(const char *node_type,
-                               enum OpenAPI_XmlNodeType *_out_val) {
+static enum cdd_c_error
+parse_xml_node_type(const char *node_type, enum OpenAPI_XmlNodeType *_out_val) {
   if (!node_type) {
     *_out_val = OA_XML_NODE_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(node_type, "element") == 0) {
     *_out_val = OA_XML_NODE_ELEMENT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(node_type, "attribute") == 0) {
     *_out_val = OA_XML_NODE_ATTRIBUTE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(node_type, "text") == 0) {
     *_out_val = OA_XML_NODE_TEXT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(node_type, "cdata") == 0) {
     *_out_val = OA_XML_NODE_CDATA;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(node_type, "none") == 0) {
     *_out_val = OA_XML_NODE_NONE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = OA_XML_NODE_UNSET;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses any value from the given input.
  */
-static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
+static enum cdd_c_error parse_any_value(const JSON_Value *val,
+                                        struct OpenAPI_Any *out) {
   char *_ast_strdup_13 = NULL;
   char *_ast_strdup_14 = NULL;
   JSON_Value_Type t;
@@ -2287,7 +2328,7 @@ static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   char *json_str;
 
   if (!val || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   t = json_value_get_type(val);
   out->type = OA_ANY_UNSET;
@@ -2299,7 +2340,7 @@ static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
     out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_13), _ast_strdup_13);
     /* LCOV_EXCL_START */
     if (!out->string)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     break;
   case JSONNumber:
@@ -2318,67 +2359,68 @@ static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
     json_str = json_serialize_to_string(val);
     /* LCOV_EXCL_START */
     if (!json_str)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     out->type = OA_ANY_JSON;
     out->json = (c_cdd_strdup(json_str, &_ast_strdup_14), _ast_strdup_14);
     json_free_serialized_string(json_str);
     /* LCOV_EXCL_START */
     if (!out->json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     break;
   default:
     break;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses any field from the given input.
  */
-static int parse_any_field(const JSON_Object *obj, const char *key,
-                           struct OpenAPI_Any *out, int *out_set) {
+static enum cdd_c_error parse_any_field(const JSON_Object *obj, const char *key,
+                                        struct OpenAPI_Any *out, int *out_set) {
   const JSON_Value *val;
   if (!obj || !key || !out || !out_set)
-    return 0;
+    return CDD_C_SUCCESS;
   if (!json_object_has_value(obj, key))
-    return 0;
+    return CDD_C_SUCCESS;
   val = json_object_get_value(obj, key);
   if (!val)
-    return 0;
+    return CDD_C_SUCCESS;
   {
     int _rc = parse_any_value(val, out);
     if (_rc != 0)
       return _rc;
   }
   *out_set = 1;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses any array from the given input.
  */
-static int parse_any_array(const JSON_Array *arr,
-                           struct OpenAPI_Any **const out, size_t *out_count) {
+static enum cdd_c_error parse_any_array(const JSON_Array *arr,
+                                        struct OpenAPI_Any **const out,
+                                        size_t *out_count) {
   size_t i, count;
 
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out = (struct OpenAPI_Any *)calloc(count, sizeof(struct OpenAPI_Any));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -2391,38 +2433,40 @@ static int parse_any_array(const JSON_Array *arr,
       free(*out);
       *out = NULL;
       *out_count = 0;
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the key in list operation.
  */
-static int key_in_list(const char *key, const char **list, size_t count) {
+static enum cdd_c_error key_in_list(const char *key, const char **list,
+                                    size_t count) {
   size_t i;
   if (!key || !list)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i) {
     if (list[i] && strcmp(list[i], key) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if extension key.
  */
-static int is_extension_key(const char *key) {
+static enum cdd_c_error is_extension_key(const char *key) {
   return key && key[0] == 'x' && key[1] == '-';
 }
 
 /**
  * @brief Executes the clone json value operation.
  */
-static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
+static enum cdd_c_error clone_json_value(const JSON_Value *val,
+                                         JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
@@ -2430,7 +2474,7 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 
   if (!val) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -2438,22 +2482,24 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   /* LCOV_EXCL_START */
   if (!serialized) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   copy = json_parse_string(serialized);
   json_free_serialized_string(serialized);
   {
     *_out_val = copy;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Collects schema extras.
  */
-static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
-                                 size_t skip_count, char **out_json) {
+static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
+                                              const char **skip_keys,
+                                              size_t skip_count,
+                                              char **out_json) {
   JSON_Value *_ast_clone_json_value_0;
   char *_ast_strdup_15 = NULL;
   JSON_Value *extras_val;
@@ -2465,13 +2511,13 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
     *out_json = NULL;
   /* LCOV_EXCL_START */
   if (!obj || !out_json)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   extras_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!extras_val)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   extras_obj = json_value_get_object(extras_val);
 
@@ -2489,26 +2535,26 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
     /* LCOV_EXCL_START */
     if (!copy) {
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   if (json_object_get_count(extras_obj) == 0) {
     json_value_free(extras_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   serialized = json_serialize_to_string(extras_val);
   /* LCOV_EXCL_START */
   if (!serialized) {
     json_value_free(extras_val);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_15), _ast_strdup_15);
@@ -2520,7 +2566,8 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
 /**
  * @brief Collects extensions.
  */
-static int collect_extensions(const JSON_Object *obj, char **out_json) {
+static enum cdd_c_error collect_extensions(const JSON_Object *obj,
+                                           char **out_json) {
   JSON_Value *_ast_clone_json_value_1;
   char *_ast_strdup_16 = NULL;
   JSON_Value *extras_val;
@@ -2532,13 +2579,13 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
     *out_json = NULL;
   /* LCOV_EXCL_START */
   if (!obj || !out_json)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   extras_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!extras_val)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   extras_obj = json_value_get_object(extras_val);
 
@@ -2555,26 +2602,26 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
     /* LCOV_EXCL_START */
     if (!copy) {
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   if (json_object_get_count(extras_obj) == 0) {
     json_value_free(extras_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   serialized = json_serialize_to_string(extras_val);
   /* LCOV_EXCL_START */
   if (!serialized) {
     json_value_free(extras_val);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_16), _ast_strdup_16);
@@ -2586,18 +2633,18 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
 /**
  * @brief Executes the url has query or fragment operation.
  */
-static int url_has_query_or_fragment(const char *url) {
+static enum cdd_c_error url_has_query_or_fragment(const char *url) {
   if (!url)
-    return 0;
+    return CDD_C_SUCCESS;
   return (strchr(url, '?') != NULL || strchr(url, '#') != NULL);
 }
 
 /**
  * @brief Executes the openapi version supported operation.
  */
-static int openapi_version_supported(const char *version) {
+static enum cdd_c_error openapi_version_supported(const char *version) {
   if (!version || !*version)
-    return 0;
+    return CDD_C_SUCCESS;
   return (version[0] == '3' && version[1] == '.' &&
           (version[2] == '0' || version[2] == '1' || version[2] == '2'));
 }
@@ -2605,38 +2652,39 @@ static int openapi_version_supported(const char *version) {
 /**
  * @brief Executes the example fields valid operation.
  */
-static int example_fields_valid(const struct OpenAPI_Example *ex) {
+static enum cdd_c_error example_fields_valid(const struct OpenAPI_Example *ex) {
   /* LCOV_EXCL_START */
   if (!ex)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
   if (ex->data_value_set && ex->value_set)
-    return 0;
+    return CDD_C_SUCCESS;
   if (ex->serialized_value && ex->external_value)
-    return 0;
+    return CDD_C_SUCCESS;
   if (ex->value_set && (ex->serialized_value || ex->external_value))
-    return 0;
-  return 1;
+    return CDD_C_SUCCESS;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the object has example and examples operation.
  */
-static int object_has_example_and_examples(const JSON_Object *obj) {
+static enum cdd_c_error
+object_has_example_and_examples(const JSON_Object *obj) {
   if (!obj)
-    return 0;
+    return CDD_C_SUCCESS;
   if (json_object_has_value(obj, "example") &&
       json_object_has_value(obj, "examples")) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses schema type from the given input.
  */
-static int parse_schema_type(const JSON_Object *schema, int *out_nullable,
-                             char **_out_val) {
+static enum cdd_c_error parse_schema_type(const JSON_Object *schema,
+                                          int *out_nullable, char **_out_val) {
   const char *type;
   const JSON_Array *types;
   size_t i, count;
@@ -2647,21 +2695,21 @@ static int parse_schema_type(const JSON_Object *schema, int *out_nullable,
   /* LCOV_EXCL_START */
   if (!schema) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
   type = json_object_get_string(schema, "type");
   if (type) {
     *_out_val = (char *)(type);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   types = json_object_get_array(schema, "type");
   /* LCOV_EXCL_START */
   if (!types) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -2681,23 +2729,24 @@ static int parse_schema_type(const JSON_Object *schema, int *out_nullable,
 
   if (!chosen && out_nullable && *out_nullable) {
     *_out_val = (char *)"null";
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   {
     *_out_val = (char *)(chosen);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses schema constraints from the given input.
  */
-static int parse_schema_constraints(const JSON_Object *schema,
-                                    struct SchemaConstraintTarget *target) {
+static enum cdd_c_error
+parse_schema_constraints(const JSON_Object *schema,
+                         struct SchemaConstraintTarget *target) {
   char *_ast_strdup_17 = NULL;
   if (!schema || !target)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (target->example && target->example_set) {
     {
@@ -2767,7 +2816,7 @@ static int parse_schema_constraints(const JSON_Object *schema,
             (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
         /* LCOV_EXCL_START */
         if (!*target->pattern)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -2794,37 +2843,37 @@ static int parse_schema_constraints(const JSON_Object *schema,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses string enum array from the given input.
  */
-static int parse_string_enum_array(const JSON_Array *arr, char ***out,
-                                   size_t *out_count) {
+static enum cdd_c_error
+parse_string_enum_array(const JSON_Array *arr, char ***out, size_t *out_count) {
   char *_ast_strdup_18 = NULL;
   size_t i, count;
 
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     if (!json_array_get_string(arr, i))
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   *out = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -2840,11 +2889,11 @@ static int parse_string_enum_array(const JSON_Array *arr, char ***out,
       free(*out);
       *out = NULL;
       *out_count = 0;
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2864,20 +2913,20 @@ static void free_string_array(char **arr, size_t n) {
 /**
  * @brief Creates a deep copy of string array.
  */
-static int copy_string_array(char ***dst, size_t *dst_count, char **src,
-                             size_t src_count) {
+static enum cdd_c_error copy_string_array(char ***dst, size_t *dst_count,
+                                          char **src, size_t src_count) {
   char *_ast_strdup_19 = NULL;
   size_t i;
   if (!dst || !dst_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = NULL;
   *dst_count = 0;
   if (!src || src_count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = (char **)calloc(src_count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!*dst)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
@@ -2891,17 +2940,17 @@ static int copy_string_array(char ***dst, size_t *dst_count, char **src,
       free(*dst);
       *dst = NULL;
       *dst_count = 0;
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of example fields.
  */
-static int copy_example_fields(struct OpenAPI_Example *dst,
-                               const struct OpenAPI_Example *src) {
+static enum cdd_c_error copy_example_fields(struct OpenAPI_Example *dst,
+                                            const struct OpenAPI_Example *src) {
   char *_ast_strdup_20 = NULL;
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
@@ -2911,13 +2960,13 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
   char *_ast_strdup_26 = NULL;
   char *_ast_strdup_27 = NULL;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->name && !dst->name) {
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_20), _ast_strdup_20);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2926,7 +2975,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_21), _ast_strdup_21);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2936,7 +2985,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_22), _ast_strdup_22);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2946,7 +2995,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->summary, &_ast_strdup_23), _ast_strdup_23);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2956,7 +3005,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_24), _ast_strdup_24);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2966,7 +3015,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_25), _ast_strdup_25);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -2992,7 +3041,7 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->serialized_value, &_ast_strdup_26), _ast_strdup_26);
     /* LCOV_EXCL_START */
     if (!dst->serialized_value)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -3002,11 +3051,11 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
         (c_cdd_strdup(src->external_value, &_ast_strdup_27), _ast_strdup_27);
     /* LCOV_EXCL_START */
     if (!dst->external_value)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -3038,9 +3087,9 @@ static void free_example(struct OpenAPI_Example *ex) {
 /**
  * @brief Retrieves the component example.
  */
-static int find_component_example(const struct OpenAPI_Spec *spec,
-                                  const char *ref,
-                                  struct OpenAPI_Example **_out_val) {
+static enum cdd_c_error
+find_component_example(const struct OpenAPI_Spec *spec, const char *ref,
+                       struct OpenAPI_Example **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_2;
   char *_ast_ref_name_from_prefix_3 = NULL;
   char *_ast_json_pointer_unescape_4 = NULL;
@@ -3059,7 +3108,7 @@ static int find_component_example(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_4),
@@ -3069,7 +3118,7 @@ static int find_component_example(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_examples; ++i) {
@@ -3080,7 +3129,7 @@ static int find_component_example(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_examples[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -3089,17 +3138,18 @@ static int find_component_example(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses example object from the given input.
  */
-static int parse_example_object(const JSON_Object *ex_obj, const char *name,
-                                struct OpenAPI_Example *out,
-                                const struct OpenAPI_Spec *spec,
-                                const int resolve_refs) {
+static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
+                                             const char *name,
+                                             struct OpenAPI_Example *out,
+                                             const struct OpenAPI_Spec *spec,
+                                             const int resolve_refs) {
   struct OpenAPI_Example *_ast_find_component_example_5;
   char *_ast_strdup_28 = NULL;
   char *_ast_strdup_29 = NULL;
@@ -3114,7 +3164,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
   const char *external;
 
   if (!ex_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* LCOV_EXCL_START */
 
@@ -3122,7 +3172,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
     out->name = (c_cdd_strdup(name, &_ast_strdup_28), _ast_strdup_28);
     /* LCOV_EXCL_START */
     if (!out->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
 
@@ -3133,7 +3183,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
     out->ref = (c_cdd_strdup(ref, &_ast_strdup_29), _ast_strdup_29);
     /* LCOV_EXCL_START */
     if (!out->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Example *comp =
@@ -3155,7 +3205,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
     out->summary = (c_cdd_strdup(summary, &_ast_strdup_30), _ast_strdup_30);
     /* LCOV_EXCL_START */
     if (!out->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -3165,7 +3215,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
     out->description = (c_cdd_strdup(desc, &_ast_strdup_31), _ast_strdup_31);
     /* LCOV_EXCL_START */
     if (!out->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -3196,7 +3246,7 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
         (c_cdd_strdup(serialized, &_ast_strdup_32), _ast_strdup_32);
     /* LCOV_EXCL_START */
     if (!out->serialized_value)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -3207,45 +3257,45 @@ static int parse_example_object(const JSON_Object *ex_obj, const char *name,
         (c_cdd_strdup(external, &_ast_strdup_33), _ast_strdup_33);
     /* LCOV_EXCL_START */
     if (!out->external_value)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 
   if (!out->ref && !example_fields_valid(out))
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses examples object from the given input.
  */
-static int parse_examples_object(const JSON_Object *examples,
-                                 struct OpenAPI_Example **out,
-                                 size_t *out_count,
-                                 const struct OpenAPI_Spec *spec,
-                                 const int resolve_refs) {
+static enum cdd_c_error parse_examples_object(const JSON_Object *examples,
+                                              struct OpenAPI_Example **out,
+                                              size_t *out_count,
+                                              const struct OpenAPI_Spec *spec,
+                                              const int resolve_refs) {
   size_t count, i;
 
   if (!out || !out_count) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out = NULL;
   *out_count = 0;
 
   if (!examples)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(examples);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out =
       (struct OpenAPI_Example *)calloc(count, sizeof(struct OpenAPI_Example));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -3262,24 +3312,23 @@ static int parse_examples_object(const JSON_Object *examples,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses media examples from the given input.
  */
-static int parse_media_examples(const JSON_Object *media_obj,
-                                struct OpenAPI_Any *example, int *example_set,
-                                struct OpenAPI_Example **examples,
-                                size_t *n_examples,
-                                const struct OpenAPI_Spec *spec,
-                                const int resolve_refs) {
+static enum cdd_c_error
+parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
+                     int *example_set, struct OpenAPI_Example **examples,
+                     size_t *n_examples, const struct OpenAPI_Spec *spec,
+                     const int resolve_refs) {
   const JSON_Object *examples_obj;
 
   if (!media_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   if (object_has_example_and_examples(media_obj))
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   examples_obj = json_object_get_object(media_obj, "examples");
   if (examples_obj) {
@@ -3292,26 +3341,26 @@ static int parse_media_examples(const JSON_Object *media_obj,
 /**
  * @brief Parses oauth scopes from the given input.
  */
-static int parse_oauth_scopes(const JSON_Object *scopes_obj,
-                              struct OpenAPI_OAuthScope **out,
-                              size_t *out_count) {
+static enum cdd_c_error parse_oauth_scopes(const JSON_Object *scopes_obj,
+                                           struct OpenAPI_OAuthScope **out,
+                                           size_t *out_count) {
   char *_ast_strdup_34 = NULL;
   char *_ast_strdup_35 = NULL;
   size_t count, i;
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!scopes_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(scopes_obj);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = (struct OpenAPI_OAuthScope *)calloc(count,
                                              sizeof(struct OpenAPI_OAuthScope));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
   for (i = 0; i < count; ++i) {
@@ -3321,7 +3370,7 @@ static int parse_oauth_scopes(const JSON_Object *scopes_obj,
     if (name) {
       (*out)[i].name = (c_cdd_strdup(name, &_ast_strdup_34), _ast_strdup_34);
       if (!(*out)[i].name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
@@ -3329,18 +3378,18 @@ static int parse_oauth_scopes(const JSON_Object *scopes_obj,
       (*out)[i].description =
           (c_cdd_strdup(desc, &_ast_strdup_35), _ast_strdup_35);
       if (!(*out)[i].description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses oauth flows from the given input.
  */
-static int parse_oauth_flows(const JSON_Object *flows_obj,
-                             struct OpenAPI_SecurityScheme *out) {
+static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
+                                          struct OpenAPI_SecurityScheme *out) {
   enum OpenAPI_OAuthFlowType _ast_parse_oauth_flow_type_6;
   char *_ast_strdup_36 = NULL;
   char *_ast_strdup_37 = NULL;
@@ -3348,17 +3397,17 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
   char *_ast_strdup_39 = NULL;
   size_t count, i;
   if (!flows_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(flows_obj);
   /* LCOV_EXCL_START */
   if (count == 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   out->flows = (struct OpenAPI_OAuthFlow *)calloc(
       count, sizeof(struct OpenAPI_OAuthFlow));
   /* LCOV_EXCL_START */
   if (!out->flows)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_flows = count;
   for (i = 0; i < count; ++i) {
@@ -3371,7 +3420,7 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
                     _ast_parse_oauth_flow_type_6);
     /* LCOV_EXCL_START */
     if (flow->type == OA_OAUTH_FLOW_UNKNOWN)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     if (flow_obj) {
       const char *authorization_url =
@@ -3387,38 +3436,38 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
       /* LCOV_EXCL_START */
 
       if (!scopes_present || !scopes_obj)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
 
       /* LCOV_EXCL_STOP */
       switch (flow->type) {
       case OA_OAUTH_FLOW_IMPLICIT:
         /* LCOV_EXCL_START */
         if (!authorization_url)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
         break;
       case OA_OAUTH_FLOW_PASSWORD:
       case OA_OAUTH_FLOW_CLIENT_CREDENTIALS:
         /* LCOV_EXCL_START */
         if (!token_url)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
         break;
       case OA_OAUTH_FLOW_AUTHORIZATION_CODE:
         /* LCOV_EXCL_START */
         if (!authorization_url || !token_url)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
         break;
       case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION:
         /* LCOV_EXCL_START */
         if (!device_authorization_url || !token_url)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
         break;
       case OA_OAUTH_FLOW_UNKNOWN:
       default:
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
 
       /* LCOV_EXCL_START */
@@ -3428,7 +3477,7 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
             (c_cdd_strdup(authorization_url, &_ast_strdup_36), _ast_strdup_36);
         /* LCOV_EXCL_START */
         if (!flow->authorization_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
 
@@ -3439,7 +3488,7 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
             (c_cdd_strdup(token_url, &_ast_strdup_37), _ast_strdup_37);
         /* LCOV_EXCL_START */
         if (!flow->token_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -3449,7 +3498,7 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
             (c_cdd_strdup(refresh_url, &_ast_strdup_38), _ast_strdup_38);
         /* LCOV_EXCL_START */
         if (!flow->refresh_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -3460,7 +3509,7 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
              _ast_strdup_39);
         /* LCOV_EXCL_START */
         if (!flow->device_authorization_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -3477,19 +3526,19 @@ static int parse_oauth_flows(const JSON_Object *flows_obj,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the json pointer unescape operation.
  */
-static int json_pointer_unescape(const char *in, char **_out_val) {
+static enum cdd_c_error json_pointer_unescape(const char *in, char **_out_val) {
   size_t len, i, j;
   char *out;
   /* LCOV_EXCL_START */
   if (!in) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   len = strlen(in);
@@ -3497,7 +3546,7 @@ static int json_pointer_unescape(const char *in, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0, j = 0; i < len; ++i) {
@@ -3518,96 +3567,98 @@ static int json_pointer_unescape(const char *in, char **_out_val) {
   out[j] = '\0';
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the uri has scheme prefix operation.
  */
-static int uri_has_scheme_prefix(const char *uri, size_t len) {
+static enum cdd_c_error uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < len; ++i) {
     char c = uri[i];
     /* LCOV_EXCL_START */
     if (c == ':')
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     /* LCOV_EXCL_STOP */
     if (c == '/' || c == '?' || c == '#')
       break;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the uri base len operation.
  */
-static int uri_base_len(const char *uri, size_t *_out_val) {
+static enum cdd_c_error uri_base_len(const char *uri, size_t *_out_val) {
   if (!uri) {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = strcspn(uri, "#");
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the uri scheme len operation.
  */
-static int uri_scheme_len(const char *uri, size_t len, size_t *_out_val) {
+static enum cdd_c_error uri_scheme_len(const char *uri, size_t len,
+                                       size_t *_out_val) {
   size_t i;
   if (!uri || len == 0) {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < len; ++i) {
     if (uri[i] == ':') {
       *_out_val = i;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (uri[i] == '/' || uri[i] == '?' || uri[i] == '#')
       break;
   }
   {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the dup substr operation.
  */
-static int dup_substr(const char *src, size_t len, char **_out_val) {
+static enum cdd_c_error dup_substr(const char *src, size_t len,
+                                   char **_out_val) {
   char *out;
   /* LCOV_EXCL_START */
   if (!src) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   out = (char *)malloc(len + 1);
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   memcpy(out, src, len);
   out[len] = '\0';
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the normalize path operation.
  */
-static int normalize_path(const char *path, char **_out_val) {
+static enum cdd_c_error normalize_path(const char *path, char **_out_val) {
   char *_ast_dup_substr_7 = NULL;
   char *_ast_strdup_40 = NULL;
   char *_ast_strdup_41 = NULL;
@@ -3625,7 +3676,7 @@ static int normalize_path(const char *path, char **_out_val) {
 
   if (!path) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -3694,7 +3745,7 @@ static int normalize_path(const char *path, char **_out_val) {
         goto cleanup;
       {
         *_out_val = out;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
     out = (c_cdd_strdup("", &_ast_strdup_42), _ast_strdup_42);
@@ -3702,7 +3753,7 @@ static int normalize_path(const char *path, char **_out_val) {
       goto cleanup;
     {
       *_out_val = out;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -3742,15 +3793,15 @@ cleanup:
   }
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the resolve uri reference operation.
  */
-static int resolve_uri_reference(const char *base_uri, const char *ref,
-                                 char **_out_val) {
+static enum cdd_c_error
+resolve_uri_reference(const char *base_uri, const char *ref, char **_out_val) {
   size_t _ast_uri_scheme_len_8 = 0;
   size_t _ast_uri_base_len_9 = 0;
   size_t _ast_uri_base_len_10 = 0;
@@ -3777,22 +3828,22 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
 
   if (!ref) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
   ref_len = strlen(ref);
   if (ref_len == 0) {
     *_out_val = (c_cdd_strdup("", &_ast_strdup_43), _ast_strdup_43);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (uri_has_scheme_prefix(ref, ref_len)) {
     *_out_val = (c_cdd_strdup(ref, &_ast_strdup_44), _ast_strdup_44);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (!base_uri || !*base_uri) {
     *_out_val = (c_cdd_strdup(ref, &_ast_strdup_45), _ast_strdup_45);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (ref_len >= 2 && ref[0] == '/' && ref[1] == '/') {
@@ -3808,7 +3859,7 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
       /* LCOV_EXCL_START */
       if (!out) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       memcpy(out, base_uri, scheme_len + 1);
@@ -3816,12 +3867,12 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
       out[out_len] = '\0';
       {
         *_out_val = out;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
     {
       *_out_val = (c_cdd_strdup(ref, &_ast_strdup_46), _ast_strdup_46);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -3870,7 +3921,7 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
     /* LCOV_EXCL_START */
     if (!combined) {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_STOP */
     if (base_dir_len > 0)
@@ -3885,7 +3936,7 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
   /* LCOV_EXCL_START */
   if (!normalized) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -3897,7 +3948,7 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
       free(normalized);
       {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
     if (prefix_len > 0)
@@ -3908,15 +3959,16 @@ static int resolve_uri_reference(const char *base_uri, const char *ref,
   free(normalized);
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the compute document uri operation.
  */
-static int compute_document_uri(const char *self_uri, const char *retrieval_uri,
-                                char **_out_val) {
+static enum cdd_c_error compute_document_uri(const char *self_uri,
+                                             const char *retrieval_uri,
+                                             char **_out_val) {
   char *_ast_resolve_uri_reference_14 = NULL;
   size_t _ast_uri_base_len_15 = 0;
   char *_ast_dup_substr_16 = NULL;
@@ -3941,7 +3993,7 @@ static int compute_document_uri(const char *self_uri, const char *retrieval_uri,
 
   if (!resolved) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -3954,16 +4006,16 @@ static int compute_document_uri(const char *self_uri, const char *retrieval_uri,
   free(resolved);
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the root has openapi fields operation.
  */
-static int root_has_openapi_fields(const JSON_Object *root_obj) {
+static enum cdd_c_error root_has_openapi_fields(const JSON_Object *root_obj) {
   if (!root_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   return json_object_has_value(root_obj, "info") ||
          json_object_has_value(root_obj, "paths") ||
          json_object_has_value(root_obj, "components") ||
@@ -3979,59 +4031,60 @@ static int root_has_openapi_fields(const JSON_Object *root_obj) {
 /**
  * @brief Executes the root is schema document operation.
  */
-static int root_is_schema_document(const JSON_Value *root,
-                                   const JSON_Object *root_obj) {
+static enum cdd_c_error root_is_schema_document(const JSON_Value *root,
+                                                const JSON_Object *root_obj) {
   JSON_Value_Type type;
   if (!root)
-    return 0;
+    return CDD_C_SUCCESS;
   type = json_value_get_type(root);
   /* LCOV_EXCL_START */
   if (type == JSONBoolean)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
   if (type != JSONObject || !root_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   if (json_object_has_value(root_obj, "openapi") ||
       json_object_has_value(root_obj, "swagger"))
-    return 0;
+    return CDD_C_SUCCESS;
   if (root_has_openapi_fields(root_obj))
-    return 0;
-  return 1;
+    return CDD_C_SUCCESS;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the store schema root json operation.
  */
-static int store_schema_root_json(struct OpenAPI_Spec *spec,
-                                  const JSON_Value *root) {
+static enum cdd_c_error store_schema_root_json(struct OpenAPI_Spec *spec,
+                                               const JSON_Value *root) {
   char *_ast_strdup_49 = NULL;
   char *raw_json;
   /* LCOV_EXCL_START */
   if (!spec || !root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   if (spec->schema_root_json)
-    return 0;
+    return CDD_C_SUCCESS;
   raw_json = json_serialize_to_string(root);
   /* LCOV_EXCL_START */
   if (!raw_json)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   spec->schema_root_json =
       (c_cdd_strdup(raw_json, &_ast_strdup_49), _ast_strdup_49);
   json_free_serialized_string(raw_json);
   /* LCOV_EXCL_START */
   if (!spec->schema_root_json)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the resolve ref target operation.
  */
-static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
-                              struct ResolvedRefTarget *_out_val) {
+static enum cdd_c_error resolve_ref_target(const struct OpenAPI_Spec *spec,
+                                           const char *ref,
+                                           struct ResolvedRefTarget *_out_val) {
   char *_ast_dup_substr_17 = NULL;
   char *_ast_resolve_uri_reference_18 = NULL;
   struct ResolvedRefTarget out;
@@ -4046,13 +4099,13 @@ static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
 
   if (!spec || !ref) {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   hash = strchr(ref, '#');
   if (!hash || hash == ref) {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   base_len = (size_t)(hash - ref);
@@ -4060,7 +4113,7 @@ static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
       (dup_substr(ref, base_len, &_ast_dup_substr_17), _ast_dup_substr_17);
   if (!base_part) {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (spec->document_uri && *spec->document_uri) {
@@ -4106,7 +4159,7 @@ static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
 
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -4142,8 +4195,8 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
 /**
  * @brief Executes the openapi doc registry add operation.
  */
-int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
-                             struct OpenAPI_Spec *spec) {
+enum cdd_c_error openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
+                                          struct OpenAPI_Spec *spec) {
   size_t _ast_uri_base_len_19 = 0;
   char *_ast_dup_substr_20 = NULL;
   size_t i;
@@ -4154,14 +4207,14 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
   /* LCOV_EXCL_START */
 
   if (!registry || !spec)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   spec->doc_registry = registry;
   base_src = spec->document_uri ? spec->document_uri : spec->self_uri;
   /* LCOV_EXCL_START */
   if (!base_src || !*base_src)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   {
@@ -4169,20 +4222,20 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
         (uri_base_len(base_src, &_ast_uri_base_len_19), _ast_uri_base_len_19);
     /* LCOV_EXCL_START */
     if (len == 0)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     base = (dup_substr(base_src, len, &_ast_dup_substr_20), _ast_dup_substr_20);
   }
   /* LCOV_EXCL_START */
   if (!base)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < registry->count; ++i) {
     if (registry->entries[i].base_uri &&
         strcmp(registry->entries[i].base_uri, base) == 0) {
       free(base);
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
 
@@ -4193,7 +4246,7 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
     /* LCOV_EXCL_START */
     if (!tmp) {
       free(base);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     registry->entries = tmp;
@@ -4203,14 +4256,15 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
   registry->entries[registry->count].base_uri = base;
   registry->entries[registry->count].spec = spec;
   registry->count++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the ref base matches self operation.
  */
-static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
-                                 const char *ref, const char *hash) {
+static enum cdd_c_error ref_base_matches_self(const struct OpenAPI_Spec *spec,
+                                              const char *ref,
+                                              const char *hash) {
   size_t _ast_uri_base_len_21 = 0;
   size_t base_len;
   const char *self_uri;
@@ -4219,13 +4273,13 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
   size_t self_len;
 
   if (!ref || !hash)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (hash == ref)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */ /* fragment-only ref */
   if (!spec)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (spec->document_uri && *spec->document_uri) {
     const char *base_uri = spec->document_uri;
@@ -4233,7 +4287,7 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
         (uri_base_len(base_uri, &_ast_uri_base_len_21), _ast_uri_base_len_21);
     base_len = (size_t)(hash - ref);
     if (uri_len == base_len && strncmp(ref, base_uri, base_len) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     if (!uri_has_scheme_prefix(base_uri, uri_len)) {
       const char *rel = base_uri;
       size_t rel_len = uri_len;
@@ -4242,28 +4296,28 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
         rel_len -= 2;
       }
       if (rel_len == 0)
-        return 0;
+        return CDD_C_SUCCESS;
       if (base_len >= rel_len &&
           strncmp(ref + (base_len - rel_len), rel, rel_len) == 0) {
         /* LCOV_EXCL_START */
         if (rel[0] == '/')
-          return 1;
+          return CDD_C_ERROR_UNKNOWN;
         /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_START */
         if (base_len == rel_len)
-          return 1;
+          return CDD_C_ERROR_UNKNOWN;
         /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_START */
         if (ref[base_len - rel_len - 1] == '/')
-          return 1;
+          return CDD_C_ERROR_UNKNOWN;
         /* LCOV_EXCL_STOP */
       }
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (!spec->self_uri || !*spec->self_uri)
-    return 0;
+    return CDD_C_SUCCESS;
 
   base_len = (size_t)(hash - ref);
   self_uri = spec->self_uri;
@@ -4273,7 +4327,7 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
 
   /* Exact base match (absolute $self). */
   if (base_len == self_len && strncmp(ref, self_base, base_len) == 0)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
 
   /* Relative $self: allow refs whose base URI ends with the self path. */
   if (!uri_has_scheme_prefix(self_base, self_len)) {
@@ -4282,40 +4336,41 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
       self_len -= 2;
     }
     if (self_len == 0)
-      return 0;
+      return CDD_C_SUCCESS;
     if (base_len >= self_len &&
         strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
       /* LCOV_EXCL_START */
       if (self_base[0] == '/')
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (base_len == self_len)
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (ref[base_len - self_len - 1] == '/')
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
       /* LCOV_EXCL_STOP */
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the ref name from prefix operation.
  */
-static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
-                                const char *ref, const char *prefix,
-                                char **_out_val) {
+static enum cdd_c_error ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                             const char *ref,
+                                             const char *prefix,
+                                             char **_out_val) {
   size_t prefix_len;
   const char *name;
   const char *hash;
   /* LCOV_EXCL_START */
   if (!ref || !prefix) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   prefix_len = strlen(prefix);
@@ -4324,56 +4379,56 @@ static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     /* LCOV_EXCL_START */
     if (!name || !*name) {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_STOP */
     if (strchr(name, '/') != NULL) {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     {
       *_out_val = (char *)(name);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   hash = strchr(ref, '#');
   /* LCOV_EXCL_START */
   if (!hash) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   if (!ref_base_matches_self(spec, ref, hash)) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strncmp(hash, prefix, prefix_len) != 0) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   name = hash + prefix_len;
   /* LCOV_EXCL_START */
   if (!name || !*name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   if (strchr(name, '/') != NULL) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = (char *)(name);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component parameter.
  */
-static int find_component_parameter(const struct OpenAPI_Spec *spec,
-                                    const char *ref,
-                                    struct OpenAPI_Parameter **_out_val) {
+static enum cdd_c_error
+find_component_parameter(const struct OpenAPI_Spec *spec, const char *ref,
+                         struct OpenAPI_Parameter **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_22;
   char *_ast_ref_name_from_prefix_23 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4390,7 +4445,7 @@ static int find_component_parameter(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_parameters; ++i) {
@@ -4400,7 +4455,7 @@ static int find_component_parameter(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_parameters[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4408,16 +4463,16 @@ static int find_component_parameter(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component response.
  */
-static int find_component_response(const struct OpenAPI_Spec *spec,
-                                   const char *ref,
-                                   struct OpenAPI_Response **_out_val) {
+static enum cdd_c_error
+find_component_response(const struct OpenAPI_Spec *spec, const char *ref,
+                        struct OpenAPI_Response **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_24;
   char *_ast_ref_name_from_prefix_25 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4434,7 +4489,7 @@ static int find_component_response(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_responses; ++i) {
@@ -4444,7 +4499,7 @@ static int find_component_response(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_responses[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4452,16 +4507,16 @@ static int find_component_response(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component header.
  */
-static int find_component_header(const struct OpenAPI_Spec *spec,
-                                 const char *ref,
-                                 struct OpenAPI_Header **_out_val) {
+static enum cdd_c_error
+find_component_header(const struct OpenAPI_Spec *spec, const char *ref,
+                      struct OpenAPI_Header **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_26;
   char *_ast_ref_name_from_prefix_27 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4478,7 +4533,7 @@ static int find_component_header(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_headers; ++i) {
@@ -4488,7 +4543,7 @@ static int find_component_header(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_headers[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4496,16 +4551,16 @@ static int find_component_header(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component request body.
  */
-static int find_component_request_body(const struct OpenAPI_Spec *spec,
-                                       const char *ref,
-                                       struct OpenAPI_RequestBody **_out_val) {
+static enum cdd_c_error
+find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref,
+                            struct OpenAPI_RequestBody **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_28;
   char *_ast_ref_name_from_prefix_29 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4522,7 +4577,7 @@ static int find_component_request_body(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_request_bodies; ++i) {
@@ -4532,7 +4587,7 @@ static int find_component_request_body(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_request_bodies[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4540,16 +4595,16 @@ static int find_component_request_body(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component media type.
  */
-static int find_component_media_type(const struct OpenAPI_Spec *spec,
-                                     const char *ref,
-                                     struct OpenAPI_MediaType **_out_val) {
+static enum cdd_c_error
+find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref,
+                          struct OpenAPI_MediaType **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_30;
   char *_ast_ref_name_from_prefix_31 = NULL;
   char *_ast_json_pointer_unescape_32 = NULL;
@@ -4568,7 +4623,7 @@ static int find_component_media_type(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_32),
@@ -4578,7 +4633,7 @@ static int find_component_media_type(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_media_types; ++i) {
@@ -4589,7 +4644,7 @@ static int find_component_media_type(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_media_types[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4598,15 +4653,16 @@ static int find_component_media_type(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component link.
  */
-static int find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
-                               struct OpenAPI_Link **_out_val) {
+static enum cdd_c_error find_component_link(const struct OpenAPI_Spec *spec,
+                                            const char *ref,
+                                            struct OpenAPI_Link **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_33;
   char *_ast_ref_name_from_prefix_34 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4623,7 +4679,7 @@ static int find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_links; ++i) {
@@ -4633,7 +4689,7 @@ static int find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_links[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4641,16 +4697,16 @@ static int find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component callback.
  */
-static int find_component_callback(const struct OpenAPI_Spec *spec,
-                                   const char *ref,
-                                   struct OpenAPI_Callback **_out_val) {
+static enum cdd_c_error
+find_component_callback(const struct OpenAPI_Spec *spec, const char *ref,
+                        struct OpenAPI_Callback **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_35;
   char *_ast_ref_name_from_prefix_36 = NULL;
   struct ResolvedRefTarget resolved =
@@ -4667,7 +4723,7 @@ static int find_component_callback(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_callbacks; ++i) {
@@ -4677,7 +4733,7 @@ static int find_component_callback(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_callbacks[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4685,16 +4741,16 @@ static int find_component_callback(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Retrieves the component path item.
  */
-static int find_component_path_item(const struct OpenAPI_Spec *spec,
-                                    const char *ref,
-                                    struct OpenAPI_Path **_out_val) {
+static enum cdd_c_error
+find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
+                         struct OpenAPI_Path **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_37;
   char *_ast_ref_name_from_prefix_38 = NULL;
   char *_ast_json_pointer_unescape_39 = NULL;
@@ -4713,7 +4769,7 @@ static int find_component_path_item(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_39),
@@ -4723,7 +4779,7 @@ static int find_component_path_item(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   for (i = 0; i < target->n_component_path_items; ++i) {
@@ -4735,7 +4791,7 @@ static int find_component_path_item(const struct OpenAPI_Spec *spec,
         free(resolved.resolved_ref);
       {
         *_out_val = &target->component_path_items[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -4744,15 +4800,15 @@ static int find_component_path_item(const struct OpenAPI_Spec *spec,
     free(resolved.resolved_ref);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Creates a deep copy of schema ref.
  */
-static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
-                           const struct OpenAPI_SchemaRef *src) {
+static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
+                                        const struct OpenAPI_SchemaRef *src) {
   char *_ast_strdup_50 = NULL;
   char *_ast_strdup_51 = NULL;
   char *_ast_strdup_52 = NULL;
@@ -4786,7 +4842,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   char *_ast_strdup_80 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->schema_is_boolean = src->schema_is_boolean;
   dst->schema_boolean_value = src->schema_boolean_value;
   dst->is_array = src->is_array;
@@ -4797,7 +4853,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->ref_name, &_ast_strdup_50), _ast_strdup_50);
     /* LCOV_EXCL_START */
     if (!dst->ref_name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4806,7 +4862,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_51), _ast_strdup_51);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4816,7 +4872,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->inline_type, &_ast_strdup_52), _ast_strdup_52);
     /* LCOV_EXCL_START */
     if (!dst->inline_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4833,7 +4889,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->format = (c_cdd_strdup(src->format, &_ast_strdup_53), _ast_strdup_53);
     /* LCOV_EXCL_START */
     if (!dst->format)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4843,7 +4899,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->content_type, &_ast_strdup_54), _ast_strdup_54);
     /* LCOV_EXCL_START */
     if (!dst->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4854,7 +4910,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_55);
     /* LCOV_EXCL_START */
     if (!dst->content_media_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4864,7 +4920,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->content_encoding, &_ast_strdup_56), _ast_strdup_56);
     /* LCOV_EXCL_START */
     if (!dst->content_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4874,7 +4930,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->items_format, &_ast_strdup_57), _ast_strdup_57);
     /* LCOV_EXCL_START */
     if (!dst->items_format)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4893,7 +4949,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->items_ref, &_ast_strdup_58), _ast_strdup_58);
     /* LCOV_EXCL_START */
     if (!dst->items_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4905,7 +4961,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_59);
     /* LCOV_EXCL_START */
     if (!dst->items_content_media_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4916,7 +4972,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_60);
     /* LCOV_EXCL_START */
     if (!dst->items_content_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4928,7 +4984,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->summary, &_ast_strdup_61), _ast_strdup_61);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4938,7 +4994,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_62), _ast_strdup_62);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -4967,7 +5023,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                                                  sizeof(struct OpenAPI_Any));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -4999,7 +5055,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                                                     sizeof(struct OpenAPI_Any));
     /* LCOV_EXCL_START */
     if (!dst->enum_values)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_enum_values = src->n_enum_values;
     for (i = 0; i < src->n_enum_values; ++i) {
@@ -5016,7 +5072,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->schema_extra_json, &_ast_strdup_63), _ast_strdup_63);
     /* LCOV_EXCL_START */
     if (!dst->schema_extra_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5027,7 +5083,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_64);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5037,7 +5093,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->external_docs.url, &_ast_strdup_65), _ast_strdup_65);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.url)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5048,7 +5104,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_66);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5060,7 +5116,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_67);
     /* LCOV_EXCL_START */
     if (!dst->discriminator.property_name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5071,7 +5127,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_68);
     /* LCOV_EXCL_START */
     if (!dst->discriminator.default_mapping)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5082,7 +5138,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_69);
     /* LCOV_EXCL_START */
     if (!dst->discriminator.extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5091,7 +5147,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->discriminator.n_mapping, sizeof(struct OpenAPI_DiscriminatorMap));
     /* LCOV_EXCL_START */
     if (!dst->discriminator.mapping)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->discriminator.n_mapping = src->discriminator.n_mapping;
     for (i = 0; i < src->discriminator.n_mapping; ++i) {
@@ -5102,7 +5158,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
              _ast_strdup_70);
         /* LCOV_EXCL_START */
         if (!dst->discriminator.mapping[i].value)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5114,7 +5170,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
              _ast_strdup_71);
         /* LCOV_EXCL_START */
         if (!dst->discriminator.mapping[i].schema)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5129,7 +5185,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->xml.name, &_ast_strdup_72), _ast_strdup_72);
     /* LCOV_EXCL_START */
     if (!dst->xml.name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5139,7 +5195,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->xml.namespace_uri, &_ast_strdup_73), _ast_strdup_73);
     /* LCOV_EXCL_START */
     if (!dst->xml.namespace_uri)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5149,7 +5205,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->xml.prefix, &_ast_strdup_74), _ast_strdup_74);
     /* LCOV_EXCL_START */
     if (!dst->xml.prefix)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5160,7 +5216,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
          _ast_strdup_75);
     /* LCOV_EXCL_START */
     if (!dst->xml.extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5174,7 +5230,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_items_enum_values, sizeof(struct OpenAPI_Any));
     /* LCOV_EXCL_START */
     if (!dst->items_enum_values)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_items_enum_values = src->n_items_enum_values;
     for (i = 0; i < src->n_items_enum_values; ++i) {
@@ -5202,7 +5258,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->pattern, &_ast_strdup_76), _ast_strdup_76);
     /* LCOV_EXCL_START */
     if (!dst->pattern)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5227,7 +5283,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->items_pattern, &_ast_strdup_77), _ast_strdup_77);
     /* LCOV_EXCL_START */
     if (!dst->items_pattern)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5249,7 +5305,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_items_examples, sizeof(struct OpenAPI_Any));
     /* LCOV_EXCL_START */
     if (!dst->items_examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_items_examples = src->n_items_examples;
     for (i = 0; i < src->n_items_examples; ++i) {
@@ -5285,7 +5341,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (c_cdd_strdup(src->items_extra_json, &_ast_strdup_78), _ast_strdup_78);
     /* LCOV_EXCL_START */
     if (!dst->items_extra_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5303,7 +5359,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_all_of, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->all_of)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_all_of = src->n_all_of;
     for (i = 0; i < src->n_all_of; ++i) {
@@ -5317,7 +5373,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_any_of, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->any_of)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_any_of = src->n_any_of;
     for (i = 0; i < src->n_any_of; ++i) {
@@ -5331,7 +5387,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_one_of, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->one_of)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_one_of = src->n_one_of;
     for (i = 0; i < src->n_one_of; ++i) {
@@ -5345,7 +5401,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->not_schema)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int _rc = copy_schema_ref(dst->not_schema, src->not_schema);
@@ -5358,7 +5414,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->if_schema)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int _rc = copy_schema_ref(dst->if_schema, src->if_schema);
@@ -5371,7 +5427,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->then_schema)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int _rc = copy_schema_ref(dst->then_schema, src->then_schema);
@@ -5384,7 +5440,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
     /* LCOV_EXCL_START */
     if (!dst->else_schema)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int _rc = copy_schema_ref(dst->else_schema, src->else_schema);
@@ -5398,7 +5454,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         src->n_multipart_fields, sizeof(struct OpenAPI_MultipartField));
     /* LCOV_EXCL_START */
     if (!dst->multipart_fields)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_multipart_fields = src->n_multipart_fields;
     for (i = 0; i < src->n_multipart_fields; ++i) {
@@ -5412,7 +5468,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
             (c_cdd_strdup(src_field->name, &_ast_strdup_79), _ast_strdup_79);
         /* LCOV_EXCL_START */
         if (!dst_field->name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5422,22 +5478,23 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
             (c_cdd_strdup(src_field->type, &_ast_strdup_80), _ast_strdup_80);
         /* LCOV_EXCL_START */
         if (!dst_field->type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of item schema as array.
  */
-static int copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
-                                     const struct OpenAPI_SchemaRef *item) {
+static enum cdd_c_error
+copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
+                          const struct OpenAPI_SchemaRef *item) {
   if (!dst || !item)
-    return 0;
+    return CDD_C_SUCCESS;
   {
     int _rc = copy_schema_ref(dst, item);
     if (_rc != 0)
@@ -5450,18 +5507,18 @@ static int copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
     dst->schema_is_boolean = 0;
     dst->schema_boolean_value = 0;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of any value.
  */
-static int copy_any_value(struct OpenAPI_Any *dst,
-                          const struct OpenAPI_Any *src) {
+static enum cdd_c_error copy_any_value(struct OpenAPI_Any *dst,
+                                       const struct OpenAPI_Any *src) {
   char *_ast_strdup_81 = NULL;
   char *_ast_strdup_82 = NULL;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->type = src->type;
   dst->number = src->number;
   dst->boolean = src->boolean;
@@ -5470,7 +5527,7 @@ static int copy_any_value(struct OpenAPI_Any *dst,
     dst->string = (c_cdd_strdup(src->string, &_ast_strdup_81), _ast_strdup_81);
     /* LCOV_EXCL_START */
     if (!dst->string)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */ else /* LCOV_EXCL_START */
@@ -5478,17 +5535,17 @@ static int copy_any_value(struct OpenAPI_Any *dst,
       dst->json = (c_cdd_strdup(src->json, &_ast_strdup_82), _ast_strdup_82);
       /* LCOV_EXCL_START */
       if (!dst->json)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     } /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of server object.
  */
-static int copy_server_object(struct OpenAPI_Server *dst,
-                              const struct OpenAPI_Server *src) {
+static enum cdd_c_error copy_server_object(struct OpenAPI_Server *dst,
+                                           const struct OpenAPI_Server *src) {
   char *_ast_strdup_83 = NULL;
   char *_ast_strdup_84 = NULL;
   char *_ast_strdup_85 = NULL;
@@ -5500,13 +5557,13 @@ static int copy_server_object(struct OpenAPI_Server *dst,
   char *_ast_strdup_91 = NULL;
   size_t v, e;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->url) {
     dst->url = (c_cdd_strdup(src->url, &_ast_strdup_83), _ast_strdup_83);
     /* LCOV_EXCL_START */
     if (!dst->url)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5516,7 +5573,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_84), _ast_strdup_84);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5525,7 +5582,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_85), _ast_strdup_85);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5535,7 +5592,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_86), _ast_strdup_86);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5544,7 +5601,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
         src->n_variables, sizeof(struct OpenAPI_ServerVariable));
     /* LCOV_EXCL_START */
     if (!dst->variables)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_variables = src->n_variables;
     for (v = 0; v < src->n_variables; ++v) {
@@ -5556,7 +5613,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
             (c_cdd_strdup(src_var->name, &_ast_strdup_87), _ast_strdup_87);
         /* LCOV_EXCL_START */
         if (!dst_var->name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5567,7 +5624,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
              _ast_strdup_88);
         /* LCOV_EXCL_START */
         if (!dst_var->default_value)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5578,7 +5635,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
              _ast_strdup_89);
         /* LCOV_EXCL_START */
         if (!dst_var->description)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5589,7 +5646,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
              _ast_strdup_90);
         /* LCOV_EXCL_START */
         if (!dst_var->extensions_json)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5598,7 +5655,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
             (char **)calloc(src_var->n_enum_values, sizeof(char *));
         /* LCOV_EXCL_START */
         if (!dst_var->enum_values)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         dst_var->n_enum_values = src_var->n_enum_values;
         for (e = 0; e < src_var->n_enum_values; ++e) {
@@ -5609,7 +5666,7 @@ static int copy_server_object(struct OpenAPI_Server *dst,
                  _ast_strdup_91);
             /* LCOV_EXCL_START */
             if (!dst_var->enum_values[e])
-              return ENOMEM;
+              return CDD_C_ERROR_MEMORY;
             /* LCOV_EXCL_STOP */
           }
           /* LCOV_EXCL_STOP */
@@ -5617,14 +5674,14 @@ static int copy_server_object(struct OpenAPI_Server *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of link fields.
  */
-static int copy_link_fields(struct OpenAPI_Link *dst,
-                            const struct OpenAPI_Link *src) {
+static enum cdd_c_error copy_link_fields(struct OpenAPI_Link *dst,
+                                         const struct OpenAPI_Link *src) {
   char *_ast_strdup_92 = NULL;
   char *_ast_strdup_93 = NULL;
   char *_ast_strdup_94 = NULL;
@@ -5633,14 +5690,14 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
   char *_ast_strdup_97 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->summary) {
     dst->summary =
         (c_cdd_strdup(src->summary, &_ast_strdup_92), _ast_strdup_92);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5650,7 +5707,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_93), _ast_strdup_93);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5660,7 +5717,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_94), _ast_strdup_94);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5670,7 +5727,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         (c_cdd_strdup(src->operation_ref, &_ast_strdup_95), _ast_strdup_95);
     /* LCOV_EXCL_START */
     if (!dst->operation_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5680,7 +5737,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         (c_cdd_strdup(src->operation_id, &_ast_strdup_96), _ast_strdup_96);
     /* LCOV_EXCL_START */
     if (!dst->operation_id)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5689,7 +5746,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         src->n_parameters, sizeof(struct OpenAPI_LinkParam));
     /* LCOV_EXCL_START */
     if (!dst->parameters)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
@@ -5700,7 +5757,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
              _ast_strdup_97);
         /* LCOV_EXCL_START */
         if (!dst->parameters[i].name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -5725,7 +5782,7 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
     /* LCOV_EXCL_START */
     if (!dst->server)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->server_set = 1;
     {
@@ -5734,14 +5791,15 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         return _rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of parameter fields.
  */
-static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
-                                 const struct OpenAPI_Parameter *src) {
+static enum cdd_c_error
+copy_parameter_fields(struct OpenAPI_Parameter *dst,
+                      const struct OpenAPI_Parameter *src) {
   char *_ast_strdup_98 = NULL;
   char *_ast_strdup_99 = NULL;
   char *_ast_strdup_100 = NULL;
@@ -5749,7 +5807,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
   char *_ast_strdup_102 = NULL;
   char *_ast_strdup_103 = NULL;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->in = src->in;
   dst->required = src->required;
   dst->deprecated = src->deprecated;
@@ -5768,7 +5826,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_98), _ast_strdup_98);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5777,7 +5835,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
     dst->type = (c_cdd_strdup(src->type, &_ast_strdup_99), _ast_strdup_99);
     /* LCOV_EXCL_START */
     if (!dst->type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5787,7 +5845,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_100), _ast_strdup_100);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5797,7 +5855,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
         (c_cdd_strdup(src->content_type, &_ast_strdup_101), _ast_strdup_101);
     /* LCOV_EXCL_START */
     if (!dst->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5807,7 +5865,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
         (c_cdd_strdup(src->content_ref, &_ast_strdup_102), _ast_strdup_102);
     /* LCOV_EXCL_START */
     if (!dst->content_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5834,7 +5892,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
         (c_cdd_strdup(src->items_type, &_ast_strdup_103), _ast_strdup_103);
     /* LCOV_EXCL_START */
     if (!dst->items_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5852,7 +5910,7 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
         src->n_examples, sizeof(struct OpenAPI_Example));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -5863,21 +5921,21 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of header fields.
  */
-static int copy_header_fields(struct OpenAPI_Header *dst,
-                              const struct OpenAPI_Header *src) {
+static enum cdd_c_error copy_header_fields(struct OpenAPI_Header *dst,
+                                           const struct OpenAPI_Header *src) {
   char *_ast_strdup_104 = NULL;
   char *_ast_strdup_105 = NULL;
   char *_ast_strdup_106 = NULL;
   char *_ast_strdup_107 = NULL;
   char *_ast_strdup_108 = NULL;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->required = src->required;
   dst->deprecated = src->deprecated;
   dst->deprecated_set = src->deprecated_set;
@@ -5893,7 +5951,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_104), _ast_strdup_104);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5903,7 +5961,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
         (c_cdd_strdup(src->content_type, &_ast_strdup_105), _ast_strdup_105);
     /* LCOV_EXCL_START */
     if (!dst->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5913,7 +5971,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
         (c_cdd_strdup(src->content_ref, &_ast_strdup_106), _ast_strdup_106);
     /* LCOV_EXCL_START */
     if (!dst->content_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5939,7 +5997,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
     dst->type = (c_cdd_strdup(src->type, &_ast_strdup_107), _ast_strdup_107);
     /* LCOV_EXCL_START */
     if (!dst->type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5949,7 +6007,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
         (c_cdd_strdup(src->items_type, &_ast_strdup_108), _ast_strdup_108);
     /* LCOV_EXCL_START */
     if (!dst->items_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -5967,7 +6025,7 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
         src->n_examples, sizeof(struct OpenAPI_Example));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -5978,20 +6036,21 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of encoding fields.
  */
-static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
-                                const struct OpenAPI_Encoding *src) {
+static enum cdd_c_error
+copy_encoding_fields(struct OpenAPI_Encoding *dst,
+                     const struct OpenAPI_Encoding *src) {
   char *_ast_strdup_109 = NULL;
   char *_ast_strdup_110 = NULL;
   char *_ast_strdup_111 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->style = src->style;
   dst->style_set = src->style_set;
   dst->explode = src->explode;
@@ -6003,7 +6062,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_109), _ast_strdup_109);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6013,7 +6072,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         (c_cdd_strdup(src->content_type, &_ast_strdup_110), _ast_strdup_110);
     /* LCOV_EXCL_START */
     if (!dst->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6022,7 +6081,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         src->n_headers, sizeof(struct OpenAPI_Header));
     /* LCOV_EXCL_START */
     if (!dst->headers)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_headers = src->n_headers;
     for (i = 0; i < src->n_headers; ++i) {
@@ -6034,7 +6093,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
             (c_cdd_strdup(src_hdr->name, &_ast_strdup_111), _ast_strdup_111);
         /* LCOV_EXCL_START */
         if (!dst_hdr->name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -6050,7 +6109,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         src->n_encoding, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_encoding = src->n_encoding;
     for (i = 0; i < src->n_encoding; ++i) {
@@ -6066,7 +6125,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         src->n_prefix_encoding, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->prefix_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_prefix_encoding = src->n_prefix_encoding;
     for (i = 0; i < src->n_prefix_encoding; ++i) {
@@ -6083,7 +6142,7 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->item_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->item_encoding_set = 1;
     {
@@ -6092,25 +6151,26 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         return _rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of media type fields.
  */
-static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
-                                  const struct OpenAPI_MediaType *src) {
+static enum cdd_c_error
+copy_media_type_fields(struct OpenAPI_MediaType *dst,
+                       const struct OpenAPI_MediaType *src) {
   char *_ast_strdup_112 = NULL;
   char *_ast_strdup_113 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->name && !dst->name) {
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_112), _ast_strdup_112);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6119,7 +6179,7 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_113), _ast_strdup_113);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6155,7 +6215,7 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
         src->n_examples, sizeof(struct OpenAPI_Example));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -6171,7 +6231,7 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
         src->n_encoding, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_encoding = src->n_encoding;
     for (i = 0; i < src->n_encoding; ++i) {
@@ -6187,7 +6247,7 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
         src->n_prefix_encoding, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->prefix_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_prefix_encoding = src->n_prefix_encoding;
     for (i = 0; i < src->n_prefix_encoding; ++i) {
@@ -6204,7 +6264,7 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
         (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!dst->item_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->item_encoding_set = 1;
     {
@@ -6213,42 +6273,42 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
         return _rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of media type array.
  */
-static int copy_media_type_array(struct OpenAPI_MediaType **dst,
-                                 size_t *dst_count,
-                                 const struct OpenAPI_MediaType *src,
-                                 size_t src_count) {
+static enum cdd_c_error
+copy_media_type_array(struct OpenAPI_MediaType **dst, size_t *dst_count,
+                      const struct OpenAPI_MediaType *src, size_t src_count) {
   size_t i;
   if (!dst || !dst_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = NULL;
   *dst_count = 0;
   if (!src || src_count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = (struct OpenAPI_MediaType *)calloc(src_count,
                                             sizeof(struct OpenAPI_MediaType));
   /* LCOV_EXCL_START */
   if (!*dst)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
     if (copy_media_type_fields(&(*dst)[i], &src[i]) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of response fields.
  */
-static int copy_response_fields(struct OpenAPI_Response *dst,
-                                const struct OpenAPI_Response *src) {
+static enum cdd_c_error
+copy_response_fields(struct OpenAPI_Response *dst,
+                     const struct OpenAPI_Response *src) {
   char *_ast_strdup_114 = NULL;
   char *_ast_strdup_115 = NULL;
   char *_ast_strdup_116 = NULL;
@@ -6258,14 +6318,14 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
   char *_ast_strdup_120 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->summary) {
     dst->summary =
         (c_cdd_strdup(src->summary, &_ast_strdup_114), _ast_strdup_114);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6275,7 +6335,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_115), _ast_strdup_115);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6285,7 +6345,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         (c_cdd_strdup(src->content_type, &_ast_strdup_116), _ast_strdup_116);
     /* LCOV_EXCL_START */
     if (!dst->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6295,7 +6355,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         (c_cdd_strdup(src->content_ref, &_ast_strdup_117), _ast_strdup_117);
     /* LCOV_EXCL_START */
     if (!dst->content_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6321,7 +6381,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         src->n_examples, sizeof(struct OpenAPI_Example));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -6337,7 +6397,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         src->n_headers, sizeof(struct OpenAPI_Header));
     /* LCOV_EXCL_START */
     if (!dst->headers)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_headers = src->n_headers;
     for (i = 0; i < src->n_headers; ++i) {
@@ -6349,7 +6409,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
             (c_cdd_strdup(src_hdr->name, &_ast_strdup_118), _ast_strdup_118);
         /* LCOV_EXCL_START */
         if (!dst_hdr->name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -6365,7 +6425,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
                                                sizeof(struct OpenAPI_Link));
     /* LCOV_EXCL_START */
     if (!dst->links)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_links = src->n_links;
     for (i = 0; i < src->n_links; ++i) {
@@ -6377,7 +6437,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
             (c_cdd_strdup(src_link->name, &_ast_strdup_119), _ast_strdup_119);
         /* LCOV_EXCL_START */
         if (!dst_link->name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -6387,7 +6447,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
             (c_cdd_strdup(src_link->ref, &_ast_strdup_120), _ast_strdup_120);
         /* LCOV_EXCL_START */
         if (!dst_link->ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -6404,7 +6464,7 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
 /**
  * @brief Creates a deep copy of security requirement sets.
  */
-static int copy_security_requirement_sets(
+static enum cdd_c_error copy_security_requirement_sets(
     struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
     const struct OpenAPI_SecurityRequirementSet *src, size_t src_count) {
   char *_ast_strdup_121 = NULL;
@@ -6412,16 +6472,16 @@ static int copy_security_requirement_sets(
   char *_ast_strdup_123 = NULL;
   size_t i, j, k;
   if (!dst || !dst_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = NULL;
   *dst_count = 0;
   if (!src || src_count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   *dst = (struct OpenAPI_SecurityRequirementSet *)calloc(
       src_count, sizeof(struct OpenAPI_SecurityRequirementSet));
   /* LCOV_EXCL_START */
   if (!*dst)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
@@ -6434,7 +6494,7 @@ static int copy_security_requirement_sets(
            _ast_strdup_121);
       /* LCOV_EXCL_START */
       if (!dst_set->extensions_json)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -6443,7 +6503,7 @@ static int copy_security_requirement_sets(
           src_set->n_requirements, sizeof(struct OpenAPI_SecurityRequirement));
       /* LCOV_EXCL_START */
       if (!dst_set->requirements)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       dst_set->n_requirements = src_set->n_requirements;
       for (j = 0; j < src_set->n_requirements; ++j) {
@@ -6456,7 +6516,7 @@ static int copy_security_requirement_sets(
                              _ast_strdup_122);
           /* LCOV_EXCL_START */
           if (!dst_req->scheme)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -6464,7 +6524,7 @@ static int copy_security_requirement_sets(
           dst_req->scopes = (char **)calloc(src_req->n_scopes, sizeof(char *));
           /* LCOV_EXCL_START */
           if (!dst_req->scopes)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
           dst_req->n_scopes = src_req->n_scopes;
           for (k = 0; k < src_req->n_scopes; ++k) {
@@ -6475,7 +6535,7 @@ static int copy_security_requirement_sets(
                    _ast_strdup_123);
               /* LCOV_EXCL_START */
               if (!dst_req->scopes[k])
-                return ENOMEM;
+                return CDD_C_ERROR_MEMORY;
               /* LCOV_EXCL_STOP */
             }
             /* LCOV_EXCL_STOP */
@@ -6484,14 +6544,15 @@ static int copy_security_requirement_sets(
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of callback fields.
  */
-static int copy_callback_fields(struct OpenAPI_Callback *dst,
-                                const struct OpenAPI_Callback *src) {
+static enum cdd_c_error
+copy_callback_fields(struct OpenAPI_Callback *dst,
+                     const struct OpenAPI_Callback *src) {
   char *_ast_strdup_124 = NULL;
   char *_ast_strdup_125 = NULL;
   char *_ast_strdup_126 = NULL;
@@ -6499,13 +6560,13 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
   char *_ast_strdup_128 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (!dst->name && src->name) {
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_124), _ast_strdup_124);
     /* LCOV_EXCL_START */
     if (!dst->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6514,7 +6575,7 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_125), _ast_strdup_125);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6524,7 +6585,7 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
         (c_cdd_strdup(src->summary, &_ast_strdup_126), _ast_strdup_126);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6534,7 +6595,7 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_127), _ast_strdup_127);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6544,7 +6605,7 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_128), _ast_strdup_128);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6553,7 +6614,7 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
                                                sizeof(struct OpenAPI_Path));
     /* LCOV_EXCL_START */
     if (!dst->paths)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_paths = src->n_paths;
     for (i = 0; i < src->n_paths; ++i) {
@@ -6564,14 +6625,15 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of operation fields.
  */
-static int copy_operation_fields(struct OpenAPI_Operation *dst,
-                                 const struct OpenAPI_Operation *src) {
+static enum cdd_c_error
+copy_operation_fields(struct OpenAPI_Operation *dst,
+                      const struct OpenAPI_Operation *src) {
   char *_ast_strdup_129 = NULL;
   char *_ast_strdup_130 = NULL;
   char *_ast_strdup_131 = NULL;
@@ -6586,7 +6648,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
   char *_ast_strdup_140 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   dst->verb = src->verb;
   dst->is_additional = src->is_additional;
   dst->deprecated = src->deprecated;
@@ -6597,7 +6659,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->method, &_ast_strdup_129), _ast_strdup_129);
     /* LCOV_EXCL_START */
     if (!dst->method)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6607,7 +6669,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->operation_id, &_ast_strdup_130), _ast_strdup_130);
     /* LCOV_EXCL_START */
     if (!dst->operation_id)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6617,7 +6679,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->summary, &_ast_strdup_131), _ast_strdup_131);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6627,7 +6689,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_132), _ast_strdup_132);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6637,7 +6699,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_133), _ast_strdup_133);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6654,7 +6716,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         src->n_parameters, sizeof(struct OpenAPI_Parameter));
     /* LCOV_EXCL_START */
     if (!dst->parameters)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
@@ -6670,7 +6732,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
     dst->tags = (char **)calloc(src->n_tags, sizeof(char *));
     /* LCOV_EXCL_START */
     if (!dst->tags)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_tags = src->n_tags;
     for (i = 0; i < src->n_tags; ++i) {
@@ -6680,7 +6742,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
             (c_cdd_strdup(src->tags[i], &_ast_strdup_134), _ast_strdup_134);
         /* LCOV_EXCL_START */
         if (!dst->tags[i])
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -6709,7 +6771,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
          _ast_strdup_135);
     /* LCOV_EXCL_START */
     if (!dst->req_body_description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6720,7 +6782,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
          _ast_strdup_136);
     /* LCOV_EXCL_START */
     if (!dst->req_body_extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6730,7 +6792,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         (c_cdd_strdup(src->req_body_ref, &_ast_strdup_137), _ast_strdup_137);
     /* LCOV_EXCL_START */
     if (!dst->req_body_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6741,7 +6803,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
          _ast_strdup_138);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6752,7 +6814,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
          _ast_strdup_139);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.url)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6763,7 +6825,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
          _ast_strdup_140);
     /* LCOV_EXCL_START */
     if (!dst->external_docs.extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6772,7 +6834,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         src->n_servers, sizeof(struct OpenAPI_Server));
     /* LCOV_EXCL_START */
     if (!dst->servers)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_servers = src->n_servers;
     for (i = 0; i < src->n_servers; ++i) {
@@ -6788,7 +6850,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         src->n_responses, sizeof(struct OpenAPI_Response));
     /* LCOV_EXCL_START */
     if (!dst->responses)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_responses = src->n_responses;
     for (i = 0; i < src->n_responses; ++i) {
@@ -6804,7 +6866,7 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
         src->n_callbacks, sizeof(struct OpenAPI_Callback));
     /* LCOV_EXCL_START */
     if (!dst->callbacks)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_callbacks = src->n_callbacks;
     for (i = 0; i < src->n_callbacks; ++i) {
@@ -6815,14 +6877,14 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of path fields.
  */
-static int copy_path_fields(struct OpenAPI_Path *dst,
-                            const struct OpenAPI_Path *src) {
+static enum cdd_c_error copy_path_fields(struct OpenAPI_Path *dst,
+                                         const struct OpenAPI_Path *src) {
   char *_ast_strdup_141 = NULL;
   char *_ast_strdup_142 = NULL;
   char *_ast_strdup_143 = NULL;
@@ -6830,13 +6892,13 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
   char *_ast_strdup_145 = NULL;
   size_t i;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (!dst->route && src->route) {
     dst->route = (c_cdd_strdup(src->route, &_ast_strdup_141), _ast_strdup_141);
     /* LCOV_EXCL_START */
     if (!dst->route)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6845,7 +6907,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_142), _ast_strdup_142);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6855,7 +6917,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         (c_cdd_strdup(src->summary, &_ast_strdup_143), _ast_strdup_143);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6865,7 +6927,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_144), _ast_strdup_144);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6875,7 +6937,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_145), _ast_strdup_145);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6884,7 +6946,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         src->n_parameters, sizeof(struct OpenAPI_Parameter));
     /* LCOV_EXCL_START */
     if (!dst->parameters)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
@@ -6901,7 +6963,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         src->n_servers, sizeof(struct OpenAPI_Server));
     /* LCOV_EXCL_START */
     if (!dst->servers)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_servers = src->n_servers;
     for (i = 0; i < src->n_servers; ++i) {
@@ -6917,7 +6979,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         src->n_operations, sizeof(struct OpenAPI_Operation));
     /* LCOV_EXCL_START */
     if (!dst->operations)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_operations = src->n_operations;
     for (i = 0; i < src->n_operations; ++i) {
@@ -6935,7 +6997,7 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
         src->n_additional_operations, sizeof(struct OpenAPI_Operation));
     /* LCOV_EXCL_START */
     if (!dst->additional_operations)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_additional_operations = src->n_additional_operations;
     for (i = 0; i < src->n_additional_operations; ++i) {
@@ -6947,13 +7009,14 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses info from the given input.
  */
-static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_info(const JSON_Object *root_obj,
+                                   struct OpenAPI_Spec *out) {
   char *_ast_strdup_146 = NULL;
   char *_ast_strdup_147 = NULL;
   char *_ast_strdup_148 = NULL;
@@ -6971,11 +7034,11 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
   const char *val;
 
   if (!root_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   info_obj = json_object_get_object(root_obj, "info");
   if (!info_obj)
-    return 0;
+    return CDD_C_SUCCESS;
 
   val = json_object_get_string(info_obj, "title");
   /* LCOV_EXCL_START */
@@ -6983,7 +7046,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     out->info.title = (c_cdd_strdup(val, &_ast_strdup_146), _ast_strdup_146);
     /* LCOV_EXCL_START */
     if (!out->info.title)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -6993,7 +7056,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     out->info.summary = (c_cdd_strdup(val, &_ast_strdup_147), _ast_strdup_147);
     /* LCOV_EXCL_START */
     if (!out->info.summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7004,7 +7067,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
         (c_cdd_strdup(val, &_ast_strdup_148), _ast_strdup_148);
     /* LCOV_EXCL_START */
     if (!out->info.description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7015,7 +7078,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
         (c_cdd_strdup(val, &_ast_strdup_149), _ast_strdup_149);
     /* LCOV_EXCL_START */
     if (!out->info.terms_of_service)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7025,7 +7088,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     out->info.version = (c_cdd_strdup(val, &_ast_strdup_150), _ast_strdup_150);
     /* LCOV_EXCL_START */
     if (!out->info.version)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7044,7 +7107,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(val, &_ast_strdup_151), _ast_strdup_151);
       /* LCOV_EXCL_START */
       if (!out->info.contact.name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7055,7 +7118,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(val, &_ast_strdup_152), _ast_strdup_152);
       /* LCOV_EXCL_START */
       if (!out->info.contact.url)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7066,7 +7129,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(val, &_ast_strdup_153), _ast_strdup_153);
       /* LCOV_EXCL_START */
       if (!out->info.contact.email)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7088,19 +7151,19 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     /* LCOV_EXCL_START */
 
     if (!lic_name || !*lic_name)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
 
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (lic_identifier && lic_url)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
 
     out->info.license.name =
         (c_cdd_strdup(lic_name, &_ast_strdup_154), _ast_strdup_154);
     /* LCOV_EXCL_START */
     if (!out->info.license.name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (lic_identifier) {
@@ -7108,7 +7171,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(lic_identifier, &_ast_strdup_155), _ast_strdup_155);
       /* LCOV_EXCL_START */
       if (!out->info.license.identifier)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7118,7 +7181,7 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(lic_url, &_ast_strdup_156), _ast_strdup_156);
       /* LCOV_EXCL_START */
       if (!out->info.license.url)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7130,21 +7193,21 @@ static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses external docs from the given input.
  */
-static int parse_external_docs(const JSON_Object *obj,
-                               struct OpenAPI_ExternalDocs *out) {
+static enum cdd_c_error parse_external_docs(const JSON_Object *obj,
+                                            struct OpenAPI_ExternalDocs *out) {
   char *_ast_strdup_157 = NULL;
   char *_ast_strdup_158 = NULL;
   const char *desc;
   const char *url;
 
   if (!obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   desc = json_object_get_string(obj, "description");
   /* LCOV_EXCL_START */
@@ -7152,19 +7215,19 @@ static int parse_external_docs(const JSON_Object *obj,
     out->description = (c_cdd_strdup(desc, &_ast_strdup_157), _ast_strdup_157);
     /* LCOV_EXCL_START */
     if (!out->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   url = json_object_get_string(obj, "url");
   /* LCOV_EXCL_START */
   if (!url || !*url)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   out->url = (c_cdd_strdup(url, &_ast_strdup_158), _ast_strdup_158);
   /* LCOV_EXCL_START */
   if (!out->url)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   {
     int _rc = collect_extensions(obj, &out->extensions_json);
@@ -7172,14 +7235,15 @@ static int parse_external_docs(const JSON_Object *obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses discriminator object from the given input.
  */
-static int parse_discriminator_object(const JSON_Object *obj,
-                                      struct OpenAPI_Discriminator *out) {
+static enum cdd_c_error
+parse_discriminator_object(const JSON_Object *obj,
+                           struct OpenAPI_Discriminator *out) {
   char *_ast_strdup_159 = NULL;
   char *_ast_strdup_160 = NULL;
   char *_ast_strdup_161 = NULL;
@@ -7190,7 +7254,7 @@ static int parse_discriminator_object(const JSON_Object *obj,
   size_t i, count, used;
 
   if (!obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   prop = json_object_get_string(obj, "propertyName");
   /* LCOV_EXCL_START */
@@ -7199,7 +7263,7 @@ static int parse_discriminator_object(const JSON_Object *obj,
         (c_cdd_strdup(prop, &_ast_strdup_159), _ast_strdup_159);
     /* LCOV_EXCL_START */
     if (!out->property_name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7211,7 +7275,7 @@ static int parse_discriminator_object(const JSON_Object *obj,
         (c_cdd_strdup(default_mapping, &_ast_strdup_160), _ast_strdup_160);
     /* LCOV_EXCL_START */
     if (!out->default_mapping)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7231,7 +7295,7 @@ static int parse_discriminator_object(const JSON_Object *obj,
           used, sizeof(struct OpenAPI_DiscriminatorMap));
       /* LCOV_EXCL_START */
       if (!out->mapping)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       out->n_mapping = used;
       used = 0;
@@ -7247,13 +7311,13 @@ static int parse_discriminator_object(const JSON_Object *obj,
             (c_cdd_strdup(name, &_ast_strdup_161), _ast_strdup_161);
         /* LCOV_EXCL_START */
         if (!out->mapping[used].value)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         out->mapping[used].schema =
             (c_cdd_strdup(val, &_ast_strdup_162), _ast_strdup_162);
         /* LCOV_EXCL_START */
         if (!out->mapping[used].schema)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         used++;
       }
@@ -7267,13 +7331,14 @@ static int parse_discriminator_object(const JSON_Object *obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses xml object from the given input.
  */
-static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
+static enum cdd_c_error parse_xml_object(const JSON_Object *obj,
+                                         struct OpenAPI_Xml *out) {
   enum OpenAPI_XmlNodeType _ast_parse_xml_node_type_40;
   char *_ast_strdup_163 = NULL;
   char *_ast_strdup_164 = NULL;
@@ -7284,7 +7349,7 @@ static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
   const char *prefix;
 
   if (!obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   node_type = json_object_get_string(obj, "nodeType");
   if (node_type) {
@@ -7300,7 +7365,7 @@ static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
     out->name = (c_cdd_strdup(name, &_ast_strdup_163), _ast_strdup_163);
     /* LCOV_EXCL_START */
     if (!out->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7311,7 +7376,7 @@ static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
     out->namespace_uri = (c_cdd_strdup(ns, &_ast_strdup_164), _ast_strdup_164);
     /* LCOV_EXCL_START */
     if (!out->namespace_uri)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7322,7 +7387,7 @@ static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
     out->prefix = (c_cdd_strdup(prefix, &_ast_strdup_165), _ast_strdup_165);
     /* LCOV_EXCL_START */
     if (!out->prefix)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7343,13 +7408,14 @@ static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses tags from the given input.
  */
-static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_tags(const JSON_Object *root_obj,
+                                   struct OpenAPI_Spec *out) {
   char *_ast_strdup_166 = NULL;
   char *_ast_strdup_167 = NULL;
   char *_ast_strdup_168 = NULL;
@@ -7359,20 +7425,20 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
   size_t count, i;
 
   if (!root_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   tags_arr = json_object_get_array(root_obj, "tags");
   if (!tags_arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(tags_arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->tags = (struct OpenAPI_Tag *)calloc(count, sizeof(struct OpenAPI_Tag));
   /* LCOV_EXCL_START */
   if (!out->tags)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_tags = count;
 
@@ -7388,20 +7454,20 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     /* LCOV_EXCL_START */
 
     if (!name || !*name)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
 
     /* LCOV_EXCL_STOP */
     {
       size_t k;
       for (k = 0; k < i; ++k) {
         if (out->tags[k].name && strcmp(out->tags[k].name, name) == 0)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
     out->tags[i].name = (c_cdd_strdup(name, &_ast_strdup_166), _ast_strdup_166);
     /* LCOV_EXCL_START */
     if (!out->tags[i].name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (summary) {
@@ -7409,7 +7475,7 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(summary, &_ast_strdup_167), _ast_strdup_167);
       /* LCOV_EXCL_START */
       if (!out->tags[i].summary)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7419,7 +7485,7 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(description, &_ast_strdup_168), _ast_strdup_168);
       /* LCOV_EXCL_START */
       if (!out->tags[i].description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7429,7 +7495,7 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(parent, &_ast_strdup_169), _ast_strdup_169);
       /* LCOV_EXCL_START */
       if (!out->tags[i].parent)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7439,7 +7505,7 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
           (c_cdd_strdup(kind, &_ast_strdup_170), _ast_strdup_170);
       /* LCOV_EXCL_START */
       if (!out->tags[i].kind)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -7455,39 +7521,39 @@ static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the tag index by name operation.
  */
-static int tag_index_by_name(const struct OpenAPI_Spec *spec,
-                             const char *name) {
+static enum cdd_c_error tag_index_by_name(const struct OpenAPI_Spec *spec,
+                                          const char *name) {
   size_t i;
   if (!spec || !name)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   for (i = 0; i < spec->n_tags; ++i) {
     if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
       return (int)i;
   }
-  return -1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the detect tag cycle operation.
  */
-static int detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
-                            int *state) {
+static enum cdd_c_error detect_tag_cycle(const struct OpenAPI_Spec *spec,
+                                         size_t idx, int *state) {
   int parent_idx;
   const char *parent;
   if (!spec || !state || idx >= spec->n_tags)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (state[idx] == 1)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
   if (state[idx] == 2)
-    return 0;
+    return CDD_C_SUCCESS;
   state[idx] = 1;
   parent = spec->tags[idx].parent;
   if (parent && *parent) {
@@ -7495,29 +7561,29 @@ static int detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
     /* LCOV_EXCL_START */
     if (parent_idx >= 0) {
       if (detect_tag_cycle(spec, (size_t)parent_idx, state))
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
     }
     /* LCOV_EXCL_STOP */
   }
   state[idx] = 2;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate tag parents operation.
  */
-static int validate_tag_parents(const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error validate_tag_parents(const struct OpenAPI_Spec *spec) {
   size_t i;
   int *state;
   if (!spec || !spec->tags || spec->n_tags == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < spec->n_tags; ++i) {
     const char *parent = spec->tags[i].parent;
     /* LCOV_EXCL_START */
     if (parent && *parent) {
       if (tag_index_by_name(spec, parent) < 0)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
     }
     /* LCOV_EXCL_STOP */
   }
@@ -7525,52 +7591,53 @@ static int validate_tag_parents(const struct OpenAPI_Spec *spec) {
   state = (int *)calloc(spec->n_tags, sizeof(int));
   /* LCOV_EXCL_START */
   if (!state)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   for (i = 0; i < spec->n_tags; ++i) {
     if (detect_tag_cycle(spec, i, state)) {
       free(state);
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
   free(state);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the server variable defined operation.
  */
-static int server_variable_defined(const struct OpenAPI_Server *srv,
-                                   const char *name) {
+static enum cdd_c_error
+server_variable_defined(const struct OpenAPI_Server *srv, const char *name) {
   size_t i;
   if (!srv || !name || !srv->variables)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < srv->n_variables; ++i) {
     if (srv->variables[i].name && strcmp(srv->variables[i].name, name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the server variable seen operation.
  */
-static int server_variable_seen(char **seen, size_t seen_count,
-                                const char *name) {
+static enum cdd_c_error server_variable_seen(char **seen, size_t seen_count,
+                                             const char *name) {
   size_t i;
   if (!seen || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < seen_count; ++i) {
     if (seen[i] && strcmp(seen[i], name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate server url variables operation.
  */
-static int validate_server_url_variables(const struct OpenAPI_Server *srv) {
+static enum cdd_c_error
+validate_server_url_variables(const struct OpenAPI_Server *srv) {
   const char *url;
   size_t i;
   char **seen = NULL;
@@ -7578,7 +7645,7 @@ static int validate_server_url_variables(const struct OpenAPI_Server *srv) {
   size_t seen_cap = 0;
 
   if (!srv || !srv->url)
-    return 0;
+    return CDD_C_SUCCESS;
 
   url = srv->url;
   for (i = 0; url[i]; ++i) {
@@ -7626,26 +7693,26 @@ static int validate_server_url_variables(const struct OpenAPI_Server *srv) {
   for (i = 0; i < seen_count; ++i)
     free(seen[i]);
   free(seen);
-  return 0;
+  return CDD_C_SUCCESS;
 
 invalid:
   for (i = 0; i < seen_count; ++i)
     free(seen[i]);
   free(seen);
-  return EINVAL;
+  return CDD_C_ERROR_INVALID_ARGUMENT;
 
 oom:
   for (i = 0; i < seen_count; ++i)
     free(seen[i]);
   free(seen);
-  return ENOMEM;
+  return CDD_C_ERROR_MEMORY;
 }
 
 /**
  * @brief Parses server object from the given input.
  */
-static int parse_server_object(const JSON_Object *srv_obj,
-                               struct OpenAPI_Server *out_srv) {
+static enum cdd_c_error parse_server_object(const JSON_Object *srv_obj,
+                                            struct OpenAPI_Server *out_srv) {
   char *_ast_strdup_171 = NULL;
   char *_ast_strdup_172 = NULL;
   char *_ast_strdup_173 = NULL;
@@ -7659,7 +7726,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
   const JSON_Object *vars;
 
   if (!srv_obj || !out_srv)
-    return 0;
+    return CDD_C_SUCCESS;
 
   url = json_object_get_string(srv_obj, "url");
   desc = json_object_get_string(srv_obj, "description");
@@ -7669,16 +7736,16 @@ static int parse_server_object(const JSON_Object *srv_obj,
   /* LCOV_EXCL_START */
 
   if (!url || !*url)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   if (url && url_has_query_or_fragment(url))
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out_srv->url = (c_cdd_strdup(url, &_ast_strdup_171), _ast_strdup_171);
   /* LCOV_EXCL_START */
   if (!out_srv->url)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   /* LCOV_EXCL_START */
@@ -7688,7 +7755,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
         (c_cdd_strdup(desc, &_ast_strdup_172), _ast_strdup_172);
     /* LCOV_EXCL_START */
     if (!out_srv->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
 
@@ -7698,7 +7765,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
     out_srv->name = (c_cdd_strdup(name, &_ast_strdup_173), _ast_strdup_173);
     /* LCOV_EXCL_START */
     if (!out_srv->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -7716,7 +7783,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
           vcount, sizeof(struct OpenAPI_ServerVariable));
       /* LCOV_EXCL_START */
       if (!out_srv->variables)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       out_srv->n_variables = vcount;
       for (v = 0; v < vcount; ++v) {
@@ -7729,7 +7796,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
           curr->name = (c_cdd_strdup(vname, &_ast_strdup_174), _ast_strdup_174);
           /* LCOV_EXCL_START */
           if (!curr->name)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -7739,7 +7806,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
           const JSON_Array *enum_arr = json_object_get_array(v_obj, "enum");
           /* LCOV_EXCL_START */
           if (!def_val || !*def_val)
-            return EINVAL;
+            return CDD_C_ERROR_INVALID_ARGUMENT;
           /* LCOV_EXCL_STOP */
           /* LCOV_EXCL_START */
           if (def_val) {
@@ -7747,7 +7814,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
                 (c_cdd_strdup(def_val, &_ast_strdup_175), _ast_strdup_175);
             /* LCOV_EXCL_START */
             if (!curr->default_value)
-              return ENOMEM;
+              return CDD_C_ERROR_MEMORY;
             /* LCOV_EXCL_STOP */
           }
           /* LCOV_EXCL_STOP */
@@ -7757,7 +7824,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
                 (c_cdd_strdup(v_desc, &_ast_strdup_176), _ast_strdup_176);
             /* LCOV_EXCL_START */
             if (!curr->description)
-              return ENOMEM;
+              return CDD_C_ERROR_MEMORY;
             /* LCOV_EXCL_STOP */
           }
           /* LCOV_EXCL_STOP */
@@ -7767,13 +7834,13 @@ static int parse_server_object(const JSON_Object *srv_obj,
             int found_default = 0;
             /* LCOV_EXCL_START */
             if (ecount == 0)
-              return EINVAL;
+              return CDD_C_ERROR_INVALID_ARGUMENT;
             /* LCOV_EXCL_STOP */
             if (ecount > 0) {
               curr->enum_values = (char **)calloc(ecount, sizeof(char *));
               /* LCOV_EXCL_START */
               if (!curr->enum_values)
-                return ENOMEM;
+                return CDD_C_ERROR_MEMORY;
               /* LCOV_EXCL_STOP */
               curr->n_enum_values = ecount;
               for (e = 0; e < ecount; ++e) {
@@ -7783,7 +7850,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
                       (c_cdd_strdup(e_val, &_ast_strdup_177), _ast_strdup_177);
                   /* LCOV_EXCL_START */
                   if (!curr->enum_values[e])
-                    return ENOMEM;
+                    return CDD_C_ERROR_MEMORY;
                   /* LCOV_EXCL_STOP */
                   if (strcmp(e_val, def_val) == 0)
                     found_default = 1;
@@ -7791,7 +7858,7 @@ static int parse_server_object(const JSON_Object *srv_obj,
               }
               /* LCOV_EXCL_START */
               if (!found_default)
-                return EINVAL;
+                return CDD_C_ERROR_INVALID_ARGUMENT;
               /* LCOV_EXCL_STOP */
             }
           }
@@ -7811,37 +7878,38 @@ static int parse_server_object(const JSON_Object *srv_obj,
       return rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses servers array from the given input.
  */
-static int parse_servers_array(const JSON_Object *parent, const char *key,
-                               struct OpenAPI_Server **out_servers,
-                               size_t *out_count) {
+static enum cdd_c_error parse_servers_array(const JSON_Object *parent,
+                                            const char *key,
+                                            struct OpenAPI_Server **out_servers,
+                                            size_t *out_count) {
   const JSON_Array *servers;
   size_t count, i;
 
   if (!parent || !key || !out_servers || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_servers = NULL;
   *out_count = 0;
 
   servers = json_object_get_array(parent, key);
   if (!servers)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(servers);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_servers =
       (struct OpenAPI_Server *)calloc(count, sizeof(struct OpenAPI_Server));
   /* LCOV_EXCL_START */
   if (!*out_servers)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -7867,18 +7935,18 @@ static int parse_servers_array(const JSON_Object *parent, const char *key,
         if (!name_j || !*name_j)
           continue;
         if (strcmp(name_i, name_j) == 0)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses security requirements from the given input.
  */
-static int
+static enum cdd_c_error
 parse_security_requirements(const JSON_Array *arr,
                             struct OpenAPI_SecurityRequirementSet **out,
                             size_t *out_count) {
@@ -7888,20 +7956,20 @@ parse_security_requirements(const JSON_Array *arr,
   int rc = 0;
 
   if (!arr || !out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(arr);
   if (count == 0) {
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   *out = (struct OpenAPI_SecurityRequirementSet *)calloc(
       count, sizeof(struct OpenAPI_SecurityRequirementSet));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   *out_count = count;
@@ -7920,7 +7988,7 @@ parse_security_requirements(const JSON_Array *arr,
           req_count++;
       }
       if (collect_extensions(sec_obj, &set->extensions_json) != 0) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         goto fail;
       }
     }
@@ -7934,7 +8002,7 @@ parse_security_requirements(const JSON_Array *arr,
     set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
         req_count, sizeof(struct OpenAPI_SecurityRequirement));
     if (!set->requirements) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       goto fail;
     }
     set->n_requirements = req_count;
@@ -7952,7 +8020,7 @@ parse_security_requirements(const JSON_Array *arr,
         req->scheme = (c_cdd_strdup(scheme ? scheme : "", &_ast_strdup_178),
                        _ast_strdup_178);
         if (!req->scheme) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto fail;
         }
 
@@ -7967,7 +8035,7 @@ parse_security_requirements(const JSON_Array *arr,
 
         req->scopes = (char **)calloc(n_scopes, sizeof(char *));
         if (!req->scopes) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto fail;
         }
         req->n_scopes = n_scopes;
@@ -7977,7 +8045,7 @@ parse_security_requirements(const JSON_Array *arr,
           req->scopes[k] = (c_cdd_strdup(scope ? scope : "", &_ast_strdup_179),
                             _ast_strdup_179);
           if (!req->scopes[k]) {
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
             goto fail;
           }
         }
@@ -7985,7 +8053,7 @@ parse_security_requirements(const JSON_Array *arr,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 
 fail:
   if (*out) {
@@ -8002,16 +8070,17 @@ fail:
 /**
  * @brief Parses security field from the given input.
  */
-static int parse_security_field(const JSON_Object *obj, const char *key,
-                                struct OpenAPI_SecurityRequirementSet **out,
-                                size_t *out_count, int *out_set) {
+static enum cdd_c_error
+parse_security_field(const JSON_Object *obj, const char *key,
+                     struct OpenAPI_SecurityRequirementSet **out,
+                     size_t *out_count, int *out_set) {
   const JSON_Array *arr;
   if (!obj || !key || !out || !out_count || !out_set)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (!json_object_has_value(obj, key)) {
     *out_set = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   *out_set = 1;
@@ -8019,7 +8088,7 @@ static int parse_security_field(const JSON_Object *obj, const char *key,
   if (!arr) {
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   return parse_security_requirements(arr, out, out_count);
@@ -8028,64 +8097,66 @@ static int parse_security_field(const JSON_Object *obj, const char *key,
 /**
  * @brief Executes the schema is string enum only operation.
  */
-static int schema_is_string_enum_only(const JSON_Object *schema_obj) {
+static enum cdd_c_error
+schema_is_string_enum_only(const JSON_Object *schema_obj) {
   const JSON_Array *enum_arr;
   size_t i, count;
   const char *type;
 
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
 
   enum_arr = json_object_get_array(schema_obj, "enum");
   if (!enum_arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(enum_arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   type = json_object_get_string(schema_obj, "type");
   if (type && strcmp(type, "string") != 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     if (!json_array_get_string(enum_arr, i))
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Executes the schema is struct compatible operation.
  */
-static int schema_is_struct_compatible(const JSON_Value *schema_val,
-                                       const JSON_Object *schema_obj) {
+static enum cdd_c_error
+schema_is_struct_compatible(const JSON_Value *schema_val,
+                            const JSON_Object *schema_obj) {
   const char *type;
   if (!schema_val || !schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   if (json_value_get_type(schema_val) == JSONBoolean)
-    return 0;
+    return CDD_C_SUCCESS;
   if (schema_is_string_enum_only(schema_obj))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   type = json_object_get_string(schema_obj, "type");
   if (type)
     return strcmp(type, "object") == 0;
   if (json_object_get_object(schema_obj, "properties"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (json_object_get_array(schema_obj, "allOf") ||
       json_object_get_array(schema_obj, "anyOf") ||
       json_object_get_array(schema_obj, "oneOf"))
-    return 1;
-  return 0;
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the schema has composition operation.
  */
-static int schema_has_composition(const JSON_Object *schema_obj) {
+static enum cdd_c_error schema_has_composition(const JSON_Object *schema_obj) {
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   return json_object_get_array(schema_obj, "allOf") ||
          json_object_get_array(schema_obj, "anyOf") ||
          json_object_get_array(schema_obj, "oneOf");
@@ -8166,30 +8237,29 @@ static const char *k_items_skip_keys[] = {"$ref",
 /**
  * @brief Parses schema array ref from the given input.
  */
-static int parse_schema_array_ref(const JSON_Array *arr,
-                                  struct OpenAPI_SchemaRef **out,
-                                  size_t *out_count,
-                                  const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+parse_schema_array_ref(const JSON_Array *arr, struct OpenAPI_SchemaRef **out,
+                       size_t *out_count, const struct OpenAPI_Spec *spec) {
   size_t i, count;
   struct OpenAPI_SchemaRef *schemas;
 
   /* LCOV_EXCL_START */
 
   if (!arr || !out || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   count = json_array_get_count(arr);
   if (count == 0) {
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   schemas = (struct OpenAPI_SchemaRef *)calloc(
       count, sizeof(struct OpenAPI_SchemaRef));
   /* LCOV_EXCL_START */
   if (!schemas)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   for (i = 0; i < count; ++i) {
     int rc = parse_schema_ref(json_array_get_object(arr, i), &schemas[i], spec);
@@ -8204,26 +8274,26 @@ static int parse_schema_array_ref(const JSON_Array *arr,
   }
   *out = schemas;
   *out_count = count;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses schema ref ptr from the given input.
  */
-static int parse_schema_ref_ptr(const JSON_Object *obj,
-                                struct OpenAPI_SchemaRef **out,
-                                const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error parse_schema_ref_ptr(const JSON_Object *obj,
+                                             struct OpenAPI_SchemaRef **out,
+                                             const struct OpenAPI_Spec *spec) {
   struct OpenAPI_SchemaRef *schema;
   int rc;
   /* LCOV_EXCL_START */
   if (!obj || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   schema =
       (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
   /* LCOV_EXCL_START */
   if (!schema)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   rc = parse_schema_ref(obj, schema, spec);
   if (rc != 0) {
@@ -8231,15 +8301,15 @@ static int parse_schema_ref_ptr(const JSON_Object *obj,
     return rc;
   }
   *out = schema;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses schema ref from the given input.
  */
-static int parse_schema_ref(const JSON_Object *schema,
-                            struct OpenAPI_SchemaRef *out,
-                            const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error parse_schema_ref(const JSON_Object *schema,
+                                         struct OpenAPI_SchemaRef *out,
+                                         const struct OpenAPI_Spec *spec) {
   char *_ast_parse_schema_type_41 = NULL;
   struct ResolvedRefTarget _ast_resolve_ref_target_42;
   char *_ast_ref_name_from_prefix_43 = NULL;
@@ -8286,11 +8356,11 @@ static int parse_schema_ref(const JSON_Object *schema,
   /* LCOV_EXCL_START */
 
   if (!out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   if (!schema)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->schema_is_boolean = 0;
   out->schema_boolean_value = 0;
@@ -8470,7 +8540,7 @@ static int parse_schema_ref(const JSON_Object *schema,
                             sizeof(k_schema_skip_keys) /
                                 sizeof(k_schema_skip_keys[0]),
                             &out->schema_extra_json) != 0)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   {
     struct SchemaConstraintTarget target;
     target.has_multiple_of = &out->has_multiple_of;
@@ -8520,7 +8590,7 @@ static int parse_schema_ref(const JSON_Object *schema,
     out->format = (c_cdd_strdup(format, &_ast_strdup_180), _ast_strdup_180);
     /* LCOV_EXCL_START */
     if (!out->format)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
 
@@ -8531,7 +8601,7 @@ static int parse_schema_ref(const JSON_Object *schema,
         (c_cdd_strdup(content_media_type, &_ast_strdup_181), _ast_strdup_181);
     /* LCOV_EXCL_START */
     if (!out->content_media_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -8541,7 +8611,7 @@ static int parse_schema_ref(const JSON_Object *schema,
         (c_cdd_strdup(content_encoding, &_ast_strdup_182), _ast_strdup_182);
     /* LCOV_EXCL_START */
     if (!out->content_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -8552,7 +8622,7 @@ static int parse_schema_ref(const JSON_Object *schema,
     out->summary = (c_cdd_strdup(summary, &_ast_strdup_183), _ast_strdup_183);
     /* LCOV_EXCL_START */
     if (!out->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
 
@@ -8562,7 +8632,7 @@ static int parse_schema_ref(const JSON_Object *schema,
     out->description = (c_cdd_strdup(desc, &_ast_strdup_184), _ast_strdup_184);
     /* LCOV_EXCL_START */
     if (!out->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -8655,7 +8725,7 @@ static int parse_schema_ref(const JSON_Object *schema,
     if (!out->ref) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     out->ref_is_dynamic = ref_is_dynamic ? 1 : 0;
@@ -8667,14 +8737,14 @@ static int parse_schema_ref(const JSON_Object *schema,
       if (!name_dec) {
         if (resolved.resolved_ref)
           free(resolved.resolved_ref);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
       out->ref_name = name_dec;
     }
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (type && strcmp(type, "array") == 0) {
@@ -8685,7 +8755,7 @@ static int parse_schema_ref(const JSON_Object *schema,
     if (items_val && json_value_get_type(items_val) == JSONBoolean) {
       out->items_schema_is_boolean = 1;
       out->items_schema_boolean_value = json_value_get_boolean(items_val);
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (items) {
       const char *item_ref = json_object_get_string(items, "$ref");
@@ -8754,7 +8824,7 @@ static int parse_schema_ref(const JSON_Object *schema,
             (c_cdd_strdup(item_format, &_ast_strdup_186), _ast_strdup_186);
         /* LCOV_EXCL_START */
         if (!out->items_format)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -8765,7 +8835,7 @@ static int parse_schema_ref(const JSON_Object *schema,
              _ast_strdup_187);
         /* LCOV_EXCL_START */
         if (!out->items_content_media_type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -8776,7 +8846,7 @@ static int parse_schema_ref(const JSON_Object *schema,
              _ast_strdup_188);
         /* LCOV_EXCL_START */
         if (!out->items_content_encoding)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -8814,7 +8884,7 @@ static int parse_schema_ref(const JSON_Object *schema,
                                 sizeof(k_items_skip_keys) /
                                     sizeof(k_items_skip_keys[0]),
                                 &out->items_extra_json) != 0)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       if (item_ref_val) {
         struct ResolvedRefTarget resolved =
             (resolve_ref_target(spec, item_ref_val,
@@ -8832,7 +8902,7 @@ static int parse_schema_ref(const JSON_Object *schema,
         if (!out->items_ref) {
           if (resolved.resolved_ref)
             free(resolved.resolved_ref);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         /* LCOV_EXCL_STOP */
         out->items_ref_is_dynamic = item_ref_is_dynamic ? 1 : 0;
@@ -8844,14 +8914,14 @@ static int parse_schema_ref(const JSON_Object *schema,
           if (!name_dec) {
             if (resolved.resolved_ref)
               free(resolved.resolved_ref);
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
           /* LCOV_EXCL_STOP */
           out->ref_name = name_dec;
         }
         if (resolved.resolved_ref)
           free(resolved.resolved_ref);
-        return 0;
+        return CDD_C_SUCCESS;
       }
       if (item_type) {
         out->inline_type =
@@ -8859,7 +8929,7 @@ static int parse_schema_ref(const JSON_Object *schema,
         return out->inline_type ? 0 : ENOMEM;
       }
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (type) {
@@ -8867,13 +8937,13 @@ static int parse_schema_ref(const JSON_Object *schema,
     return out->inline_type ? 0 : ENOMEM;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Applies schema ref to param.
  */
-static int
+static enum cdd_c_error
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                           const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_192 = NULL;
@@ -8882,10 +8952,10 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
   char *_ast_strdup_195 = NULL;
   char *_ast_strdup_196 = NULL;
   if (!out_param || !schema_ref)
-    return 0;
+    return CDD_C_SUCCESS;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
       !schema_ref->is_array)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (out_param->type) {
     free(out_param->type);
@@ -8902,7 +8972,7 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
         (c_cdd_strdup("array", &_ast_strdup_192), _ast_strdup_192);
     /* LCOV_EXCL_START */
     if (!out_param->type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (schema_ref->inline_type) {
@@ -8913,7 +8983,7 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
       if (!out_param->items_type) {
         free(out_param->type);
         out_param->type = NULL;
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
@@ -8924,10 +8994,10 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
              _ast_strdup_194);
         /* LCOV_EXCL_START */
         if (!out_param->items_type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       } /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   out_param->is_array = 0;
@@ -8940,16 +9010,16 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
   }
   /* LCOV_EXCL_START */
   if (!out_param->type)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Applies schema ref to header.
  */
-static int
+static enum cdd_c_error
 apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
                            const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_197 = NULL;
@@ -8958,10 +9028,10 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
   char *_ast_strdup_200 = NULL;
   char *_ast_strdup_201 = NULL;
   if (!out_hdr || !schema_ref)
-    return 0;
+    return CDD_C_SUCCESS;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
       !schema_ref->is_array)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (out_hdr->type) {
     free(out_hdr->type);
@@ -8977,7 +9047,7 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
     out_hdr->type = (c_cdd_strdup("array", &_ast_strdup_197), _ast_strdup_197);
     /* LCOV_EXCL_START */
     if (!out_hdr->type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (schema_ref->inline_type) {
@@ -8988,7 +9058,7 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
       if (!out_hdr->items_type) {
         free(out_hdr->type);
         out_hdr->type = NULL;
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
@@ -8999,10 +9069,10 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
              _ast_strdup_199);
         /* LCOV_EXCL_START */
         if (!out_hdr->items_type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       } /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   out_hdr->is_array = 0;
@@ -9015,37 +9085,38 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
   }
   /* LCOV_EXCL_START */
   if (!out_hdr->type)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the schema name in use operation.
  */
-static int schema_name_in_use(const struct OpenAPI_Spec *spec,
-                              const char *name) {
+static enum cdd_c_error schema_name_in_use(const struct OpenAPI_Spec *spec,
+                                           const char *name) {
   size_t i;
   if (!spec || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_defined_schemas; ++i) {
     if (spec->defined_schema_names && spec->defined_schema_names[i] &&
         strcmp(spec->defined_schema_names[i], name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
   for (i = 0; i < spec->n_raw_schemas; ++i) {
     if (spec->raw_schema_names && spec->raw_schema_names[i] &&
         strcmp(spec->raw_schema_names[i], name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the sanitize component name operation.
  */
-static int sanitize_component_name(const char *name, char **_out_val) {
+static enum cdd_c_error sanitize_component_name(const char *name,
+                                                char **_out_val) {
   char *_ast_strdup_202 = NULL;
   char *_ast_strdup_203 = NULL;
   size_t i, len;
@@ -9053,14 +9124,14 @@ static int sanitize_component_name(const char *name, char **_out_val) {
   if (!name || !*name) {
     *_out_val =
         (c_cdd_strdup("InlineSchema", &_ast_strdup_202), _ast_strdup_202);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   len = strlen(name);
   out = (char *)calloc(len + 1, sizeof(char));
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < len; ++i) {
@@ -9077,32 +9148,33 @@ static int sanitize_component_name(const char *name, char **_out_val) {
     {
       *_out_val =
           (c_cdd_strdup("InlineSchema", &_ast_strdup_203), _ast_strdup_203);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the make unique schema name operation.
  */
-static int make_unique_schema_name(const struct OpenAPI_Spec *spec,
-                                   const char *base, char **_out_val) {
+static enum cdd_c_error make_unique_schema_name(const struct OpenAPI_Spec *spec,
+                                                const char *base,
+                                                char **_out_val) {
   char *_ast_strdup_204 = NULL;
   char *_ast_strdup_205 = NULL;
   size_t attempt = 0;
   /* LCOV_EXCL_START */
   if (!base) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   if (!schema_name_in_use(spec, base)) {
     *_out_val = (c_cdd_strdup(base, &_ast_strdup_204), _ast_strdup_204);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (attempt = 1; attempt < 10000; ++attempt) {
     char buf[256];
@@ -9114,59 +9186,62 @@ static int make_unique_schema_name(const struct OpenAPI_Spec *spec,
 #endif
     if (!schema_name_in_use(spec, buf)) {
       *_out_val = (c_cdd_strdup(buf, &_ast_strdup_205), _ast_strdup_205);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the schema type array includes operation.
  */
-static int schema_type_array_includes(const JSON_Array *arr, const char *type) {
+static enum cdd_c_error schema_type_array_includes(const JSON_Array *arr,
+                                                   const char *type) {
   size_t i, count;
   if (!arr || !type)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_array_get_count(arr);
   for (i = 0; i < count; ++i) {
     const char *val = json_array_get_string(arr, i);
     if (val && strcmp(val, type) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the schema object is object like operation.
  */
-static int schema_object_is_object_like(const JSON_Object *schema_obj) {
+static enum cdd_c_error
+schema_object_is_object_like(const JSON_Object *schema_obj) {
   const char *type;
   const JSON_Array *type_arr;
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   type = json_object_get_string(schema_obj, "type");
   if (type && strcmp(type, "object") == 0)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   type_arr = json_object_get_array(schema_obj, "type");
   if (schema_type_array_includes(type_arr, "object"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (json_object_get_object(schema_obj, "properties"))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (json_object_get_array(schema_obj, "allOf") ||
       json_object_get_array(schema_obj, "anyOf") ||
       json_object_get_array(schema_obj, "oneOf"))
-    return 1;
-  return 0;
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the append defined schema operation.
  */
-static int append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
-                                 struct StructFields *schema_fields) {
+static enum cdd_c_error
+append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
+                      struct StructFields *schema_fields) {
   size_t i;
   size_t new_count;
   char **new_names = NULL;
@@ -9178,7 +9253,7 @@ static int append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
   /* LCOV_EXCL_START */
 
   if (!spec || !schema_name || !schema_fields)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -9197,7 +9272,7 @@ static int append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
     free(new_anchors);
     free(new_dyn_anchors);
     free(new_schemas);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -9231,30 +9306,31 @@ static int append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
   spec->defined_schema_dynamic_anchors = new_dyn_anchors;
   spec->defined_schemas = new_schemas;
   spec->n_defined_schemas = new_count;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the raw schema name exists operation.
  */
-static int raw_schema_name_exists(const struct OpenAPI_Spec *spec,
-                                  const char *name) {
+static enum cdd_c_error raw_schema_name_exists(const struct OpenAPI_Spec *spec,
+                                               const char *name) {
   size_t i;
   if (!spec || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_raw_schemas; ++i) {
     if (spec->raw_schema_names && spec->raw_schema_names[i] &&
         strcmp(spec->raw_schema_names[i], name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the append raw schema operation.
  */
-static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
-                             const JSON_Value *schema_val) {
+static enum cdd_c_error append_raw_schema(struct OpenAPI_Spec *spec,
+                                          const char *name,
+                                          const JSON_Value *schema_val) {
   char *_ast_strdup_206 = NULL;
   char *_ast_strdup_207 = NULL;
   size_t i;
@@ -9268,29 +9344,29 @@ static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   /* LCOV_EXCL_START */
 
   if (!spec || !name || !schema_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   if (raw_schema_name_exists(spec, name))
-    return 0;
+    return CDD_C_SUCCESS;
 
   raw_json = json_serialize_to_string(schema_val);
   /* LCOV_EXCL_START */
   if (!raw_json)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   dup_json = (c_cdd_strdup(raw_json, &_ast_strdup_206), _ast_strdup_206);
   json_free_serialized_string(raw_json);
   /* LCOV_EXCL_START */
   if (!dup_json)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   dup_name = (c_cdd_strdup(name, &_ast_strdup_207), _ast_strdup_207);
   /* LCOV_EXCL_START */
   if (!dup_name) {
     free(dup_json);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -9303,7 +9379,7 @@ static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
     free(new_json);
     free(dup_name);
     free(dup_json);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -9319,17 +9395,17 @@ static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   spec->raw_schema_names = new_names;
   spec->raw_schema_json = new_json;
   spec->n_raw_schemas = new_count;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the register inline schema operation.
  */
-static int register_inline_schema(struct OpenAPI_Spec *spec,
-                                  const char *base_name,
-                                  const JSON_Object *schema_obj,
-                                  const JSON_Value *schema_val,
-                                  char **out_name) {
+static enum cdd_c_error register_inline_schema(struct OpenAPI_Spec *spec,
+                                               const char *base_name,
+                                               const JSON_Object *schema_obj,
+                                               const JSON_Value *schema_val,
+                                               char **out_name) {
   char *_ast_sanitize_component_name_49 = NULL;
   char *_ast_make_unique_schema_name_50 = NULL;
   struct StructFields tmp;
@@ -9340,7 +9416,7 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !schema_obj || !out_name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
@@ -9362,7 +9438,7 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!sanitized) {
     struct_fields_free(&tmp);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -9373,7 +9449,7 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!unique) {
     struct_fields_free(&tmp);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
 
@@ -9393,36 +9469,36 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
   }
 
   *out_name = unique;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the assign schema ref name operation.
  */
-static int assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
-                                  const char *name) {
+static enum cdd_c_error
+assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref, const char *name) {
   char *_ast_strdup_208 = NULL;
   char *dup;
   /* LCOV_EXCL_START */
   if (!schema_ref || !name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   dup = (c_cdd_strdup(name, &_ast_strdup_208), _ast_strdup_208);
   /* LCOV_EXCL_START */
   if (!dup)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   if (schema_ref->ref_name)
     free(schema_ref->ref_name);
   schema_ref->ref_name = dup;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the build inline request name operation.
  */
-static int build_inline_request_name(const char *op_id, int is_item,
-                                     char **_out_val) {
+static enum cdd_c_error
+build_inline_request_name(const char *op_id, int is_item, char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *suffix = is_item ? "Request_Item" : "Request";
   size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
@@ -9430,7 +9506,7 @@ static int build_inline_request_name(const char *op_id, int is_item,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -9440,15 +9516,17 @@ static int build_inline_request_name(const char *op_id, int is_item,
 #endif
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the build inline response name operation.
  */
-static int build_inline_response_name(const char *op_id, const char *code,
-                                      int is_item, char **_out_val) {
+static enum cdd_c_error build_inline_response_name(const char *op_id,
+                                                   const char *code,
+                                                   int is_item,
+                                                   char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *resp = (code && *code) ? code : "default";
   const char *suffix = is_item ? "Item" : "";
@@ -9458,7 +9536,7 @@ static int build_inline_response_name(const char *op_id, const char *code,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -9476,21 +9554,22 @@ static int build_inline_response_name(const char *op_id, const char *code,
 #endif
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the build inline param name operation.
  */
-static int build_inline_param_name(const char *param_name, char **_out_val) {
+static enum cdd_c_error build_inline_param_name(const char *param_name,
+                                                char **_out_val) {
   const char *p = (param_name && *param_name) ? param_name : "param";
   size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
   char *out = (char *)malloc(len);
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -9500,15 +9579,15 @@ static int build_inline_param_name(const char *param_name, char **_out_val) {
 #endif
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses servers from the given input.
  */
-static int parse_servers(const JSON_Object *root_obj,
-                         struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_servers(const JSON_Object *root_obj,
+                                      struct OpenAPI_Spec *out) {
   return parse_servers_array(root_obj, "servers", &out->servers,
                              &out->n_servers);
 }
@@ -9516,8 +9595,8 @@ static int parse_servers(const JSON_Object *root_obj,
 /**
  * @brief Parses security schemes from the given input.
  */
-static int parse_security_schemes(const JSON_Object *components,
-                                  struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_security_schemes(const JSON_Object *components,
+                                               struct OpenAPI_Spec *out) {
   enum OpenAPI_SecurityType _ast_parse_security_type_51;
   enum OpenAPI_SecurityIn _ast_parse_security_in_52;
   char *_ast_strdup_209 = NULL;
@@ -9531,26 +9610,26 @@ static int parse_security_schemes(const JSON_Object *components,
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   schemes = json_object_get_object(components, out->swagger_version
                                                    ? "securityDefinitions"
                                                    : "securitySchemes");
   if (!schemes)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(schemes) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(schemes);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->security_schemes = (struct OpenAPI_SecurityScheme *)calloc(
       count, sizeof(struct OpenAPI_SecurityScheme));
   /* LCOV_EXCL_START */
   if (!out->security_schemes)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_security_schemes = count;
 
@@ -9559,12 +9638,12 @@ static int parse_security_schemes(const JSON_Object *components,
     const JSON_Object *sec_obj =
         json_value_get_object(json_object_get_value_at(schemes, i));
     if (!component_key_is_valid(name))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     out->security_schemes[i].name =
         (c_cdd_strdup(name ? name : "", &_ast_strdup_209), _ast_strdup_209);
     /* LCOV_EXCL_START */
     if (!out->security_schemes[i].name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     out->security_schemes[i].type = OA_SEC_UNKNOWN;
 
@@ -9583,7 +9662,7 @@ static int parse_security_schemes(const JSON_Object *components,
              _ast_parse_security_type_51);
         /* LCOV_EXCL_START */
         if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
       }
     }
@@ -9596,7 +9675,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(desc, &_ast_strdup_210), _ast_strdup_210);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].description)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9622,7 +9701,7 @@ static int parse_security_schemes(const JSON_Object *components,
       /* LCOV_EXCL_START */
       if (!key_name || !*key_name ||
           out->security_schemes[i].in == OA_SEC_IN_UNKNOWN)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (key_name) {
@@ -9630,7 +9709,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(key_name, &_ast_strdup_211), _ast_strdup_211);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].key_name)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9640,7 +9719,7 @@ static int parse_security_schemes(const JSON_Object *components,
           json_object_get_string(sec_obj, "bearerFormat");
       /* LCOV_EXCL_START */
       if (!scheme || !*scheme)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (scheme) {
@@ -9648,7 +9727,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(scheme, &_ast_strdup_212), _ast_strdup_212);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].scheme)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9658,7 +9737,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(bearer_format, &_ast_strdup_213), _ast_strdup_213);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].bearer_format)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9666,7 +9745,7 @@ static int parse_security_schemes(const JSON_Object *components,
       const char *oid_url = json_object_get_string(sec_obj, "openIdConnectUrl");
       /* LCOV_EXCL_START */
       if (!oid_url || !*oid_url)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (oid_url) {
@@ -9674,7 +9753,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(oid_url, &_ast_strdup_214), _ast_strdup_214);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].open_id_connect_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9688,7 +9767,7 @@ static int parse_security_schemes(const JSON_Object *components,
             (c_cdd_strdup(meta_url, &_ast_strdup_215), _ast_strdup_215);
         /* LCOV_EXCL_START */
         if (!out->security_schemes[i].oauth2_metadata_url)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -9696,7 +9775,7 @@ static int parse_security_schemes(const JSON_Object *components,
       if (!flows_obj) {
         /* LCOV_EXCL_START */
         if (!out->swagger_version)
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */ else {
@@ -9707,16 +9786,16 @@ static int parse_security_schemes(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses header object from the given input.
  */
-static int parse_header_object(const JSON_Object *hdr_obj,
-                               struct OpenAPI_Header *out_hdr,
-                               const struct OpenAPI_Spec *spec,
-                               const int resolve_refs) {
+static enum cdd_c_error parse_header_object(const JSON_Object *hdr_obj,
+                                            struct OpenAPI_Header *out_hdr,
+                                            const struct OpenAPI_Spec *spec,
+                                            const int resolve_refs) {
   struct OpenAPI_Header *_ast_find_component_header_53;
   enum OpenAPI_Style _ast_parse_param_style_54;
   struct OpenAPI_MediaType *_ast_find_component_media_type_55;
@@ -9750,14 +9829,14 @@ static int parse_header_object(const JSON_Object *hdr_obj,
   const char *type;
 
   if (!hdr_obj || !out_hdr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(hdr_obj, "$ref");
   if (ref) {
     out_hdr->ref = (c_cdd_strdup(ref, &_ast_strdup_216), _ast_strdup_216);
     /* LCOV_EXCL_START */
     if (!out_hdr->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Header *comp =
@@ -9778,11 +9857,11 @@ static int parse_header_object(const JSON_Object *hdr_obj,
           (c_cdd_strdup(desc, &_ast_strdup_217), _ast_strdup_217);
       /* LCOV_EXCL_START */
       if (!out_hdr->description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   desc = json_object_get_string(hdr_obj, "description");
@@ -9792,7 +9871,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
         (c_cdd_strdup(desc, &_ast_strdup_218), _ast_strdup_218);
     /* LCOV_EXCL_START */
     if (!out_hdr->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -9816,7 +9895,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
          _ast_parse_param_style_54);
     /* LCOV_EXCL_START */
     if (parsed_style != OA_STYLE_SIMPLE)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     out_hdr->style_set = 1;
     out_hdr->style = parsed_style;
@@ -9839,16 +9918,16 @@ static int parse_header_object(const JSON_Object *hdr_obj,
     const int has_content = (content != NULL);
     /* LCOV_EXCL_START */
     if (has_schema && has_content)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (0)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
   if (content) {
     if (json_object_get_count(content) != 1)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     {
       int _rc = parse_content_object(content, &out_hdr->content_media_types,
                                      &out_hdr->n_content_media_types, spec,
@@ -9885,7 +9964,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
           (c_cdd_strdup(media_type, &_ast_strdup_219), _ast_strdup_219);
       /* LCOV_EXCL_START */
       if (!out_hdr->content_type)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -9896,7 +9975,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
             (c_cdd_strdup(media_ref, &_ast_strdup_220), _ast_strdup_220);
         /* LCOV_EXCL_START */
         if (!out_hdr->content_ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         if (resolve_refs && spec) {
           const struct OpenAPI_MediaType *mt =
@@ -9949,11 +10028,11 @@ static int parse_header_object(const JSON_Object *hdr_obj,
     parsed_schema_set = 1;
     if (apply_schema_ref_to_header(out_hdr, &parsed_schema) != 0) {
       free_schema_ref_content(&parsed_schema);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (copy_schema_ref(&out_hdr->schema, &parsed_schema) != 0) {
       free_schema_ref_content(&parsed_schema);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     out_hdr->schema_set = 1;
   }
@@ -9965,7 +10044,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
     if (!out_hdr->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
   }
@@ -9973,7 +10052,7 @@ static int parse_header_object(const JSON_Object *hdr_obj,
   if (object_has_example_and_examples(hdr_obj)) {
     if (parsed_schema_set)
       free_schema_ref_content(&parsed_schema);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
@@ -10027,33 +10106,34 @@ static int parse_header_object(const JSON_Object *hdr_obj,
   if (parsed_schema_set)
     free_schema_ref_content(&parsed_schema);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses link parameters from the given input.
  */
-static int parse_link_parameters(const JSON_Object *params_obj,
-                                 struct OpenAPI_LinkParam **out_params,
-                                 size_t *out_count) {
+static enum cdd_c_error
+parse_link_parameters(const JSON_Object *params_obj,
+                      struct OpenAPI_LinkParam **out_params,
+                      size_t *out_count) {
   char *_ast_strdup_222 = NULL;
   size_t count, i;
   if (!out_params || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out_params = NULL;
   *out_count = 0;
   if (!params_obj)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(params_obj);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_params = (struct OpenAPI_LinkParam *)calloc(
       count, sizeof(struct OpenAPI_LinkParam));
   /* LCOV_EXCL_START */
   if (!*out_params)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -10065,27 +10145,27 @@ static int parse_link_parameters(const JSON_Object *params_obj,
       (*out_params)[i].name =
           (c_cdd_strdup(name, &_ast_strdup_222), _ast_strdup_222);
       if (!(*out_params)[i].name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (val) {
       if (parse_any_value(val, &(*out_params)[i].value) != 0)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses link object from the given input.
  */
-static int parse_link_object(const JSON_Object *link_obj,
-                             struct OpenAPI_Link *out_link,
-                             const struct OpenAPI_Spec *spec,
-                             const int resolve_refs) {
+static enum cdd_c_error parse_link_object(const JSON_Object *link_obj,
+                                          struct OpenAPI_Link *out_link,
+                                          const struct OpenAPI_Spec *spec,
+                                          const int resolve_refs) {
   struct OpenAPI_Link *_ast_find_component_link_56;
   char *_ast_strdup_223 = NULL;
   char *_ast_strdup_224 = NULL;
@@ -10104,14 +10184,14 @@ static int parse_link_object(const JSON_Object *link_obj,
   const JSON_Object *server_obj;
 
   if (!link_obj || !out_link)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(link_obj, "$ref");
   if (ref) {
     out_link->ref = (c_cdd_strdup(ref, &_ast_strdup_223), _ast_strdup_223);
     /* LCOV_EXCL_START */
     if (!out_link->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Link *comp =
@@ -10132,7 +10212,7 @@ static int parse_link_object(const JSON_Object *link_obj,
           (c_cdd_strdup(summary, &_ast_strdup_224), _ast_strdup_224);
       /* LCOV_EXCL_START */
       if (!out_link->summary)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -10143,11 +10223,11 @@ static int parse_link_object(const JSON_Object *link_obj,
           (c_cdd_strdup(desc, &_ast_strdup_225), _ast_strdup_225);
       /* LCOV_EXCL_START */
       if (!out_link->description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   summary = json_object_get_string(link_obj, "summary");
@@ -10157,7 +10237,7 @@ static int parse_link_object(const JSON_Object *link_obj,
         (c_cdd_strdup(summary, &_ast_strdup_226), _ast_strdup_226);
     /* LCOV_EXCL_START */
     if (!out_link->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -10168,7 +10248,7 @@ static int parse_link_object(const JSON_Object *link_obj,
         (c_cdd_strdup(desc, &_ast_strdup_227), _ast_strdup_227);
     /* LCOV_EXCL_START */
     if (!out_link->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -10180,7 +10260,7 @@ static int parse_link_object(const JSON_Object *link_obj,
         (c_cdd_strdup(op_ref, &_ast_strdup_228), _ast_strdup_228);
     /* LCOV_EXCL_START */
     if (!out_link->operation_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -10191,12 +10271,12 @@ static int parse_link_object(const JSON_Object *link_obj,
         (c_cdd_strdup(op_id, &_ast_strdup_229), _ast_strdup_229);
     /* LCOV_EXCL_START */
     if (!out_link->operation_id)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if ((op_ref && op_id) || (!op_ref && !op_id))
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     int _rc = collect_extensions(link_obj, &out_link->extensions_json);
     if (_rc != 0)
@@ -10227,7 +10307,7 @@ static int parse_link_object(const JSON_Object *link_obj,
         (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
     /* LCOV_EXCL_START */
     if (!out_link->server)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     out_link->server_set = 1;
     {
@@ -10237,37 +10317,37 @@ static int parse_link_object(const JSON_Object *link_obj,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses links object from the given input.
  */
-static int parse_links_object(const JSON_Object *links,
-                              struct OpenAPI_Link **out_links,
-                              size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              const int resolve_refs) {
+static enum cdd_c_error parse_links_object(const JSON_Object *links,
+                                           struct OpenAPI_Link **out_links,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           const int resolve_refs) {
   char *_ast_strdup_230 = NULL;
   size_t i, count;
   if (!out_links || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_links = NULL;
   *out_count = 0;
 
   if (!links)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(links);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_links =
       (struct OpenAPI_Link *)calloc(count, sizeof(struct OpenAPI_Link));
   /* LCOV_EXCL_START */
   if (!*out_links)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -10281,7 +10361,7 @@ static int parse_links_object(const JSON_Object *links,
       curr->name = (c_cdd_strdup(name, &_ast_strdup_230), _ast_strdup_230);
       /* LCOV_EXCL_START */
       if (!curr->name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -10294,38 +10374,37 @@ static int parse_links_object(const JSON_Object *links,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses headers object from the given input.
  */
-static int parse_headers_object(const JSON_Object *headers,
-                                struct OpenAPI_Header **out_headers,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                const int resolve_refs,
-                                const int ignore_content_type) {
+static enum cdd_c_error
+parse_headers_object(const JSON_Object *headers,
+                     struct OpenAPI_Header **out_headers, size_t *out_count,
+                     const struct OpenAPI_Spec *spec, const int resolve_refs,
+                     const int ignore_content_type) {
   char *_ast_strdup_231 = NULL;
   size_t i, count, valid = 0;
   if (!out_headers || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_headers = NULL;
   *out_count = 0;
 
   if (!headers)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(headers);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_headers =
       (struct OpenAPI_Header *)calloc(count, sizeof(struct OpenAPI_Header));
   /* LCOV_EXCL_START */
   if (!*out_headers)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -10341,7 +10420,7 @@ static int parse_headers_object(const JSON_Object *headers,
       /* LCOV_EXCL_START */
       if (!curr->name) {
         *out_count = valid;
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
@@ -10360,7 +10439,7 @@ static int parse_headers_object(const JSON_Object *headers,
     free(*out_headers);
     *out_headers = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (valid < count) {
     struct OpenAPI_Header *tmp = (struct OpenAPI_Header *)realloc(
@@ -10369,16 +10448,16 @@ static int parse_headers_object(const JSON_Object *headers,
       *out_headers = tmp;
   }
   *out_count = valid;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses encoding object from the given input.
  */
-static int parse_encoding_object(const JSON_Object *enc_obj,
-                                 struct OpenAPI_Encoding *out,
-                                 const struct OpenAPI_Spec *spec,
-                                 const int resolve_refs) {
+static enum cdd_c_error parse_encoding_object(const JSON_Object *enc_obj,
+                                              struct OpenAPI_Encoding *out,
+                                              const struct OpenAPI_Spec *spec,
+                                              const int resolve_refs) {
   enum OpenAPI_Style _ast_parse_param_style_57;
   char *_ast_strdup_232 = NULL;
   const char *content_type;
@@ -10393,14 +10472,14 @@ static int parse_encoding_object(const JSON_Object *enc_obj,
   const JSON_Object *item_encoding_obj;
 
   if (!enc_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   {
     const int has_encoding = json_object_has_value(enc_obj, "encoding");
     const int has_prefix = json_object_has_value(enc_obj, "prefixEncoding");
     const int has_item = json_object_has_value(enc_obj, "itemEncoding");
     if (has_encoding && (has_prefix || has_item))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   content_type = json_object_get_string(enc_obj, "contentType");
@@ -10410,7 +10489,7 @@ static int parse_encoding_object(const JSON_Object *enc_obj,
         (c_cdd_strdup(content_type, &_ast_strdup_232), _ast_strdup_232);
     /* LCOV_EXCL_START */
     if (!out->content_type)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -10469,7 +10548,7 @@ static int parse_encoding_object(const JSON_Object *enc_obj,
         (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!out->item_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     out->item_encoding_set = 1;
     {
@@ -10486,33 +10565,34 @@ static int parse_encoding_object(const JSON_Object *enc_obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses encoding map from the given input.
  */
-static int parse_encoding_map(const JSON_Object *enc_obj,
-                              struct OpenAPI_Encoding **out, size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              const int resolve_refs) {
+static enum cdd_c_error parse_encoding_map(const JSON_Object *enc_obj,
+                                           struct OpenAPI_Encoding **out,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           const int resolve_refs) {
   char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!enc_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(enc_obj);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out =
       (struct OpenAPI_Encoding *)calloc(count, sizeof(struct OpenAPI_Encoding));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -10525,7 +10605,7 @@ static int parse_encoding_map(const JSON_Object *enc_obj,
     curr->name = (c_cdd_strdup(name, &_ast_strdup_233), _ast_strdup_233);
     /* LCOV_EXCL_START */
     if (!curr->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int rc = parse_encoding_object(enc_def, curr, spec, resolve_refs);
@@ -10541,36 +10621,36 @@ static int parse_encoding_map(const JSON_Object *enc_obj,
     free(*out);
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out_count = valid;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses encoding array from the given input.
  */
-static int parse_encoding_array(const JSON_Array *enc_arr,
-                                struct OpenAPI_Encoding **out,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                const int resolve_refs) {
+static enum cdd_c_error parse_encoding_array(const JSON_Array *enc_arr,
+                                             struct OpenAPI_Encoding **out,
+                                             size_t *out_count,
+                                             const struct OpenAPI_Spec *spec,
+                                             const int resolve_refs) {
   size_t i, count, valid = 0;
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!enc_arr)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_array_get_count(enc_arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out =
       (struct OpenAPI_Encoding *)calloc(count, sizeof(struct OpenAPI_Encoding));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -10592,19 +10672,18 @@ static int parse_encoding_array(const JSON_Array *enc_arr,
     free(*out);
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out_count = valid;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses parameter object from the given input.
  */
-static int parse_parameter_object(const JSON_Object *p_obj,
-                                  struct OpenAPI_Parameter *out_param,
-                                  const struct OpenAPI_Spec *spec,
-                                  const int resolve_refs) {
+static enum cdd_c_error parse_parameter_object(
+    const JSON_Object *p_obj, struct OpenAPI_Parameter *out_param,
+    const struct OpenAPI_Spec *spec, const int resolve_refs) {
   struct OpenAPI_Parameter *_ast_find_component_parameter_58;
   enum OpenAPI_ParamIn _ast_parse_param_in_59;
   struct OpenAPI_MediaType *_ast_find_component_media_type_60;
@@ -10646,14 +10725,14 @@ static int parse_parameter_object(const JSON_Object *p_obj,
   int explode_val;
 
   if (!p_obj || !out_param)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(p_obj, "$ref");
   if (ref) {
     out_param->ref = (c_cdd_strdup(ref, &_ast_strdup_234), _ast_strdup_234);
     /* LCOV_EXCL_START */
     if (!out_param->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Parameter *comp =
@@ -10675,18 +10754,18 @@ static int parse_parameter_object(const JSON_Object *p_obj,
           (c_cdd_strdup(desc, &_ast_strdup_235), _ast_strdup_235);
       /* LCOV_EXCL_START */
       if (!out_param->description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   name = json_object_get_string(p_obj, "name");
   in = json_object_get_string(p_obj, "in");
   /* LCOV_EXCL_START */
   if (!name || !*name || !in)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   desc = json_object_get_string(p_obj, "description");
   req = json_object_get_boolean(p_obj, "required");
@@ -10701,7 +10780,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
   content = json_object_get_object(p_obj, "content");
   if (content) {
     if (json_object_get_count(content) != 1)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     {
       int _rc = parse_content_object(content, &out_param->content_media_types,
                                      &out_param->n_content_media_types, spec,
@@ -10736,7 +10815,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
          : OA_PARAM_IN_UNKNOWN;
   /* LCOV_EXCL_START */
   if (out_param->in == OA_PARAM_IN_UNKNOWN)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   out_param->required = (req == 1);
 
@@ -10745,20 +10824,20 @@ static int parse_parameter_object(const JSON_Object *p_obj,
     const int has_content = (content != NULL);
     /* LCOV_EXCL_START */
     if (has_schema && has_content)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (0)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (out_param->in == OA_PARAM_IN_QUERYSTRING && !has_content)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_START */
   if (allow_empty_present && out_param->in != OA_PARAM_IN_QUERY)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   if (content) {
@@ -10784,7 +10863,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
           (c_cdd_strdup(media_type, &_ast_strdup_237), _ast_strdup_237);
       /* LCOV_EXCL_START */
       if (!out_param->content_type)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -10795,7 +10874,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
             (c_cdd_strdup(media_ref, &_ast_strdup_238), _ast_strdup_238);
         /* LCOV_EXCL_START */
         if (!out_param->content_ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         if (resolve_refs && spec) {
           const struct OpenAPI_MediaType *mt =
@@ -10828,7 +10907,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
         (c_cdd_strdup(desc, &_ast_strdup_239), _ast_strdup_239);
     /* LCOV_EXCL_START */
     if (!out_param->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
 
@@ -10875,12 +10954,12 @@ static int parse_parameter_object(const JSON_Object *p_obj,
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
       if (apply_schema_ref_to_param(out_param, &parsed_schema) != 0) {
         free_schema_ref_content(&parsed_schema);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
     if (copy_schema_ref(&out_param->schema, &parsed_schema) != 0) {
       free_schema_ref_content(&parsed_schema);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     out_param->schema_set = 1;
   }
@@ -10904,7 +10983,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
         }
         if (assign_schema_ref_name(&out_param->schema, registered) != 0) {
           free(base);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
       }
       free(base);
@@ -10918,7 +10997,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
     if (!out_param->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
   }
@@ -10931,7 +11010,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
          _ast_parse_param_style_62);
     /* LCOV_EXCL_START */
     if (out_param->style == OA_STYLE_UNKNOWN)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
 
@@ -10968,7 +11047,7 @@ static int parse_parameter_object(const JSON_Object *p_obj,
   if (object_has_example_and_examples(p_obj)) {
     if (parsed_schema_set)
       free_schema_ref_content(&parsed_schema);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
@@ -11022,16 +11101,16 @@ static int parse_parameter_object(const JSON_Object *p_obj,
   if (parsed_schema_set)
     free_schema_ref_content(&parsed_schema);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses media type object from the given input.
  */
-static int parse_media_type_object(const JSON_Object *media_obj,
-                                   struct OpenAPI_MediaType *out,
-                                   const struct OpenAPI_Spec *spec,
-                                   const int resolve_refs) {
+static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
+                                                struct OpenAPI_MediaType *out,
+                                                const struct OpenAPI_Spec *spec,
+                                                const int resolve_refs) {
   struct OpenAPI_MediaType *_ast_find_component_media_type_63;
   char *_ast_strdup_241 = NULL;
   const JSON_Value *schema_val;
@@ -11044,14 +11123,14 @@ static int parse_media_type_object(const JSON_Object *media_obj,
   const char *ref;
 
   if (!media_obj || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   {
     const int has_encoding = json_object_has_value(media_obj, "encoding");
     const int has_prefix = json_object_has_value(media_obj, "prefixEncoding");
     const int has_item = json_object_has_value(media_obj, "itemEncoding");
     if (has_encoding && (has_prefix || has_item))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   ref = json_object_get_string(media_obj, "$ref");
@@ -11059,7 +11138,7 @@ static int parse_media_type_object(const JSON_Object *media_obj,
     out->ref = (c_cdd_strdup(ref, &_ast_strdup_241), _ast_strdup_241);
     /* LCOV_EXCL_START */
     if (!out->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_MediaType *mt =
@@ -11074,7 +11153,7 @@ static int parse_media_type_object(const JSON_Object *media_obj,
         }
       }
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   schema_val = json_object_get_value(media_obj, "schema");
@@ -11135,7 +11214,7 @@ static int parse_media_type_object(const JSON_Object *media_obj,
         (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
     /* LCOV_EXCL_START */
     if (!out->item_encoding)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     out->item_encoding_set = 1;
     {
@@ -11160,42 +11239,43 @@ static int parse_media_type_object(const JSON_Object *media_obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the media type base len operation.
  */
-static int media_type_base_len(const char *name, size_t *_out_val) {
+static enum cdd_c_error media_type_base_len(const char *name,
+                                            size_t *_out_val) {
   size_t len = 0;
   if (!name) {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   while (name[len] && name[len] != ';')
     ++len;
   {
     *_out_val = len;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the media type base equal operation.
  */
-static int media_type_base_equal(const char *a, const char *b) {
+static enum cdd_c_error media_type_base_equal(const char *a, const char *b) {
   size_t _ast_media_type_base_len_64 = 0;
   size_t _ast_media_type_base_len_65 = 0;
   size_t alen;
   size_t blen;
   if (!a || !b)
-    return 0;
+    return CDD_C_SUCCESS;
   alen = (media_type_base_len(a, &_ast_media_type_base_len_64),
           _ast_media_type_base_len_64);
   blen = (media_type_base_len(b, &_ast_media_type_base_len_65),
           _ast_media_type_base_len_65);
   if (alen != blen)
-    return 0;
+    return CDD_C_SUCCESS;
   return strncmp(a, b, alen) == 0;
 }
 
@@ -11203,90 +11283,116 @@ static int media_type_base_equal(const char *a, const char *b) {
 /**
  * @brief Retrieves the media type by name.
  */
-static int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
+static enum cdd_c_error find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
                         const char *name, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   /* LCOV_EXCL_START */
   if (!mts || !name)
-    { *_out_val = NULL; return 0; }
+    { *_out_val = NULL; return CDD_C_SUCCESS; }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < n; ++i) {
     if (mts[i].name && media_type_base_equal(mts[i].name, name))
-      { *_out_val = &mts[i]; return 0; }
+      { *_out_val = &mts[i]; return CDD_C_SUCCESS; }
   }
-  { *_out_val = NULL; return 0; }
+  { *_out_val = NULL; return CDD_C_SUCCESS; }
 }
 #endif
 
 /**
  * @brief Executes the media type is json operation.
  */
-static int media_type_is_json(const char *name) {
+static enum cdd_c_error media_type_is_json(const char *name) {
   size_t _ast_media_type_base_len_66 = 0;
   size_t len;
   if (!name)
-    return 0;
+    return CDD_C_SUCCESS;
   len = (media_type_base_len(name, &_ast_media_type_base_len_66),
          _ast_media_type_base_len_66);
   if (len == strlen("application/json") &&
       strncmp(name, "application/json", len) == 0)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (len >= 5 && strncmp(name + (len - 5), "+json", 5) == 0)
-    return 1;
-  return 0;
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the media type specificity operation.
  */
-static int media_type_specificity(const char *name) {
+static enum cdd_c_error media_type_specificity(const char *name,
+                                               int *out_spec) {
   size_t _ast_media_type_base_len_67 = 0;
   const char *slash;
   size_t len;
   size_t type_len;
   size_t sub_len;
+  if (out_spec)
+    *out_spec = 0;
   if (!name)
-    return -1;
+    return CDD_C_SUCCESS;
   len = (media_type_base_len(name, &_ast_media_type_base_len_67),
          _ast_media_type_base_len_67);
   if (len == 0)
-    return -1;
+    return CDD_C_SUCCESS;
   slash = (const char *)memchr(name, '/', len);
-  if (!slash)
-    return 2; /* Treat unknown as exact */
+  if (!slash) {
+    if (out_spec)
+      *out_spec = 2; /* Treat unknown as exact */
+    return CDD_C_SUCCESS;
+  }
   type_len = (size_t)(slash - name);
   if (type_len == 0 || type_len >= len)
-    return -1;
+    return CDD_C_SUCCESS;
   sub_len = len - type_len - 1;
-  if (type_len == 1 && name[0] == '*' && sub_len == 1 && slash[1] == '*')
-    return 0; /* */
+  if (type_len == 1 && name[0] == '*' && sub_len == 1 && slash[1] == '*') {
+    if (out_spec)
+      *out_spec = 0; /* */
+    return CDD_C_SUCCESS;
+  }
   /* LCOV_EXCL_START */
-  if (sub_len == 1 && slash[1] == '*')
-    return 1;
+  if (sub_len == 1 && slash[1] == '*') {
+    if (out_spec)
+      *out_spec = 1;
+    return CDD_C_SUCCESS;
+  }
   /* LCOV_EXCL_STOP */ /* type / * */
-  return 2;            /* type/subtype */
+  if (out_spec)
+    *out_spec = 2; /* type/subtype */
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the media type preference rank operation.
  */
-static int media_type_preference_rank(const char *name) {
+static enum cdd_c_error media_type_preference_rank(const char *name,
+                                                   int *out_rank) {
+  if (out_rank)
+    *out_rank = 0;
   if (!name)
-    return 0;
-  if (media_type_is_json(name))
-    return 3;
-  if (media_type_base_equal(name, "application/x-www-form-urlencoded"))
-    return 2;
-  if (media_type_base_equal(name, "multipart/form-data"))
-    return 1;
-  return 0;
+    return CDD_C_SUCCESS;
+  if (media_type_is_json(name)) {
+    if (out_rank)
+      *out_rank = 3;
+    return CDD_C_SUCCESS;
+  }
+  if (media_type_base_equal(name, "application/x-www-form-urlencoded")) {
+    if (out_rank)
+      *out_rank = 2;
+    return CDD_C_SUCCESS;
+  }
+  if (media_type_base_equal(name, "multipart/form-data")) {
+    if (out_rank)
+      *out_rank = 1;
+    return CDD_C_SUCCESS;
+  }
+  return CDD_C_SUCCESS;
 }
 
 #if 0
 /**
  * @brief Executes the select primary media type operation.
  */
-static int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, struct OpenAPI_MediaType * *_out_val) {
+static enum cdd_c_error select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   const struct OpenAPI_MediaType *best = NULL;
   int best_spec = -1;
@@ -11307,23 +11413,29 @@ static int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t
     }
   }
 
-  { *_out_val = best; return 0; }
+  { *_out_val = best; return CDD_C_SUCCESS; }
 }
 #endif
 
 /**
  * @brief Executes the select primary media type index operation.
  */
-static int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
-                                           size_t n) {
+static enum cdd_c_error
+select_primary_media_type_index(const struct OpenAPI_MediaType *mts, size_t n,
+                                int *out_idx) {
   size_t i;
   int best_idx = -1;
   int best_spec = -1;
   int best_rank = -1;
 
+  if (out_idx)
+    *out_idx = -1;
+
   for (i = 0; i < n; ++i) {
-    int spec = media_type_specificity(mts[i].name);
-    int rank = media_type_preference_rank(mts[i].name);
+    int spec = 0;
+    int rank = 0;
+    media_type_specificity(mts[i].name, &spec);
+    media_type_preference_rank(mts[i].name, &rank);
     if (spec > best_spec) {
       best_spec = spec;
       best_rank = rank;
@@ -11335,27 +11447,29 @@ static int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
       best_idx = (int)i;
     }
   }
-  return best_idx;
+  if (out_idx)
+    *out_idx = best_idx;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the media object by name.
  */
-static int find_media_object_by_name(const JSON_Object *content,
-                                     const char *media_name,
-                                     JSON_Object **_out_val) {
+static enum cdd_c_error find_media_object_by_name(const JSON_Object *content,
+                                                  const char *media_name,
+                                                  JSON_Object **_out_val) {
   size_t i, count;
   /* LCOV_EXCL_START */
   if (!content || !media_name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   {
     const JSON_Object *exact = json_object_get_object(content, media_name);
     if (exact) {
       *_out_val = (JSON_Object *)(exact);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   count = json_object_get_count(content);
@@ -11366,42 +11480,42 @@ static int find_media_object_by_name(const JSON_Object *content,
     if (media_type_base_equal(name, media_name)) {
       {
         *_out_val = json_object_get_object(content, name);
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses content object from the given input.
  */
-static int parse_content_object(const JSON_Object *content,
-                                struct OpenAPI_MediaType **out,
-                                size_t *out_count,
-                                const struct OpenAPI_Spec *spec,
-                                const int resolve_refs) {
+static enum cdd_c_error parse_content_object(const JSON_Object *content,
+                                             struct OpenAPI_MediaType **out,
+                                             size_t *out_count,
+                                             const struct OpenAPI_Spec *spec,
+                                             const int resolve_refs) {
   char *_ast_strdup_242 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
   *out = NULL;
   *out_count = 0;
   if (!content)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(content);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_count = count;
   *out = (struct OpenAPI_MediaType *)calloc(count,
                                             sizeof(struct OpenAPI_MediaType));
   /* LCOV_EXCL_START */
   if (!*out)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -11414,7 +11528,7 @@ static int parse_content_object(const JSON_Object *content,
     curr->name = (c_cdd_strdup(name, &_ast_strdup_242), _ast_strdup_242);
     /* LCOV_EXCL_START */
     if (!curr->name)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     {
       int rc = parse_media_type_object(media_obj, curr, spec, resolve_refs);
@@ -11428,48 +11542,48 @@ static int parse_content_object(const JSON_Object *content,
     free(*out);
     *out = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out_count = valid;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the param key equals operation.
  */
-static int param_key_equals(const struct OpenAPI_Parameter *a,
-                            const struct OpenAPI_Parameter *b) {
+static enum cdd_c_error param_key_equals(const struct OpenAPI_Parameter *a,
+                                         const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
 }
 
 /**
  * @brief Parses parameters array from the given input.
  */
-static int parse_parameters_array(const JSON_Array *arr,
-                                  struct OpenAPI_Parameter **out_params,
-                                  size_t *out_count,
-                                  const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+parse_parameters_array(const JSON_Array *arr,
+                       struct OpenAPI_Parameter **out_params, size_t *out_count,
+                       const struct OpenAPI_Spec *spec) {
   size_t i, count, valid = 0;
   if (!out_params || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_params = NULL;
   *out_count = 0;
 
   if (!arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_params = (struct OpenAPI_Parameter *)calloc(
       count, sizeof(struct OpenAPI_Parameter));
   /* LCOV_EXCL_START */
   if (!*out_params)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -11491,7 +11605,7 @@ static int parse_parameters_array(const JSON_Array *arr,
           if (param_key_equals(&tmp, &(*out_params)[k])) {
             free_parameter(&tmp);
             *out_count = valid;
-            return EINVAL;
+            return CDD_C_ERROR_INVALID_ARGUMENT;
           }
         }
       }
@@ -11502,7 +11616,7 @@ static int parse_parameters_array(const JSON_Array *arr,
     free(*out_params);
     *out_params = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (valid < count) {
     struct OpenAPI_Parameter *tmp = (struct OpenAPI_Parameter *)realloc(
@@ -11511,17 +11625,17 @@ static int parse_parameters_array(const JSON_Array *arr,
       *out_params = tmp;
   }
   *out_count = valid;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses request body object from the given input.
  */
-static int parse_request_body_object(const JSON_Object *rb_obj,
-                                     struct OpenAPI_RequestBody *out_rb,
-                                     const struct OpenAPI_Spec *spec,
-                                     const int resolve_refs,
-                                     const char *op_id) {
+static enum cdd_c_error
+parse_request_body_object(const JSON_Object *rb_obj,
+                          struct OpenAPI_RequestBody *out_rb,
+                          const struct OpenAPI_Spec *spec,
+                          const int resolve_refs, const char *op_id) {
   struct OpenAPI_RequestBody *_ast_find_component_request_body_68;
   JSON_Object *_ast_find_media_object_by_name_69;
   char *_ast_build_inline_request_name_70 = NULL;
@@ -11541,14 +11655,14 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
   int primary_idx = -1;
 
   if (!rb_obj || !out_rb)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(rb_obj, "$ref");
   if (ref) {
     out_rb->ref = (c_cdd_strdup(ref, &_ast_strdup_243), _ast_strdup_243);
     /* LCOV_EXCL_START */
     if (!out_rb->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_RequestBody *comp =
@@ -11574,11 +11688,11 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
           (c_cdd_strdup(desc, &_ast_strdup_244), _ast_strdup_244);
       /* LCOV_EXCL_START */
       if (!out_rb->description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   desc = json_object_get_string(rb_obj, "description");
@@ -11592,7 +11706,7 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
         (c_cdd_strdup(desc, &_ast_strdup_245), _ast_strdup_245);
     /* LCOV_EXCL_START */
     if (!out_rb->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11606,7 +11720,7 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
 
   content = json_object_get_object(rb_obj, "content");
   if (!content || json_object_get_count(content) == 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (content) {
     int rc = parse_content_object(content, &out_rb->content_media_types,
                                   &out_rb->n_content_media_types, spec,
@@ -11623,8 +11737,9 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
       }
       return rc;
     }
-    primary_idx = select_primary_media_type_index(
-        out_rb->content_media_types, out_rb->n_content_media_types);
+    select_primary_media_type_index(out_rb->content_media_types,
+                                    out_rb->n_content_media_types,
+                                    &primary_idx);
     if (primary_idx >= 0) {
       primary = &out_rb->content_media_types[primary_idx];
     }
@@ -11731,7 +11846,7 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
             (c_cdd_strdup(primary->ref, &_ast_strdup_246), _ast_strdup_246);
         /* LCOV_EXCL_START */
         if (!out_rb->content_ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -11754,7 +11869,7 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
             primary->n_examples, sizeof(struct OpenAPI_Example));
         /* LCOV_EXCL_START */
         if (!out_rb->examples)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         out_rb->n_examples = primary->n_examples;
         {
@@ -11782,7 +11897,7 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
             (c_cdd_strdup(primary->name, &_ast_strdup_247), _ast_strdup_247);
         /* LCOV_EXCL_START */
         if (!out_rb->schema.content_type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -11795,26 +11910,27 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Creates a deep copy of request body fields.
  */
-static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
-                                    const struct OpenAPI_RequestBody *src) {
+static enum cdd_c_error
+copy_request_body_fields(struct OpenAPI_RequestBody *dst,
+                         const struct OpenAPI_RequestBody *src) {
   char *_ast_strdup_248 = NULL;
   char *_ast_strdup_249 = NULL;
   char *_ast_strdup_250 = NULL;
   char *_ast_strdup_251 = NULL;
   if (!dst || !src)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (src->ref && !dst->ref) {
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_248), _ast_strdup_248);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11828,7 +11944,7 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
         (c_cdd_strdup(src->description, &_ast_strdup_249), _ast_strdup_249);
     /* LCOV_EXCL_START */
     if (!dst->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11838,7 +11954,7 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
         (c_cdd_strdup(src->content_ref, &_ast_strdup_250), _ast_strdup_250);
     /* LCOV_EXCL_START */
     if (!dst->content_ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11848,7 +11964,7 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_251), _ast_strdup_251);
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11875,7 +11991,7 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
         src->n_examples, sizeof(struct OpenAPI_Example));
     /* LCOV_EXCL_START */
     if (!dst->examples)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
@@ -11893,17 +12009,18 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
     if (_rc != 0)
       return _rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses response object from the given input.
  */
-static int parse_response_object(const JSON_Object *resp_obj,
-                                 struct OpenAPI_Response *out_resp,
-                                 const struct OpenAPI_Spec *spec,
-                                 const int resolve_refs, const char *op_id,
-                                 const char *resp_code) {
+static enum cdd_c_error parse_response_object(const JSON_Object *resp_obj,
+                                              struct OpenAPI_Response *out_resp,
+                                              const struct OpenAPI_Spec *spec,
+                                              const int resolve_refs,
+                                              const char *op_id,
+                                              const char *resp_code) {
   struct OpenAPI_Response *_ast_find_component_response_73;
   JSON_Object *_ast_find_media_object_by_name_74;
   char *_ast_build_inline_response_name_75 = NULL;
@@ -11921,14 +12038,14 @@ static int parse_response_object(const JSON_Object *resp_obj,
   const JSON_Object *headers;
   const JSON_Object *links;
   if (!resp_obj || !out_resp)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(resp_obj, "$ref");
   if (ref) {
     out_resp->ref = (c_cdd_strdup(ref, &_ast_strdup_252), _ast_strdup_252);
     /* LCOV_EXCL_START */
     if (!out_resp->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Response *comp =
@@ -11951,7 +12068,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
         (c_cdd_strdup(summary, &_ast_strdup_253), _ast_strdup_253);
     /* LCOV_EXCL_START */
     if (!out_resp->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11959,7 +12076,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
   desc = json_object_get_string(resp_obj, "description");
   /* LCOV_EXCL_START */
   if (0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (desc) {
@@ -11967,7 +12084,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
         (c_cdd_strdup(desc, &_ast_strdup_254), _ast_strdup_254);
     /* LCOV_EXCL_START */
     if (!out_resp->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -11981,7 +12098,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
   }
 
   if (ref)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (spec && spec->swagger_version) {
     const JSON_Value *schema_val = json_object_get_value(resp_obj, "schema");
@@ -12024,8 +12141,9 @@ static int parse_response_object(const JSON_Object *resp_obj,
       if (_rc != 0)
         return _rc;
     }
-    primary_idx = select_primary_media_type_index(
-        out_resp->content_media_types, out_resp->n_content_media_types);
+    select_primary_media_type_index(out_resp->content_media_types,
+                                    out_resp->n_content_media_types,
+                                    &primary_idx);
     if (primary_idx >= 0) {
       primary = &out_resp->content_media_types[primary_idx];
     }
@@ -12135,7 +12253,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
             (c_cdd_strdup(primary->name, &_ast_strdup_255), _ast_strdup_255);
         /* LCOV_EXCL_START */
         if (!out_resp->content_type)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -12145,7 +12263,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
             (c_cdd_strdup(primary->ref, &_ast_strdup_256), _ast_strdup_256);
         /* LCOV_EXCL_START */
         if (!out_resp->content_ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -12168,7 +12286,7 @@ static int parse_response_object(const JSON_Object *resp_obj,
             primary->n_examples, sizeof(struct OpenAPI_Example));
         /* LCOV_EXCL_START */
         if (!out_resp->examples)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         out_resp->n_examples = primary->n_examples;
         {
@@ -12193,44 +12311,45 @@ static int parse_response_object(const JSON_Object *resp_obj,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if valid response code key.
  */
-static int is_valid_response_code_key(const char *code) {
+static enum cdd_c_error is_valid_response_code_key(const char *code) {
   size_t i;
   if (!code || !*code)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(code, "default") == 0)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   if (strlen(code) != 3)
-    return 0;
+    return CDD_C_SUCCESS;
   if (code[1] == 'X' && code[2] == 'X')
     return (code[0] >= '1' && code[0] <= '5');
   for (i = 0; i < 3; ++i) {
     if (!isdigit((unsigned char)code[i]))
-      return 0;
+      return CDD_C_SUCCESS;
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Parses responses from the given input.
  */
-static int parse_responses(const JSON_Object *responses,
-                           struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec, const char *op_id) {
+static enum cdd_c_error parse_responses(const JSON_Object *responses,
+                                        struct OpenAPI_Operation *out_op,
+                                        const struct OpenAPI_Spec *spec,
+                                        const char *op_id) {
   char *_ast_strdup_257 = NULL;
   size_t i, count, valid = 0, resp_idx = 0;
   if (!responses || !out_op)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(responses);
   /* LCOV_EXCL_START */
   if (count == 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   {
@@ -12246,14 +12365,14 @@ static int parse_responses(const JSON_Object *responses,
   }
   /* LCOV_EXCL_START */
   if (valid == 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   out_op->responses =
       (struct OpenAPI_Response *)calloc(valid, sizeof(struct OpenAPI_Response));
   /* LCOV_EXCL_START */
   if (!out_op->responses)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out_op->n_responses = valid;
 
@@ -12266,16 +12385,16 @@ static int parse_responses(const JSON_Object *responses,
     if (code && strncmp(code, "x-", 2) == 0)
       continue;
     if (!is_valid_response_code_key(code))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_START */
     if (resp_idx >= valid)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     curr = &out_op->responses[resp_idx++];
     curr->code = (c_cdd_strdup(code, &_ast_strdup_257), _ast_strdup_257);
     /* LCOV_EXCL_START */
     if (!curr->code)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
 
     if (resp_obj) {
@@ -12284,16 +12403,16 @@ static int parse_responses(const JSON_Object *responses,
         return rc_resp;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses callback object from the given input.
  */
-static int parse_callback_object(const JSON_Object *cb_obj,
-                                 struct OpenAPI_Callback *out_cb,
-                                 const struct OpenAPI_Spec *spec,
-                                 const int resolve_refs) {
+static enum cdd_c_error parse_callback_object(const JSON_Object *cb_obj,
+                                              struct OpenAPI_Callback *out_cb,
+                                              const struct OpenAPI_Spec *spec,
+                                              const int resolve_refs) {
   struct OpenAPI_Callback *_ast_find_component_callback_78;
   char *_ast_strdup_258 = NULL;
   char *_ast_strdup_259 = NULL;
@@ -12303,14 +12422,14 @@ static int parse_callback_object(const JSON_Object *cb_obj,
   const char *desc;
 
   if (!cb_obj || !out_cb)
-    return 0;
+    return CDD_C_SUCCESS;
 
   ref = json_object_get_string(cb_obj, "$ref");
   if (ref) {
     out_cb->ref = (c_cdd_strdup(ref, &_ast_strdup_258), _ast_strdup_258);
     /* LCOV_EXCL_START */
     if (!out_cb->ref)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Callback *comp =
@@ -12333,7 +12452,7 @@ static int parse_callback_object(const JSON_Object *cb_obj,
           (c_cdd_strdup(summary, &_ast_strdup_259), _ast_strdup_259);
       /* LCOV_EXCL_START */
       if (!out_cb->summary)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12346,11 +12465,11 @@ static int parse_callback_object(const JSON_Object *cb_obj,
           (c_cdd_strdup(desc, &_ast_strdup_260), _ast_strdup_260);
       /* LCOV_EXCL_START */
       if (!out_cb->description)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   {
@@ -12366,31 +12485,31 @@ static int parse_callback_object(const JSON_Object *cb_obj,
 /**
  * @brief Parses callbacks object from the given input.
  */
-static int parse_callbacks_object(const JSON_Object *callbacks,
-                                  struct OpenAPI_Callback **out_callbacks,
-                                  size_t *out_count,
-                                  const struct OpenAPI_Spec *spec,
-                                  const int resolve_refs) {
+static enum cdd_c_error
+parse_callbacks_object(const JSON_Object *callbacks,
+                       struct OpenAPI_Callback **out_callbacks,
+                       size_t *out_count, const struct OpenAPI_Spec *spec,
+                       const int resolve_refs) {
   char *_ast_strdup_261 = NULL;
   size_t i, count;
   if (!out_callbacks || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_callbacks = NULL;
   *out_count = 0;
 
   if (!callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(callbacks);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   *out_callbacks =
       (struct OpenAPI_Callback *)calloc(count, sizeof(struct OpenAPI_Callback));
   /* LCOV_EXCL_START */
   if (!*out_callbacks)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -12404,7 +12523,7 @@ static int parse_callbacks_object(const JSON_Object *callbacks,
       curr->name = (c_cdd_strdup(name, &_ast_strdup_261), _ast_strdup_261);
       /* LCOV_EXCL_START */
       if (!curr->name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12417,16 +12536,18 @@ static int parse_callbacks_object(const JSON_Object *callbacks,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses operation from the given input.
  */
-static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
-                           struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec,
-                           const int is_additional, const char *route_hint) {
+static enum cdd_c_error parse_operation(const char *verb_str,
+                                        const JSON_Object *op_obj,
+                                        struct OpenAPI_Operation *out_op,
+                                        const struct OpenAPI_Spec *spec,
+                                        const int is_additional,
+                                        const char *route_hint) {
   enum OpenAPI_Verb _ast_parse_verb_79;
   char *_ast_strdup_262 = NULL;
   char *_ast_strdup_263 = NULL;
@@ -12450,7 +12571,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
   /* LCOV_EXCL_START */
 
   if (!verb_str || !op_obj || !out_op)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   (void)route_hint;
@@ -12464,12 +12585,12 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
         (c_cdd_strdup(verb_str, &_ast_strdup_262), _ast_strdup_262);
     /* LCOV_EXCL_START */
     if (!out_op->method)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (out_op->verb == OA_VERB_UNKNOWN && !is_additional)
-    return 0;
+    return CDD_C_SUCCESS;
 
   op_id = json_object_get_string(op_obj, "operationId");
   out_op->operation_id =
@@ -12481,7 +12602,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
         (c_cdd_strdup(summary, &_ast_strdup_264), _ast_strdup_264);
     /* LCOV_EXCL_START */
     if (!out_op->summary)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -12492,7 +12613,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
         (c_cdd_strdup(description, &_ast_strdup_265), _ast_strdup_265);
     /* LCOV_EXCL_START */
     if (!out_op->description)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -12543,7 +12664,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
       /* LCOV_EXCL_START */
       if (!out_op->req_body_ref) {
         free_request_body(&rb);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
@@ -12553,7 +12674,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
       /* LCOV_EXCL_START */
       if (!out_op->req_body_description) {
         free_request_body(&rb);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
@@ -12567,20 +12688,20 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
       /* LCOV_EXCL_START */
       if (!out_op->req_body_extensions_json) {
         free_request_body(&rb);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* LCOV_EXCL_STOP */
     }
     if (copy_schema_ref(&out_op->req_body, &rb.schema) != 0) {
       free_request_body(&rb);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (rb.content_media_types && rb.n_content_media_types > 0) {
       if (copy_media_type_array(
               &out_op->req_body_media_types, &out_op->n_req_body_media_types,
               rb.content_media_types, rb.n_content_media_types) != 0) {
         free_request_body(&rb);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
     free_request_body(&rb);
@@ -12590,7 +12711,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
   responses = json_object_get_object(op_obj, "responses");
   /* LCOV_EXCL_START */
   if (0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   {
     int rc = parse_responses(responses, out_op, spec, out_op->operation_id);
@@ -12620,7 +12741,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
       out_op->tags = (char **)calloc(t_count, sizeof(char *));
       /* LCOV_EXCL_START */
       if (!out_op->tags)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       for (k = 0; k < t_count; ++k) {
         const char *t_val = json_array_get_string(tags, k);
@@ -12628,7 +12749,7 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
                            _ast_strdup_269);
         /* LCOV_EXCL_START */
         if (!out_op->tags[k])
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
     }
@@ -12641,38 +12762,39 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
       return _rc;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component parameters from the given input.
  */
-static int parse_component_parameters(const JSON_Object *components,
-                                      struct OpenAPI_Spec *out) {
+static enum cdd_c_error
+parse_component_parameters(const JSON_Object *components,
+                           struct OpenAPI_Spec *out) {
   char *_ast_strdup_270 = NULL;
   const JSON_Object *params;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   params = json_object_get_object(components, "parameters");
   if (!params)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(params) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(params);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_parameters = (struct OpenAPI_Parameter *)calloc(
       count, sizeof(struct OpenAPI_Parameter));
   out->component_parameter_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_parameters || !out->component_parameter_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_parameters = count;
 
@@ -12683,12 +12805,12 @@ static int parse_component_parameters(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_parameter_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_270), _ast_strdup_270);
       /* LCOV_EXCL_START */
       if (!out->component_parameter_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12702,38 +12824,38 @@ static int parse_component_parameters(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component responses from the given input.
  */
-static int parse_component_responses(const JSON_Object *components,
-                                     struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_component_responses(const JSON_Object *components,
+                                                  struct OpenAPI_Spec *out) {
   char *_ast_strdup_271 = NULL;
   const JSON_Object *responses;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   responses = json_object_get_object(components, "responses");
   if (0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(responses) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(responses);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_responses =
       (struct OpenAPI_Response *)calloc(count, sizeof(struct OpenAPI_Response));
   out->component_response_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_responses || !out->component_response_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_responses = count;
 
@@ -12744,12 +12866,12 @@ static int parse_component_responses(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_response_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_271), _ast_strdup_271);
       /* LCOV_EXCL_START */
       if (!out->component_response_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12765,38 +12887,38 @@ static int parse_component_responses(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component headers from the given input.
  */
-static int parse_component_headers(const JSON_Object *components,
-                                   struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_component_headers(const JSON_Object *components,
+                                                struct OpenAPI_Spec *out) {
   char *_ast_strdup_272 = NULL;
   const JSON_Object *headers;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   headers = json_object_get_object(components, "headers");
   if (!headers)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(headers) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(headers);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_headers =
       (struct OpenAPI_Header *)calloc(count, sizeof(struct OpenAPI_Header));
   out->component_header_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_headers || !out->component_header_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_headers = count;
 
@@ -12807,12 +12929,12 @@ static int parse_component_headers(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_header_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_272), _ast_strdup_272);
       /* LCOV_EXCL_START */
       if (!out->component_header_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12826,38 +12948,39 @@ static int parse_component_headers(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component request bodies from the given input.
  */
-static int parse_component_request_bodies(const JSON_Object *components,
-                                          struct OpenAPI_Spec *out) {
+static enum cdd_c_error
+parse_component_request_bodies(const JSON_Object *components,
+                               struct OpenAPI_Spec *out) {
   char *_ast_strdup_273 = NULL;
   const JSON_Object *bodies;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   bodies = json_object_get_object(components, "requestBodies");
   if (!bodies)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(bodies) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(bodies);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_request_bodies = (struct OpenAPI_RequestBody *)calloc(
       count, sizeof(struct OpenAPI_RequestBody));
   out->component_request_body_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_request_bodies || !out->component_request_body_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_request_bodies = count;
 
@@ -12868,12 +12991,12 @@ static int parse_component_request_bodies(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_request_body_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_273), _ast_strdup_273);
       /* LCOV_EXCL_START */
       if (!out->component_request_body_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -12889,39 +13012,40 @@ static int parse_component_request_bodies(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component media types from the given input.
  */
-static int parse_component_media_types(const JSON_Object *components,
-                                       struct OpenAPI_Spec *out) {
+static enum cdd_c_error
+parse_component_media_types(const JSON_Object *components,
+                            struct OpenAPI_Spec *out) {
   char *_ast_strdup_274 = NULL;
   char *_ast_strdup_275 = NULL;
   const JSON_Object *media_types;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   media_types = json_object_get_object(components, "mediaTypes");
   if (!media_types)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(media_types) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(media_types);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_media_types = (struct OpenAPI_MediaType *)calloc(
       count, sizeof(struct OpenAPI_MediaType));
   out->component_media_type_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_media_types || !out->component_media_type_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_media_types = count;
 
@@ -12935,17 +13059,17 @@ static int parse_component_media_types(const JSON_Object *components,
 
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_media_type_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_274), _ast_strdup_274);
       /* LCOV_EXCL_START */
       if (!out->component_media_type_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       curr->name = (c_cdd_strdup(name, &_ast_strdup_275), _ast_strdup_275);
       /* LCOV_EXCL_START */
       if (!curr->name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
 
@@ -12959,38 +13083,38 @@ static int parse_component_media_types(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component examples from the given input.
  */
-static int parse_component_examples(const JSON_Object *components,
-                                    struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_component_examples(const JSON_Object *components,
+                                                 struct OpenAPI_Spec *out) {
   char *_ast_strdup_276 = NULL;
   const JSON_Object *examples;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   examples = json_object_get_object(components, "examples");
   if (!examples)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(examples) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(examples);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_examples =
       (struct OpenAPI_Example *)calloc(count, sizeof(struct OpenAPI_Example));
   out->component_example_names = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_examples || !out->component_example_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_examples = count;
 
@@ -13001,12 +13125,12 @@ static int parse_component_examples(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_example_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_276), _ast_strdup_276);
       /* LCOV_EXCL_START */
       if (!out->component_example_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -13020,37 +13144,37 @@ static int parse_component_examples(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component links from the given input.
  */
-static int parse_component_links(const JSON_Object *components,
-                                 struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_component_links(const JSON_Object *components,
+                                              struct OpenAPI_Spec *out) {
   char *_ast_strdup_277 = NULL;
   const JSON_Object *links;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   links = json_object_get_object(components, "links");
   if (!links)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(links) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(links);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_links =
       (struct OpenAPI_Link *)calloc(count, sizeof(struct OpenAPI_Link));
   /* LCOV_EXCL_START */
   if (!out->component_links)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_links = count;
 
@@ -13062,11 +13186,11 @@ static int parse_component_links(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       curr->name = (c_cdd_strdup(name, &_ast_strdup_277), _ast_strdup_277);
       /* LCOV_EXCL_START */
       if (!curr->name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -13079,37 +13203,37 @@ static int parse_component_links(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component callbacks from the given input.
  */
-static int parse_component_callbacks(const JSON_Object *components,
-                                     struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_component_callbacks(const JSON_Object *components,
+                                                  struct OpenAPI_Spec *out) {
   char *_ast_strdup_278 = NULL;
   const JSON_Object *callbacks;
   size_t count, i;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   callbacks = json_object_get_object(components, "callbacks");
   if (!callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(callbacks) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(callbacks);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_callbacks =
       (struct OpenAPI_Callback *)calloc(count, sizeof(struct OpenAPI_Callback));
   /* LCOV_EXCL_START */
   if (!out->component_callbacks)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   out->n_component_callbacks = count;
 
@@ -13121,11 +13245,11 @@ static int parse_component_callbacks(const JSON_Object *components,
     /* LCOV_EXCL_START */
     if (name) {
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       curr->name = (c_cdd_strdup(name, &_ast_strdup_278), _ast_strdup_278);
       /* LCOV_EXCL_START */
       if (!curr->name)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -13138,28 +13262,29 @@ static int parse_component_callbacks(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses component path items from the given input.
  */
-static int parse_component_path_items(const JSON_Object *components,
-                                      struct OpenAPI_Spec *out) {
+static enum cdd_c_error
+parse_component_path_items(const JSON_Object *components,
+                           struct OpenAPI_Spec *out) {
   char *_ast_strdup_279 = NULL;
   const JSON_Object *path_items;
   size_t i;
   int rc;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   path_items = json_object_get_object(components, "pathItems");
   if (!path_items)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(path_items) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = parse_paths_object(path_items, &out->component_path_items,
                           &out->n_component_path_items, out, 0, 0);
@@ -13167,13 +13292,13 @@ static int parse_component_path_items(const JSON_Object *components,
     return rc;
 
   if (out->n_component_path_items == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   out->component_path_item_names =
       (char **)calloc(out->n_component_path_items, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!out->component_path_item_names)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < out->n_component_path_items; ++i) {
@@ -13184,20 +13309,20 @@ static int parse_component_path_items(const JSON_Object *components,
           (c_cdd_strdup(name, &_ast_strdup_279), _ast_strdup_279);
       /* LCOV_EXCL_START */
       if (!out->component_path_item_names[i])
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses components from the given input.
  */
-static int parse_components(const JSON_Object *components,
-                            struct OpenAPI_Spec *out) {
+static enum cdd_c_error parse_components(const JSON_Object *components,
+                                         struct OpenAPI_Spec *out) {
   char *_ast_strdup_280 = NULL;
   char *_ast_strdup_281 = NULL;
   char *_ast_strdup_282 = NULL;
@@ -13208,7 +13333,7 @@ static int parse_components(const JSON_Object *components,
   size_t i, count;
 
   if (!components || !out)
-    return 0;
+    return CDD_C_SUCCESS;
 
   {
     int rc = parse_security_schemes(components, out);
@@ -13246,14 +13371,14 @@ static int parse_components(const JSON_Object *components,
   schemas = json_object_get_object(
       components, out->swagger_version ? "definitions" : "schemas");
   if (!schemas)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(schemas) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(schemas);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   {
     size_t struct_count = 0;
@@ -13282,7 +13407,7 @@ static int parse_components(const JSON_Object *components,
       if (!out->defined_schemas || !out->defined_schema_names ||
           !out->defined_schema_ids || !out->defined_schema_anchors ||
           !out->defined_schema_dynamic_anchors)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       out->n_defined_schemas = struct_count;
     }
@@ -13292,7 +13417,7 @@ static int parse_components(const JSON_Object *components,
       out->raw_schema_json = (char **)calloc(raw_count, sizeof(char *));
       /* LCOV_EXCL_START */
       if (!out->raw_schema_names || !out->raw_schema_json)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
       out->n_raw_schemas = raw_count;
     }
@@ -13307,7 +13432,7 @@ static int parse_components(const JSON_Object *components,
       const JSON_Object *schema_obj = json_value_get_object(schema_val);
 
       if (!component_key_is_valid(name))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
 
       if (schema_is_struct_compatible(schema_val, schema_obj)) {
         const char *schema_id = NULL;
@@ -13317,7 +13442,7 @@ static int parse_components(const JSON_Object *components,
             (c_cdd_strdup(name, &_ast_strdup_280), _ast_strdup_280);
         /* LCOV_EXCL_START */
         if (!out->defined_schema_names[struct_idx])
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         if (schema_obj)
           schema_id = json_object_get_string(schema_obj, "$id");
@@ -13327,7 +13452,7 @@ static int parse_components(const JSON_Object *components,
               (c_cdd_strdup(schema_id, &_ast_strdup_281), _ast_strdup_281);
           /* LCOV_EXCL_START */
           if (!out->defined_schema_ids[struct_idx])
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -13342,7 +13467,7 @@ static int parse_components(const JSON_Object *components,
               (c_cdd_strdup(schema_anchor, &_ast_strdup_282), _ast_strdup_282);
           /* LCOV_EXCL_START */
           if (!out->defined_schema_anchors[struct_idx])
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -13353,7 +13478,7 @@ static int parse_components(const JSON_Object *components,
                _ast_strdup_283);
           /* LCOV_EXCL_START */
           if (!out->defined_schema_dynamic_anchors[struct_idx])
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -13361,7 +13486,7 @@ static int parse_components(const JSON_Object *components,
         if (json_object_to_struct_fields_ex(schema_obj,
                                             &out->defined_schemas[struct_idx],
                                             schemas, name) != 0) {
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         struct_idx++;
       }
@@ -13374,18 +13499,18 @@ static int parse_components(const JSON_Object *components,
             (c_cdd_strdup(name, &_ast_strdup_284), _ast_strdup_284);
         /* LCOV_EXCL_START */
         if (!out->raw_schema_names[raw_idx])
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         raw_json = json_serialize_to_string(schema_val);
         /* LCOV_EXCL_START */
         if (!raw_json)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         dup_json = (c_cdd_strdup(raw_json, &_ast_strdup_285), _ast_strdup_285);
         json_free_serialized_string(raw_json);
         /* LCOV_EXCL_START */
         if (!dup_json)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         out->raw_schema_json[raw_idx] = dup_json;
         raw_idx++;
@@ -13393,34 +13518,35 @@ static int parse_components(const JSON_Object *components,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses additional operations from the given input.
  */
-static int parse_additional_operations(const JSON_Object *path_obj,
-                                       struct OpenAPI_Path *path,
-                                       const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+parse_additional_operations(const JSON_Object *path_obj,
+                            struct OpenAPI_Path *path,
+                            const struct OpenAPI_Spec *spec) {
   const JSON_Object *add_ops;
   size_t count, i;
 
   if (!path_obj || !path)
-    return 0;
+    return CDD_C_SUCCESS;
 
   add_ops = json_object_get_object(path_obj, "additionalOperations");
   if (!add_ops)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(add_ops);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   path->additional_operations = (struct OpenAPI_Operation *)calloc(
       count, sizeof(struct OpenAPI_Operation));
   /* LCOV_EXCL_START */
   if (!path->additional_operations)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   path->n_additional_operations = count;
 
@@ -13430,7 +13556,7 @@ static int parse_additional_operations(const JSON_Object *path_obj,
         json_value_get_object(json_object_get_value_at(add_ops, i));
     struct OpenAPI_Operation *curr = &path->additional_operations[i];
     if (is_fixed_operation_method(method))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     {
       int _rc = parse_operation(method, op_obj, curr, spec, 1, path->route);
       if (_rc != 0)
@@ -13438,17 +13564,18 @@ static int parse_additional_operations(const JSON_Object *path_obj,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses paths object from the given input.
  */
-static int parse_paths_object(const JSON_Object *paths_obj,
-                              struct OpenAPI_Path **out_paths,
-                              size_t *out_count,
-                              const struct OpenAPI_Spec *spec,
-                              int require_leading_slash, int resolve_refs) {
+static enum cdd_c_error parse_paths_object(const JSON_Object *paths_obj,
+                                           struct OpenAPI_Path **out_paths,
+                                           size_t *out_count,
+                                           const struct OpenAPI_Spec *spec,
+                                           int require_leading_slash,
+                                           int resolve_refs) {
   struct OpenAPI_Path *_ast_find_component_path_item_80;
   char *_ast_strdup_286 = NULL;
   char *_ast_strdup_287 = NULL;
@@ -13461,7 +13588,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
   size_t out_idx;
 
   if (!paths_obj || !out_paths || !out_count)
-    return 0;
+    return CDD_C_SUCCESS;
 
   raw_count = json_object_get_count(paths_obj);
   n_paths = 0;
@@ -13474,14 +13601,14 @@ static int parse_paths_object(const JSON_Object *paths_obj,
   if (n_paths == 0) {
     *out_paths = NULL;
     *out_count = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   *out_paths =
       (struct OpenAPI_Path *)calloc(n_paths, sizeof(struct OpenAPI_Path));
   /* LCOV_EXCL_START */
   if (!*out_paths)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
   *out_count = n_paths;
 
@@ -13501,14 +13628,14 @@ static int parse_paths_object(const JSON_Object *paths_obj,
     curr_path = &(*out_paths)[out_idx++];
 
     if (require_leading_slash && (!route || route[0] != '/'))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_START */
     if (route) {
       curr_path->route =
           (c_cdd_strdup(route, &_ast_strdup_286), _ast_strdup_286);
       /* LCOV_EXCL_START */
       if (!curr_path->route)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -13526,7 +13653,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
             (c_cdd_strdup(path_ref, &_ast_strdup_287), _ast_strdup_287);
         /* LCOV_EXCL_START */
         if (!curr_path->ref)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
         if (resolve_refs && spec) {
           const struct OpenAPI_Path *comp =
@@ -13549,7 +13676,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
               (c_cdd_strdup(path_summary, &_ast_strdup_288), _ast_strdup_288);
           /* LCOV_EXCL_START */
           if (!curr_path->summary)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -13562,7 +13689,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
                _ast_strdup_289);
           /* LCOV_EXCL_START */
           if (!curr_path->description)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
@@ -13575,7 +13702,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
             (c_cdd_strdup(path_summary, &_ast_strdup_290), _ast_strdup_290);
         /* LCOV_EXCL_START */
         if (!curr_path->summary)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -13585,7 +13712,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
             (c_cdd_strdup(path_description, &_ast_strdup_291), _ast_strdup_291);
         /* LCOV_EXCL_START */
         if (!curr_path->description)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
@@ -13621,7 +13748,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
 
       curr_path->n_operations = n_ops_in_obj;
       if (!curr_path->operations) {
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 
       /* LCOV_EXCL_STOP */
@@ -13654,21 +13781,22 @@ static int parse_paths_object(const JSON_Object *paths_obj,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the name in list operation.
  */
-static int name_in_list(const char *name, char **names, size_t count) {
+static enum cdd_c_error name_in_list(const char *name, char **names,
+                                     size_t count) {
   size_t i;
   if (!name || !names)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i) {
     if (names[i] && strcmp(names[i], name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -13686,8 +13814,9 @@ static void free_name_list(char **names, size_t count) {
 /**
  * @brief Collects path template names.
  */
-static int collect_path_template_names(const char *route, char ***out_names,
-                                       size_t *out_count) {
+static enum cdd_c_error collect_path_template_names(const char *route,
+                                                    char ***out_names,
+                                                    size_t *out_count) {
   size_t i;
   size_t cap = 0;
   size_t count = 0;
@@ -13696,14 +13825,14 @@ static int collect_path_template_names(const char *route, char ***out_names,
   /* LCOV_EXCL_START */
 
   if (!out_names || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
   *out_names = NULL;
   *out_count = 0;
 
   if (!route)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; route[i]; ++i) {
     if (route[i] == '{') {
@@ -13714,13 +13843,13 @@ static int collect_path_template_names(const char *route, char ***out_names,
       /* LCOV_EXCL_START */
       if (!route[end]) {
         free_name_list(names, count);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (end == start) {
         free_name_list(names, count);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       /* LCOV_EXCL_STOP */
       {
@@ -13729,7 +13858,7 @@ static int collect_path_template_names(const char *route, char ***out_names,
         /* LCOV_EXCL_START */
         if (!name) {
           free_name_list(names, count);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         /* LCOV_EXCL_STOP */
         memcpy(name, route + start, len);
@@ -13737,7 +13866,7 @@ static int collect_path_template_names(const char *route, char ***out_names,
         if (name_in_list(name, names, count)) {
           free(name);
           free_name_list(names, count);
-          return EINVAL;
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         if (count == cap) {
           size_t new_cap = cap ? cap * 2 : 4;
@@ -13746,7 +13875,7 @@ static int collect_path_template_names(const char *route, char ***out_names,
           if (!tmp) {
             free(name);
             free_name_list(names, count);
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
           /* LCOV_EXCL_STOP */
           names = tmp;
@@ -13758,26 +13887,26 @@ static int collect_path_template_names(const char *route, char ***out_names,
     } else /* LCOV_EXCL_START */
       if (route[i] == '}') {
         free_name_list(names, count);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       } /* LCOV_EXCL_STOP */
   }
 
   *out_names = names;
   *out_count = count;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the path param.
  */
-static int find_path_param(const struct OpenAPI_Parameter *params, size_t n,
-                           const char *name,
-                           struct OpenAPI_Parameter **_out_val) {
+static enum cdd_c_error find_path_param(const struct OpenAPI_Parameter *params,
+                                        size_t n, const char *name,
+                                        struct OpenAPI_Parameter **_out_val) {
   size_t i;
   /* LCOV_EXCL_START */
   if (!params || !name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < n; ++i) {
@@ -13787,54 +13916,55 @@ static int find_path_param(const struct OpenAPI_Parameter *params, size_t n,
       continue;
     if (strcmp(params[i].name, name) == 0) {
       *_out_val = (struct OpenAPI_Parameter *)(&params[i]);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the validate path params list operation.
  */
-static int validate_path_params_list(const struct OpenAPI_Parameter *params,
-                                     size_t n_params, char **template_names,
-                                     size_t n_template_names) {
+static enum cdd_c_error
+validate_path_params_list(const struct OpenAPI_Parameter *params,
+                          size_t n_params, char **template_names,
+                          size_t n_template_names) {
   size_t i;
   if (!params)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_params; ++i) {
     const struct OpenAPI_Parameter *p = &params[i];
     if (p->in != OA_PARAM_IN_PATH)
       continue;
     if (!p->name || !name_in_list(p->name, template_names, n_template_names))
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_START */
     if (!p->required)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate path template for operation operation.
  */
-static int validate_path_template_for_operation(
+static enum cdd_c_error validate_path_template_for_operation(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     char **template_names, size_t n_template_names) {
   struct OpenAPI_Parameter *_ast_find_path_param_81;
   struct OpenAPI_Parameter *_ast_find_path_param_82;
   size_t i;
   if (!path || !template_names || n_template_names == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (validate_path_params_list(op ? op->parameters : NULL,
                                 op ? op->n_parameters : 0, template_names,
                                 n_template_names) != 0)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < n_template_names; ++i) {
     const struct OpenAPI_Parameter *p =
@@ -13849,18 +13979,18 @@ static int validate_path_template_for_operation(
     }
     /* LCOV_EXCL_START */
     if (!p)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate path templates operation.
  */
-static int validate_path_templates(const struct OpenAPI_Path *paths,
-                                   size_t n_paths) {
+static enum cdd_c_error
+validate_path_templates(const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
   for (i = 0; i < n_paths; ++i) {
     const struct OpenAPI_Path *path = &paths[i];
@@ -13900,7 +14030,7 @@ static int validate_path_templates(const struct OpenAPI_Path *paths,
                                                template_names,
                                                n_template_names) != 0) {
         free_name_list(template_names, n_template_names);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
 
@@ -13909,20 +14039,21 @@ static int validate_path_templates(const struct OpenAPI_Path *paths,
               path, &path->additional_operations[op_idx], template_names,
               n_template_names) != 0) {
         free_name_list(template_names, n_template_names);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
 
     free_name_list(template_names, n_template_names);
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the normalize path template route operation.
  */
-static int normalize_path_template_route(const char *route, char **_out_val) {
+static enum cdd_c_error normalize_path_template_route(const char *route,
+                                                      char **_out_val) {
   size_t i = 0;
   size_t len = 0;
   char *out;
@@ -13930,7 +14061,7 @@ static int normalize_path_template_route(const char *route, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!route) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   while (route[i]) {
@@ -13941,7 +14072,7 @@ static int normalize_path_template_route(const char *route, char **_out_val) {
       /* LCOV_EXCL_START */
       if (!route[j]) {
         *_out_val = NULL;
-        return 0;
+        return CDD_C_SUCCESS;
       }
       /* LCOV_EXCL_STOP */
       len += 2;
@@ -13955,7 +14086,7 @@ static int normalize_path_template_route(const char *route, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   i = 0;
@@ -13968,7 +14099,7 @@ static int normalize_path_template_route(const char *route, char **_out_val) {
         free(out);
         {
           *_out_val = NULL;
-          return 0;
+          return CDD_C_SUCCESS;
         }
       }
       out[pos++] = '{';
@@ -13981,20 +14112,21 @@ static int normalize_path_template_route(const char *route, char **_out_val) {
   out[pos] = '\0';
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the validate path template collisions operation.
  */
-static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
-                                             size_t n_paths) {
+static enum cdd_c_error
+validate_path_template_collisions(const struct OpenAPI_Path *paths,
+                                  size_t n_paths) {
   char *_ast_normalize_path_template_route_83 = NULL;
   char *_ast_normalize_path_template_route_84 = NULL;
   size_t i;
   if (!paths)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {
     const char *route_i = paths[i].route;
     char *norm_i;
@@ -14006,7 +14138,7 @@ static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
               _ast_normalize_path_template_route_83);
     /* LCOV_EXCL_START */
     if (!norm_i)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     for (j = i + 1; j < n_paths; ++j) {
       const char *route_j = paths[j].route;
@@ -14019,19 +14151,19 @@ static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
       /* LCOV_EXCL_START */
       if (!norm_j) {
         free(norm_i);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       /* LCOV_EXCL_STOP */
       if (strcmp(norm_i, norm_j) == 0 && strcmp(route_i, route_j) != 0) {
         free(norm_j);
         free(norm_i);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       free(norm_j);
     }
     free(norm_i);
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -14056,8 +14188,8 @@ static void scan_querystring_usage(const struct OpenAPI_Parameter *params,
 /**
  * @brief Executes the validate querystring usage operation.
  */
-static int validate_querystring_usage(const struct OpenAPI_Path *paths,
-                                      size_t n_paths) {
+static enum cdd_c_error
+validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
   for (i = 0; i < n_paths; ++i) {
     const struct OpenAPI_Path *path = &paths[i];
@@ -14072,11 +14204,11 @@ static int validate_querystring_usage(const struct OpenAPI_Path *paths,
                            &path_has_query);
     /* LCOV_EXCL_START */
     if (path_qs > 1)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     if (path_qs > 0 && path_has_query)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
 
     for (op_idx = 0; op_idx < path->n_operations; ++op_idx) {
@@ -14091,11 +14223,11 @@ static int validate_querystring_usage(const struct OpenAPI_Path *paths,
       has_query = path_has_query || op_has_query;
       /* LCOV_EXCL_START */
       if (total_qs > 1)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (total_qs > 0 && has_query)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
     }
 
@@ -14111,25 +14243,25 @@ static int validate_querystring_usage(const struct OpenAPI_Path *paths,
       has_query = path_has_query || op_has_query;
       /* LCOV_EXCL_START */
       if (total_qs > 1)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (total_qs > 0 && has_query)
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       /* LCOV_EXCL_STOP */
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate querystring usage in callbacks operation.
  */
-static int validate_querystring_usage_in_callbacks(
+static enum cdd_c_error validate_querystring_usage_in_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks) {
   size_t i;
   if (!callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_callbacks; ++i) {
     const struct OpenAPI_Callback *cb = &callbacks[i];
     if (cb->paths && cb->n_paths > 0) {
@@ -14138,38 +14270,38 @@ static int validate_querystring_usage_in_callbacks(
         return rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate querystring usage in operations
  * operation.
  */
-static int
+static enum cdd_c_error
 validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
                                          size_t n_ops) {
   size_t i;
   if (!ops)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_ops; ++i) {
     int rc = validate_querystring_usage_in_callbacks(ops[i].callbacks,
                                                      ops[i].n_callbacks);
     if (rc != 0)
       return rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate querystring usage in paths callbacks
  * operation.
  */
-static int
+static enum cdd_c_error
 validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
                                               size_t n_paths) {
   size_t i;
   if (!paths)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {
     int rc = validate_querystring_usage_in_operations(paths[i].operations,
                                                       paths[i].n_operations);
@@ -14180,18 +14312,18 @@ validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
     if (rc != 0)
       return rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate querystring usage in component callbacks
  * operation.
  */
-static int validate_querystring_usage_in_component_callbacks(
+static enum cdd_c_error validate_querystring_usage_in_component_callbacks(
     const struct OpenAPI_Spec *spec) {
   size_t i;
   if (!spec || !spec->component_callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_component_callbacks; ++i) {
     const struct OpenAPI_Callback *cb = &spec->component_callbacks[i];
     if (cb->paths && cb->n_paths > 0) {
@@ -14200,51 +14332,52 @@ static int validate_querystring_usage_in_component_callbacks(
         return rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Adds or sets unique operation id.
  */
-static int add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
-                                   const char *op_id) {
+static enum cdd_c_error add_unique_operation_id(char ***ids, size_t *count,
+                                                size_t *cap,
+                                                const char *op_id) {
   char *_ast_strdup_292 = NULL;
   size_t i;
   char **tmp;
   if (!op_id || !*op_id)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < *count; ++i) {
     if ((*ids)[i] && strcmp((*ids)[i], op_id) == 0)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (*count == *cap) {
     size_t new_cap = *cap ? (*cap * 2) : 8;
     tmp = (char **)realloc(*ids, new_cap * sizeof(char *));
     /* LCOV_EXCL_START */
     if (!tmp)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     *ids = tmp;
     *cap = new_cap;
   }
   (*ids)[*count] = (c_cdd_strdup(op_id, &_ast_strdup_292), _ast_strdup_292);
   if (!(*ids)[*count])
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   (*count)++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Collects operation ids.
  */
-static int collect_operation_ids(const struct OpenAPI_Path *paths,
-                                 size_t n_paths, char ***ids, size_t *count,
-                                 size_t *cap) {
+static enum cdd_c_error collect_operation_ids(const struct OpenAPI_Path *paths,
+                                              size_t n_paths, char ***ids,
+                                              size_t *count, size_t *cap) {
   size_t i, j = 0;
   int rc;
   (void)j;
   if (!paths)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {
     const struct OpenAPI_Path *p = &paths[i];
     for (j = 0; j < p->n_operations; ++j) {
@@ -14260,30 +14393,31 @@ static int collect_operation_ids(const struct OpenAPI_Path *paths,
         return rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the path item ref matches component operation.
  */
-static int path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
-                                           const char *ref, const char *name) {
+static enum cdd_c_error
+path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
+                                const char *ref, const char *name) {
   char *_ast_ref_name_from_prefix_85 = NULL;
   char *_ast_json_pointer_unescape_86 = NULL;
   const char *name_enc;
   char *name_dec;
   int match = 0;
   if (!ref || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   name_enc = (ref_name_from_prefix(spec, ref, "#/components/pathItems/",
                                    &_ast_ref_name_from_prefix_85),
               _ast_ref_name_from_prefix_85);
   if (!name_enc)
-    return 0;
+    return CDD_C_SUCCESS;
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_86),
               _ast_json_pointer_unescape_86);
   if (!name_dec)
-    return 0;
+    return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
   free(name_dec);
   return match;
@@ -14292,45 +14426,47 @@ static int path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the component path item is referenced operation.
  */
-static int component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
-                                             const char *name) {
+static enum cdd_c_error
+component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
+                                  const char *name) {
   size_t i;
   if (!spec || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_paths; ++i) {
     if (spec->paths[i].ref &&
         path_item_ref_matches_component(spec, spec->paths[i].ref, name))
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
   for (i = 0; i < spec->n_webhooks; ++i) {
     if (spec->webhooks[i].ref &&
         path_item_ref_matches_component(spec, spec->webhooks[i].ref, name))
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the callback ref matches component operation.
  */
-static int callback_ref_matches_component(const struct OpenAPI_Spec *spec,
-                                          const char *ref, const char *name) {
+static enum cdd_c_error
+callback_ref_matches_component(const struct OpenAPI_Spec *spec, const char *ref,
+                               const char *name) {
   char *_ast_ref_name_from_prefix_87 = NULL;
   char *_ast_json_pointer_unescape_88 = NULL;
   const char *name_enc;
   char *name_dec;
   int match = 0;
   if (!ref || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   name_enc = (ref_name_from_prefix(spec, ref, "#/components/callbacks/",
                                    &_ast_ref_name_from_prefix_87),
               _ast_ref_name_from_prefix_87);
   if (!name_enc)
-    return 0;
+    return CDD_C_SUCCESS;
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_88),
               _ast_json_pointer_unescape_88);
   if (!name_dec)
-    return 0;
+    return CDD_C_SUCCESS;
   match = (strcmp(name_dec, name) == 0);
   free(name_dec);
   return match;
@@ -14339,31 +14475,32 @@ static int callback_ref_matches_component(const struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the component callback is referenced in ops operation.
  */
-static int component_callback_is_referenced_in_ops(
+static enum cdd_c_error component_callback_is_referenced_in_ops(
     const struct OpenAPI_Operation *ops, size_t n_ops,
     const struct OpenAPI_Spec *spec, const char *name) {
   size_t i, j;
   if (!ops || !spec || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_ops; ++i) {
     const struct OpenAPI_Operation *op = &ops[i];
     for (j = 0; j < op->n_callbacks; ++j) {
       const struct OpenAPI_Callback *cb = &op->callbacks[j];
       if (cb->ref && callback_ref_matches_component(spec, cb->ref, name))
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the component callback is referenced operation.
  */
-static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
-                                            const char *name) {
+static enum cdd_c_error
+component_callback_is_referenced(const struct OpenAPI_Spec *spec,
+                                 const char *name) {
   size_t i;
   if (!spec || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_paths; ++i) {
     if (component_callback_is_referenced_in_ops(spec->paths[i].operations,
                                                 spec->paths[i].n_operations,
@@ -14371,7 +14508,7 @@ static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
         component_callback_is_referenced_in_ops(
             spec->paths[i].additional_operations,
             spec->paths[i].n_additional_operations, spec, name)) {
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
   }
   for (i = 0; i < spec->n_webhooks; ++i) {
@@ -14381,7 +14518,7 @@ static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
         component_callback_is_referenced_in_ops(
             spec->webhooks[i].additional_operations,
             spec->webhooks[i].n_additional_operations, spec, name)) {
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
   }
   if (spec->component_path_items && spec->n_component_path_items > 0) {
@@ -14398,22 +14535,22 @@ static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
               spec->component_path_items[i].additional_operations,
               spec->component_path_items[i].n_additional_operations, spec,
               name)) {
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Collects callback operation ids from callbacks.
  */
-static int collect_callback_operation_ids_from_callbacks(
+static enum cdd_c_error collect_callback_operation_ids_from_callbacks(
     const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
     size_t *count, size_t *cap) {
   size_t i;
   if (!callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_callbacks; ++i) {
     const struct OpenAPI_Callback *cb = &callbacks[i];
     if (cb->paths && cb->n_paths > 0) {
@@ -14422,18 +14559,18 @@ static int collect_callback_operation_ids_from_callbacks(
         return rc;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Collects callback operation ids from operations.
  */
-static int collect_callback_operation_ids_from_operations(
+static enum cdd_c_error collect_callback_operation_ids_from_operations(
     const struct OpenAPI_Operation *ops, size_t n_ops, char ***ids,
     size_t *count, size_t *cap) {
   size_t i;
   if (!ops)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_ops; ++i) {
     const struct OpenAPI_Operation *op = &ops[i];
     int rc = collect_callback_operation_ids_from_callbacks(
@@ -14441,19 +14578,19 @@ static int collect_callback_operation_ids_from_operations(
     if (rc != 0)
       return rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Collects callback operation ids from paths.
  */
-static int
+static enum cdd_c_error
 collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
                                           size_t n_paths, char ***ids,
                                           size_t *count, size_t *cap) {
   size_t i;
   if (!paths)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_paths; ++i) {
     int rc = collect_callback_operation_ids_from_operations(
         paths[i].operations, paths[i].n_operations, ids, count, cap);
@@ -14465,13 +14602,14 @@ collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
     if (rc != 0)
       return rc;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the validate unique operation ids operation.
  */
-static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   char **ids = NULL;
   size_t count = 0;
   size_t cap = 0;
@@ -14479,7 +14617,7 @@ static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   size_t i;
 
   if (!spec)
-    return 0;
+    return CDD_C_SUCCESS;
 
   rc = collect_operation_ids(spec->paths, spec->n_paths, &ids, &count, &cap);
   if (rc != 0)
@@ -14543,7 +14681,7 @@ cleanup:
 /**
  * @brief Executes the openapi load from json internal operation.
  */
-static int openapi_load_from_json_internal(
+static enum cdd_c_error openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
     struct OpenAPI_DocRegistry *registry) {
   char *_ast_compute_document_uri_89 = NULL;
@@ -14561,13 +14699,13 @@ static int openapi_load_from_json_internal(
   /* LCOV_EXCL_START */
 
   if (!root || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* LCOV_EXCL_STOP */
 
   root_obj = json_value_get_object(root);
   if (!root_obj && json_value_get_type(root) != JSONBoolean)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out->doc_registry = registry;
   /* LCOV_EXCL_START */
@@ -14576,7 +14714,7 @@ static int openapi_load_from_json_internal(
         (c_cdd_strdup(retrieval_uri, &_ast_strdup_293), _ast_strdup_293);
     /* LCOV_EXCL_START */
     if (!out->retrieval_uri)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -14588,7 +14726,7 @@ static int openapi_load_from_json_internal(
         root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
     if (!version && !swagger_version) {
       if (!root_is_schema_document(root, root_obj))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->is_schema_document = 1;
       {
         const char *schema_id =
@@ -14601,7 +14739,7 @@ static int openapi_load_from_json_internal(
                _ast_compute_document_uri_89);
           /* LCOV_EXCL_START */
           if (!out->document_uri)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           /* LCOV_EXCL_STOP */
         }
       }
@@ -14617,17 +14755,17 @@ static int openapi_load_from_json_internal(
           return rc;
         }
       }
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_START */
     if (version) {
       if (!openapi_version_supported(version))
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       out->openapi_version =
           (c_cdd_strdup(version, &_ast_strdup_294), _ast_strdup_294);
       /* LCOV_EXCL_START */
       if (!out->openapi_version)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */ else /* LCOV_EXCL_START */
@@ -14636,7 +14774,7 @@ static int openapi_load_from_json_internal(
             (c_cdd_strdup(swagger_version, &_ast_strdup_294), _ast_strdup_294);
         /* LCOV_EXCL_START */
         if (!out->swagger_version)
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
       } /* LCOV_EXCL_STOP */
   }
@@ -14690,7 +14828,7 @@ static int openapi_load_from_json_internal(
           (c_cdd_strdup(self_uri, &_ast_strdup_295), _ast_strdup_295);
       /* LCOV_EXCL_START */
       if (!out->self_uri)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -14702,7 +14840,7 @@ static int openapi_load_from_json_internal(
                          _ast_compute_document_uri_90);
     /* LCOV_EXCL_START */
     if (!out->document_uri)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
@@ -14714,7 +14852,7 @@ static int openapi_load_from_json_internal(
           (c_cdd_strdup(dialect, &_ast_strdup_296), _ast_strdup_296);
       /* LCOV_EXCL_START */
       if (!out->json_schema_dialect)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -14796,7 +14934,7 @@ static int openapi_load_from_json_internal(
   /* LCOV_EXCL_START */
   if (!paths_obj && !webhooks_obj && !comps_obj) {
     openapi_spec_free(out);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   /* LCOV_EXCL_STOP */
 
@@ -14982,36 +15120,37 @@ static int openapi_load_from_json_internal(
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the openapi load from json operation.
  */
-int openapi_load_from_json(const JSON_Value *root, struct OpenAPI_Spec *out) {
+enum cdd_c_error openapi_load_from_json(const JSON_Value *root,
+                                        struct OpenAPI_Spec *out) {
   return openapi_load_from_json_internal(root, out, NULL, NULL);
 }
 
 /**
  * @brief Executes the openapi load from json with context operation.
  */
-int openapi_load_from_json_with_context(const JSON_Value *root,
-                                        const char *retrieval_uri,
-                                        struct OpenAPI_Spec *out,
-                                        struct OpenAPI_DocRegistry *registry) {
+enum cdd_c_error openapi_load_from_json_with_context(
+    const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
+    struct OpenAPI_DocRegistry *registry) {
   return openapi_load_from_json_internal(root, out, retrieval_uri, registry);
 }
 
 /**
  * @brief Executes the openapi spec find schema operation.
  */
-int openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
-                             struct StructFields **_out_val) {
+enum cdd_c_error openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
+                                          const char *name,
+                                          struct StructFields **_out_val) {
   size_t i;
   /* LCOV_EXCL_START */
   if (!spec || !name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < spec->n_defined_schemas; ++i) {
@@ -15019,22 +15158,22 @@ int openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
         strcmp(spec->defined_schema_names[i], name) == 0) {
       {
         *_out_val = &spec->defined_schemas[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the openapi spec find schema by id operation.
  */
-static int openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
-                                          const char *ref,
-                                          struct StructFields **_out_val) {
+static enum cdd_c_error
+openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec, const char *ref,
+                               struct StructFields **_out_val) {
   size_t i;
   const char *hash;
   size_t base_len;
@@ -15043,7 +15182,7 @@ static int openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
 
   if (!spec || !ref || !spec->defined_schema_ids) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -15053,14 +15192,14 @@ static int openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
     /* Fragmented refs may target subschemas; do not map to root structs. */
     {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   base_len = hash ? (size_t)(hash - ref) : strlen(ref);
   /* LCOV_EXCL_START */
   if (base_len == 0) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -15071,24 +15210,24 @@ static int openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
     if (strlen(id) == base_len && strncmp(id, ref, base_len) == 0) {
       {
         *_out_val = &spec->defined_schemas[i];
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the openapi spec find schema by anchor operation.
  */
-static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
-                                              const char *ref,
-                                              int dynamic_anchor,
-                                              struct StructFields **_out_val) {
+static enum cdd_c_error
+openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
+                                   const char *ref, int dynamic_anchor,
+                                   struct StructFields **_out_val) {
   size_t i;
   const char *hash;
   const char *anchor;
@@ -15098,7 +15237,7 @@ static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
 
   if (!spec || !ref) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -15107,14 +15246,14 @@ static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!hash || hash[1] == '\0') {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   anchor = hash + 1;
   /* LCOV_EXCL_START */
   if (anchor[0] == '/') {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */ /* JSON Pointer fragment, not an anchor */
 
@@ -15123,7 +15262,7 @@ static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!anchors) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -15133,22 +15272,23 @@ static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
       continue;
     if (strcmp(cand, anchor) == 0) {
       *_out_val = &spec->defined_schemas[i];
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the openapi spec find schema for ref operation.
  */
-int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
-                                     const struct OpenAPI_SchemaRef *ref,
-                                     struct StructFields **_out_val) {
+enum cdd_c_error
+openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
+                                 const struct OpenAPI_SchemaRef *ref,
+                                 struct StructFields **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_91;
   struct StructFields *_ast_openapi_spec_find_schema_92;
   struct ResolvedRefTarget _ast_resolve_ref_target_93;
@@ -15164,7 +15304,7 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
 
   if (!spec || !ref) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -15218,7 +15358,7 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       *_out_val = (openapi_spec_find_schema(target, ref->ref_name,
                                             &_ast_openapi_spec_find_schema_92),
                    _ast_openapi_spec_find_schema_92);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -15257,13 +15397,13 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
       free(resolved.resolved_ref);
     {
       *_out_val = (struct StructFields *)(found);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 

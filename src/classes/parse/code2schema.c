@@ -51,15 +51,15 @@ extern int g_cdd_cst_alloc_token_fail;
  * @param[in] bufsz The size of the buffer.
  * @return 1 on success, 0 on failure or end of file.
  */
-static int read_line(FILE *fp, char *buf, size_t bufsz) {
+static enum cdd_c_error read_line(FILE *fp, char *buf, size_t bufsz) {
   if (!fgets(buf, (int)bufsz, fp))
-    return 0;
+    return CDD_C_SUCCESS;
   {
     size_t len = strlen(buf);
     while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
       buf[--len] = '\0';
   }
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 void trim_trailing(char *str) {
@@ -74,13 +74,14 @@ void trim_trailing(char *str) {
   }
 }
 
-int str_starts_with(const char *str, const char *prefix, int *_out_val) {
+enum cdd_c_error str_starts_with(const char *str, const char *prefix,
+                                 int *_out_val) {
   {
     int b = 0;
     c_cdd_str_starts_with(str, prefix, &b);
     if (_out_val)
       *_out_val = b;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -95,13 +96,14 @@ int str_starts_with(const char *str, const char *prefix, int *_out_val) {
  * @param[in] count The size of the list array.
  * @return 1 if found, 0 otherwise.
  */
-static int key_in_list(const char *key, const char **list, size_t count) {
+static enum cdd_c_error key_in_list(const char *key, const char **list,
+                                    size_t count) {
   size_t i;
   if (!key || !list)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i) {
     if (list[i] && strcmp(list[i], key) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -286,7 +288,7 @@ static int key_in_list(const char *key, const char **list, size_t count) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -299,24 +301,25 @@ static int key_in_list(const char *key, const char **list, size_t count) {
  * @param[out] _out_val Output parameter holding the cloned JSON value.
  * @return 0 on success, ENOMEM if a memory issue occurs during copying.
  */
-static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
+static enum cdd_c_error clone_json_value(const JSON_Value *val,
+                                         JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
   if (!val) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   serialized = json_serialize_to_string((JSON_Value *)val);
   if (!serialized) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   copy = json_parse_string(serialized);
   json_free_serialized_string(serialized);
   {
     *_out_val = copy;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -357,16 +360,16 @@ void free_string_array_code2schema(char **arr, size_t n) {
  * @param[in] src_count The number of elements in the src array.
  * @return 0 on success, ENOMEM on allocation failure.
  */
-int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
-                                  size_t src_count) {
+enum cdd_c_error copy_string_array_code2schema(char ***dst, size_t *dst_count,
+                                               char **src, size_t src_count) {
   size_t i;
   char **out;
   if (!dst || !dst_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *dst = NULL;
   *dst_count = 0;
   if (!src || src_count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 #ifdef CDD_BUILD_TESTS
 
   if (g_cdd_cst_alloc_token_fail == 1)
@@ -376,7 +379,7 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
     out = (char **)calloc(src_count, sizeof(char *));
   if (!out) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
@@ -384,7 +387,7 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
       c_cdd_strdup(src[i], &out[i]);
       if (!out[i]) {
         free_string_array_code2schema(out, src_count);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
   }
@@ -573,7 +576,7 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -591,10 +594,11 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
  * @param[out] out_nullable Set to 1 if the JSON array includes `"null"`.
  * @return 0 on success, ENOMEM if a memory allocation fails.
  */
-int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
-                                       size_t *out_count,
-                                       const char **out_primary,
-                                       int *out_nullable) {
+enum cdd_c_error parse_type_union_array_code2schema(const JSON_Array *arr,
+                                                    char ***out_union,
+                                                    size_t *out_count,
+                                                    const char **out_primary,
+                                                    int *out_nullable) {
   size_t i, count, n = 0;
   char **types;
   const char *primary = NULL;
@@ -610,16 +614,16 @@ int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
     *out_nullable = 0;
 
   if (!arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   types = (char **)calloc(count, sizeof(char *));
   if (!types) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   for (i = 0; i < count; ++i) {
@@ -629,7 +633,7 @@ int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
     c_cdd_strdup(t, &types[n]);
     if (!types[n]) {
       free_string_array_code2schema(types, count);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (strcmp(t, "null") == 0) {
       saw_null = 1;
@@ -643,7 +647,7 @@ int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
 
   if (n == 0) {
     free(types);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (!primary && saw_null)
@@ -838,7 +842,7 @@ int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -855,8 +859,10 @@ int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
  * properties.
  * @return 0 on success, ENOMEM on allocation failure.
  */
-static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
-                                 size_t skip_count, char **out_json) {
+static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
+                                              const char **skip_keys,
+                                              size_t skip_count,
+                                              char **out_json) {
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
@@ -865,12 +871,12 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
   if (out_json)
     *out_json = NULL;
   if (!obj || !out_json)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   extras_val = json_value_init_object();
   if (!extras_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   extras_obj = json_value_get_object(extras_val);
 
@@ -886,24 +892,24 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
     clone_json_value(val, &copy);
     if (!copy) {
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   if (json_object_get_count(extras_obj) == 0) {
     json_value_free(extras_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   serialized = json_serialize_to_string(extras_val);
   if (!serialized) {
     json_value_free(extras_val);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   c_cdd_strdup(serialized, out_json);
   json_free_serialized_string(serialized);
@@ -923,22 +929,22 @@ static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
  * @param[in] extras_json A serialized JSON string of extra properties.
  * @return 0 on success, ENOMEM on internal failure.
  */
-static int merge_schema_extras_object(JSON_Object *target,
-                                      const char *extras_json) {
+static enum cdd_c_error merge_schema_extras_object(JSON_Object *target,
+                                                   const char *extras_json) {
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
 
   if (!target || !extras_json || extras_json[0] == '\0')
-    return 0;
+    return CDD_C_SUCCESS;
 
   extras_val = json_parse_string(extras_json);
   if (!extras_val)
-    return 0;
+    return CDD_C_SUCCESS;
   extras_obj = json_value_get_object(extras_val);
   if (!extras_obj) {
     json_value_free(extras_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   count = json_object_get_count(extras_obj);
@@ -953,12 +959,12 @@ static int merge_schema_extras_object(JSON_Object *target,
     clone_json_value(val, &copy);
     if (!copy) {
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_set_value(target, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -1146,7 +1152,7 @@ static int merge_schema_extras_object(JSON_Object *target,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1163,7 +1169,8 @@ static int merge_schema_extras_object(JSON_Object *target,
  * @param[in] src_json The JSON string of extra schemas to append.
  * @return 0 on success, ENOMEM if a memory/allocation failure occurs.
  */
-static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
+static enum cdd_c_error merge_schema_extras_strings(char **dest_json,
+                                                    const char *src_json) {
   JSON_Value *dest_val;
   JSON_Value *src_val;
   JSON_Object *dest_obj;
@@ -1172,7 +1179,7 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
   char *serialized;
 
   if (!dest_json || !src_json || src_json[0] == '\0')
-    return 0;
+    return CDD_C_SUCCESS;
   if (!*dest_json) {
     c_cdd_strdup(src_json, dest_json);
     return *dest_json ? 0 : ENOMEM;
@@ -1185,14 +1192,14 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
       json_value_free(dest_val);
     if (src_val)
       json_value_free(src_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   dest_obj = json_value_get_object(dest_val);
   src_obj = json_value_get_object(src_val);
   if (!dest_obj || !src_obj) {
     json_value_free(dest_val);
     json_value_free(src_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   count = json_object_get_count(src_obj);
@@ -1209,13 +1216,13 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
     if (!copy) {
       json_value_free(dest_val);
       json_value_free(src_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_set_value(dest_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(dest_val);
       json_value_free(src_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -1223,7 +1230,7 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
   if (!serialized) {
     json_value_free(dest_val);
     json_value_free(src_val);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   {
     char *dup = NULL;
@@ -1232,7 +1239,7 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
     if (rc != 0 || !dup) {
       json_value_free(dest_val);
       json_value_free(src_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     free(*dest_json);
     *dest_json = dup;
@@ -1423,7 +1430,7 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static const char *k_schema_skip_keys[] = {
@@ -1455,9 +1462,9 @@ static const char *k_items_skip_keys[] = {"type", "$ref"};
 /**
  * @brief Checks if an OpenAPI type is a primitive type.
  */
-static int openapi_type_is_primitive(const char *type) {
+static enum cdd_c_error openapi_type_is_primitive(const char *type) {
   if (!type)
-    return 0;
+    return CDD_C_SUCCESS;
   return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
          strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -1465,27 +1472,30 @@ static int openapi_type_is_primitive(const char *type) {
 /**
  * @brief Determines if a JSON Schema object represents a string enum.
  */
-int schema_object_is_string_enum(const JSON_Object *schema_obj,
-                                 const JSON_Array **enum_arr_out);
+enum cdd_c_error schema_object_is_string_enum(const JSON_Object *schema_obj,
+                                              const JSON_Array **enum_arr_out);
 /**
  * @brief Checks if a JSON Schema $ref points to a string enum.
  */
-int ref_points_to_string_enum(const JSON_Object *root, const char *ref);
+enum cdd_c_error ref_points_to_string_enum(const JSON_Object *root,
+                                           const char *ref);
 /**
  * @brief Checks if a given property name is present in a required
  * properties list.
  */
-int required_name_in_list(const JSON_Array *required, const char *name);
+enum cdd_c_error required_name_in_list(const JSON_Array *required,
+                                       const char *name);
 /**
  * @brief Resolves a JSON Schema $ref to its corresponding object.
  */
-int resolve_schema_ref_object(const JSON_Object *root, const char *ref,
-                              JSON_Object **_out_val);
+enum cdd_c_error resolve_schema_ref_object(const JSON_Object *root,
+                                           const char *ref,
+                                           JSON_Object **_out_val);
 /**
  * @brief Merges source struct fields into destination struct fields.
  */
-int merge_struct_fields(struct StructFields *dest,
-                        const struct StructFields *src);
+enum cdd_c_error merge_struct_fields(struct StructFields *dest,
+                                     const struct StructFields *src);
 /**
  * @brief Merges a source struct field into a destination struct field.
  */
@@ -1494,28 +1504,29 @@ void merge_struct_field(struct StructField *dest,
 /**
  * @brief Applies an allOf JSON Schema array to a StructFields object.
  */
-int apply_allof_to_struct_fields(const JSON_Array *all_of,
-                                 struct StructFields *dest,
-                                 const JSON_Object *root);
+enum cdd_c_error apply_allof_to_struct_fields(const JSON_Array *all_of,
+                                              struct StructFields *dest,
+                                              const JSON_Object *root);
 /**
  * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
  */
-int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
-                                          struct StructFields *dest,
-                                          const JSON_Object *root);
+enum cdd_c_error
+apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+                                      struct StructFields *dest,
+                                      const JSON_Object *root);
 /**
  * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
  */
-int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
-                                    struct StructFields *dest,
-                                    JSON_Object *root, const char *schema_name,
-                                    int is_anyof, const JSON_Object *schema_obj,
-                                    int allow_inline);
+enum cdd_c_error apply_union_to_struct_fields_ex(
+    const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
+    const char *schema_name, int is_anyof, const JSON_Object *schema_obj,
+    int allow_inline);
 
 /**
  * @brief Parses a struct member line and populates a StructFields object.
  */
-int parse_struct_member_line(const char *line, struct StructFields *sf) {
+enum cdd_c_error parse_struct_member_line(const char *line,
+                                          struct StructFields *sf) {
   char buf[MAX_LINE_LENGTH];
   char *last_space;
   char name[64] = {0};
@@ -1536,7 +1547,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   int rc;
 
   if (!line || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 /* Basic heuristic parsing: "Type name;" or "Type name : width;" */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1596,7 +1607,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     /* Check for * split if no space */
     last_space = strrchr(buf, '*');
     if (!last_space)
-      return 0; /* Skip invalid */
+      return CDD_C_SUCCESS; /* Skip invalid */
   }
 
   /* Extact Name */
@@ -1794,12 +1805,12 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 #endif
           if (merge_schema_extras_strings(&field->items_extra_json, fmt_json) !=
               0) {
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
           }
         }
       }
     } else {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -1810,18 +1821,18 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 /**
  * @brief Converts a JSON array of strings to an EnumMembers structure.
  */
-int json_array_to_enum_members(const JSON_Array *enum_arr,
-                               struct EnumMembers *em) {
+enum cdd_c_error json_array_to_enum_members(const JSON_Array *enum_arr,
+                                            struct EnumMembers *em) {
   size_t i, count;
   if (!enum_arr || !em)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   count = json_array_get_count(enum_arr);
   for (i = 0; i < count; i++) {
     const char *s = json_array_get_string(enum_arr, i);
     if (!s)
       continue;
     if (enum_members_add(em, s) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -2006,18 +2017,16 @@ int json_array_to_enum_members(const JSON_Array *enum_arr,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
  */
-static int json_object_to_struct_fields_internal(const JSON_Object *o,
-                                                 struct StructFields *f,
-                                                 JSON_Object *root,
-                                                 const char *schema_name,
-                                                 int allow_inline_union) {
+static enum cdd_c_error json_object_to_struct_fields_internal(
+    const JSON_Object *o, struct StructFields *f, JSON_Object *root,
+    const char *schema_name, int allow_inline_union) {
   JSON_Object *props;
   size_t i, count;
   const JSON_Array *required;
@@ -2028,21 +2037,21 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
   int rc;
 
   if (!o || !f)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (collect_schema_extras(o, k_schema_skip_keys,
                             sizeof(k_schema_skip_keys) /
                                 sizeof(k_schema_skip_keys[0]),
                             &f->schema_extra_json) != 0)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   if (schema_object_is_string_enum(o, &enum_arr)) {
     f->is_enum = 1;
     if (enum_members_init(&f->enum_members) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     if (json_array_to_enum_members(enum_arr, &f->enum_members) != 0)
-      return ENOMEM;
-    return 0;
+      return CDD_C_ERROR_MEMORY;
+    return CDD_C_SUCCESS;
   }
 
   all_of = json_object_get_array(o, "allOf");
@@ -2079,13 +2088,13 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
   }
 
   if (f->is_union)
-    return 0;
+    return CDD_C_SUCCESS;
 
   required = json_object_get_array(o, "required");
 
   props = json_object_get_object(o, "properties");
   if (!props)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_object_get_count(props);
   for (i = 0; i < count; i++) {
@@ -2182,7 +2191,7 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
                               NULL, bw) != 0) {
           free_string_array_code2schema(type_union, n_type_union);
           free_string_array_code2schema(items_type_union, n_items_type_union);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         field = &f->fields[f->size - 1];
         field_added = 1;
@@ -2203,13 +2212,13 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
                                     sizeof(k_items_skip_keys) /
                                         sizeof(k_items_skip_keys[0]),
                                     &field->items_extra_json) != 0)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
         }
         free_string_array_code2schema(items_type_union, n_items_type_union);
       } else {
         if (struct_fields_add(f, name, type, ref, d_val, bw) != 0) {
           free_string_array_code2schema(type_union, n_type_union);
-          return ENOMEM;
+          return CDD_C_ERROR_MEMORY;
         }
         field = &f->fields[f->size - 1];
         field_added = 1;
@@ -2225,7 +2234,7 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
           ref_points_to_string_enum(root, ref) ? "enum" : "object";
       if (struct_fields_add(f, name, field_type, ref, NULL, bw) != 0) {
         free_string_array_code2schema(type_union, n_type_union);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       field = &f->fields[f->size - 1];
       field_added = 1;
@@ -2344,7 +2353,7 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
                               sizeof(k_property_skip_keys) /
                                   sizeof(k_property_skip_keys[0]),
                               &field->schema_extra_json) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -2529,16 +2538,15 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Extended function to convert a JSON Schema object to StructFields.
  */
-int json_object_to_struct_fields_ex(const JSON_Object *schema_obj,
-                                    struct StructFields *fields,
-                                    const JSON_Object *schemas_obj_root,
-                                    const char *schema_name) {
+enum cdd_c_error json_object_to_struct_fields_ex(
+    const JSON_Object *schema_obj, struct StructFields *fields,
+    const JSON_Object *schemas_obj_root, const char *schema_name) {
   return json_object_to_struct_fields_internal(
       schema_obj, fields, (JSON_Object *)schemas_obj_root, schema_name, 0);
 }
@@ -2547,10 +2555,9 @@ int json_object_to_struct_fields_ex(const JSON_Object *schema_obj,
  * @brief Extended code generation function to convert JSON Schema to
  * StructFields.
  */
-int json_object_to_struct_fields_ex_codegen(const JSON_Object *schema_obj,
-                                            struct StructFields *fields,
-                                            JSON_Object *schemas_obj_root,
-                                            const char *schema_name) {
+enum cdd_c_error json_object_to_struct_fields_ex_codegen(
+    const JSON_Object *schema_obj, struct StructFields *fields,
+    JSON_Object *schemas_obj_root, const char *schema_name) {
   return json_object_to_struct_fields_internal(
       schema_obj, fields, schemas_obj_root, schema_name, 1);
 }
@@ -2558,9 +2565,10 @@ int json_object_to_struct_fields_ex_codegen(const JSON_Object *schema_obj,
 /**
  * @brief Converts a JSON Schema object to a StructFields structure.
  */
-int json_object_to_struct_fields(const JSON_Object *schema_obj,
-                                 struct StructFields *fields,
-                                 const JSON_Object *schemas_obj_root) {
+enum cdd_c_error
+json_object_to_struct_fields(const JSON_Object *schema_obj,
+                             struct StructFields *fields,
+                             const JSON_Object *schemas_obj_root) {
   return json_object_to_struct_fields_ex(schema_obj, fields, schemas_obj_root,
                                          NULL);
 }
@@ -2568,12 +2576,12 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
 /**
  * @brief Strips enclosing quotes from a string.
  */
-static int strip_quotes(const char *in, char *buf, size_t bufsz,
-                        const char **_out_val) {
+static enum cdd_c_error strip_quotes(const char *in, char *buf, size_t bufsz,
+                                     const char **_out_val) {
   size_t len;
   if (!in || !buf || bufsz == 0) {
     *_out_val = in;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   len = strlen(in);
   if (len >= 2 && in[0] == '"' && in[len - 1] == '"') {
@@ -2584,28 +2592,28 @@ static int strip_quotes(const char *in, char *buf, size_t bufsz,
     buf[inner] = '\0';
     {
       *_out_val = buf;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = in;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses a boolean default value from a string.
  */
-static int parse_bool_default(const char *in, int *out) {
+static enum cdd_c_error parse_bool_default(const char *in, int *out) {
   if (!in || !out)
-    return 0;
+    return CDD_C_SUCCESS;
   if (strcmp(in, "1") == 0 || strcmp(in, "1") == 0) {
     *out = 1;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   if (strcmp(in, "0") == 0 || strcmp(in, "0") == 0) {
     *out = 0;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -2790,24 +2798,24 @@ static int parse_bool_default(const char *in, int *out) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses a numeric default value from a string.
  */
-static int parse_number_default(const char *in, double *out) {
+static enum cdd_c_error parse_number_default(const char *in, double *out) {
   struct NumericValue nv;
   if (!in || !out)
-    return 0;
+    return CDD_C_SUCCESS;
   if (parse_numeric_literal(in, &nv) == 0) {
     if (nv.kind == NUMERIC_INTEGER) {
       *out = (double)nv.data.integer.value;
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
     if (nv.kind == NUMERIC_FLOAT) {
       *out = nv.data.floating.value;
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
   }
 
@@ -2993,14 +3001,14 @@ static int parse_number_default(const char *in, double *out) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Determines if a JSON Schema object represents a string enum.
  */
-int schema_object_is_string_enum(const JSON_Object *schema_obj,
-                                 const JSON_Array **enum_arr_out) {
+enum cdd_c_error schema_object_is_string_enum(const JSON_Object *schema_obj,
+                                              const JSON_Array **enum_arr_out) {
   const JSON_Array *enum_arr;
   size_t i, count;
   const char *type;
@@ -3008,45 +3016,46 @@ int schema_object_is_string_enum(const JSON_Object *schema_obj,
   if (enum_arr_out)
     *enum_arr_out = NULL;
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
 
   enum_arr = json_object_get_array(schema_obj, "enum");
   if (!enum_arr)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(enum_arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   type = json_object_get_string(schema_obj, "type");
   if (type && strcmp(type, "string") != 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < count; ++i) {
     if (!json_array_get_string(enum_arr, i))
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   if (enum_arr_out)
     *enum_arr_out = enum_arr;
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Checks if a JSON Schema $ref points to a string enum.
  */
-int ref_points_to_string_enum(const JSON_Object *root, const char *ref) {
+enum cdd_c_error ref_points_to_string_enum(const JSON_Object *root,
+                                           const char *ref) {
   const char *name;
   const JSON_Object *schema_obj;
   if (!root || !ref)
-    return 0;
+    return CDD_C_SUCCESS;
   name = NULL;
   c_cdd_str_after_last(ref, '/', &name);
   if (!name || !*name)
-    return 0;
+    return CDD_C_SUCCESS;
   schema_obj = json_object_get_object(root, name);
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   return schema_object_is_string_enum(schema_obj, NULL);
 }
 
@@ -3054,15 +3063,16 @@ int ref_points_to_string_enum(const JSON_Object *root, const char *ref) {
  * @brief Checks if a given property name is present in a required
  * properties list.
  */
-int required_name_in_list(const JSON_Array *required, const char *name) {
+enum cdd_c_error required_name_in_list(const JSON_Array *required,
+                                       const char *name) {
   size_t i, count;
   if (!required || !name)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_array_get_count(required);
   for (i = 0; i < count; ++i) {
     const char *req_name = json_array_get_string(required, i);
     if (req_name && strcmp(req_name, name) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -3247,108 +3257,110 @@ int required_name_in_list(const JSON_Array *required, const char *name) {
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Resolves a JSON Schema $ref to its corresponding object.
  */
-int resolve_schema_ref_object(const JSON_Object *root, const char *ref,
-                              JSON_Object **_out_val) {
+enum cdd_c_error resolve_schema_ref_object(const JSON_Object *root,
+                                           const char *ref,
+                                           JSON_Object **_out_val) {
   const char *name;
   if (!root || !ref) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   name = NULL;
   c_cdd_str_after_last(ref, '/', &name);
   if (!name || !*name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = json_object_get_object(root, name);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Detects the underlying JSON type of a union schema object.
  */
-static int detect_union_json_type(const JSON_Object *schema_obj,
-                                  enum UnionVariantJsonType *_out_val) {
+static enum cdd_c_error
+detect_union_json_type(const JSON_Object *schema_obj,
+                       enum UnionVariantJsonType *_out_val) {
   const char *type;
   const JSON_Object *props;
   if (!schema_obj) {
     *_out_val = UNION_JSON_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (schema_object_is_string_enum(schema_obj, NULL)) {
     *_out_val = UNION_JSON_STRING;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   type = json_object_get_string(schema_obj, "type");
   if (type) {
     if (strcmp(type, "object") == 0) {
       *_out_val = UNION_JSON_OBJECT;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "string") == 0) {
       *_out_val = UNION_JSON_STRING;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "integer") == 0) {
       *_out_val = UNION_JSON_INTEGER;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "number") == 0) {
       *_out_val = UNION_JSON_NUMBER;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "boolean") == 0) {
       *_out_val = UNION_JSON_BOOLEAN;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "array") == 0) {
       *_out_val = UNION_JSON_ARRAY;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (strcmp(type, "null") == 0) {
       *_out_val = UNION_JSON_NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   props = json_object_get_object(schema_obj, "properties");
   if (props) {
     *_out_val = UNION_JSON_OBJECT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = UNION_JSON_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Collects an array of strings from a JSON array.
  */
-static int collect_string_array(const JSON_Array *arr, char ***out,
-                                size_t *out_count) {
+static enum cdd_c_error collect_string_array(const JSON_Array *arr, char ***out,
+                                             size_t *out_count) {
   size_t i, count;
   char **vals;
   if (!out || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
   if (!arr)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_array_get_count(arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   vals = (char **)calloc(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < count; ++i) {
     const char *s = json_array_get_string(arr, i);
@@ -3356,7 +3368,7 @@ static int collect_string_array(const JSON_Array *arr, char ***out,
       c_cdd_strdup(s, &vals[i]);
       if (!vals[i]) {
         free_string_array_code2schema(vals, count);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
   }
@@ -3545,33 +3557,33 @@ static int collect_string_array(const JSON_Array *arr, char ***out,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Collects property names from a JSON Schema object.
  */
-static int collect_property_names(const JSON_Object *schema_obj, char ***out,
-                                  size_t *out_count) {
+static enum cdd_c_error collect_property_names(const JSON_Object *schema_obj,
+                                               char ***out, size_t *out_count) {
   size_t i, count;
   char **vals;
   const JSON_Object *props;
   if (!out || !out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = NULL;
   *out_count = 0;
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
   props = json_object_get_object(schema_obj, "properties");
   if (!props)
-    return 0;
+    return CDD_C_SUCCESS;
   count = json_object_get_count(props);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
   vals = (char **)calloc(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(props, i);
@@ -3579,7 +3591,7 @@ static int collect_property_names(const JSON_Object *schema_obj, char ***out,
       c_cdd_strdup(name, &vals[i]);
       if (!vals[i]) {
         free_string_array_code2schema(vals, count);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
   }
@@ -3768,24 +3780,24 @@ static int collect_property_names(const JSON_Object *schema_obj, char ***out,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Sanitizes a string to be used as a valid C identifier.
  */
-int sanitize_identifier(const char *in, char **_out_val) {
+enum cdd_c_error sanitize_identifier(const char *in, char **_out_val) {
   size_t i, len;
   char *out;
   if (!in || !*in) {
     c_cdd_strdup("Variant", _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   len = strlen(in);
   out = (char *)calloc(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < len; ++i) {
     const char c = in[i];
@@ -3800,38 +3812,39 @@ int sanitize_identifier(const char *in, char **_out_val) {
     free(out);
     {
       c_cdd_strdup("Variant", _out_val);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Generates a unique variant name for a union type.
  */
-int make_unique_variant_name(const struct StructFields *dest, const char *base,
-                             size_t index, char **_out_val) {
+enum cdd_c_error make_unique_variant_name(const struct StructFields *dest,
+                                          const char *base, size_t index,
+                                          char **_out_val) {
   char buf[128];
   char *sanitized;
   char *out;
   if (!dest) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     struct StructField *tmp4 = NULL;
     sanitize_identifier(base, &sanitized);
     if (!sanitized) {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     struct_fields_get(dest, sanitized, &tmp4);
     if (!tmp4) {
       *_out_val = sanitized;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   CDD_SNPRINTF(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
@@ -3840,14 +3853,14 @@ int make_unique_variant_name(const struct StructFields *dest, const char *base,
   c_cdd_strdup(buf, &out);
   if (!out) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     struct StructField *tmp5 = NULL;
     struct_fields_get(dest, out, &tmp5);
     if (!tmp5) {
       *_out_val = out;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   free(out);
@@ -3855,15 +3868,16 @@ int make_unique_variant_name(const struct StructFields *dest, const char *base,
                (size_t)(index + 1));
   {
     c_cdd_strdup(buf, _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Generates a schema name for an inline anonymous struct/union.
  */
-int make_inline_schema_name(const char *schema_name, const char *variant_name,
-                            const char *suffix, char **_out_val) {
+enum cdd_c_error make_inline_schema_name(const char *schema_name,
+                                         const char *variant_name,
+                                         const char *suffix, char **_out_val) {
   char buf[256];
   const char *base_schema =
       (schema_name && *schema_name) ? schema_name : "Union";
@@ -3876,26 +3890,27 @@ int make_inline_schema_name(const char *schema_name, const char *variant_name,
     CDD_SNPRINTF(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
   {
     sanitize_identifier(buf, _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Registers an inline schema within the root OpenAPI components.
  */
-int register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
-                               const char *variant_name, const char *suffix,
-                               const JSON_Value *schema_val, char **out_name) {
+enum cdd_c_error
+register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
+                           const char *variant_name, const char *suffix,
+                           const JSON_Value *schema_val, char **out_name) {
   char *name;
 
   if (!root || !schema_val || !out_name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   name = NULL;
   make_inline_schema_name(schema_name, variant_name, suffix, &name);
   if (!name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (!json_object_has_value(root, name)) {
@@ -3903,12 +3918,12 @@ int register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
     clone_json_value(schema_val, &copy);
     if (!copy) {
       free(name);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     if (json_object_set_value(root, name, copy) != JSONSuccess) {
       json_value_free(copy);
       free(name);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -4096,23 +4111,24 @@ int register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the discriminator mapping value for a given schema
  * variant.
  */
-int discriminator_value_for_variant(const JSON_Object *disc_obj,
-                                    const char *schema_name, const char *ref,
-                                    char **_out_val) {
+enum cdd_c_error discriminator_value_for_variant(const JSON_Object *disc_obj,
+                                                 const char *schema_name,
+                                                 const char *ref,
+                                                 char **_out_val) {
   const JSON_Object *mapping;
   size_t i, count;
   const char *ref_name;
 
   if (!schema_name && !ref) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (ref)
@@ -4135,30 +4151,30 @@ int discriminator_value_for_variant(const JSON_Object *disc_obj,
       continue;
     if (ref && strcmp(val, ref) == 0) {
       c_cdd_strdup(key, _out_val);
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (ref_name && strcmp(val, ref_name) == 0) {
       c_cdd_strdup(key, _out_val);
-      return 0;
+      return CDD_C_SUCCESS;
     }
     if (schema_name && strcmp(val, schema_name) == 0) {
       c_cdd_strdup(key, _out_val);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
 fallback:
   if (schema_name) {
     c_cdd_strdup(schema_name, _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (ref_name) {
     c_cdd_strdup(ref_name, _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -4286,19 +4302,19 @@ void merge_struct_field(struct StructField *dest,
 /**
  * @brief Merges source struct fields into destination struct fields.
  */
-int merge_struct_fields(struct StructFields *dest,
-                        const struct StructFields *src) {
+enum cdd_c_error merge_struct_fields(struct StructFields *dest,
+                                     const struct StructFields *src) {
   size_t i;
 
   if (!dest || !src)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (src->is_enum)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (merge_schema_extras_strings(&dest->schema_extra_json,
                                   src->schema_extra_json) != 0)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < src->size; ++i) {
     const struct StructField *src_field = &src->fields[i];
@@ -4312,12 +4328,12 @@ int merge_struct_fields(struct StructFields *dest,
       const char *bw = src_field->bit_width[0] ? src_field->bit_width : NULL;
       if (struct_fields_add(dest, src_field->name, src_field->type, ref, def,
                             bw) != 0)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       dest_field = NULL;
       struct_fields_get(dest, src_field->name, &dest_field);
       if (!dest_field) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       {
         struct StructField tmp = *src_field;
@@ -4333,7 +4349,7 @@ int merge_struct_fields(struct StructFields *dest,
                        &dest_field->schema_extra_json);
           if (!dest_field->schema_extra_json) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
         }
         if (src_field->items_extra_json) {
@@ -4341,21 +4357,21 @@ int merge_struct_fields(struct StructFields *dest,
                        &dest_field->items_extra_json);
           if (!dest_field->items_extra_json) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
         }
         if (src_field->type_union && src_field->n_type_union > 0) {
           if (copy_string_array_code2schema(
                   &dest_field->type_union, &dest_field->n_type_union,
                   src_field->type_union, src_field->n_type_union) != 0)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
         }
         if (src_field->items_type_union && src_field->n_items_type_union > 0) {
           if (copy_string_array_code2schema(&dest_field->items_type_union,
                                             &dest_field->n_items_type_union,
                                             src_field->items_type_union,
                                             src_field->n_items_type_union) != 0)
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
         }
       }
       continue;
@@ -4546,19 +4562,19 @@ int merge_struct_fields(struct StructFields *dest,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Applies an allOf JSON Schema array to a StructFields object.
  */
-int apply_allof_to_struct_fields(const JSON_Array *all_of,
-                                 struct StructFields *dest,
-                                 const JSON_Object *root) {
+enum cdd_c_error apply_allof_to_struct_fields(const JSON_Array *all_of,
+                                              struct StructFields *dest,
+                                              const JSON_Object *root) {
   size_t i, count;
 
   if (!all_of || !dest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(all_of);
   for (i = 0; i < count; ++i) {
@@ -4775,22 +4791,23 @@ int apply_allof_to_struct_fields(const JSON_Array *all_of,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
  */
-int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
-                                          struct StructFields *dest,
-                                          const JSON_Object *root) {
+enum cdd_c_error
+apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+                                      struct StructFields *dest,
+                                      const JSON_Object *root) {
   size_t i, count;
 
   if (!union_arr || !dest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (dest->size > 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(union_arr);
   for (i = 0; i < count; ++i) {
@@ -5010,15 +5027,15 @@ int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if array items within a union are supported.
  */
-static int union_array_items_supported(const JSON_Object *schema_obj,
-                                       const JSON_Object *root,
-                                       int allow_inline) {
+static enum cdd_c_error
+union_array_items_supported(const JSON_Object *schema_obj,
+                            const JSON_Object *root, int allow_inline) {
   const JSON_Object *items;
   const JSON_Array *item_type_arr = NULL;
   const char *item_ref;
@@ -5028,15 +5045,15 @@ static int union_array_items_supported(const JSON_Object *schema_obj,
   const char *primary = NULL;
 
   if (!schema_obj)
-    return 0;
+    return CDD_C_SUCCESS;
 
   items = json_object_get_object(schema_obj, "items");
   if (!items)
-    return 0;
+    return CDD_C_SUCCESS;
 
   item_ref = json_object_get_string(items, "$ref");
   if (item_ref && root && ref_points_to_string_enum(root, item_ref))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
 
   item_type = json_object_get_string(items, "type");
   if (!item_ref && !item_type) {
@@ -5053,45 +5070,44 @@ static int union_array_items_supported(const JSON_Object *schema_obj,
 
   if (item_ref) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   if (!item_type) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(item_type, "array") == 0) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (strcmp(item_type, "object") == 0 && (!allow_inline || !root)) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   free_string_array_code2schema(items_type_union, n_items_type_union);
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 /**
  * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
  */
-int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
-                                    struct StructFields *dest,
-                                    JSON_Object *root, const char *schema_name,
-                                    int is_anyof, const JSON_Object *schema_obj,
-                                    int allow_inline) {
+enum cdd_c_error apply_union_to_struct_fields_ex(
+    const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
+    const char *schema_name, int is_anyof, const JSON_Object *schema_obj,
+    int allow_inline) {
   size_t i, count;
   const JSON_Object *disc_obj;
 
   if (!union_arr || !dest)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (dest->size > 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   count = json_array_get_count(union_arr);
   if (count == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* Validate variant support */
   for (i = 0; i < count; ++i) {
@@ -5107,18 +5123,18 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
     detect_union_json_type(resolved, &jtype);
     if (jtype == UNION_JSON_ARRAY) {
       if (!allow_inline)
-        return 0;
+        return CDD_C_SUCCESS;
       if (!union_array_items_supported(resolved, root, allow_inline))
-        return 0;
+        return CDD_C_SUCCESS;
     }
     if (jtype == UNION_JSON_OBJECT && !ref) {
       if (!allow_inline || !root)
-        return 0;
+        return CDD_C_SUCCESS;
       if (!json_array_get_value(union_arr, i))
-        return 0;
+        return CDD_C_SUCCESS;
     }
     if (jtype == UNION_JSON_UNKNOWN)
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   dest->is_union = 1;
@@ -5133,7 +5149,7 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
       c_cdd_strdup(prop, &dest->union_discriminator);
       if (!dest->union_discriminator) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
   }
@@ -5142,7 +5158,7 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
       (struct UnionVariantMeta *)calloc(count, sizeof(struct UnionVariantMeta));
   if (!dest->union_variants) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   dest->n_union_variants = count;
 
@@ -5188,7 +5204,7 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
     make_unique_variant_name(dest, name_hint, i, &variant_name);
     if (!variant_name) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     if (jtype == UNION_JSON_OBJECT && !ref) {
@@ -5285,7 +5301,7 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
       free(inline_ref_name);
       free(inline_item_ref);
       free_string_array_code2schema(items_type_union, n_items_type_union);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     field = &dest->fields[dest->size - 1];
 
@@ -5303,10 +5319,10 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
       const JSON_Array *required = json_object_get_array(resolved, "required");
       if (collect_string_array(required, &meta->required_props,
                                &meta->n_required_props) != 0)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       if (collect_property_names(resolved, &meta->property_names,
                                  &meta->n_property_names) != 0)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
     }
 
     {
@@ -5506,7 +5522,7 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -5649,9 +5665,9 @@ static void write_type_union(JSON_Object *obj, const char *type,
 /**
  * @brief Writes a StructFields representation to a JSON Schema object.
  */
-int write_struct_to_json_schema(JSON_Object *schemas_obj,
-                                const char *struct_name,
-                                const struct StructFields *sf) {
+enum cdd_c_error write_struct_to_json_schema(JSON_Object *schemas_obj,
+                                             const char *struct_name,
+                                             const struct StructFields *sf) {
   JSON_Value *val = json_value_init_object();
   JSON_Object *obj = json_value_get_object(val);
   JSON_Value *props_val = json_value_init_object();
@@ -5663,7 +5679,7 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
   if (!schemas_obj || !struct_name || !sf) {
     json_value_free(val);
     json_value_free(props_val);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (sf->is_enum) {
@@ -5679,11 +5695,11 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
     if (merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
       json_value_free(val);
       json_value_free(props_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(schemas_obj, struct_name, val);
     json_value_free(props_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   json_object_set_string(obj, "type", "object");
@@ -5726,7 +5742,7 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
         json_value_free(items_val);
         json_value_free(pval);
         json_value_free(val);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       json_object_set_value(pobj, "items", items_val);
       write_array_constraints(pobj, field);
@@ -5772,7 +5788,7 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
     if (merge_schema_extras_object(pobj, field->schema_extra_json) != 0) {
       json_value_free(pval);
       json_value_free(val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(props_obj, sf->fields[i].name, pval);
     if (field->required) {
@@ -5790,7 +5806,7 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
 
   if (merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
     json_value_free(val);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   json_object_set_value(schemas_obj, struct_name, val);
@@ -5977,15 +5993,16 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses a union definition and writes it to a JSON Schema
  * object.
  */
-static int parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
-                                 const char *union_name) {
+static enum cdd_c_error parse_union_and_write(FILE *fp,
+                                              JSON_Object *schemas_obj,
+                                              const char *union_name) {
   /* (Implementation preserved from previous code2schema.c) */
   char line[512];
   JSON_Value *union_val = json_value_init_object();
@@ -6228,10 +6245,10 @@ static int parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int code2schema_main(int argc, char **argv) {
+enum cdd_c_error code2schema_main(int argc, char **argv) {
   FILE *fp;
   char line[MAX_LINE_LENGTH];
   JSON_Value *root = json_value_init_object();
@@ -6245,7 +6262,7 @@ int code2schema_main(int argc, char **argv) {
     json_value_free(root);
     json_value_free(schemas_val);
     json_value_free(comp_val);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
 #if defined(_MSC_VER)
@@ -6262,7 +6279,7 @@ int code2schema_main(int argc, char **argv) {
     json_value_free(root);
     json_value_free(schemas_val);
     json_value_free(comp_val);
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   json_object_set_value(comp_obj, "schemas", schemas_val);
@@ -6392,7 +6409,7 @@ int code2schema_main(int argc, char **argv) {
   json_serialize_to_file_pretty(root, argv[1]);
   fclose(fp);
   json_value_free(root);
-  return EXIT_SUCCESS;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

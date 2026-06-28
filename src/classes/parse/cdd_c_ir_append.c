@@ -1,6 +1,6 @@
 /* To be appended to src/classes/parse/cdd_c_ir.c */
 
-int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
+enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   struct sql_token_list_t *list = NULL;
   struct sql_table_t *table = NULL;
   cdd_c_query_projection_t *proj = NULL;
@@ -13,7 +13,7 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   int in_select = 0;
 
   if (!sql_data || !out_ir)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   span = az_span_create_from_str((char *)sql_data);
   rc = sql_lex(span, &list);
@@ -76,5 +76,5 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   }
 
   sql_token_list_free(list);
-  return 0;
+  return CDD_C_SUCCESS;
 }

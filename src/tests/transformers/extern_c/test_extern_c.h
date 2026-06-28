@@ -62,9 +62,11 @@ TEST test_cdd_transform_extern_c(void) {
 TEST test_cdd_transform_extern_c_null_args(void) {
   cdd_transform_config_t config = {0, 2, 0};
   cdd_cst_tree_t tree = {0};
-  ASSERT_EQ(EINVAL, cdd_transform_extern_c(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_extern_c(NULL, &config));
 
-  ASSERT_EQ(EINVAL, cdd_transform_extern_c(&tree, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_transform_extern_c(&tree, &config));
   g_fail_io_after = -1;
   PASS();
 }

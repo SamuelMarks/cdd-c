@@ -22,12 +22,12 @@
  *
  * least 32 bytes).
  */
-int crypto_sha256(const void *data, size_t data_len,
-                  unsigned char *out_digest) {
+enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
+                               unsigned char *out_digest) {
   if ((!data && data_len > 0) || !out_digest)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   CC_SHA256(data, (CC_LONG)data_len, out_digest);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -35,17 +35,18 @@ int crypto_sha256(const void *data, size_t data_len,
  *
  * bytes).
  */
-int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                       size_t data_len, unsigned char *out_mac) {
+enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
+                                    const void *data, size_t data_len,
+                                    unsigned char *out_mac) {
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (key_len == 0) {
     static const unsigned char zero_pad[16] = {0};
     key = zero_pad;
     key_len = 16;
   }
   CCHmac(kCCHmacAlgSHA256, key, key_len, data, data_len, out_mac);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 #else
@@ -56,26 +57,27 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
  * @brief Executes the crypto sha256 operation (stub).
  *
  */
-int crypto_sha256(const void *data, size_t data_len,
-                  unsigned char *out_digest) {
+enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
+                               unsigned char *out_digest) {
   (void)data;
   (void)data_len;
   (void)out_digest;
-  return ENOSYS;
+  return CDD_C_ERROR_SYSTEM;
 }
 
 /**
  * @brief Executes the crypto hmac sha256 operation (stub).
  *
  */
-int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                       size_t data_len, unsigned char *out_mac) {
+enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
+                                    const void *data, size_t data_len,
+                                    unsigned char *out_mac) {
   (void)key;
   (void)key_len;
   (void)data;
   (void)data_len;
   (void)out_mac;
-  return ENOSYS;
+  return CDD_C_ERROR_SYSTEM;
 }
 
 #endif

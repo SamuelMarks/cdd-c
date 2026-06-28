@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/emit/patcher.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
@@ -17,7 +18,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the weaver translate gcc attributes
                      * operation.
                      */
-    int
+    enum cdd_c_error
     weaver_translate_gcc_attributes(struct PatchList *patches,
                                     const struct TokenList *tokens,
                                     const struct CstNodeList *cst);

@@ -18,8 +18,8 @@ extern "C" {
 TEST test_cdd_cst_emit_invalid(void) {
   cdd_cst_tree_t t = {0};
   char *out = NULL;
-  ASSERT_EQ(EINVAL, cdd_cst_emit(NULL, &out));
-  ASSERT_EQ(EINVAL, cdd_cst_emit(&t, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_emit(NULL, &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_emit(&t, NULL));
   g_fail_io_after = -1;
   PASS();
 }
@@ -69,7 +69,8 @@ TEST test_cdd_cst_emit_null_children(void) {
   free(out);
 
   /* Test tree with a node returning error (e.g. from trivia or token) */
-  { /* Not easy to simulate ENOMEM without mock, but we can hit EOF logic */
+  { /* Not easy to simulate CDD_C_ERROR_MEMORY without mock, but we can hit EOF
+       logic */
   }
   g_fail_io_after = -1;
 
@@ -153,7 +154,7 @@ TEST test_cdd_cst_emit_oom(void) {
   child.kind = CDD_CST_CHILD_TOKEN;
   child.val.token = &tok;
 
-  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_fail_io_after = -1;
 
   PASS();
@@ -183,7 +184,7 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   child.kind = CDD_CST_CHILD_TOKEN;
   child.val.token = &tok;
 
-  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_fail_io_after = -1;
 
   PASS();
@@ -211,7 +212,7 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
   child.kind = CDD_CST_CHILD_TOKEN;
   child.val.token = &tok;
 
-  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_fail_io_after = -1;
 
   PASS();
@@ -247,7 +248,7 @@ TEST test_cdd_cst_emit_oom_multi(void) {
   children[1].kind = CDD_CST_CHILD_TOKEN;
   children[1].val.token = &tok2;
 
-  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_fail_io_after = -1;
 
   PASS();
@@ -259,7 +260,7 @@ TEST test_cdd_cst_emit_empty_oom(void) {
   extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
   g_cdd_fail_alloc = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_cdd_fail_alloc = 0;
   g_fail_io_after = -1;
 

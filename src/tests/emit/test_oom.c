@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/resource.h>
 /* clang-format on */
-int main(void) {
+enum cdd_c_error main(void) {
   struct rlimit rl;
   if (getrlimit(RLIMIT_AS, &rl) != 0) {
     perror("getrlimit");

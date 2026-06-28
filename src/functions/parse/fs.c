@@ -22,6 +22,14 @@
 #include "c_cdd/log.h"
 #include "functions/str_includes.h"
 
+static enum cdd_c_error errno_to_cdd_error(int err) {
+  if (err == 0) return CDD_C_SUCCESS;
+  if (err == ENOENT) return CDD_C_ERROR_NOT_FOUND;
+  if (err == ENOMEM) return CDD_C_ERROR_MEMORY;
+  if (err == EINVAL) return CDD_C_ERROR_INVALID_ARGUMENT;
+  return CDD_C_ERROR_IO;
+}
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
@@ -111,10 +119,11 @@
 /**
  * @brief Executes the ascii to wide operation.
  */
-int ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap, size_t *out_len) {
+enum cdd_c_error ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
+                               size_t *out_len) {
   int result;
   if (s == NULL || ws == NULL || buf_cap == 0 || out_len == NULL) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   result = MultiByteToWideChar(
@@ -127,20 +136,21 @@ int ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap, size_t *out_len) {
 
   if (result == 0) {
     /* GetLastError() could be mapped, but for now generic failure */
-    return EIO;
+    return CDD_C_ERROR_IO;
   }
 
   *out_len = (size_t)result - 1; /* Result includes null terminator count */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the wide to ascii operation.
  */
-int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len) {
+enum cdd_c_error wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
+                               size_t *out_len) {
   int result;
   if (ws == NULL || s == NULL || buf_cap == 0 || out_len == NULL) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   result = WideCharToMultiByte(
@@ -154,11 +164,11 @@ int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len) {
       /* lpUsedDefaultChar */ NULL);
 
   if (result == 0) {
-    return EIO;
+    return CDD_C_ERROR_IO;
   }
 
   *out_len = (size_t)result - 1;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 #endif /* defined(_WIN32) */
 /* </windows_utils> */
@@ -182,30 +192,30 @@ int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len) {
 /**
  * @brief Executes the fs is directory operation.
  */
-int fs_is_directory(const char *path, int *out_is_dir) {
+enum cdd_c_error fs_is_directory(const char *path, int *out_is_dir) {
   c_stat st;
   if (!out_is_dir)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_dir = 0;
   if (!path)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (c_stat_func(path, &st) != 0)
-    return 0; /* Not an error to not exist, just not a dir */
+    return CDD_C_SUCCESS; /* Not an error to not exist, just not a dir */
   *out_is_dir = IS_DIR(st.st_mode);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the basename.
  */
-int get_basename(const char *path, char **out) {
+enum cdd_c_error get_basename(const char *path, char **out) {
   char *_ast_strdup_0 = NULL;
   const char *start_p, *p;
   size_t len;
   char *ret;
 
   if (out == NULL)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!path || !*path) {
     *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
@@ -222,10 +232,10 @@ int get_basename(const char *path, char **out) {
   if (p == path && (*p == '/' || *p == '\\')) {
     *out = (char *)malloc(2);
     if (!*out)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     (*out)[0] = '/';
     (*out)[1] = '\0';
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   start_p = p;
@@ -238,20 +248,20 @@ int get_basename(const char *path, char **out) {
   ret = (char *)malloc(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   memcpy(ret, start_p, len);
   ret[len] = '\0';
 
   *out = ret;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the dirname.
  */
-int get_dirname(const char *path, char **out) {
+enum cdd_c_error get_dirname(const char *path, char **out) {
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
@@ -260,7 +270,7 @@ int get_dirname(const char *path, char **out) {
   char *ret;
 
   if (out == NULL)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!path || !*path) {
     *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
@@ -285,11 +295,11 @@ int get_dirname(const char *path, char **out) {
       len = 1; /* Root */
       ret = (char *)malloc(2);
       if (!ret)
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       ret[0] = '/';
       ret[1] = '\0';
       *out = ret;
-      return 0;
+      return CDD_C_SUCCESS;
     } else {
       /* No separator found, e.g. "foo" -> "." */
       *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
@@ -314,13 +324,13 @@ int get_dirname(const char *path, char **out) {
   ret = (char *)malloc(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   memcpy(ret, path, len);
   ret[len] = '\0';
   *out = ret;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 enum { READ_CHUNK_SIZE = 4096 };
@@ -328,39 +338,39 @@ enum { READ_CHUNK_SIZE = 4096 };
 /**
  * @brief Executes the fopen error from operation.
  */
-int fopen_error_from(int fopen_error, enum FopenError *_out_val) {
+enum cdd_c_error fopen_error_from(int fopen_error, enum FopenError *_out_val) {
   switch (fopen_error) {
   case 0: {
     *_out_val = FOPEN_OK;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case EINVAL: {
     *_out_val = FOPEN_INVALID_PARAMETER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case EMFILE: {
     *_out_val = FOPEN_TOO_MANY_OPEN_FILES;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case ENOMEM: {
     *_out_val = FOPEN_OUT_OF_MEMORY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case ENOENT: {
     *_out_val = FOPEN_FILE_NOT_FOUND;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case EACCES: {
     *_out_val = FOPEN_PERMISSION_DENIED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case ERANGE: {
     *_out_val = FOPEN_FILENAME_TOO_LONG;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = FOPEN_UNKNOWN_ERROR;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -368,12 +378,12 @@ int fopen_error_from(int fopen_error, enum FopenError *_out_val) {
 /**
  * @brief Executes the fs write to file operation.
  */
-int fs_write_to_file(const char *path, const char *content) {
+enum cdd_c_error fs_write_to_file(const char *path, const char *content) {
   FILE *f;
   int rc = 0;
 
   if (!path || !content)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -403,26 +413,33 @@ int fs_write_to_file(const char *path, const char *content) {
 #endif
 #endif
 
-  if (!f)
-    return errno ? errno : EIO;
+  if (!f) {
+    if (errno == ENOENT)
+      return CDD_C_ERROR_NOT_FOUND;
+    if (errno == ENOMEM)
+      return CDD_C_ERROR_MEMORY;
+    if (errno == EINVAL)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_ERROR_IO;
+  }
 
   if (fputs(content, f) < 0)
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
 
   fclose(f);
-  return rc;
+  return (enum cdd_c_error)rc;
 }
 
 /**
  * @brief Executes the read to file operation.
  */
-int read_to_file(const char *path, const char *mode, char **out_data,
-                 size_t *out_size) {
+enum cdd_c_error read_to_file(const char *path, const char *mode,
+                              char **out_data, size_t *out_size) {
   FILE *f = NULL;
   int internal_rc = 0;
 
   if (!path || !mode || !out_data || !out_size)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   *out_data = NULL;
   *out_size = 0;
@@ -431,10 +448,17 @@ int read_to_file(const char *path, const char *mode, char **out_data,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t e = fopen_s(&f, path, mode);
-    if (e != 0)
-      return (int)e;
+    if (e != 0) {
+      if (e == ENOENT)
+        return CDD_C_ERROR_NOT_FOUND;
+      if (e == ENOMEM)
+        return CDD_C_ERROR_MEMORY;
+      if (e == EINVAL)
+        return CDD_C_ERROR_INVALID_ARGUMENT;
+      return CDD_C_ERROR_IO;
+    }
     if (f == NULL)
-      return FOPEN_UNKNOWN_ERROR;
+      return CDD_C_ERROR_IO;
   }
 #else
 #if defined(_MSC_VER)
@@ -463,7 +487,7 @@ int read_to_file(const char *path, const char *mode, char **out_data,
 #endif
 #endif
   if (f == NULL)
-    return errno;
+    return errno_to_cdd_error(errno);
 #endif
 
   internal_rc = read_from_fh(f, out_data, out_size);
@@ -471,7 +495,8 @@ int read_to_file(const char *path, const char *mode, char **out_data,
   /* Preserve read error if it occurred, but also check fclose error */
   if (fclose(f) != 0) {
     if (internal_rc == 0) {
-      internal_rc = errno; /* Return fclose error if read was OK */
+      internal_rc =
+          errno_to_cdd_error(errno); /* Return fclose error if read was OK */
     }
   }
 
@@ -481,7 +506,7 @@ int read_to_file(const char *path, const char *mode, char **out_data,
 /**
  * @brief Executes the read from fh operation.
  */
-int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
+enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   char *buffer = NULL;
   size_t total_read = 0;
   size_t capacity = 0;
@@ -489,7 +514,7 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   int rc = 0;
 
   if (!fh || !out_data || !out_size)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   do {
     /* If buffer handles huge files, standard capacity doubling is fine */
@@ -498,7 +523,7 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
       char *new_buffer = (char *)realloc(buffer, new_capacity);
       if (!new_buffer) {
         free(buffer);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       buffer = new_buffer;
       capacity = new_capacity;
@@ -508,11 +533,11 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   } while (read_now == READ_CHUNK_SIZE);
 
   if (ferror(fh)) {
-    rc = errno;
+    rc = errno_to_cdd_error(errno);
     /* If errno is not set by fread failure (rare but possible), default to EIO
      */
     if (rc == 0)
-      rc = EIO;
+      rc = CDD_C_ERROR_IO;
     free(buffer);
     return rc;
   }
@@ -525,24 +550,24 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     buffer = (char *)malloc(1);
     if (!buffer) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     buffer[0] = '\0';
   }
 
   *out_data = buffer;
   *out_size = total_read;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the cp operation.
  */
-int cp(const char *dst, const char *src) {
+enum cdd_c_error cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (!CopyFileA(src, dst, TRUE))
     return (int)GetLastError(); /* Return Windows error code as int */
-  return 0;
+  return CDD_C_SUCCESS;
 #else
   int fd_to, fd_from;
   char buf[READ_CHUNK_SIZE];
@@ -554,7 +579,7 @@ int cp(const char *dst, const char *src) {
 
   fd_from = open(src, O_RDONLY);
   if (fd_from < 0)
-    return errno;
+    return errno_to_cdd_error(errno);
 
   /* O_EXCL to fail if dest exists */
   fd_to = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0666);
@@ -572,14 +597,14 @@ int cp(const char *dst, const char *src) {
         nread -= nwritten;
         out_ptr += nwritten;
       } else if (errno != EINTR) {
-        ret_val = errno;
+        ret_val = errno_to_cdd_error(errno);
         goto out_error;
       }
     } while (nread > 0);
   }
 
   if (nread < 0) {
-    ret_val = errno;
+    ret_val = errno_to_cdd_error(errno);
   }
 
 out_error:
@@ -597,7 +622,7 @@ out_error:
     return saved_errno;
   }
   close(fd_from);
-  return 0;
+  return CDD_C_SUCCESS;
 #endif
 }
 
@@ -613,7 +638,7 @@ out_error:
 /**
  * @brief Executes the maybe mkdir operation.
  */
-static int maybe_mkdir(const char *path) {
+static enum cdd_c_error maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
@@ -626,31 +651,31 @@ static int maybe_mkdir(const char *path) {
 #endif
 
   if (res == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* Directories already existing is not an error for recursion generally,
      but if it exists and is not a dir, it is. */
   if (errno == EEXIST) {
     if (c_stat_func(path, &st) != 0)
-      return errno;
+      return errno_to_cdd_error(errno);
     if (!IS_DIR(st.st_mode))
-      return ENOTDIR;
-    return 0;
+      return CDD_C_ERROR_IO;
+    return CDD_C_SUCCESS;
   }
 
-  return errno;
+  return errno_to_cdd_error(errno);
 }
 
 /**
  * @brief Executes the makedirs operation.
  */
-int makedirs(const char *path) {
+enum cdd_c_error makedirs(const char *path) {
   char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
   int rc = 0;
 
   if (path == NULL || *path == '\0') {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* Check usage of Windows drive letters or root paths which don't need
@@ -660,17 +685,17 @@ int makedirs(const char *path) {
       (strlen(path) == 2 && path[1] == ':') ||
       (strlen(path) == 3 && path[1] == ':' &&
        (path[2] == '/' || path[2] == '\\'))) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 #else
   if (strlen(path) == 1 && path[0] == '/')
-    return 0;
+    return CDD_C_SUCCESS;
 #endif
 
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = dup_path;
@@ -704,31 +729,31 @@ int makedirs(const char *path) {
 /**
  * @brief Executes the makedir operation.
  */
-int makedir(const char *path) {
+enum cdd_c_error makedir(const char *path) {
   if (path == NULL || *path == '\0')
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(_WIN32)
   if (_mkdir(path) == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 #elif defined(__WATCOMC__) || defined(__DOS__)
   if (mkdir(path) == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 #else
   if (mkdir(path, 0777) == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 #endif
-  return errno;
+  return errno_to_cdd_error(errno);
 }
 
 /**
  * @brief Executes the tempdir operation.
  */
-int tempdir(char **out_path) {
+enum cdd_c_error tempdir(char **out_path) {
   char *_ast_strdup_5 = NULL;
   const char *env;
 
   if (!out_path)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   env = getenv("TMPDIR");
   if (!env || *env == '\0')
@@ -745,14 +770,14 @@ int tempdir(char **out_path) {
     DWORD len;
     len = GetTempPathA(0, NULL);
     if (len == 0)
-      return EIO;
+      return CDD_C_ERROR_IO;
     *out_path = malloc(len + 1);
     if (!*out_path)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     if (GetTempPathA(len + 1, *out_path) == 0) {
       free(*out_path);
       *out_path = NULL;
-      return EIO;
+      return CDD_C_ERROR_IO;
     }
     c_cdd_str_trim_trailing_whitespace(*out_path);
     /* Remove trailing backslash if it exists, as dirname does */
@@ -761,7 +786,7 @@ int tempdir(char **out_path) {
         ((*out_path)[len - 1] == '\\' || (*out_path)[len - 1] == '/')) {
       (*out_path)[len - 1] = '\0';
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 #else
   {
@@ -807,15 +832,16 @@ void FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
 /**
  * @brief Executes the mktmpfilegetnameandfile operation.
  */
-int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
-                            const char *mode, struct FilenameAndPtr *file) {
+enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
+                                         const char *mode,
+                                         struct FilenameAndPtr *file) {
   unsigned char i;
   char *tmpdir_path = NULL;
   char *tmpfilename = NULL;
   int rc;
 
   if (!file)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = tempdir(&tmpdir_path);
   if (rc != 0)
@@ -835,7 +861,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
                    prefix == NULL ? "" : prefix, number,
                    suffix == NULL ? "" : suffix) == -1) {
         free(tmpdir_path);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
 #else
@@ -848,7 +874,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
                    prefix == NULL ? "" : prefix, (unsigned long)number,
                    suffix == NULL ? "" : suffix) == -1) {
         free(tmpdir_path);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
@@ -897,28 +923,28 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       /* Success */
       file->filename = tmpfilename;
       free(tmpdir_path);
-      return 0;
+      return CDD_C_SUCCESS;
     }
     free(tmpfilename);
   }
 
   free(tmpdir_path);
-  return EEXIST; /* Or simple general failure */
+  return CDD_C_ERROR_IO; /* Or simple general failure */
 }
 
 #ifdef _MSC_VER
 /**
  * @brief Executes the path is unc operation.
  */
-int path_is_unc(const char *path, int *out_is_unc) {
+enum cdd_c_error path_is_unc(const char *path, int *out_is_unc) {
   if (!out_is_unc)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!path) {
     *out_is_unc = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out_is_unc = (strlen(path) > 2 && path[0] == '\\' && path[1] == '\\');
-  return 0;
+  return CDD_C_SUCCESS;
 }
 #endif /* _MSC_VER */
 
@@ -927,17 +953,18 @@ int path_is_unc(const char *path, int *out_is_unc) {
 /**
  * @brief Executes the walk directory operation.
  */
-int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
+enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
+                                void *user_data) {
   char *full_path = NULL;
   c_stat st;
   int rc = 0;
 
   if (!path || !cb)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Check if root exists and is directory */
   if (c_stat_func(path, &st) != 0)
-    return errno;
+    return errno_to_cdd_error(errno);
 
   if (!IS_DIR(st.st_mode)) {
     /* Not a directory, just call back once?
@@ -958,7 +985,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
     /* Create search path: path + "\*" or "\*.*" */
     if (asprintf(&search_path, "%s\\*", path) == -1) {
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     handle = _findfirst(search_path, &file_info);
@@ -967,8 +994,8 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     if (handle == -1) {
       /* Empty dir or error? ENOENT means strict empty or not found. */
       if (errno == ENOENT)
-        return 0; /* Empty usually behaves like this */
-      return errno;
+        return CDD_C_SUCCESS; /* Empty usually behaves like this */
+      return errno_to_cdd_error(errno);
     }
 
     do {
@@ -979,7 +1006,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
       if (asprintf(&full_path, "%s\\%s", path, file_info.name) == -1) {
         _findclose(handle);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 
       if (file_info.attrib & _A_SUBDIR) {
@@ -999,7 +1026,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     _findclose(handle);
   }
 #elif defined(__WATCOMC__) || defined(__DOS__)
-  return ENOSYS;
+  return CDD_C_ERROR_SYSTEM;
 #else
   {
     /* POSIX implementation using opendir / readdir */
@@ -1007,7 +1034,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     struct dirent *entry;
 
     if (!d)
-      return errno;
+      return errno_to_cdd_error(errno);
 
     while ((entry = readdir(d)) != NULL) {
       if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
@@ -1017,7 +1044,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
       if (asprintf(&full_path, "%s%c%s", path, PATH_SEP_C, entry->d_name) ==
           -1) {
         closedir(d);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 
       /* Need to stat to determine if dir or file, d_type is not standard posix
@@ -1043,7 +1070,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   }
 #endif
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

@@ -23,6 +23,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
@@ -57,9 +58,9 @@ struct ApiSyncConfig {
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int api_sync_file(const char *filename,
-                                      const struct OpenAPI_Spec *spec,
-                                      const struct ApiSyncConfig *config);
+extern C_CDD_EXPORT enum cdd_c_error
+api_sync_file(const char *filename, const struct OpenAPI_Spec *spec,
+              const struct ApiSyncConfig *config);
 
 #ifdef __cplusplus
 }

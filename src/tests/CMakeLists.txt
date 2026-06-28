@@ -151,3 +151,9 @@ if(MSVC)
 
 endif()
 add_subdirectory(src)
+
+target_include_directories(
+        test_simple_json
+        PRIVATE
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+)

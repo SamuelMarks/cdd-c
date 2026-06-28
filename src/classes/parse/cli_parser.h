@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/cst.h"
 #include <stddef.h>
 /* clang-format on */
@@ -66,7 +67,7 @@ C_CDD_EXPORT /**
 C_CDD_EXPORT /**
               * @brief Executes the cst extract cli command operation.
               */
-    int
+    enum cdd_c_error
     cst_extract_cli_command(const struct CstNodeList *nodes,
                             const struct TokenList *tokens,
                             struct CliCommand *cmd);

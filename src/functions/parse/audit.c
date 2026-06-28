@@ -71,9 +71,10 @@ void audit_stats_free(struct AuditStats *stats) {
 /**
  * @brief Adds or sets violation.
  */
-static int add_violation(struct AuditStats *stats, const char *file_path,
-                         size_t line, size_t col, const char *var_name,
-                         const char *allocator) {
+static enum cdd_c_error add_violation(struct AuditStats *stats,
+                                      const char *file_path, size_t line,
+                                      size_t col, const char *var_name,
+                                      const char *allocator) {
   struct AuditViolationList *list = &stats->violations;
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
@@ -94,7 +95,7 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
 #endif
     if (!new_items) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     list->items = new_items;
     list->capacity = new_cap;
@@ -148,11 +149,11 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
     free(list->items[list->size].file_path);
     free(list->items[list->size].variable_name);
     free(list->items[list->size].allocator_name);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   list->size++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -183,29 +184,29 @@ static void get_line_col(const char *content, const uint8_t *token_ptr,
 /**
  * @brief Check if filename ends with .c extension.
  */
-static int is_c_source(const char *path, int *out_is_source) {
+static enum cdd_c_error is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
   if (!out_is_source)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_source = 0;
   dot = strrchr(path, '.');
   if (!dot)
-    return 0;
+    return CDD_C_SUCCESS;
   c_cdd_stricmp(dot, ".c", &diff);
   *out_is_source = (diff == 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Helper to detect functions returning allocations directly.
  */
-static int count_returning_allocs(const struct TokenList *tokens,
-                                  int *out_count) {
+static enum cdd_c_error count_returning_allocs(const struct TokenList *tokens,
+                                               int *out_count) {
   size_t i;
   int count = 0;
   if (!out_count)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
@@ -232,14 +233,14 @@ static int count_returning_allocs(const struct TokenList *tokens,
     }
   }
   *out_count = count;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Callback for directory walker.
  * Parses file and updates stats.
  */
-static int audit_file_callback(const char *path, void *user_data) {
+static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
   struct TokenList *tokens = NULL;
   struct AllocationSiteList sites = {0};
@@ -253,21 +254,21 @@ static int audit_file_callback(const char *path, void *user_data) {
     int is_src = 0;
     is_c_source(path, &is_src);
     if (!is_src)
-      return 0;
+      return CDD_C_SUCCESS;
   }
 
   /* Read */
   rc = read_to_file(path, "r", &content, &sz);
   if (rc != 0) {
     fprintf(stderr, "Warning: Failed to read %s\n", path);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Tokenize */
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
     free_token_list(tokens);
     free(content);
-    return 0; /* Tokenization fail - skip */
+    return CDD_C_SUCCESS; /* Tokenization fail - skip */
   }
 
   /* Analyze */
@@ -306,15 +307,16 @@ static int audit_file_callback(const char *path, void *user_data) {
   free_token_list(tokens);
   free(content);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the audit project operation.
  */
-int audit_project(const char *root_path, struct AuditStats *stats) {
+enum cdd_c_error audit_project(const char *root_path,
+                               struct AuditStats *stats) {
   if (!root_path || !stats)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   return walk_directory(root_path, audit_file_callback, stats);
 }
@@ -322,7 +324,8 @@ int audit_project(const char *root_path, struct AuditStats *stats) {
 /**
  * @brief Executes the audit print json operation.
  */
-int audit_print_json(const struct AuditStats *stats, char **out_json) {
+enum cdd_c_error audit_print_json(const struct AuditStats *stats,
+                                  char **out_json) {
   JSON_Value *root_val = NULL;
   JSON_Object *root_obj;
   char *str = NULL;
@@ -345,7 +348,7 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
       *out_json = NULL;
     if (root_val)
       json_value_free(root_val);
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   root_obj = json_value_get_object(root_val);
@@ -393,7 +396,7 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
   json_value_free(root_val);
   {
     *out_json = str;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 

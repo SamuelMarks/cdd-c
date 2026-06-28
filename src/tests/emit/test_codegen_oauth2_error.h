@@ -42,9 +42,12 @@ TEST test_oauth2_error_generation(void) {
   ASSERT_EQ(0, struct_fields_init(&sf));
 
   /* Invalid args */
-  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(NULL, "OAuth2Error", &sf));
-  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(tmp, NULL, &sf));
-  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(tmp, "OAuth2Error", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_oauth2_error_parser_func(NULL, "OAuth2Error", &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_oauth2_error_parser_func(tmp, NULL, &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_oauth2_error_parser_func(tmp, "OAuth2Error", NULL));
 
   /* simulate struct { char* error; char* error_description; } */
   {

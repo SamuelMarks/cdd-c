@@ -22,6 +22,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/tokenizer.h"
 #include <limits.h>
 #include <stddef.h>
@@ -101,7 +102,7 @@ extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
 extern C_CDD_EXPORT /**
                      * @brief Parses declaration from the given input.
                      */
-    int
+    enum cdd_c_error
     parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info);
 

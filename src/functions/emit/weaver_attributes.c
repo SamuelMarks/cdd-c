@@ -19,12 +19,13 @@
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-int weaver_translate_gcc_attributes(struct PatchList *patches,
-                                    const struct TokenList *tokens,
-                                    const struct CstNodeList *cst) {
+enum cdd_c_error
+weaver_translate_gcc_attributes(struct PatchList *patches,
+                                const struct TokenList *tokens,
+                                const struct CstNodeList *cst) {
   size_t i;
   if (!patches || !tokens || !cst)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < cst->size; i++) {
     const struct CstNode *node = &cst->nodes[i];
@@ -46,7 +47,7 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
 #endif
       if (!attr_text) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       memcpy(attr_text, node->start, len);
       attr_text[len] = '\0';
@@ -91,7 +92,7 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

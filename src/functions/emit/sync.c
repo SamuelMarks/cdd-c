@@ -29,7 +29,7 @@
 /**
  * @brief Executes the sync code main operation.
  */
-int sync_code_main(int argc, char **argv) {
+enum cdd_c_error sync_code_main(int argc, char **argv) {
   const char *header_filename;
   const char *impl_filename;
   struct TypeDefList types;
@@ -41,7 +41,7 @@ int sync_code_main(int argc, char **argv) {
 
   if (argc != 2) {
     fprintf(stderr, "Usage: sync_code <header.h> <impl.c>\n");
-    return EXIT_FAILURE;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   header_filename = argv[0];
@@ -78,7 +78,13 @@ int sync_code_main(int argc, char **argv) {
 #endif
   if (!out) {
     type_def_list_free(&types);
-    return errno ? errno : EIO;
+    if (errno == ENOENT)
+      return CDD_C_ERROR_NOT_FOUND;
+    if (errno == ENOMEM)
+      return CDD_C_ERROR_MEMORY;
+    if (errno == EINVAL)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_ERROR_IO;
   }
 
   /* 3. Emit Preamble */
@@ -133,14 +139,14 @@ int sync_code_main(int argc, char **argv) {
   type_def_list_free(&types);
   printf("Synced %s\n", impl_filename);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the patch header from source operation.
  */
-int patch_header_from_source(const char *header_path,
-                             const char *refactored_source) {
+enum cdd_c_error patch_header_from_source(const char *header_path,
+                                          const char *refactored_source) {
   struct FuncSigList sigs;
   struct PatchList patches;
   struct TokenList *hdr_tokens = NULL;
@@ -254,7 +260,7 @@ int patch_header_from_source(const char *header_path,
       fputs(new_header, fp);
       fclose(fp);
     } else {
-      rc = errno ? errno : EIO;
+      rc = CDD_C_ERROR_SYSTEM ? errno : EIO;
     }
   }
 

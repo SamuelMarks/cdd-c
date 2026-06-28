@@ -13,6 +13,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stdio.h>
 
 #include "openapi/parse/openapi.h"
@@ -42,9 +43,10 @@ struct SdkTestsConfig {
  * @param[in] fp The output file stream.
  * @param[in] spec The parsed OpenAPI spec.
  * @param[in] config The generator configuration.
- * @return 0 on success, error code (EINVAL/EIO) on failure.
+ * @return 0 on success, error code
+ * (CDD_C_ERROR_INVALID_ARGUMENT/CDD_C_ERROR_IO) on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                            const struct SdkTestsConfig *config);
 

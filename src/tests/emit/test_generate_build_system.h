@@ -97,7 +97,7 @@ TEST test_gen_build_system_cli_args(void) {
   argv[2] = arg2;
 
   rc = generate_build_system_main(3, argv);
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* Verify file creation */
   {
@@ -141,17 +141,20 @@ TEST test_gen_build_system_bad_args(void) {
   argv_bad[2] = arg2_bad;
 
   /* Missing name */
-  ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(2, argv_short));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_build_system_main(2, argv_short));
 
   /* Unsupported type */
-  ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(3, argv_bad));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_build_system_main(3, argv_bad));
   g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_gen_cmake_null_args(void) {
-  ASSERT_EQ(EINVAL, generate_cmake_project("out", NULL, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_cmake_project("out", NULL, 0));
   g_fail_io_after = -1;
   PASS();
 }
@@ -186,7 +189,7 @@ TEST test_gen_cmake_bad_makedirs(void) {
 TEST test_gen_build_system_cli_args_tests(void) {
   char *argv[] = {"cmake", "test_build_dir_tests", "CLIProjWithTests", "test"};
   int rc = generate_build_system_main(4, argv);
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   remove("test_build_dir_tests/src/CMakeLists.txt");
   remove("test_build_dir_tests/CMakeLists.txt");
@@ -200,7 +203,7 @@ TEST test_gen_build_system_cli_args_fail(void) {
   FILE *f = fopen("test_dummy_file_for_makedirs", "w");
   if (f) {
     fclose(f);
-    ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(3, argv));
+    ASSERT_EQ(CDD_C_ERROR_IO, generate_build_system_main(3, argv));
     remove("test_dummy_file_for_makedirs");
   }
   g_fail_io_after = -1;

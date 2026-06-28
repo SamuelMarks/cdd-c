@@ -50,10 +50,10 @@ static void arena_free_all(void) {
   global_arena = NULL;
 }
 
-static int arena_alloc(size_t len, void **out_ptr) {
+static enum cdd_c_error arena_alloc(size_t len, void **out_ptr) {
   safe_crt_arena_t *node;
   if (!out_ptr)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_ptr = NULL;
 #ifdef CDD_BUILD_TESTS
   if (g_safe_crt_malloc_fail == 1) {
@@ -66,12 +66,12 @@ static int arena_alloc(size_t len, void **out_ptr) {
 #endif
   if (!node) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   node->next = global_arena;
   global_arena = node;
   *out_ptr = node->data;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /** @brief expr_t */
@@ -97,12 +97,12 @@ struct expr_t {
   expr_t *next;
 };
 
-static int parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx, int stop_at_comma,
-                          expr_t **out_expr) {
+static enum cdd_c_error parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
+                                       int stop_at_comma, expr_t **out_expr) {
   expr_t *head = NULL;
   expr_t *tail = NULL;
   if (!out_expr)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_expr = NULL;
 
   while (*idx < stmt->num_children) {
@@ -192,7 +192,7 @@ static int parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx, int stop_at_comma,
   return head ? 0 : ENOENT;
 }
 
-static int find_and_mark_fopen(expr_t *head) {
+static enum cdd_c_error find_and_mark_fopen(expr_t *head) {
   expr_t *curr = head;
   expr_t *lhs_start = head;
   int found = 0;
@@ -262,7 +262,7 @@ static void check_unsupported_calls(expr_t *head) {
   }
 }
 
-static int check_needs_transform(expr_t *head) {
+static enum cdd_c_error check_needs_transform(expr_t *head) {
   size_t i;
   while (head) {
     if (head->type == 1 || head->type == 5) {
@@ -310,21 +310,21 @@ static int check_needs_transform(expr_t *head) {
           strcmp(name, "_wputenv") == 0 || strcmp(name, "_searchenv") == 0 ||
           strcmp(name, "_wsearchenv") == 0 || strcmp(name, "qsort") == 0 ||
           strcmp(name, "bsearch") == 0 || strcmp(name, "_ultow") == 0) {
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
       }
       for (i = 0; i < head->num_args; i++) {
         if (check_needs_transform(head->args[i]))
-          return 1;
+          return CDD_C_ERROR_UNKNOWN;
       }
     } else if (head->type == 2) {
       if (check_needs_transform(head->args[0]))
-        return 1;
+        return CDD_C_ERROR_UNKNOWN;
     } else if (head->type == 3) {
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     }
     head = head->next;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 typedef struct {
@@ -352,14 +352,14 @@ typedef struct {
 
 static emit_ctx_t *g_msc_ctx = NULL;
 
-static int expr_is_null_or_zero(expr_t *node) {
+static enum cdd_c_error expr_is_null_or_zero(expr_t *node) {
   if (node && node->type == 0 && node->tok && !node->next) {
     if (node->tok->length == 4 && memcmp(node->tok->start, "NULL", 4) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
     if (node->tok->length == 1 && node->tok->start[0] == '0')
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
@@ -385,11 +385,12 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
   return dup;
 }
 
-static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
+static enum cdd_c_error clone_trivia(cdd_trivia_t *head,
+                                     cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
   if (!out_trivia)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
 
   while (head) {
@@ -410,7 +411,7 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
         free(new_head);
         new_head = n;
       }
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     tr->kind = head->kind;
     tr->start = head->start;
@@ -423,29 +424,30 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
     head = head->next;
   }
   *out_trivia = new_head;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
-                       cdd_token_t **out_token) {
+static enum cdd_c_error clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
+                                    cdd_token_t **out_token) {
   cdd_token_t *ct = NULL;
   if (!tok || !out_token)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_token = NULL;
   cdd_cst_create_token_len(tree, tok->kind, (const char *)tok->start,
                            tok->length, &ct);
   if (!ct)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   clone_trivia(tok->leading_trivia, &ct->leading_trivia);
   clone_trivia(tok->trailing_trivia, &ct->trailing_trivia);
   *out_token = ct;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc);
+static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
+                                     int is_msc);
 
-static int emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
-                              int is_msc) {
+static enum cdd_c_error emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
+                                           int is_msc) {
   int rc = 0;
   size_t old_num_children =
       bld->target_node ? bld->target_node->num_children : 0;
@@ -467,8 +469,8 @@ static int emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
   return rc;
 }
 
-static int emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld,
-                                        int is_msc) {
+static enum cdd_c_error
+emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
   if (node && node->type == 0 && node->tok && node->tok->length == 1 &&
       node->tok->start[0] == '&') {
     return emit_ast_bld_strip(node->next, bld, is_msc);
@@ -476,7 +478,8 @@ static int emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld,
   return emit_ast_bld_strip(node, bld, is_msc);
 }
 
-static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
+static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
+                                     int is_msc) {
   int changes = 0;
   size_t k;
   emit_ctx_t *ctx = is_msc ? g_msc_ctx : NULL;
@@ -1258,8 +1261,8 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
 }
 
 /** @brief cdd_transform_safe_crt */
-int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
-                           const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
+                                        const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
@@ -1268,7 +1271,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (current_tree != tree) {
     arena_free_all();
@@ -1560,7 +1563,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           if (g_safe_crt_malloc_fail == 6)
             bld.error_state = 1;
 #endif
-          if (!cdd_cst_builder_has_error(&bld)) {
+          if (bld.error_state == 0) {
             cdd_cst_replace_node(tree, stmt, new_node);
             cdd_cst_free_node(stmt);
             replaced_any = 1;
@@ -1590,7 +1593,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     free(res.nodes);
   } while (replaced_any);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

@@ -2,6 +2,7 @@
 #define GEN_DEF_H
 /* clang-format off */
 #include "gen_def_models.h"
+#include "cdd_c_error.h"
 #include "url_utils.h"
 #include <c_abstract_http/http_types.h>
 #include <stdio.h>
@@ -34,7 +35,7 @@ void ApiError_cleanup(struct ApiError *err);
  * @param[in] base_url The API base URL (or NULL to use the default server URL).
  * @return 0 on success.
  */
-int init(struct HttpClient *client, const char *base_url);
+enum cdd_c_error init(struct HttpClient *client, const char *base_url);
 
 /**
  * @brief Cleanup the API Client.
@@ -48,7 +49,7 @@ void cleanup(struct HttpClient *client);
  * @termsOfService test_op
  * @return 200
  */
-int test_op(struct HttpClient *ctx, struct ApiError **api_error);
+enum cdd_c_error test_op(struct HttpClient *ctx, struct ApiError **api_error);
 
 #ifdef __cplusplus
 }

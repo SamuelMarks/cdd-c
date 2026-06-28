@@ -24,8 +24,9 @@
 /**
  * @brief Executes the openapi server generate operation.
  */
-int openapi_server_generate(const struct OpenAPI_Spec *spec,
-                            const struct OpenApiClientConfig *config) {
+enum cdd_c_error
+openapi_server_generate(const struct OpenAPI_Spec *spec,
+                        const struct OpenApiClientConfig *config) {
   char path[1024];
   FILE *fp = NULL;
   size_t i, j, k;
@@ -35,7 +36,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     /* LCOV_EXCL_START */
     if (!src_dir)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
     get_basename(config->filename_base, &base_name);
@@ -60,7 +61,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   fprintf(fp, "/* Generated Server from OpenAPI Specification */\n\n");
@@ -248,7 +249,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp,
       "        fprintf(stderr, \"Failed to start CivetWeb server.\\n\");\n");
-  fprintf(fp, "        return 1;\n");
+  fprintf(fp, "        return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "    }\n\n");
 
   fprintf(fp, "    {\n");
@@ -319,7 +320,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
               "exit.\\n\");\n");
   fprintf(fp, "    getchar();\n");
   fprintf(fp, "    mg_stop(ctx);\n");
-  fprintf(fp, "    return 0;\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "}\n");
 
   fclose(fp);
@@ -567,7 +568,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

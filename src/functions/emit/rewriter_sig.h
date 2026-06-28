@@ -25,6 +25,7 @@ extern "C" {
 
 /* clang-format off */
 #include "functions/parse/tokenizer.h"
+#include "cdd_c_error.h"
 #include <c_cdd_export.h>
 /* clang-format on */
 
@@ -47,8 +48,8 @@ extern "C" {
  * be stored.
  * @return 0 on success, ENOMEM/EINVAL on failure.
  */
-extern C_CDD_EXPORT int rewrite_signature(const struct TokenList *tokens,
-                                          char **out_code);
+extern C_CDD_EXPORT enum cdd_c_error
+rewrite_signature(const struct TokenList *tokens, char **out_code);
 
 #ifdef __cplusplus
 }

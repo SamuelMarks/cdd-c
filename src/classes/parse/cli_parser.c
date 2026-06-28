@@ -17,7 +17,7 @@
 /**
  * @brief Executes the cdd strndup2 operation.
  */
-static int cdd_strndup2(const char *s, size_t n, char **_out_val) {
+static enum cdd_c_error cdd_strndup2(const char *s, size_t n, char **_out_val) {
   char *result;
   size_t len = 0;
   while (len < n && s[len] != '\0')
@@ -25,13 +25,13 @@ static int cdd_strndup2(const char *s, size_t n, char **_out_val) {
   result = malloc(len + 1);
   if (!result) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   memcpy(result, s, len);
   result[len] = '\0';
   {
     *_out_val = result;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -74,7 +74,8 @@ void cli_command_free(struct CliCommand *cmd) {
 /**
  * @brief Adds or sets option.
  */
-static int add_option(struct CliCommand *cmd, struct CliOption **_out_val) {
+static enum cdd_c_error add_option(struct CliCommand *cmd,
+                                   struct CliOption **_out_val) {
   struct CliOption *opt;
   cmd->options =
       realloc(cmd->options, (cmd->n_options + 1) * sizeof(struct CliOption));
@@ -82,20 +83,20 @@ static int add_option(struct CliCommand *cmd, struct CliOption **_out_val) {
   memset(opt, 0, sizeof(*opt));
   {
     *_out_val = opt;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the cst extract cli command operation.
  */
-int cst_extract_cli_command(const struct CstNodeList *nodes,
-                            const struct TokenList *tokens,
-                            struct CliCommand *cmd) {
+enum cdd_c_error cst_extract_cli_command(const struct CstNodeList *nodes,
+                                         const struct TokenList *tokens,
+                                         struct CliCommand *cmd) {
   size_t i, j;
   int in_getopt = 0;
   if (!nodes || !tokens || !cmd)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   cli_command_init(cmd);
   cmd->name = strdup("cli_app");
@@ -170,5 +171,5 @@ int cst_extract_cli_command(const struct CstNodeList *nodes,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

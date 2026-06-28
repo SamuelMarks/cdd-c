@@ -47,7 +47,8 @@ struct TestPPCtx {
 };
 
 /* Updated mock callback for new signature */
-static int mock_cb(const struct IncludeInfo *info, void *user_data) {
+static enum cdd_c_error mock_cb(const struct IncludeInfo *info,
+                                void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -84,7 +85,7 @@ static int mock_cb(const struct IncludeInfo *info, void *user_data) {
     else
       ctx->last_params.suffix = NULL;
   }
-  return (enum greatest_test_res)0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Expression Evaluator Tests --- */
@@ -104,7 +105,7 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
     return -999;
   if (out)
     *out = res;
-  return (enum greatest_test_res)0;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_pp_eval_arithmetic(void) {
@@ -455,17 +456,23 @@ TEST test_pp_nested_if(void) {
   PASS();
 }
 
-static int test_include_next_visitor(const struct IncludeInfo *info,
-                                     void *user_data) {
+static enum cdd_c_error
+test_include_next_visitor(const struct IncludeInfo *info, void *user_data) {
   int *called = (int *)user_data;
   (*called)++;
-  ASSERT_EQ_FMT(PP_DIR_INCLUDE, info->kind, "%d");
-  ASSERT_EQ(1, info->is_next);
-  ASSERT_EQ(1, info->is_system);
-  ASSERT(info->resolved_path != NULL);
-  ASSERT(info->raw_path != NULL);
-  ASSERT_STR_EQ("stdlib.h", info->raw_path);
-  return 0;
+  if (info->kind != PP_DIR_INCLUDE)
+    return CDD_C_ERROR_PARSE;
+  if (!info->is_next)
+    return CDD_C_ERROR_PARSE;
+  if (!info->is_system)
+    return CDD_C_ERROR_PARSE;
+  if (info->resolved_path == NULL)
+    return CDD_C_ERROR_PARSE;
+  if (info->raw_path == NULL)
+    return CDD_C_ERROR_PARSE;
+  if (strcmp("stdlib.h", info->raw_path) != 0)
+    return CDD_C_ERROR_PARSE;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_pp_include_next(void) {
@@ -499,7 +506,8 @@ TEST test_pp_include_next(void) {
   PASS();
 }
 
-static int abort_cb(const struct IncludeInfo *info, void *user_data) {
+static enum cdd_c_error abort_cb(const struct IncludeInfo *info,
+                                 void *user_data) {
   int *called;
   (void)info;
   called = (int *)user_data;

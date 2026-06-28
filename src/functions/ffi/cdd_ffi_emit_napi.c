@@ -7,8 +7,8 @@
 #include <string.h>
 /* clang-format on */
 
-static int emit_napi_c(cdd_ffi_ir_t *ir,
-                       const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
@@ -18,14 +18,14 @@ static int emit_napi_c(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s_napi.c", config->output_dir,
                lib_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s_napi.c", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -249,10 +249,11 @@ static int emit_napi_c(cdd_ffi_ir_t *ir,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   const char *lib_name = config->library_name ? config->library_name : "mylib";
@@ -261,14 +262,14 @@ static int emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\binding.gyp",
                config->output_dir);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/binding.gyp",
                config->output_dir);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -282,14 +283,15 @@ static int emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   fprintf(f, "}\n");
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
-                      const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
+                  const cdd_generate_bindings_config_t *config) {
   int rc;
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   rc = emit_napi_c(ir, config);

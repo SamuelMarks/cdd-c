@@ -52,10 +52,11 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
  * @brief Adds an element to the macro overlay list.
  *
  */
-static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
-                    struct CstNodeList *expanded) {
+static enum cdd_c_error list_add(struct MacroOverlayList *list,
+                                 const struct CstNode *node,
+                                 struct CstNodeList *expanded) {
   if (!list || !node)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
@@ -63,7 +64,7 @@ static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
         list->nodes, new_cap * sizeof(struct MacroOverlayNode));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     list->nodes = new_arr;
     list->capacity = new_cap;
@@ -73,19 +74,19 @@ static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
   list->nodes[list->size].expanded_ast = expanded;
   list->size++;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Builds the macro overlay mapping from a given CST.
  *
  */
-int cst_build_macro_overlay(const struct CstNodeList *cst,
-                            const struct TokenList *tokens,
-                            struct MacroOverlayList *overlays) {
+enum cdd_c_error cst_build_macro_overlay(const struct CstNodeList *cst,
+                                         const struct TokenList *tokens,
+                                         struct MacroOverlayList *overlays) {
   size_t i;
   if (!cst || !tokens || !overlays)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Traverse CST to find CST_NODE_MACRO */
   for (i = 0; i < cst->size; ++i) {
@@ -97,7 +98,7 @@ int cst_build_macro_overlay(const struct CstNodeList *cst,
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       if (!dummy_expanded) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
       /* cst_list_init is not available, we can just zero it and let it be empty
        */
@@ -109,12 +110,12 @@ int cst_build_macro_overlay(const struct CstNodeList *cst,
       if (list_add(overlays, n, dummy_expanded) != 0) {
         free_cst_node_list(dummy_expanded);
         free(dummy_expanded);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

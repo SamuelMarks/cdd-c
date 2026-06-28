@@ -545,12 +545,12 @@ static void handle_stdio_request(const char *body) {
 /**
  * @brief Executes the server json rpc main operation.
  */
-C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
+C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
 #if defined(__WATCOMC__) || defined(__DOS__)
   (void)argc;
   (void)argv;
   fprintf(stderr, "Server mode is not supported on DOS.\n");
-  return 1;
+  return CDD_C_ERROR_UNKNOWN;
 #else
   int port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;
   int listen_flag = getenv("CDD_LISTEN") ? 1 : 0;
@@ -577,14 +577,14 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
   {
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   /* LCOV_EXCL_START */
   if (server_fd == INVALID_SOCKET)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
 
   memset(&addr, 0, sizeof(addr));
@@ -594,12 +594,12 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
 
   if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     perror("bind");
-    return 1;
+    return CDD_C_ERROR_SYSTEM;
   }
 
   if (listen(server_fd, 5) < 0) {
     perror("listen");
-    return 1;
+    return CDD_C_ERROR_SYSTEM;
   }
 
   while (listen_flag) {
@@ -634,7 +634,7 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
   close(server_fd);
 #endif
 
-  return 0;
+  return CDD_C_SUCCESS;
 #endif
 }
 
@@ -642,7 +642,7 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
 /**
  * @brief Executes the MCP stdio main operation.
  */
-C_CDD_EXPORT int serve_mcp_stdio_main(int argc, char **argv) {
+C_CDD_EXPORT enum cdd_c_error serve_mcp_stdio_main(int argc, char **argv) {
   char buffer[65536];
   (void)argc;
   (void)argv;
@@ -650,21 +650,21 @@ C_CDD_EXPORT int serve_mcp_stdio_main(int argc, char **argv) {
   while (fgets(buffer, sizeof(buffer), stdin)) {
     handle_stdio_request(buffer);
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 #else
 #include "serve_json_rpc.h"
 /* clang-format on */
-int serve_json_rpc_main(int argc, char **argv) {
+enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
   (void)argc;
   (void)argv;
-  return -1;
+  return CDD_C_ERROR_UNKNOWN;
 }
-int serve_mcp_stdio_main(int argc, char **argv) {
+enum cdd_c_error serve_mcp_stdio_main(int argc, char **argv) {
   (void)argc;
   (void)argv;
-  return -1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 #endif
 

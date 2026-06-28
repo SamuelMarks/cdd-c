@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -96,7 +97,7 @@ typedef struct cdd_generate_bindings_config {
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int
+C_CDD_EXPORT enum cdd_c_error
 cdd_generate_from_openapi(const cdd_from_openapi_config_t *config);
 
 /**
@@ -104,7 +105,8 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
 
 /**
  * @brief Generate JSON documentation with code snippets for an OpenAPI
@@ -112,21 +114,23 @@ C_CDD_EXPORT int cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int cdd_generate_docs_json(const cdd_docs_json_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_generate_docs_json(const cdd_docs_json_config_t *config);
 
 /**
  * @brief Run the JSON RPC server.
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
 
 /**
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT int
+C_CDD_EXPORT enum cdd_c_error
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
 
 #ifdef __cplusplus

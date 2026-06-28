@@ -169,7 +169,7 @@ SUITE(unions_suite) {
   RUN_TEST(test_write_union_cleanup);
 }
 
-int main(int argc, char **argv) {
+enum cdd_c_error main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(unions_suite);
   GREATEST_MAIN_END();

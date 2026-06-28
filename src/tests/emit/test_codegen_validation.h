@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,8 +25,8 @@ extern "C" {
 /* LCOV_EXCL_START */
 
 /* Helper: generate code and return as buffer */
-static int gen_parse_code(const char *name, struct StructFields *sf,
-                          char **_out_val) {
+static enum cdd_c_error
+gen_parse_code(const char *name, struct StructFields *sf, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -76,7 +77,8 @@ TEST test_int_min_validation(void) {
   ASSERT(code != NULL);
 
   /* Check basic logic */
-  ASSERT(strstr(code, "if (tmp < 10.000000) { free(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (tmp < 10.000000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -103,7 +105,8 @@ TEST test_int_exclusive_min(void) {
   ASSERT(code != NULL);
 
   /* Check exclusive */
-  ASSERT(strstr(code, "if (tmp <= 5.000000) { free(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (tmp <= 5.000000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -129,7 +132,8 @@ TEST test_double_max_validation(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp > 100.500000) { free(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (tmp > 100.500000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -156,7 +160,8 @@ TEST test_double_exclusive_max(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp >= 0.000000) { free(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (tmp >= 0.000000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -183,8 +188,10 @@ TEST test_min_and_max(void) {
           _ast_gen_parse_code_4);
   ASSERT(code != NULL);
 
-  ASSERT(strstr(code, "if (tmp < 0.000000) { free(ret); return ERANGE; }"));
-  ASSERT(strstr(code, "if (tmp > 120.000000) { free(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (tmp < 0.000000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
+  ASSERT(strstr(code, "if (tmp > 120.000000) { free(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -212,8 +219,10 @@ TEST test_string_len_validation(void) {
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strlen(ret->s)"));
-  ASSERT(strstr(code, "if (len < 2) { StrLen_cleanup(ret); return ERANGE; }"));
-  ASSERT(strstr(code, "if (len > 10) { StrLen_cleanup(ret); return ERANGE; }"));
+  ASSERT(strstr(code, "if (len < 2) { StrLen_cleanup(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
+  ASSERT(strstr(code, "if (len > 10) { StrLen_cleanup(ret); return "
+                      "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
   free(code);
   struct_fields_free(&sf);

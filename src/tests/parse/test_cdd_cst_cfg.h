@@ -80,13 +80,13 @@ TEST test_cdd_cst_cfg_oom(void) {
   ASSERT_EQ(0, rc);
   func = tree->root;
 
-  /* Missing EINVAL tests */
-  ASSERT_EQ(EINVAL, cdd_cst_cfg_build(func, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_cfg_build(NULL, &cfg));
+  /* Missing CDD_C_ERROR_INVALID_ARGUMENT tests */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_cfg_build(func, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_cfg_build(NULL, &cfg));
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_cfg_alloc_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_cfg_build(func, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_cfg_build(func, &cfg));
   g_cdd_cfg_alloc_fail = 0;
 #endif
 
@@ -130,7 +130,7 @@ TEST test_cdd_cst_cfg_errors(void) {
   cdd_cst_cfg_t *cfg = NULL;
 
   /* NULL pointers */
-  ASSERT_EQ(EINVAL, cdd_cst_cfg_build(NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_cfg_build(NULL, &cfg));
 
   /* Freeing NULL */
   cdd_cst_cfg_free(NULL);
@@ -241,7 +241,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         cdd_cst_cfg_free(cfg);
         break;
       }
-      ASSERT_EQ(ENOMEM, rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_cfg_alloc_fail = 0;
   }

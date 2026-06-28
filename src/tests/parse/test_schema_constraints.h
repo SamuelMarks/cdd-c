@@ -766,9 +766,11 @@ TEST test_schema_constraints_cleanup_branch(void) {
   struct SchemaConstraints sc;
 
   /* NULL checks */
-  ASSERT_EQ(EINVAL, schema_constraints_init(NULL));
-  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "a"));
-  ASSERT_EQ(EINVAL, schema_constraints_add_required(&sc, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, schema_constraints_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            schema_constraints_add_required(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            schema_constraints_add_required(&sc, NULL));
   schema_constraints_cleanup(NULL);
 
   schema_constraints_init(&sc);
@@ -800,7 +802,8 @@ TEST test_schema_constraints_cleanup_branch(void) {
     struct SchemaConstraints sc_oom;
     schema_constraints_init(&sc_oom);
     g_schema_strdup_fail = 1;
-    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc_oom, "req2"));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              schema_constraints_add_required(&sc_oom, "req2"));
     g_schema_strdup_fail = 0;
     schema_constraints_cleanup(&sc_oom);
   }

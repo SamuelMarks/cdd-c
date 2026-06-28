@@ -338,11 +338,16 @@ TEST test_struct_array_from_json(void) {
  */
 TEST test_json_null_args(void) {
   FILE *tmp = tmpfile();
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_from_json_func(NULL, "S", NULL));
-  ASSERT_EQ(EINVAL, write_struct_array_from_json_func(NULL, "S", NULL));
-  ASSERT_EQ(EINVAL, write_struct_array_from_json_func(tmp, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_json_func(NULL, "S", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_array_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_array_from_json_func(tmp, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
 
   {
     FILE *readonly_f = tmpfile();
@@ -447,24 +452,26 @@ TEST test_json_null_args(void) {
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO, write_struct_to_json_func(readonly_f, "S", &sf, NULL));
+      ASSERT_EQ(CDD_C_ERROR_IO,
+                write_struct_to_json_func(readonly_f, "S", &sf, NULL));
       g_fail_io_after = 0;
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO, write_struct_from_json_func(readonly_f, "S", &config));
+      ASSERT_EQ(CDD_C_ERROR_IO,
+                write_struct_from_json_func(readonly_f, "S", &config));
       g_fail_io_after = 0;
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO,
+      ASSERT_EQ(CDD_C_ERROR_IO,
                 write_struct_array_from_json_func(readonly_f, "S", &config));
       g_fail_io_after = 0;
       g_io_calls = 0;
       g_fail_io_after = 0;
       g_io_calls = 0;
-      ASSERT_EQ(EIO, write_struct_from_jsonObject_func(readonly_f, "S", &sf,
-                                                       &config));
+      ASSERT_EQ(CDD_C_ERROR_IO, write_struct_from_jsonObject_func(
+                                    readonly_f, "S", &sf, &config));
       fclose(readonly_f);
     }
     struct_fields_free(&sf);
@@ -659,7 +666,7 @@ TEST test_json_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 500; ++i) {
@@ -674,7 +681,7 @@ TEST test_json_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 500; ++i) {
@@ -689,7 +696,7 @@ TEST test_json_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 500; ++i) {
@@ -704,7 +711,7 @@ TEST test_json_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   config.guard_macro = NULL;
@@ -720,7 +727,7 @@ TEST test_json_exhaustive_io(void) {
     g_io_calls = 0;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   g_fail_io_after = -1;

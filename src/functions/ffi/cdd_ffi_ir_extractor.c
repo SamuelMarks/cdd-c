@@ -17,8 +17,9 @@
 #endif
 /* clang-format on */
 
-static int ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
-                       const char *name, cdd_ffi_ir_node_t **out_node) {
+static enum cdd_c_error ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
+                                    const char *name,
+                                    cdd_ffi_ir_node_t **out_node) {
   cdd_ffi_ir_node_t *node;
 
   if (ir->nodes_count >= ir->nodes_capacity) {
@@ -26,7 +27,7 @@ static int ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
     cdd_ffi_ir_node_t *new_nodes = (cdd_ffi_ir_node_t *)realloc(
         ir->nodes, new_cap * sizeof(cdd_ffi_ir_node_t));
     if (!new_nodes)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     ir->nodes = new_nodes;
     ir->nodes_capacity = new_cap;
   }
@@ -36,17 +37,19 @@ static int ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
   node->kind = kind;
   node->name = strdup(name);
   if (!node->name)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   if (out_node) {
     *out_node = node;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static cdd_ffi_primitive_kind_t map_c_type_to_ffi_kind(const char *c_type);
+static enum cdd_c_error
+map_c_type_to_ffi_kind(const char *c_type, cdd_ffi_primitive_kind_t *out_kind);
 
-static int parse_template_type(const char *c_type, cdd_ffi_type_t *out_type) {
+static enum cdd_c_error parse_template_type(const char *c_type,
+                                            cdd_ffi_type_t *out_type) {
   const char *lt = strchr(c_type, '<');
   const char *gt = strrchr(c_type, '>');
   size_t base_len;
@@ -55,13 +58,13 @@ static int parse_template_type(const char *c_type, cdd_ffi_type_t *out_type) {
   size_t inner_len;
 
   if (!lt || !gt || gt < lt) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   base_len = (size_t)(lt - c_type);
   base_name = (char *)malloc(base_len + 1);
   if (!base_name)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   strncpy(base_name, c_type, base_len);
   base_name[base_len] = '\0';
 
@@ -70,7 +73,7 @@ static int parse_template_type(const char *c_type, cdd_ffi_type_t *out_type) {
   inner_len = (size_t)(gt - lt - 1);
   inner_type_str = (char *)malloc(inner_len + 1);
   if (!inner_type_str)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   strncpy(inner_type_str, lt + 1, inner_len);
   inner_type_str[inner_len] = '\0';
 
@@ -80,10 +83,18 @@ static int parse_template_type(const char *c_type, cdd_ffi_type_t *out_type) {
   out_type->template_args = (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
   if (!out_type->template_args) {
     free(inner_type_str);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
-  out_type->template_args[0].kind = map_c_type_to_ffi_kind(inner_type_str);
+  {
+    enum cdd_c_error rc;
+    rc = map_c_type_to_ffi_kind(inner_type_str,
+                                &out_type->template_args[0].kind);
+    if (rc != CDD_C_SUCCESS) {
+      free(inner_type_str);
+      return rc;
+    }
+  }
   if (out_type->template_args[0].kind == CDD_FFI_KIND_STRUCT_REF ||
       out_type->template_args[0].kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
     if (out_type->template_args[0].kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
@@ -94,66 +105,106 @@ static int parse_template_type(const char *c_type, cdd_ffi_type_t *out_type) {
   }
 
   free(inner_type_str);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static cdd_ffi_primitive_kind_t map_c_type_to_ffi_kind(const char *c_type) {
-  if (!c_type)
-    return CDD_FFI_KIND_VOID;
+static enum cdd_c_error
+map_c_type_to_ffi_kind(const char *c_type, cdd_ffi_primitive_kind_t *out_kind) {
+  if (!out_kind)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (strstr(c_type, "std::string") || strstr(c_type, "std_string"))
-    return CDD_FFI_KIND_STD_STRING;
-  if (strstr(c_type, "std::vector") || strstr(c_type, "std_vector"))
-    return CDD_FFI_KIND_STD_VECTOR;
-  if (strstr(c_type, "std::shared_ptr") || strstr(c_type, "std_shared_ptr"))
-    return CDD_FFI_KIND_STD_SHARED_PTR;
-  if (strstr(c_type, "std::unique_ptr") || strstr(c_type, "std_unique_ptr"))
-    return CDD_FFI_KIND_STD_UNIQUE_PTR;
-
-  if (strchr(c_type, '<') && strchr(c_type, '>')) {
-    return CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+  if (!c_type) {
+    *out_kind = CDD_FFI_KIND_VOID;
+    return CDD_C_SUCCESS;
   }
 
-  if (strstr(c_type, "int8_t") || strcmp(c_type, "char") == 0)
-    return CDD_FFI_KIND_INT8;
-  if (strstr(c_type, "uint8_t") || strcmp(c_type, "unsigned char") == 0)
-    return CDD_FFI_KIND_UINT8;
-  if (strstr(c_type, "int16_t") || strcmp(c_type, "short") == 0)
-    return CDD_FFI_KIND_INT16;
-  if (strstr(c_type, "uint16_t") || strcmp(c_type, "unsigned short") == 0)
-    return CDD_FFI_KIND_UINT16;
+  if (strstr(c_type, "std::string") || strstr(c_type, "std_string")) {
+    *out_kind = CDD_FFI_KIND_STD_STRING;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "std::vector") || strstr(c_type, "std_vector")) {
+    *out_kind = CDD_FFI_KIND_STD_VECTOR;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "std::shared_ptr") || strstr(c_type, "std_shared_ptr")) {
+    *out_kind = CDD_FFI_KIND_STD_SHARED_PTR;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "std::unique_ptr") || strstr(c_type, "std_unique_ptr")) {
+    *out_kind = CDD_FFI_KIND_STD_UNIQUE_PTR;
+    return CDD_C_SUCCESS;
+  }
+
+  if (strchr(c_type, '<') && strchr(c_type, '>')) {
+    *out_kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    return CDD_C_SUCCESS;
+  }
+
+  if (strstr(c_type, "int8_t") || strcmp(c_type, "char") == 0) {
+    *out_kind = CDD_FFI_KIND_INT8;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "uint8_t") || strcmp(c_type, "unsigned char") == 0) {
+    *out_kind = CDD_FFI_KIND_UINT8;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "int16_t") || strcmp(c_type, "short") == 0) {
+    *out_kind = CDD_FFI_KIND_INT16;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "uint16_t") || strcmp(c_type, "unsigned short") == 0) {
+    *out_kind = CDD_FFI_KIND_UINT16;
+    return CDD_C_SUCCESS;
+  }
   if (strstr(c_type, "int32_t") || strcmp(c_type, "int") == 0 ||
-      strcmp(c_type, "integer") == 0)
-    return CDD_FFI_KIND_INT32;
-  if (strstr(c_type, "uint32_t") || strcmp(c_type, "unsigned int") == 0)
-    return CDD_FFI_KIND_UINT32;
-  if (strstr(c_type, "int64_t") || strcmp(c_type, "long long") == 0)
-    return CDD_FFI_KIND_INT64;
-  if (strstr(c_type, "uint64_t") || strcmp(c_type, "unsigned long long") == 0)
-    return CDD_FFI_KIND_UINT64;
-  if (strstr(c_type, "float"))
-    return CDD_FFI_KIND_FLOAT32;
-  if (strstr(c_type, "double") || strcmp(c_type, "number") == 0)
-    return CDD_FFI_KIND_FLOAT64;
-  if (strstr(c_type, "bool") || strcmp(c_type, "boolean") == 0)
-    return CDD_FFI_KIND_BOOL;
-  if (strstr(c_type, "void"))
-    return CDD_FFI_KIND_VOID;
+      strcmp(c_type, "integer") == 0) {
+    *out_kind = CDD_FFI_KIND_INT32;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "uint32_t") || strcmp(c_type, "unsigned int") == 0) {
+    *out_kind = CDD_FFI_KIND_UINT32;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "int64_t") || strcmp(c_type, "long long") == 0) {
+    *out_kind = CDD_FFI_KIND_INT64;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "uint64_t") || strcmp(c_type, "unsigned long long") == 0) {
+    *out_kind = CDD_FFI_KIND_UINT64;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "float")) {
+    *out_kind = CDD_FFI_KIND_FLOAT32;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "double") || strcmp(c_type, "number") == 0) {
+    *out_kind = CDD_FFI_KIND_FLOAT64;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "bool") || strcmp(c_type, "boolean") == 0) {
+    *out_kind = CDD_FFI_KIND_BOOL;
+    return CDD_C_SUCCESS;
+  }
+  if (strstr(c_type, "void")) {
+    *out_kind = CDD_FFI_KIND_VOID;
+    return CDD_C_SUCCESS;
+  }
 
   /* Fallback: if we don't know it, we assume it's a struct reference for now in
    * the naive mapper */
-  return CDD_FFI_KIND_STRUCT_REF;
+  *out_kind = CDD_FFI_KIND_STRUCT_REF;
+  return CDD_C_SUCCESS;
 }
 
-C_CDD_EXPORT int cdd_ffi_mangle_cpp_name(const char *ns_name,
-                                         const char *class_name,
-                                         const char *method_name,
-                                         char **out_mangled) {
+C_CDD_EXPORT enum cdd_c_error cdd_ffi_mangle_cpp_name(const char *ns_name,
+                                                      const char *class_name,
+                                                      const char *method_name,
+                                                      char **out_mangled) {
   size_t len = 0;
   char *mangled = NULL;
 
   if (!method_name || !out_mangled) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (ns_name)
@@ -164,7 +215,7 @@ C_CDD_EXPORT int cdd_ffi_mangle_cpp_name(const char *ns_name,
 
   mangled = (char *)malloc(len);
   if (!mangled)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
 #if defined(_MSC_VER)
   if (ns_name && class_name) {
@@ -192,7 +243,7 @@ C_CDD_EXPORT int cdd_ffi_mangle_cpp_name(const char *ns_name,
   return 0;
 }
 
-static int
+static enum cdd_c_error
 extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
@@ -220,7 +271,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             node->variants = (cdd_ffi_enum_variant_t *)calloc(
                 em->size, sizeof(cdd_ffi_enum_variant_t));
             if (!node->variants) {
-              rc = ENOMEM;
+              rc = CDD_C_ERROR_MEMORY;
               break;
             }
             for (j = 0; j < em->size; j++) {
@@ -228,7 +279,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
               node->variants[j].value =
                   strdup(em->members[j]); /* Naive value */
               if (!node->variants[j].name || !node->variants[j].value) {
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
                 break;
               }
             }
@@ -350,29 +401,33 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             node->fields =
                 (cdd_ffi_field_t *)calloc(sf->size, sizeof(cdd_ffi_field_t));
             if (!node->fields) {
-              rc = ENOMEM;
+              rc = CDD_C_ERROR_MEMORY;
               break;
             }
             for (j = 0; j < sf->size; j++) {
               const char *target_c_type;
               node->fields[j].name = strdup(sf->fields[j].name);
               if (!node->fields[j].name) {
-                rc = ENOMEM;
+                rc = CDD_C_ERROR_MEMORY;
                 break;
               }
               target_c_type = sf->fields[j].ref[0] != '\0' ? sf->fields[j].ref
                                                            : sf->fields[j].type;
-              printf("c_inspector output: type='%s', ref='%s'\n",
-                     sf->fields[j].type, sf->fields[j].ref);
-              node->fields[j].type.kind = map_c_type_to_ffi_kind(target_c_type);
-              printf("c_type: %s -> kind: %d\n", target_c_type,
-                     node->fields[j].type.kind);
+              {
+                enum cdd_c_error m_rc;
+                m_rc = map_c_type_to_ffi_kind(target_c_type,
+                                              &node->fields[j].type.kind);
+                if (m_rc != CDD_C_SUCCESS) {
+                  rc = m_rc;
+                  break;
+                }
+              }
               /* If we defaulted to struct ref but it doesn't have ref_name,
                * let's use the raw type as ref_name */
               if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
                 node->fields[j].type.ref_name = strdup(target_c_type);
                 if (!node->fields[j].type.ref_name) {
-                  rc = ENOMEM;
+                  rc = CDD_C_ERROR_MEMORY;
                   break;
                 }
               } else if (node->fields[j].type.kind ==
@@ -719,37 +774,41 @@ struct IncludeMergeCtx {
   struct PreprocessorContext *pp_ctx;
 };
 
-static int is_visited(struct IncludeMergeCtx *ctx, const char *path) {
+static enum cdd_c_error is_visited(struct IncludeMergeCtx *ctx,
+                                   const char *path) {
   size_t k;
   for (k = 0; k < ctx->visited_count; k++) {
     if (strcmp(ctx->visited[k], path) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int add_visited(struct IncludeMergeCtx *ctx, const char *path) {
+static enum cdd_c_error add_visited(struct IncludeMergeCtx *ctx,
+                                    const char *path) {
   if (ctx->visited_count >= ctx->visited_capacity) {
     size_t new_cap =
         ctx->visited_capacity == 0 ? 16 : ctx->visited_capacity * 2;
     char **new_visited =
         (char **)realloc(ctx->visited, new_cap * sizeof(char *));
     if (!new_visited)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     ctx->visited = new_visited;
     ctx->visited_capacity = new_cap;
   }
   ctx->visited[ctx->visited_count++] = strdup(path);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int include_visitor(const struct IncludeInfo *info, void *user_data);
+static enum cdd_c_error include_visitor(const struct IncludeInfo *info,
+                                        void *user_data);
 
-static int extract_exports_recursive(const char *filename, const char *content,
-                                     struct IncludeMergeCtx *ctx) {
+static enum cdd_c_error extract_exports_recursive(const char *filename,
+                                                  const char *content,
+                                                  struct IncludeMergeCtx *ctx) {
   int rc;
   if (is_visited(ctx, filename))
-    return 0;
+    return CDD_C_SUCCESS;
   rc = add_visited(ctx, filename);
   if (rc != 0)
     return rc;
@@ -764,7 +823,8 @@ static int extract_exports_recursive(const char *filename, const char *content,
   return rc;
 }
 
-static int include_visitor(const struct IncludeInfo *info, void *user_data) {
+static enum cdd_c_error include_visitor(const struct IncludeInfo *info,
+                                        void *user_data) {
   struct IncludeMergeCtx *ctx = (struct IncludeMergeCtx *)user_data;
   if (ctx->err != 0)
     return ctx->err;
@@ -779,10 +839,10 @@ static int include_visitor(const struct IncludeInfo *info, void *user_data) {
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int instantiate_templates(cdd_ffi_ir_t *ir) {
+static enum cdd_c_error instantiate_templates(cdd_ffi_ir_t *ir) {
   size_t i, j;
   size_t initial_count = ir->nodes_count;
   for (i = 0; i < initial_count; i++) {
@@ -793,8 +853,6 @@ static int instantiate_templates(cdd_ffi_ir_t *ir) {
         if (node->fields[j].type.kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
           size_t k;
           const char *base_name = node->fields[j].type.ref_name;
-          printf("Found TEMPLATE_STRUCT_REF: base_name=%s\n",
-                 base_name ? base_name : "NULL");
           if (!base_name)
             continue;
           if (strncmp(base_name, "struct ", 7) == 0)
@@ -878,12 +936,13 @@ static int instantiate_templates(cdd_ffi_ir_t *ir) {
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_ir_extract_exports(const char *filename, const char *content,
-                               const cdd_generate_bindings_config_t *config,
-                               cdd_ffi_ir_t **out_ir) {
+enum cdd_c_error
+cdd_ffi_ir_extract_exports(const char *filename, const char *content,
+                           const cdd_generate_bindings_config_t *config,
+                           cdd_ffi_ir_t **out_ir) {
   cdd_ffi_ir_t *ir;
   struct IncludeMergeCtx ctx;
   struct PreprocessorContext pp_ctx;
@@ -891,19 +950,19 @@ int cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   int rc;
 
   if (!filename || !content || !out_ir) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   if (!ir) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   memset(&ctx, 0, sizeof(ctx));
   memset(&pp_ctx, 0, sizeof(pp_ctx));
   if (pp_context_init(&pp_ctx) != 0) {
     free(ir);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   ctx.ir = ir;
@@ -933,5 +992,5 @@ int cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   }
 
   *out_ir = ir;
-  return 0;
+  return CDD_C_SUCCESS;
 }

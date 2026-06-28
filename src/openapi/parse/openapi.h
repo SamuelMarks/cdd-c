@@ -39,6 +39,7 @@ extern "C" {
 #include <stddef.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/struct.h" /* For StructFields definition */
 /* clang-format on */
 
@@ -948,7 +949,7 @@ openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry);
  * @param[in] spec Parsed OpenAPI specification.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
                          struct OpenAPI_Spec *spec);
 
@@ -968,8 +969,8 @@ openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
  * @param[out] out Destination structure to populate.
  * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
-extern C_CDD_EXPORT int openapi_load_from_json(const JSON_Value *root,
-                                               struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT enum cdd_c_error
+openapi_load_from_json(const JSON_Value *root, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parse a JSON Value with document context for multi-doc resolution.
@@ -993,7 +994,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi load from json with context
                      * operation.
                      */
-    int
+    enum cdd_c_error
     openapi_load_from_json_with_context(const JSON_Value *root,
                                         const char *retrieval_uri,
                                         struct OpenAPI_Spec *out,
@@ -1007,7 +1008,7 @@ extern C_CDD_EXPORT /**
  * @param[in] name The schema name (e.g. "LoginRequest").
  * @return Pointer to StructFields if found, NULL otherwise.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
                          struct StructFields **_out_val);
 
@@ -1025,7 +1026,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi spec find schema for ref
                      * operation.
                      */
-    int
+    enum cdd_c_error
     openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
                                      const struct OpenAPI_SchemaRef *ref,
                                      struct StructFields **_out_val);

@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,8 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int find_allocs(const char *code, struct AllocationSiteList *sites) {
+static enum cdd_c_error find_allocs(const char *code,
+                                    struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
   int rc;
   const az_span source = az_span_create_from_str((char *)code);
@@ -119,8 +121,8 @@ TEST test_analysis_bounds(void) {
   struct AllocationSiteList sites = {0};
   struct TokenList tl = {0};
 
-  ASSERT_EQ(EINVAL, find_allocations(NULL, &sites));
-  ASSERT_EQ(EINVAL, find_allocations(&tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_allocations(NULL, &sites));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_allocations(&tl, NULL));
 
   allocation_site_list_free(NULL); /* Should not crash */
   g_fail_io_after = -1;

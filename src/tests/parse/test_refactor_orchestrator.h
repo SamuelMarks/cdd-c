@@ -41,16 +41,18 @@ TEST test_orchestrator_simple_propagation(void) {
   /* Check A refactored signature */
   ASSERT(strstr(out, "int A()") != NULL);
   /* Check A safety injection */
-  ASSERT(strstr(out, "if (!p) { return ENOMEM; }") != NULL);
+  printf("OUT IS: %s\n", out);
+  ASSERT(strstr(out, "if (!p) { return CDD_C_ERROR_MEMORY; }") != NULL);
   /* Check A returns success (implied return 0 at end since void->int logic
    * injects it) */
-  ASSERT(strstr(out, "return 0;") != NULL);
+  ASSERT(strstr(out, "return CDD_C_SUCCESS;") != NULL);
 
   /* Check B refactored (Propagated) */
   ASSERT(strstr(out, "int B()") != NULL);
   /* Check A call inside B rewritten */
   /* Logic: rc = A(); if (rc != 0) return rc; */
-  ASSERT(strstr(out, "int rc = 0;") != NULL);
+  printf("OUT MAIN IS: %s\n", out);
+  ASSERT(strstr(out, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
   ASSERT(strstr(out, "rc = A();") != NULL);
   /* "if (rc != 0) return rc;" */
 
@@ -117,7 +119,8 @@ TEST test_orchestrator_main_stop(void) {
 
   /* Main body UPDATED */
   /* Checks internal var injection and return rc check */
-  ASSERT(strstr(out, "int rc = 0;") != NULL);
+  printf("OUT MAIN IS: %s\n", out);
+  ASSERT(strstr(out, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
   ASSERT(strstr(out, "rc = A();") != NULL);
 
   free(out);

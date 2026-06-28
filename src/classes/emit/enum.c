@@ -53,7 +53,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 
 /* Select correct strdup function name for generated code */
@@ -69,9 +69,9 @@ C_CDD_EXPORT int g_enum_members_add_fail = 0;
 C_CDD_EXPORT int g_enum_members_add_strdup_fail = 0;
 #endif
 
-int enum_members_init(struct EnumMembers *em) {
+enum cdd_c_error enum_members_init(struct EnumMembers *em) {
   if (!em)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   em->size = 0;
   em->capacity = 8;
 #ifdef CDD_BUILD_TESTS
@@ -85,9 +85,9 @@ int enum_members_init(struct EnumMembers *em) {
 #endif
   if (!em->members) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 void enum_members_free(struct EnumMembers *em) {
@@ -106,9 +106,9 @@ void enum_members_free(struct EnumMembers *em) {
   em->capacity = 0;
 }
 
-int enum_members_add(struct EnumMembers *em, const char *name) {
+enum cdd_c_error enum_members_add(struct EnumMembers *em, const char *name) {
   if (!em || !name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (em->size >= em->capacity) {
     const size_t new_cap = em->capacity == 0 ? 8 : em->capacity * 2;
     char **new_members;
@@ -123,7 +123,7 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
 #endif
     if (!new_members) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     em->members = new_members;
     em->capacity = new_cap;
@@ -138,27 +138,29 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
   }
 #endif
   if (!em->members[em->size])
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   em->size++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int write_enum_to_str_func(FILE *fp, const char *enum_name,
-                           const struct EnumMembers *em,
-                           const struct CodegenEnumConfig *config) {
+enum cdd_c_error
+write_enum_to_str_func(FILE *fp, const char *enum_name,
+                       const struct EnumMembers *em,
+                       const struct CodegenEnumConfig *config) {
   size_t i;
   if (!fp || !enum_name || !em || !em->members)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_to_str(enum %s val, char **str_out) {\n"
-                        "  if (str_out == NULL) return EINVAL;\n"
-                        "  switch (val) {\n",
-                        enum_name, enum_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "int %s_to_str(enum %s val, char **str_out) {\n"
+      "  if (str_out == NULL) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+      "  switch (val) {\n",
+      enum_name, enum_name));
 
   for (i = 0; i < em->size; i++) {
     if (em->members[i] && strcmp(em->members[i], "UNKNOWN") != 0) {
@@ -170,7 +172,8 @@ int write_enum_to_str_func(FILE *fp, const char *enum_name,
   CHECK_IO(FPRINTF_HOOK(fp,
                         "    case %s_UNKNOWN:\n    default:\n      *str_out = "
                         "%s(\"UNKNOWN\");\n      break;\n  }\n  if "
-                        "(*str_out == NULL) return ENOMEM;\n  return 0;\n}\n",
+                        "(*str_out == NULL) return CDD_C_ERROR_MEMORY;\n  "
+                        "return CDD_C_SUCCESS;\n}\n",
                         enum_name, kStrDupFunc));
 
   if (config && config->guard_macro) {
@@ -178,25 +181,27 @@ int write_enum_to_str_func(FILE *fp, const char *enum_name,
   }
   CHECK_IO(FPRINTF_HOOK(fp, "\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int write_enum_from_str_func(FILE *fp, const char *enum_name,
-                             const struct EnumMembers *em,
-                             const struct CodegenEnumConfig *config) {
+enum cdd_c_error
+write_enum_from_str_func(FILE *fp, const char *enum_name,
+                         const struct EnumMembers *em,
+                         const struct CodegenEnumConfig *config) {
   size_t i;
   if (!fp || !enum_name || !em || !em->members)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_from_str(const char *str, enum %s *val) {\n"
-                        "  if (val == NULL) return EINVAL;\n"
-                        "  else if (str == NULL) *val = %s_UNKNOWN;\n",
-                        enum_name, enum_name, enum_name));
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
+                   "int %s_from_str(const char *str, enum %s *val) {\n"
+                   "  if (val == NULL) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                   "  else if (str == NULL) *val = %s_UNKNOWN;\n",
+                   enum_name, enum_name, enum_name));
 
   for (i = 0; i < em->size; i++) {
     /* Skip explicit logic for "UNKNOWN" member, let the final else catch it */
@@ -206,15 +211,16 @@ int write_enum_from_str_func(FILE *fp, const char *enum_name,
           em->members[i], enum_name, em->members[i]));
     }
   }
-  CHECK_IO(FPRINTF_HOOK(fp, "  else *val = %s_UNKNOWN;\n  return 0;\n}\n",
-                        enum_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  else *val = %s_UNKNOWN;\n  return CDD_C_SUCCESS;\n}\n",
+      enum_name));
 
   if (config && config->guard_macro) {
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));
   }
   CHECK_IO(FPRINTF_HOOK(fp, "\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 #if defined(_MSC_VER)

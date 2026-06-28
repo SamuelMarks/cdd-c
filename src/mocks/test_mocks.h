@@ -11,6 +11,7 @@ extern "C" {
 
 /* clang-format off */
 #include "openapi/parse/openapi.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /*

@@ -63,7 +63,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 
 /**
@@ -83,10 +83,10 @@ static void free_string_array(char **arr, size_t n) {
 /**
  * @brief Retrieves the type from ref.
  */
-int get_type_from_ref(const char *ref, char **_out_val) {
+enum cdd_c_error get_type_from_ref(const char *ref, char **_out_val) {
   if (ref == NULL) {
     *_out_val = (char *)"";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     {
@@ -94,7 +94,7 @@ int get_type_from_ref(const char *ref, char **_out_val) {
       c_cdd_str_after_last(ref, '/', &after);
       *_out_val = (char *)after;
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -105,9 +105,9 @@ C_CDD_EXPORT int g_struct_fields_init_fail = 0;
 /**
  * @brief Executes the struct fields init operation.
  */
-int struct_fields_init(struct StructFields *sf) {
+enum cdd_c_error struct_fields_init(struct StructFields *sf) {
   if (!sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   sf->size = 0;
   sf->capacity = 8;
 #ifdef CDD_BUILD_TESTS
@@ -122,7 +122,7 @@ int struct_fields_init(struct StructFields *sf) {
 #endif
   if (!sf->fields) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   sf->is_enum = 0;
   sf->enum_members.members = NULL;
@@ -134,7 +134,7 @@ int struct_fields_init(struct StructFields *sf) {
   sf->union_discriminator = NULL;
   sf->union_variants = NULL;
   sf->n_union_variants = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -213,12 +213,13 @@ C_CDD_EXPORT int g_struct_fields_add_fail = 0;
 /**
  * @brief Executes the struct fields add operation.
  */
-int struct_fields_add(struct StructFields *sf, const char *name,
-                      const char *type, const char *ref,
-                      const char *default_val, const char *bit_width) {
+enum cdd_c_error struct_fields_add(struct StructFields *sf, const char *name,
+                                   const char *type, const char *ref,
+                                   const char *default_val,
+                                   const char *bit_width) {
   struct StructField *f;
   if (!sf || !name || !type)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (sf->size >= sf->capacity) {
     const size_t new_cap = sf->capacity * 2;
@@ -235,7 +236,7 @@ int struct_fields_add(struct StructFields *sf, const char *name,
 #endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     sf->fields = new_arr;
     sf->capacity = new_cap;
@@ -276,28 +277,29 @@ int struct_fields_add(struct StructFields *sf, const char *name,
   }
 #endif
   sf->size++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the struct fields get operation.
  */
-int struct_fields_get(const struct StructFields *sf, const char *name,
-                      struct StructField **_out_val) {
+enum cdd_c_error struct_fields_get(const struct StructFields *sf,
+                                   const char *name,
+                                   struct StructField **_out_val) {
   size_t i;
   if (!sf || !name) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].name, name) == 0) {
       *_out_val = &sf->fields[i];
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -306,14 +308,15 @@ int struct_fields_get(const struct StructFields *sf, const char *name,
 /**
  * @brief Generates C code for write struct cleanup func.
  */
-int write_struct_cleanup_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_cleanup_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf,
+                          const struct CodegenStructConfig *config) {
   size_t i;
   int iter_needed = 0;
 
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "array") == 0)
@@ -374,17 +377,18 @@ int write_struct_cleanup_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write struct deepcopy func.
  */
-int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
-                               const struct StructFields *sf,
-                               const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_deepcopy_func(FILE *fp, const char *struct_name,
+                           const struct StructFields *sf,
+                           const struct CodegenStructConfig *config) {
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
@@ -393,10 +397,10 @@ int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
       fp, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
       struct_name, struct_name, struct_name));
   CHECK_IO(FPRINTF_HOOK(fp,
-                        "  if (!dest) return EINVAL;\n"
-                        "  if (!src) { *dest = NULL; return 0; }\n"
+                        "  if (!dest) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                        "  if (!src) { *dest = NULL; return CDD_C_SUCCESS; }\n"
                         "  *dest = malloc(sizeof(struct %s));\n"
-                        "  if (!*dest) return ENOMEM;\n"
+                        "  if (!*dest) return CDD_C_ERROR_MEMORY;\n"
                         "  memcpy(*dest, src, sizeof(struct %s));\n\n",
                         struct_name, struct_name));
 
@@ -411,31 +415,32 @@ int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                               "  if (src->%s) {\n"
                               "    (*dest)->%s = %s(src->%s);\n"
                               "    if (!(*dest)->%s) { %s_cleanup(*dest); "
-                              "*dest=NULL; return ENOMEM; }\n"
+                              "*dest=NULL; return CDD_C_ERROR_MEMORY; }\n"
                               "  }\n",
                               n, n, kStrDupFunc, n, n, struct_name));
       }
     }
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  return 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write struct eq func.
  */
-int write_struct_eq_func(FILE *fp, const char *struct_name,
-                         const struct StructFields *sf,
-                         const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_eq_func(FILE *fp, const char *struct_name,
+                     const struct StructFields *sf,
+                     const struct CodegenStructConfig *config) {
   size_t i;
   int iter_needed = 0;
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "array") == 0)
@@ -496,19 +501,20 @@ int write_struct_eq_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write struct default func.
  */
-int write_struct_default_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_default_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf,
+                          const struct CodegenStructConfig *config) {
   size_t i;
   int rc_needed = 0;
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Check if we need 'rc' variable */
   for (i = 0; i < sf->size; ++i) {
@@ -527,9 +533,10 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
   if (rc_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!out) return EINVAL;\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "  if (!out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(1, sizeof(**out));\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!*out) return ENOMEM;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!*out) return CDD_C_ERROR_MEMORY;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *def = sf->fields[i].default_val;
@@ -548,7 +555,7 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
           CHECK_IO(
               FPRINTF_HOOK(fp,
                            "  if (!(*out)->%s) { %s_cleanup(*out); *out=NULL; "
-                           "return ENOMEM; }\n",
+                           "return CDD_C_ERROR_MEMORY; }\n",
                            n, struct_name));
         }
       } else if (strcmp(t, "enum") == 0) {
@@ -587,24 +594,25 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
     }
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  return 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write struct debug func.
  */
-int write_struct_debug_func(FILE *fp, const char *struct_name,
-                            const struct StructFields *sf,
-                            const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_debug_func(FILE *fp, const char *struct_name,
+                        const struct StructFields *sf,
+                        const struct CodegenStructConfig *config) {
   size_t i;
   int iter_needed = 0;
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "array") == 0)
@@ -617,7 +625,8 @@ int write_struct_debug_func(FILE *fp, const char *struct_name,
   CHECK_IO(FPRINTF_HOOK(fp, "int %s_debug(const struct %s *obj, FILE *fp) {\n",
                         struct_name, struct_name));
   CHECK_IO(FPRINTF_HOOK(fp, "  int rc = 0;\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!fp) return EINVAL;\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "  if (!fp) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) { return fprintf(fp, "
                             "\"(null)\\n\") < 0 ? -1 : 0; }\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"struct %s {\\n\");\n",
@@ -697,17 +706,18 @@ int write_struct_debug_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write struct display func.
  */
-int write_struct_display_func(FILE *fp, const char *struct_name,
-                              const struct StructFields *sf,
-                              const struct CodegenStructConfig *config) {
+enum cdd_c_error
+write_struct_display_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf,
+                          const struct CodegenStructConfig *config) {
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
@@ -720,5 +730,5 @@ int write_struct_display_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }

@@ -34,7 +34,7 @@ TEST test_lift_anonymous_struct(void) {
   write_to_file("anon.h", src);
 
   char *argv[] = {"anon.h", "anon.json"};
-  ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
+  ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
 
   /* Check JSON */
   {
@@ -83,7 +83,7 @@ TEST test_lift_anonymous_struct(void) {
 
 SUITE(anonymous_suite) { RUN_TEST(test_lift_anonymous_struct); }
 
-int main(int argc, char **argv) {
+enum cdd_c_error main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(anonymous_suite);
   GREATEST_MAIN_END();

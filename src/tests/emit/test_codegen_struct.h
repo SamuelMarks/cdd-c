@@ -210,12 +210,18 @@ TEST test_guards_injection(void) {
  * @return TEST
  */
 TEST test_null_args(void) {
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_eq_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_struct_display_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_cleanup_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_default_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_deepcopy_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_eq_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_display_func(NULL, "U", NULL, NULL));
   g_fail_io_after = -1;
   PASS();
 }
@@ -277,13 +283,19 @@ TEST test_struct_invalid_args(void) {
   struct StructFields sf;
   struct_fields_init(&sf);
 
-  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "S", &sf, NULL));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(stdout, NULL, &sf, NULL));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(stdout, "S", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(stdout, NULL, &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_debug_func(stdout, "S", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "S", &sf, NULL));
-  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "S", &sf, NULL));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_cleanup_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_default_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_deepcopy_func(NULL, "S", &sf, NULL));
 
   /* also trigger deepcopy array path */
   {
@@ -348,20 +360,30 @@ TEST test_struct_io_errors(void) {
   if (readonly_f) {
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, write_struct_cleanup_func(readonly_f, "Test", &sf, &config));
+    {
+      int _rc = write_struct_cleanup_func(readonly_f, "Test", &sf, &config);
+      printf("write_struct_cleanup_func RC %d\\n", _rc);
+      ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+    }
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, write_struct_default_func(readonly_f, "Test", &sf, &config));
+    {
+      int _rc = write_struct_default_func(readonly_f, "Test", &sf, &config);
+      printf("write_struct_default_func RC %d\\n", _rc);
+      ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+    }
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO,
+    ASSERT_EQ(CDD_C_ERROR_IO,
               write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, write_struct_eq_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              write_struct_eq_func(readonly_f, "Test", &sf, &config));
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, write_struct_debug_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              write_struct_debug_func(readonly_f, "Test", &sf, &config));
     fclose(readonly_f);
   }
   struct_fields_free(NULL);
@@ -443,7 +465,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -456,7 +478,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -469,7 +491,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -482,7 +504,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -495,7 +517,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -508,7 +530,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   config.guard_macro = "MY_GUARD";
@@ -559,7 +581,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
@@ -572,7 +594,7 @@ TEST test_struct_exhaustive_io(void) {
       break;
     g_fail_io_after = 0;
     g_io_calls = 0;
-    ASSERT_EQ(EIO, rc);
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   g_fail_io_after = -1;
@@ -589,15 +611,18 @@ TEST test_struct_fields_init_oom(void) {
   char *val = NULL;
 #ifdef CDD_BUILD_TESTS
   g_struct_fields_init_fail = 1;
-  ASSERT_EQ(ENOMEM, struct_fields_init(&sf));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_fields_init(&sf));
   g_struct_fields_init_fail = 0;
 #endif
 
-  ASSERT_EQ(EINVAL, struct_fields_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, struct_fields_init(NULL));
   ASSERT_EQ(0, struct_fields_init(&sf));
-  ASSERT_EQ(EINVAL, struct_fields_add(NULL, "a", "b", NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, struct_fields_add(&sf, NULL, "b", NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, struct_fields_add(&sf, "a", NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_fields_add(NULL, "a", "b", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_fields_add(&sf, NULL, "b", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            struct_fields_add(&sf, "a", NULL, NULL, NULL, NULL));
 
   ASSERT_EQ(0, struct_fields_get(NULL, "a", &f));
   ASSERT_EQ(0, struct_fields_get(&sf, NULL, &f));
@@ -621,7 +646,7 @@ TEST test_struct_fields_init_oom(void) {
   sf.size = 1;
 #ifdef CDD_BUILD_TESTS
   g_struct_fields_add_fail = 1;
-  ASSERT_EQ(ENOMEM,
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
             struct_fields_add(&sf, "new_field", "string", NULL, NULL, NULL));
   g_struct_fields_add_fail = 0;
 #endif

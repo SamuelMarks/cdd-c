@@ -47,8 +47,8 @@ static const char *get_r_type(cdd_ffi_type_t type) {
   }
 }
 
-static int emit_r_file(cdd_ffi_ir_t *ir,
-                       const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_r_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
@@ -58,14 +58,14 @@ static int emit_r_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.R", config->output_dir,
                lib_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.R", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -135,13 +135,13 @@ static int emit_r_file(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_emit_r(cdd_ffi_ir_t *ir,
-                   const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error cdd_ffi_emit_r(cdd_ffi_ir_t *ir,
+                                const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   return emit_r_file(ir, config);

@@ -20,6 +20,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
@@ -45,7 +46,7 @@ extern "C" {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security write apply.
                      */
-    int
+    enum cdd_c_error
     codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec);
 
@@ -56,7 +57,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security requires
                      * query.
                      */
-    int
+    enum cdd_c_error
     codegen_security_requires_query(const struct OpenAPI_Operation *op,
                                     const struct OpenAPI_Spec *spec);
 
@@ -67,14 +68,14 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security requires
                      * cookie.
                      */
-    int
+    enum cdd_c_error
     codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
                                      const struct OpenAPI_Spec *spec);
 
 extern C_CDD_EXPORT /**
                      * @brief Generate middleware check for servers
                      */
-    int
+    enum cdd_c_error
     codegen_security_write_server_apply(FILE *fp,
                                         const struct OpenAPI_Operation *op,
                                         const struct OpenAPI_Spec *spec);

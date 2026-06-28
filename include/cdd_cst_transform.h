@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "classes/parse/cdd_cst_node.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 #include "c_cdd_export.h"
 /* clang-format on */
@@ -28,8 +29,9 @@ typedef struct cdd_transform_config_t {
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_extern_c(cdd_cst_tree_t *tree,
-                                        const cdd_transform_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_extern_c(cdd_cst_tree_t *tree,
+                       const cdd_transform_config_t *config);
 
 /**
  * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
@@ -38,8 +40,8 @@ C_CDD_EXPORT int cdd_transform_extern_c(cdd_cst_tree_t *tree,
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_msvc(cdd_cst_tree_t *tree,
-                                    const cdd_transform_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_msvc(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
  * @brief Standardizes GNU-specific extensions (like __attribute__) into
@@ -49,8 +51,8 @@ C_CDD_EXPORT int cdd_transform_msvc(cdd_cst_tree_t *tree,
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_gnu(cdd_cst_tree_t *tree,
-                                   const cdd_transform_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
  * @brief Percolates errors by rewriting function signatures and returning int.
@@ -59,7 +61,7 @@ C_CDD_EXPORT int cdd_transform_gnu(cdd_cst_tree_t *tree,
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int
+C_CDD_EXPORT enum cdd_c_error
 cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                const cdd_transform_config_t *config);
 
@@ -70,8 +72,9 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
-                                        const cdd_transform_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_safe_crt(cdd_cst_tree_t *tree,
+                       const cdd_transform_config_t *config);
 
 /**
  * @brief Expands function-like macros (and handles stringification/token
@@ -81,8 +84,9 @@ C_CDD_EXPORT int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
  * @param config Optional configuration for trivia generation.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
-                                      const cdd_transform_config_t *config);
+C_CDD_EXPORT enum cdd_c_error
+cdd_transform_macros(cdd_cst_tree_t *tree,
+                     const cdd_transform_config_t *config);
 
 #ifdef __cplusplus
 }

@@ -23,8 +23,9 @@
 /**
  * @brief Executes the openapi cli generate operation.
  */
-int openapi_cli_generate(const struct OpenAPI_Spec *spec,
-                         const struct OpenApiClientConfig *config) {
+enum cdd_c_error
+openapi_cli_generate(const struct OpenAPI_Spec *spec,
+                     const struct OpenApiClientConfig *config) {
   char path[1024];
   FILE *fp = NULL;
   size_t i, j, k;
@@ -34,7 +35,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     /* LCOV_EXCL_START */
     if (!src_dir)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
     get_basename(config->filename_base, &base_name);
@@ -59,7 +60,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   fprintf(fp, "/* Generated CLI from OpenAPI Specification */\n\n");
@@ -192,7 +193,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
           "  if (cmd_idx >= argc || strcmp(argv[cmd_idx], \"--help\") == 0 || "
           "strcmp(argv[cmd_idx], \"-h\") == 0) {\n");
   fprintf(fp, "    print_cli_help();\n");
-  fprintf(fp, "    return 0;\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");
   fprintf(fp, "  (void)db_path;\n");
   fprintf(fp, "  (void)cert_path;\n");
@@ -329,7 +330,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "      }\n");
   fprintf(fp, "      json_value_free(req_val);\n");
   fprintf(fp, "    }\n");
-  fprintf(fp, "    return 0;\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");
 
   /* Check Webhooks, External Docs, JSON Schema Dialect */
@@ -429,14 +430,14 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
         }
 
         fprintf(fp, "    /* api_%s(...); */\n", opId);
-        fprintf(fp, "    return 0;\n");
+        fprintf(fp, "    return CDD_C_SUCCESS;\n");
         fprintf(fp, "  }\n");
       }
     }
   }
 
   fprintf(fp, "  printf(\"Unknown command: %%s\\n\", argv[1]);\n");
-  fprintf(fp, "  return 1;\n");
+  fprintf(fp, "  return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "}\n");
 
   fclose(fp);
@@ -623,7 +624,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
    * Requirement Object
    */
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

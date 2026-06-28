@@ -606,11 +606,13 @@ TEST test_gen_client_error_nulls(void) {
 
   setup_minimal_spec(&spec, &dummy_op);
 
-  ASSERT_EQ(EINVAL, openapi_client_generate(NULL, &config));
-  ASSERT_EQ(EINVAL, openapi_client_generate(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_client_generate(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_client_generate(&spec, NULL));
 
   config.filename_base = NULL;
-  ASSERT_EQ(EINVAL, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_client_generate(&spec, &config));
   g_fail_io_after = -1;
 
   PASS();
@@ -739,15 +741,15 @@ TEST test_client_gen_find_server_variable(void) {
   ASSERT(out == NULL);
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
-   * mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject
+   * CDD_C_ERROR_MEMORY via mock allocations or leave it. */
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
-   * mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject
+   * CDD_C_ERROR_MEMORY via mock allocations or leave it. */
 
-  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
-   * now */
+  /* Test docblock fail on CDD_C_ERROR_MEMORY using mocking if needed but
+   * probably skip for now */
   free(srv.variables);
   g_fail_io_after = -1;
   PASS();
@@ -810,15 +812,15 @@ TEST test_client_gen_render_server_url_default(void) {
   ASSERT(out == NULL);
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
-   * mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject
+   * CDD_C_ERROR_MEMORY via mock allocations or leave it. */
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
-   * mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject
+   * CDD_C_ERROR_MEMORY via mock allocations or leave it. */
 
-  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
-   * now */
+  /* Test docblock fail on CDD_C_ERROR_MEMORY using mocking if needed but
+   * probably skip for now */
   free(srv.variables);
   g_fail_io_after = -1;
   PASS();
@@ -959,8 +961,10 @@ TEST test_client_gen_build_effective_parameters(void) {
   memset(&path, 0, sizeof(path));
   memset(&op, 0, sizeof(op));
 
-  ASSERT_EQ(EINVAL, build_effective_parameters(NULL, NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, build_effective_parameters(NULL, NULL, &out, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            build_effective_parameters(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            build_effective_parameters(NULL, NULL, &out, NULL));
 
   ASSERT_EQ(0, build_effective_parameters(NULL, NULL, &out, &count));
   ASSERT_EQ(0, count);
@@ -1112,9 +1116,9 @@ TEST test_client_gen_write_preambles(void) {
   FILE *fp2 = fopen("test10.c", "w");
 
   /* Null checks */
-  ASSERT_EQ(EINVAL, write_header_preamble(NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_source_preamble(NULL, NULL));
-  ASSERT_EQ(EINVAL, write_lifecycle_funcs(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_header_preamble(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_source_preamble(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_lifecycle_funcs(NULL, NULL, NULL, NULL));
 
   /* Write header preamble */
   ASSERT_EQ(0, write_header_preamble(fp1, "TEST9_H", "prefix"));
@@ -1142,7 +1146,8 @@ TEST test_client_gen_emit_operation(void) {
   struct OpenAPI_Operation bad_op;
 
   /* Missing params */
-  ASSERT_EQ(EINVAL, emit_operation(NULL, NULL, NULL, NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            emit_operation(NULL, NULL, NULL, NULL, NULL, NULL, NULL));
 
   /* Test early merge return */
   memset(&bad_path, 0, sizeof(bad_path));

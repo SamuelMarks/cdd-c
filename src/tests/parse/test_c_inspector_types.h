@@ -116,7 +116,7 @@ TEST test_scan_classic_enum(void) {
 
 TEST test_inspector_nulls(void) {
   struct TypeDefList list = {0};
-  ASSERT_EQ(EINVAL, type_def_list_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, type_def_list_init(NULL));
   type_def_list_free(NULL);
 
   /* Create an empty struct/enum with NULL details to test free bounds */

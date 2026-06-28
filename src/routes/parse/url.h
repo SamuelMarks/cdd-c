@@ -19,6 +19,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -80,10 +81,9 @@ struct OpenAPI_KV {
  *                           values (except form delimiters).
  * allocation failure.
  */
-extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
-                                             size_t n, const char *delim,
-                                             int allow_reserved,
-                                             char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error
+openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n, const char *delim,
+                     int allow_reserved, char **_out_val);
 
 /**
  * @brief Percent-encode a string for use in a URL.
@@ -94,7 +94,8 @@ extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT int url_encode(const char *str, char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error url_encode(const char *str,
+                                                char **_out_val);
 
 /**
  * @brief Percent-encode a string while allowing reserved characters.
@@ -105,8 +106,8 @@ extern C_CDD_EXPORT int url_encode(const char *str, char **_out_val);
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT int url_encode_allow_reserved(const char *str,
-                                                  char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error url_encode_allow_reserved(const char *str,
+                                                               char **_out_val);
 
 /**
  * @brief Percent-encode a string for application/x-www-form-urlencoded.
@@ -116,7 +117,8 @@ extern C_CDD_EXPORT int url_encode_allow_reserved(const char *str,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT int url_encode_form(const char *str, char **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error url_encode_form(const char *str,
+                                                     char **_out_val);
 
 /**
  * @brief Percent-encode a string for application/x-www-form-urlencoded while
@@ -132,14 +134,14 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the url encode form allow reserved
                      * operation.
                      */
-    int
+    enum cdd_c_error
     url_encode_form_allow_reserved(const char *str, char **_out_val);
 
 /**
  * @brief Initialize a query parameters container.
  *
  */
-extern C_CDD_EXPORT int url_query_init(struct UrlQueryParams *qp);
+extern C_CDD_EXPORT enum cdd_c_error url_query_init(struct UrlQueryParams *qp);
 
 /**
  * @brief Free resources associated with a query parameters container.
@@ -152,8 +154,8 @@ extern C_CDD_EXPORT void url_query_free(struct UrlQueryParams *qp);
  * @brief Add a key-value pair to the query container.
  *
  */
-extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
-                                      const char *key, const char *value);
+extern C_CDD_EXPORT enum cdd_c_error
+url_query_add(struct UrlQueryParams *qp, const char *key, const char *value);
 
 /**
  * @brief Add a key-value pair where the value is already percent-encoded.
@@ -163,9 +165,9 @@ extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
  * delimiters (e.g. comma for form-style explode=false).
  *
  */
-extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
-                                              const char *key,
-                                              const char *value);
+extern C_CDD_EXPORT enum cdd_c_error
+url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
+                      const char *value);
 
 /**
  * @brief Build the final query string starting with '?'.
@@ -176,8 +178,8 @@ extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
  *
  *                     If count is 0, allocates an empty string "".
  */
-extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
-                                        char **out_str);
+extern C_CDD_EXPORT enum cdd_c_error
+url_query_build(const struct UrlQueryParams *qp, char **out_str);
 
 /**
  * @brief Build a application/x-www-form-urlencoded body string.
@@ -186,8 +188,8 @@ extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
  *
  *                     If count is 0, allocates an empty string "".
  */
-extern C_CDD_EXPORT int url_query_build_form(const struct UrlQueryParams *qp,
-                                             char **out_str);
+extern C_CDD_EXPORT enum cdd_c_error
+url_query_build_form(const struct UrlQueryParams *qp, char **out_str);
 
 #ifdef __cplusplus
 }

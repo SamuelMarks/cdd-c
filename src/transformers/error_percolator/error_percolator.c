@@ -141,7 +141,7 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   cdd_cst_bld_space(&bld);
                   cdd_cst_bld_punct(&bld, "(");
 
-                  if (!cdd_cst_builder_has_error(&bld)) {
+                  if (bld.error_state == 0) {
                     cdd_trivia_t *lt = tok->leading_trivia;
                     cdd_cst_node_t *parent_ptr;
                     parent_ptr = node;
@@ -222,13 +222,12 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   cdd_cst_bld_space(&bld);
                   cdd_cst_bld_ident(&bld, "return");
                   cdd_cst_bld_space(&bld);
-                  cdd_cst_bld_ident(&bld, "ENOMEM");
+                  cdd_cst_bld_ident(&bld, "CDD_C_ERROR_MEMORY");
                   cdd_cst_bld_punct(&bld, ";");
                   cdd_cst_bld_space(&bld);
                   cdd_cst_bld_punct(&bld, "}");
 
-                  if (!cdd_cst_builder_has_error(&bld) &&
-                      temp->num_children > 0) {
+                  if ((bld.error_state == 0) && temp->num_children > 0) {
                     cdd_trivia_t *rt = rparen_tok->trailing_trivia;
                     if (semi_idx > 0) {
                       cdd_token_t *semi_tok =
@@ -278,8 +277,9 @@ C_CDD_EXPORT int g_err_perc_fail = 0;
 #endif
 
 /** @brief cdd_transform_percolate_errors */
-int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
-                                   const cdd_transform_config_t *config) {
+enum cdd_c_error
+cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
+                               const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i, j;
   int rc;
@@ -288,7 +288,7 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
@@ -375,7 +375,7 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             cdd_cst_bld_ident(&bld, "out_result");
             cdd_cst_bld_punct(&bld, ")");
 
-            if (!cdd_cst_builder_has_error(&bld) && temp->num_children > 0) {
+            if ((bld.error_state == 0) && temp->num_children > 0) {
               cdd_trivia_t *rt = rparen_tok->trailing_trivia;
               cdd_cst_node_t *old_rparen_parent = rparen_parent;
               rparen_tok->trailing_trivia = NULL;
@@ -477,14 +477,14 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (allocs_seen == 0) {
                 cdd_cst_bld_ident(&bld, "return");
                 cdd_cst_bld_space(&bld);
-                cdd_cst_bld_ident(&bld, "ENOMEM");
+                cdd_cst_bld_ident(&bld, "CDD_C_ERROR_MEMORY");
                 cdd_cst_bld_punct(&bld, ";");
               } else {
                 cdd_cst_bld_ident(&bld, "rc");
                 cdd_cst_bld_space(&bld);
                 cdd_cst_bld_punct(&bld, "=");
                 cdd_cst_bld_space(&bld);
-                cdd_cst_bld_ident(&bld, "ENOMEM");
+                cdd_cst_bld_ident(&bld, "CDD_C_ERROR_MEMORY");
                 cdd_cst_bld_punct(&bld, ";");
                 cdd_cst_bld_space(&bld);
                 cdd_cst_bld_ident(&bld, "goto");
@@ -498,7 +498,7 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (g_err_perc_fail == 1)
                 bld.error_state = 1;
 #endif
-              if (!cdd_cst_builder_has_error(&bld)) {
+              if (bld.error_state == 0) {
                 cdd_cst_insert_node_after(stmt, cloned);
               } else {
                 free(cloned->children);
@@ -588,7 +588,7 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
     rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

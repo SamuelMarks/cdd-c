@@ -104,14 +104,20 @@ TEST test_cmake_modifier_global(void) {
  */
 TEST test_cmake_modifier_errors(void) {
   struct CMakeModifier mod;
-  ASSERT_EQ(EINVAL, cmake_modifier_init(NULL, "CMakeLists.txt", "my_target"));
-  ASSERT_EQ(EINVAL, cmake_modifier_init(&mod, NULL, "my_target"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_init(NULL, "CMakeLists.txt", "my_target"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_init(&mod, NULL, "my_target"));
 
   cmake_modifier_init(&mod, "CMakeLists.txt", "my_target");
-  ASSERT_EQ(EINVAL, cmake_modifier_add_compile_opt(NULL, "/W4"));
-  ASSERT_EQ(EINVAL, cmake_modifier_add_compile_opt(&mod, NULL));
-  ASSERT_EQ(EINVAL, cmake_modifier_add_link_lib(NULL, "ws2_32.lib"));
-  ASSERT_EQ(EINVAL, cmake_modifier_add_link_lib(&mod, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_add_compile_opt(NULL, "/W4"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_add_compile_opt(&mod, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_add_link_lib(NULL, "ws2_32.lib"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cmake_modifier_add_link_lib(&mod, NULL));
 
   cmake_modifier_free(&mod);
   g_fail_io_after = -1;

@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stdio.h>
 /* clang-format on */
 
@@ -48,7 +49,8 @@ struct SchemaConstraints {
  * @param sc Pointer to constraints struct.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT int schema_constraints_init(struct SchemaConstraints *sc);
+extern C_CDD_EXPORT enum cdd_c_error
+schema_constraints_init(struct SchemaConstraints *sc);
 
 /**
  * @brief Adds a required field to schema constraints.
@@ -56,7 +58,7 @@ extern C_CDD_EXPORT int schema_constraints_init(struct SchemaConstraints *sc);
  * @param field Field name.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 schema_constraints_add_required(struct SchemaConstraints *sc,
                                 const char *field);
 

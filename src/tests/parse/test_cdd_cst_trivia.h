@@ -37,8 +37,10 @@ TEST test_cdd_cst_trivia_detect(void) {
 
   memset(&tree2, 0, sizeof(tree2));
 
-  ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(NULL, &config));
-  ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(tree, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_detect_format_config(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_detect_format_config(tree, NULL));
 
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -117,8 +119,10 @@ TEST test_cdd_cst_trivia_generate(void) {
   cdd_cst_format_config_t config_tabs = {1, 1};
   int rc;
 
-  ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
-  ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, &config, 2, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_generate_indent_trivia(NULL, &config, 2, NULL));
 
   ASSERT_EQ(0, cdd_cst_generate_indent_trivia(NULL, &config, 0, &t));
   ASSERT(t != NULL);
@@ -170,15 +174,17 @@ TEST test_cdd_cst_trivia_oom(void) {
 
   g_cdd_cst_alloc_token_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
-  if (rc_tmp != ENOMEM) {
-    printf("cdd_cst_generate_indent_trivia = %d, expected ENOMEM\n", rc_tmp);
+  if (rc_tmp != CDD_C_ERROR_MEMORY) {
+    printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
+           rc_tmp);
   }
   ASSERT(rc_tmp != 0);
 
   g_cdd_cst_alloc_token_fail = 2;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
-  if (rc_tmp != ENOMEM) {
-    printf("cdd_cst_generate_indent_trivia = %d, expected ENOMEM\n", rc_tmp);
+  if (rc_tmp != CDD_C_ERROR_MEMORY) {
+    printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
+           rc_tmp);
   }
   ASSERT(rc_tmp != 0);
 

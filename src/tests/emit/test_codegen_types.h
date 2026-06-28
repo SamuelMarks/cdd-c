@@ -418,35 +418,53 @@ TEST test_union_guards(void) {
  */
 TEST test_types_null_args(void) {
   FILE *tmp = tmpfile();
-  ASSERT_EQ(EINVAL, write_union_cleanup_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_cleanup_func(tmp, NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_cleanup_func(tmp, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_cleanup_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_cleanup_func(tmp, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_cleanup_func(tmp, "U", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_union_from_json_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_from_json_func(tmp, NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_from_json_func(tmp, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_json_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_json_func(tmp, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_json_func(tmp, "U", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_union_from_jsonObject_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_from_jsonObject_func(tmp, NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_from_jsonObject_func(tmp, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_jsonObject_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_jsonObject_func(tmp, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_from_jsonObject_func(tmp, "U", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_union_to_json_func(NULL, "U", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_to_json_func(tmp, NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, write_union_to_json_func(tmp, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_to_json_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_to_json_func(tmp, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_to_json_func(tmp, "U", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_root_array_cleanup_func(NULL, "A", "T", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_root_array_cleanup_func(tmp, NULL, "T", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_root_array_cleanup_func(tmp, "A", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_cleanup_func(NULL, "A", "T", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_cleanup_func(tmp, NULL, "T", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_cleanup_func(tmp, "A", NULL, NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_root_array_to_json_func(NULL, "A", "T", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_root_array_to_json_func(tmp, NULL, "T", NULL, NULL));
-  ASSERT_EQ(EINVAL, write_root_array_to_json_func(tmp, "A", NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_to_json_func(NULL, "A", "T", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_to_json_func(tmp, NULL, "T", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_root_array_to_json_func(tmp, "A", NULL, NULL, NULL));
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_root_array_from_json_func(NULL, "A", "T", NULL, NULL));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_root_array_from_json_func(tmp, NULL, "T", NULL, NULL));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_root_array_from_json_func(tmp, "A", NULL, NULL, NULL));
 
   fclose(tmp);
@@ -471,34 +489,36 @@ TEST test_types_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_union_to_json_func(tmp, "U", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, write_union_to_json_func(tmp, "U", &sf, NULL));
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_union_from_json_func(tmp, "U", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, write_union_from_json_func(tmp, "U", &sf, NULL));
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_union_cleanup_func(tmp, "U", &sf, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO, write_union_cleanup_func(tmp, "U", &sf, NULL));
 
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_root_array_to_json_func(tmp, "A", "string", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            write_root_array_to_json_func(tmp, "A", "string", NULL, NULL));
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO,
+  ASSERT_EQ(CDD_C_ERROR_IO,
             write_root_array_from_json_func(tmp, "A", "string", NULL, NULL));
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_root_array_cleanup_func(tmp, "A", "string", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            write_root_array_cleanup_func(tmp, "A", "string", NULL, NULL));
 
   struct_fields_free(&sf);
   fclose(tmp);

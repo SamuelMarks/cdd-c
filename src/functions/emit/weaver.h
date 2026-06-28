@@ -19,6 +19,7 @@ extern "C" {
 #include <stddef.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/emit/patcher.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
@@ -39,11 +40,10 @@ extern "C" {
  *                       If provided, it will be injected before `\#endif`.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT int weaver_wrap_ifdef(struct PatchList *patches,
-                                          const struct TokenList *tokens,
-                                          size_t start_idx, size_t end_idx,
-                                          const char *condition,
-                                          const char *false_code);
+extern C_CDD_EXPORT enum cdd_c_error
+weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
+                  size_t start_idx, size_t end_idx, const char *condition,
+                  const char *false_code);
 
 /**
  * @brief Safely append MSVC headers adjacent to existing POSIX headers.
@@ -60,7 +60,7 @@ extern C_CDD_EXPORT int weaver_wrap_ifdef(struct PatchList *patches,
  * @param[in] include_winsock2_h True to include <winsock2.h>.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 weaver_inject_msvc_headers(struct PatchList *patches,
                            const struct TokenList *tokens,
                            int include_windows_h, int include_winsock2_h);
@@ -82,7 +82,7 @@ weaver_inject_msvc_headers(struct PatchList *patches,
  * @param[in] interactive True if the user should be prompted before applying.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 weaver_vla_to_alloca(struct PatchList *patches, const struct TokenList *tokens,
                      size_t start_idx, size_t end_idx, const char *type_str,
                      const char *var_name, const char *size_expr,

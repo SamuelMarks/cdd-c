@@ -13,32 +13,32 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-int schema_constraints_init(struct SchemaConstraints *sc) {
+enum cdd_c_error schema_constraints_init(struct SchemaConstraints *sc) {
   if (!sc)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   sc->required = NULL;
   sc->required_count = 0;
   sc->required_capacity = 0;
   sc->has_additional_properties = 0;
   sc->additional_properties = NULL;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_schema_strdup_fail = 0;
 #endif
 
-int schema_constraints_add_required(struct SchemaConstraints *sc,
-                                    const char *field) {
+enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
+                                                 const char *field) {
   if (!sc || !field)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (sc->required_count >= sc->required_capacity) {
     size_t new_cap = sc->required_capacity == 0 ? 8 : sc->required_capacity * 2;
     char **new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
     if (!new_req) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     sc->required = new_req;
     sc->required_capacity = new_cap;
@@ -53,10 +53,10 @@ int schema_constraints_add_required(struct SchemaConstraints *sc,
   }
 #endif
   if (!sc->required[sc->required_count])
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   sc->required_count++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 void schema_constraints_cleanup(struct SchemaConstraints *sc) {

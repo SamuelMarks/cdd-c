@@ -97,8 +97,9 @@ static void map_lisp_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   }
 }
 
-int cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
-                             const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
+                         const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   FILE *asd_f = NULL;
   char filepath[1024];
@@ -116,7 +117,7 @@ int cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
   char ret_type_str[256];
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -126,27 +127,27 @@ int cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.lisp", config->output_dir,
                lisp_lib_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(asd_filepath, sizeof(asd_filepath), "%s\\%s.asd",
                config->output_dir, lisp_lib_name);
   if (fopen_s(&asd_f, asd_filepath, "w") != 0) {
     fclose(f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.lisp", config->output_dir,
                lisp_lib_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(asd_filepath, sizeof(asd_filepath), "%s/%s.asd",
                config->output_dir, lisp_lib_name);
   asd_f = fopen(asd_filepath, "w");
   if (!asd_f) {
     fclose(f);
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -221,5 +222,5 @@ int cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }

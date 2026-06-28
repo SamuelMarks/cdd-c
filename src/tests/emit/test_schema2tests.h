@@ -28,7 +28,7 @@ TEST test_jsonschema2tests_wrong_args(void) {
   argv[0] = arg0;
   argv[1] = NULL;
   rc = jsonschema2tests_main(1, argv);
-  ASSERT_EQ(EXIT_FAILURE, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   PASS();
 }
@@ -39,7 +39,7 @@ TEST test_schema2tests_argc_error(void) {
   char *argv[2];
   argv[0] = arg0;
   argv[1] = arg1;
-  ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(1, argv));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(1, argv));
   g_fail_io_after = -1;
   PASS();
 }
@@ -51,8 +51,8 @@ TEST test_schema2tests_bad_json(void) {
   argv[0] = (char *)filename;
   argv[1] = "header.h";
   argv[2] = "out.h";
-  ASSERT_EQ(EXIT_SUCCESS, rc);
-  ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(filename);
   g_fail_io_after = -1;
   PASS();
@@ -103,7 +103,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
   argv[1] = "header.h";
   argv[2] = "";
   rc = write_to_file(schema_filename, "{\"$defs\":{}}");
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   /* Should fail due to empty output dir/filename */
   ASSERT(rc != 0);
@@ -149,7 +149,7 @@ TEST test_schema2tests_defs_fallback(void) {
                   "build" PATH_SEP "defs_out.h"};
   int rc = write_to_file(
       filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
   remove("defs_schema.json");
@@ -167,7 +167,7 @@ TEST test_schema2tests_invalid_schema_root(void) {
   argv[1] = "header.h";
   argv[2] = "out.h";
   write_to_file(schema_file, "[]");
-  ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
   g_fail_io_after = -1;
   PASS();
@@ -179,7 +179,7 @@ TEST test_schema2tests_no_schemas_object(void) {
   argv[1] = "header.h";
   argv[2] = "out.h";
   write_to_file(schema_file, "{}");
-  ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
   g_fail_io_after = -1;
   PASS();
@@ -215,7 +215,7 @@ TEST test_schema2tests_with_null_enum_val(void) {
                   "build" PATH_SEP "null_enum_out.h"};
   int rc = write_to_file(filename, "{\"$defs\":{\"E\":{\"type\":\"string\","
                                    "\"enum\":[\"X\", null, \"Y\"]}}}");
-  ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed, just skipping the null value */
   remove(filename);

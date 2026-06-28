@@ -33,18 +33,20 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_node_t *node = NULL;
   cdd_cst_symbol_t *sym;
 
-  ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_env_init(NULL));
   ASSERT_EQ(0, cdd_cst_scope_env_init(&env));
   ASSERT_NEQ(NULL, env);
 
-  ASSERT_EQ(EINVAL, cdd_cst_scope_enter(NULL, CDD_CST_SCOPE_BLOCK));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_enter(NULL, CDD_CST_SCOPE_BLOCK));
   ASSERT_EQ(0, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
   ASSERT_EQ(0, cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION));
 
   cdd_cst_alloc_node(CDD_CST_DECLARATION, &node);
-  ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(NULL, "foo",
-                                             CDD_CST_SYMBOL_VARIABLE, node));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_add_symbol(NULL, "foo", CDD_CST_SYMBOL_VARIABLE, node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_scope_add_symbol(env, NULL, CDD_CST_SYMBOL_VARIABLE, node));
   ASSERT_EQ(
       0, cdd_cst_scope_add_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE, node));
@@ -63,12 +65,15 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
     }
   }
 
-  ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(NULL, "foo",
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(env, NULL,
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(env, "foo",
-                                                CDD_CST_SYMBOL_VARIABLE, NULL));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(NULL, "foo", CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(env, NULL, CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE, NULL));
 
   /* Lookup the variable */
   ASSERT_EQ(0, cdd_cst_scope_lookup_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE,
@@ -85,12 +90,14 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   ASSERT_STR_EQ("foo_tag", sym->name);
 
   /* Lookup missing */
-  ASSERT_EQ(ENOENT, cdd_cst_scope_lookup_symbol(env, "missing",
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+            cdd_cst_scope_lookup_symbol(env, "missing", CDD_CST_SYMBOL_VARIABLE,
+                                        &sym));
 
-  ASSERT_EQ(0, cdd_cst_scope_leave(env));      /* pop function */
-  ASSERT_EQ(0, cdd_cst_scope_leave(env));      /* pop block */
-  ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env)); /* cannot pop file scope */
+  ASSERT_EQ(0, cdd_cst_scope_leave(env)); /* pop function */
+  ASSERT_EQ(0, cdd_cst_scope_leave(env)); /* pop block */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_leave(env)); /* cannot pop file scope */
 
   cdd_cst_scope_env_free(env);
   env = NULL;
@@ -105,7 +112,8 @@ TEST test_cdd_cst_semantic_basic(void) {
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
 
-  ASSERT_EQ(EINVAL, cdd_cst_build_semantic_info(NULL, &env));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_build_semantic_info(NULL, &env));
 
   ASSERT_EQ(0, cdd_cst_build_semantic_info(tree, &env));
   ASSERT_NEQ(NULL, env);
@@ -178,7 +186,7 @@ TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
-  /* Empty declaration to hit ENOENT in extract_identifier */
+  /* Empty declaration to hit CDD_C_ERROR_NOT_FOUND in extract_identifier */
   cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl);
   cdd_cst_append_child_node(root, decl);
 
@@ -309,7 +317,8 @@ TEST test_cdd_cst_semantic_extract_null(void) {
   cdd_cst_node_t *node = NULL;
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
 
-  /* ASSERT_EQ(ENOENT, extract_identifier(node, &name)); private method */
+  /* ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, extract_identifier(node, &name)); private
+   * method */
 
   cdd_cst_free_node(node);
   g_fail_io_after = -1;

@@ -14,11 +14,12 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-int write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
-                                   const struct StructFields *sf) {
+enum cdd_c_error write_oauth2_error_parser_func(FILE *fp,
+                                                const char *struct_name,
+                                                const struct StructFields *sf) {
   size_t i;
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Generate Enum */
   fprintf(fp, "/**\n * @brief Standard OAuth2 Errors for %s\n */\n",
@@ -45,11 +46,11 @@ int write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  char *p = json;\n");
   fprintf(fp, "  char *key;\n");
   fprintf(fp, "  char *val;\n\n");
-  fprintf(fp, "  if (!json || !out || !out_err) return 1;\n");
+  fprintf(fp, "  if (!json || !out || !out_err) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  *out_err = %s_ERROR_NONE;\n", struct_name);
   fprintf(fp, "  ret = (struct %s *)calloc(1, sizeof(struct %s));\n",
           struct_name, struct_name);
-  fprintf(fp, "  if (!ret) return 1;\n\n");
+  fprintf(fp, "  if (!ret) return CDD_C_ERROR_UNKNOWN;\n\n");
 
   fprintf(fp, "  while (*p) {\n");
   fprintf(fp, "    while (*p && *p != '\"') p++;\n");
@@ -125,7 +126,7 @@ int write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  }\n\n");
 
   fprintf(fp, "  *out = ret;\n");
-  fprintf(fp, "  return 0;\n");
+  fprintf(fp, "  return CDD_C_SUCCESS;\n");
   fprintf(fp, "}\n");
-  return 0;
+  return CDD_C_SUCCESS;
 }

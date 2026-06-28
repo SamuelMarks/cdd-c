@@ -9,6 +9,7 @@ extern "C" {
 #include "../parse/cdd_cst_node.h"
 #include <c_str_span.h>
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -19,7 +20,8 @@ extern "C" {
  *                Caller must free it.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str);
+C_CDD_EXPORT enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree,
+                                           char **out_str);
 
 #ifdef __cplusplus
 }

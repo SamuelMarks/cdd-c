@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include <c_cdd_export.h>
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -37,8 +38,8 @@ extern "C" {
  * be stored.
  * @return 0 on success, error code (ENOMEM/EINVAL) on failure.
  */
-extern C_CDD_EXPORT int orchestrate_fix(const char *source_code,
-                                        char **out_code);
+extern C_CDD_EXPORT enum cdd_c_error orchestrate_fix(const char *source_code,
+                                                     char **out_code);
 
 /**
  * @brief Command-line entry point for the fix functionality.
@@ -48,7 +49,7 @@ extern C_CDD_EXPORT int orchestrate_fix(const char *source_code,
  * @param[in] argv Argument vector.
  * @return EXIT_SUCCESS or EXIT_FAILURE.
  */
-extern C_CDD_EXPORT int fix_code_main(int argc, char **argv);
+extern C_CDD_EXPORT enum cdd_c_error fix_code_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

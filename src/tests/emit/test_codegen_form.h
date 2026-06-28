@@ -36,9 +36,12 @@ TEST test_form_generation_basic(void) {
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
 
-  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(NULL, "Form", &sf));
-  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
-  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, "Form", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_form_urlencoded_func(NULL, "Form", &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_to_form_urlencoded_func(tmp, "Form", NULL));
 
   /* add fields */
   {

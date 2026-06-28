@@ -20,7 +20,8 @@
  * @brief Duplicates a string up to a specified number of characters.
  *
  */
-static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
+static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
+                                      char **_out_val) {
   char *d = NULL;
 #ifdef CDD_BUILD_TESTS
   {
@@ -45,13 +46,13 @@ static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 #endif
   if (!d) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   memcpy(d, s, n);
   d[n] = '\0';
   {
     *_out_val = d;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -91,8 +92,9 @@ void desig_init_list_free(struct DesigInitList *list) {
  * @brief Executes the scan for designated initializers operation.
  *
  */
-int scan_for_designated_initializers(const struct TokenList *tokens,
-                                     struct DesigInitList *list) {
+enum cdd_c_error
+scan_for_designated_initializers(const struct TokenList *tokens,
+                                 struct DesigInitList *list) {
   size_t i = 0;
   size_t *brace_stack = NULL;
   size_t brace_depth = 0;
@@ -100,7 +102,7 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
   int res = 0;
 
   if (!tokens || !list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   while (i < tokens->size) {
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {

@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,8 +20,9 @@ extern "C" {
 /* LCOV_EXCL_START */
 
 /* Helper to generate code and return as string buffer */
-static int generate_eq_code(const char *struct_name, struct StructFields *sf,
-                            char **_out_val) {
+static enum cdd_c_error generate_eq_code(const char *struct_name,
+                                         struct StructFields *sf,
+                                         char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;

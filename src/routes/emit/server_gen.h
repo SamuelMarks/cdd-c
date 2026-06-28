@@ -7,13 +7,14 @@ extern "C" {
 /* clang-format off */
 #include "c_cddConfig.h"
 #include "openapi/parse/openapi.h"
+#include "cdd_c_error.h"
 #include "routes/emit/client_gen.h" /* For OpenApiClientConfig */
 /* clang-format on */
 
 C_CDD_EXPORT /**
               * @brief Executes the openapi server generate operation.
               */
-    int
+    enum cdd_c_error
     openapi_server_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config);
 

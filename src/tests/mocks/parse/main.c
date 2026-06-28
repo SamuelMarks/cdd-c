@@ -1,3 +1,4 @@
+#include "cdd_c_error.h"
 /**
  * @file main.c
  * @brief Main mock runner for simple JSON serialization testing.
@@ -43,26 +44,26 @@ int main(void) {
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
-  assert(Tank_to_str(t, &tank_as_str) == 0);
+  assert(Tank_to_str(t, &tank_as_str) == CDD_C_SUCCESS);
   assert(strcmp(tank_as_str, "BIG") == 0);
   free(tank_as_str);
 
-  assert(HazE_to_json(&haz_e, &haz_e_json) == 0);
+  assert(HazE_to_json(&haz_e, &haz_e_json) == CDD_C_SUCCESS);
   assert(strcmp(haz_e_json, haz_e_mock0) == 0);
   free(haz_e_json);
 
-  assert(HazE_from_json(haz_e_mock0, &haz_e0) == 0);
-  assert(HazE_eq(haz_e0, &haz_e) == 0);
+  assert(HazE_from_json(haz_e_mock0, &haz_e0) == CDD_C_SUCCESS);
+  assert(HazE_eq(haz_e0, &haz_e) == CDD_C_SUCCESS);
   free(haz_e0);
 
-  assert(FooE_to_json(&foo_e, &foo_e_json) == 0);
+  assert(FooE_to_json(&foo_e, &foo_e_json) == CDD_C_SUCCESS);
   assert(strcmp(foo_e_json, foo_e_mock0) == 0);
   free(foo_e_json);
 
-  assert(FooE_from_json(foo_e_mock0, &foo_e0) == 0);
-  assert(FooE_eq(foo_e0, &foo_e) == 0);
+  assert(FooE_from_json(foo_e_mock0, &foo_e0) == CDD_C_SUCCESS);
+  assert(FooE_eq(foo_e0, &foo_e) == CDD_C_SUCCESS);
   free(foo_e0);
 
   return EXIT_SUCCESS;

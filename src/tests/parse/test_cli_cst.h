@@ -106,11 +106,14 @@ TEST test_cli_cst_errors(void) {
   char *argv_percolate[] = {"error_percolator", "--help", NULL};
   char *argv_safe[] = {"safe_crt", "--help", NULL};
 
-  ASSERT_EQ(EINVAL, cli_cst_transformer_main(0, argv_no_args));
-  ASSERT_EQ(EINVAL, cli_cst_transformer_main(1, argv_unknown));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_cst_transformer_main(0, argv_no_args));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_cst_transformer_main(1, argv_unknown));
   ASSERT_EQ(0, cli_cst_transformer_main(1, argv_help1));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_help2));
-  ASSERT_EQ(EINVAL, cli_cst_transformer_main(2, argv_nofix));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_cst_transformer_main(2, argv_nofix));
   ASSERT_EQ(1, cli_cst_transformer_main(3, argv_badfile));
 
   /* Hit branches for other tools */

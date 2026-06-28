@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "greatest.h"
+#include "cdd_c_error.h"
 #include "../../../include/ffi/cdd_ffi_variadic.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -14,11 +15,13 @@ extern "C" {
 
 /* clang-format on */
 
-static int dummy_variadic_func(const char *fmt, ...) {
-  int count = 0;
+static int dummy_variadic_func_call_count = 0;
+
+static enum cdd_c_error dummy_variadic_func(const char *fmt, ...) {
   va_list args;
   const char *p;
 
+  dummy_variadic_func_call_count = 0;
   va_start(args, fmt);
   for (p = fmt; *p != '\0'; p++) {
     if (*p == '%') {
@@ -26,20 +29,20 @@ static int dummy_variadic_func(const char *fmt, ...) {
       if (*p == 'd') {
         int val = va_arg(args, int);
         (void)val;
-        count++;
+        dummy_variadic_func_call_count++;
       } else if (*p == 's') {
         char *s = va_arg(args, char *);
         (void)s;
-        count++;
+        dummy_variadic_func_call_count++;
       } else if (*p == 'p') {
         void *ptr = va_arg(args, void *);
         (void)ptr;
-        count++;
+        dummy_variadic_func_call_count++;
       }
     }
   }
   va_end(args);
-  return count;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_ffi_variadic_format_parser(void) {
@@ -47,7 +50,10 @@ TEST test_ffi_variadic_format_parser(void) {
   cdd_ffi_type_t types[10];
   size_t count;
 
-  count = cdd_ffi_parse_printf_format(fmt, types, 10);
+  enum cdd_c_error rc;
+
+  rc = cdd_ffi_parse_printf_format(fmt, types, 10, &count);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(4, count);
 
   ASSERT_EQ(CDD_FFI_KIND_INT32, types[0].kind);
@@ -67,7 +73,7 @@ TEST test_ffi_variadic_format_parser(void) {
 
 TEST test_ffi_variadic_invoke(void) {
   cdd_ffi_var_arg_t args[3];
-  int result;
+  enum cdd_c_error result;
   int d_val = 42;
   char *s_val = "test";
   void *p_val = &d_val;
@@ -77,7 +83,8 @@ TEST test_ffi_variadic_invoke(void) {
   args[2].p = p_val;
 
   result = cdd_ffi_invoke_variadic(dummy_variadic_func, "%d %s %p", args, 3);
-  ASSERT_EQ(3, result);
+  ASSERT_EQ(CDD_C_SUCCESS, result);
+  ASSERT_EQ(3, dummy_variadic_func_call_count);
 
   PASS();
 }

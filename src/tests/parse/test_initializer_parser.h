@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +21,8 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
-static int tokenize_str(const char *s, struct TokenList **_out_val) {
+static enum cdd_c_error tokenize_str(const char *s,
+                                     struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)s), &tl);
   {
@@ -258,13 +260,15 @@ TEST test_init_errors(void) {
 
   /* Missing brace */
   tl = (tokenize_str("1, 2", &_ast_tokenize_str_6), _ast_tokenize_str_6);
-  ASSERT_EQ(EINVAL, parse_initializer(tl, 0, tl->size, &list, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
   init_list_free(&list);
   free_token_list(tl);
 
   /* Unterminated */
   tl = (tokenize_str("{ 1, 2", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(EINVAL, parse_initializer(tl, 0, tl->size, &list, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
   init_list_free(&list);
   free_token_list(tl);
   g_fail_io_after = -1;

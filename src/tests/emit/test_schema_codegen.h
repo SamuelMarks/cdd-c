@@ -525,11 +525,13 @@ TEST test_schema_constraints_bounds(void) {
   if (getenv("RUNNING_UNDER_VALGRIND"))
     SKIPm("Valgrind crash");
 
-  ASSERT_EQ(EINVAL, schema_constraints_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, schema_constraints_init(NULL));
   ASSERT_EQ(0, schema_constraints_init(&sc));
 
-  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "a"));
-  ASSERT_EQ(EINVAL, schema_constraints_add_required(&sc, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            schema_constraints_add_required(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            schema_constraints_add_required(&sc, NULL));
 
   ASSERT_EQ(0, schema_constraints_add_required(&sc, "field_a"));
   ASSERT_EQ(0, schema_constraints_add_required(&sc, "field_b"));
@@ -543,14 +545,14 @@ TEST test_schema_constraints_bounds(void) {
     sc.required_capacity = ((size_t)-1) / 16 - 100;
     sc.required_count = sc.required_capacity;
 
-    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc, "oom"));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, schema_constraints_add_required(&sc, "oom"));
 
     sc.required_capacity = old_cap;
     sc.required_count = old_count;
     sc.required = old_req;
 
     g_schema_strdup_fail = 1;
-    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc, "oom2"));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, schema_constraints_add_required(&sc, "oom2"));
     g_schema_strdup_fail = 0;
   }
 #endif

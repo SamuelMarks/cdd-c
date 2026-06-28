@@ -30,6 +30,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/enum.h"
 /* clang-format on */
 
@@ -146,7 +147,8 @@ struct CodegenStructConfig {
  * @param[out] sf Pointer to container.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
-extern C_CDD_EXPORT int struct_fields_init(struct StructFields *sf);
+extern C_CDD_EXPORT enum cdd_c_error
+struct_fields_init(struct StructFields *sf);
 
 /**
  * @brief Free memory within a StructFields container.
@@ -166,11 +168,10 @@ extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
  * @param[in] bit_width Bit-field width literal (nullable, e.g. "3").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
-                                          const char *name, const char *type,
-                                          const char *ref,
-                                          const char *default_val,
-                                          const char *bit_width);
+extern C_CDD_EXPORT enum cdd_c_error
+struct_fields_add(struct StructFields *sf, const char *name, const char *type,
+                  const char *ref, const char *default_val,
+                  const char *bit_width);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -180,9 +181,9 @@ extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
  * @param[in] name Field name to find.
  * @return Pointer to the field if found, NULL otherwise.
  */
-extern C_CDD_EXPORT int struct_fields_get(const struct StructFields *sf,
-                                          const char *name,
-                                          struct StructField **_out_val);
+extern C_CDD_EXPORT enum cdd_c_error
+struct_fields_get(const struct StructFields *sf, const char *name,
+                  struct StructField **_out_val);
 
 /* --- Generator Functions --- */
 
@@ -199,7 +200,7 @@ extern C_CDD_EXPORT int struct_fields_get(const struct StructFields *sf,
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct cleanup func.
                      */
-    int
+    enum cdd_c_error
     write_struct_cleanup_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -217,7 +218,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct deepcopy func.
                      */
-    int
+    enum cdd_c_error
     write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                                const struct StructFields *sf,
                                const struct CodegenStructConfig *config);
@@ -235,7 +236,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct eq func.
                      */
-    int
+    enum cdd_c_error
     write_struct_eq_func(FILE *fp, const char *struct_name,
                          const struct StructFields *sf,
                          const struct CodegenStructConfig *config);
@@ -255,7 +256,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct default func.
                      */
-    int
+    enum cdd_c_error
     write_struct_default_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -273,7 +274,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct debug func.
                      */
-    int
+    enum cdd_c_error
     write_struct_debug_func(FILE *fp, const char *struct_name,
                             const struct StructFields *sf,
                             const struct CodegenStructConfig *config);
@@ -291,7 +292,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct display func.
                      */
-    int
+    enum cdd_c_error
     write_struct_display_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -306,7 +307,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Retrieves the type from ref.
                      */
-    int
+    enum cdd_c_error
     get_type_from_ref(const char *ref, char **_out_val);
 
 #ifdef __cplusplus

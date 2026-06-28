@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,8 +26,8 @@ extern "C" {
 #include "classes/emit/cdd_cst_emit.h"
 /* clang-format on */
 
-int insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
-                           cdd_cst_node_t *new_node);
+enum cdd_c_error insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
+                                        cdd_cst_node_t *new_node);
 
 TEST test_cdd_cst_mutate_replace(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -86,22 +87,28 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node2);
 
-  ASSERT_EQ(EINVAL, cdd_cst_replace_node(NULL, node, node2));
-  ASSERT_EQ(EINVAL, cdd_cst_replace_node(tree, NULL, node2));
-  ASSERT_EQ(EINVAL, cdd_cst_replace_node(tree, node, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_replace_node(tree, node, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_node(NULL, node, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_node(tree, NULL, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_node(tree, node, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_node(tree, node, node2));
 
-  ASSERT_EQ(EINVAL, cdd_cst_detach_node(tree, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_detach_node(NULL, node));
-  ASSERT_EQ(EINVAL, cdd_cst_detach_node(tree, node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(NULL, node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, node));
 
   cdd_cst_alloc_node(CDD_CST_BLOCK, &detach_parent);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &detach_child);
 
   /* Trigger error cases in cdd_cst_detach_node by not parenting detach_child */
-  ASSERT_EQ(EINVAL, cdd_cst_detach_node(tree, detach_child));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_detach_node(tree, detach_child));
 
-  ASSERT_EQ(EINVAL, cdd_cst_remove_child(detach_parent, 100));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_remove_child(detach_parent, 100));
 
   cdd_cst_insert_node_after(node,
                             detach_parent); /* Just to put parent somewhere */
@@ -121,29 +128,34 @@ TEST test_cdd_cst_mutate_errors(void) {
   new_children[0].kind = CDD_CST_CHILD_NODE;
   new_children[0].val.node = splice_root;
 
-  ASSERT_EQ(EINVAL, cdd_cst_splice_children(NULL, &detach_parent, 0, 1,
-                                            new_children, 1));
-  ASSERT_EQ(EINVAL, cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_splice_children(NULL, &detach_parent, 0, 1, new_children, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_splice_children(tree, &detach_parent, 0, 1, NULL, 0));
   /* Not perfectly set up, but let's just assert error due to bounds or
    * something */
   /* removed */
 
-  ASSERT_EQ(EINVAL, cdd_cst_remove_child(NULL, 0));
-  ASSERT_EQ(EINVAL, cdd_cst_remove_child(detach_parent, 100));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_remove_child(NULL, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_remove_child(detach_parent, 100));
   /* removed */
 
   memset(&mock_token2, 0, sizeof(mock_token2));
 
-  ASSERT_EQ(EINVAL, cdd_cst_replace_token_child(NULL, 0, &mock_token2));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_token_child(NULL, 0, &mock_token2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_replace_token_child(detach_parent, 100, &mock_token2));
-  ASSERT_EQ(EINVAL, cdd_cst_replace_token_child(detach_parent, 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_token_child(detach_parent, 0, NULL));
 
   /* test invalid child kind */
   cdd_cst_append_child_node(detach_parent, node2);
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_replace_token_child(detach_parent, 0, &mock_token2));
 
   /* test valid token replacement */
@@ -152,27 +164,35 @@ TEST test_cdd_cst_mutate_errors(void) {
 
   cdd_cst_tree_free(tree4);
 
-  ASSERT_EQ(EINVAL, cdd_cst_insert_node_before(NULL, node2));
-  ASSERT_EQ(EINVAL, cdd_cst_insert_node_before(node, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_insert_node_before(node, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_node_before(NULL, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_node_before(node, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_node_before(node, node2));
   /* node2 is not a child of node's parent (it has no parent), so replace fails
    */
   cdd_cst_alloc_node(CDD_CST_BLOCK, &parent_node);
   node->parent = parent_node;
-  ASSERT_EQ(ENOENT, cdd_cst_replace_node(tree, node, node2));
-  ASSERT_EQ(ENOENT, cdd_cst_insert_node_before(node, node2));
-  ASSERT_EQ(ENOENT, cdd_cst_insert_node_after(node, node2));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_replace_node(tree, node, node2));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_insert_node_before(node, node2));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_insert_node_after(node, node2));
 
   /* leaked parent_node intentionally because no public free */
 
-  ASSERT_EQ(EINVAL, cdd_cst_insert_node_after(NULL, node2));
-  ASSERT_EQ(EINVAL, cdd_cst_insert_node_after(node, NULL));
-  ASSERT_EQ(ENOENT, cdd_cst_insert_node_after(node, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_node_after(NULL, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_node_after(node, NULL));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_insert_node_after(node, node2));
 
   cdd_cst_tree_free(tree);
-  ASSERT_EQ(EINVAL, cdd_cst_clone_tree(NULL, detach_parent, &clone));
-  ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, NULL, &clone));
-  ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, detach_parent, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_clone_tree(NULL, detach_parent, &clone));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_clone_tree(tree, NULL, &clone));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_clone_tree(tree, detach_parent, NULL));
 
   cdd_cst_free_node_only(node);
   cdd_cst_free_node_only(node2);
@@ -189,9 +209,10 @@ TEST test_cdd_cst_mutate_errors(void) {
 TEST test_mutate_utils(void) {
   size_t idx;
   cdd_token_t *t;
-  ASSERT_EQ(EINVAL, find_child_index_mutate(NULL, NULL, &idx));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            find_child_index_mutate(NULL, NULL, &idx));
 
-  ASSERT_EQ(EINVAL, find_first_token_mutate(NULL, &t));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_first_token_mutate(NULL, &t));
   g_fail_io_after = -1;
 
   PASS();
@@ -225,11 +246,12 @@ TEST test_cst_splice_children(void) {
   new_children[0].kind = CDD_CST_CHILD_TOKEN;
   new_children[0].val.token = tok;
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_splice_children(NULL, &root, 0, 1, new_children, 1));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_splice_children(tree, &root, 0, 2, new_children, 1));
-  ASSERT_EQ(EINVAL, cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
   /* Out of bounds */
 
   /* Test out node pointer */
@@ -246,7 +268,7 @@ TEST test_cst_splice_children(void) {
     extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
     cdd_cst_node_t *o_root = tree->root;
     g_cdd_cst_alloc_node_fail = 1;
-    ASSERT_EQ(ENOMEM,
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
               cdd_cst_splice_children(tree, &o_root, 0, 1, new_children, 1));
     g_cdd_cst_alloc_node_fail = 0;
   }
@@ -266,7 +288,7 @@ TEST test_cst_splice_children(void) {
     ASSERT_EQ(0, rc);
 
     rc = cdd_cst_splice_children(tree, NULL, 0, 0, new_children2, 0);
-    ASSERT_EQ(EINVAL, rc);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
   cdd_cst_tree_free(tree);
 
@@ -306,10 +328,14 @@ TEST test_cst_find_node_for_token(void) {
   ASSERT_EQ(0, cdd_cst_append_child_node(root, child));
   ASSERT_EQ(0, cdd_cst_append_child_token(child, &tok));
 
-  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(NULL, &tok, &idx, &found_node));
-  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, NULL, &idx, &found_node));
-  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, &tok, NULL, &found_node));
-  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, &tok, &idx, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_node_for_token(NULL, &tok, &idx, &found_node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_node_for_token(root, NULL, &idx, &found_node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_node_for_token(root, &tok, NULL, &found_node));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_find_node_for_token(root, &tok, &idx, NULL));
 
   ASSERT_EQ(0, cdd_cst_find_node_for_token(root, &tok, &idx, &found_node));
   ASSERT_EQ(0, idx);
@@ -318,8 +344,9 @@ TEST test_cst_find_node_for_token(void) {
   {
     cdd_token_t not_found_tok = {0};
     found_node = NULL;
-    ASSERT_EQ(ENOENT, cdd_cst_find_node_for_token(root, &not_found_tok, &idx,
-                                                  &found_node));
+    ASSERT_EQ(
+        CDD_C_ERROR_NOT_FOUND,
+        cdd_cst_find_node_for_token(root, &not_found_tok, &idx, &found_node));
     ASSERT_EQ(NULL, found_node);
   }
 

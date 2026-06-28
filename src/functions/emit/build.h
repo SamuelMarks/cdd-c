@@ -24,6 +24,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -62,7 +63,7 @@ struct CodegenBuildConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen build generate.
                      */
-    int
+    enum cdd_c_error
     codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
                            const struct CodegenBuildConfig *config);
 

@@ -20,7 +20,7 @@ static const char *foo_e_mock0 =
 /**
  * @brief Executes the main operation.
  */
-int main(void) {
+enum cdd_c_error main(void) {
   const enum Tank t = Tank_BIG;
   char *tank_as_str = NULL;
   struct HazE haz_e = {"some_bzr", Tank_SMALL};
@@ -32,7 +32,7 @@ int main(void) {
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   assert(Tank_to_str(t, &tank_as_str) == 0);
   assert(strcmp(tank_as_str, "BIG") == 0);
@@ -54,5 +54,5 @@ int main(void) {
   assert(FooE_eq(foo_e0, &foo_e) == 0);
   free(foo_e0);
 
-  return EXIT_SUCCESS;
+  return CDD_C_SUCCESS;
 }

@@ -23,8 +23,9 @@
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
  */
-static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
-                                   size_t end, char **_out_val) {
+static enum cdd_c_error join_tokens_skipping_ws(const struct TokenList *tokens,
+                                                size_t start, size_t end,
+                                                char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -40,7 +41,7 @@ static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
   buf = (char *)malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   p = buf;
@@ -55,7 +56,7 @@ static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
   *p = '\0';
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -64,13 +65,13 @@ static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the init list init operation.
  */
-int init_list_init(struct InitList *list) {
+enum cdd_c_error init_list_init(struct InitList *list) {
   if (!list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->items = NULL;
   list->count = 0;
   list->capacity = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -118,15 +119,15 @@ static void init_value_free(struct InitValue *val) {
 /**
  * @brief Executes the init list add operation.
  */
-static int init_list_add(struct InitList *list, char *desig,
-                         struct InitValue *val) {
+static enum cdd_c_error init_list_add(struct InitList *list, char *desig,
+                                      struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
     struct InitItem *new_arr = (struct InitItem *)realloc(
         list->items, new_cap * sizeof(struct InitItem));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     list->items = new_arr;
     list->capacity = new_cap;
@@ -134,25 +135,25 @@ static int init_list_add(struct InitList *list, char *desig,
   list->items[list->count].designator = desig;
   list->items[list->count].value = val;
   list->count++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Parsing Logic --- */
 
-static int skip_ws(const struct TokenList *tokens, size_t idx, size_t limit,
-                   size_t *_out_val) {
+static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t idx,
+                                size_t limit, size_t *_out_val) {
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
     idx++;
   {
     *_out_val = idx;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Checks if designator start.
  */
-static int is_designator_start(enum TokenKind k) {
+static enum cdd_c_error is_designator_start(enum TokenKind k) {
   return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
 }
 
@@ -160,8 +161,9 @@ static int is_designator_start(enum TokenKind k) {
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
  */
-static int parse_designator(const struct TokenList *tokens, size_t start,
-                            size_t limit, char **out_str, size_t *out_next) {
+static enum cdd_c_error parse_designator(const struct TokenList *tokens,
+                                         size_t start, size_t limit,
+                                         char **out_str, size_t *out_next) {
   size_t i = start;
   size_t end_desig;
 
@@ -172,13 +174,13 @@ static int parse_designator(const struct TokenList *tokens, size_t start,
     if (tokens->tokens[i].kind == TOKEN_COMMA ||
         tokens->tokens[i].kind == TOKEN_RBRACE ||
         tokens->tokens[i].kind == TOKEN_SEMICOLON) {
-      return EINVAL; /* Designator must end with = */
+      return CDD_C_ERROR_INVALID_ARGUMENT; /* Designator must end with = */
     }
     i++;
   }
 
   if (i >= limit || tokens->tokens[i].kind != TOKEN_ASSIGN)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   end_desig = i;     /* Exclusive of = */
   *out_next = i + 1; /* Skip = */
@@ -186,18 +188,18 @@ static int parse_designator(const struct TokenList *tokens, size_t start,
   *out_str = NULL;
   join_tokens_skipping_ws(tokens, start, end_desig, out_str);
   if (!*out_str)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parse a single expression (scalar value) until comma or brace.
  * Respects nested parens/blocks.
  */
-static int parse_expression_str(const struct TokenList *tokens, size_t start,
-                                size_t limit, char **out_str,
-                                size_t *out_next) {
+static enum cdd_c_error parse_expression_str(const struct TokenList *tokens,
+                                             size_t start, size_t limit,
+                                             char **out_str, size_t *out_next) {
   size_t i = start;
   int depth_paren = 0;
   int depth_brace = 0; /* Should be 0 for scalar, but compound literals
@@ -230,34 +232,35 @@ static int parse_expression_str(const struct TokenList *tokens, size_t start,
 
   if (i == start) {
     /* Empty expression? Valid in some error cases, or just missing val */
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   *out_str = NULL;
   join_tokens_skipping_ws(tokens, start, i, out_str);
   if (!*out_str)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   *out_next = i;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses initializer from the given input.
  */
-int parse_initializer(const struct TokenList *tokens, size_t start_idx,
-                      size_t end_idx, struct InitList *out, size_t *consumed) {
+enum cdd_c_error parse_initializer(const struct TokenList *tokens,
+                                   size_t start_idx, size_t end_idx,
+                                   struct InitList *out, size_t *consumed) {
   size_t i;
   int rc = 0;
 
   if (!tokens || !out)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   skip_ws(tokens, start_idx, end_idx, &i);
 
   /* Expect opening brace */
   if (i >= end_idx || tokens->tokens[i].kind != TOKEN_LBRACE) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   i++; /* Consume { */
 
@@ -275,7 +278,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
       i++; /* Consume } */
       if (consumed)
         *consumed = (i - start_idx);
-      return 0;
+      return CDD_C_SUCCESS;
     }
 
     /* Check designator: starts with . or [ */
@@ -292,7 +295,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
     /* Allocate Value Object */
     val_obj = (struct InitValue *)calloc(1, sizeof(struct InitValue));
     if (!val_obj) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       if (desig_str)
         free(desig_str);
       goto error;
@@ -306,7 +309,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
       size_t sub_consumed = 0;
 
       if (!nested_list) {
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
         free(val_obj);
         if (desig_str)
           free(desig_str);
@@ -364,7 +367,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
   }
 
   /* Missing closing brace if we loop out */
-  rc = EINVAL;
+  rc = CDD_C_ERROR_INVALID_ARGUMENT;
 
 error:
   init_list_free(out);

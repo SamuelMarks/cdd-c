@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,11 +25,10 @@ extern "C" {
 
 /* Helper to capture output. Updated signature to match codegen_types functions.
  */
-static int generate_ra_code(int (*fn)(FILE *, const char *, const char *,
-                                      const char *,
-                                      const struct CodegenTypesConfig *),
-                            const char *name, const char *type, const char *ref,
-                            char **_out_val) {
+static enum cdd_c_error generate_ra_code(
+    enum cdd_c_error (*fn)(FILE *, const char *, const char *, const char *,
+                           const struct CodegenTypesConfig *),
+    const char *name, const char *type, const char *ref, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;

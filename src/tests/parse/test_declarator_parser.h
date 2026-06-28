@@ -303,8 +303,9 @@ TEST test_parse_decl_errors(void) {
   struct DeclInfo info;
   struct TokenList *tl = setup_tokens("int x");
 
-  ASSERT_EQ(EINVAL, parse_declaration(NULL, 0, 0, &info));
-  ASSERT_EQ(EINVAL, parse_declaration(tl, 0, tl->size, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(NULL, 0, 0, &info));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_declaration(tl, 0, tl->size, NULL));
 
   free_token_list(tl);
   g_fail_io_after = -1;

@@ -10,8 +10,9 @@ extern int g_cdd_cst_alloc_token_fail;
 #include "c_cdd/log.h"
 /* clang-format on */
 
-static int alloc_trivia(enum cdd_trivia_kind_t kind, const uint8_t *start,
-                        size_t length, cdd_trivia_t **out_trivia) {
+static enum cdd_c_error alloc_trivia(enum cdd_trivia_kind_t kind,
+                                     const uint8_t *start, size_t length,
+                                     cdd_trivia_t **out_trivia) {
 #ifdef CDD_BUILD_TESTS
 
 #endif
@@ -25,13 +26,13 @@ static int alloc_trivia(enum cdd_trivia_kind_t kind, const uint8_t *start,
 #endif
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   t->kind = kind;
   t->start = start;
   t->length = length;
   *out_trivia = t;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
@@ -45,11 +46,11 @@ static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
   }
 }
 
-static int is_identifier_start(int c) {
+static enum cdd_c_error is_identifier_start(int c) {
   return isalpha(c) || c == '_' || c == '$';
 }
 
-static int is_identifier_part(int c) {
+static enum cdd_c_error is_identifier_part(int c) {
   return isalnum(c) || c == '_' || c == '$';
 }
 
@@ -140,7 +141,8 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
   return CDD_TOKEN_IDENTIFIER;
 }
 
-int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
+enum cdd_c_error cdd_lexer_tokenize(az_span source,
+                                    cdd_token_list_t **out_list) {
 #ifdef CDD_BUILD_TESTS
 
 #endif
@@ -155,7 +157,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
   cdd_token_t *prev_token = NULL;
 
   if (!out_list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   list = (cdd_token_list_t *)calloc(1, sizeof(cdd_token_list_t));
 #ifdef CDD_BUILD_TESTS
@@ -166,7 +168,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 #endif
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   list->capacity = 64;
@@ -180,7 +182,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 #endif
   if (!list->tokens) {
     free(list);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   while (pos < len) {
@@ -511,11 +513,11 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
   }
 
   *out_list = list;
-  return 0;
+  return CDD_C_SUCCESS;
 
 error:
   cdd_lexer_free_token_list(list);
-  return ENOMEM;
+  return CDD_C_ERROR_MEMORY;
 }
 
 void cdd_lexer_free_token_list(cdd_token_list_t *list) {

@@ -74,8 +74,8 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
   out[j] = '\0';
 }
 
-static int emit_java_file(cdd_ffi_ir_t *ir,
-                          const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
@@ -88,14 +88,14 @@ static int emit_java_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.java", config->output_dir,
                class_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.java", config->output_dir,
                class_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -384,23 +384,24 @@ static int emit_java_file(cdd_ffi_ir_t *ir,
 
   fprintf(f, "}\n");
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int emit_pom_xml(const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\pom.xml", config->output_dir);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/pom.xml", config->output_dir);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -445,14 +446,15 @@ static int emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   fprintf(f, "</project>\n");
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_emit_java(cdd_ffi_ir_t *ir,
-                      const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_java(cdd_ffi_ir_t *ir,
+                  const cdd_generate_bindings_config_t *config) {
   int rc;
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   rc = emit_java_file(ir, config);

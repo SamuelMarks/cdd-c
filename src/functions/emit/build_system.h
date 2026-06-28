@@ -18,6 +18,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -32,7 +33,7 @@ extern "C" {
 extern C_CDD_EXPORT /**
                      * @brief Generates build system main.
                      */
-    int
+    enum cdd_c_error
     generate_build_system_main(int argc, char **argv);
 
 /**
@@ -46,7 +47,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates cmake project.
                      */
-    int
+    enum cdd_c_error
     generate_cmake_project(const char *output_path, const char *project_name,
                            int has_tests);
 

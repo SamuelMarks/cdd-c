@@ -32,21 +32,23 @@ TEST test_cdd_cst_scope_basic(void) {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
-                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_cst_scope_add_symbol(env2, "test", CDD_CST_SYMBOL_VARIABLE, NULL));
     cdd_cst_scope_env_free(env2);
   }
 
-  ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_env_init(NULL));
   cdd_cst_scope_env_free(NULL);
 
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
     g_cdd_scope_alloc_fail = 2;
-    ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
     g_cdd_scope_alloc_fail = 0;
   }
 #endif
@@ -64,10 +66,12 @@ TEST test_cdd_cst_scope_basic(void) {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
-                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_cst_scope_add_symbol(env2, "test", CDD_CST_SYMBOL_VARIABLE, NULL));
     cdd_cst_scope_env_free(env2);
   }
 
@@ -102,34 +106,40 @@ TEST test_cdd_cst_scope_errors(void) {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
-                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_cst_scope_add_symbol(env2, "test", CDD_CST_SYMBOL_VARIABLE, NULL));
     cdd_cst_scope_env_free(env2);
   }
 
-  ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_enter(NULL, CDD_CST_SCOPE_BLOCK));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_leave(NULL));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_env_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_enter(NULL, CDD_CST_SCOPE_BLOCK));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_scope_add_symbol(NULL, "a", CDD_CST_SYMBOL_VARIABLE, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(NULL, "a",
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(NULL, "a", CDD_CST_SYMBOL_VARIABLE, &sym));
 
   cdd_cst_scope_env_init(&env);
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_scope_add_symbol(env, NULL, CDD_CST_SYMBOL_VARIABLE, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(env, NULL,
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(env, NULL, CDD_CST_SYMBOL_VARIABLE, &sym));
 
   /* we don't return error on redeclaration in this implementation yet, but
    * check basic lookup failure */
-  ASSERT_EQ(ENOENT, cdd_cst_scope_lookup_symbol(env, "v2",
-                                                CDD_CST_SYMBOL_VARIABLE, &sym));
+  ASSERT_EQ(
+      CDD_C_ERROR_NOT_FOUND,
+      cdd_cst_scope_lookup_symbol(env, "v2", CDD_CST_SYMBOL_VARIABLE, &sym));
 
   /* Pop without parent */
-  ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env));
 
   /* Trigger parent alloc expansion */
   {
@@ -159,10 +169,12 @@ TEST test_cdd_cst_scope_tag(void) {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
-                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_cst_scope_add_symbol(env2, "test", CDD_CST_SYMBOL_VARIABLE, NULL));
     cdd_cst_scope_env_free(env2);
   }
 
@@ -217,34 +229,38 @@ TEST test_cdd_cst_scope_oom(void) {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
-    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
-    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
-                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_cst_scope_add_symbol(env2, "test", CDD_CST_SYMBOL_VARIABLE, NULL));
     cdd_cst_scope_env_free(env2);
   }
 
   g_cdd_scope_alloc_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
   g_cdd_scope_alloc_fail = 2;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
 
   g_cdd_scope_alloc_fail = 0;
   cdd_cst_scope_env_init(&env);
 
   g_cdd_scope_alloc_fail = 3;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
 
   g_cdd_scope_alloc_fail = 4;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
 
   g_cdd_scope_alloc_fail = 5;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_add_symbol(env, "my_var",
-                                             CDD_CST_SYMBOL_VARIABLE, NULL));
+  ASSERT_EQ(
+      CDD_C_ERROR_MEMORY,
+      cdd_cst_scope_add_symbol(env, "my_var", CDD_CST_SYMBOL_VARIABLE, NULL));
 
   g_cdd_scope_alloc_fail = 6;
-  ASSERT_EQ(ENOMEM, cdd_cst_scope_add_symbol(env, "my_var2",
-                                             CDD_CST_SYMBOL_VARIABLE, NULL));
+  ASSERT_EQ(
+      CDD_C_ERROR_MEMORY,
+      cdd_cst_scope_add_symbol(env, "my_var2", CDD_CST_SYMBOL_VARIABLE, NULL));
 
   g_cdd_scope_alloc_fail = 0;
   cdd_cst_scope_env_free(env);

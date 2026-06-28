@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,25 +20,24 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int run_body_rewrite(const char *code,
-                            const struct RefactoredFunction *funcs,
-                            size_t n_funcs,
-                            const struct SignatureTransform *transform,
-                            char **out) {
+static enum cdd_c_error
+run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
+                 size_t n_funcs, const struct SignatureTransform *transform,
+                 char **out) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   int rc;
   const az_span source = az_span_create_from_str((char *)code);
 
   if (!code || !out)
-    return -1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tokenize(source, &tl) != 0)
-    return -1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (find_allocations(tl, &sites) != 0) {
     free_token_list(tl);
-    return -2;
+    return CDD_C_ERROR_PARSE;
   }
 
   rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);
@@ -63,7 +63,8 @@ TEST test_propagate_void_stmt(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  printf("OUTPUT: %s\n", output);
+  ASSERT(strstr(output, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
   ASSERT(strstr(output, "rc = do_work(); if (rc != 0) return rc;") != NULL);
 
   free(output);
@@ -161,7 +162,8 @@ TEST test_integration_safety_and_prop(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  printf("OUTPUT: %s\n", output);
+  ASSERT(strstr(output, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
   /* Malloc analysis finding check so no injection */
   /* do_work rewritten */
   ASSERT(strstr(output, "rc = do_work();") != NULL);
@@ -185,10 +187,11 @@ TEST test_realloc_safety_injection(void) {
   ASSERT_EQ(0, rc);
 
   /* Should rewrite: p = realloc(p, 100); ->
-     { void *_safe_tmp = realloc(p, 100); if (!_safe_tmp) return ENOMEM; p =
-     _safe_tmp; } */
+     { void *_safe_tmp = realloc(p, 100); if (!_safe_tmp) return
+     CDD_C_ERROR_MEMORY; p = _safe_tmp; } */
   ASSERT(strstr(output, "void *_safe_tmp = realloc(p, 100);") != NULL);
-  ASSERT(strstr(output, "if (!_safe_tmp) return ENOMEM;") != NULL);
+  printf("OUTPUT: %s\n", output);
+  ASSERT(strstr(output, "if (!_safe_tmp) return CDD_C_ERROR_MEMORY;") != NULL);
   ASSERT(strstr(output, "p = _safe_tmp;") != NULL);
 
   free(output);
@@ -203,7 +206,8 @@ TEST test_realloc_safety_injection(void) {
 TEST test_rewriter_body_bounds(void) {
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   char *output = NULL;
-  ASSERT_EQ(-1, run_body_rewrite(NULL, funcs, 1, NULL, &output));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            run_body_rewrite(NULL, funcs, 1, NULL, &output));
   g_fail_io_after = -1;
   PASS();
 }
@@ -226,7 +230,7 @@ TEST test_rewriter_body_oom(void) {
     int rc_oom_rb1;
     g_cdd_fail_alloc = 1;
     rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
-    ASSERT_EQ(ENOMEM, rc_oom_rb1);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom_rb1);
     g_cdd_fail_alloc = 0;
 
     /* ignore */
@@ -257,9 +261,11 @@ TEST test_rewriter_body_bounds2(void) {
   struct AllocationSiteList sites = {0};
   char *output = NULL;
 
-  ASSERT_EQ(EINVAL, rewrite_body(NULL, &sites, NULL, 0, NULL, &output));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            rewrite_body(NULL, &sites, NULL, 0, NULL, &output));
   /* ignore */
-  ASSERT_EQ(EINVAL, rewrite_body(&tl, &sites, NULL, 0, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            rewrite_body(&tl, &sites, NULL, 0, NULL, NULL));
   g_fail_io_after = -1;
   PASS();
 }

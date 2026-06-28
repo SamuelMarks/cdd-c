@@ -73,15 +73,19 @@ TEST test_scrape_errors(void) {
 
   build_info_init(&info);
 
-  ASSERT_EQ(EINVAL, scrape_makefile(NULL, "Makefile"));
-  ASSERT_EQ(EINVAL, scrape_makefile(&info, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(NULL, "Makefile"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(&info, NULL));
 
-  ASSERT_EQ(EINVAL, scrape_configure_ac(NULL, "configure.ac"));
-  ASSERT_EQ(EINVAL, scrape_configure_ac(&info, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scrape_configure_ac(NULL, "configure.ac"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_configure_ac(&info, NULL));
 
-  ASSERT_EQ(EINVAL, build_info_to_cmake(NULL, "proj", &cmake_str));
-  ASSERT_EQ(EINVAL, build_info_to_cmake(&info, NULL, &cmake_str));
-  ASSERT_EQ(EINVAL, build_info_to_cmake(&info, "proj", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            build_info_to_cmake(NULL, "proj", &cmake_str));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            build_info_to_cmake(&info, NULL, &cmake_str));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            build_info_to_cmake(&info, "proj", NULL));
 
   build_info_free(&info);
   g_fail_io_after = -1;

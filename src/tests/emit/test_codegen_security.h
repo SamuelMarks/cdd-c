@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,9 +26,9 @@ extern "C" {
 /* LCOV_EXCL_START */
 
 /* Helper to capture output */
-static int gen_sec_code(const struct OpenAPI_Spec *spec,
-                        const struct OpenAPI_Operation *op_in,
-                        char **_out_val) {
+static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
+                                     const struct OpenAPI_Operation *op_in,
+                                     char **_out_val) {
   FILE *tmp = tmpfile();
   struct OpenAPI_Operation op_local;
   const struct OpenAPI_Operation *op = op_in;
@@ -347,8 +348,10 @@ TEST test_sec_multiple_schemes(void) {
 }
 
 TEST test_sec_null_safety(void) {
-  ASSERT_EQ(EINVAL, codegen_security_write_apply(NULL, NULL, NULL));
-  ASSERT_EQ(EINVAL, codegen_security_write_server_apply(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_apply(NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_server_apply(NULL, NULL, NULL));
   g_fail_io_after = -1;
   PASS();
 }

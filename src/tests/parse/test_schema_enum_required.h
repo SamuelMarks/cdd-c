@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -25,7 +26,8 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
-static int load_spec_string(const char *json, struct OpenAPI_Spec *spec) {
+static enum cdd_c_error load_spec_string(const char *json,
+                                         struct OpenAPI_Spec *spec) {
   JSON_Value *root;
   int rc;
   if (!json || !spec)

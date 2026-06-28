@@ -67,8 +67,8 @@ TEST test_scan_for_vlas_errors(void) {
   vla_site_list_init(&list);
   ASSERT_EQ(0, tokenize(az_span_create_from_str("int x[n];"), &tl));
 
-  ASSERT_EQ(EINVAL, scan_for_vlas(NULL, &list));
-  ASSERT_EQ(EINVAL, scan_for_vlas(tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(tl, NULL));
 
   free_token_list(tl);
   g_fail_io_after = -1;

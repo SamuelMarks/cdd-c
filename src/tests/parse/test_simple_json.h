@@ -1,3 +1,4 @@
+#include "cdd_c_error.h"
 /**
  * @file test_simple_json.h
  * @brief Unit tests for simple json parsing/generation logic.
@@ -75,10 +76,10 @@ TEST test_foo_e_json(void) {
   struct FooE *foo_e = NULL;
   char *json = NULL;
 
-  ASSERT_EQ(0, FooE_default(&foo_e));
+  ASSERT_EQ((int)CDD_C_SUCCESS, (int)FooE_default(&foo_e));
   foo_e->can = 42;
 
-  ASSERT_EQ(0, FooE_to_json(foo_e, &json));
+  ASSERT_EQ((int)CDD_C_SUCCESS, (int)FooE_to_json(foo_e, &json));
   ASSERT(json != NULL);
   ASSERT(strstr(json, "\"can\": 42"));
 

@@ -156,13 +156,19 @@ TEST test_enum_null_safety(void) {
 
   setup_basic_enum(&em);
 
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(NULL, "E", &em, NULL));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(f, NULL, &em, NULL));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(f, "E", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(NULL, "E", &em, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(f, NULL, &em, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_to_str_func(f, "E", NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(NULL, "E", &em, NULL));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(f, NULL, &em, NULL));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(f, "E", NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(NULL, "E", &em, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(f, NULL, &em, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_from_str_func(f, "E", NULL, NULL));
 
   fclose(f);
   enum_members_free(&em);
@@ -180,7 +186,7 @@ SUITE(codegen_enum_suite) {
   RUN_TEST(test_enum_null_safety);
 }
 
-int main(int argc, char **argv) {
+enum cdd_c_error main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(codegen_enum_suite);
   GREATEST_MAIN_END();

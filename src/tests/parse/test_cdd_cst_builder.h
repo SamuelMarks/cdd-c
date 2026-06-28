@@ -30,9 +30,11 @@ TEST test_cdd_cst_builder_basic(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   ASSERT(tree != NULL);
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -42,7 +44,9 @@ TEST test_cdd_cst_builder_basic(void) {
   rc = cdd_cst_builder_init(&b, tree, root);
   ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(0, cdd_cst_builder_has_error(&b));
+  out_has = -1;
+  ASSERT_EQ(0, cdd_cst_builder_has_error(&b, &out_has));
+  ASSERT_EQ(0, out_has);
 
   rc = cdd_cst_bld_ident(&b, "int");
   ASSERT_EQ(0, rc);
@@ -80,6 +84,7 @@ TEST test_cdd_cst_builder_basic(void) {
   rc = cdd_cst_bld_newline(&b);
   ASSERT_EQ(0, rc);
 
+  fflush(stdout);
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
   ASSERT(strstr(out, "int main()") != NULL);
@@ -103,9 +108,11 @@ TEST test_cdd_cst_builder_macros(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   ASSERT(tree != NULL);
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -169,10 +176,12 @@ TEST test_cdd_cst_builder_quote(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   char *out = NULL;
   cdd_cst_node_t *injected_node = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   ASSERT(tree != NULL);
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -204,9 +213,11 @@ TEST test_cdd_cst_builder_snippet(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   ASSERT(tree != NULL);
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -235,9 +246,11 @@ TEST test_cdd_cst_builder_comments(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   ASSERT(tree != NULL);
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -271,27 +284,32 @@ TEST test_cdd_cst_builder_comments(void) {
 TEST test_cdd_cst_builder_errors(void) {
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
 
   rc = cdd_cst_builder_init(NULL, NULL, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   rc = cdd_cst_builder_free(NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
-  rc = cdd_cst_builder_has_error(NULL);
-  ASSERT_EQ(1, rc);
+  out_has = -1;
+  rc = cdd_cst_builder_has_error(NULL, &out_has);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  ASSERT_EQ(1, out_has);
 
-  b.error_state = 1;
-  ASSERT_EQ(1, cdd_cst_builder_has_error(&b));
+  b.error_state = CDD_C_ERROR_MEMORY;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_builder_has_error(&b, &out_has));
+  ASSERT_EQ(1, out_has);
 
   rc = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "test");
-  ASSERT_EQ(1, rc); /* Returns error_state */
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
   rc = cdd_cst_builder_set_insert_point(&b, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   rc = cdd_cst_bld_space(NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
   PASS();
@@ -305,9 +323,11 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   cdd_cst_node_t *spliced_node = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
   cdd_trivia_t *lead;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
 
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
@@ -340,15 +360,15 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
 
   /* Error checks */
   rc = cdd_cst_extract_leading_trivia(NULL, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = cdd_cst_extract_trailing_trivia(NULL, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = cdd_cst_transfer_trivia(NULL, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = cdd_cst_replace_node_preserve_trivia(NULL, NULL, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = cdd_cst_splice_nodes(NULL, NULL, 0, NULL, 1);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = cdd_cst_splice_nodes(&b, replacement_node, 0, NULL, 0);
   ASSERT_EQ(0, rc);
 
@@ -364,33 +384,44 @@ TEST test_cdd_cst_builder_extra(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  int out_has = -1;
+  (void)out_has;
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(*tree));
   rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
   /* Null checks */
-  ASSERT_EQ(EINVAL, cdd_cst_builder_init(NULL, NULL, NULL));
-  ASSERT_EQ(1, cdd_cst_builder_has_error(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_builder_init(NULL, NULL, NULL));
+  out_has = -1;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_builder_has_error(NULL, &out_has));
+  ASSERT_EQ(1, out_has);
 
-  ASSERT_EQ(EINVAL, cdd_cst_builder_set_insert_point(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_token(NULL, CDD_TOKEN_EOF, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_indent(NULL, 1));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_snippet(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_builder_set_insert_point(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_bld_token(NULL, CDD_TOKEN_EOF, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_indent(NULL, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_snippet(NULL, NULL));
 
-  ASSERT_EQ(EINVAL, cdd_cst_bld_line_comment(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_block_comment(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_ident(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_line_comment(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_bld_block_comment(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_ident(NULL, NULL));
 
-  ASSERT_EQ(EINVAL, cdd_cst_bld_punct(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_punct(NULL, NULL));
 
-  ASSERT_EQ(EINVAL, cdd_cst_bld_string(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_space(NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_newline(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_string(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_space(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_newline(NULL));
 
-  ASSERT_EQ(EINVAL, cdd_cst_extract_leading_trivia(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_extract_trailing_trivia(NULL, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_transfer_trivia(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_extract_leading_trivia(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_extract_trailing_trivia(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_transfer_trivia(NULL, NULL));
 
   rc = cdd_cst_builder_init(&b, tree, root);
   ASSERT_EQ(0, rc);
@@ -404,11 +435,11 @@ TEST test_cdd_cst_builder_extra(void) {
   ASSERT_EQ(0, rc);
 
   /* Test error state */
-  b.error_state = ENOMEM;
-  ASSERT_EQ(ENOMEM, cdd_cst_builder_set_insert_point(&b, root));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_EOF, "eof"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_indent(&b, 1));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_snippet(&b, "snippet"));
+  b.error_state = CDD_C_ERROR_MEMORY;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_builder_set_insert_point(&b, root));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_token(&b, CDD_TOKEN_EOF, "eof"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_indent(&b, 1));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_snippet(&b, "snippet"));
 
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
@@ -421,15 +452,15 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_builder_t b;
   char buf[3000];
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   cdd_cst_builder_init(&b, tree, root);
 
-  ASSERT_EQ(EINVAL, cdd_cst_quote(NULL, "abc"));
-  ASSERT_EQ(EINVAL, cdd_cst_quote(&b, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(NULL, "abc"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(&b, NULL));
 
-  b.error_state = EINVAL;
-  ASSERT_EQ(EINVAL, cdd_cst_quote(&b, "abc"));
+  b.error_state = CDD_C_ERROR_INVALID_ARGUMENT;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(&b, "abc"));
   b.error_state = 0;
 
   /* buffer overflow */
@@ -457,20 +488,22 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_builder_init(&b, tree, root);
 
   /* NULL checks */
-  ASSERT_EQ(EINVAL, cdd_cst_bld_token(NULL, CDD_TOKEN_IDENTIFIER, "a"));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_int(NULL, 1));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_punct(NULL, ";"));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_block_open(NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_block_close(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_bld_token(NULL, CDD_TOKEN_IDENTIFIER, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_int(NULL, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_punct(NULL, ";"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_block_open(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_block_close(NULL));
 
   /* Force error state */
-  b.error_state = ENOMEM;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_int(&b, 1));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_punct(&b, ";"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_open(&b));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_close(&b));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "test"));
+  b.error_state = CDD_C_ERROR_MEMORY;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_int(&b, 1));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_punct(&b, ";"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_open(&b));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_line_comment(&b, "test"));
 
   b.error_state = 0;
   ASSERT_EQ(0, cdd_cst_bld_line_comment(&b, "test2"));
@@ -504,13 +537,14 @@ TEST test_cdd_cst_builder_oom(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
   cdd_cst_builder_init(&b, tree, root);
 
   g_cdd_cst_alloc_token_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
   g_cdd_cst_alloc_token_fail = 0;
 
   b.error_state = 0;
@@ -521,8 +555,9 @@ TEST test_cdd_cst_builder_oom(void) {
   g_cdd_cst_realloc_fail = 1;
   {
     cdd_token_t *out_tok = NULL;
-    ASSERT_EQ(ENOMEM, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "test",
-                                           &out_tok));
+    ASSERT_EQ(
+        CDD_C_ERROR_MEMORY,
+        cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "test", &out_tok));
   }
   g_cdd_cst_realloc_fail = 0;
   g_cdd_cst_realloc_fail = 1;
@@ -532,8 +567,8 @@ TEST test_cdd_cst_builder_oom(void) {
     cdd_token_t tok = {0};
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
-    ASSERT_EQ(ENOMEM, cdd_cst_append_child_node(n1, n2));
-    ASSERT_EQ(ENOMEM, cdd_cst_append_child_token(n1, &tok));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_node(n1, n2));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_token(n1, &tok));
     cdd_cst_free_node_only(n1);
     cdd_cst_free_node_only(n2);
   }
@@ -544,7 +579,8 @@ TEST test_cdd_cst_builder_oom(void) {
   b.target_node->capacity = 0;
   b.target_node->num_children = 0;
   g_cdd_cst_realloc_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger"));
   g_cdd_cst_realloc_fail = 0;
   b.error_state = 0;
 
@@ -553,20 +589,20 @@ TEST test_cdd_cst_builder_oom(void) {
   b.target_node->capacity = 0;
   b.target_node->num_children = 0;
   g_cdd_cst_realloc_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_open(&b));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_open(&b));
   g_cdd_cst_realloc_fail = 0;
   b.error_state = 0;
 
   g_cdd_cst_alloc_node_fail = 1;
   {
     cdd_cst_node_t *n1 = NULL;
-    ASSERT_EQ(ENOMEM, cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1));
   }
   g_cdd_cst_alloc_node_fail = 0;
 
   /* For trivia array OOM */
   g_cdd_cst_alloc_token_fail = 1;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "test"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_line_comment(&b, "test"));
   g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 
@@ -586,7 +622,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
   cdd_cst_builder_init(&b, tree, root);
@@ -639,19 +675,20 @@ TEST test_cdd_cst_builder_punct_all(void) {
   cdd_cst_bld_punct(&b, "--");
   cdd_cst_bld_punct(&b, "other");
 
-  /* Test all remaining builder functions for EINVAL and error_state */
-  ASSERT_EQ(EINVAL, cdd_cst_bld_include(NULL, "a", 0));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_ifndef(NULL, "a"));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_ifdef(NULL, "a"));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_line_comment(NULL, "a"));
-  ASSERT_EQ(EINVAL, cdd_cst_bld_block_comment(NULL, "a"));
+  /* Test all remaining builder functions for CDD_C_ERROR_INVALID_ARGUMENT and
+   * error_state */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_include(NULL, "a", 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_ifndef(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_ifdef(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_line_comment(NULL, "a"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_bld_block_comment(NULL, "a"));
 
-  b.error_state = ENOMEM;
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "a", 0));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_ifndef(&b, "a"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_ifdef(&b, "a"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "a"));
-  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_comment(&b, "a"));
+  b.error_state = CDD_C_ERROR_MEMORY;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "a", 0));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_ifndef(&b, "a"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_ifdef(&b, "a"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_line_comment(&b, "a"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_comment(&b, "a"));
   b.error_state = 0;
 
   cdd_cst_bld_include(&b, "a", 0);
@@ -663,24 +700,24 @@ TEST test_cdd_cst_builder_punct_all(void) {
     extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     /* pool_string_safe OOM */
     g_cdd_cst_alloc_token_fail = 1;
-    ASSERT_EQ(ENOMEM, cdd_cst_bld_ident(&b, "a"));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_ident(&b, "a"));
     g_cdd_cst_alloc_token_fail = 0;
     b.error_state = 0;
 
     /* space OOM inside indent */
     g_cdd_cst_alloc_token_fail = 1;
-    ASSERT_EQ(ENOMEM, cdd_cst_bld_indent(&b, 1));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_indent(&b, 1));
     g_cdd_cst_alloc_token_fail = 0;
     b.error_state = 0;
 
     /* include OOM coverage */
     g_cdd_cst_alloc_token_fail = 1;
-    ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "test1.h", 1));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test1.h", 1));
     g_cdd_cst_alloc_token_fail = 0;
     b.error_state = 0;
 
     g_cdd_cst_alloc_token_fail = 1;
-    ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "test2.h", 0));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test2.h", 0));
     g_cdd_cst_alloc_token_fail = 0;
     b.error_state = 0;
   }

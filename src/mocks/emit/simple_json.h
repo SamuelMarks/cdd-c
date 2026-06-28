@@ -30,6 +30,7 @@ typedef unsigned char bool;
 /* clang-format off */
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #include "msvc/stdbool.h"
+#include "cdd_c_error.h"
 #else
 #include <stdbool.h>
 #endif
@@ -52,19 +53,19 @@ enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the Tank default operation.
                             */
-    int
+    enum cdd_c_error
     Tank_default(enum Tank *out);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the Tank to str operation.
                             */
-    int
+    enum cdd_c_error
     Tank_to_str(enum Tank, char **);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the Tank from str operation.
                             */
-    int
+    enum cdd_c_error
     Tank_from_str(const char *, enum Tank *);
 
 struct SIMPLE_MOCKS_EXPORT HazE {
@@ -83,50 +84,50 @@ extern SIMPLE_MOCKS_EXPORT /**
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE default operation.
                             */
-    int
+    enum cdd_c_error
     FooE_default(struct FooE **);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE deepcopy operation.
                             */
-    int
+    enum cdd_c_error
     FooE_deepcopy(const struct FooE *, struct FooE **);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE display operation.
                             */
-    int
+    enum cdd_c_error
     FooE_display(const struct FooE *, FILE *);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE debug operation.
                             */
-    int
+    enum cdd_c_error
     FooE_debug(const struct FooE *, FILE *);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE eq operation.
                             */
-    int
+    enum cdd_c_error
     FooE_eq(const struct FooE *, const struct FooE *);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE to json operation.
                             */
-    int
+    enum cdd_c_error
     FooE_to_json(const struct FooE *, char **);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE from jsonObject
                             * operation.
                             */
-    int
+    enum cdd_c_error
     FooE_from_jsonObject(const JSON_Object *, struct FooE **);
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the FooE from json operation.
                             */
-    int
+    enum cdd_c_error
     FooE_from_json(const char *, struct FooE **);
 
 #ifdef __cplusplus

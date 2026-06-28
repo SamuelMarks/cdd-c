@@ -37,7 +37,7 @@ TEST test_cdd_cst_eval_primitive_type_basic(void) {
 
   /* unknown type */
   rc = cdd_cst_eval_primitive_type("unknown_type", CDD_CST_ABI_LP64, &info);
-  ASSERT_EQ(ENOENT, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   g_fail_io_after = -1;
 
   PASS();
@@ -123,10 +123,10 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT(decl2 != NULL);
 
   rc = cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &size);
-  ASSERT_EQ(ENOSYS, rc);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   rc = cdd_cst_eval_alignof(env, decl2, CDD_CST_ABI_LP64, &align);
-  ASSERT_EQ(ENOSYS, rc);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
 
   cdd_cst_tree_free(tree2);
 
@@ -145,8 +145,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     }
     ASSERT(decl3 != NULL);
     rc = cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &size);
-    ASSERT_EQ(ENOSYS, rc); /* "unsigned long long int" is not in the hardcoded
-                              primitive map but tests loop coverage */
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc); /* "unsigned long long int" is not in the
+                              hardcoded primitive map but tests loop coverage */
     cdd_cst_tree_free(tree3);
   }
 
@@ -170,7 +170,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     }
     ASSERT(decl4 != NULL);
     rc = cdd_cst_eval_sizeof(env, decl4, CDD_CST_ABI_LP64, &size);
-    ASSERT_EQ(ENOSYS, rc);
+    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
     cdd_cst_tree_free(tree4);
   }
 
@@ -179,19 +179,23 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   /* Fallback testing (e.g. unsupported type or empty declaration) */
   cdd_cst_alloc_node(CDD_CST_ASM_STATEMENT, &empty_node);
   rc = cdd_cst_eval_sizeof(env, empty_node, CDD_CST_ABI_LP64, &size);
-  ASSERT_EQ(ENOSYS, rc);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
   rc = cdd_cst_eval_alignof(env, empty_node, CDD_CST_ABI_LP64, &align);
-  ASSERT_EQ(ENOSYS, rc);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
   cdd_cst_free_node(empty_node);
 
   /* Error paths */
 
   /* Error path: null node */
-  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(env, NULL, CDD_CST_ABI_LP64, &size));
-  ASSERT_EQ(EINVAL, cdd_cst_eval_alignof(env, NULL, CDD_CST_ABI_LP64, &size));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_sizeof(env, NULL, CDD_CST_ABI_LP64, &size));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_alignof(env, NULL, CDD_CST_ABI_LP64, &size));
 
-  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(NULL, decl, CDD_CST_ABI_LP64, &size));
-  ASSERT_EQ(EINVAL, cdd_cst_eval_alignof(NULL, decl, CDD_CST_ABI_LP64, &align));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_sizeof(NULL, decl, CDD_CST_ABI_LP64, &size));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_alignof(NULL, decl, CDD_CST_ABI_LP64, &align));
 
   cdd_cst_tree_free(tree);
   cdd_cst_scope_env_free(env);
@@ -269,7 +273,7 @@ TEST test_cdd_cst_eval_primitive_extra(void) {
   ASSERT_EQ(8, info.size);
   ASSERT_EQ(8, info.alignment);
 
-  ASSERT_EQ(ENOENT,
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             cdd_cst_eval_primitive_type("_Bool", CDD_CST_ABI_LP64, &info));
 
   ASSERT_EQ(0,
@@ -282,8 +286,10 @@ TEST test_cdd_cst_eval_primitive_extra(void) {
   ASSERT_EQ(16, info.size);
   ASSERT_EQ(16, info.alignment);
 
-  ASSERT_EQ(EINVAL, cdd_cst_eval_primitive_type(NULL, CDD_CST_ABI_LP64, &info));
-  ASSERT_EQ(EINVAL, cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_primitive_type(NULL, CDD_CST_ABI_LP64, &info));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, NULL));
   g_fail_io_after = -1;
 
   PASS();
@@ -330,25 +336,30 @@ TEST test_type_eval_branches(void) {
   tok2.length = 290;
   cdd_cst_append_child_token(decl2, &tok2);
 
-  ASSERT_EQ(ENOSYS, cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &sz));
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &sz));
 
   /* Test OOM */
 #ifdef CDD_BUILD_TESTS
   g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz);
-  if (rc == ENOSYS || rc == ENOMEM) { /* passed */
+  if (rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
-    ASSERT_EQ(ENOMEM, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
   g_cdd_cst_alloc_token_fail = 0;
 #endif
 
   /* Test NULL env */
-  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(NULL, NULL, CDD_CST_ABI_LP64, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(NULL, decl, CDD_CST_ABI_LP64, &sz));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_sizeof(NULL, NULL, CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_sizeof(NULL, decl, CDD_CST_ABI_LP64, &sz));
 
-  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, NULL));
-  ASSERT_EQ(EINVAL, cdd_cst_eval_alignof(env, decl, CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_eval_alignof(env, decl, CDD_CST_ABI_LP64, NULL));
 
   cdd_cst_free_node_only(decl);
   cdd_cst_free_node_only(decl2);
@@ -363,7 +374,8 @@ TEST test_type_eval_branches(void) {
   cdd_cst_append_child_token(decl3, &tok3);
   cdd_cst_append_child_token(decl3, &tok3);
 
-  ASSERT_EQ(ENOSYS, cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &sz));
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &sz));
   cdd_cst_free_node_only(decl3);
 
   cdd_cst_free_node_only(dummy_child);

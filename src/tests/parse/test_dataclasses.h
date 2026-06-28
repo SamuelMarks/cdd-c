@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <mocks/emit/simple_json.h>
 
@@ -60,9 +61,10 @@ static void Node_cleanup(struct Node *const obj) {
   free(obj);
 }
 
-static int Node_deepcopy(const struct Node *src, struct Node **dest) {
+static enum cdd_c_error Node_deepcopy(const struct Node *src,
+                                      struct Node **dest) {
   if (!dest)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!src) {
     *dest = NULL;
     return 0;
@@ -70,7 +72,7 @@ static int Node_deepcopy(const struct Node *src, struct Node **dest) {
 
   *dest = (struct Node *)malloc(sizeof(**dest));
   if (*dest == NULL)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   memset(*dest, 0, sizeof(**dest));
 
   (*dest)->value = src->value;
@@ -85,10 +87,10 @@ static int Node_deepcopy(const struct Node *src, struct Node **dest) {
   } else {
     (*dest)->next = NULL;
   }
-  return (enum greatest_test_res)0;
+  return CDD_C_SUCCESS;
 }
 
-static int Node_eq(const struct Node *a, const struct Node *b) {
+static enum cdd_c_error Node_eq(const struct Node *a, const struct Node *b) {
   if (a == NULL || b == NULL)
     return (a == b);
   if (a->value != b->value)
@@ -287,12 +289,13 @@ TEST test_json_parsing_errors(void) {
   struct FooE *f = NULL;
   SKIPm("Parson crash under Wine 2005 builds");
 
-  ASSERT_EQ(EINVAL, HazE_from_json("{", &h));
-  ASSERT_EQ(EINVAL, FooE_from_json("{", &f));
-  ASSERT_EQ(EINVAL, HazE_from_json("[]", &h));
-  ASSERT_EQ(EINVAL, FooE_from_json("[]", &f));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("{", &h));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("{", &f));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("[]", &h));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("[]", &f));
 
-  ASSERT_EQ(EINVAL, HazE_from_json("{\"bzr\": \"val\"}", &h));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            HazE_from_json("{\"bzr\": \"val\"}", &h));
 
   ASSERT_EQ(
       0, FooE_from_json(
@@ -317,13 +320,13 @@ TEST test_json_parsing_corner_cases(void) {
 
   /* Test HazE from JSON with missing "tank" field */
   rc = HazE_from_json("{\"bzr\": \"val\"}", &h);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT_EQ(NULL, h);
 
   /* Test FooE from JSON with haz being an invalid object (missing "tank") */
   rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": {\"bzr\": \"v\"}}",
                       &f);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT_EQ(NULL, f);
 
   /* Test FooE where bar is NULL */
@@ -349,31 +352,31 @@ TEST test_null_args_and_errors(void) {
   if (getenv("RUNNING_UNDER_VALGRIND"))
     SKIPm("Wine Parson Crash");
 
-  ASSERT_EQ(EINVAL, Tank_to_str(Tank_BIG, NULL));
-  ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_to_str(Tank_BIG, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_from_str("BIG", NULL));
 
-  ASSERT_EQ(EINVAL, HazE_to_json(haz_e_ptr, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_to_json(haz_e_ptr, NULL));
   ASSERT_EQ(0, HazE_to_json(NULL, &str));
   ASSERT_STR_EQ("null", str);
   free(str);
   str = NULL;
 
-  ASSERT_EQ(EINVAL, FooE_to_json(foo_e_ptr, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_to_json(foo_e_ptr, NULL));
   ASSERT_EQ(0, FooE_to_json(NULL, &str));
   ASSERT_STR_EQ("null", str);
   free(str);
   str = NULL;
 
-  ASSERT_EQ(EINVAL, HazE_from_json("{}", NULL));
-  ASSERT_EQ(EINVAL, FooE_from_json("{}", NULL));
-  ASSERT_EQ(EINVAL, HazE_from_json(NULL, &haz_e_ptr));
-  ASSERT_EQ(EINVAL, FooE_from_json(NULL, &foo_e_ptr));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("{}", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("{}", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json(NULL, &haz_e_ptr));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json(NULL, &foo_e_ptr));
 
-  ASSERT_EQ(EINVAL, FooE_default(NULL));
-  ASSERT_EQ(EINVAL, HazE_default(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_default(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_default(NULL));
 
-  ASSERT_EQ(EINVAL, FooE_deepcopy(foo_e_ptr, NULL));
-  ASSERT_EQ(EINVAL, HazE_deepcopy(haz_e_ptr, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_deepcopy(foo_e_ptr, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_deepcopy(haz_e_ptr, NULL));
   g_fail_io_after = -1;
   PASS();
 }
@@ -515,7 +518,7 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(Tank_UNKNOWN, val);
 
-  ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_from_str("BIG", NULL));
   g_fail_io_after = -1;
 
   PASS();
@@ -622,7 +625,8 @@ TEST test_json_parsing_wrong_types(void) {
   SKIPm("Parson crash under Wine 2005 builds");
 
   /* tank is not a string */
-  ASSERT_EQ(EINVAL, HazE_from_json("{\"bzr\": \"v\", \"tank\": 123}", &h));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            HazE_from_json("{\"bzr\": \"v\", \"tank\": 123}", &h));
 
   /* bar is not a string */
   ASSERT_EQ(0, FooE_from_json("{\"bar\": 123, \"can\": 1, \"haz\": {\"bzr\": "
@@ -753,7 +757,7 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
   struct HazE *haz_out = NULL;
 
   const int rc = HazE_deepcopy(&haz_in, &haz_out);
-  if (rc == ENOMEM) {
+  if (rc == CDD_C_ERROR_MEMORY) {
     ASSERT_EQ(NULL, haz_out);
   } else {
     ASSERT_EQ(0, rc);

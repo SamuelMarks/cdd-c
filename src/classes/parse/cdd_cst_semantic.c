@@ -12,10 +12,11 @@ C_CDD_EXPORT int g_cdd_semantic_oom_scope = 0;
 C_CDD_EXPORT int g_cdd_semantic_oom_scope2 = 0;
 #endif
 
-static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
+static enum cdd_c_error extract_identifier(cdd_cst_node_t *node,
+                                           const char **out_name) {
   size_t i;
   if (!node)
-    return ENOENT;
+    return CDD_C_ERROR_NOT_FOUND;
 
   if (node->kind == CDD_CST_IDENTIFIER) {
     for (i = 0; i < node->num_children; i++) {
@@ -34,12 +35,12 @@ static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
 #endif
           if (!name) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return ENOMEM;
+            return CDD_C_ERROR_MEMORY;
           }
           memcpy(name, tok->start, tok->length);
           name[tok->length] = '\0';
           *out_name = name;
-          return 0;
+          return CDD_C_SUCCESS;
         }
       }
     }
@@ -48,27 +49,28 @@ static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       if (extract_identifier(node->children[i].val.node, out_name) == 0) {
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
 
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
+static enum cdd_c_error analyze_node(cdd_cst_scope_env_t *env,
+                                     cdd_cst_node_t *node) {
   int rc = 0;
   size_t i;
 
   if (!node)
-    return 0;
+    return CDD_C_SUCCESS;
 
   switch (node->kind) {
   case CDD_CST_BLOCK:
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_semantic_oom_scope)
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
 #endif
     if (rc != 0)
       return rc;
@@ -77,7 +79,7 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION);
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_semantic_oom_scope2)
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
 #endif
     if (rc != 0)
       return rc;
@@ -95,7 +97,7 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
 #ifdef CDD_BUILD_TESTS
       if (g_cdd_semantic_oom_extract == 1)
-        rc = ENOMEM;
+        rc = CDD_C_ERROR_MEMORY;
       else
 #endif
         rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
@@ -134,7 +136,7 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
     rc = cdd_cst_scope_leave(env);
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_semantic_oom_extract == 2)
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
 #endif
     if (rc != 0)
       return rc;
@@ -143,21 +145,21 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
     break;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
-                                cdd_cst_scope_env_t **out_env) {
+enum cdd_c_error cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
+                                             cdd_cst_scope_env_t **out_env) {
   int rc;
   cdd_cst_scope_env_t *env = NULL;
 
   if (!tree || !out_env)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = cdd_cst_scope_env_init(&env);
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_semantic_oom_extract == 3)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 #endif
   if (rc != 0) {
     if (env)
@@ -168,7 +170,7 @@ int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   rc = analyze_node(env, tree->root);
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_semantic_oom_extract == 4)
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
 #endif
   if (rc != 0) {
     cdd_cst_scope_env_free(env);
@@ -176,7 +178,7 @@ int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   }
 
   *out_env = env;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

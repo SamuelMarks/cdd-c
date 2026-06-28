@@ -32,7 +32,7 @@
  * @return The replacement char or 0 if not a trigraph.
  */
 
-static int get_trigraph_map(int c3) {
+static enum cdd_c_error get_trigraph_map(int c3) {
 
   switch (c3) {
 
@@ -74,7 +74,7 @@ static int get_trigraph_map(int c3) {
 
   default:
 
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -91,9 +91,10 @@ static int get_trigraph_map(int c3) {
  * @return The logical character (int), or EOF (-1) if end of buffer.
  */
 
-static int peek_logical(const uint8_t *base, size_t len, size_t pos,
+static enum cdd_c_error peek_logical(const uint8_t *base, size_t len,
+                                     size_t pos,
 
-                        size_t *out_consumed) {
+                                     size_t *out_consumed) {
 
   size_t current = pos;
 
@@ -159,7 +160,7 @@ static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 
   *out_consumed = 0;
 
-  return -1; /* EOF */
+  return CDD_C_ERROR_UNKNOWN; /* EOF */
 }
 
 /* --- Token List Setup --- */
@@ -167,13 +168,15 @@ static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 /**
  * @brief Executes the token list add operation.
  */
-static int token_list_add(struct TokenList *tl, const enum TokenKind kind,
+static enum cdd_c_error token_list_add(struct TokenList *tl,
+                                       const enum TokenKind kind,
 
-                          const uint8_t *start, const size_t length) {
+                                       const uint8_t *start,
+                                       const size_t length) {
 
   if (!tl)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tl->size >= tl->capacity) {
 
@@ -185,7 +188,7 @@ static int token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     tl->tokens = new_arr;
@@ -201,21 +204,22 @@ static int token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
   tl->size++;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the span equals str operation.
  */
-static int span_equals_str(const az_span span, const char *str, int *_out_val) {
+static enum cdd_c_error span_equals_str(const az_span span, const char *str,
+                                        int *_out_val) {
   if (!_out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
 
   {
     *_out_val =
         az_span_is_content_equal(span, az_span_create_from_str((char *)str));
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -224,8 +228,8 @@ static int span_equals_str(const az_span span, const char *str, int *_out_val) {
 /**
  * @brief Executes the identify keyword or id operation.
  */
-int identify_keyword_or_id(const uint8_t *start, size_t len,
-                           enum TokenKind *_out_val) {
+enum cdd_c_error identify_keyword_or_id(const uint8_t *start, size_t len,
+                                        enum TokenKind *_out_val) {
   int _ast_attr = 0;
   int _ast_declspec = 0;
   int _ast_span_equals_str_0 = 0;
@@ -287,10 +291,10 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
   int _ast_span_equals_str_56 = 0;
   az_span s;
   if (!_out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = TOKEN_IDENTIFIER;
   if (!start)
-    return 0;
+    return CDD_C_SUCCESS;
   s = az_span_create((uint8_t *)start, (int32_t)len);
 
   /* C89/C90/C99/C11/C23 Keywords */
@@ -300,7 +304,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_AUTO;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "break", &_ast_span_equals_str_1),
@@ -308,7 +312,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_BREAK;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "case", &_ast_span_equals_str_2),
@@ -316,7 +320,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_CASE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "char", &_ast_span_equals_str_3),
@@ -324,7 +328,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_CHAR;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "const", &_ast_span_equals_str_4),
@@ -332,7 +336,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_CONST;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "continue", &_ast_span_equals_str_5),
@@ -340,7 +344,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_CONTINUE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "default", &_ast_span_equals_str_6),
@@ -348,7 +352,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_DEFAULT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "do", &_ast_span_equals_str_7),
@@ -356,7 +360,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_DO;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "double", &_ast_span_equals_str_8),
@@ -364,7 +368,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_DOUBLE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "else", &_ast_span_equals_str_9),
@@ -372,7 +376,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ELSE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "enum", &_ast_span_equals_str_10),
@@ -380,7 +384,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ENUM;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "extern", &_ast_span_equals_str_11),
@@ -388,7 +392,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_EXTERN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "float", &_ast_span_equals_str_12),
@@ -396,7 +400,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_FLOAT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "for", &_ast_span_equals_str_13),
@@ -404,7 +408,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_FOR;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "goto", &_ast_span_equals_str_14),
@@ -412,7 +416,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_GOTO;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "if", &_ast_span_equals_str_15),
@@ -420,7 +424,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_IF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "inline", &_ast_span_equals_str_16),
@@ -428,7 +432,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_INLINE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "int", &_ast_span_equals_str_17),
@@ -436,7 +440,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_INT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "long", &_ast_span_equals_str_18),
@@ -444,7 +448,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_LONG;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "register", &_ast_span_equals_str_19),
@@ -452,7 +456,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_REGISTER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "restrict", &_ast_span_equals_str_20),
@@ -460,7 +464,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_RESTRICT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "return", &_ast_span_equals_str_21),
@@ -468,7 +472,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_RETURN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "short", &_ast_span_equals_str_22),
@@ -476,7 +480,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_SHORT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "signed", &_ast_span_equals_str_23),
@@ -484,7 +488,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_SIGNED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "sizeof", &_ast_span_equals_str_24),
@@ -492,7 +496,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_SIZEOF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "static", &_ast_span_equals_str_25),
@@ -500,7 +504,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_STATIC;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "struct", &_ast_span_equals_str_26),
@@ -508,7 +512,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_STRUCT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "switch", &_ast_span_equals_str_27),
@@ -516,7 +520,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_SWITCH;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "typedef", &_ast_span_equals_str_28),
@@ -524,7 +528,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_TYPEDEF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "union", &_ast_span_equals_str_29),
@@ -532,7 +536,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_UNION;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "unsigned", &_ast_span_equals_str_30),
@@ -540,7 +544,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_UNSIGNED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "void", &_ast_span_equals_str_31),
@@ -548,7 +552,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_VOID;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "volatile", &_ast_span_equals_str_32),
@@ -556,7 +560,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_VOLATILE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "while", &_ast_span_equals_str_33),
@@ -564,7 +568,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_WHILE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Alignas", &_ast_span_equals_str_34),
@@ -572,7 +576,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ALIGNAS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Alignof", &_ast_span_equals_str_35),
@@ -580,7 +584,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ALIGNOF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Atomic", &_ast_span_equals_str_36),
@@ -588,7 +592,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ATOMIC;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Bool", &_ast_span_equals_str_37),
@@ -596,7 +600,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_BOOL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Complex", &_ast_span_equals_str_38),
@@ -604,7 +608,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_COMPLEX;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Imaginary", &_ast_span_equals_str_39),
@@ -612,7 +616,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_IMAGINARY;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Noreturn", &_ast_span_equals_str_40),
@@ -620,7 +624,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_NORETURN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Static_assert", &_ast_span_equals_str_41),
@@ -628,7 +632,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_STATIC_ASSERT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Thread_local", &_ast_span_equals_str_42),
@@ -636,7 +640,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_THREAD_LOCAL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* Extensions found in common headers */
@@ -646,7 +650,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_INLINE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "__restrict", &_ast_span_equals_str_44),
@@ -654,7 +658,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_RESTRICT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* C23 standard keywords */
@@ -664,7 +668,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ALIGNAS;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "alignof", &_ast_span_equals_str_46),
@@ -672,7 +676,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_ALIGNOF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "bool", &_ast_span_equals_str_47),
@@ -680,7 +684,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_BOOL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "constexpr", &_ast_span_equals_str_48),
@@ -688,7 +692,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_CONSTEXPR;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "false", &_ast_span_equals_str_49),
@@ -696,7 +700,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_FALSE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "nullptr", &_ast_span_equals_str_50),
@@ -704,7 +708,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_NULLPTR;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "static_assert", &_ast_span_equals_str_51),
@@ -712,7 +716,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_STATIC_ASSERT;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "thread_local", &_ast_span_equals_str_52),
@@ -720,7 +724,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_THREAD_LOCAL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "true", &_ast_span_equals_str_53),
@@ -728,7 +732,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_TRUE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "typeof", &_ast_span_equals_str_54),
@@ -736,7 +740,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_TYPEOF;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "embed", &_ast_span_equals_str_55),
@@ -744,7 +748,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_EMBED;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "_Pragma", &_ast_span_equals_str_56),
@@ -752,22 +756,22 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_PRAGMA_OP;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "__attribute__", &_ast_attr), _ast_attr)) {
     *_out_val = TOKEN_KEYWORD_ATTRIBUTE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if ((span_equals_str(s, "__declspec", &_ast_declspec), _ast_declspec)) {
     *_out_val = TOKEN_KEYWORD_DECLSPEC;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   {
     *_out_val = TOKEN_IDENTIFIER;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -776,15 +780,15 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 /**
  * @brief Executes the token find next operation.
  */
-int token_find_next(const struct TokenList *list, size_t start_idx,
-                    size_t end_idx, const enum TokenKind kind,
-                    size_t *_out_val) {
+enum cdd_c_error token_find_next(const struct TokenList *list, size_t start_idx,
+                                 size_t end_idx, const enum TokenKind kind,
+                                 size_t *_out_val) {
   size_t i, limit;
   if (!_out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = SIZE_MAX;
   if (!list || start_idx >= list->size) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
   limit = (end_idx < list->size) ? end_idx : list->size;
 
@@ -794,13 +798,13 @@ int token_find_next(const struct TokenList *list, size_t start_idx,
 
     {
       *_out_val = i;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = limit;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -826,16 +830,16 @@ void free_token_list(struct TokenList *tl) {
 /**
  * @brief Executes the token matches string operation.
  */
-int token_matches_string(const struct Token *tok, const char *match,
-                         int *_out_val) {
+enum cdd_c_error token_matches_string(const struct Token *tok,
+                                      const char *match, int *_out_val) {
   size_t m_len;
   size_t i_tok = 0, i_match = 0;
   const uint8_t *t;
   if (!_out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
   if (!tok || !match) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   m_len = strlen(match);
@@ -861,7 +865,7 @@ int token_matches_string(const struct Token *tok, const char *match,
         fprintf(stderr, "Mismatched at idx %lu: c='%c' match='%c'\n",
                 (unsigned long)i_match, c, match[i_match]);
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
 
     i_tok += adv;
@@ -877,14 +881,14 @@ int token_matches_string(const struct Token *tok, const char *match,
               "i_match=%lu out=%d\n",
               match, (unsigned long)tok->length, (unsigned long)i_tok,
               (unsigned long)i_match, *_out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the tokenize operation.
  */
-int tokenize(const az_span source, struct TokenList **const out) {
+enum cdd_c_error tokenize(const az_span source, struct TokenList **const out) {
   enum TokenKind _ast_identify_keyword_or_id_57;
   int _ast_token_matches_string_58 = 0;
   int _ast_token_matches_string_59 = 0;
@@ -901,7 +905,7 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
   if (!out)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   base = az_span_ptr(source);
 
@@ -911,7 +915,7 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   while (pos < len) {
@@ -1646,7 +1650,7 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
   *out = list;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 #if defined(__clang__)
 #pragma clang diagnostic pop

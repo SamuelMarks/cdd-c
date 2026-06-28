@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "cdd_cst_node.h"
 #include <stddef.h>
 /* clang-format on */
@@ -73,8 +74,8 @@ struct cdd_cst_cfg_t {
  * @param out_cfg Pointer to store the constructed CFG.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cdd_cst_cfg_build(cdd_cst_node_t *function_node,
-                                   cdd_cst_cfg_t **out_cfg);
+C_CDD_EXPORT enum cdd_c_error cdd_cst_cfg_build(cdd_cst_node_t *function_node,
+                                                cdd_cst_cfg_t **out_cfg);
 
 /**
  * @brief Frees a CFG and all its blocks and edges.

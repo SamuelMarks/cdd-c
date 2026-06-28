@@ -17,38 +17,40 @@
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */
-static const char *DEFAULT_ERROR_CODE = "ENOMEM";
+static const char *DEFAULT_ERROR_CODE = "CDD_C_ERROR_MEMORY";
 
 /* Internal helpers */
 
 /**
  * @brief Find explicit token indices for range extractions.
  */
-static int find_next_token_idx(const struct TokenList *tokens, size_t start,
-                               enum TokenKind kind, size_t *_out_val) {
+static enum cdd_c_error find_next_token_idx(const struct TokenList *tokens,
+                                            size_t start, enum TokenKind kind,
+                                            size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == kind) {
       *_out_val = i;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = tokens->size;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the range to string operation.
  */
-static int range_to_string(const struct TokenList *tokens, size_t start,
-                           size_t end, char **out_val) {
+static enum cdd_c_error range_to_string(const struct TokenList *tokens,
+                                        size_t start, size_t end,
+                                        char **out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
   if (!out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_val = NULL;
 
   if (start >= end) {
@@ -56,9 +58,9 @@ static int range_to_string(const struct TokenList *tokens, size_t start,
     if (empty) {
       *empty = '\0';
       *out_val = empty;
-      return 0;
+      return CDD_C_SUCCESS;
     }
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   for (i = start; i < end; ++i)
@@ -66,7 +68,7 @@ static int range_to_string(const struct TokenList *tokens, size_t start,
 
   buf = (char *)malloc(len + 1);
   if (!buf) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = buf;
@@ -76,7 +78,7 @@ static int range_to_string(const struct TokenList *tokens, size_t start,
   }
   *p = '\0';
   *out_val = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Realloc Strategy --- */
@@ -84,9 +86,10 @@ static int range_to_string(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the strategy rewrite realloc operation.
  */
-int strategy_rewrite_realloc(const struct TokenList *tokens,
-                             const struct AllocationSite *site,
-                             const size_t semi_idx, struct PatchList *patches) {
+enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
+                                          const struct AllocationSite *site,
+                                          const size_t semi_idx,
+                                          struct PatchList *patches) {
 
   size_t call_idx = site->token_index;
   size_t lparen_idx;
@@ -95,7 +98,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
   int is_self_assign = 0;
 
   if (!site->var_name)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* 1. Locate assignment `=` backwards from call */
   {
@@ -116,7 +119,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
   }
 
   if (assign_op_idx == 0)
-    return 0; /* Not an assignment */
+    return CDD_C_SUCCESS; /* Not an assignment */
 
   /* 2. Find start of statement */
   stmt_start = assign_op_idx;
@@ -137,7 +140,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
   /* 3. Check arguments: realloc(ptr, size) */
   find_next_token_idx(tokens, call_idx, TOKEN_LPAREN, &lparen_idx);
   if (lparen_idx >= tokens->size)
-    return 0;
+    return CDD_C_SUCCESS;
 
   {
     /* Extract first arg name crudely */
@@ -166,12 +169,12 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     range_to_string(tokens, call_idx, semi_idx, &call_expr);
     if (!call_expr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     /* Build safe block */
     /* { void *_safe_tmp = call_expr; if (!_safe_tmp) { C_CDD_LOG_DEBUG("ENOMEM:
-     * OOM in %s\n", func); return ENOMEM; } var = _safe_tmp; } */
+     * OOM in %s\n", func); return CDD_C_ERROR_MEMORY; } var = _safe_tmp; } */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     /* Use explicit size calc + sprintf_s or malloc+sprintf in C89 portable
@@ -188,7 +191,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
                  "_safe_tmp; }",
                  call_expr, DEFAULT_ERROR_CODE, site->var_name) == -1) {
       free(call_expr);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 #else
     /* Fallback logic or assume HAVE_ASPRINTF is defined by build system */
@@ -210,7 +213,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
 #endif
       } else {
         free(call_expr);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
@@ -221,7 +224,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     return patch_list_add(patches, stmt_start, semi_idx + 1, replacement);
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- General Safety Injection --- */
@@ -229,12 +232,13 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
 /**
  * @brief Executes the strategy inject safety checks operation.
  */
-int strategy_inject_safety_checks(const struct TokenList *tokens,
-                                  const struct AllocationSiteList *allocs,
-                                  struct PatchList *patches) {
+enum cdd_c_error
+strategy_inject_safety_checks(const struct TokenList *tokens,
+                              const struct AllocationSiteList *allocs,
+                              struct PatchList *patches) {
   size_t i;
   if (!tokens || !allocs || !patches)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < allocs->size; ++i) {
     size_t semi_idx;
@@ -265,12 +269,12 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
     /* Build check string */
     /* We inject AFTER the semicolon */
     if (site->spec->check_style == CHECK_PTR_NULL) {
-      /* " if (!var) { return ENOMEM; }" */
+      /* " if (!var) { return CDD_C_ERROR_MEMORY; }" */
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (!%s) { return %s; }", site->var_name,
@@ -285,7 +289,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       injection = (char *)malloc(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (%s < 0) { return %s; }", site->var_name,
@@ -300,7 +304,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       injection = (char *)malloc(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (%s != 0) { return %s; }", site->var_name,
@@ -318,11 +322,11 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
     if (patch_list_add(patches, semi_idx + 1, semi_idx + 1, injection) != 0) {
       /* patch_list_add frees injection on failure, but we rely on its behavior.
          Check implementation: Yes, it handles free on failure. */
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

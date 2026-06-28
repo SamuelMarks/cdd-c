@@ -13,6 +13,7 @@ extern "C" {
 /* clang-format off */
 #include <stdio.h>
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/struct.h"
 /* clang-format on */
 
@@ -23,7 +24,7 @@ extern "C" {
  * @param sf The fields of the struct.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_from_jwt_func(FILE *fp, const char *struct_name,
                            const struct StructFields *sf);
 

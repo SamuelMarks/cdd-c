@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "cdd_cst_node.h"
 #include "cdd_cst_scope.h"
 #include <stddef.h>
@@ -43,9 +44,9 @@ struct cdd_cst_type_info_t {
  * @param out_info Pointer to receive size and alignment.
  * @return 0 on success, or ENOENT if type is unknown.
  */
-C_CDD_EXPORT int cdd_cst_eval_primitive_type(const char *type_name,
-                                             enum cdd_cst_abi_model_t abi,
-                                             cdd_cst_type_info_t *out_info);
+C_CDD_EXPORT enum cdd_c_error
+cdd_cst_eval_primitive_type(const char *type_name, enum cdd_cst_abi_model_t abi,
+                            cdd_cst_type_info_t *out_info);
 
 /**
  * @brief Evaluates sizeof a type node based on the given ABI and scope
@@ -56,10 +57,10 @@ C_CDD_EXPORT int cdd_cst_eval_primitive_type(const char *type_name,
  * @param out_size Resulting size in bytes.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
-                                     cdd_cst_node_t *type_node,
-                                     enum cdd_cst_abi_model_t abi,
-                                     size_t *out_size);
+C_CDD_EXPORT enum cdd_c_error cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
+                                                  cdd_cst_node_t *type_node,
+                                                  enum cdd_cst_abi_model_t abi,
+                                                  size_t *out_size);
 
 /**
  * @brief Evaluates _Alignof a type node based on the given ABI and scope
@@ -70,10 +71,10 @@ C_CDD_EXPORT int cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
  * @param out_align Resulting alignment in bytes.
  * @return 0 on success.
  */
-C_CDD_EXPORT int cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
-                                      cdd_cst_node_t *type_node,
-                                      enum cdd_cst_abi_model_t abi,
-                                      size_t *out_align);
+C_CDD_EXPORT enum cdd_c_error cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
+                                                   cdd_cst_node_t *type_node,
+                                                   enum cdd_cst_abi_model_t abi,
+                                                   size_t *out_align);
 
 #ifdef __cplusplus
 }

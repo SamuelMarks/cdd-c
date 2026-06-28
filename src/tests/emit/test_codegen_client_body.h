@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,9 +26,10 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
-static int gen_body(const struct OpenAPI_Operation *op,
-                    const struct OpenAPI_Spec *spec, const char *tmpl,
-                    const char *base_url_expr, char **_out_val) {
+static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
+                                 const struct OpenAPI_Spec *spec,
+                                 const char *tmpl, const char *base_url_expr,
+                                 char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;

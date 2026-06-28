@@ -23,6 +23,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/struct.h" /* Reuses StructFields definition */
 /* clang-format on */
 
@@ -51,7 +52,7 @@ struct CodegenJsonConfig {
  * @param[in] config Optional config.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_to_json_func(FILE *fp, const char *struct_name,
                           const struct StructFields *sf,
                           const struct CodegenJsonConfig *config);
@@ -68,7 +69,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_from_json_func(FILE *fp, const char *struct_name,
                             const struct CodegenJsonConfig *config);
 
@@ -87,7 +88,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                   const struct StructFields *sf,
                                   const struct CodegenJsonConfig *config);
@@ -95,7 +96,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 /**
  * @brief write_struct_from_json_standalone_func
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
                                        const struct StructFields *sf);
 
@@ -106,7 +107,7 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
  * @param config The code generation configuration.
  * @return 0 on success, or an error code.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 write_struct_array_from_json_func(FILE *fp, const char *struct_name,
                                   const struct CodegenJsonConfig *config);
 

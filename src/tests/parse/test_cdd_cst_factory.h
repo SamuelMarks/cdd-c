@@ -31,7 +31,8 @@ extern "C" {
 TEST test_cst_alloc_node(void) {
   cdd_cst_node_t *node = NULL;
 
-  ASSERT_EQ(EINVAL, cdd_cst_alloc_node(CDD_CST_DECLARATION, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_alloc_node(CDD_CST_DECLARATION, NULL));
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &node));
   ASSERT(node != NULL);
   ASSERT_EQ(CDD_CST_DECLARATION, node->kind);
@@ -53,9 +54,9 @@ TEST test_cst_create_token(void) {
   rc = cdd_cst_parse(az_span_create_from_str(""), &tree);
   ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_create_token(NULL, CDD_TOKEN_IDENTIFIER, "foo", &tok));
-  ASSERT_EQ(EINVAL,
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo", NULL));
 
   rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo", &tok);
@@ -94,8 +95,10 @@ TEST test_cst_append_child_node(void) {
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &parent));
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child));
 
-  ASSERT_EQ(EINVAL, cdd_cst_append_child_node(NULL, child));
-  ASSERT_EQ(EINVAL, cdd_cst_append_child_node(parent, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_append_child_node(NULL, child));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_append_child_node(parent, NULL));
 
   ASSERT_EQ(0, cdd_cst_append_child_node(parent, child));
   ASSERT_EQ(1, parent->num_children);
@@ -142,8 +145,10 @@ TEST test_cst_append_child_token(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
   ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "x", &tok));
 
-  ASSERT_EQ(EINVAL, cdd_cst_append_child_token(NULL, tok));
-  ASSERT_EQ(EINVAL, cdd_cst_append_child_token(parent, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_append_child_token(NULL, tok));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_append_child_token(parent, NULL));
 
   ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
   ASSERT_EQ(1, parent->num_children);
@@ -181,9 +186,12 @@ TEST test_cst_parse_format(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
-  ASSERT_EQ(EINVAL, cdd_cst_parse_format(NULL, &node, "int x;"));
-  ASSERT_EQ(EINVAL, cdd_cst_parse_format(tree, NULL, "int x;"));
-  ASSERT_EQ(EINVAL, cdd_cst_parse_format(tree, &node, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_parse_format(NULL, &node, "int x;"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_parse_format(tree, NULL, "int x;"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_parse_format(tree, &node, NULL));
 
   rc = cdd_cst_parse_format(tree, &node, "int a = %d;", 5);
   ASSERT_EQ(0, rc);
@@ -218,8 +226,8 @@ TEST test_cdd_cst_parse_format_oom(void) {
   g_cdd_cst_alloc_token_fail = 1;
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
-    if (rc_tmp != ENOMEM) {
-      printf("rc_tmp = %d, expected ENOMEM\n", rc_tmp);
+    if (rc_tmp != CDD_C_ERROR_MEMORY) {
+      printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
     }
     ASSERT(rc_tmp != 0);
   }
@@ -228,15 +236,15 @@ TEST test_cdd_cst_parse_format_oom(void) {
   g_cdd_cst_alloc_node_fail = 1;
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
-    if (rc_tmp != ENOMEM) {
-      printf("rc_tmp = %d, expected ENOMEM\n", rc_tmp);
+    if (rc_tmp != CDD_C_ERROR_MEMORY) {
+      printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
     }
     ASSERT(rc_tmp != 0);
   }
   g_cdd_cst_alloc_node_fail = 0;
 
   /* Create an invalid format string that triggers the parsing failure to return
-     ENOMEM Or just an empty parsing result */
+     CDD_C_ERROR_MEMORY Or just an empty parsing result */
   ASSERT_EQ(0, cdd_cst_parse_format(tree, &node, ""));
   if (node)
     cdd_cst_free_node(node);
@@ -267,7 +275,7 @@ TEST test_cst_parse_format_extra(void) {
      * failing first) */
     g_cdd_cst_alloc_node_fail = 1000;
     rc = cdd_cst_parse_format(tree, &node, "int x;");
-    ASSERT_EQ(ENOENT, rc);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
     g_cdd_cst_alloc_node_fail = 0;
   }
 #endif

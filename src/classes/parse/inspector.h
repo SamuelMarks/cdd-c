@@ -24,6 +24,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "classes/emit/enum.h"   /* For EnumMembers */
 #include "classes/emit/struct.h" /* For StructFields */
 #include "functions/parse/tokenizer.h"
@@ -90,7 +91,8 @@ struct FuncSigList {
  * @param[out] list The list to initialize.
  * @return 0 on success, EINVAL if list is NULL.
  */
-extern C_CDD_EXPORT int type_def_list_init(struct TypeDefList *list);
+extern C_CDD_EXPORT enum cdd_c_error
+type_def_list_init(struct TypeDefList *list);
 
 /**
  * @brief Free resources in a TypeDefList.
@@ -113,7 +115,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the c inspector scan file types
                      * operation.
                      */
-    int
+    enum cdd_c_error
     c_inspector_scan_file_types(const char *filename, struct TypeDefList *out);
 
 /* --- Function Signatures API --- */
@@ -123,7 +125,8 @@ extern C_CDD_EXPORT /**
  * @param[out] list The list to initialize.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int func_sig_list_init(struct FuncSigList *list);
+extern C_CDD_EXPORT enum cdd_c_error
+func_sig_list_init(struct FuncSigList *list);
 
 /**
  * @brief Free FuncSigList.
@@ -146,7 +149,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the c inspector extract signatures
                      * operation.
                      */
-    int
+    enum cdd_c_error
     c_inspector_extract_signatures(const char *source_code,
                                    struct FuncSigList *out);
 

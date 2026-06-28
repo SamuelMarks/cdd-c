@@ -19,17 +19,18 @@
  * @brief Duplicates a string up to a specified number of characters.
  *
  */
-static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
+static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
+                                      char **_out_val) {
   char *d = (char *)malloc(n + 1);
   if (!d) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   memcpy(d, s, n);
   d[n] = '\0';
   {
     *_out_val = d;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -71,9 +72,10 @@ void vla_site_list_free(struct VLASiteList *list) {
  * @brief Checks if a token kind is a basic type keyword.
  *
  */
-static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
+static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
+                                              int *out_is_basic) {
   if (!out_is_basic)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
@@ -86,9 +88,9 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   case TOKEN_KEYWORD_UNSIGNED:
   case TOKEN_KEYWORD_VOID:
     *out_is_basic = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   default:
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -96,11 +98,12 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
  * @brief Scans for VLA (Variable Length Array) sites in a token list.
  *
  */
-int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
+enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
+                               struct VLASiteList *list) {
   size_t i = 0;
 
   if (!tokens || !list)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   while (i < tokens->size) {
     size_t start_idx = i;
@@ -290,7 +293,7 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

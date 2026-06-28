@@ -48,8 +48,9 @@ TEST test_cdd_transform_msvc(void) {
   /* Test nulls */
   {
     cdd_cst_tree_t empty_tree = {0};
-    ASSERT_EQ(EINVAL, cdd_transform_msvc(NULL, &config));
-    ASSERT_EQ(EINVAL, cdd_transform_msvc(&empty_tree, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_msvc(NULL, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_transform_msvc(&empty_tree, &config));
   }
 
   /* Test malformed nodes / builder errors. We will manually construct a

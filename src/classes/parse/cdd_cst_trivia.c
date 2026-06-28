@@ -6,8 +6,9 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
-                                 cdd_cst_format_config_t *out_config) {
+enum cdd_c_error
+cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
+                             cdd_cst_format_config_t *out_config) {
   size_t i;
   int tab_count = 0;
   int space_count = 0;
@@ -15,14 +16,14 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
   size_t sum_space_indent = 0;
 
   if (!tree || !out_config)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Default fallback */
   out_config->use_tabs = 0;
   out_config->indent_width = 2;
 
   if (!tree->base_tokens)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < tree->base_tokens->size; i++) {
     cdd_token_t *tok = &tree->base_tokens->tokens[i];
@@ -70,13 +71,13 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
       out_config->indent_width = 2;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
-                                   const cdd_cst_format_config_t *config,
-                                   size_t indent_level,
-                                   cdd_trivia_t **out_trivia) {
+enum cdd_c_error
+cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
+                               const cdd_cst_format_config_t *config,
+                               size_t indent_level, cdd_trivia_t **out_trivia) {
   cdd_trivia_t *nl;
   cdd_trivia_t *ws;
   size_t total_spaces;
@@ -87,7 +88,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 #endif
   (void)tree;
   if (!config || !out_trivia)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail == 1)
@@ -97,7 +98,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!nl) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   nl->kind = TRIVIA_NEWLINE;
   nl->start = (const uint8_t *)"\n";
@@ -105,7 +106,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 
   if (indent_level == 0) {
     *out_trivia = nl;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -116,7 +117,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     ws = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!ws) {
     free(nl);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   total_spaces = config->indent_width * indent_level;
@@ -129,7 +130,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   if (!ws_buf) {
     free(nl);
     free(ws);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (config->use_tabs) {
@@ -144,5 +145,5 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 
   nl->next = ws;
   *out_trivia = nl;
-  return 0;
+  return CDD_C_SUCCESS;
 }

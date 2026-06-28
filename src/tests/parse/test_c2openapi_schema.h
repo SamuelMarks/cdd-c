@@ -144,8 +144,10 @@ TEST test_register_null_safety(void) {
   openapi_spec_init(&spec);
   type_def_list_init(&types);
 
-  ASSERT_EQ(EINVAL, c2openapi_register_types(NULL, &types));
-  ASSERT_EQ(EINVAL, c2openapi_register_types(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(NULL, &types));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(&spec, NULL));
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
@@ -391,8 +393,10 @@ TEST test_register_null_safety(void) {
   openapi_spec_init(&spec);
   type_def_list_init(&types);
 
-  ASSERT_EQ(EINVAL, c2openapi_register_types(NULL, &types));
-  ASSERT_EQ(EINVAL, c2openapi_register_types(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(NULL, &types));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(&spec, NULL));
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
@@ -549,18 +553,20 @@ TEST test_code2schema_utils(void) {
 
   g_cdd_cst_alloc_token_fail = 1;
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
-  if (rc_t1 != ENOMEM) {
-    printf("copy_string_array_code2schema = %d, expected ENOMEM\n", rc_t1);
+  if (rc_t1 != CDD_C_ERROR_MEMORY) {
+    printf("copy_string_array_code2schema = %d, expected CDD_C_ERROR_MEMORY\n",
+           rc_t1);
   }
-  ASSERT_EQ(ENOMEM, rc_t1);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t1);
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 2;
   int rc_t2 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
-  if (rc_t2 != ENOMEM) {
-    printf("copy_string_array_code2schema = %d, expected ENOMEM\n", rc_t2);
+  if (rc_t2 != CDD_C_ERROR_MEMORY) {
+    printf("copy_string_array_code2schema = %d, expected CDD_C_ERROR_MEMORY\n",
+           rc_t2);
   }
-  ASSERT_EQ(ENOMEM, rc_t2);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t2);
   g_cdd_cst_alloc_token_fail = 0;
   g_fail_io_after = -1;
 
@@ -646,8 +652,10 @@ TEST test_register_null_safety(void) {
   openapi_spec_init(&spec);
   type_def_list_init(&types);
 
-  ASSERT_EQ(EINVAL, c2openapi_register_types(NULL, &types));
-  ASSERT_EQ(EINVAL, c2openapi_register_types(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(NULL, &types));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c2openapi_register_types(&spec, NULL));
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
@@ -804,12 +812,12 @@ TEST test_code2schema_utils(void) {
 
   g_cdd_cst_alloc_token_fail = 1;
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
-  ASSERT_EQ(ENOMEM, rc_t1);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t1);
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 2;
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
-  ASSERT_EQ(ENOMEM, rc_t1);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t1);
   g_cdd_cst_alloc_token_fail = 0;
   g_fail_io_after = -1;
 

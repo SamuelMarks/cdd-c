@@ -28,20 +28,21 @@
 
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t) - 1)
 #endif
 
 /* --- Helpers --- */
 
-static int join_tokens_range(const struct TokenList *tokens, size_t start,
-                             size_t end, char **_out_val) {
+static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
+                                          size_t start, size_t end,
+                                          char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
 
   if (start >= end) {
     c_cdd_strdup("", _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = start; i < end; ++i) {
@@ -61,7 +62,7 @@ static int join_tokens_range(const struct TokenList *tokens, size_t start,
 #endif
   if (!buf) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   p = buf;
@@ -73,32 +74,32 @@ static int join_tokens_range(const struct TokenList *tokens, size_t start,
   *p = '\0';
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the skip ws operation.
  */
-static int skip_ws(const struct TokenList *tokens, size_t i, size_t limit,
-                   size_t *_out_val) {
+static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t i,
+                                size_t limit, size_t *_out_val) {
   while (i < limit && (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
                        tokens->tokens[i].kind == TOKEN_COMMENT))
     i++;
   {
     *_out_val = i;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the skip ws back operation.
  */
-static int skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
-                        size_t *_out_val) {
+static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
+                                     size_t limit, size_t *_out_val) {
   if (i <= limit) {
     *_out_val = SIZE_MAX;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   i--;
@@ -110,13 +111,13 @@ static int skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
                      tokens->tokens[i].kind == TOKEN_COMMENT)) {
     {
       *_out_val = SIZE_MAX;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = i;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -125,9 +126,9 @@ static int skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
 /**
  * @brief Executes the skip group operation.
  */
-static int skip_group(const struct TokenList *tokens, size_t start,
-                      size_t limit, enum TokenKind open_k,
-                      enum TokenKind close_k, size_t *_out_val) {
+static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
+                                   size_t limit, enum TokenKind open_k,
+                                   enum TokenKind close_k, size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -141,11 +142,11 @@ static int skip_group(const struct TokenList *tokens, size_t start,
 
   if (depth == 0) {
     *_out_val = i;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   {
     *_out_val = limit;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -205,23 +206,25 @@ void decl_info_free(struct DeclInfo *info) {
 /**
  * @brief Adds or sets type node.
  */
-static int add_type_node(struct DeclInfo *info, struct DeclType **current_tail,
-                         struct DeclType *node) {
+static enum cdd_c_error add_type_node(struct DeclInfo *info,
+                                      struct DeclType **current_tail,
+                                      struct DeclType *node) {
   if (!node)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!info->type) {
     info->type = node;
   } else {
     (*current_tail)->inner = node;
   }
   *current_tail = node;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the create node operation.
  */
-static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
+static enum cdd_c_error create_node(enum DeclTypeKind kind,
+                                    struct DeclType **_out_val) {
   struct DeclType *t = NULL;
 #ifdef CDD_BUILD_TESTS
   {
@@ -248,39 +251,41 @@ static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
     t->kind = kind;
   {
     *_out_val = t;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /* --- Parse Logic --- */
 
-static int is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
-                             size_t limit, int *out_is_grouping) {
+static enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
+                                          size_t paren_idx, size_t limit,
+                                          int *out_is_grouping) {
   size_t i;
   if (!out_is_grouping)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_grouping = 0;
   skip_ws(tokens, paren_idx + 1, limit, &i);
   if (i >= limit)
-    return 0;
+    return CDD_C_SUCCESS;
   if (tokens->tokens[i].kind == TOKEN_STAR ||
       tokens->tokens[i].kind == TOKEN_CARET ||
       tokens->tokens[i].kind == TOKEN_LBRACKET) {
     *out_is_grouping = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (tokens->tokens[i].kind == TOKEN_LPAREN) {
     *out_is_grouping = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Retrieves the abstract pivot.
  */
-static int find_abstract_pivot(const struct TokenList *tokens, size_t start,
-                               size_t end, size_t *_out_val) {
+static enum cdd_c_error find_abstract_pivot(const struct TokenList *tokens,
+                                            size_t start, size_t end,
+                                            size_t *_out_val) {
   size_t i = start;
   size_t best_pivot = end;
   int current_depth = 0;
@@ -347,20 +352,21 @@ static int find_abstract_pivot(const struct TokenList *tokens, size_t start,
   if (best_pivot == end && best_depth == -1) {
     {
       *_out_val = end;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   {
     *_out_val = best_pivot;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Find the declared identifier (pivot point).
  */
-static int find_pivot(const struct TokenList *tokens, size_t start, size_t end,
-                      int *is_abstract, size_t *_out_val) {
+static enum cdd_c_error find_pivot(const struct TokenList *tokens, size_t start,
+                                   size_t end, int *is_abstract,
+                                   size_t *_out_val) {
   size_t i = start;
   size_t best_ident = end;
 
@@ -396,7 +402,7 @@ static int find_pivot(const struct TokenList *tokens, size_t start, size_t end,
     *is_abstract = 0;
     {
       *_out_val = best_ident;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -404,15 +410,15 @@ static int find_pivot(const struct TokenList *tokens, size_t start, size_t end,
   *is_abstract = 1;
   {
     find_abstract_pivot(tokens, start, end, _out_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses declaration from the given input.
  */
-int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
-                      struct DeclInfo *out_info) {
+enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
+                                   size_t end, struct DeclInfo *out_info) {
   size_t pivot;
   size_t left, right;
   size_t left_limit = start;
@@ -421,7 +427,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
   int rc = 0;
 
   if (!tokens || !out_info)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   decl_info_init(out_info);
 
@@ -430,11 +436,11 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
   if (!is_abstract) {
     if (pivot >= end)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
     if (!out_info->identifier) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     skip_ws_back(tokens, pivot, start, &left);
     skip_ws(tokens, pivot + 1, end, &right);
@@ -460,7 +466,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
         create_node(DECL_ARRAY, &node);
         skip_group(tokens, right, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &close);
         if (!node) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto error;
         }
 
@@ -473,7 +479,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
         if (add_type_node(out_info, &tail, node) != 0) {
           free_decl_type(node);
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto error;
         }
         skip_ws(tokens, close, end, &right);
@@ -484,7 +490,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
         create_node(DECL_FUNC, &node);
         skip_group(tokens, right, end, TOKEN_LPAREN, TOKEN_RPAREN, &close);
         if (!node) {
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto error;
         }
 
@@ -495,7 +501,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
         if (add_type_node(out_info, &tail, node) != 0) {
           free_decl_type(node);
-          rc = ENOMEM;
+          rc = CDD_C_ERROR_MEMORY;
           goto error;
         }
         skip_ws(tokens, close, end, &right);
@@ -516,7 +522,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
           struct DeclType *node = NULL;
           create_node(DECL_PTR, &node);
           if (!node) {
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
             goto error;
           }
 
@@ -527,7 +533,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
           if (add_type_node(out_info, &tail, node) != 0) {
             free_decl_type(node);
-            rc = ENOMEM;
+            rc = CDD_C_ERROR_MEMORY;
             goto error;
           }
 
@@ -561,7 +567,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
     struct DeclType *node = NULL;
     create_node(DECL_BASE, &node);
     if (!node) {
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       goto error;
     }
 
@@ -573,12 +579,12 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
     if (add_type_node(out_info, &tail, node) != 0) {
       free_decl_type(node);
-      rc = ENOMEM;
+      rc = CDD_C_ERROR_MEMORY;
       goto error;
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 
 error:
   decl_info_free(out_info);

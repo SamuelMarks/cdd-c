@@ -30,12 +30,12 @@
  * @brief Initializes a refactor context.
  *
  */
-int refactor_context_init(struct RefactorContext *ctx) {
+enum cdd_c_error refactor_context_init(struct RefactorContext *ctx) {
   if (!ctx)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   ctx->funcs = NULL;
   ctx->func_count = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -59,18 +59,19 @@ void refactor_context_free(struct RefactorContext *ctx) {
  *
  * allocation fails.
  */
-int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
-                                  const enum RefactorType type,
-                                  const char *return_type) {
+enum cdd_c_error refactor_context_add_function(struct RefactorContext *ctx,
+                                               const char *name,
+                                               const enum RefactorType type,
+                                               const char *return_type) {
   struct RefactoredFunction *new_alloc;
   if (!ctx || !name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_alloc = (struct RefactoredFunction *)realloc(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
   if (!new_alloc) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   ctx->funcs = new_alloc;
@@ -79,22 +80,22 @@ int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
   ctx->funcs[ctx->func_count].original_return_type = return_type;
   ctx->func_count++;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Applies refactoring to a string of source code.
  *
  */
-int apply_refactoring_to_string(const struct RefactorContext *ctx,
-                                const char *source_code,
-                                char **const out_code) {
+enum cdd_c_error apply_refactoring_to_string(const struct RefactorContext *ctx,
+                                             const char *source_code,
+                                             char **const out_code) {
   struct TokenList *tokens = NULL;
   struct AllocationSiteList allocs = {0};
   int rc;
 
   if (ctx == NULL || source_code == NULL || out_code == NULL)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Tokenize */
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=

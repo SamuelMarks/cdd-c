@@ -30,6 +30,7 @@ typedef unsigned char bool;
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #include "msvc/stdbool.h"
+#include "cdd_c_error.h"
 #else
 #include <stdbool.h>
 #endif
@@ -49,11 +50,12 @@ typedef unsigned char bool;
 
 enum Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 
-extern SIMPLE_MOCKS_EXPORT int Tank_default(enum Tank *out);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Tank_default(enum Tank *out);
 
-extern SIMPLE_MOCKS_EXPORT int Tank_to_str(enum Tank, char **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Tank_to_str(enum Tank, char **);
 
-extern SIMPLE_MOCKS_EXPORT int Tank_from_str(const char *, enum Tank *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Tank_from_str(const char *,
+                                                          enum Tank *);
 
 /** \brief mock */
 struct HazE {
@@ -63,24 +65,28 @@ struct HazE {
 
 extern SIMPLE_MOCKS_EXPORT void HazE_cleanup(struct HazE *);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_default(struct HazE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_default(struct HazE **);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_deepcopy(const struct HazE *,
-                                             struct HazE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_deepcopy(const struct HazE *,
+                                                          struct HazE **);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_display(const struct HazE *, FILE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_display(const struct HazE *,
+                                                         FILE *);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_debug(const struct HazE *, FILE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_debug(const struct HazE *,
+                                                       FILE *);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_eq(const struct HazE *,
-                                       const struct HazE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_eq(const struct HazE *,
+                                                    const struct HazE *);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_to_json(const struct HazE *, char **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_to_json(const struct HazE *,
+                                                         char **);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_from_json(const char *, struct HazE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_from_json(const char *,
+                                                           struct HazE **);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_from_jsonObject(const JSON_Object *,
-                                                    struct HazE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error
+HazE_from_jsonObject(const JSON_Object *, struct HazE **);
 
 struct FooE {
   const char *bar;
@@ -90,24 +96,28 @@ struct FooE {
 
 extern SIMPLE_MOCKS_EXPORT void FooE_cleanup(struct FooE *);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_default(struct FooE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_default(struct FooE **);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_deepcopy(const struct FooE *,
-                                             struct FooE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_deepcopy(const struct FooE *,
+                                                          struct FooE **);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_display(const struct FooE *, FILE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_display(const struct FooE *,
+                                                         FILE *);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_debug(const struct FooE *, FILE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_debug(const struct FooE *,
+                                                       FILE *);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_eq(const struct FooE *,
-                                       const struct FooE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_eq(const struct FooE *,
+                                                    const struct FooE *);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_to_json(const struct FooE *, char **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_to_json(const struct FooE *,
+                                                         char **);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_from_jsonObject(const JSON_Object *,
-                                                    struct FooE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error
+FooE_from_jsonObject(const JSON_Object *, struct FooE **);
 
-extern SIMPLE_MOCKS_EXPORT int FooE_from_json(const char *, struct FooE **);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_from_json(const char *,
+                                                           struct FooE **);
 
 #ifdef __cplusplus
 }

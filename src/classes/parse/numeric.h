@@ -28,6 +28,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
@@ -126,7 +127,7 @@ struct NumericValue {
 extern C_CDD_EXPORT /**
                      * @brief Parses numeric literal from the given input.
                      */
-    int
+    enum cdd_c_error
     parse_numeric_literal(const char *str, struct NumericValue *out);
 
 #ifdef __cplusplus

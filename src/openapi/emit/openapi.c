@@ -20,32 +20,36 @@
 
 /* --- Helper Prototypes --- */
 
-int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val);
-int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
-int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
-int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
-                                   char **_out_val);
-int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
-int is_schema_primitive_openapi(const char *type);
+enum cdd_c_error verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val);
+enum cdd_c_error param_in_to_str_openapi(enum OpenAPI_ParamIn in,
+                                         char **_out_val);
+enum cdd_c_error style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
+enum cdd_c_error oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
+                                                char **_out_val);
+enum cdd_c_error xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
+                                              char **_out_val);
+enum cdd_c_error is_schema_primitive_openapi(const char *type);
 /**
  * @brief Executes the license fields invalid operation.
  */
-static int license_fields_invalid(const struct OpenAPI_License *lic);
+static enum cdd_c_error
+license_fields_invalid(const struct OpenAPI_License *lic);
 /**
  * @brief Executes the server url has query or fragment operation.
  */
-static int server_url_has_query_or_fragment(const char *url);
+static enum cdd_c_error server_url_has_query_or_fragment(const char *url);
 /**
  * @brief Executes the clone json value operation.
  */
-static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val);
-int merge_schema_extras_object_openapi(JSON_Object *target,
-                                       const char *extras_json);
+static enum cdd_c_error clone_json_value(const JSON_Value *val,
+                                         JSON_Value **_out_val);
+enum cdd_c_error merge_schema_extras_object_openapi(JSON_Object *target,
+                                                    const char *extras_json);
 /**
  * @brief Executes the any to json value operation.
  */
-static int any_to_json_value(const struct OpenAPI_Any *val,
-                             JSON_Value **_out_val);
+static enum cdd_c_error any_to_json_value(const struct OpenAPI_Any *val,
+                                          JSON_Value **_out_val);
 /**
  * @brief Generates C code for write example object.
  */
@@ -54,9 +58,10 @@ static void write_example_object(JSON_Object *ex_obj,
 /**
  * @brief Generates C code for write examples object.
  */
-static int write_examples_object(JSON_Object *parent, const char *key,
-                                 const struct OpenAPI_Example *examples,
-                                 size_t n_examples);
+static enum cdd_c_error
+write_examples_object(JSON_Object *parent, const char *key,
+                      const struct OpenAPI_Example *examples,
+                      size_t n_examples);
 /**
  * @brief Generates C code for write example fields.
  */
@@ -154,47 +159,50 @@ static void write_link_object(JSON_Object *l_obj,
 /**
  * @brief Generates C code for write headers map.
  */
-static int write_headers_map(JSON_Object *parent, const char *key,
-                             const struct OpenAPI_Header *headers,
-                             size_t n_headers, int ignore_content_type);
+static enum cdd_c_error write_headers_map(JSON_Object *parent, const char *key,
+                                          const struct OpenAPI_Header *headers,
+                                          size_t n_headers,
+                                          int ignore_content_type);
 /**
  * @brief Generates C code for write headers.
  */
-static int write_headers(JSON_Object *parent,
-                         const struct OpenAPI_Response *resp);
+static enum cdd_c_error write_headers(JSON_Object *parent,
+                                      const struct OpenAPI_Response *resp);
 /**
  * @brief Generates C code for write links.
  */
-static int write_links(JSON_Object *parent,
-                       const struct OpenAPI_Response *resp);
+static enum cdd_c_error write_links(JSON_Object *parent,
+                                    const struct OpenAPI_Response *resp);
 /**
  * @brief Generates C code for write media type object.
  */
-static int write_media_type_object(JSON_Object *media_obj,
-                                   const struct OpenAPI_MediaType *mt);
+static enum cdd_c_error
+write_media_type_object(JSON_Object *media_obj,
+                        const struct OpenAPI_MediaType *mt);
 /**
  * @brief Generates C code for write media type map.
  */
-static int write_media_type_map(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_MediaType *mts,
-                                size_t n_mts);
+static enum cdd_c_error
+write_media_type_map(JSON_Object *parent, const char *key,
+                     const struct OpenAPI_MediaType *mts, size_t n_mts);
 /**
  * @brief Generates C code for write encoding object.
  */
-static int write_encoding_object(JSON_Object *enc_obj,
-                                 const struct OpenAPI_Encoding *enc);
+static enum cdd_c_error
+write_encoding_object(JSON_Object *enc_obj, const struct OpenAPI_Encoding *enc);
 /**
  * @brief Generates C code for write encoding map.
  */
-static int write_encoding_map(JSON_Object *media_obj,
-                              const struct OpenAPI_Encoding *encoding,
-                              size_t n_encoding);
+static enum cdd_c_error
+write_encoding_map(JSON_Object *media_obj,
+                   const struct OpenAPI_Encoding *encoding, size_t n_encoding);
 /**
  * @brief Generates C code for write encoding array.
  */
-static int write_encoding_array(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_Encoding *encoding,
-                                size_t n_encoding);
+static enum cdd_c_error
+write_encoding_array(JSON_Object *parent, const char *key,
+                     const struct OpenAPI_Encoding *encoding,
+                     size_t n_encoding);
 /**
  * @brief Generates C code for write response object.
  */
@@ -203,125 +211,135 @@ static void write_response_object(JSON_Object *r_obj,
 /**
  * @brief Generates C code for write operation object.
  */
-static int write_operation_object(JSON_Object *op_obj,
-                                  const struct OpenAPI_Operation *op);
+static enum cdd_c_error
+write_operation_object(JSON_Object *op_obj, const struct OpenAPI_Operation *op);
 /**
  * @brief Generates C code for write parameters.
  */
-static int write_parameters(JSON_Object *parent,
-                            const struct OpenAPI_Parameter *params,
-                            size_t n_params);
+static enum cdd_c_error write_parameters(JSON_Object *parent,
+                                         const struct OpenAPI_Parameter *params,
+                                         size_t n_params);
 /**
  * @brief Generates C code for write responses.
  */
-static int write_responses(JSON_Object *op_obj,
-                           const struct OpenAPI_Operation *op);
+static enum cdd_c_error write_responses(JSON_Object *op_obj,
+                                        const struct OpenAPI_Operation *op);
 /**
  * @brief Generates C code for write request body.
  */
-static int write_request_body(JSON_Object *op_obj,
-                              const struct OpenAPI_Operation *op);
+static enum cdd_c_error write_request_body(JSON_Object *op_obj,
+                                           const struct OpenAPI_Operation *op);
 /**
  * @brief Generates C code for write callbacks.
  */
-static int write_callbacks(JSON_Object *op_obj,
-                           const struct OpenAPI_Operation *op);
+static enum cdd_c_error write_callbacks(JSON_Object *op_obj,
+                                        const struct OpenAPI_Operation *op);
 /**
  * @brief Generates C code for write operations.
  */
-static int write_operations(JSON_Object *path_item,
-                            const struct OpenAPI_Path *path);
+static enum cdd_c_error write_operations(JSON_Object *path_item,
+                                         const struct OpenAPI_Path *path);
 /**
  * @brief Generates C code for write additional operations.
  */
-static int write_additional_operations(JSON_Object *path_item,
-                                       const struct OpenAPI_Path *path);
+static enum cdd_c_error
+write_additional_operations(JSON_Object *path_item,
+                            const struct OpenAPI_Path *path);
 /**
  * @brief Generates C code for write path item object.
  */
-static int write_path_item_object(JSON_Object *item_obj,
-                                  const struct OpenAPI_Path *path);
+static enum cdd_c_error write_path_item_object(JSON_Object *item_obj,
+                                               const struct OpenAPI_Path *path);
 /**
  * @brief Generates C code for write paths.
  */
-static int write_paths(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_paths(JSON_Object *root_obj,
+                                    const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write servers.
  */
-static int write_servers(JSON_Object *root_obj,
-                         const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_servers(JSON_Object *root_obj,
+                                      const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write server array.
  */
-static int write_server_array(JSON_Object *parent, const char *key,
-                              const struct OpenAPI_Server *servers,
-                              size_t n_servers);
+static enum cdd_c_error write_server_array(JSON_Object *parent, const char *key,
+                                           const struct OpenAPI_Server *servers,
+                                           size_t n_servers);
 /**
  * @brief Generates C code for write security requirements.
  */
-static int
+static enum cdd_c_error
 write_security_requirements(JSON_Object *parent, const char *key,
                             const struct OpenAPI_SecurityRequirementSet *sets,
                             size_t count, int set_flag);
 /**
  * @brief Generates C code for write security schemes.
  */
-static int write_security_schemes(JSON_Object *components,
-                                  const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_security_schemes(JSON_Object *components,
+                                               const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component parameters.
  */
-static int write_component_parameters(JSON_Object *components,
-                                      const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_parameters(JSON_Object *components,
+                           const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component responses.
  */
-static int write_component_responses(JSON_Object *components,
-                                     const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_responses(JSON_Object *components,
+                          const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component headers.
  */
-static int write_component_headers(JSON_Object *components,
-                                   const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_headers(JSON_Object *components,
+                        const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component media types.
  */
-static int write_component_media_types(JSON_Object *components,
-                                       const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_media_types(JSON_Object *components,
+                            const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component examples.
  */
-static int write_component_examples(JSON_Object *components,
-                                    const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_examples(JSON_Object *components,
+                         const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component links.
  */
-static int write_component_links(JSON_Object *components,
-                                 const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_component_links(JSON_Object *components,
+                                              const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component callbacks.
  */
-static int write_component_callbacks(JSON_Object *components,
-                                     const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_callbacks(JSON_Object *components,
+                          const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write component path items.
  */
-static int write_component_path_items(JSON_Object *components,
-                                      const struct OpenAPI_Spec *spec);
+static enum cdd_c_error
+write_component_path_items(JSON_Object *components,
+                           const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write components.
  */
-static int write_components(JSON_Object *root_obj,
-                            const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_components(JSON_Object *root_obj,
+                                         const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write tags.
  */
-static int write_tags(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_tags(JSON_Object *root_obj,
+                                   const struct OpenAPI_Spec *spec);
 /**
  * @brief Generates C code for write webhooks.
  */
-static int write_webhooks(JSON_Object *root_obj,
-                          const struct OpenAPI_Spec *spec);
+static enum cdd_c_error write_webhooks(JSON_Object *root_obj,
+                                       const struct OpenAPI_Spec *spec);
 
 /* --- Implementations --- */
 
@@ -329,47 +347,47 @@ static int write_webhooks(JSON_Object *root_obj,
  * @brief Converts verb to string.
  *
  */
-int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
+enum cdd_c_error verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "get";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_POST: {
     *_out_val = "post";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PUT: {
     *_out_val = "put";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_DELETE: {
     *_out_val = "delete";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_PATCH: {
     *_out_val = "patch";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_HEAD: {
     *_out_val = "head";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_OPTIONS: {
     *_out_val = "options";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_TRACE: {
     *_out_val = "trace";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_VERB_QUERY: {
     *_out_val = "query";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -381,31 +399,32 @@ int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val) {
+enum cdd_c_error param_in_to_str_openapi(enum OpenAPI_ParamIn in,
+                                         char **_out_val) {
   switch (in) {
   case OA_PARAM_IN_PATH: {
     *_out_val = "path";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_PARAM_IN_QUERY: {
     *_out_val = "query";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_PARAM_IN_QUERYSTRING: {
     *_out_val = "querystring";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_PARAM_IN_HEADER: {
     *_out_val = "header";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_PARAM_IN_COOKIE: {
     *_out_val = "cookie";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -417,43 +436,43 @@ int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val) {
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
+enum cdd_c_error style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
   switch (s) {
   case OA_STYLE_FORM: {
     *_out_val = "form";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_SIMPLE: {
     *_out_val = "simple";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_MATRIX: {
     *_out_val = "matrix";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_LABEL: {
     *_out_val = "label";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_SPACE_DELIMITED: {
     *_out_val = "spaceDelimited";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_PIPE_DELIMITED: {
     *_out_val = "pipeDelimited";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_DEEP_OBJECT: {
     *_out_val = "deepObject";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_STYLE_COOKIE: {
     *_out_val = "cookie";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -465,31 +484,32 @@ int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
+enum cdd_c_error xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
+                                              char **_out_val) {
   switch (t) {
   case OA_XML_NODE_ELEMENT: {
     *_out_val = "element";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_XML_NODE_ATTRIBUTE: {
     *_out_val = "attribute";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_XML_NODE_TEXT: {
     *_out_val = "text";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_XML_NODE_CDATA: {
     *_out_val = "cdata";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_XML_NODE_NONE: {
     *_out_val = "none";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -500,10 +520,10 @@ int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
  * @param name The name.
  * @return 1 if true, 0 otherwise.
  */
-int header_name_is_content_type_openapi(const char *name) {
+enum cdd_c_error header_name_is_content_type_openapi(const char *name) {
   int _ast_iequal_0 = false;
   if (!name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
           _ast_iequal_0) != 0;
 }
@@ -514,12 +534,13 @@ int header_name_is_content_type_openapi(const char *name) {
  * @param p The parameter.
  * @return 1 if true, 0 otherwise.
  */
-int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
+enum cdd_c_error
+param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
   int _ast_iequal_1 = false;
   int _ast_iequal_2 = false;
   int _ast_iequal_3 = false;
   if (!p || p->in != OA_PARAM_IN_HEADER || !p->name)
-    return 0;
+    return CDD_C_SUCCESS;
   return (c_cdd_str_iequal(p->name, "Accept", &_ast_iequal_1), _ast_iequal_1) !=
              0 ||
          (c_cdd_str_iequal(p->name, "Content-Type", &_ast_iequal_2),
@@ -535,32 +556,32 @@ int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
-                                   char **_out_val) {
+enum cdd_c_error oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
+                                                char **_out_val) {
   switch (t) {
   case OA_OAUTH_FLOW_IMPLICIT: {
     *_out_val = "implicit";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_OAUTH_FLOW_PASSWORD: {
     *_out_val = "password";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_OAUTH_FLOW_CLIENT_CREDENTIALS: {
     *_out_val = "clientCredentials";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_OAUTH_FLOW_AUTHORIZATION_CODE: {
     *_out_val = "authorizationCode";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION: {
     *_out_val = "deviceAuthorization";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   }
 }
@@ -571,9 +592,9 @@ int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
  * @param type The schema type string.
  * @return 1 if true, 0 otherwise.
  */
-int is_schema_primitive_openapi(const char *type) {
+enum cdd_c_error is_schema_primitive_openapi(const char *type) {
   if (!type)
-    return 0;
+    return CDD_C_SUCCESS;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "boolean") == 0 || strcmp(type, "number") == 0 ||
          strcmp(type, "object") == 0 || strcmp(type, "null") == 0;
@@ -582,37 +603,39 @@ int is_schema_primitive_openapi(const char *type) {
 /**
  * @brief Executes the license fields invalid operation.
  */
-static int license_fields_invalid(const struct OpenAPI_License *lic) {
+static enum cdd_c_error
+license_fields_invalid(const struct OpenAPI_License *lic) {
   int has_any;
   if (!lic)
-    return 0;
+    return CDD_C_SUCCESS;
   has_any = lic->name || lic->identifier || lic->url || lic->extensions_json;
   if (!has_any)
-    return 0;
+    return CDD_C_SUCCESS;
   /* LCOV_EXCL_START */
   if (!lic->name || lic->name[0] == '\0')
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (lic->identifier && lic->url)
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the server url has query or fragment operation.
  */
-static int server_url_has_query_or_fragment(const char *url) {
+static enum cdd_c_error server_url_has_query_or_fragment(const char *url) {
   if (!url)
-    return 0;
+    return CDD_C_SUCCESS;
   return strchr(url, '?') != NULL || strchr(url, '#') != NULL;
 }
 
 /**
  * @brief Executes the clone json value operation.
  */
-static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
+static enum cdd_c_error clone_json_value(const JSON_Value *val,
+                                         JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
@@ -620,7 +643,7 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 
   if (!val) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* LCOV_EXCL_STOP */
@@ -628,14 +651,14 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   /* LCOV_EXCL_START */
   if (!serialized) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   copy = json_parse_string(serialized);
   json_free_serialized_string(serialized);
   {
     *_out_val = copy;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -646,23 +669,23 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
  * @param extras_json The extra json string.
  * @return 0 on success.
  */
-int merge_schema_extras_object_openapi(JSON_Object *target,
-                                       const char *extras_json) {
+enum cdd_c_error merge_schema_extras_object_openapi(JSON_Object *target,
+                                                    const char *extras_json) {
   JSON_Value *_ast_clone_json_value_0;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
 
   if (!target || !extras_json || extras_json[0] == '\0')
-    return 0;
+    return CDD_C_SUCCESS;
 
   extras_val = json_parse_string(extras_json);
   if (!extras_val)
-    return 0;
+    return CDD_C_SUCCESS;
   extras_obj = json_value_get_object(extras_val);
   if (!extras_obj) {
     json_value_free(extras_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   count = json_object_get_count(extras_obj);
@@ -678,26 +701,27 @@ int merge_schema_extras_object_openapi(JSON_Object *target,
     /* LCOV_EXCL_START */
     if (!copy) {
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (json_object_set_value(target, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(extras_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   json_value_free(extras_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the schema ref has data operation.
  */
-static int schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
+static enum cdd_c_error
+schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
   if (!ref)
-    return 0;
+    return CDD_C_SUCCESS;
   return ref->schema_is_boolean || ref->ref_name || ref->ref ||
          ref->inline_type || ref->n_type_union > 0 || ref->is_array ||
          ref->format || ref->content_media_type || ref->content_encoding ||
@@ -746,16 +770,16 @@ static void write_schema_type(JSON_Object *obj, const char *type,
 /**
  * @brief Executes the type union contains operation.
  */
-static int type_union_contains(char **types, size_t n_types,
-                               const char *value) {
+static enum cdd_c_error type_union_contains(char **types, size_t n_types,
+                                            const char *value) {
   size_t i;
   if (!types || !value)
-    return 0;
+    return CDD_C_SUCCESS;
   for (i = 0; i < n_types; ++i) {
     if (types[i] && strcmp(types[i], value) == 0)
-      return 1;
+      return CDD_C_ERROR_UNKNOWN;
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -859,49 +883,49 @@ static void write_any_array_values(JSON_Object *obj, const char *key,
 /**
  * @brief Executes the any to json value operation.
  */
-static int any_to_json_value(const struct OpenAPI_Any *val,
-                             JSON_Value **_out_val) {
+static enum cdd_c_error any_to_json_value(const struct OpenAPI_Any *val,
+                                          JSON_Value **_out_val) {
   /* LCOV_EXCL_START */
   if (!val) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   switch (val->type) {
   case OA_ANY_STRING: {
     *_out_val = json_value_init_string(val->string ? val->string : "");
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_ANY_NUMBER: {
     *_out_val = json_value_init_number(val->number);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_ANY_BOOL: {
     *_out_val = json_value_init_boolean(val->boolean ? 1 : 0);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_ANY_NULL: {
     *_out_val = json_value_init_null();
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_ANY_JSON:
     if (val->json) {
       JSON_Value *parsed = json_parse_string(val->json);
       if (parsed) {
         *_out_val = parsed;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
     {
       *_out_val = json_value_init_string(val->json ? val->json : "");
-      return 0;
+      return CDD_C_SUCCESS;
     }
   default:
     break;
   }
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -953,21 +977,22 @@ static void write_example_object(JSON_Object *ex_obj,
 /**
  * @brief Generates C code for write examples object.
  */
-static int write_examples_object(JSON_Object *parent, const char *key,
-                                 const struct OpenAPI_Example *examples,
-                                 size_t n_examples) {
+static enum cdd_c_error
+write_examples_object(JSON_Object *parent, const char *key,
+                      const struct OpenAPI_Example *examples,
+                      size_t n_examples) {
   JSON_Value *examples_val;
   JSON_Object *examples_obj;
   size_t i;
 
   if (!parent || !key || !examples || n_examples == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   examples_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!examples_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   examples_obj = json_value_get_object(examples_val);
@@ -985,7 +1010,7 @@ static int write_examples_object(JSON_Object *parent, const char *key,
   }
 
   json_object_set_value(parent, key, examples_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -1393,10 +1418,10 @@ static void write_items_schema_fields(JSON_Object *item_obj,
 /**
  * @brief Executes the schema ref keyword operation.
  */
-static int schema_ref_keyword(int is_dynamic, char **_out_val) {
+static enum cdd_c_error schema_ref_keyword(int is_dynamic, char **_out_val) {
   {
     *_out_val = is_dynamic ? "$dynamicRef" : "$ref";
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -1897,11 +1922,12 @@ static void write_header_object(JSON_Object *h_obj,
 /**
  * @brief Generates C code for write encoding object.
  */
-static int write_encoding_object(JSON_Object *enc_obj,
-                                 const struct OpenAPI_Encoding *enc) {
+static enum cdd_c_error
+write_encoding_object(JSON_Object *enc_obj,
+                      const struct OpenAPI_Encoding *enc) {
   char *_ast_style_to_str_17 = NULL;
   if (!enc_obj || !enc)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (enc->content_type)
     json_object_set_string(enc_obj, "contentType", enc->content_type);
@@ -1924,14 +1950,14 @@ static int write_encoding_object(JSON_Object *enc_obj,
   /* LCOV_EXCL_START */
   if (enc->encoding && enc->n_encoding > 0) {
     if (write_encoding_map(enc_obj, enc->encoding, enc->n_encoding) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (enc->prefix_encoding && enc->n_prefix_encoding > 0) {
     if (write_encoding_array(enc_obj, "prefixEncoding", enc->prefix_encoding,
                              enc->n_prefix_encoding) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   if (enc->item_encoding && enc->item_encoding_set) {
@@ -1940,12 +1966,12 @@ static int write_encoding_object(JSON_Object *enc_obj,
     /* LCOV_EXCL_START */
     if (!item_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (write_encoding_object(item_obj, enc->item_encoding) != 0) {
       json_value_free(item_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(enc_obj, "itemEncoding", item_val);
   }
@@ -1953,27 +1979,27 @@ static int write_encoding_object(JSON_Object *enc_obj,
   if (enc->extensions_json)
     merge_schema_extras_object_openapi(enc_obj, enc->extensions_json);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write encoding map.
  */
-static int write_encoding_map(JSON_Object *media_obj,
-                              const struct OpenAPI_Encoding *encoding,
-                              size_t n_encoding) {
+static enum cdd_c_error
+write_encoding_map(JSON_Object *media_obj,
+                   const struct OpenAPI_Encoding *encoding, size_t n_encoding) {
   JSON_Value *enc_val;
   JSON_Object *enc_obj;
   size_t i;
 
   if (!media_obj || !encoding || n_encoding == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   enc_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!enc_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   enc_obj = json_value_get_object(enc_val);
@@ -1988,39 +2014,40 @@ static int write_encoding_map(JSON_Object *media_obj,
 
     if (!e_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     /* LCOV_EXCL_STOP */
     if (write_encoding_object(e_obj, enc) != 0) {
       json_value_free(e_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(enc_obj, name, e_val);
   }
 
   json_object_set_value(media_obj, "encoding", enc_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write encoding array.
  */
-static int write_encoding_array(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_Encoding *encoding,
-                                size_t n_encoding) {
+static enum cdd_c_error
+write_encoding_array(JSON_Object *parent, const char *key,
+                     const struct OpenAPI_Encoding *encoding,
+                     size_t n_encoding) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
 
   if (!parent || !key || !encoding || n_encoding == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   arr_val = json_value_init_array();
   /* LCOV_EXCL_START */
   if (!arr_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   arr = json_value_get_array(arr_val);
@@ -2031,30 +2058,31 @@ static int write_encoding_array(JSON_Object *parent, const char *key,
     /* LCOV_EXCL_START */
     if (!e_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (write_encoding_object(e_obj, &encoding[i]) != 0) {
       json_value_free(e_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_array_append_value(arr, e_val);
   }
 
   json_object_set_value(parent, key, arr_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write media type object.
  */
-static int write_media_type_object(JSON_Object *media_obj,
-                                   const struct OpenAPI_MediaType *mt) {
+static enum cdd_c_error
+write_media_type_object(JSON_Object *media_obj,
+                        const struct OpenAPI_MediaType *mt) {
   if (!media_obj || !mt)
-    return 0;
+    return CDD_C_SUCCESS;
   if (mt->ref) {
     json_object_set_string(media_obj, "$ref", mt->ref);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (mt->schema_set || schema_ref_has_data(&mt->schema)) {
     write_schema_ref(media_obj, "schema", &mt->schema);
@@ -2067,14 +2095,14 @@ static int write_media_type_object(JSON_Object *media_obj,
   /* LCOV_EXCL_START */
   if (mt->encoding && mt->n_encoding > 0) {
     if (write_encoding_map(media_obj, mt->encoding, mt->n_encoding) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (mt->prefix_encoding && mt->n_prefix_encoding > 0) {
     if (write_encoding_array(media_obj, "prefixEncoding", mt->prefix_encoding,
                              mt->n_prefix_encoding) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   if (mt->item_encoding && mt->item_encoding_set) {
@@ -2083,38 +2111,38 @@ static int write_media_type_object(JSON_Object *media_obj,
     /* LCOV_EXCL_START */
     if (!item_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     if (write_encoding_object(item_obj, mt->item_encoding) != 0) {
       json_value_free(item_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(media_obj, "itemEncoding", item_val);
   }
   if (mt->extensions_json)
     merge_schema_extras_object_openapi(media_obj, mt->extensions_json);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write media type map.
  */
-static int write_media_type_map(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_MediaType *mts,
-                                size_t n_mts) {
+static enum cdd_c_error
+write_media_type_map(JSON_Object *parent, const char *key,
+                     const struct OpenAPI_MediaType *mts, size_t n_mts) {
   JSON_Value *content_val;
   JSON_Object *content_obj;
   size_t i;
 
   if (!parent || !key || !mts || n_mts == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   content_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!content_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   content_obj = json_value_get_object(content_val);
@@ -2128,13 +2156,13 @@ static int write_media_type_map(JSON_Object *parent, const char *key,
     if (write_media_type_object(mt_obj, mt) != 0) {
       json_value_free(mt_val);
       json_value_free(content_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     json_object_set_value(content_obj, name, mt_val);
   }
 
   json_object_set_value(parent, key, content_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2203,22 +2231,23 @@ static void write_link_object(JSON_Object *l_obj,
 /**
  * @brief Generates C code for write headers map.
  */
-static int write_headers_map(JSON_Object *parent, const char *key,
-                             const struct OpenAPI_Header *headers,
-                             size_t n_headers, int ignore_content_type) {
+static enum cdd_c_error write_headers_map(JSON_Object *parent, const char *key,
+                                          const struct OpenAPI_Header *headers,
+                                          size_t n_headers,
+                                          int ignore_content_type) {
   JSON_Value *headers_val;
   JSON_Object *headers_obj;
   size_t i;
   size_t written = 0;
 
   if (!parent || !key || !headers || n_headers == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   headers_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!headers_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   headers_obj = json_value_get_object(headers_val);
@@ -2240,19 +2269,19 @@ static int write_headers_map(JSON_Object *parent, const char *key,
 
   if (written == 0) {
     json_value_free(headers_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   json_object_set_value(parent, key, headers_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write headers.
  */
-static int write_headers(JSON_Object *parent,
-                         const struct OpenAPI_Response *resp) {
+static enum cdd_c_error write_headers(JSON_Object *parent,
+                                      const struct OpenAPI_Response *resp) {
   if (!parent || !resp || resp->n_headers == 0 || !resp->headers)
-    return 0;
+    return CDD_C_SUCCESS;
   return write_headers_map(parent, "headers", resp->headers, resp->n_headers,
                            1);
 }
@@ -2260,20 +2289,20 @@ static int write_headers(JSON_Object *parent,
 /**
  * @brief Generates C code for write links.
  */
-static int write_links(JSON_Object *parent,
-                       const struct OpenAPI_Response *resp) {
+static enum cdd_c_error write_links(JSON_Object *parent,
+                                    const struct OpenAPI_Response *resp) {
   JSON_Value *links_val;
   JSON_Object *links_obj;
   size_t i;
 
   if (!parent || !resp || resp->n_links == 0 || !resp->links)
-    return 0;
+    return CDD_C_SUCCESS;
 
   links_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!links_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   links_obj = json_value_get_object(links_val);
@@ -2289,7 +2318,7 @@ static int write_links(JSON_Object *parent,
   }
 
   json_object_set_value(parent, "links", links_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2360,22 +2389,22 @@ static void write_response_object(JSON_Object *r_obj,
 /**
  * @brief Generates C code for write parameters.
  */
-static int write_parameters(JSON_Object *parent,
-                            const struct OpenAPI_Parameter *params,
-                            size_t n_params) {
+static enum cdd_c_error write_parameters(JSON_Object *parent,
+                                         const struct OpenAPI_Parameter *params,
+                                         size_t n_params) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
   size_t written = 0;
 
   if (!parent || !params || n_params == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   arr_val = json_value_init_array();
   /* LCOV_EXCL_START */
   if (arr_val == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   arr = json_value_get_array(arr_val);
@@ -2396,31 +2425,32 @@ static int write_parameters(JSON_Object *parent,
 
   if (written == 0) {
     json_value_free(arr_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
   json_object_set_value(parent, "parameters", arr_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write request body object.
  */
-static int write_request_body_object(JSON_Object *rb_obj,
-                                     const struct OpenAPI_RequestBody *rb) {
+static enum cdd_c_error
+write_request_body_object(JSON_Object *rb_obj,
+                          const struct OpenAPI_RequestBody *rb) {
   JSON_Value *content_val;
   JSON_Object *content_obj;
   JSON_Value *media_val;
   JSON_Object *media_obj;
 
   if (!rb_obj || !rb)
-    return 0;
+    return CDD_C_SUCCESS;
 
   /* LCOV_EXCL_START */
 
   if (rb->content_media_types && rb->n_content_media_types > 0) {
     if (write_media_type_map(rb_obj, "content", rb->content_media_types,
                              rb->n_content_media_types) != 0)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
   }
 
   /* LCOV_EXCL_STOP */ else if (rb->content_ref) {
@@ -2428,7 +2458,7 @@ static int write_request_body_object(JSON_Object *rb_obj,
     /* LCOV_EXCL_START */
     if (!content_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     content_obj = json_value_get_object(content_val);
@@ -2437,7 +2467,7 @@ static int write_request_body_object(JSON_Object *rb_obj,
     /* LCOV_EXCL_START */
     if (!media_val) {
       json_value_free(content_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     media_obj = json_value_get_object(media_val);
@@ -2453,7 +2483,7 @@ static int write_request_body_object(JSON_Object *rb_obj,
     /* LCOV_EXCL_START */
     if (!content_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     content_obj = json_value_get_object(content_val);
@@ -2462,7 +2492,7 @@ static int write_request_body_object(JSON_Object *rb_obj,
     /* LCOV_EXCL_START */
     if (!media_val) {
       json_value_free(content_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     media_obj = json_value_get_object(media_val);
@@ -2488,26 +2518,26 @@ static int write_request_body_object(JSON_Object *rb_obj,
   if (rb->extensions_json)
     merge_schema_extras_object_openapi(rb_obj, rb->extensions_json);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write request body.
  */
-static int write_request_body(JSON_Object *op_obj,
-                              const struct OpenAPI_Operation *op) {
+static enum cdd_c_error write_request_body(JSON_Object *op_obj,
+                                           const struct OpenAPI_Operation *op) {
   JSON_Value *rb_val;
   JSON_Object *rb_obj;
 
   if (!op_obj || !op)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (op->req_body_ref) {
     rb_val = json_value_init_object();
     /* LCOV_EXCL_START */
     if (!rb_val) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     rb_obj = json_value_get_object(rb_val);
@@ -2517,20 +2547,20 @@ static int write_request_body(JSON_Object *op_obj,
     if (op->req_body_extensions_json)
       merge_schema_extras_object_openapi(rb_obj, op->req_body_extensions_json);
     json_object_set_value(op_obj, "requestBody", rb_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   /* If body is empty and no fields, skip */
   if (!schema_ref_has_data(&op->req_body) &&
       op->req_body.content_type == NULL && op->n_req_body_media_types == 0) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   rb_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!rb_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   rb_obj = json_value_get_object(rb_val);
@@ -2546,12 +2576,12 @@ static int write_request_body(JSON_Object *op_obj,
     rb.extensions_json = op->req_body_extensions_json;
     if (write_request_body_object(rb_obj, &rb) != 0) {
       json_value_free(rb_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
   json_object_set_value(op_obj, "requestBody", rb_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2598,20 +2628,20 @@ static void write_callback_object(JSON_Object *cb_obj,
 /**
  * @brief Generates C code for write callbacks.
  */
-static int write_callbacks(JSON_Object *op_obj,
-                           const struct OpenAPI_Operation *op) {
+static enum cdd_c_error write_callbacks(JSON_Object *op_obj,
+                                        const struct OpenAPI_Operation *op) {
   JSON_Value *cbs_val;
   JSON_Object *cbs_obj;
   size_t i;
 
   if (!op_obj || !op || op->n_callbacks == 0 || !op->callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cbs_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!cbs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   cbs_obj = json_value_get_object(cbs_val);
@@ -2627,14 +2657,14 @@ static int write_callbacks(JSON_Object *op_obj,
   }
 
   json_object_set_value(op_obj, "callbacks", cbs_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write responses.
  */
-static int write_responses(JSON_Object *op_obj,
-                           const struct OpenAPI_Operation *op) {
+static enum cdd_c_error write_responses(JSON_Object *op_obj,
+                                        const struct OpenAPI_Operation *op) {
   JSON_Value *resps_val = json_value_init_object();
   JSON_Object *resps_obj = json_value_get_object(resps_val);
   size_t i;
@@ -2653,18 +2683,19 @@ static int write_responses(JSON_Object *op_obj,
                                        op->responses_extensions_json);
 
   json_object_set_value(op_obj, "responses", resps_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write operation object.
  */
-static int write_operation_object(JSON_Object *op_obj,
-                                  const struct OpenAPI_Operation *op) {
+static enum cdd_c_error
+write_operation_object(JSON_Object *op_obj,
+                       const struct OpenAPI_Operation *op) {
   int rc;
 
   if (!op_obj || !op)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (op->operation_id) {
     json_object_set_string(op_obj, "operationId", op->operation_id);
@@ -2727,14 +2758,14 @@ static int write_operation_object(JSON_Object *op_obj,
   if (op->extensions_json)
     merge_schema_extras_object_openapi(op_obj, op->extensions_json);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write operations.
  */
-static int write_operations(JSON_Object *path_item,
-                            const struct OpenAPI_Path *path) {
+static enum cdd_c_error write_operations(JSON_Object *path_item,
+                                         const struct OpenAPI_Path *path) {
   char *_ast_verb_to_str_20 = NULL;
   size_t i;
   int rc;
@@ -2760,14 +2791,15 @@ static int write_operations(JSON_Object *path_item,
 
     json_object_set_value(path_item, verb, op_val);
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write additional operations.
  */
-static int write_additional_operations(JSON_Object *path_item,
-                                       const struct OpenAPI_Path *path) {
+static enum cdd_c_error
+write_additional_operations(JSON_Object *path_item,
+                            const struct OpenAPI_Path *path) {
   char *_ast_verb_to_str_21 = NULL;
   JSON_Value *add_val;
   JSON_Object *add_obj;
@@ -2776,13 +2808,13 @@ static int write_additional_operations(JSON_Object *path_item,
 
   if (!path_item || !path || path->n_additional_operations == 0 ||
       !path->additional_operations)
-    return 0;
+    return CDD_C_SUCCESS;
 
   add_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!add_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   add_obj = json_value_get_object(add_val);
@@ -2813,18 +2845,18 @@ static int write_additional_operations(JSON_Object *path_item,
   }
 
   json_object_set_value(path_item, "additionalOperations", add_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write path item object.
  */
-static int write_path_item_object(JSON_Object *item_obj,
-                                  const struct OpenAPI_Path *path) {
+static enum cdd_c_error
+write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
   int rc;
 
   if (!item_obj || !path)
-    return 0;
+    return CDD_C_SUCCESS;
 
   if (path->summary)
     json_object_set_string(item_obj, "summary", path->summary);
@@ -2855,13 +2887,14 @@ static int write_path_item_object(JSON_Object *item_obj,
   if (path->extensions_json)
     merge_schema_extras_object_openapi(item_obj, path->extensions_json);
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write paths.
  */
-static int write_paths(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_paths(JSON_Object *root_obj,
+                                    const struct OpenAPI_Spec *spec) {
   JSON_Value *paths_val = json_value_init_object();
   JSON_Object *paths_obj = json_value_get_object(paths_val);
   size_t i;
@@ -2906,10 +2939,10 @@ static int write_paths(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
 /**
  * @brief Generates C code for write servers.
  */
-static int write_servers(JSON_Object *root_obj,
-                         const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_servers(JSON_Object *root_obj,
+                                      const struct OpenAPI_Spec *spec) {
   if (!spec)
-    return 0;
+    return CDD_C_SUCCESS;
   return write_server_array(root_obj, "servers", spec->servers,
                             spec->n_servers);
 }
@@ -2917,21 +2950,21 @@ static int write_servers(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write server array.
  */
-static int write_server_array(JSON_Object *parent, const char *key,
-                              const struct OpenAPI_Server *servers,
-                              size_t n_servers) {
+static enum cdd_c_error write_server_array(JSON_Object *parent, const char *key,
+                                           const struct OpenAPI_Server *servers,
+                                           size_t n_servers) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
 
   if (!parent || !key || !servers || n_servers == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   arr_val = json_value_init_array();
   /* LCOV_EXCL_START */
   if (!arr_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   arr = json_value_get_array(arr_val);
@@ -2942,7 +2975,7 @@ static int write_server_array(JSON_Object *parent, const char *key,
     const struct OpenAPI_Server *srv = &servers[i];
     if (server_url_has_query_or_fragment(srv->url)) {
       json_value_free(arr_val);
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
     srv_val = json_value_init_object();
     srv_obj = json_value_get_object(srv_val);
@@ -2952,25 +2985,26 @@ static int write_server_array(JSON_Object *parent, const char *key,
   }
 
   json_object_set_value(parent, key, arr_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write tags.
  */
-static int write_tags(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_tags(JSON_Object *root_obj,
+                                   const struct OpenAPI_Spec *spec) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
 
   if (!spec || spec->n_tags == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   arr_val = json_value_init_array();
   /* LCOV_EXCL_START */
   if (!arr_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   arr = json_value_get_array(arr_val);
@@ -2999,30 +3033,30 @@ static int write_tags(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
   }
 
   json_object_set_value(root_obj, "tags", arr_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write webhooks.
  */
-static int write_webhooks(JSON_Object *root_obj,
-                          const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_webhooks(JSON_Object *root_obj,
+                                       const struct OpenAPI_Spec *spec) {
   JSON_Value *hooks_val;
   JSON_Object *hooks_obj;
   size_t i;
   int rc = 0;
 
   if (!spec)
-    return 0;
+    return CDD_C_SUCCESS;
   if ((spec->n_webhooks == 0 || !spec->webhooks) &&
       !spec->webhooks_extensions_json)
-    return 0;
+    return CDD_C_SUCCESS;
 
   hooks_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!hooks_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   hooks_obj = json_value_get_object(hooks_val);
@@ -3056,7 +3090,7 @@ static int write_webhooks(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write security requirements.
  */
-static int
+static enum cdd_c_error
 write_security_requirements(JSON_Object *parent, const char *key,
                             const struct OpenAPI_SecurityRequirementSet *sets,
                             size_t count, int set_flag) {
@@ -3065,20 +3099,20 @@ write_security_requirements(JSON_Object *parent, const char *key,
   size_t i;
 
   if (!parent || !key || !set_flag)
-    return 0;
+    return CDD_C_SUCCESS;
 
   arr_val = json_value_init_array();
   /* LCOV_EXCL_START */
   if (!arr_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   arr = json_value_get_array(arr_val);
 
   if (count == 0) {
     json_object_set_value(parent, key, arr_val);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < count; ++i) {
@@ -3091,7 +3125,7 @@ write_security_requirements(JSON_Object *parent, const char *key,
 
     if (!set_val) {
       json_value_free(arr_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     /* LCOV_EXCL_STOP */
@@ -3107,7 +3141,7 @@ write_security_requirements(JSON_Object *parent, const char *key,
       if (!scopes_val) {
         json_value_free(set_val);
         json_value_free(arr_val);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
 
       /* LCOV_EXCL_STOP */
@@ -3127,27 +3161,28 @@ write_security_requirements(JSON_Object *parent, const char *key,
   }
 
   json_object_set_value(parent, key, arr_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Write security schemes to components.
  */
-static int write_security_schemes(JSON_Object *components,
-                                  const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_security_schemes(JSON_Object *components,
+                       const struct OpenAPI_Spec *spec) {
   char *_ast_oauth_flow_type_to_str_22 = NULL;
   JSON_Value *sec_val;
   JSON_Object *sec_obj;
   size_t i;
 
   if (spec->n_security_schemes == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   sec_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!sec_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   sec_obj = json_value_get_object(sec_val);
@@ -3267,26 +3302,27 @@ static int write_security_schemes(JSON_Object *components,
   }
 
   json_object_set_value(components, "securitySchemes", sec_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component parameters.
  */
-static int write_component_parameters(JSON_Object *components,
-                                      const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_parameters(JSON_Object *components,
+                           const struct OpenAPI_Spec *spec) {
   JSON_Value *params_val;
   JSON_Object *params_obj;
   size_t i;
 
   if (!spec || spec->n_component_parameters == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   params_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!params_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   params_obj = json_value_get_object(params_val);
@@ -3305,26 +3341,27 @@ static int write_component_parameters(JSON_Object *components,
   }
 
   json_object_set_value(components, "parameters", params_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component responses.
  */
-static int write_component_responses(JSON_Object *components,
-                                     const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_responses(JSON_Object *components,
+                          const struct OpenAPI_Spec *spec) {
   JSON_Value *resp_val;
   JSON_Object *resp_obj;
   size_t i;
 
   if (!spec || spec->n_component_responses == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   resp_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!resp_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   resp_obj = json_value_get_object(resp_val);
@@ -3343,26 +3380,27 @@ static int write_component_responses(JSON_Object *components,
   }
 
   json_object_set_value(components, "responses", resp_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component headers.
  */
-static int write_component_headers(JSON_Object *components,
-                                   const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_headers(JSON_Object *components,
+                        const struct OpenAPI_Spec *spec) {
   JSON_Value *hdrs_val;
   JSON_Object *hdrs_obj;
   size_t i;
 
   if (!spec || spec->n_component_headers == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   hdrs_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!hdrs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   hdrs_obj = json_value_get_object(hdrs_val);
@@ -3381,26 +3419,27 @@ static int write_component_headers(JSON_Object *components,
   }
 
   json_object_set_value(components, "headers", hdrs_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component media types.
  */
-static int write_component_media_types(JSON_Object *components,
-                                       const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_media_types(JSON_Object *components,
+                            const struct OpenAPI_Spec *spec) {
   JSON_Value *media_val;
   JSON_Object *media_obj;
   size_t i;
 
   if (!spec || spec->n_component_media_types == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   media_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!media_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   media_obj = json_value_get_object(media_val);
@@ -3417,33 +3456,34 @@ static int write_component_media_types(JSON_Object *components,
     }
     if (write_media_type_object(mt_obj, mt) != 0) {
       json_value_free(mt_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     json_object_set_value(media_obj, name, mt_val);
   }
 
   json_object_set_value(components, "mediaTypes", media_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component examples.
  */
-static int write_component_examples(JSON_Object *components,
-                                    const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_examples(JSON_Object *components,
+                         const struct OpenAPI_Spec *spec) {
   JSON_Value *examples_val;
   JSON_Object *examples_obj;
   size_t i;
 
   if (!spec || spec->n_component_examples == 0 || !spec->component_examples)
-    return 0;
+    return CDD_C_SUCCESS;
 
   examples_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!examples_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   examples_obj = json_value_get_object(examples_val);
@@ -3462,26 +3502,26 @@ static int write_component_examples(JSON_Object *components,
   }
 
   json_object_set_value(components, "examples", examples_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component links.
  */
-static int write_component_links(JSON_Object *components,
-                                 const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_component_links(JSON_Object *components,
+                                              const struct OpenAPI_Spec *spec) {
   JSON_Value *links_val;
   JSON_Object *links_obj;
   size_t i;
 
   if (!spec || spec->n_component_links == 0 || !spec->component_links)
-    return 0;
+    return CDD_C_SUCCESS;
 
   links_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!links_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   links_obj = json_value_get_object(links_val);
@@ -3497,26 +3537,27 @@ static int write_component_links(JSON_Object *components,
   }
 
   json_object_set_value(components, "links", links_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component callbacks.
  */
-static int write_component_callbacks(JSON_Object *components,
-                                     const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_callbacks(JSON_Object *components,
+                          const struct OpenAPI_Spec *spec) {
   JSON_Value *cbs_val;
   JSON_Object *cbs_obj;
   size_t i;
 
   if (!spec || spec->n_component_callbacks == 0 || !spec->component_callbacks)
-    return 0;
+    return CDD_C_SUCCESS;
 
   cbs_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!cbs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   cbs_obj = json_value_get_object(cbs_val);
@@ -3532,27 +3573,28 @@ static int write_component_callbacks(JSON_Object *components,
   }
 
   json_object_set_value(components, "callbacks", cbs_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component path items.
  */
-static int write_component_path_items(JSON_Object *components,
-                                      const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_path_items(JSON_Object *components,
+                           const struct OpenAPI_Spec *spec) {
   JSON_Value *paths_val;
   JSON_Object *paths_obj;
   size_t i;
   int rc;
 
   if (!spec || spec->n_component_path_items == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   paths_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!paths_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   paths_obj = json_value_get_object(paths_val);
@@ -3581,26 +3623,27 @@ static int write_component_path_items(JSON_Object *components,
   }
 
   json_object_set_value(components, "pathItems", paths_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write component request bodies.
  */
-static int write_component_request_bodies(JSON_Object *components,
-                                          const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error
+write_component_request_bodies(JSON_Object *components,
+                               const struct OpenAPI_Spec *spec) {
   JSON_Value *rbs_val;
   JSON_Object *rbs_obj;
   size_t i;
 
   if (spec->n_component_request_bodies == 0)
-    return 0;
+    return CDD_C_SUCCESS;
 
   rbs_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!rbs_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   rbs_obj = json_value_get_object(rbs_val);
@@ -3620,21 +3663,21 @@ static int write_component_request_bodies(JSON_Object *components,
       if (write_request_body_object(rb_obj, rb) != 0) {
         json_value_free(rb_val);
         json_value_free(rbs_val);
-        return ENOMEM;
+        return CDD_C_ERROR_MEMORY;
       }
     }
     json_object_set_value(rbs_obj, name, rb_val);
   }
 
   json_object_set_value(components, "requestBodies", rbs_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Generates C code for write components.
  */
-static int write_components(JSON_Object *root_obj,
-                            const struct OpenAPI_Spec *spec) {
+static enum cdd_c_error write_components(JSON_Object *root_obj,
+                                         const struct OpenAPI_Spec *spec) {
   JSON_Value *comps_val;
   JSON_Object *comps_obj;
   int rc;
@@ -3647,14 +3690,14 @@ static int write_components(JSON_Object *root_obj,
       spec->n_component_media_types == 0 && spec->n_component_examples == 0 &&
       spec->n_component_links == 0 && spec->n_component_callbacks == 0 &&
       spec->n_component_path_items == 0 && !spec->components_extensions_json) {
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   comps_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!comps_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   comps_obj = json_value_get_object(comps_val);
@@ -3692,7 +3735,7 @@ static int write_components(JSON_Object *root_obj,
         printf("FAILED parsing %s\n", spec->raw_schema_json[i]);
         json_value_free(comps_val);
         json_value_free(schemas_val);
-        return EINVAL;
+        return CDD_C_ERROR_INVALID_ARGUMENT;
       }
       /* LCOV_EXCL_STOP */
       json_object_set_value(schemas_obj, spec->raw_schema_names[i], raw_val);
@@ -3773,14 +3816,14 @@ static int write_components(JSON_Object *root_obj,
   }
 
   json_object_set_value(root_obj, "components", comps_val);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the openapi write spec to json operation.
  */
-int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
-                               char **json_out) {
+enum cdd_c_error openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
+                                            char **json_out) {
   char *_ast_strdup_4 = NULL;
   JSON_Value *root_val;
   JSON_Object *root_obj;
@@ -3789,27 +3832,27 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
 
   if (!spec || !json_out) {
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   /* LCOV_EXCL_STOP */
   if (spec->is_schema_document) {
     /* LCOV_EXCL_START */
     if (!spec->schema_root_json)
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
     *json_out =
         (c_cdd_strdup(spec->schema_root_json, &_ast_strdup_4), _ast_strdup_4);
     return *json_out ? 0 : ENOMEM;
   }
   if (license_fields_invalid(&spec->info.license))
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   root_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!root_val) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   root_obj = json_value_get_object(root_val);

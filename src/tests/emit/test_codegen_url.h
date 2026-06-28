@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +25,9 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static int gen_url_code(const char *tmpl,
-                        const struct OpenAPI_Parameter *params, size_t n_params,
-                        char **_out_val) {
+static enum cdd_c_error gen_url_code(const char *tmpl,
+                                     const struct OpenAPI_Parameter *params,
+                                     size_t n_params, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -55,7 +56,8 @@ static int gen_url_code(const char *tmpl,
   }
 }
 
-static int gen_query_code(const struct OpenAPI_Operation *op, char **_out_val) {
+static enum cdd_c_error gen_query_code(const struct OpenAPI_Operation *op,
+                                       char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -993,19 +995,21 @@ TEST test_query_gen_json_content_ref(void) {
 }
 
 TEST test_media_type_is_json_url(void) {
-  ASSERT_EQ(0, media_type_is_json_url(NULL));
-  ASSERT_EQ(1, media_type_is_json_url("application/json"));
-  ASSERT_EQ(1, media_type_is_json_url("application/vnd.api+json"));
-  ASSERT_EQ(1, media_type_is_json_url("APPLICATION/JSON"));
-  ASSERT_EQ(1, media_type_is_json_url("application/JSON"));
-  ASSERT_EQ(1, media_type_is_json_url("application/vnd.api+JSON"));
-  ASSERT_EQ(1,
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_json_url("application/vnd.api+json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("APPLICATION/JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_json_url("application/vnd.api+JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             media_type_is_json_url("application/vnd.api+json; charset=utf-8"));
-  ASSERT_EQ(0, media_type_is_json_url("application/xml"));
-  ASSERT_EQ(0, media_type_is_json_url("text/plain"));
-  ASSERT_EQ(0, media_type_is_json_url("application/json+xml"));
-  ASSERT_EQ(0, media_type_is_json_url("json"));
-  ASSERT_EQ(1, media_type_is_json_url("+json"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/xml"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text/plain"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/json+xml"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("+json"));
   g_fail_io_after = -1;
   PASS();
 }

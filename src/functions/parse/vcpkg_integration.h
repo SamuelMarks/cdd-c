@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -53,10 +54,10 @@ struct VcpkgManifestBuilder {
 /**
  * @brief Initialize a vcpkg manifest builder.
  */
-extern C_CDD_EXPORT int vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
-                                           const char *project_name,
-                                           const char *version_string,
-                                           const char *description);
+extern C_CDD_EXPORT enum cdd_c_error
+vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
+                   const char *project_name, const char *version_string,
+                   const char *description);
 
 /**
  * @brief Free resources associated with a vcpkg manifest builder.
@@ -73,7 +74,7 @@ vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
  * @param[in] dep_name The name of the vcpkg port (e.g., "pthreads").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
                       const char *dep_name);
 
@@ -90,7 +91,7 @@ vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
  * @param[in] file_content Null-terminated C source file content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                           const char *file_content);
 
@@ -101,7 +102,7 @@ vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
  * @param[out] out_json A newly allocated string containing the JSON structure.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                        char **out_json);
 

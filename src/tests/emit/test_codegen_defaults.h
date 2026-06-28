@@ -9,6 +9,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +24,9 @@ extern "C" {
 #endif
 
 /* Helper to generate code and return as string buffer */
-static int generate_def_code(const char *struct_name, struct StructFields *sf,
-                             char **_out_val) {
+static enum cdd_c_error generate_def_code(const char *struct_name,
+                                          struct StructFields *sf,
+                                          char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -108,9 +110,8 @@ TEST test_default_string(void) {
 #else
   ASSERT(strstr(code, "(*out)->s = strdup(\"hello\");"));
 #endif
-  ASSERT(strstr(
-      code,
-      "if (!(*out)->s) { StrS_cleanup(*out); *out=NULL; return ENOMEM; }"));
+  ASSERT(strstr(code, "if (!(*out)->s) { StrS_cleanup(*out); *out=NULL; return "
+                      "CDD_C_ERROR_MEMORY; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -238,8 +239,8 @@ TEST test_default_binary_literal(void) {
 TEST test_write_forward_decl_bounds(void) {
   FILE *tmp = tmpfile();
   ASSERT(tmp);
-  ASSERT_EQ(EINVAL, write_forward_decl(NULL, "X"));
-  ASSERT_EQ(EINVAL, write_forward_decl(tmp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(NULL, "X"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(tmp, NULL));
   ASSERT_EQ(0, write_forward_decl(tmp, "X"));
   fclose(tmp);
   g_fail_io_after = -1;
@@ -257,7 +258,7 @@ TEST test_write_forward_decl_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_forward_decl(tmp, "X"));
+  ASSERT_EQ(CDD_C_ERROR_IO, write_forward_decl(tmp, "X"));
   fclose(tmp);
   g_fail_io_after = -1;
   PASS();
@@ -281,7 +282,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   g_io_calls = 0;
   rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
   printf("RC WAS %d\n", rc);
-  ASSERT_EQ(EIO, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -304,7 +305,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  ASSERT_EQ(EIO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_IO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -329,7 +330,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   g_io_calls = 0;
   rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
   printf("RC WAS %d\n", rc);
-  ASSERT_EQ(EIO, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -344,17 +345,26 @@ TEST test_codegen_h_bounds(void) {
   struct_fields_init(&sf);
 
   ASSERT(tmp);
-  ASSERT_EQ(EINVAL, write_enum_declaration_h(NULL, "E", &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_enum_declaration_h(tmp, NULL, &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_enum_declaration_h(tmp, "E", NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_declaration_h(NULL, "E", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_enum_declaration_h(tmp, "E", NULL, &cfg));
 
-  ASSERT_EQ(EINVAL, write_union_declaration_h(NULL, "U", &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_union_declaration_h(tmp, NULL, &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_union_declaration_h(tmp, "U", NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_declaration_h(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_union_declaration_h(tmp, "U", NULL, &cfg));
 
-  ASSERT_EQ(EINVAL, write_struct_declaration_h(NULL, "S", &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_struct_declaration_h(tmp, NULL, &sf, &cfg));
-  ASSERT_EQ(EINVAL, write_struct_declaration_h(tmp, "S", NULL, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_declaration_h(NULL, "S", &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_struct_declaration_h(tmp, "S", NULL, &cfg));
 
   fclose(tmp);
   struct_fields_free(&sf);

@@ -29,13 +29,13 @@ static int check_io_helper_make(int rc) {
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if (check_io_helper_make(x) < 0)                                           \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #else
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #endif
 
@@ -65,11 +65,12 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define FPRINTF_HOOK fprintf
 #endif
 
-int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
+enum cdd_c_error codegen_make_generate(FILE *fp,
+                                       const struct MakeConfig *config) {
   size_t i;
 
   if (!fp || !config || !config->project_name)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Header */
   CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
@@ -140,7 +141,7 @@ int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   CHECK_IO(FPRINTF_HOOK(
       fp, "        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})\n"));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 #if defined(_MSC_VER)
 #pragma warning(pop)

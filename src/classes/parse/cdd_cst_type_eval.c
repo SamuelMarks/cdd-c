@@ -6,30 +6,30 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-int cdd_cst_eval_primitive_type(const char *type_name,
-                                enum cdd_cst_abi_model_t abi,
-                                cdd_cst_type_info_t *out_info) {
+enum cdd_c_error cdd_cst_eval_primitive_type(const char *type_name,
+                                             enum cdd_cst_abi_model_t abi,
+                                             cdd_cst_type_info_t *out_info) {
   if (!type_name || !out_info)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (strcmp(type_name, "char") == 0 || strcmp(type_name, "signed char") == 0 ||
       strcmp(type_name, "unsigned char") == 0) {
     out_info->size = 1;
     out_info->alignment = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "short") == 0 ||
       strcmp(type_name, "unsigned short") == 0) {
     out_info->size = 2;
     out_info->alignment = 2;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "int") == 0 || strcmp(type_name, "unsigned int") == 0) {
     out_info->size = 4;
     out_info->alignment = 4;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "long") == 0 ||
@@ -41,26 +41,26 @@ int cdd_cst_eval_primitive_type(const char *type_name,
       out_info->size = 8;
       out_info->alignment = 8;
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "long long") == 0 ||
       strcmp(type_name, "unsigned long long") == 0) {
     out_info->size = 8;
     out_info->alignment = 8;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "float") == 0) {
     out_info->size = 4;
     out_info->alignment = 4;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "double") == 0) {
     out_info->size = 8;
     out_info->alignment = 8;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "long double") == 0) {
@@ -74,7 +74,7 @@ int cdd_cst_eval_primitive_type(const char *type_name,
       out_info->size = 16;
       out_info->alignment = 16;
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "void *") == 0 || strcmp(type_name, "ptr") == 0) {
@@ -85,21 +85,21 @@ int cdd_cst_eval_primitive_type(const char *type_name,
       out_info->size = 8;
       out_info->alignment = 8;
     }
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(type_name, "__int128") == 0 ||
       strcmp(type_name, "unsigned __int128") == 0) {
     out_info->size = 16;
     out_info->alignment = 16;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-static int extract_type_name(cdd_cst_node_t *node, char **out_name,
-                             int *is_pointer) {
+static enum cdd_c_error extract_type_name(cdd_cst_node_t *node, char **out_name,
+                                          int *is_pointer) {
   size_t i;
   char buf[256];
   size_t buf_len = 0;
@@ -144,25 +144,27 @@ static int extract_type_name(cdd_cst_node_t *node, char **out_name,
       ret = (char *)malloc(buf_len + 1);
     if (!ret) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     memcpy(ret, buf, buf_len + 1);
     *out_name = ret;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
-  return ENOENT;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
-int cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
-                        enum cdd_cst_abi_model_t abi, size_t *out_size) {
+enum cdd_c_error cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
+                                     cdd_cst_node_t *type_node,
+                                     enum cdd_cst_abi_model_t abi,
+                                     size_t *out_size) {
   char *name = NULL;
   int is_pointer = 0;
   int rc;
   cdd_cst_type_info_t info;
 
   if (!env || !type_node || !out_size)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
   if (rc == 0) {
@@ -175,24 +177,26 @@ int cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
     free(name);
     if (rc == 0) {
       *out_size = info.size;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   /* Fallback / Stub for structs, unions, arrays, etc. */
   *out_size = 0;
-  return ENOSYS;
+  return CDD_C_ERROR_SYSTEM;
 }
 
-int cdd_cst_eval_alignof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
-                         enum cdd_cst_abi_model_t abi, size_t *out_align) {
+enum cdd_c_error cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
+                                      cdd_cst_node_t *type_node,
+                                      enum cdd_cst_abi_model_t abi,
+                                      size_t *out_align) {
   char *name = NULL;
   int is_pointer = 0;
   int rc;
   cdd_cst_type_info_t info;
 
   if (!env || !type_node || !out_align)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
   if (rc == 0) {
@@ -205,11 +209,11 @@ int cdd_cst_eval_alignof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
     free(name);
     if (rc == 0) {
       *out_align = info.alignment;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   /* Fallback / Stub for structs, unions, arrays, etc. */
   *out_align = 0;
-  return ENOSYS;
+  return CDD_C_ERROR_SYSTEM;
 }

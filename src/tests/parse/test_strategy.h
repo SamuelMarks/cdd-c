@@ -30,8 +30,10 @@ TEST test_strategy_errors(void) {
   memset(&patches, 0, sizeof(patches));
   memset(&allocs, 0, sizeof(allocs));
 
-  ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, &allocs, &patches));
-  ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, NULL, &patches));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            strategy_inject_safety_checks(NULL, &allocs, &patches));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            strategy_inject_safety_checks(NULL, NULL, &patches));
   g_fail_io_after = -1;
 
   PASS();

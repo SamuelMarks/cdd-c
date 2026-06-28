@@ -69,8 +69,10 @@ TEST test_scan_for_designated_initializers_errors(void) {
   desig_init_list_init(&list);
   ASSERT_EQ(0, tokenize(az_span_create_from_str("int x = 1;"), &tl));
 
-  ASSERT_EQ(EINVAL, scan_for_designated_initializers(NULL, &list));
-  ASSERT_EQ(EINVAL, scan_for_designated_initializers(tl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_designated_initializers(NULL, &list));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            scan_for_designated_initializers(tl, NULL));
 
   desig_init_list_free(&list);
   free_token_list(tl);

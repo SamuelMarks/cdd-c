@@ -13,14 +13,15 @@
 #include "classes/emit/struct.h"
 /* clang-format on */
 
-int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
-                                           const struct StructFields *sf) {
+enum cdd_c_error
+write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
+                                       const struct StructFields *sf) {
   size_t i;
   int has_string = 0;
   int has_primitive = 0;
 
   if (!fp || !struct_name || !sf)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Check for string vs primitive types to structure if/else correctly */
   for (i = 0; i < sf->size; ++i) {
@@ -55,10 +56,10 @@ int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
     }
   }
 
-  fprintf(fp, "  if (!json || !out) return 1;\n");
+  fprintf(fp, "  if (!json || !out) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  ret = (struct %s *)calloc(1, sizeof(struct %s));\n",
           struct_name, struct_name);
-  fprintf(fp, "  if (!ret) return 1;\n\n");
+  fprintf(fp, "  if (!ret) return CDD_C_ERROR_UNKNOWN;\n\n");
 
   fprintf(fp, "  while (*p) {\n");
   /* Find next key */
@@ -163,11 +164,11 @@ int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
   }
 
   fprintf(fp, "  *out = ret;\n");
-  fprintf(fp, "  return 0;\n");
+  fprintf(fp, "  return CDD_C_SUCCESS;\n");
 
   fprintf(fp, "\nerr:\n");
   fprintf(fp, "  free(ret);\n");
-  fprintf(fp, "  return 1;\n");
+  fprintf(fp, "  return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "}\n");
-  return 0;
+  return CDD_C_SUCCESS;
 }

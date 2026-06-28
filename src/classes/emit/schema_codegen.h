@@ -13,6 +13,7 @@ extern "C" {
 
 /* clang-format off */
 #include <c_cdd_export.h>
+#include "cdd_c_error.h"
 #include "parson.h"
 /* clang-format on */
 
@@ -27,16 +28,14 @@ extern "C" {
  */
 /* Forward declarations for testing */
 struct CodegenConfig;
-extern C_CDD_EXPORT int generate_header(const char *prefix,
-                                        const char *basename,
-                                        JSON_Object *schemas_obj,
-                                        const struct CodegenConfig *config);
-extern C_CDD_EXPORT int generate_source(const char *prefix,
-                                        const char *basename,
-                                        JSON_Object *schemas_obj,
-                                        const struct CodegenConfig *config);
+extern C_CDD_EXPORT enum cdd_c_error
+generate_header(const char *prefix, const char *basename,
+                JSON_Object *schemas_obj, const struct CodegenConfig *config);
+extern C_CDD_EXPORT enum cdd_c_error
+generate_source(const char *prefix, const char *basename,
+                JSON_Object *schemas_obj, const struct CodegenConfig *config);
 
-extern C_CDD_EXPORT int schema2code_main(int argc, char **argv);
+extern C_CDD_EXPORT enum cdd_c_error schema2code_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

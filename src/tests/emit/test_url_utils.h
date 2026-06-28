@@ -358,15 +358,15 @@ TEST test_query_null_safety(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
 
-  ASSERT_EQ(EINVAL, url_query_init(NULL));
-  ASSERT_EQ(EINVAL, url_query_add(NULL, "k", "v"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(NULL, "k", "v"));
 
   url_query_init(&qp);
-  ASSERT_EQ(EINVAL, url_query_add(&qp, NULL, "v"));
-  ASSERT_EQ(EINVAL, url_query_add(&qp, "k", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(&qp, NULL, "v"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_add(&qp, "k", NULL));
 
-  ASSERT_EQ(EINVAL, url_query_build(NULL, &res));
-  ASSERT_EQ(EINVAL, url_query_build(&qp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_build(NULL, &res));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_build(&qp, NULL));
 
   url_query_free(NULL); /* Safe */
   url_query_free(&qp);
@@ -383,8 +383,8 @@ TEST test_url_utils_write_query_json_param(void) {
   fp = fopen("test_url_json.txt", "w");
   ASSERT(fp != NULL);
 
-  ASSERT_EQ(EINVAL, write_query_json_param(NULL, NULL));
-  ASSERT_EQ(EINVAL, write_query_json_param(fp, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(fp, NULL));
 
   p.name = "test";
   p.type = "array";

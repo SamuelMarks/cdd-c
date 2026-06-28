@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/emit/patcher.h"
 /* clang-format on */
 
@@ -33,7 +34,7 @@ extern "C" {
 C_CDD_EXPORT /**
               * @brief Executes the patch list generate diff operation.
               */
-    int
+    enum cdd_c_error
     patch_list_generate_diff(const struct TokenList *tokens,
                              const struct PatchList *list, const char *filename,
                              char **out_diff);

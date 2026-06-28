@@ -29,17 +29,17 @@ C_CDD_EXPORT int g_cdd_strdup_fail = 0;
 /**
  * @brief Executes the c cdd strdup operation.
  */
-int c_cdd_strdup(const char *s, char **out_s) {
+enum cdd_c_error c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
     if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
       *out_s = NULL;
-      return 12;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 #endif
@@ -55,85 +55,87 @@ int c_cdd_strdup(const char *s, char **out_s) {
 /**
  * @brief Executes the c cdd str starts with operation.
  */
-int c_cdd_str_starts_with(const char *str, const char *prefix, int *out_b) {
+enum cdd_c_error c_cdd_str_starts_with(const char *str, const char *prefix,
+                                       int *out_b) {
   size_t i;
   if (str == NULL || prefix == NULL) {
     *out_b = false;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   for (i = 0; prefix[i] != '\0'; i++) {
     if (str[i] != prefix[i]) {
       *out_b = false;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
   *out_b = true;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c cdd str equal operation.
  */
-int c_cdd_str_equal(const char *a, const char *b, int *out_b) {
+enum cdd_c_error c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (a == NULL || b == NULL) {
     *out_b = false;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   *out_b = (strcmp(a, b) == 0);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c cdd str iequal operation.
  */
-int c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
+enum cdd_c_error c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (a == NULL || b == NULL) {
     *out_b = false;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   while (*a && *b) {
     if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
       *out_b = false;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     ++a;
     ++b;
   }
   *out_b = (*a == '\0' && *b == '\0');
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c cdd str after last operation.
  */
-int c_cdd_str_after_last(const char *str, const int delimiter,
-                         const char **out_s) {
+enum cdd_c_error c_cdd_str_after_last(const char *str, const int delimiter,
+                                      const char **out_s) {
   const char *last_occurrence;
   if (str == NULL) {
     *out_s = "";
-    return 0;
+    return CDD_C_SUCCESS;
   }
   last_occurrence = strrchr(str, delimiter);
   *out_s = last_occurrence ? last_occurrence + 1 : str;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c cdd ref is type operation.
  */
-int c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
+enum cdd_c_error c_cdd_ref_is_type(const char *ref, const char *type,
+                                   int *out_b) {
   const char *extracted = NULL;
   if (ref == NULL || type == NULL) {
     *out_b = false;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   c_cdd_str_after_last(ref, '/', &extracted);
   return c_cdd_str_equal(extracted, type, out_b);
@@ -165,20 +167,20 @@ void c_cdd_str_trim_trailing_whitespace(char *str) {
 C_CDD_EXPORT int g_str_unquote_malloc_fail = 0;
 #endif
 
-int c_cdd_destringize(const char *quoted, char **out_s) {
+enum cdd_c_error c_cdd_destringize(const char *quoted, char **out_s) {
   size_t len, i, j;
   char *out;
   const char *inner;
 
   if (!quoted) {
     *out_s = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   len = strlen(quoted);
   if (len < 2) {
     *out_s = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   if (quoted[0] == 'L' && (len > 2 && quoted[1] == '"')) {
@@ -189,7 +191,7 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
     len -= 2;
   } else {
     *out_s = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 #ifdef CDD_BUILD_TESTS
@@ -203,7 +205,7 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
 #endif
   if (!out) {
     *out_s = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0, j = 0; i < len; i++) {
@@ -227,34 +229,34 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
   }
   out[j] = '\0';
   *out_s = out;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the c cdd stricmp operation.
  *
  */
-int c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
+enum cdd_c_error c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;
   if (!out_diff)
     return 22; /* EINVAL */
   if (a == b) {
     *out_diff = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (!a || !b) {
     *out_diff = a ? 1 : -1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   while (*a && *b) {
     diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
     if (diff != 0) {
       *out_diff = diff;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     ++a;
     ++b;
   }
   *out_diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-  return 0;
+  return CDD_C_SUCCESS;
 }

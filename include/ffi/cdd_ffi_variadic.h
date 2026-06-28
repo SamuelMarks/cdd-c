@@ -21,9 +21,10 @@ extern "C" {
  * @param max_types The maximum number of types out_types can hold.
  * @return The number of arguments found in the format string.
  */
-C_CDD_EXPORT size_t cdd_ffi_parse_printf_format(const char *fmt,
+C_CDD_EXPORT enum cdd_c_error cdd_ffi_parse_printf_format(const char *fmt,
                                                 cdd_ffi_type_t *out_types,
-                                                size_t max_types);
+                                                size_t max_types,
+                                                size_t *out_count);
 
 /**
  * @brief A generic union for passing arguments to the variadic trampoline.
@@ -49,7 +50,7 @@ typedef union cdd_ffi_var_arg_t {
  * @param argc Number of arguments in the args array.
  * @return The integer result of the variadic function.
  */
-C_CDD_EXPORT int cdd_ffi_invoke_variadic(int (*fn)(const char *, ...),
+C_CDD_EXPORT enum cdd_c_error cdd_ffi_invoke_variadic(enum cdd_c_error (*fn)(const char *, ...),
                                          const char *fmt,
                                          cdd_ffi_var_arg_t *args, size_t argc);
 

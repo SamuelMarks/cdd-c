@@ -14,6 +14,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -27,7 +28,8 @@ extern "C" {
 
 /* --- Helpers --- */
 
-static int load_spec_str2(const char *json_str, struct OpenAPI_Spec *spec) {
+static enum cdd_c_error load_spec_str2(const char *json_str,
+                                       struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
   int rc;
   dyn = json_parse_string(json_str);
@@ -638,7 +640,7 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   spec.info.license.url = "https://www.apache.org/licenses/LICENSE-2.0.html";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
   g_fail_io_after = -1;
   PASS();
@@ -658,7 +660,7 @@ TEST test_writer_server_url_query_rejected(void) {
   spec.n_servers = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
   g_fail_io_after = -1;
   PASS();
@@ -1311,7 +1313,7 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   spec.info.license.identifier = "Apache-2.0";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
   g_fail_io_after = -1;
   PASS();
@@ -4433,8 +4435,10 @@ TEST test_writer_input_validation(void) {
   struct OpenAPI_Spec spec = {0};
   char *json;
 
-  ASSERT_EQ(EINVAL, openapi_write_spec_to_json(NULL, &json));
-  ASSERT_EQ(EINVAL, openapi_write_spec_to_json(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(NULL, &json));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(&spec, NULL));
   g_fail_io_after = -1;
 
   PASS();

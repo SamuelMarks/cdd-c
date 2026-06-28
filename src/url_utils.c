@@ -31,20 +31,20 @@
  *
  * Unreserved characters: ALPHA, DIGIT, "-", ".", "_", "~".
  */
-static int is_unreserved(unsigned char c) {
+static enum cdd_c_error is_unreserved(unsigned char c) {
   if (isalnum(c))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_START */
   if (c == '-' || c == '.' || c == '_' || c == '~')
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Check if a character is reserved per RFC 3986 Section 2.2.
  */
-static int is_reserved(unsigned char c) {
+static enum cdd_c_error is_reserved(unsigned char c) {
   switch (c) {
   case ':':
   case '/':
@@ -64,17 +64,17 @@ static int is_reserved(unsigned char c) {
   case ',':
   case ';':
   case '=':
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   default:
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
-static int is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
+static enum cdd_c_error is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
 
-static int is_pct_encoded(const char *p) {
+static enum cdd_c_error is_pct_encoded(const char *p) {
   if (!p)
-    return 0;
+    return CDD_C_SUCCESS;
   return (p[0] == '%' && is_hex((unsigned char)p[1]) &&
           is_hex((unsigned char)p[2]));
 }
@@ -82,28 +82,28 @@ static int is_pct_encoded(const char *p) {
 /**
  * @brief Convert a nibble to hexagonal character.
  */
-static int to_hex(char code, char *_out_val) {
+static enum cdd_c_error to_hex(char code, char *_out_val) {
   static const char hex[] = "0123456789ABCDEF";
   {
     *_out_val = hex[code & 15];
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
-static int is_unreserved_form(unsigned char c) {
+static enum cdd_c_error is_unreserved_form(unsigned char c) {
   if (isalnum(c))
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_START */
   if (c == '-' || c == '.' || c == '_' || c == '*')
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_STOP */
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the url encode operation.
  */
-int url_encode(const char *str, char **_out_val) {
+enum cdd_c_error url_encode(const char *str, char **_out_val) {
   char _ast_to_hex_0;
   char _ast_to_hex_1;
   const char *p;
@@ -115,7 +115,7 @@ int url_encode(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!str) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -135,7 +135,7 @@ int url_encode(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!enc) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -156,14 +156,14 @@ int url_encode(const char *str, char **_out_val) {
 
   {
     *_out_val = enc;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the url encode allow reserved operation.
  */
-int url_encode_allow_reserved(const char *str, char **_out_val) {
+enum cdd_c_error url_encode_allow_reserved(const char *str, char **_out_val) {
   char _ast_to_hex_2;
   char _ast_to_hex_3;
   const char *p;
@@ -175,7 +175,7 @@ int url_encode_allow_reserved(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!str) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -199,7 +199,7 @@ int url_encode_allow_reserved(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!enc) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -224,14 +224,14 @@ int url_encode_allow_reserved(const char *str, char **_out_val) {
   *e = '\0';
   {
     *_out_val = enc;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the url encode form operation.
  */
-int url_encode_form(const char *str, char **_out_val) {
+enum cdd_c_error url_encode_form(const char *str, char **_out_val) {
   char _ast_to_hex_4;
   char _ast_to_hex_5;
   const char *p;
@@ -243,7 +243,7 @@ int url_encode_form(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!str) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -264,7 +264,7 @@ int url_encode_form(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!enc) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -285,14 +285,15 @@ int url_encode_form(const char *str, char **_out_val) {
   *e = '\0';
   {
     *_out_val = enc;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the url encode form allow reserved operation.
  */
-int url_encode_form_allow_reserved(const char *str, char **_out_val) {
+enum cdd_c_error url_encode_form_allow_reserved(const char *str,
+                                                char **_out_val) {
   char _ast_to_hex_6;
   char _ast_to_hex_7;
   char _ast_to_hex_8;
@@ -306,7 +307,7 @@ int url_encode_form_allow_reserved(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!str) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -334,7 +335,7 @@ int url_encode_form_allow_reserved(const char *str, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!enc) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -365,23 +366,23 @@ int url_encode_form_allow_reserved(const char *str, char **_out_val) {
   *e = '\0';
   {
     *_out_val = enc;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the url query init operation.
  */
-int url_query_init(struct UrlQueryParams *qp) {
+enum cdd_c_error url_query_init(struct UrlQueryParams *qp) {
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   qp->params = NULL;
   qp->count = 0;
   qp->capacity = 0;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 /* LCOV_EXCL_STOP */
 
@@ -409,14 +410,14 @@ void url_query_free(struct UrlQueryParams *qp) {
 /**
  * @brief Executes the url query add operation.
  */
-int url_query_add(struct UrlQueryParams *qp, const char *key,
-                  const char *value) {
+enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const char *key,
+                               const char *value) {
   char *_ast_strdup_0 = NULL;
   char *_ast_strdup_1 = NULL;
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp || !key || !value)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   if (qp->count >= qp->capacity) {
@@ -427,7 +428,7 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
     /* LCOV_EXCL_START */
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -441,7 +442,7 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp->params[qp->count].key)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   qp->params[qp->count].value =
@@ -450,7 +451,7 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
   /* LCOV_EXCL_START */
   if (!qp->params[qp->count].value) {
     free(qp->params[qp->count].key);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -458,20 +459,20 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
   qp->params[qp->count].value_is_encoded = 0;
 
   qp->count++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the url query add encoded operation.
  */
-int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
-                          const char *value) {
+enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
+                                       const char *key, const char *value) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp || !key || !value)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   if (qp->count >= qp->capacity) {
@@ -482,7 +483,7 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
     /* LCOV_EXCL_START */
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -496,7 +497,7 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp->params[qp->count].key)
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   /* LCOV_EXCL_STOP */
 
   qp->params[qp->count].value =
@@ -505,7 +506,7 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
   /* LCOV_EXCL_START */
   if (!qp->params[qp->count].value) {
     free(qp->params[qp->count].key);
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -513,13 +514,14 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
   qp->params[qp->count].value_is_encoded = 1;
 
   qp->count++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the url query build operation.
  */
-int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
+enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
+                                 char **out_str) {
   char *_ast_url_encode_10 = NULL;
   char *_ast_url_encode_11 = NULL;
   char *_ast_url_encode_12 = NULL;
@@ -535,7 +537,7 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp || !out_str)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   if (qp->count == 0) {
@@ -572,7 +574,7 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
       /* LCOV_EXCL_START */
       if (e_val)
         free(e_val);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     /* LCOV_EXCL_STOP */
@@ -593,7 +595,7 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   /* LCOV_EXCL_START */
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -643,13 +645,14 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   *ptr = '\0';
 
   *out_str = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the url query build form operation.
  */
-int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
+enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
+                                      char **out_str) {
   char *_ast_url_encode_form_14 = NULL;
   char *_ast_url_encode_form_15 = NULL;
   char *_ast_url_encode_form_16 = NULL;
@@ -664,7 +667,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!qp || !out_str)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   if (qp->count == 0) {
@@ -672,9 +675,9 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!*out_str)
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -688,7 +691,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     /* LCOV_EXCL_START */
     if (!e_key) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -703,7 +706,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     /* LCOV_EXCL_START */
     if (!e_val) {
       free(e_key);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -721,7 +724,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
   /* LCOV_EXCL_START */
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
@@ -736,7 +739,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     /* LCOV_EXCL_START */
     if (!e_key) {
       free(buf);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -752,7 +755,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     if (!e_val) {
       free(e_key);
       free(buf);
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -770,10 +773,11 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
   }
   *ptr = '\0';
   *out_str = buf;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
+static enum cdd_c_error append_str(char **buf, size_t *len, size_t *cap,
+                                   const char *s) {
   size_t slen;
   size_t need;
   char *tmp;
@@ -781,7 +785,7 @@ static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!buf || !len || !cap || !s)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
 
   slen = strlen(s);
@@ -795,7 +799,7 @@ static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
     /* LCOV_EXCL_START */
     if (!tmp) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -806,37 +810,38 @@ static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
   memcpy(*buf + *len, s, slen);
   *len += slen;
   (*buf)[*len] = '\0';
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
-                              size_t buf_len, const char **_out_val) {
+static enum cdd_c_error kv_value_to_string(const struct OpenAPI_KV *kv,
+                                           char *buf, size_t buf_len,
+                                           const char **_out_val) {
   /* LCOV_EXCL_START */
   /* LCOV_EXCL_START */
   if (!kv) {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   switch (kv->type) {
   case OA_KV_STRING: {
     *_out_val = kv->value.s ? kv->value.s : NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   case OA_KV_INTEGER:
     /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!buf || buf_len == 0) {
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     sprintf_s_chk(buf, buf_len, "%d", kv->value.i);
     {
       *_out_val = buf;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   case OA_KV_NUMBER:
     /* LCOV_EXCL_START */
@@ -844,23 +849,23 @@ static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
     if (!buf || buf_len == 0) {
       /* LCOV_EXCL_START */
       *_out_val = NULL;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     sprintf_s_chk(buf, buf_len, "%g", kv->value.n);
     {
       *_out_val = buf;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   case OA_KV_BOOLEAN: {
     *_out_val = kv->value.b ? "true" : "false";
-    return 0;
+    return CDD_C_SUCCESS;
   }
     /* LCOV_EXCL_START */
   default: {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
@@ -870,9 +875,9 @@ static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
 /**
  * @brief Executes the openapi kv join form operation.
  */
-int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
-                         const char *delim, int allow_reserved,
-                         char **_out_val) {
+enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
+                                      const char *delim, int allow_reserved,
+                                      char **_out_val) {
   const char *_ast_kv_value_to_string_18 = NULL;
   size_t i;
   char *buf = NULL;
@@ -892,7 +897,7 @@ int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     buf = (char *)calloc(1, 1);
     {
       *_out_val = buf;
-      return 0;
+      return CDD_C_SUCCESS;
     }
     /* LCOV_EXCL_STOP */
   }
@@ -942,7 +947,7 @@ int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   }
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 
@@ -956,7 +961,7 @@ oom:
     free(buf);
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   /* LCOV_EXCL_STOP */
 }

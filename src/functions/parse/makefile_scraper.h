@@ -17,6 +17,7 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -54,8 +55,8 @@ extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
  * @param[in] makefile_content The raw text content of the Makefile.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int scrape_makefile(struct ExtractedBuildInfo *info,
-                                        const char *makefile_content);
+extern C_CDD_EXPORT enum cdd_c_error
+scrape_makefile(struct ExtractedBuildInfo *info, const char *makefile_content);
 
 /**
  * @brief Scrape a configure.ac for build properties.
@@ -68,8 +69,9 @@ extern C_CDD_EXPORT int scrape_makefile(struct ExtractedBuildInfo *info,
  * @param[in] configure_ac_content The raw text content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int scrape_configure_ac(struct ExtractedBuildInfo *info,
-                                            const char *configure_ac_content);
+extern C_CDD_EXPORT enum cdd_c_error
+scrape_configure_ac(struct ExtractedBuildInfo *info,
+                    const char *configure_ac_content);
 
 /**
  * @brief Generate a modern CMakeLists.txt string from the extracted info.
@@ -80,7 +82,7 @@ extern C_CDD_EXPORT int scrape_configure_ac(struct ExtractedBuildInfo *info,
  * contents.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int
+extern C_CDD_EXPORT enum cdd_c_error
 build_info_to_cmake(const struct ExtractedBuildInfo *info,
                     const char *project_name, char **out_cmake);
 

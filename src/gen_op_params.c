@@ -42,7 +42,8 @@ void ApiError_cleanup(struct ApiError *err) {
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-static int ApiError_from_json(const char *json, struct ApiError **out) {
+static enum cdd_c_error ApiError_from_json(const char *json,
+                                           struct ApiError **out) {
   JSON_Value *root;
   JSON_Object *obj;
   if (!json || !out)
@@ -53,7 +54,8 @@ static int ApiError_from_json(const char *json, struct ApiError **out) {
   (*out)->raw_body = strdup(json);
   root = json_parse_string(json);
   if (!root)
-    return 0; /* Not JSON, return strict success but object only has raw_body */
+    return CDD_C_SUCCESS; /* Not JSON, return strict success but object only has
+                             raw_body */
   obj = json_value_get_object(root);
   if (obj) {
     if (json_object_has_value(obj, "type"))
@@ -68,10 +70,10 @@ static int ApiError_from_json(const char *json, struct ApiError **out) {
       (*out)->status = (int)json_object_get_number(obj, "status");
   }
   json_value_free(root);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int api_init(struct HttpClient *client, const char *base_url) {
+enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
   int rc;
   if (!client)
     return 22; /* EINVAL */
@@ -124,8 +126,8 @@ void api_cleanup(struct HttpClient *client) {
   http_client_free(client);
 }
 
-int api_test_op(struct HttpClient *ctx, int limit,
-                struct ApiError **api_error) {
+enum cdd_c_error api_test_op(struct HttpClient *ctx, int limit,
+                             struct ApiError **api_error) {
   struct HttpRequest req;
   struct HttpResponse *res = NULL;
   int rc = 0;
@@ -138,7 +140,7 @@ int api_test_op(struct HttpClient *ctx, int limit,
     *api_error = NULL;
 
   if (!ctx || !ctx->send)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = http_request_init(&req);
   if (rc != 0)
     return rc;
@@ -162,10 +164,10 @@ int api_test_op(struct HttpClient *ctx, int limit,
     goto cleanup;
 
   if (asprintf(&path_str, "%s/test", ctx->base_url) == -1) {
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
   if (asprintf(&req.url, "%s%s", path_str, query_str) == -1) {
-    rc = ENOMEM;
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
   req.method = HTTP_GET;
@@ -181,7 +183,7 @@ int api_test_op(struct HttpClient *ctx, int limit,
   if (rc != 0)
     goto cleanup;
   if (!res) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
 
@@ -194,7 +196,7 @@ int api_test_op(struct HttpClient *ctx, int limit,
     break;
   }
   if (!handled) {
-    rc = EIO;
+    rc = CDD_C_ERROR_IO;
     if (res->body && api_error) {
       ApiError_from_json((const char *)res->body, api_error);
     }

@@ -27,7 +27,7 @@ extern "C" {
 TEST test_main_no_args(void) {
   char *argv[] = {"cdd-c"};
   int rc = cdd_main(1, argv);
-  ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
+  ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
   g_fail_io_after = -1;
   PASS();
 }
@@ -75,10 +75,10 @@ TEST test_main_invalid_command(void) {
   char *argv[] = {"cdd-c", "unknown_command"};
   char *argv2[] = {"cdd-c", "openapi2client"};
   int rc = cdd_main(2, argv);
-  ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
+  ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
 
   rc = cdd_main(2, argv2);
-  ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
+  ASSERT_EQ_FMT(CDD_C_ERROR_INVALID_ARGUMENT, rc, "%d");
   g_fail_io_after = -1;
   PASS();
 }
@@ -148,8 +148,8 @@ TEST test_main_from_openapi_cli_options(void) {
 
   /* Note: we can't test actual execution easily without creating a dummy */
   /* spec.json, but we can at least hit the help and error paths. */
-  ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help));
-  ASSERT_EQ(EXIT_FAILURE, cdd_main(5, argv_err)); /* missing input */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_help));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(5, argv_err)); /* missing input */
 
   cdd_main(9, argv_flags);
 
@@ -201,9 +201,9 @@ TEST test_main_to_openapi_cli_options(void) {
                          "indir2", "--output",   "outdir2"};
   char *argv_env[] = {"cdd-c", "to_openapi"};
 
-  ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help));
-  ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help2));
-  ASSERT_EQ(EXIT_FAILURE, cdd_main(2, argv_err));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_help));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_help2));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(2, argv_err));
 
   cdd_main(6, argv_flags);
   cdd_main(6, argv_flags2);

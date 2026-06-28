@@ -73,7 +73,8 @@ TEST add_node_basic(void) {
   ASSERT_EQ(100, list.size);
 
   free_cst_node_list(&list);
-  ASSERT_EQ(EINVAL, cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
   g_fail_io_after = -1;
   PASS();
 }
@@ -136,8 +137,8 @@ TEST parse_tokens_empty(void) {
 TEST parse_tokens_null_args(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
-  ASSERT_EQ(EINVAL, parse_tokens(NULL, &cst_nodes));
-  ASSERT_EQ(EINVAL, parse_tokens(&tokens, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(NULL, &cst_nodes));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(&tokens, NULL));
   g_fail_io_after = -1;
   PASS();
 }
@@ -367,7 +368,8 @@ TEST test_cst_find_first(void) {
   ASSERT_EQ(0, cst_find_first(&list, CST_NODE_MACRO, &found));
   ASSERT(found == NULL);
 
-  ASSERT_EQ(EINVAL, cst_find_first(&list, CST_NODE_STRUCT, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cst_find_first(&list, CST_NODE_STRUCT, NULL));
 
   free_cst_node_list(&list);
   g_fail_io_after = -1;
@@ -392,12 +394,14 @@ TEST test_cst_parser_extra(void) {
 
     g_cdd_cst_alloc_node_fail = 1;
     tree = NULL;
-    ASSERT_EQ(ENOMEM, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
     g_cdd_cst_alloc_node_fail = 0;
 
     g_cdd_cst_alloc_node_fail = 2;
     tree = NULL;
-    ASSERT_EQ(ENOMEM, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
     if (tree)
       cdd_cst_tree_free(tree);
     g_cdd_cst_alloc_node_fail = 0;

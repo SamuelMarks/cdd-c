@@ -73,8 +73,9 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
   out[j] = '\0';
 }
 
-static int emit_haskell_file(cdd_ffi_ir_t *ir,
-                             const cdd_generate_bindings_config_t *config) {
+static enum cdd_c_error
+emit_haskell_file(cdd_ffi_ir_t *ir,
+                  const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
@@ -87,14 +88,14 @@ static int emit_haskell_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.hs", config->output_dir,
                module_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.hs", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -134,13 +135,14 @@ static int emit_haskell_file(cdd_ffi_ir_t *ir,
   }
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int cdd_ffi_emit_haskell(cdd_ffi_ir_t *ir,
-                         const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_haskell(cdd_ffi_ir_t *ir,
+                     const cdd_generate_bindings_config_t *config) {
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   return emit_haskell_file(ir, config);

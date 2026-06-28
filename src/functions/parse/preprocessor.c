@@ -49,7 +49,8 @@
 
 /* Standard IO / FS helpers */
 
-static int join_path(const char *dir, const char *file, char **_out_val) {
+static enum cdd_c_error join_path(const char *dir, const char *file,
+                                  char **_out_val) {
 
   char *out;
 
@@ -59,7 +60,7 @@ static int join_path(const char *dir, const char *file, char **_out_val) {
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   len = strlen(dir) + strlen(file) + 2;
@@ -70,7 +71,7 @@ static int join_path(const char *dir, const char *file, char **_out_val) {
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -85,17 +86,17 @@ static int join_path(const char *dir, const char *file, char **_out_val) {
 
   {
     *_out_val = out;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the file exists operation.
  */
-static int file_exists(const char *path, int *out_exists) {
+static enum cdd_c_error file_exists(const char *path, int *out_exists) {
   FILE *f;
   if (!out_exists)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_exists = 0;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -103,7 +104,7 @@ static int file_exists(const char *path, int *out_exists) {
   if (fopen_s(&f, path, "r") == 0 && f) {
     fclose(f);
     *out_exists = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
 #else
@@ -119,10 +120,10 @@ static int file_exists(const char *path, int *out_exists) {
   if (f) {
     fclose(f);
     *out_exists = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 #endif
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -154,7 +155,8 @@ static void free_macro_def(struct MacroDef *def) {
 /**
  * @brief Executes the token to string operation.
  */
-static int token_to_string(const struct Token *t, char **_out_val) {
+static enum cdd_c_error token_to_string(const struct Token *t,
+                                        char **_out_val) {
 
   char *s = malloc(t->length + 1);
 
@@ -162,7 +164,7 @@ static int token_to_string(const struct Token *t, char **_out_val) {
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   memcpy(s, t->start, t->length);
@@ -171,16 +173,16 @@ static int token_to_string(const struct Token *t, char **_out_val) {
 
   {
     *_out_val = s;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Adds or sets macro internal.
  */
-static int add_macro_internal(struct PreprocessorContext *ctx,
+static enum cdd_c_error add_macro_internal(struct PreprocessorContext *ctx,
 
-                              const struct MacroDef *def) {
+                                           const struct MacroDef *def) {
 
   if (ctx->macro_count >= ctx->macro_capacity) {
 
@@ -192,7 +194,7 @@ static int add_macro_internal(struct PreprocessorContext *ctx,
 
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     ctx->macros = new_arr;
@@ -202,18 +204,19 @@ static int add_macro_internal(struct PreprocessorContext *ctx,
 
   ctx->macros[ctx->macro_count++] = *def;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Helper to resolve include paths.
  */
 
-static int resolve_path(const struct PreprocessorContext *ctx,
+static enum cdd_c_error resolve_path(const struct PreprocessorContext *ctx,
 
-                        const char *current_dir, const char *include_path,
+                                     const char *current_dir,
+                                     const char *include_path,
 
-                        int is_system, char **_out_val) {
+                                     int is_system, char **_out_val) {
   char *_ast_join_path_0 = NULL;
   char *_ast_join_path_1 = NULL;
 
@@ -234,7 +237,7 @@ static int resolve_path(const struct PreprocessorContext *ctx,
 
         {
           *_out_val = candidate;
-          return 0;
+          return CDD_C_SUCCESS;
         }
       }
 
@@ -258,7 +261,7 @@ static int resolve_path(const struct PreprocessorContext *ctx,
 
           {
             *_out_val = candidate;
-            return 0;
+            return CDD_C_SUCCESS;
           }
         }
 
@@ -269,16 +272,17 @@ static int resolve_path(const struct PreprocessorContext *ctx,
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the reconstruct path operation.
  */
-static int reconstruct_path(const struct TokenList *tokens, size_t start,
+static enum cdd_c_error reconstruct_path(const struct TokenList *tokens,
+                                         size_t start,
 
-                            size_t end, char **_out_val) {
+                                         size_t end, char **_out_val) {
   char *_ast_strdup_0 = NULL;
 
   size_t len = 0;
@@ -291,7 +295,7 @@ static int reconstruct_path(const struct TokenList *tokens, size_t start,
 
   {
     *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = start; i < end; ++i) {
@@ -305,7 +309,7 @@ static int reconstruct_path(const struct TokenList *tokens, size_t start,
 
   {
     *_out_val = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   p = buf;
@@ -323,7 +327,7 @@ static int reconstruct_path(const struct TokenList *tokens, size_t start,
 
   {
     *_out_val = buf;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -332,15 +336,15 @@ static int reconstruct_path(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the pp context init operation.
  */
-int pp_context_init(struct PreprocessorContext *ctx) {
+enum cdd_c_error pp_context_init(struct PreprocessorContext *ctx) {
 
   if (!ctx)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   memset(ctx, 0, sizeof(*ctx));
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -376,7 +380,8 @@ void pp_context_free(struct PreprocessorContext *ctx) {
 /**
  * @brief Executes the pp add search path operation.
  */
-int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
+enum cdd_c_error pp_add_search_path(struct PreprocessorContext *ctx,
+                                    const char *path) {
   char *_ast_strdup_1 = NULL;
 
   char *copy;
@@ -385,13 +390,13 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 
   if (!ctx || !path)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (ctx->size >= ctx->capacity) {
@@ -404,7 +409,7 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 
       free(copy);
 
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     ctx->search_paths = new_paths;
@@ -414,15 +419,15 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 
   ctx->search_paths[ctx->size++] = copy;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the pp add macro operation.
  */
-int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
+enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
-                 const char *value) {
+                              const char *value) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
 
@@ -430,7 +435,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (!ctx || !name)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   memset(&def, 0, sizeof(def));
 
@@ -438,7 +443,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (!def.name)
 
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
 
   if (value) {
 
@@ -448,7 +453,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
       free(def.name);
 
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -458,16 +463,17 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
     free_macro_def(&def);
 
-    return ENOMEM;
+    return CDD_C_ERROR_MEMORY;
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the pp scan defines operation.
  */
-int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
+enum cdd_c_error pp_scan_defines(struct PreprocessorContext *ctx,
+                                 const char *filename) {
   int _ast_token_matches_string_2 = 0;
   char *_ast_token_to_string_3 = NULL;
   char *_ast_token_to_string_4 = NULL;
@@ -484,7 +490,7 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
 
   if (!ctx || !filename)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = read_to_file(filename, "r", &content, &sz);
 
@@ -759,63 +765,64 @@ struct ExprState {
 
 /* Forward Declarations for Recursive Descent */
 
-static int parse_expr(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_expr(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses logic or from the given input.
  */
-static int parse_logic_or(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_logic_or(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses logic and from the given input.
  */
-static int parse_logic_and(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_logic_and(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses equality from the given input.
  */
-static int parse_equality(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_equality(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses relational from the given input.
  */
-static int parse_relational(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_relational(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses shift from the given input.
  */
-static int parse_shift(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_shift(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses additive from the given input.
  */
-static int parse_additive(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_additive(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses multiplicative from the given input.
  */
-static int parse_multiplicative(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_multiplicative(struct ExprState *s,
+                                             long *_out_val);
 
 /**
  * @brief Parses unary from the given input.
  */
-static int parse_unary(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val);
 
 /**
  * @brief Parses primary from the given input.
  */
-static int parse_primary(struct ExprState *s, long *_out_val);
+static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val);
 
 /* Helper: skip whitespace */
 
 /**
  * @brief Executes the skip ws operation.
  */
-static int skip_ws(struct ExprState *s, size_t *_out_val) {
+static enum cdd_c_error skip_ws(struct ExprState *s, size_t *_out_val) {
   (void)_out_val;
   while (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_WHITESPACE)
     s->pos++;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* Helper: Check current token kind */
@@ -823,10 +830,11 @@ static int skip_ws(struct ExprState *s, size_t *_out_val) {
 /**
  * @brief Executes the match operation.
  */
-static int match(struct ExprState *s, enum TokenKind kind, int *_out_val) {
+static enum cdd_c_error match(struct ExprState *s, enum TokenKind kind,
+                              int *_out_val) {
   size_t _ast_skip_ws_5 = 0;
   if (!_out_val)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
 
   (skip_ws(s, &_ast_skip_ws_5), _ast_skip_ws_5);
@@ -837,13 +845,13 @@ static int match(struct ExprState *s, enum TokenKind kind, int *_out_val) {
 
     {
       *_out_val = 1;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -852,7 +860,7 @@ static int match(struct ExprState *s, enum TokenKind kind, int *_out_val) {
 /**
  * @brief Executes the peek operation.
  */
-static int peek(struct ExprState *s, enum TokenKind *_out_val) {
+static enum cdd_c_error peek(struct ExprState *s, enum TokenKind *_out_val) {
 
   size_t p = s->pos;
 
@@ -864,21 +872,22 @@ static int peek(struct ExprState *s, enum TokenKind *_out_val) {
 
   {
     *_out_val = TOKEN_UNKNOWN;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   {
     *_out_val = s->tokens->tokens[p].kind;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Checks if defined macro.
  */
-static int is_defined_macro(const struct PreprocessorContext *ctx,
+static enum cdd_c_error is_defined_macro(const struct PreprocessorContext *ctx,
 
-                            const struct Token *tok, int *_out_val) {
+                                         const struct Token *tok,
+                                         int *_out_val) {
   int _ast_token_matches_string_6 = 0;
 
   size_t i;
@@ -887,7 +896,7 @@ static int is_defined_macro(const struct PreprocessorContext *ctx,
 
   {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   for (i = 0; i < ctx->macro_count; ++i) {
@@ -898,13 +907,13 @@ static int is_defined_macro(const struct PreprocessorContext *ctx,
 
     {
       *_out_val = 1;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -916,7 +925,8 @@ static int is_defined_macro(const struct PreprocessorContext *ctx,
  * otherwise.
  */
 
-static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
+                                                 long *_out_val) {
   size_t _ast_skip_ws_7 = 0;
   int _ast_match_8 = 0;
   size_t _ast_skip_ws_9 = 0;
@@ -943,7 +953,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -955,7 +965,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1006,7 +1016,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
       {
         *_out_val = 0;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
 
@@ -1016,7 +1026,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1044,7 +1054,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1064,7 +1074,7 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = result;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -1072,7 +1082,8 @@ static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
  * @brief Handle __has_c_attribute logic.
  */
 
-static int handle_has_c_attribute(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
+                                               long *_out_val) {
   size_t _ast_skip_ws_14 = 0;
   int _ast_match_15 = 0;
   size_t _ast_skip_ws_16 = 0;
@@ -1097,7 +1108,7 @@ static int handle_has_c_attribute(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1216,14 +1227,14 @@ static int handle_has_c_attribute(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = result;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses primary from the given input.
  */
-static int parse_primary(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_25 = 0;
   int _ast_match_26 = 0;
   long _ast_parse_expr_27;
@@ -1245,7 +1256,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1259,7 +1270,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = val;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1293,7 +1304,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = val;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1312,7 +1323,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
         *_out_val =
             (handle_has_include_embed(s, &_ast_handle_has_include_embed_31),
              _ast_handle_has_include_embed_31);
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
 
@@ -1326,7 +1337,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
         *_out_val =
             (handle_has_include_embed(s, &_ast_handle_has_include_embed_33),
              _ast_handle_has_include_embed_33);
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
 
@@ -1339,7 +1350,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
       {
         *_out_val = (handle_has_c_attribute(s, &_ast_handle_has_c_attribute_35),
                      _ast_handle_has_c_attribute_35);
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
 
@@ -1374,7 +1385,7 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
 
       {
         *_out_val = val;
-        return 0;
+        return CDD_C_SUCCESS;
       }
     }
   }
@@ -1383,14 +1394,14 @@ static int parse_primary(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = 0;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses unary from the given input.
  */
-static int parse_unary(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_37 = 0;
   int _ast_match_38 = 0;
   long _ast_parse_unary_39;
@@ -1414,7 +1425,7 @@ static int parse_unary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = !(parse_unary(s, &_ast_parse_unary_39), _ast_parse_unary_39);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1422,7 +1433,7 @@ static int parse_unary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1430,7 +1441,7 @@ static int parse_unary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1438,7 +1449,7 @@ static int parse_unary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -1487,21 +1498,22 @@ static int parse_unary(struct ExprState *s, long *_out_val) {
 
     {
       *_out_val = result;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val =
         (parse_primary(s, &_ast_parse_primary_52), _ast_parse_primary_52);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses multiplicative from the given input.
  */
-static int parse_multiplicative(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_multiplicative(struct ExprState *s,
+                                             long *_out_val) {
   long _ast_parse_unary_53;
   int _ast_match_54 = 0;
   long _ast_parse_unary_55;
@@ -1553,14 +1565,14 @@ static int parse_multiplicative(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses additive from the given input.
  */
-static int parse_additive(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_additive(struct ExprState *s, long *_out_val) {
   long _ast_parse_multiplicative_60;
   int _ast_match_61 = 0;
   long _ast_parse_multiplicative_62;
@@ -1590,14 +1602,14 @@ static int parse_additive(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses shift from the given input.
  */
-static int parse_shift(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_shift(struct ExprState *s, long *_out_val) {
   long _ast_parse_additive_65;
   int _ast_match_66 = 0;
   long _ast_parse_additive_67;
@@ -1627,14 +1639,14 @@ static int parse_shift(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses relational from the given input.
  */
-static int parse_relational(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_relational(struct ExprState *s, long *_out_val) {
   long _ast_parse_shift_70;
   enum TokenKind _ast_peek_71;
   int _ast_match_72 = 0;
@@ -1686,14 +1698,14 @@ static int parse_relational(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses equality from the given input.
  */
-static int parse_equality(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_equality(struct ExprState *s, long *_out_val) {
   long _ast_parse_relational_80;
   int _ast_match_81 = 0;
   long _ast_parse_relational_82;
@@ -1723,14 +1735,14 @@ static int parse_equality(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses logic and from the given input.
  */
-static int parse_logic_and(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_logic_and(struct ExprState *s, long *_out_val) {
   long _ast_parse_equality_85;
   int _ast_match_86 = 0;
   long _ast_parse_equality_87;
@@ -1748,14 +1760,14 @@ static int parse_logic_and(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses logic or from the given input.
  */
-static int parse_logic_or(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_logic_or(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_and_88;
   int _ast_match_89 = 0;
   long _ast_parse_logic_and_90;
@@ -1773,37 +1785,39 @@ static int parse_logic_or(struct ExprState *s, long *_out_val) {
 
   {
     *_out_val = val;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Parses expr from the given input.
  */
-static int parse_expr(struct ExprState *s, long *_out_val) {
+static enum cdd_c_error parse_expr(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_or_91;
   {
     *_out_val =
         (parse_logic_or(s, &_ast_parse_logic_or_91), _ast_parse_logic_or_91);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the pp eval expression operation.
  */
-int pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
+enum cdd_c_error pp_eval_expression(const struct TokenList *tokens,
+                                    size_t start_idx,
 
-                       size_t end_idx, const struct PreprocessorContext *ctx,
+                                    size_t end_idx,
+                                    const struct PreprocessorContext *ctx,
 
-                       long *result) {
+                                    long *result) {
   long _ast_parse_expr_92;
 
   struct ExprState s;
 
   if (!tokens || !result)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   s.tokens = tokens;
 
@@ -1819,18 +1833,20 @@ int pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
 
   if (s.error)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Embed Directive Parsing --- */
 
-static int parse_embed_params(const struct TokenList *tokens, size_t start,
+static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
+                                           size_t start,
 
-                              size_t end, struct PreprocessorContext *ctx,
+                                           size_t end,
+                                           struct PreprocessorContext *ctx,
 
-                              struct EmbedParams *out_params) {
+                                           struct EmbedParams *out_params) {
   enum TokenKind _ast_identify_keyword_or_id_93;
   char *_ast_token_to_string_94 = NULL;
   enum TokenKind _ast_identify_keyword_or_id_95;
@@ -1875,7 +1891,7 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
     if (!name) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+      return CDD_C_ERROR_MEMORY;
     }
 
     i++;
@@ -1921,7 +1937,7 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
         free(scope);
 
-        return EINVAL; /* Expected identifier after :: */
+        return CDD_C_ERROR_INVALID_ARGUMENT; /* Expected identifier after :: */
       }
     }
 
@@ -1941,7 +1957,7 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
         free(scope);
 
-      return EINVAL;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
 
     {
@@ -1985,7 +2001,7 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
           free(scope);
 
-        return EINVAL; /* Unbalanced */
+        return CDD_C_ERROR_INVALID_ARGUMENT; /* Unbalanced */
       }
 
       /* Store value */
@@ -2035,7 +2051,7 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
     i++; /* Skip RPAREN - loop continues to next param */
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Include Scanning & Conditional Logic --- */
@@ -2079,26 +2095,27 @@ static void stack_pop(struct ConditionalStack *st) {
 /**
  * @brief Executes the stack peek operation.
  */
-static int stack_peek(const struct ConditionalStack *st,
-                      enum CondState *_out_val) {
+static enum cdd_c_error stack_peek(const struct ConditionalStack *st,
+                                   enum CondState *_out_val) {
 
   if (st->top >= 0)
 
   {
     *_out_val = st->states[st->top];
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   {
     *_out_val = COND_ACTIVE;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Checks if enabled.
  */
-static int is_enabled(const struct ConditionalStack *st, int *_out_val) {
+static enum cdd_c_error is_enabled(const struct ConditionalStack *st,
+                                   int *_out_val) {
 
   int i;
 
@@ -2108,24 +2125,25 @@ static int is_enabled(const struct ConditionalStack *st, int *_out_val) {
 
     {
       *_out_val = 0;
-      return 0;
+      return CDD_C_SUCCESS;
     }
   }
 
   {
     *_out_val = 1;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 }
 
 /**
  * @brief Executes the pp scan includes operation.
  */
-int pp_scan_includes(const char *filename,
+enum cdd_c_error pp_scan_includes(const char *filename,
 
-                     struct PreprocessorContext *ctx, pp_visitor_cb cb,
+                                  struct PreprocessorContext *ctx,
+                                  pp_visitor_cb cb,
 
-                     void *user_data) {
+                                  void *user_data) {
   int _ast_token_matches_string_100 = 0;
   int _ast_token_matches_string_101 = 0;
   int _ast_token_matches_string_102 = 0;
@@ -2162,7 +2180,7 @@ int pp_scan_includes(const char *filename,
 
   if (!filename || !ctx)
 
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Init stack */
 

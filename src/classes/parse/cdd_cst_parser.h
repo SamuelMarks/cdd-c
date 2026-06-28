@@ -9,6 +9,7 @@ extern "C" {
 #include "cdd_cst_node.h"
 #include <c_str_span.h>
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 /* clang-format on */
 
 /**
@@ -18,7 +19,8 @@ extern "C" {
  * @param out_tree The generated tree containing nodes and token ownership.
  * @return 0 on success, or ENOMEM/EINVAL.
  */
-C_CDD_EXPORT int cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree);
+C_CDD_EXPORT enum cdd_c_error cdd_cst_parse(az_span source,
+                                            cdd_cst_tree_t **out_tree);
 
 /**
  * @brief Free the Concrete Syntax Tree and its constituent structures.

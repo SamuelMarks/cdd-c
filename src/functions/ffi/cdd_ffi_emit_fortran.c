@@ -90,8 +90,9 @@ static void map_fortran_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz,
   }
 }
 
-int cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
-                         const cdd_generate_bindings_config_t *config) {
+enum cdd_c_error
+cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
+                     const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name;
@@ -104,7 +105,7 @@ int cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   int is_void;
 
   if (!ir || !config || !config->output_dir) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   lib_name = config->library_name ? config->library_name : "mylib";
@@ -114,14 +115,14 @@ int cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.f90", config->output_dir,
                module_name);
   if (fopen_s(&f, filepath, "w") != 0) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.f90", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
   if (!f) {
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
@@ -214,5 +215,5 @@ int cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
   fprintf(f, "END MODULE %s\n", module_name);
 
   fclose(f);
-  return 0;
+  return CDD_C_SUCCESS;
 }

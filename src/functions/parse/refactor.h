@@ -13,6 +13,7 @@ extern "C" {
 
 /* clang-format off */
 #include "functions/emit/rewriter_body.h"
+#include "cdd_c_error.h"
 #include <c_cdd_export.h>
 /* clang-format on */
 
@@ -29,7 +30,8 @@ struct RefactorContext {
  * @param[out] ctx The context to initialize.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int refactor_context_init(struct RefactorContext *ctx);
+extern C_CDD_EXPORT enum cdd_c_error
+refactor_context_init(struct RefactorContext *ctx);
 
 /**
  * @brief Free resources in refactor context.
@@ -51,7 +53,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the refactor context add function
                      * operation.
                      */
-    int
+    enum cdd_c_error
     refactor_context_add_function(struct RefactorContext *ctx, const char *name,
                                   enum RefactorType type,
                                   const char *return_type);
@@ -69,7 +71,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Applies refactoring to string.
                      */
-    int
+    enum cdd_c_error
     apply_refactoring_to_string(const struct RefactorContext *ctx,
                                 const char *source_code, char **out_code);
 

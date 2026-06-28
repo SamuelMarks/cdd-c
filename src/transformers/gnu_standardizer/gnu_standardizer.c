@@ -84,17 +84,17 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   tree->string_pool[tree->num_strings++] = dup;
   return dup;
 }
-static int append_int(char *p, int v, char **out_p) {
+static enum cdd_c_error append_int(char *p, int v, char **out_p) {
   char temp[32];
   int i = 0, j;
   unsigned int u;
   if (!p || !out_p)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (v == 0) {
     *p++ = '0';
     *p = '\0';
     *out_p = p;
-    return 0;
+    return CDD_C_SUCCESS;
   }
   if (v < 0) {
     *p++ = '-';
@@ -111,7 +111,7 @@ static int append_int(char *p, int v, char **out_p) {
   }
   *p = '\0';
   *out_p = p;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
@@ -182,7 +182,7 @@ struct magic_ctx {
   size_t func_len;
 };
 
-static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
+static enum cdd_c_error magic_visitor(cdd_cst_node_t *node, void *user_data) {
   struct magic_ctx *ctx = (struct magic_ctx *)user_data;
   size_t i;
   for (i = 0; i < node->num_children; i++) {
@@ -206,7 +206,7 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             pooled = pool_string_safe(ctx->tree, buf);
             if (!pooled) {
               free(buf);
-              return ENOMEM;
+              return CDD_C_ERROR_MEMORY;
             }
             cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, pooled,
                                      ctx->func_len + 2, &new_tok);
@@ -224,7 +224,7 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /** @brief Struct definition */
@@ -239,11 +239,11 @@ struct tramp_ctx {
   cdd_cst_node_t *func_node;
 };
 
-static int tramp_visitor(cdd_cst_node_t *node, void *user_data) {
+static enum cdd_c_error tramp_visitor(cdd_cst_node_t *node, void *user_data) {
   struct tramp_ctx *ctx = (struct tramp_ctx *)user_data;
   size_t i;
   if (ctx->is_tramp)
-    return 0;
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -265,16 +265,16 @@ static int tramp_visitor(cdd_cst_node_t *node, void *user_data) {
           }
           if (next->kind != CDD_TOKEN_LPAREN) {
             ctx->is_tramp = 1;
-            return 1; /* abort traversal */
+            return CDD_C_ERROR_UNKNOWN; /* abort traversal */
           }
         }
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-static int asm_visitor(cdd_cst_node_t *node, void *user_data) {
+static enum cdd_c_error asm_visitor(cdd_cst_node_t *node, void *user_data) {
   size_t i;
   (void)user_data;
   if (node->kind == CDD_CST_ASM_STATEMENT) {
@@ -296,7 +296,7 @@ static int asm_visitor(cdd_cst_node_t *node, void *user_data) {
       }
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static const char *cdd_infer_type(cdd_token_t *tokens, size_t num_tokens) {
@@ -365,14 +365,14 @@ static const char *cdd_infer_type(cdd_token_t *tokens, size_t num_tokens) {
   return "int";
 }
 
-int cdd_transform_gnu(cdd_cst_tree_t *tree,
-                      const cdd_transform_config_t *config) {
+enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
+                                   const cdd_transform_config_t *config) {
   size_t i;
   cdd_cst_query_result_t res = {0};
   (void)config;
 
   if (!tree || !tree->root)
-    return EINVAL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   cdd_cst_traverse_preorder(tree->root, asm_visitor, NULL);
 
@@ -568,7 +568,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                           pooled = pool_string_safe(tree, out_buf);
                           if (!pooled) {
                             free(out_buf);
-                            return ENOMEM;
+                            return CDD_C_ERROR_MEMORY;
                           }
                           cdd_cst_create_token_len(
                               tree, CDD_TOKEN_PREPROC_DEFINE, pooled,
@@ -721,7 +721,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_bld_space(&bld);
             cdd_cst_bld_punct(&bld, "}");
             cdd_cst_bld_space(&bld);
-            if (!cdd_cst_builder_has_error(&bld))
+            if (bld.error_state == 0)
               cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
                                       temp->children, temp->num_children);
             cdd_cst_builder_free(&bld);
@@ -780,7 +780,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_bld_punct(&bld, ".");
             cdd_cst_bld_ident(&bld, "real");
             cdd_cst_bld_space(&bld);
-            if (!cdd_cst_builder_has_error(&bld))
+            if (bld.error_state == 0)
               cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
                                       temp->children, temp->num_children);
             cdd_cst_builder_free(&bld);
@@ -839,7 +839,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_bld_punct(&bld, ".");
             cdd_cst_bld_ident(&bld, "imag");
             cdd_cst_bld_space(&bld);
-            if (!cdd_cst_builder_has_error(&bld))
+            if (bld.error_state == 0)
               cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
                                       temp->children, temp->num_children);
             cdd_cst_builder_free(&bld);
@@ -913,7 +913,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_builder_init(&bld, tree, temp);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
                 cdd_cst_bld_space(&bld);
-                if (!cdd_cst_builder_has_error(&bld))
+                if (bld.error_state == 0)
                   cdd_cst_splice_children(tree, &owning_node, child_idx,
                                           (rparen_idx - i) + 1, temp->children,
                                           temp->num_children);
@@ -1004,7 +1004,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     }
                     cdd_cst_bld_space(&bld);
                     typeof_arr_idx++;
-                    if (!cdd_cst_builder_has_error(&bld))
+                    if (bld.error_state == 0)
                       cdd_cst_splice_children(
                           tree, &owning_node, child_idx, (rparen_idx - i) + 1,
                           temp->children, temp->num_children);
@@ -1017,7 +1017,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_builder_t bld;
                     cdd_cst_builder_init(&bld, tree, temp);
                     cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
-                    if (!cdd_cst_builder_has_error(&bld))
+                    if (bld.error_state == 0)
                       cdd_cst_splice_children(
                           tree, &owning_node, child_idx, (rparen_idx - i) + 1,
                           temp->children, temp->num_children);
@@ -1031,7 +1031,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   cdd_cst_builder_t bld;
                   cdd_cst_builder_init(&bld, tree, temp);
                   cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
-                  if (!cdd_cst_builder_has_error(&bld))
+                  if (bld.error_state == 0)
                     cdd_cst_splice_children(tree, &owning_node, child_idx,
                                             (rparen_idx - i) + 1,
                                             temp->children, temp->num_children);
@@ -1071,7 +1071,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_cst_builder_init(&bld, tree, temp);
           cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
           cdd_cst_bld_space(&bld);
-          if (!cdd_cst_builder_has_error(&bld))
+          if (bld.error_state == 0)
             cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
                                     temp->children, temp->num_children);
           cdd_cst_builder_free(&bld);
@@ -1100,7 +1100,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       struct NumericValue nv;
       memcpy(buf, tok->start, copy_len);
       buf[copy_len] = '\0';
-      if (parse_numeric_literal(buf, &nv) == ERANGE) {
+      if (parse_numeric_literal(buf, &nv) == CDD_C_ERROR_PARSE) {
         /* Exceeds 64-bit */
         uint64_t high = 0, low = 0;
         if (buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) {
@@ -1143,7 +1143,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ")");
-              if (!cdd_cst_builder_has_error(&bld))
+              if (bld.error_state == 0)
                 cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
                                         temp->children, temp->num_children);
               cdd_cst_builder_free(&bld);
@@ -1475,7 +1475,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       (const char *)tree->base_tokens->tokens[i + 5].start,
                       tree->base_tokens->tokens[i + 5].length));
               cdd_cst_bld_punct(&bld, ")");
-              if (!cdd_cst_builder_has_error(&bld))
+              if (bld.error_state == 0)
                 cdd_cst_splice_children(tree, &owning_node, child_idx, 9,
                                         temp->children, temp->num_children);
               cdd_cst_builder_free(&bld);
@@ -1763,7 +1763,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
               cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
             }
-            if (!cdd_cst_builder_has_error(&bld))
+            if (bld.error_state == 0)
               cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
                                       temp->children, temp->num_children);
             cdd_cst_builder_free(&bld);
@@ -1809,7 +1809,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
               cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
             }
-            if (!cdd_cst_builder_has_error(&bld))
+            if (bld.error_state == 0)
               cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
                                       temp->children, temp->num_children);
             cdd_cst_builder_free(&bld);
@@ -1970,7 +1970,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               pooled = pool_string_safe(tree, buf);
               if (!pooled) {
                 free(buf);
-                return ENOMEM;
+                return CDD_C_ERROR_MEMORY;
               }
               cdd_cst_create_token_len(
                   tree, tree->base_tokens->tokens[rparen_idx + 1].kind, pooled,
@@ -2089,7 +2089,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 pooled = pool_string_safe(tree, buf);
                 if (!pooled) {
                   free(buf);
-                  return ENOMEM;
+                  return CDD_C_ERROR_MEMORY;
                 }
                 cdd_cst_create_token_len(tree, tok->kind, pooled, strlen(buf),
                                          &new_tok);
@@ -2348,7 +2348,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_cst_node_t *owning_node = NULL;
           cdd_cst_find_node_for_token(tree->root, t, &child_idx, &owning_node);
           if (!owning_node)
-            return EINVAL;
+            return CDD_C_ERROR_INVALID_ARGUMENT;
 
           /* Run cleanups in reverse order */
           while (num_cleanups > 0 &&
@@ -2372,7 +2372,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       cleanups[num_cleanups - 1].var_length));
               cdd_cst_bld_punct(&bld, ")");
               cdd_cst_bld_punct(&bld, ";");
-              if (!cdd_cst_builder_has_error(&bld))
+              if (bld.error_state == 0)
                 cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
                                         temp->children, temp->num_children);
               cdd_cst_builder_free(&bld);
@@ -2397,7 +2397,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                               vlas[num_vlas - 1].length));
                 cdd_cst_bld_punct(&bld, ")");
                 cdd_cst_bld_punct(&bld, ";");
-                if (!cdd_cst_builder_has_error(&bld))
+                if (bld.error_state == 0)
                   cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
                                           temp->children, temp->num_children);
                 cdd_cst_builder_free(&bld);
@@ -2428,7 +2428,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 pooled = pool_string_safe(tree, heap_buf);
                 if (!pooled) {
                   free(heap_buf);
-                  return ENOMEM;
+                  return CDD_C_ERROR_MEMORY;
                 }
                 cdd_cst_create_token_len(tree, t->kind, pooled,
                                          strlen(heap_buf), &new_tok);
@@ -2531,7 +2531,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     pooled = pool_string_safe(tree, dup);
                     if (!pooled) {
                       free(dup);
-                      return ENOMEM;
+                      return CDD_C_ERROR_MEMORY;
                     }
                     cdd_cst_create_token_len(tree,
                                              tree->base_tokens->tokens[k].kind,
@@ -2683,7 +2683,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 p += nt->length;
                 *p++ = '_';
                 if (append_int(p, ++label_counter, &p) != 0)
-                  return ENOMEM;
+                  return CDD_C_ERROR_MEMORY;
               }
               num_local_labels++;
             }
@@ -2784,7 +2784,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   pooled = pool_string_safe(tree, dup);
                   if (!pooled) {
                     free(dup);
-                    return ENOMEM;
+                    return CDD_C_ERROR_MEMORY;
                   }
                   cdd_cst_create_token_len(tree, t->kind, pooled, strlen(dup),
                                            &new_tok);
@@ -2950,7 +2950,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       cdd_cst_bld_punct(&bld, ")");
                       cdd_cst_bld_punct(&bld, ")");
                       cdd_cst_bld_punct(&bld, ";");
-                      if (!cdd_cst_builder_has_error(&bld))
+                      if (bld.error_state == 0)
                         cdd_cst_splice_children(tree, &owning_node, child_idx,
                                                 0, temp->children,
                                                 temp->num_children);
@@ -3040,7 +3040,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       cdd_cst_bld_punct(&bld, ")");
                       cdd_cst_bld_punct(&bld, ")");
                       cdd_cst_bld_punct(&bld, ";");
-                      if (!cdd_cst_builder_has_error(&bld))
+                      if (bld.error_state == 0)
                         cdd_cst_splice_children(tree, &owning_node, child_idx,
                                                 0, temp->children,
                                                 temp->num_children);
@@ -3336,7 +3336,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   p += 5;
                   if (append_int(p, v, &p) != 0) {
                     free(heap_buf);
-                    return ENOMEM;
+                    return CDD_C_ERROR_MEMORY;
                   }
                   if (v != end_val) {
                     strcpy(p, ": ");
@@ -3349,7 +3349,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 pooled = pool_string_safe(tree, heap_buf);
                 if (!pooled) {
                   free(heap_buf);
-                  return ENOMEM;
+                  return CDD_C_ERROR_MEMORY;
                 }
                 tree->base_tokens->tokens[is_case_idx].start =
                     (const uint8_t *)pooled;
@@ -3437,7 +3437,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     *p++ = '[';
                     if (append_int(p, v, &p) != 0) {
                       free(heap_buf);
-                      return ENOMEM;
+                      return CDD_C_ERROR_MEMORY;
                     }
                     strcpy(p, "] = ");
                     p += 4;
@@ -3453,7 +3453,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   pooled = pool_string_safe(tree, heap_buf);
                   if (!pooled) {
                     free(heap_buf);
-                    return ENOMEM;
+                    return CDD_C_ERROR_MEMORY;
                   }
                   tree->base_tokens->tokens[is_range_idx].start =
                       (const uint8_t *)pooled;
@@ -3617,7 +3617,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     }
   }
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

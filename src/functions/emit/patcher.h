@@ -21,6 +21,7 @@ extern "C" {
 #include <stddef.h>
 
 #include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
@@ -51,7 +52,7 @@ struct PatchList {
  * @param[out] list Pointer to the list structure to initialize.
  * @return 0 on success, EINVAL if list is NULL, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT int patch_list_init(struct PatchList *list);
+extern C_CDD_EXPORT enum cdd_c_error patch_list_init(struct PatchList *list);
 
 /**
  * @brief Free resources associated with a patch list.
@@ -75,8 +76,9 @@ extern C_CDD_EXPORT void patch_list_free(struct PatchList *list);
  * @param[in] text Malloc'd string to insert.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT int patch_list_add(struct PatchList *list, size_t start_idx,
-                                       size_t end_idx, char *text);
+extern C_CDD_EXPORT enum cdd_c_error patch_list_add(struct PatchList *list,
+                                                    size_t start_idx,
+                                                    size_t end_idx, char *text);
 
 /**
  * @brief Apply patches to the token stream and generate new source code.
@@ -95,9 +97,9 @@ extern C_CDD_EXPORT int patch_list_add(struct PatchList *list, size_t start_idx,
  * @param[out] out_code Pointer to a char* where the new code will be allocated.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT int patch_list_apply(struct PatchList *list,
-                                         const struct TokenList *tokens,
-                                         char **out_code);
+extern C_CDD_EXPORT enum cdd_c_error
+patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
+                 char **out_code);
 
 /**
  * @brief Helper to sort patches by position.

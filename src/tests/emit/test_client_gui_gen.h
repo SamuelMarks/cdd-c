@@ -110,14 +110,14 @@ TEST test_client_gui_gen_errors(void) {
   ASSERT_EQ(0, rc);
 
   rc = openapi_client_gui_generate(NULL, &config);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   rc = openapi_client_gui_generate(&spec, NULL);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   config.filename_base = NULL;
   rc = openapi_client_gui_generate(&spec, &config);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
   PASS();
