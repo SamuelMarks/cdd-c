@@ -55,6 +55,8 @@ TEST test_lift_anonymous_struct(void) {
     sz = ftell(f);
     rewind(f);
     content = (char *)malloc(sz + 1);
+    if (!content)
+      return CDD_C_ERROR_MEMORY;
     fread(content, 1, sz, f);
     content[sz] = 0;
     fclose(f);

@@ -152,9 +152,13 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
           if (has_seen_statement_in_block) {
             /* We found a mixed declaration! */
             if (list->count >= list->capacity) {
+              struct HoistSite *new_sites;
               list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-              list->sites = (struct HoistSite *)realloc(
+              new_sites = (struct HoistSite *)realloc(
                   list->sites, list->capacity * sizeof(struct HoistSite));
+              if (!new_sites)
+                return CDD_C_ERROR_MEMORY;
+              list->sites = new_sites;
             }
             list->sites[list->count].start_token_idx = stmt_start;
             list->sites[list->count].end_token_idx = i;

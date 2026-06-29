@@ -262,6 +262,143 @@ static void check_unsupported_calls(expr_t *head) {
   }
 }
 
+typedef struct {
+  int valid;
+  int is_malloc;
+  cdd_token_t *base_tok;
+  expr_t *offset_expr;
+  expr_t *malloc_size_expr;
+} inferred_size_t;
+
+static inferred_size_t infer_buffer_size(expr_t *node) {
+  inferred_size_t res;
+  cdd_cst_query_result_t stmts;
+  size_t i, j;
+  const char *name = NULL;
+  size_t len = 0;
+
+  memset(&res, 0, sizeof(res));
+  memset(&stmts, 0, sizeof(stmts));
+
+  if (!current_tree || !current_tree->root || !node)
+    return res;
+
+  /* Parse offset patterns */
+  if (node->type == 0 && node->tok && node->tok->length == 1 &&
+      node->tok->start[0] == '&' && node->next && node->next->type == 0 &&
+      node->next->tok->kind == CDD_TOKEN_IDENTIFIER && node->next->next &&
+      node->next->next->type == 2 &&
+      node->next->next->tok->kind == CDD_TOKEN_LBRACKET) {
+    /* &buf[expr] */
+    name = (const char *)node->next->tok->start;
+    len = node->next->tok->length;
+    res.base_tok = node->next->tok;
+    res.offset_expr = node->next->next->args[0];
+  } else if (node->type == 0 && node->tok &&
+             node->tok->kind == CDD_TOKEN_IDENTIFIER && node->next &&
+             node->next->type == 0 && node->next->tok->kind == CDD_TOKEN_PLUS &&
+             node->next->next) {
+    /* buf + expr */
+    name = (const char *)node->tok->start;
+    len = node->tok->length;
+    res.base_tok = node->tok;
+    res.offset_expr = node->next->next;
+  } else if (node->type == 0 && node->tok &&
+             node->tok->kind == CDD_TOKEN_IDENTIFIER && !node->next) {
+    /* buf */
+    name = (const char *)node->tok->start;
+    len = node->tok->length;
+    res.base_tok = node->tok;
+  }
+
+  if (!name)
+    return res;
+
+  if (cdd_cst_find_nodes_by_type(current_tree->root, CDD_CST_UNKNOWN, &stmts) !=
+      0)
+    return res;
+
+  for (i = 0; i < stmts.size; i++) {
+    cdd_cst_node_t *stmt = stmts.nodes[i];
+    for (j = 0; j < stmt->num_children; j++) {
+      if (stmt->children[j].kind == CDD_CST_CHILD_TOKEN) {
+        cdd_token_t *tok = stmt->children[j].val.token;
+        if (tok->kind == CDD_TOKEN_IDENTIFIER && tok->length == len &&
+            memcmp(tok->start, name, len) == 0) {
+
+          /* Pattern 1: Array declaration -> char buf[...] */
+          if (j + 1 < stmt->num_children &&
+              stmt->children[j + 1].kind == CDD_CST_CHILD_TOKEN &&
+              stmt->children[j + 1].val.token->kind == CDD_TOKEN_LBRACKET) {
+
+            if (j > 0 && stmt->children[j - 1].kind == CDD_CST_CHILD_TOKEN &&
+                stmt->children[j - 1].val.token->kind == CDD_TOKEN_IDENTIFIER) {
+              res.valid = 1;
+              if (stmts.nodes)
+                free(stmts.nodes);
+              return res;
+            }
+          }
+
+          /* Pattern 2: malloc/calloc/realloc assignment -> buf = malloc(...) OR
+           * char *buf = malloc(...) */
+          if (j + 1 < stmt->num_children &&
+              stmt->children[j + 1].kind == CDD_CST_CHILD_TOKEN &&
+              stmt->children[j + 1].val.token->kind == CDD_TOKEN_ASSIGN) {
+
+            if (j + 2 < stmt->num_children &&
+                stmt->children[j + 2].kind == CDD_CST_CHILD_TOKEN) {
+              cdd_token_t *m_tok = stmt->children[j + 2].val.token;
+              if (m_tok->kind == CDD_TOKEN_IDENTIFIER && m_tok->length >= 6 &&
+                  (memcmp(m_tok->start, "malloc", 6) == 0 ||
+                   memcmp(m_tok->start, "calloc", 6) == 0 ||
+                   memcmp(m_tok->start, "realloc", 7) == 0)) {
+                size_t idx = j + 2;
+                expr_t *m_expr = NULL;
+                if (parse_expr_ast(stmt, &idx, 0, &m_expr) == 0) {
+                  if (m_expr && m_expr->type == 1) {
+                    if (m_expr->num_args == 1) {
+                      /* malloc */
+                      res.valid = 1;
+                      res.is_malloc = 1;
+                      res.malloc_size_expr = m_expr->args[0];
+                      if (stmts.nodes)
+                        free(stmts.nodes);
+                      return res;
+                    } else if (m_expr->num_args == 2 &&
+                               memcmp(m_tok->start, "calloc", 6) == 0) {
+                      /* calloc(n, size) -> n * size */
+                      res.valid = 1;
+                      res.is_malloc = 2; /* special flag for calloc */
+                      res.malloc_size_expr =
+                          m_expr; /* store the call expr, handle in emit */
+                      if (stmts.nodes)
+                        free(stmts.nodes);
+                      return res;
+                    } else if (m_expr->num_args == 2 &&
+                               memcmp(m_tok->start, "realloc", 7) == 0) {
+                      /* realloc(ptr, size) -> size */
+                      res.valid = 1;
+                      res.is_malloc = 1;
+                      res.malloc_size_expr = m_expr->args[1];
+                      if (stmts.nodes)
+                        free(stmts.nodes);
+                      return res;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (stmts.nodes)
+    free(stmts.nodes);
+  return res;
+}
+
 static enum cdd_c_error check_needs_transform(expr_t *head) {
   size_t i;
   while (head) {
@@ -309,14 +446,83 @@ static enum cdd_c_error check_needs_transform(expr_t *head) {
           strcmp(name, "_wputenv") == 0 || strcmp(name, "_searchenv") == 0 ||
           strcmp(name, "_wsearchenv") == 0 || strcmp(name, "qsort") == 0 ||
           strcmp(name, "bsearch") == 0 || strcmp(name, "_ultow") == 0) {
+
+        int need_verified_size = 0;
+        int arg_idx = 0;
+        if (strcmp(name, "strcpy") == 0 || strcmp(name, "strcat") == 0 ||
+            strcmp(name, "strncpy") == 0 || strcmp(name, "strncat") == 0 ||
+            strcmp(name, "sprintf") == 0 || strcmp(name, "vsprintf") == 0 ||
+            strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
+            strcmp(name, "wcscpy") == 0 || strcmp(name, "wcsncpy") == 0 ||
+            strcmp(name, "wcscat") == 0 || strcmp(name, "wcsncat") == 0 ||
+            strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbsncpy") == 0 ||
+            strcmp(name, "_mbscat") == 0 || strcmp(name, "_mbsncat") == 0 ||
+            strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
+            strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0 ||
+            strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
+            strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
+            strcmp(name, "_wcslwr") == 0 || strcmp(name, "_wcsupr") == 0 ||
+            strcmp(name, "gets") == 0 || strcmp(name, "tmpnam") == 0 ||
+            strcmp(name, "strlen") == 0 || strcmp(name, "_makepath") == 0 ||
+            strcmp(name, "_wmakepath") == 0 || strcmp(name, "mbstowcs") == 0 ||
+            strcmp(name, "wcstombs") == 0 || strcmp(name, "wctomb") == 0 ||
+            strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
+            strcmp(name, "_mbsset") == 0 || strcmp(name, "_mbsnset") == 0) {
+          need_verified_size = 1;
+        } else if (strcmp(name, "_itoa") == 0 || strcmp(name, "_ltoa") == 0 ||
+                   strcmp(name, "_ultoa") == 0 ||
+                   strcmp(name, "_i64toa") == 0 ||
+                   strcmp(name, "_ui64toa") == 0 ||
+                   strcmp(name, "_itow") == 0 || strcmp(name, "_ltow") == 0 ||
+                   strcmp(name, "_ultow") == 0) {
+          need_verified_size = 1;
+          arg_idx = 1;
+        } else if (strcmp(name, "_gcvt") == 0 ||
+                   strcmp(name, "_searchenv") == 0 ||
+                   strcmp(name, "_wsearchenv") == 0) {
+          need_verified_size = 1;
+          arg_idx = 2;
+        } else if (strcmp(name, "_splitpath") == 0 ||
+                   strcmp(name, "_wsplitpath") == 0) {
+          need_verified_size = 4;
+          arg_idx = 1;
+        }
+
+        if (need_verified_size) {
+          size_t k;
+          for (k = 0; k < (size_t)need_verified_size; k++) {
+            if ((size_t)arg_idx + k < head->next->num_args) {
+              if (head->next->args[arg_idx + k] &&
+                  head->next->args[arg_idx + k]->tok &&
+                  head->next->args[arg_idx + k]->tok->length == 4 &&
+                  memcmp(head->next->args[arg_idx + k]->tok->start, "NULL",
+                         4) == 0)
+                continue;
+              if (head->next->args[arg_idx + k] &&
+                  head->next->args[arg_idx + k]->tok &&
+                  head->next->args[arg_idx + k]->tok->length == 1 &&
+                  head->next->args[arg_idx + k]->tok->start[0] == '0')
+                continue;
+              if (!infer_buffer_size(head->next->args[arg_idx + k]).valid) {
+                return CDD_C_ERROR_PARSE;
+              }
+            }
+          }
+        }
         return CDD_C_ERROR_UNKNOWN;
       }
       for (i = 0; i < head->num_args; i++) {
-        if (check_needs_transform(head->args[i]))
+        enum cdd_c_error err = check_needs_transform(head->args[i]);
+        if (err == CDD_C_ERROR_PARSE)
+          return err;
+        if (err)
           return CDD_C_ERROR_UNKNOWN;
       }
     } else if (head->type == 2) {
-      if (check_needs_transform(head->args[0]))
+      enum cdd_c_error err = check_needs_transform(head->args[0]);
+      if (err == CDD_C_ERROR_PARSE)
+        return err;
+      if (err)
         return CDD_C_ERROR_UNKNOWN;
     } else if (head->type == 3) {
       return CDD_C_ERROR_UNKNOWN;
@@ -477,8 +683,76 @@ emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
   return emit_ast_bld_strip(node, bld, is_msc);
 }
 
+static void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest) {
+  inferred_size_t info = infer_buffer_size(dest);
+  if (!info.valid) {
+    cdd_cst_bld_ident(bld, "sizeof");
+    cdd_cst_bld_punct(bld, "(");
+    emit_ast_bld_strip(dest, bld, 0);
+    cdd_cst_bld_punct(bld, ")");
+    return;
+  }
+
+  if (info.offset_expr)
+    cdd_cst_bld_punct(bld, "(");
+
+  if (info.is_malloc == 1) {
+    emit_ast_bld_strip(info.malloc_size_expr, bld, 0);
+  } else if (info.is_malloc == 2) {
+    cdd_cst_bld_punct(bld, "(");
+    emit_ast_bld_strip(info.malloc_size_expr->args[0], bld, 0);
+    cdd_cst_bld_punct(bld, ")");
+    cdd_cst_bld_space(bld);
+    cdd_cst_bld_punct(bld, "*");
+    cdd_cst_bld_space(bld);
+    cdd_cst_bld_punct(bld, "(");
+    emit_ast_bld_strip(info.malloc_size_expr->args[1], bld, 0);
+    cdd_cst_bld_punct(bld, ")");
+  } else {
+    cdd_token_t *ct = NULL;
+    cdd_cst_bld_ident(bld, "sizeof");
+    cdd_cst_bld_punct(bld, "(");
+
+    clone_token(bld->tree, info.base_tok, &ct);
+    if (ct) {
+      if (ct->leading_trivia) {
+        cdd_trivia_t *curr = ct->leading_trivia;
+        while (curr) {
+          cdd_trivia_t *nxt = curr->next;
+          free(curr);
+          curr = nxt;
+        }
+      }
+      if (ct->trailing_trivia) {
+        cdd_trivia_t *curr = ct->trailing_trivia;
+        while (curr) {
+          cdd_trivia_t *nxt = curr->next;
+          free(curr);
+          curr = nxt;
+        }
+      }
+      ct->leading_trivia = NULL;
+      ct->trailing_trivia = NULL;
+      cdd_cst_append_child_token(bld->target_node, ct);
+    }
+
+    cdd_cst_bld_punct(bld, ")");
+  }
+
+  if (info.offset_expr) {
+    cdd_cst_bld_space(bld);
+    cdd_cst_bld_punct(bld, "-");
+    cdd_cst_bld_space(bld);
+    cdd_cst_bld_punct(bld, "(");
+    emit_ast_bld_strip(info.offset_expr, bld, 0);
+    cdd_cst_bld_punct(bld, ")");
+    cdd_cst_bld_punct(bld, ")");
+  }
+}
+
 static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
                                      int is_msc) {
+
   int changes = 0;
   size_t k;
   emit_ctx_t *ctx = is_msc ? g_msc_ctx : NULL;
@@ -633,10 +907,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         for (k = 1; k < node->num_args; k++) {
           cdd_cst_bld_punct(bld, ",");
           cdd_cst_bld_space(bld);
@@ -646,10 +917,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         changes += emit_ast_bld(node->args[1], bld, is_msc);
@@ -673,10 +941,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         changes += emit_ast_bld(node->args[1], bld, is_msc);
@@ -690,10 +955,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[1], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[1], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[1]);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         changes += emit_ast_bld(node->args[2], bld, is_msc);
@@ -701,10 +963,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
       } else if (is_safe == 10 && node->num_args >= 5) {
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         for (k = 1; k < 5; k++) {
@@ -716,20 +975,14 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
           if (expr_is_null_or_zero(node->args[k])) {
             cdd_cst_bld_int(bld, 0);
           } else {
-            cdd_cst_bld_ident(bld, "sizeof");
-            cdd_cst_bld_punct(bld, "(");
-            emit_ast_bld_strip(node->args[k], bld, 0);
-            cdd_cst_bld_punct(bld, ")");
+            emit_inferred_size(bld, node->args[k]);
           }
         }
       } else if (is_safe == 11 && node->num_args >= 5) {
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         for (k = 1; k < node->num_args; k++) {
           cdd_cst_bld_punct(bld, ",");
           cdd_cst_bld_space(bld);
@@ -742,10 +995,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[2], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[2], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[2]);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         changes += emit_ast_bld(node->args[0], bld, is_msc);
@@ -769,10 +1019,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         cdd_cst_bld_punct(bld, "(");
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         if (strcmp(name, "wcstombs") == 0) {
           cdd_cst_bld_punct(bld, ")");
         } else {
@@ -806,10 +1053,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[0], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[0], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[0]);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         changes += emit_ast_bld(node->args[1], bld, is_msc);
@@ -831,10 +1075,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         changes += emit_ast_bld(node->args[2], bld, is_msc);
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
-        cdd_cst_bld_ident(bld, "sizeof");
-        cdd_cst_bld_punct(bld, "(");
-        emit_ast_bld_strip(node->args[2], bld, 0);
-        cdd_cst_bld_punct(bld, ")");
+        emit_inferred_size(bld, node->args[2]);
         if (strcmp(name, "_wsearchenv") == 0) {
           cdd_cst_bld_space(bld);
           cdd_cst_bld_punct(bld, "/");
@@ -1280,14 +1521,18 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   do {
     replaced_any = 0;
     rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
-    if (rc != 0)
+    if (rc != 0) {
+      arena_free_all();
+      current_tree = NULL;
       return rc;
+    }
 
     for (i = 0; i < res.size; i++) {
       cdd_cst_node_t *stmt = res.nodes[i];
       size_t idx = 0;
       expr_t *ast;
       cdd_token_t *first_tok = NULL;
+      enum cdd_c_error chk_rc = CDD_C_SUCCESS;
 
       if (stmt->num_children > 0 &&
           stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
@@ -1339,7 +1584,15 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       find_and_mark_fopen(ast);
       check_unsupported_calls(ast);
 
-      if (check_needs_transform(ast)) {
+      chk_rc = check_needs_transform(ast);
+      if (chk_rc == CDD_C_ERROR_PARSE) {
+        if (res.nodes)
+          free(res.nodes);
+        arena_free_all();
+        current_tree = NULL;
+        return CDD_C_ERROR_PARSE;
+      }
+      if (chk_rc) {
         char indent[64];
         cdd_cst_builder_t msc_bld, else_bld, bld;
         cdd_cst_node_t *msc_node = NULL, *else_node = NULL, *new_node = NULL;
@@ -1592,6 +1845,8 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     free(res.nodes);
   } while (replaced_any);
 
+  arena_free_all();
+  current_tree = NULL;
   return CDD_C_SUCCESS;
 }
 

@@ -129,10 +129,15 @@ emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       if (node->requires_gil_release) {
         fprintf(f, "  napi_value promise;\n");
         fprintf(f, "  napi_value resource_name;\n");
-        fprintf(f,
-                "  %s_worker_data* worker_data = (%s_worker_data*)calloc(1, "
-                "sizeof(%s_worker_data));\n",
-                node->name, node->name, node->name);
+        fprintf(
+            f,
+            "  %s_worker_data* worker_data = (%s_worker_data*)calloc(1, "
+            "sizeof(%s_worker_data));\n"
+            "  if (!worker_data) {\n"
+            "    napi_throw_error(env, NULL, \"Memory allocation failed\");\n"
+            "    return NULL;\n"
+            "  }\n",
+            node->name, node->name, node->name);
         fprintf(
             f,
             "  napi_create_promise(env, &worker_data->deferred, &promise);\n");

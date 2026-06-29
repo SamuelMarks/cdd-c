@@ -123,7 +123,7 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
   int is_fix = 0;
   int is_dry_run = 0;
   const char *toolname = NULL;
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
   enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
                                    const cdd_transform_config_t *) = NULL;
 
@@ -189,6 +189,69 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
 
       if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=
           0) {
+        rc = 1;
+      }
+    }
+  }
+
+  return rc;
+}
+
+/** @brief cli_standardize_gnu_main */
+enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv) {
+  int i;
+  int rc = 0;
+  int is_audit = 0;
+  int is_fix = 0;
+  int is_dry_run = 0;
+  cdd_transform_config_t config = {0, 2, 0, 0, 0};
+
+  /* LCOV_EXCL_START */
+  if (argc < 1) {
+    fprintf(stderr, "Usage: cdd-c standardize-gnu [OPTIONS] <files...>\n");
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  /* LCOV_EXCL_STOP */
+
+  if (strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "-h") == 0) {
+    fprintf(stdout, "Usage: cdd-c standardize-gnu [OPTIONS] <files...>\n");
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "  --target-c89       Strictly target C89 semantics\n");
+    fprintf(stdout, "  --target-c99       Target C99 semantics\n");
+    fprintf(stdout, "  --fallback-alloca  Rewrite VLAs to use malloc/free "
+                    "instead of alloca\n");
+    fprintf(stdout,
+            "  --audit            Check if files need formatting/fixes\n");
+    fprintf(stdout, "  --fix              Apply fixes in-place\n");
+    fprintf(stdout, "  --dry-run          Show what would be fixed without "
+                    "modifying files\n");
+    return CDD_C_SUCCESS;
+  }
+
+  for (i = 0; i < argc; i++) {
+    if (strcmp(argv[i], "--audit") == 0) {
+      is_audit = 1;
+    } else if (strcmp(argv[i], "--fix") == 0) {
+      is_fix = 1;
+    } else if (strcmp(argv[i], "--dry-run") == 0) {
+      is_dry_run = 1;
+    } else if (strcmp(argv[i], "--target-c89") == 0) {
+      config.target_c89 = 1;
+    } else if (strcmp(argv[i], "--target-c99") == 0) {
+      config.target_c99 = 1;
+    } else if (strcmp(argv[i], "--fallback-alloca") == 0) {
+      config.fallback_vla_to_malloc = 1;
+    } else if (argv[i][0] != '-') {
+      /* Assume it's a file */
+      /* LCOV_EXCL_START */
+      if (!is_audit && !is_fix) {
+        fprintf(stderr, "Must specify --audit or --fix.\n");
+        return CDD_C_ERROR_INVALID_ARGUMENT;
+      }
+      /* LCOV_EXCL_STOP */
+
+      if (process_file(argv[i], cdd_transform_gnu, &config, is_audit,
+                       is_dry_run) != 0) {
         rc = 1;
       }
     }

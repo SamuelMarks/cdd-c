@@ -82,13 +82,19 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
   switch (tank) {
   case Tank_BIG:
     *str = strdup("BIG");
+    if (!str)
+      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_SMALL:
     *str = strdup("SMALL");
+    if (!str)
+      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_UNKNOWN:
   default:
     *str = strdup("UNKNOWN");
+    if (!str)
+      return CDD_C_ERROR_MEMORY;
   }
 
   if (*str == NULL)

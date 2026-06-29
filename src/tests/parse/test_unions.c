@@ -43,6 +43,8 @@ TEST test_write_union_to_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)malloc(sz + 1);
+  if (!content)
+    return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -79,6 +81,8 @@ TEST test_write_union_from_json_object(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)malloc(sz + 1);
+  if (!content)
+    return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -113,6 +117,8 @@ TEST test_write_union_from_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)malloc(sz + 1);
+  if (!content)
+    return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -145,6 +151,8 @@ TEST test_write_union_cleanup(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)malloc(sz + 1);
+  if (!content)
+    return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 

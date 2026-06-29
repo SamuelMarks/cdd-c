@@ -53,7 +53,7 @@ TEST test_generated_obj_array_logic(void) {
   output_len = ftell(tmp);
   rewind(tmp);
 
-  output_buf = malloc(output_len + 1);
+  output_buf = malloc(output_len + 1); if (!output_buf) return CDD_C_ERROR_MEMORY;
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
@@ -116,6 +116,8 @@ TEST test_code2schema_obj_array_detection(void) {
   len = ftell(f);
   rewind(f);
   json_content = (char *)malloc(len + 1);
+  if (!json_content)
+    return CDD_C_ERROR_MEMORY;
   fread(json_content, 1, len, f);
   json_content[len] = 0;
   fclose(f);
@@ -155,6 +157,8 @@ TEST test_cleanup_generation(void) {
   rewind(tmp);
 
   output_buf = malloc(output_len + 1);
+  if (!output_buf)
+    return CDD_C_ERROR_MEMORY;
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 

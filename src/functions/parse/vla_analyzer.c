@@ -236,9 +236,13 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
 
               if (is_vla) {
                 if (list->count >= list->capacity) {
+                  struct VLASite *new_sites;
                   list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-                  list->sites = (struct VLASite *)realloc(
+                  new_sites = (struct VLASite *)realloc(
                       list->sites, list->capacity * sizeof(struct VLASite));
+                  if (!new_sites)
+                    return CDD_C_ERROR_MEMORY;
+                  list->sites = new_sites;
                 }
 
                 {

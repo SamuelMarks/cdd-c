@@ -3614,6 +3614,44 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
       }
+
+      /* builtin expect */
+      if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 16 &&
+          memcmp(t->start, "__builtin_expect", 16) == 0) {
+        size_t j = i + 1;
+        while (j < tree->base_tokens->size &&
+               tree->base_tokens->tokens[j].length == 0) {
+          j++;
+        }
+        if (j < tree->base_tokens->size &&
+            tree->base_tokens->tokens[j].kind == CDD_TOKEN_LPAREN) {
+          int depth = 1;
+          size_t comma_idx = 0;
+          size_t k;
+          for (k = j + 1; k < tree->base_tokens->size; k++) {
+            if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_LPAREN) {
+              depth++;
+            } else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_RPAREN) {
+              depth--;
+              if (depth == 0) {
+                if (comma_idx > 0) {
+                  t->length = 0;
+                  {
+                    size_t wipe;
+                    for (wipe = comma_idx; wipe < k; wipe++) {
+                      tree->base_tokens->tokens[wipe].length = 0;
+                    }
+                  }
+                }
+                break;
+              }
+            } else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_COMMA &&
+                       depth == 1) {
+              comma_idx = k;
+            }
+          }
+        }
+      }
     }
   }
 

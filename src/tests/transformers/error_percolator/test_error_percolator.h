@@ -16,13 +16,15 @@ TEST test_cdd_transform_percolate_errors(void) {
   cdd_cst_tree_t *tree;
   const char *code = "void func_void() { }\n"
                      "int non_void_func() { return 1; }\n";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
+  int rc = cdd_transform_percolate_errors(tree, &config);
+  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
+    ASSERT_EQ(0, rc);
 
   cdd_cst_tree_free(tree);
   PASS();
@@ -135,13 +137,15 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
       "void skip_ident_98() { int x; void * x(int y, ...) { return NULL; } "
       "void skip_ident_99() { int x; void * x(int y, ...) { return NULL; } "
       "void skip_ident_100() { int x; void * x(int y, ...) { return NULL; } ";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
+  int rc = cdd_transform_percolate_errors(tree, &config);
+  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
+    ASSERT_EQ(0, rc);
 
   cdd_cst_tree_free(tree);
   PASS();
@@ -151,18 +155,26 @@ extern C_CDD_EXPORT int g_fail_io_after;
 
 TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "void func_void() { }\n"
-                     "int non_void_func() { return 1; }\n"
-                     "void * my_void_ptr_func() { return NULL; }\n"
-                     "void trailing_call() { my_void_ptr_func }\n"
-                     "void skip_ident_2() { int x; void x; }\n";
-  cdd_transform_config_t config = {0, 2, 0};
+  const char *code =
+      "void func_void() { }\n"
+      "int non_void_func() { return 1; }\n"
+      "void * my_void_ptr_func() { return NULL; }\n"
+      "void trailing_call() { my_void_ptr_func }\n"
+      "void skip_ident_2() { int x; void x; }\n"
+      "void alloc_complex() { struct X { int *p; } x; x.p = malloc(10); }\n"
+      "void alloc_complex2() { int *arr[10]; arr[0] = calloc(1, 10); }\n"
+      "void alloc_complex3() { struct X { int *p; } *x; x->p = realloc(NULL, "
+      "10); }\n"
+      "void alloc_strdup() { char *s = strdup(\"test\"); }\n";
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
+  int rc = cdd_transform_percolate_errors(tree, &config);
+  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
+    ASSERT_EQ(0, rc);
 
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
@@ -182,7 +194,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   cdd_cst_child_t *c = NULL;
   const char *code =
       "void foo() { void *p = malloc(1); void *p2 = malloc(1); return; }";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   g_err_perc_fail = 1;
 

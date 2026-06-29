@@ -19,6 +19,15 @@ extern "C" {
  */
 C_CDD_EXPORT enum cdd_c_error cli_cst_transformer_main(int argc, char **argv);
 
+/**
+ * @brief Subcommand handler for standardize-gnu.
+ *
+ * @param argc Argument count.
+ * @param argv Argument values.
+ * @return 0 on success.
+ */
+C_CDD_EXPORT enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

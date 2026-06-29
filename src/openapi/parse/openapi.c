@@ -14788,16 +14788,24 @@ static enum cdd_c_error openapi_load_from_json_internal(
     size_t i;
 
     host = json_object_get_string(root_obj, "host");
-    if (host)
+    if (host) {
       out->host = strdup(host);
+      if (!out->host)
+        return CDD_C_ERROR_MEMORY;
+    }
     basePath = json_object_get_string(root_obj, "basePath");
-    if (basePath)
+    if (basePath) {
       out->basePath = strdup(basePath);
+      if (!out->basePath)
+        return CDD_C_ERROR_MEMORY;
+    }
 
     schemes_arr = json_object_get_array(root_obj, "schemes");
     if (schemes_arr) {
       out->n_schemes = json_array_get_count(schemes_arr);
       out->schemes = calloc(out->n_schemes, sizeof(char *));
+      if (!out->schemes)
+        return CDD_C_ERROR_MEMORY;
       for (i = 0; i < out->n_schemes; i++) {
         out->schemes[i] = strdup(json_array_get_string(schemes_arr, i));
       }
@@ -14806,6 +14814,8 @@ static enum cdd_c_error openapi_load_from_json_internal(
     if (consumes_arr) {
       out->n_consumes = json_array_get_count(consumes_arr);
       out->consumes = calloc(out->n_consumes, sizeof(char *));
+      if (!out->consumes)
+        return CDD_C_ERROR_MEMORY;
       for (i = 0; i < out->n_consumes; i++) {
         out->consumes[i] = strdup(json_array_get_string(consumes_arr, i));
       }
@@ -14814,6 +14824,8 @@ static enum cdd_c_error openapi_load_from_json_internal(
     if (produces_arr) {
       out->n_produces = json_array_get_count(produces_arr);
       out->produces = calloc(out->n_produces, sizeof(char *));
+      if (!out->produces)
+        return CDD_C_ERROR_MEMORY;
       for (i = 0; i < out->n_produces; i++) {
         out->produces[i] = strdup(json_array_get_string(produces_arr, i));
       }

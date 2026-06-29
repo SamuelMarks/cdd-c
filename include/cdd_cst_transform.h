@@ -20,6 +20,8 @@ typedef struct cdd_transform_config_t {
   int indent_width; /**< Number of spaces (or tabs) per indentation level */
   int fallback_vla_to_malloc; /**< If 1, rewrite VLAs to use malloc/free instead
                                  of alloca */
+  int target_c89;             /**< If 1, strictly target C89 semantics. */
+  int target_c99;             /**< If 1, target C99 semantics. */
 } cdd_transform_config_t;
 
 /**

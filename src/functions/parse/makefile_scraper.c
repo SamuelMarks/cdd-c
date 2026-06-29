@@ -82,29 +82,45 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 /**
  * @brief Adds or sets string to array.
  */
-static void add_string_to_array(char ***arr, size_t *n, const char *str) {
+static enum cdd_c_error add_string_to_array(char ***arr, size_t *n,
+                                            const char *str) {
   size_t i;
+  char **new_arr;
+  enum cdd_c_error rc;
   /* check dupes */
   for (i = 0; i < *n; i++) {
     if (strcmp((*arr)[i], str) == 0)
-      return;
+      return CDD_C_SUCCESS;
   }
-  *arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
-  my_strdup(str, &(*arr)[*n]);
+  new_arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
+  if (!new_arr)
+    return CDD_C_ERROR_MEMORY;
+  *arr = new_arr;
+  rc = my_strdup(str, &(*arr)[*n]);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   (*n)++;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the process token operation.
  */
-static void process_token(struct ExtractedBuildInfo *info, const char *tok) {
+static enum cdd_c_error process_token(struct ExtractedBuildInfo *info,
+                                      const char *tok) {
   size_t len = strlen(tok);
+  enum cdd_c_error rc = CDD_C_SUCCESS;
   if (len > 2 && tok[len - 2] == '.' && tok[len - 1] == 'c') {
     const char *eq = strchr(tok, '=');
     if (eq) {
-      add_string_to_array(&info->source_files, &info->source_files_n, eq + 1);
+      rc = add_string_to_array(&info->source_files, &info->source_files_n,
+                               eq + 1);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     } else {
-      add_string_to_array(&info->source_files, &info->source_files_n, tok);
+      rc = add_string_to_array(&info->source_files, &info->source_files_n, tok);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
 
@@ -112,12 +128,19 @@ static void process_token(struct ExtractedBuildInfo *info, const char *tok) {
     char *inc = strstr(tok, "-I");
     char *def = strstr(tok, "-D");
     if (inc) {
-      add_string_to_array(&info->include_dirs, &info->include_dirs_n, inc + 2);
+      rc = add_string_to_array(&info->include_dirs, &info->include_dirs_n,
+                               inc + 2);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     if (def) {
-      add_string_to_array(&info->compile_defs, &info->compile_defs_n, def + 2);
+      rc = add_string_to_array(&info->compile_defs, &info->compile_defs_n,
+                               def + 2);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -128,6 +151,7 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   char *copy;
   char *saveptr;
   char *tok;
+  enum cdd_c_error rc;
 
   if (!info || !makefile_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -144,7 +168,11 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   tok = strtok_r(copy, " \t\n\r\\", &saveptr);
 #endif
   while (tok) {
-    process_token(info, tok);
+    rc = process_token(info, tok);
+    if (rc != CDD_C_SUCCESS) {
+      free(copy);
+      return rc;
+    }
 #if defined(_WIN32)
     tok = strtok_s(NULL, " \t\n\r\\", &saveptr);
 #else
@@ -167,6 +195,7 @@ enum cdd_c_error scrape_configure_ac(
   char *copy;
   char *saveptr;
   char *tok;
+  enum cdd_c_error rc;
 
   if (!info || !configure_ac_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -183,7 +212,11 @@ enum cdd_c_error scrape_configure_ac(
   tok = strtok_r(copy, " \t\n\r\\()[]\",", &saveptr);
 #endif
   while (tok) {
-    process_token(info, tok);
+    rc = process_token(info, tok);
+    if (rc != CDD_C_SUCCESS) {
+      free(copy);
+      return rc;
+    }
 #if defined(_WIN32)
     tok = strtok_s(NULL, " \t\n\r\\()[]\",", &saveptr);
 #else

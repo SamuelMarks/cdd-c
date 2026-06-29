@@ -49,7 +49,7 @@ enum cdd_c_error c_cdd_strdup(const char *s, char **out_s) {
 #else
   *out_s = strdup(s);
 #endif
-  return *out_s ? 0 : 12;
+  return *out_s ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**

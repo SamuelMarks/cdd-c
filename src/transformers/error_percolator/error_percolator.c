@@ -128,6 +128,8 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                                              c_len, &t_dummy);
                   }
 
+                  cdd_cst_bld_punct(&bld, "{");
+                  cdd_cst_bld_space(&bld);
                   cdd_cst_bld_ident(&bld, "void");
                   cdd_cst_bld_space(&bld);
                   cdd_cst_bld_punct(&bld, "*");
@@ -226,6 +228,8 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   cdd_cst_bld_punct(&bld, ";");
                   cdd_cst_bld_space(&bld);
                   cdd_cst_bld_punct(&bld, "}");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "}");
 
                   if ((bld.error_state == 0) && temp->num_children > 0) {
                     cdd_trivia_t *rt = rparen_tok->trailing_trivia;
@@ -297,26 +301,29 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
   for (i = 0; i < res.size; i++) {
     cdd_cst_node_t *func = res.nodes[i];
-    int is_void = 0;
-    cdd_token_t *void_tok = NULL;
     cdd_token_t *func_name_tok = NULL;
     cdd_token_t *rparen_tok = NULL;
     cdd_token_t *prev_rparen_tok = NULL;
+    size_t func_name_idx = 0;
+    size_t rparen_idx = 0;
+    int is_strict_void = 0;
     int allocs_seen = 0;
+    size_t ret_type_start = 0;
+    size_t ret_type_end = 0;
+    (void)ret_type_start;
 
     for (j = 0; j < func->num_children; j++) {
       if (func->children[j].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = func->children[j].val.token;
-        if (!void_tok && tok->kind == CDD_TOKEN_IDENTIFIER &&
-            tok->length == 4 && memcmp(tok->start, "void", 4) == 0) {
-          is_void = 1;
-          void_tok = tok;
-        } else if (tok->kind == CDD_TOKEN_LPAREN) {
+        if (tok->kind == CDD_TOKEN_LPAREN) {
           if (j > 0 && func->children[j - 1].kind == CDD_CST_CHILD_TOKEN) {
             func_name_tok = func->children[j - 1].val.token;
+            func_name_idx = j - 1;
+            ret_type_end = j - 1;
           }
         } else if (tok->kind == CDD_TOKEN_RPAREN) {
           rparen_tok = tok;
+          rparen_idx = j;
           if (j > 0 && func->children[j - 1].kind == CDD_CST_CHILD_TOKEN) {
             prev_rparen_tok = func->children[j - 1].val.token;
           }
@@ -325,36 +332,83 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
       }
     }
 
-    if (!is_void || !void_tok || !rparen_tok || !func_name_tok)
+    if (!rparen_tok || !func_name_tok || func_name_idx == 0)
       continue;
 
-    if (is_void && void_tok && rparen_tok && func_name_tok) {
+    /* Semantic return type resolution */
+    {
+      size_t k;
+      int num_tokens = 0;
+      int has_ptr = 0;
+      cdd_token_t *last_ident = NULL;
+      (void)has_ptr; /* avoid warning */
+      for (k = 0; k < ret_type_end; k++) {
+        if (func->children[k].kind == CDD_CST_CHILD_TOKEN) {
+          cdd_token_t *t = func->children[k].val.token;
+          num_tokens++;
+          if (t->kind == CDD_TOKEN_IDENTIFIER ||
+              t->kind == CDD_TOKEN_KEYWORD_INT) {
+            last_ident = t;
+          } else if (t->kind == CDD_TOKEN_STAR) {
+            has_ptr = 1;
+          }
+        }
+      }
+
+      if (num_tokens == 1 && last_ident &&
+          last_ident->kind == CDD_TOKEN_IDENTIFIER &&
+          ((last_ident->length == 4 &&
+            memcmp(last_ident->start, "void", 4) == 0) ||
+           (last_ident->length == 8 &&
+            memcmp(last_ident->start, "CDD_VOID", 8) == 0))) {
+        is_strict_void = 1;
+      }
+    }
+
+    if (func_name_tok) {
       if (num_modified < 256) {
         modified_funcs[num_modified++] = func_name_tok;
       }
 
       {
-        size_t void_idx;
-        cdd_cst_node_t *void_parent = NULL;
-        cdd_cst_find_node_for_token(tree->root, void_tok, &void_idx,
-                                    &void_parent);
-        if (void_parent) {
-          cdd_token_t *new_void = NULL;
-          cdd_cst_create_token(tree, CDD_TOKEN_KEYWORD_INT, "int", &new_void);
-          if (new_void) {
-            new_void->leading_trivia = void_tok->leading_trivia;
-            new_void->trailing_trivia = void_tok->trailing_trivia;
-            void_tok->leading_trivia = NULL;
-            void_tok->trailing_trivia = NULL;
-            cdd_cst_replace_token_child(void_parent, void_idx, new_void);
+        /* Replace entire return type with enum cdd_c_error */
+        cdd_cst_node_t *parent_ptr = func;
+        cdd_cst_node_t *temp =
+            (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+        cdd_cst_builder_t bld;
+
+        temp->kind = CDD_CST_UNKNOWN;
+        cdd_cst_builder_init(&bld, tree, temp);
+        cdd_cst_bld_ident(&bld, "enum");
+        cdd_cst_bld_space(&bld);
+        cdd_cst_bld_ident(&bld, "cdd_c_error");
+        cdd_cst_bld_space(&bld);
+
+        if (bld.error_state == 0 && temp->num_children > 0) {
+          size_t start_idx = 0;
+          cdd_trivia_t *lt = NULL;
+          if (func->children[0].kind == CDD_CST_CHILD_TOKEN) {
+            lt = func->children[0].val.token->leading_trivia;
+            func->children[0].val.token->leading_trivia = NULL;
           }
+          temp->children[0].val.token->leading_trivia = lt;
+
+          cdd_cst_splice_children(tree, &parent_ptr, start_idx, ret_type_end,
+                                  temp->children, temp->num_children);
+          func = parent_ptr;
+          /* Update indices */
+          func_name_idx = func_name_idx - ret_type_end + temp->num_children;
+          rparen_idx = rparen_idx - ret_type_end + temp->num_children;
         }
+        cdd_cst_builder_free(&bld);
+        free(temp->children);
+        free(temp);
       }
 
-      {
-        size_t rparen_idx;
+      if (!is_strict_void) {
+        size_t rparen_parent_idx = 0;
         cdd_cst_node_t *rparen_parent = NULL;
-        cdd_cst_find_node_for_token(tree->root, rparen_tok, &rparen_idx,
+        cdd_cst_find_node_for_token(tree->root, rparen_tok, &rparen_parent_idx,
                                     &rparen_parent);
         if (rparen_parent) {
           cdd_cst_builder_t bld;
@@ -368,9 +422,41 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
             }
-            cdd_cst_bld_ident(&bld, "void");
+
+            /* Append original return type + *out_result */
+            {
+              size_t c_idx;
+              for (c_idx = 0; c_idx < ret_type_end; c_idx++) {
+                if (func->children[c_idx].kind == CDD_CST_CHILD_TOKEN) {
+                  cdd_token_t *t = func->children[c_idx].val.token;
+                  if (t->kind == CDD_TOKEN_IDENTIFIER) {
+                    char *dup_id = (char *)malloc(t->length + 1);
+                    if (dup_id) {
+                      memcpy(dup_id, t->start, t->length);
+                      dup_id[t->length] = '\0';
+                      cdd_cst_bld_ident(&bld, dup_id);
+                      free(dup_id);
+                    }
+                  } else if (t->kind == CDD_TOKEN_KEYWORD_INT) {
+                    cdd_cst_bld_ident(&bld, "int");
+                  } else if (t->kind == CDD_TOKEN_STAR ||
+                             t->kind == CDD_TOKEN_OTHER) {
+                    char *dup_p = (char *)malloc(t->length + 1);
+                    if (dup_p) {
+                      memcpy(dup_p, t->start, t->length);
+                      dup_p[t->length] = '\0';
+                      cdd_cst_bld_punct(&bld, dup_p);
+                      free(dup_p);
+                    }
+                  }
+                  if (t->trailing_trivia) {
+                    cdd_cst_bld_space(&bld);
+                  }
+                }
+              }
+            }
+
             cdd_cst_bld_space(&bld);
-            cdd_cst_bld_punct(&bld, "*");
             cdd_cst_bld_punct(&bld, "*");
             cdd_cst_bld_ident(&bld, "out_result");
             cdd_cst_bld_punct(&bld, ")");
@@ -384,8 +470,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                 temp->children[temp->num_children - 1]
                     .val.token->trailing_trivia = rt;
               }
-              cdd_cst_splice_children(tree, &rparen_parent, rparen_idx, 1,
-                                      temp->children, temp->num_children);
+              cdd_cst_splice_children(tree, &rparen_parent, rparen_parent_idx,
+                                      1, temp->children, temp->num_children);
               if (old_rparen_parent == func) {
                 func = rparen_parent;
               }
@@ -408,51 +494,140 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
           int is_return = 0;
           cdd_token_t *ptr_tok = NULL;
           size_t c_idx;
+          size_t assign_idx = (size_t)-1;
+          (void)ptr_tok;
 
           for (c_idx = 0; c_idx < stmt->num_children; c_idx++) {
+
             if (stmt->children[c_idx].kind == CDD_CST_CHILD_TOKEN) {
+
               cdd_token_t *t = stmt->children[c_idx].val.token;
+
               if (t->kind == CDD_TOKEN_KEYWORD_RETURN) {
+
                 is_return = 1;
+
               } else if (t->kind == CDD_TOKEN_ASSIGN) {
-                if (c_idx > 0 &&
-                    stmt->children[c_idx - 1].kind == CDD_CST_CHILD_TOKEN) {
-                  ptr_tok = stmt->children[c_idx - 1].val.token;
-                }
+
+                assign_idx = c_idx;
+
               } else if (t->kind == CDD_TOKEN_IDENTIFIER &&
+
                          ((t->length == 6 &&
                            memcmp(t->start, "malloc", 6) == 0) ||
+
                           (t->length == 6 &&
                            memcmp(t->start, "calloc", 6) == 0) ||
+
                           (t->length == 7 &&
-                           memcmp(t->start, "realloc", 7) == 0))) {
+                           memcmp(t->start, "realloc", 7) == 0) ||
+
+                          (t->length == 6 &&
+                           memcmp(t->start, "strdup", 6) == 0))) {
+
                 has_alloc = 1;
               }
             }
           }
 
-          if (has_alloc && ptr_tok) {
+          if (has_alloc && assign_idx == (size_t)-1) {
+            rc = CDD_C_ERROR_PARSE;
+            free(stmts_res.nodes);
+            free(res.nodes);
+            return rc;
+          }
+          if (has_alloc && assign_idx != (size_t)-1) {
+
             cdd_cst_builder_t bld;
+
             cdd_cst_node_t *cloned =
+
                 (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+
             if (cloned) {
-              char *tmp_name;
-              size_t len = ptr_tok->length;
+
+              char *tmp_name = NULL;
+
+              size_t len = 0;
+
+              size_t start_idx = 0;
+
+              size_t k;
+
+              /* Extract L-value */
+
+              for (k = assign_idx; k-- > 0;) {
+
+                if (stmt->children[k].kind == CDD_CST_CHILD_TOKEN) {
+
+                  cdd_token_t *t = stmt->children[k].val.token;
+
+                  if (t->kind == CDD_TOKEN_IDENTIFIER ||
+                      t->kind == CDD_TOKEN_DOT || t->kind == CDD_TOKEN_ARROW ||
+                      t->kind == CDD_TOKEN_LBRACKET ||
+                      t->kind == CDD_TOKEN_RBRACKET ||
+                      t->kind == CDD_TOKEN_NUMBER ||
+                      t->kind == CDD_TOKEN_STAR) {
+
+                    start_idx = k;
+
+                  } else {
+
+                    break;
+                  }
+                }
+              }
+
+              for (k = start_idx; k < assign_idx; k++) {
+
+                if (stmt->children[k].kind == CDD_CST_CHILD_TOKEN) {
+
+                  len += stmt->children[k].val.token->length;
+                }
+              }
+
 #ifdef CDD_BUILD_TESTS
+
               if (g_err_perc_fail == 4) {
+
                 tmp_name = NULL;
+
               } else {
+
 #endif
+
                 tmp_name = (char *)malloc(len + 1);
+
 #ifdef CDD_BUILD_TESTS
               }
+
 #endif
+
               if (!tmp_name) {
+
                 free(cloned);
+
                 continue;
               }
-              memcpy(tmp_name, ptr_tok->start, len);
-              tmp_name[len] = '\0';
+
+              {
+
+                size_t off = 0;
+
+                for (k = start_idx; k < assign_idx; k++) {
+
+                  if (stmt->children[k].kind == CDD_CST_CHILD_TOKEN) {
+
+                    cdd_token_t *t = stmt->children[k].val.token;
+
+                    memcpy(tmp_name + off, t->start, t->length);
+
+                    off += t->length;
+                  }
+                }
+
+                tmp_name[len] = '\0';
+              }
               if (tree->num_strings >= tree->string_capacity) {
                 tree->string_capacity =
                     tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
@@ -526,7 +701,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               }
             }
 
-            if (ret_tok && semi_tok && is_void) {
+            if (ret_tok && semi_tok) {
               if (semi_idx > 0 &&
                   stmt->children[semi_idx - 1].kind == CDD_CST_CHILD_TOKEN &&
                   stmt->children[semi_idx - 1].val.token == ret_tok) {
@@ -548,31 +723,103 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
         }
 
         if (allocs_seen > 0) {
-          cdd_cst_builder_t bld;
+          size_t c_i;
+          cdd_cst_node_t *decl_node =
+              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
           cdd_cst_node_t *cleanup_node =
               (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-          if (cleanup_node) {
+
+          if (decl_node && cleanup_node) {
+            cdd_cst_builder_t bld_decl;
+            cdd_cst_builder_t bld_cleanup;
+
+            decl_node->kind = CDD_CST_UNKNOWN;
+            cdd_cst_builder_init(&bld_decl, tree, decl_node);
+            cdd_cst_bld_newline(&bld_decl);
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_ident(&bld_decl, "enum");
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_ident(&bld_decl, "cdd_c_error");
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_ident(&bld_decl, "rc");
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_punct(&bld_decl, "=");
+            cdd_cst_bld_space(&bld_decl);
+            cdd_cst_bld_ident(&bld_decl, "CDD_C_SUCCESS");
+            cdd_cst_bld_punct(&bld_decl, ";");
+
             cleanup_node->kind = CDD_CST_UNKNOWN;
-            cdd_cst_builder_init(&bld, tree, cleanup_node);
-            cdd_cst_bld_newline(&bld);
-            cdd_cst_bld_ident(&bld, "cleanup");
-            cdd_cst_bld_punct(&bld, ":");
-            cdd_cst_bld_newline(&bld);
-            cdd_cst_bld_space(&bld);
-            cdd_cst_bld_space(&bld);
-            cdd_cst_bld_ident(&bld, "return");
-            cdd_cst_bld_space(&bld);
-            cdd_cst_bld_ident(&bld, "rc");
-            cdd_cst_bld_punct(&bld, ";");
+            cdd_cst_builder_init(&bld_cleanup, tree, cleanup_node);
+            cdd_cst_bld_newline(&bld_cleanup);
+            cdd_cst_bld_ident(&bld_cleanup, "cleanup");
+            cdd_cst_bld_punct(&bld_cleanup, ":");
+            cdd_cst_bld_newline(&bld_cleanup);
+            cdd_cst_bld_space(&bld_cleanup);
+            cdd_cst_bld_space(&bld_cleanup);
+            cdd_cst_bld_ident(&bld_cleanup, "return");
+            cdd_cst_bld_space(&bld_cleanup);
+            cdd_cst_bld_ident(&bld_cleanup, "rc");
+            cdd_cst_bld_punct(&bld_cleanup, ";");
+            cdd_cst_bld_newline(&bld_cleanup);
+
 #ifdef CDD_BUILD_TESTS
-            if (g_err_perc_fail == 2)
-              bld.error_state = 1;
+            if (g_err_perc_fail == 2) {
+              bld_cleanup.error_state = 1;
+            }
 #endif
-            /* Cleanup node is no longer needed since we inline the replacement
-             * directly. */
-            cdd_cst_builder_free(&bld);
-            if (cleanup_node->children)
-              free(cleanup_node->children);
+
+            if (bld_decl.error_state == 0 && bld_cleanup.error_state == 0) {
+              /* Find the first '{' and the last '}' of the function to insert
+               * these nodes */
+              int found_lbrace = 0;
+              size_t brace_idx = 0;
+              cdd_cst_node_t *body_parent = func;
+
+              /* Actually the '{' might be in the function tokens or in a body
+               * block */
+              /* Let's just insert decl after the first '{' and cleanup before
+               * the last '}' */
+              for (c_i = 0; c_i < func->num_children; c_i++) {
+                if (func->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
+                    func->children[c_i].val.token->kind == CDD_TOKEN_LBRACE) {
+                  found_lbrace = 1;
+                  brace_idx = c_i;
+                  break;
+                }
+              }
+              if (found_lbrace) {
+                cdd_cst_splice_children(tree, &body_parent, brace_idx + 1, 0,
+                                        decl_node->children,
+                                        decl_node->num_children);
+                func = body_parent;
+              }
+
+              for (c_i = func->num_children; c_i-- > 0;) {
+                if (func->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
+                    func->children[c_i].val.token->kind == CDD_TOKEN_RBRACE) {
+                  brace_idx = c_i;
+                  break;
+                }
+              }
+              if (found_lbrace) { /* reusing found_lbrace condition for safety
+                                   */
+                cdd_cst_splice_children(tree, &body_parent, brace_idx, 0,
+                                        cleanup_node->children,
+                                        cleanup_node->num_children);
+                func = body_parent;
+              }
+            }
+
+            cdd_cst_builder_free(&bld_decl);
+            cdd_cst_builder_free(&bld_cleanup);
+          }
+          if (decl_node) {
+            free(decl_node->children);
+            free(decl_node);
+          }
+          if (cleanup_node) {
+            free(cleanup_node->children);
             free(cleanup_node);
           }
         }

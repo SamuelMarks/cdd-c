@@ -895,6 +895,8 @@ enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   /* LCOV_EXCL_START */
   if (!kvs || n == 0) {
     buf = (char *)calloc(1, 1);
+    if (!buf)
+      return CDD_C_ERROR_MEMORY;
     {
       *_out_val = buf;
       return CDD_C_SUCCESS;
@@ -944,6 +946,8 @@ enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   /* LCOV_EXCL_START */
   if (!buf) {
     buf = (char *)calloc(1, 1);
+    if (!buf)
+      return CDD_C_ERROR_MEMORY;
   }
   {
     *_out_val = buf;

@@ -89,6 +89,23 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
       return err;                                                              \
   } while (0)
 
+#define F_CHECK_IO(x)                                                          \
+  do {                                                                         \
+    if ((x) < 0) {                                                             \
+      fclose(fp);                                                              \
+      return CDD_C_ERROR_IO;                                                   \
+    }                                                                          \
+  } while (0)
+
+#define F_CHECK_RC(x)                                                          \
+  do {                                                                         \
+    int err = (x);                                                             \
+    if (err != 0) {                                                            \
+      fclose(fp);                                                              \
+      return err;                                                              \
+    }                                                                          \
+  } while (0)
+
 /* Write Header Guard Start */
 static enum cdd_c_error print_header_guard(FILE *hfile, const char *basename) {
   CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef %s_H\n", basename));
@@ -134,37 +151,38 @@ generate_header(const char *prefix, const char *basename,
   if (!fp)
     return CDD_C_ERROR_SYSTEM;
 
-  CHECK_RC(print_header_guard(fp, basename));
-  CHECK_IO(FPRINTF_HOOK(fp, "#include <stdlib.h>\n"
-                            "#include \"lib_export.h\"\n\n"
-                            "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
-                            "typedef signed __int8 int8_t;\n"
-                            "typedef unsigned __int8 uint8_t;\n"
-                            "typedef signed __int16 int16_t;\n"
-                            "typedef unsigned __int16 uint16_t;\n"
-                            "typedef signed __int32 int32_t;\n"
-                            "typedef unsigned __int32 uint32_t;\n"
-                            "typedef signed __int64 int64_t;\n"
-                            "typedef unsigned __int64 uint64_t;\n"
-                            "#else\n"
-                            "#include <stdint.h>\n"
-                            "#endif\n\n"
-                            "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-                            "#if !defined(__cplusplus)\n"
-                            "#ifndef bool\n"
-                            "#define bool unsigned char\n"
-                            "#endif\n"
-                            "#ifndef true\n"
-                            "#define true 1\n"
-                            "#endif\n"
-                            "#ifndef false\n"
-                            "#define false 0\n"
-                            "#endif\n"
-                            "#endif\n"
-                            "#else\n"
-                            "#include <stdbool.h>\n"
-                            "#endif\n\n"
-                            "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
+  F_CHECK_RC(print_header_guard(fp, basename));
+  F_CHECK_IO(FPRINTF_HOOK(fp,
+                          "#include <stdlib.h>\n"
+                          "#include \"lib_export.h\"\n\n"
+                          "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                          "typedef signed __int8 int8_t;\n"
+                          "typedef unsigned __int8 uint8_t;\n"
+                          "typedef signed __int16 int16_t;\n"
+                          "typedef unsigned __int16 uint16_t;\n"
+                          "typedef signed __int32 int32_t;\n"
+                          "typedef unsigned __int32 uint32_t;\n"
+                          "typedef signed __int64 int64_t;\n"
+                          "typedef unsigned __int64 uint64_t;\n"
+                          "#else\n"
+                          "#include <stdint.h>\n"
+                          "#endif\n\n"
+                          "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+                          "#if !defined(__cplusplus)\n"
+                          "#ifndef bool\n"
+                          "#define bool unsigned char\n"
+                          "#endif\n"
+                          "#ifndef true\n"
+                          "#define true 1\n"
+                          "#endif\n"
+                          "#ifndef false\n"
+                          "#define false 0\n"
+                          "#endif\n"
+                          "#endif\n"
+                          "#else\n"
+                          "#include <stdbool.h>\n"
+                          "#endif\n\n"
+                          "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
@@ -191,7 +209,7 @@ generate_header(const char *prefix, const char *basename,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_union || is_object_schema) {
-      CHECK_RC(write_forward_decl(fp, name));
+      F_CHECK_RC(write_forward_decl(fp, name));
     }
     struct_fields_free(&sf);
   }
@@ -222,18 +240,18 @@ generate_header(const char *prefix, const char *basename,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      CHECK_RC(write_enum_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC(write_enum_declaration_h(fp, name, &sf, config));
     } else if (sf.is_union) {
-      CHECK_RC(write_union_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC(write_union_declaration_h(fp, name, &sf, config));
     } else if (is_object_schema) {
-      CHECK_RC(write_struct_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC(write_struct_declaration_h(fp, name, &sf, config));
     }
 
     struct_fields_free(&sf);
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
-  CHECK_RC(print_header_guard_end(fp, basename));
+  F_CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
+  F_CHECK_RC(print_header_guard_end(fp, basename));
   fclose(fp);
   return 0;
 }
@@ -284,7 +302,7 @@ generate_source(const char *prefix, const char *basename,
   if (!fp)
     return CDD_C_ERROR_SYSTEM;
 
-  CHECK_IO(
+  F_CHECK_IO(
       FPRINTF_HOOK(fp,
                    "#include <errno.h>\\n#include <stdio.h>\\n#include "
                    "<stdlib.h>\\n#include "
@@ -316,32 +334,33 @@ generate_source(const char *prefix, const char *basename,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      CHECK_RC(write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
-      CHECK_RC(write_enum_from_str_func(fp, name, &sf.enum_members, &enum_cfg));
+      F_CHECK_RC(write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
+      F_CHECK_RC(
+          write_enum_from_str_func(fp, name, &sf.enum_members, &enum_cfg));
     } else if (sf.is_union) {
-      CHECK_RC(write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
-      CHECK_RC(write_union_from_json_func(fp, name, &sf, &types_cfg));
-      CHECK_RC(write_union_to_json_func(fp, name, &sf, &types_cfg));
-      CHECK_RC(write_union_cleanup_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC(write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC(write_union_from_json_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC(write_union_to_json_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC(write_union_cleanup_func(fp, name, &sf, &types_cfg));
     } else if (is_object_schema) {
-      CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
-      CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
-      CHECK_RC(write_struct_array_from_json_func(fp, name, &json_cfg));
-      CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
-      CHECK_RC(write_struct_to_form_urlencoded_func(fp, name, &sf));
+      F_CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
+      F_CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
+      F_CHECK_RC(write_struct_array_from_json_func(fp, name, &json_cfg));
+      F_CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
+      F_CHECK_RC(write_struct_to_form_urlencoded_func(fp, name, &sf));
       if (strcmp(name, "OAuth2Error") == 0) {
-        CHECK_RC(write_oauth2_error_parser_func(fp, name, &sf));
+        F_CHECK_RC(write_oauth2_error_parser_func(fp, name, &sf));
       }
       if (strcmp(name, "JwtPayload") == 0) {
-        CHECK_RC(write_struct_from_jwt_func(fp, name, &sf));
+        F_CHECK_RC(write_struct_from_jwt_func(fp, name, &sf));
       }
       if (strcmp(name, "OAuth2TokenResponse") == 0) {
-        CHECK_RC(write_struct_from_json_standalone_func(fp, name, &sf));
+        F_CHECK_RC(write_struct_from_json_standalone_func(fp, name, &sf));
       }
-      CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
-      CHECK_RC(write_struct_default_func(fp, name, &sf, &struct_cfg));
-      CHECK_RC(write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
-      CHECK_RC(write_struct_eq_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC(write_struct_default_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC(write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC(write_struct_eq_func(fp, name, &sf, &struct_cfg));
     }
 
     struct_fields_free(&sf);

@@ -158,6 +158,8 @@ static void print_help(const char *prog_name) {
   puts("      Scan directory for memory safety issues.");
   puts("  c2openapi <dir> <out.json>");
   puts("      Generate OpenAPI spec from C source code.");
+  puts("  standardize-gnu [OPTIONS] <files...>");
+  puts("      Standardize GNU C extensions to ISO C.");
   puts("  transformer <toolname> [--audit|--fix] [--dry-run] <files...>");
   puts("      Run syntax tree transformations.");
   puts("  code2schema <header.h> <schema.json>");
@@ -434,6 +436,8 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "transformer") == 0) {
     rc = cli_cst_transformer_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "standardize-gnu") == 0) {
+    rc = cli_standardize_gnu_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
       return CDD_C_ERROR_UNKNOWN;

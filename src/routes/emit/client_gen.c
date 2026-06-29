@@ -1242,21 +1242,27 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "only has raw_body */\n"
          "  obj = json_value_get_object(root);\n"
          "  if(obj) {\n"
-         "    if(json_object_has_value(obj, \"type\")) (*out)->type = "
-         "strdup(json_object_get_string(obj, \"type\"));\n"
-         "    if(json_object_has_value(obj, \"title\")) (*out)->title = "
-         "strdup(json_object_get_string(obj, \"title\"));\n"
-         "    if(json_object_has_value(obj, \"detail\")) (*out)->detail = "
-         "strdup(json_object_get_string(obj, \"detail\"));\n"));
+         "    if(json_object_has_value(obj, \"type\")) { (*out)->type = "
+         "strdup(json_object_get_string(obj, \"type\")); if(!(*out)->type) { "
+         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
+         "    if(json_object_has_value(obj, \"title\")) { (*out)->title = "
+         "strdup(json_object_get_string(obj, \"title\")); if(!(*out)->title) { "
+         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
+         "    if(json_object_has_value(obj, \"detail\")) { (*out)->detail = "
+         "strdup(json_object_get_string(obj, \"detail\")); if(!(*out)->detail) "
+         "{ json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
   CHECK_IO(fprintf(
-      c, "    if(json_object_has_value(obj, \"instance\")) (*out)->instance = "
-         "strdup(json_object_get_string(obj, \"instance\"));\n"
-         "    if(json_object_has_value(obj, \"status\")) (*out)->status = "
-         "(int)json_object_get_number(obj, \"status\");\n"
-         "  }\n"
-         "  json_value_free(root);\n"
-         "  return CDD_C_SUCCESS;\n"
-         "}\n\n"));
+      c,
+      "    if(json_object_has_value(obj, \"instance\")) { (*out)->instance = "
+      "strdup(json_object_get_string(obj, \"instance\")); "
+      "if(!(*out)->instance) { json_value_free(root); return "
+      "CDD_C_ERROR_MEMORY; } }\n"
+      "    if(json_object_has_value(obj, \"status\")) (*out)->status = "
+      "(int)json_object_get_number(obj, \"status\");\n"
+      "  }\n"
+      "  json_value_free(root);\n"
+      "  return CDD_C_SUCCESS;\n"
+      "}\n\n"));
 
   CHECK_IO(fprintf(c,
                    "int %sinit(struct HttpClient *client, const char "
@@ -2081,6 +2087,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   if (!actual_base) {
     actual_base = strdup(config->filename_base);
+    if (!actual_base)
+      return CDD_C_ERROR_MEMORY;
   }
 
   /* Prepare filenames */

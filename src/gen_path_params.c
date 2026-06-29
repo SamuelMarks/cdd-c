@@ -58,14 +58,34 @@ static enum cdd_c_error ApiError_from_json(const char *json,
                              raw_body */
   obj = json_value_get_object(root);
   if (obj) {
-    if (json_object_has_value(obj, "type"))
+    if (json_object_has_value(obj, "type")) {
       (*out)->type = strdup(json_object_get_string(obj, "type"));
-    if (json_object_has_value(obj, "title"))
+      if (!(*out)->type) {
+        json_value_free(root);
+        return CDD_C_ERROR_MEMORY;
+      }
+    }
+    if (json_object_has_value(obj, "title")) {
       (*out)->title = strdup(json_object_get_string(obj, "title"));
-    if (json_object_has_value(obj, "detail"))
+      if (!(*out)->title) {
+        json_value_free(root);
+        return CDD_C_ERROR_MEMORY;
+      }
+    }
+    if (json_object_has_value(obj, "detail")) {
       (*out)->detail = strdup(json_object_get_string(obj, "detail"));
-    if (json_object_has_value(obj, "instance"))
+      if (!(*out)->detail) {
+        json_value_free(root);
+        return CDD_C_ERROR_MEMORY;
+      }
+    }
+    if (json_object_has_value(obj, "instance")) {
       (*out)->instance = strdup(json_object_get_string(obj, "instance"));
+      if (!(*out)->instance) {
+        json_value_free(root);
+        return CDD_C_ERROR_MEMORY;
+      }
+    }
     if (json_object_has_value(obj, "status"))
       (*out)->status = (int)json_object_get_number(obj, "status");
   }

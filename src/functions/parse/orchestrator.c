@@ -618,11 +618,16 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
                         (c_cdd_strdup(site.var_name, &_ast_strdup_4),
                          _ast_strdup_4);
                   if (local_allocs.size >= local_allocs.capacity) {
+                    struct AllocationSite *new_sites;
                     size_t nc = local_allocs.capacity == 0
                                     ? 4
                                     : local_allocs.capacity * 2;
-                    local_allocs.sites = realloc(
-                        local_allocs.sites, nc * sizeof(struct AllocationSite));
+                    new_sites = realloc(local_allocs.sites,
+                                        nc * sizeof(struct AllocationSite));
+                    if (!new_sites) {
+                      return CDD_C_ERROR_MEMORY;
+                    }
+                    local_allocs.sites = new_sites;
                     local_allocs.capacity = nc;
                   }
                   local_allocs.sites[local_allocs.size++] = site;

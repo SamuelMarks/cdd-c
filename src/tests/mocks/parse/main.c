@@ -40,6 +40,8 @@ int main(void) {
   char *foo_e_json = NULL;
   struct HazE *haz_e0 = (struct HazE *)malloc(sizeof(*haz_e0));
   struct FooE *foo_e0 = (struct FooE *)malloc(sizeof(*foo_e0));
+  if (!haz_e0 || !foo_e0)
+    return CDD_C_ERROR_MEMORY;
   (void)t;
   foo_e.haz = &haz_e;
 

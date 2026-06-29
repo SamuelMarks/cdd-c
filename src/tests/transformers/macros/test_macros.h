@@ -27,7 +27,7 @@ TEST test_cdd_transform_macros(void) {
       "#define FOO(a) a + 1\nint main() {\n  return FOO(42);\n}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
@@ -58,7 +58,7 @@ TEST test_cdd_transform_macros_operators(void) {
                      "}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);

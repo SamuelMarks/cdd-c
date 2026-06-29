@@ -27,11 +27,34 @@ TEST test_cdd_transform_safe_crt(void) {
   cdd_cst_tree_t *tree = NULL;
 
   const char *code =
+      "#define MY_MACRO_CONST 1024\n"
       "void foo() {\n"
       "  char dest[10];\n"
       "  char dest2[10];\n"
       "  char dest3[10];\n"
       "  wchar_t wdest[10];\n"
+      "  enum { MY_CONST = 512 };\n"
+      "  char *dyn_buf = malloc(256);\n"
+      "  char *c_buf = calloc(10, 2);\n"
+      "  char *r_buf = realloc(NULL, 1024);\n"
+      "  char *enum_buf = malloc(MY_CONST);\n"
+      "  char *mac_buf = malloc(MY_MACRO_CONST);\n"
+      "  const int MY_INT_CONST = 128;\n"
+      "  char *const_buf = malloc(MY_INT_CONST);\n"
+      "  typedef char MyChar;\n"
+      "  MyChar t_buf[64];\n"
+      "  int idx;\n"
+      "  char ch;\n"
+      "  strcpy(dyn_buf, \"test\");\n"
+      "  strcpy(c_buf, \"test\");\n"
+      "  strcpy(r_buf, \"test\");\n"
+      "  strcpy(enum_buf, \"test\");\n"
+      "  strcpy(mac_buf, \"test\");\n"
+      "  strcpy(const_buf, \"test\");\n"
+      "  strcpy(t_buf, \"test\");\n"
+      "  strcpy(dest + 2, \"test\");\n"
+      "  strcpy(&dest[3], \"test\");\n"
+
       "  int idx;\n"
       "  char ch;\n"
       "  double d = 1.23;\n"
@@ -98,7 +121,7 @@ TEST test_cdd_transform_safe_crt(void) {
       "void bar() { MY_COPY_MACRO(dest, \"h\"); }\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
@@ -113,6 +136,19 @@ TEST test_cdd_transform_safe_crt(void) {
 
   ASSERT(strstr(out, "strcpy_s(dest, sizeof(dest), \"abc\");") != NULL);
   ASSERT(strstr(out, "strncpy_s(dest, sizeof(dest), \"def\", _TRUNCATE);") !=
+         NULL);
+  ASSERT(strstr(out, "strcpy_s(dyn_buf, 256, \"test\");") != NULL);
+  ASSERT(strstr(out, "strcpy_s(c_buf, (10) * (2), \"test\");") != NULL);
+  ASSERT(strstr(out, "strcpy_s(enum_buf, MY_CONST, \"test\");") != NULL);
+  ASSERT(strstr(out, "strcpy_s(mac_buf, MY_MACRO_CONST, \"test\");") != NULL);
+  ASSERT(strstr(out, "strcpy_s(const_buf, MY_INT_CONST, \"test\");") != NULL);
+  ASSERT(strstr(out, "strcpy_s(t_buf, sizeof(t_buf), \"test\");") != NULL);
+
+  ASSERT(strstr(out, "strcpy_s(r_buf, 1024, \"test\");") != NULL);
+
+  ASSERT(strstr(out, "strcpy_s(dest + 2, (sizeof(dest) - (2)), \"test\");") !=
+         NULL);
+  ASSERT(strstr(out, "strcpy_s(&dest[3], (sizeof(dest) - (3)), \"test\");") !=
          NULL);
 
   /* Test string conversions */
@@ -215,6 +251,104 @@ TEST test_cdd_transform_safe_crt(void) {
   PASS();
 }
 
+TEST test_cdd_transform_safe_crt_extended_functions(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  char *out = NULL;
+
+  const char *code = "void foo(va_list args) {\n"
+                     "  char dest[100];\n"
+                     "  wchar_t wdest[100];\n"
+                     "  int idx;\n"
+                     "  long lval;\n"
+                     "  unsigned long ulval;\n"
+                     "  long long llval;\n"
+                     "  unsigned long long ullval;\n"
+                     "  vsprintf(dest, \"%s\", args);\n"
+                     "  vsnprintf(dest, 10, \"%s\", args);\n"
+                     "  _vsnprintf(dest, 10, \"%s\", args);\n"
+                     "  wmemcpy(wdest, L\"abc\", 3);\n"
+                     "  wmemmove(wdest, L\"abc\", 3);\n"
+                     "  wcscpy(wdest, L\"abc\");\n"
+                     "  wcsncpy(wdest, L\"abc\", 2);\n"
+                     "  wcscat(wdest, L\"abc\");\n"
+                     "  wcsncat(wdest, L\"abc\", 2);\n"
+                     "  swprintf(wdest, 100, L\"%s\", L\"test\");\n"
+                     "  vswprintf(wdest, 100, L\"%s\", args);\n"
+                     "  _ltoa(lval, dest, 10);\n"
+                     "  _ultoa(ulval, dest, 10);\n"
+                     "  _i64toa(llval, dest, 10);\n"
+                     "  _ui64toa(ullval, dest, 10);\n"
+                     "  _itow(idx, wdest, 10);\n"
+                     "  _ltow(lval, wdest, 10);\n"
+                     "  _ultow(ulval, wdest, 10);\n"
+                     "  _strerror(dest);\n"
+                     "  _stricmp(\"a\", \"b\");\n"
+                     "  _strnicmp(\"a\", \"b\", 1);\n"
+                     "  _strlwr(dest);\n"
+                     "  _strupr(dest);\n"
+                     "  _strnset(dest, 'a', 2);\n"
+                     "  _strset(dest, 'a');\n"
+                     "  tmpnam(dest);\n"
+                     "  _wsplitpath(wdest, wdest, wdest, wdest, wdest);\n"
+                     "  _wmakepath(wdest, wdest, wdest, wdest, wdest);\n"
+                     "}\n";
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
+
+  cdd_cst_emit(tree, &out);
+  cdd_cst_tree_free(tree);
+
+  printf("EXT OUT:\n%s\n", out);
+  printf("\n\nEXT OUT:\n%s\n\n", out);
+  ASSERT(strstr(out, "vsprintf_s(dest, sizeof(dest), \"%s\", args);") != NULL);
+  ASSERT(strstr(out, "vsnprintf_s(dest, 10, _TRUNCATE, \"%s\", args);") !=
+         NULL);
+  ASSERT(strstr(out, "_vsnprintf_s(dest, 10, _TRUNCATE, \"%s\", args);") !=
+         NULL);
+  ASSERT(strstr(out, "wmemcpy_s(wdest, sizeof(wdest), L\"abc\", 3);") != NULL);
+  ASSERT(strstr(out, "wmemmove_s(wdest, sizeof(wdest), L\"abc\", 3);") != NULL);
+  ASSERT(strstr(out, "wcscpy_s(wdest, sizeof(wdest), L\"abc\");") != NULL);
+  ASSERT(strstr(out, "wcsncpy_s(wdest, sizeof(wdest), L\"abc\", _TRUNCATE);") !=
+         NULL);
+  ASSERT(strstr(out, "wcscat_s(wdest, sizeof(wdest), L\"abc\");") != NULL);
+  ASSERT(strstr(out, "wcsncat_s(wdest, sizeof(wdest), L\"abc\", _TRUNCATE);") !=
+         NULL);
+  ASSERT(strstr(out,
+                "swprintf_s(wdest, sizeof(wdest), 100, L\"%s\", L\"test\");") !=
+         NULL);
+  ASSERT(
+      strstr(out, "vswprintf_s(wdest, sizeof(wdest), 100, L\"%s\", args);") !=
+      NULL);
+  ASSERT(strstr(out, "_ltoa_s(lval, dest, sizeof(dest), 10);") != NULL);
+  ASSERT(strstr(out, "_ultoa_s(ulval, dest, sizeof(dest), 10);") != NULL);
+  ASSERT(strstr(out, "_i64toa_s(llval, dest, sizeof(dest), 10);") != NULL);
+  ASSERT(strstr(out, "_ui64toa_s(ullval, dest, sizeof(dest), 10);") != NULL);
+  ASSERT(strstr(out, "_itow_s(idx, wdest, sizeof(wdest), 10);") != NULL);
+  ASSERT(strstr(out, "_ltow_s(lval, wdest, sizeof(wdest), 10);") != NULL);
+  ASSERT(strstr(out, "_ultow_s(ulval, wdest, sizeof(wdest), 10);") != NULL);
+  ASSERT(strstr(out, "((_strerror_s(__errbuf, 94, dest), __errbuf))") != NULL);
+  ASSERT(strstr(out, "_stricmp(\"a\", \"b\")") != NULL);
+  ASSERT(strstr(out, "_strlwr_s(dest, sizeof(dest));") != NULL);
+  ASSERT(strstr(out, "_strupr_s(dest, sizeof(dest));") != NULL);
+  ASSERT(strstr(out, "_strnset_s(dest, sizeof(dest), 'a', 2);") != NULL);
+  ASSERT(strstr(out, "_strset_s(dest, sizeof(dest), 'a');") != NULL);
+  ASSERT(strstr(out, "tmpnam_s(dest, sizeof(dest));") != NULL);
+  ASSERT(
+      strstr(out,
+             "_wsplitpath_s(wdest, wdest, sizeof(wdest), wdest, sizeof(wdest), "
+             "wdest, sizeof(wdest), wdest, sizeof(wdest));") != NULL);
+  ASSERT(
+      strstr(
+          out,
+          "_wmakepath_s(wdest, sizeof(wdest), wdest, wdest, wdest, wdest);") !=
+      NULL);
+
+  free(out);
+  PASS();
+}
+
 TEST test_cdd_transform_safe_crt_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
 
@@ -241,7 +375,7 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
 
       "  printf(\"hello\");\n" /* not transformed without args */
       "}\n";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_safe_crt(NULL, &config));
@@ -269,7 +403,7 @@ TEST test_cdd_transform_safe_crt_oom(void) {
       "strtok(buf, \"a\"); p = wcstok(wbuf, L\"a\"); _mbstok(buf, \"a\"); "
       "strerror(1); _wcserror(1); _ecvt(d, 1, 0, 0); _fcvt(d, 1, 0, 0); "
       "ctime(NULL); getenv(\"A\"); _wgetenv(L\"A\"); strcpy(buf, \"abc\"); }";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
 
@@ -331,6 +465,9 @@ TEST test_cdd_transform_safe_crt_oom(void) {
 
 SUITE(transformer_safe_crt_suite) {
   RUN_TEST(test_cdd_transform_safe_crt);
+
+  RUN_TEST(test_cdd_transform_safe_crt_extended_functions);
+
   RUN_TEST(test_cdd_transform_safe_crt_edge_cases);
   RUN_TEST(test_cdd_transform_safe_crt_oom);
 }

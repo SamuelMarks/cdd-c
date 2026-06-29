@@ -37,7 +37,7 @@ TEST test_cdd_transform_msvc(void) {
       "0;\n  __builtin_expect(1, 1);\n  return 0;\n}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
@@ -72,6 +72,7 @@ TEST test_cdd_transform_msvc(void) {
 
   printf("OUT WAS:\n[%s]\n", out);
 
+  ASSERT(strstr(out, "#ifndef _MSC_VER") != NULL);
   ASSERT(strstr(out, "_stricmp /* comment */ ") != NULL);
   ASSERT(strstr(out, "_strnicmp") != NULL);
   ASSERT(strstr(out, "_strdup") != NULL);
@@ -88,11 +89,42 @@ TEST test_cdd_transform_msvc(void) {
 extern C_CDD_EXPORT int g_msvc_port_bld_fail;
 #endif
 
+TEST test_cdd_transform_msvc_context(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "struct A { int strdup; };\n"
+                     "int strdup = 1;\n"
+                     "char * strcasecmp = NULL;\n"
+                     "#define MACRO(strdup) strdup\n"
+                     "void foo() { struct A a; a.strdup = 1; }\n";
+  char *out = NULL;
+  int rc;
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  ASSERT_EQ(0, rc);
+
+  rc = cdd_transform_msvc(tree, &config);
+  ASSERT_EQ(0, rc);
+
+  rc = cdd_cst_emit(tree, &out);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(out, "int strdup;") != NULL);
+  ASSERT(strstr(out, "int strdup = 1;") != NULL);
+  ASSERT(strstr(out, "char * strcasecmp = NULL;") != NULL);
+  ASSERT(strstr(out, "MACRO(strdup)") != NULL);
+  ASSERT(strstr(out, "a.strdup") != NULL);
+
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 TEST test_cdd_transform_msvc_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#include <unistd.h>\n";
-  cdd_transform_config_t config = {0, 2, 0};
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 
@@ -111,6 +143,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
  */
 SUITE(transformer_msvc_port_suite) {
   RUN_TEST(test_cdd_transform_msvc);
+  RUN_TEST(test_cdd_transform_msvc_context);
   RUN_TEST(test_cdd_transform_msvc_builder_fails);
 }
 
