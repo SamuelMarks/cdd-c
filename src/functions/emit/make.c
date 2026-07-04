@@ -96,7 +96,11 @@ enum cdd_c_error codegen_make_generate(FILE *fp,
   CHECK_IO(FPRINTF_HOOK(fp, ")\n\n"));
 
   /* Platform Logic */
-  CHECK_IO(FPRINTF_HOOK(fp, "if(WIN32)\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "if(EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL \\\"DOS\\\")\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_standalone.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(WIN32)\n"));
   CHECK_IO(
       FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
@@ -108,7 +112,7 @@ enum cdd_c_error codegen_make_generate(FILE *fp,
   CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "    find_package(CURL REQUIRED)\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "    find_package(OpenSSL REQUIRED)\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n"));
 
   /* Dependencies (Common) */
   CHECK_IO(FPRINTF_HOOK(fp, "find_package(parson CONFIG REQUIRED)\n\n"));

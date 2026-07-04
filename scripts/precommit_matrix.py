@@ -56,6 +56,9 @@ def has_cygwin():
         return "cygwin" in res.stderr.lower()
     return False
 
+def has_emscripten():
+    return is_tool("emcc")
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python precommit_matrix.py [cppcheck|build|test|valgrind|shields] [toolchain]")
@@ -140,11 +143,39 @@ def main():
             env["CC"] = "gcc"
             run_cmd(["cmake", "..", "-DCMAKE_BUILD_TYPE=Debug", "-DBUILD_TESTING=ON"], cwd=build_dir, env=env)
             run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
+        elif toolchain == "emscripten" and has_emscripten():
+            build_dir = "build_emscripten"
+            os.makedirs(build_dir, exist_ok=True)
+            env = os.environ.copy()
+            run_cmd(["emcmake", "cmake", "..", "-DCMAKE_BUILD_TYPE=Debug", "-DBUILD_TESTING=ON"], cwd=build_dir, env=env)
+            run_cmd(["cmake", "--build", "."], cwd=build_dir, env=env)
         else:
             print(f"Toolchain {toolchain} not found or not supported on this OS. Skipping build.")
         sys.exit(0)
 
     elif job == "test":
+        if toolchain == "emscripten" and not has_emscripten():
+            print("Emscripten not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "gcc" and not has_gcc():
+            print("GCC not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "clang" and not has_clang():
+            print("Clang not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "msvc" and not has_msvc():
+            print("MSVC not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "msvc_wine" and not has_msvc_wine():
+            print("MSVC_WINE not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "mingw" and not has_mingw():
+            print("MinGW not found. Skipping test.")
+            sys.exit(0)
+        elif toolchain == "cygwin" and not has_cygwin():
+            print("Cygwin not found. Skipping test.")
+            sys.exit(0)
+
         build_dir = f"build_{toolchain}"
         if not os.path.exists(build_dir):
             print(f"Build directory {build_dir} not found. Skipping test.")

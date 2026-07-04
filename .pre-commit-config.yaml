@@ -59,6 +59,16 @@ repos:
         entry: python scripts/precommit_matrix.py test mingw
         language: python
         pass_filenames: false
+      - id: build-emscripten
+        name: Build (Emscripten)
+        entry: python scripts/precommit_matrix.py build emscripten
+        language: python
+        pass_filenames: false
+      - id: test-emscripten
+        name: Test (Emscripten)
+        entry: python scripts/precommit_matrix.py test emscripten
+        language: python
+        pass_filenames: false
       - id: valgrind
         name: Valgrind (GCC)
         entry: python scripts/precommit_matrix.py valgrind gcc

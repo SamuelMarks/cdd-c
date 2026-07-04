@@ -26,6 +26,8 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
+#ifndef __EMSCRIPTEN__
+
 static enum cdd_c_error load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);
   int rc;
@@ -185,12 +187,16 @@ TEST test_sync_header_update(void) {
   g_fail_io_after = -1;
   PASS();
 }
+#endif
 
 SUITE(api_sync_suite) {
+#ifndef __EMSCRIPTEN__
   RUN_TEST(test_sync_signature_update);
   RUN_TEST(test_sync_url_logic_update);
   RUN_TEST(test_sync_query_update);
   RUN_TEST(test_sync_header_update);
+#endif
+  RUN_TEST(test_sync_oom);
 }
 
 #ifdef __cplusplus

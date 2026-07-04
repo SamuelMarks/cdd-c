@@ -49,6 +49,7 @@ extern "C" {
  *
  * @return The result of the test.
  */
+#ifndef __EMSCRIPTEN__
 TEST test_serve_json_rpc_bind_fail(void) {
 #if defined(_WIN32)
   SOCKET server_fd;
@@ -106,6 +107,7 @@ TEST test_serve_json_rpc_listen_once(void) {
 
   PASS();
 }
+#endif
 
 /**
  * @brief Tests basic JSON RPC server logic without listening indefinitely.
@@ -151,6 +153,7 @@ TEST test_serve_json_rpc_bad_port(void) {
 /**
  * @brief Tests MCP stdio main.
  */
+#ifndef __EMSCRIPTEN__
 TEST test_serve_mcp_stdio_main(void) {
   char *argv[] = {"serve_mcp_stdio_main"};
   int argc = 1;
@@ -249,6 +252,7 @@ TEST test_serve_mcp_stdio_main(void) {
 
   PASS();
 }
+#endif
 
 /**
  * @brief JSON RPC Server test suite.
@@ -257,9 +261,11 @@ TEST test_serve_mcp_stdio_main(void) {
 SUITE(serve_json_rpc_suite) {
   RUN_TEST(test_serve_json_rpc_basic);
   RUN_TEST(test_serve_json_rpc_bad_port);
+#ifndef __EMSCRIPTEN__
   RUN_TEST(test_serve_json_rpc_bind_fail);
   RUN_TEST(test_serve_json_rpc_listen_once);
   RUN_TEST(test_serve_mcp_stdio_main);
+#endif
 }
 
 #ifdef __cplusplus
