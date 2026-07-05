@@ -127,7 +127,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp_c,
       "/* Expected imports from c-abstract-http and c-orm definitions */\n");
-  fprintf(fp_c, "#include <c_abstract_http/http_types.h>\n ");
+  fprintf(fp_c, "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n ");
   fprintf(fp_c, "extern int cdd_c_parse_oauth2_token(const char *json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 

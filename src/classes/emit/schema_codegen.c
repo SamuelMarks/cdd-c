@@ -153,7 +153,7 @@ generate_header(const char *prefix, const char *basename,
 
   F_CHECK_RC(print_header_guard(fp, basename));
   F_CHECK_IO(FPRINTF_HOOK(fp,
-                          "#include <stdlib.h>\n"
+                          "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
                           "#include \"lib_export.h\"\n\n"
                           "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
                           "typedef signed __int8 int8_t;\n"
