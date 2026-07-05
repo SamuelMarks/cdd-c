@@ -732,7 +732,9 @@ enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
 
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
-  CHECK_IO(fprintf(fp, "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n"));
   CHECK_IO(fprintf(fp, "#include \"url_utils.h\"\n"));
   if (model_decl) {
     CHECK_IO(fprintf(fp, "#include \"%s\"\n", model_decl));
@@ -2199,7 +2201,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       goto cleanup;
     }
   }
-  if (fprintf(mhfile, "#include <c_cdd_stdbool.h>\n#include <cdd_c_error.h>\n") < 0) {
+  if (fprintf(mhfile,
+              "#include <c_cdd_stdbool.h>\n#include <cdd_c_error.h>\n") < 0) {
     rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
@@ -3422,7 +3425,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "#include <string.h>\n"
           "\n"
           "#include \"functions/parse/str.h\" /* For c_cdd_strdup helpers */\n"
-          
+
           "#include \"c_cdd/log.h\"\n#include \"url_utils.h\"\n"
           "/* clang-format on */\n"
           "\n"
