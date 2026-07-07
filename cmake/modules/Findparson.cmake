@@ -14,8 +14,7 @@ if(NOT parson_FOUND)
         if(NOT parson_RESOLVED)
             FetchContent_Declare(
                     parson
-                    GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-                    GIT_TAG master
+                    URL "https://github.com/SamuelMarks/parson/archive/refs/heads/master.tar.gz"
             )
 
             FetchContent_MakeAvailable(parson)

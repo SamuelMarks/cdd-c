@@ -117,9 +117,9 @@ static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
                    "            FetchContent_Declare(parson SOURCE_DIR "
                    "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../parson\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
-  CHECK_IO(fprintf(
-      fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
-          "https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "            FetchContent_Declare(parson URL "
+                       "https://github.com/SamuelMarks/parson/archive/refs/"
+                       "heads/master.tar.gz)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(parson)\n"));
   CHECK_IO(fprintf(fp, "        if(NOT TARGET parson)\n"));
@@ -149,9 +149,9 @@ static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
       fp, "            FetchContent_Declare(c89stringutils SOURCE_DIR "
           "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c89stringutils\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
-  CHECK_IO(fprintf(
-      fp, "            FetchContent_Declare(c89stringutils GIT_REPOSITORY "
-          "https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "            FetchContent_Declare(c89stringutils URL "
+                       "https://github.com/offscale/c89stringutils/archive/"
+                       "refs/heads/master.tar.gz)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c89stringutils)\n"));
   CHECK_IO(fprintf(fp, "        if(NOT TARGET c89stringutils)\n"));
@@ -182,9 +182,9 @@ static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
       fp, "            FetchContent_Declare(c_str_span SOURCE_DIR "
           "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-str-span\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
-  CHECK_IO(fprintf(
-      fp, "            FetchContent_Declare(c_str_span GIT_REPOSITORY "
-          "https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "            FetchContent_Declare(c_str_span URL "
+                       "https://github.com/SamuelMarks/c-str-span/archive/refs/"
+                       "heads/master.tar.gz)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c_str_span)\n"));
   CHECK_IO(fprintf(fp, "        if(NOT TARGET c_str_span)\n"));
@@ -216,10 +216,9 @@ static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
       fp, "            FetchContent_Declare(c-abstract-http SOURCE_DIR "
           "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
-  CHECK_IO(fprintf(
-      fp,
-      "            FetchContent_Declare(c-abstract-http GIT_REPOSITORY "
-      "https://github.com/SamuelMarks/c-abstract-http.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "            FetchContent_Declare(c-abstract-http URL "
+                       "https://github.com/SamuelMarks/c-abstract-http/archive/"
+                       "refs/heads/master.tar.gz)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(
       fprintf(fp, "        FetchContent_MakeAvailable(c-abstract-http)\n"));

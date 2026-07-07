@@ -26,9 +26,7 @@ if(NOT c89stringutils_FOUND)
         if(NOT c89stringutils_RESOLVED)
             FetchContent_Declare(
                     c89stringutils
-                    GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-                    GIT_TAG        master
-                    GIT_SHALLOW    TRUE
+                    URL "https://github.com/offscale/c89stringutils/archive/refs/heads/master.tar.gz"
             )
 
             FetchContent_MakeAvailable(c89stringutils)

@@ -88,12 +88,10 @@ extern C_CDD_EXPORT enum cdd_c_error wide_to_ascii(const wchar_t *ws, char *s, s
 /* POSIX systems */
 #include <limits.h>
 #include <sys/stat.h>
-#if !defined(_MSC_VER)
 #if defined(_MSC_VER)
 #include <io.h>
 #else
 #include <unistd.h>
-#endif
 #endif
 /* clang-format on */
 

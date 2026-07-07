@@ -77,8 +77,7 @@ set(C_ABSTRACT_HTTP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 macro(FetchDependencyLocalOrArchive NAME LOCAL_DIR GITHUB_REPO)
     FetchContent_Declare(
         ${NAME}
-        GIT_REPOSITORY "https://github.com/${GITHUB_REPO}.git"
-        GIT_TAG "master"
+        URL "https://github.com/${GITHUB_REPO}/archive/refs/heads/master.tar.gz"
     )
     if(DEFINED BUILD_TESTING)
         set(OLD_BUILD_TESTING "${BUILD_TESTING}")
