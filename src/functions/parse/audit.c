@@ -36,16 +36,17 @@ C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
 /**
  * @brief Executes the audit stats init operation.
  */
-void audit_stats_init(struct AuditStats *stats) {
-  if (stats) {
-    stats->files_scanned = 0;
-    stats->allocations_checked = 0;
-    stats->allocations_unchecked = 0;
-    stats->functions_returning_alloc = 0;
-    stats->violations.items = NULL;
-    stats->violations.size = 0;
-    stats->violations.capacity = 0;
-  }
+enum cdd_c_error audit_stats_init(struct AuditStats *stats) {
+  if (!stats)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  stats->files_scanned = 0;
+  stats->allocations_checked = 0;
+  stats->allocations_unchecked = 0;
+  stats->functions_returning_alloc = 0;
+  stats->violations.items = NULL;
+  stats->violations.size = 0;
+  stats->violations.capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

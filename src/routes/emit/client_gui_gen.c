@@ -99,13 +99,16 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_h, "extern \"C\" {\n");
   fprintf(fp_h, "#endif /* __cplusplus */\n\n");
   fprintf(fp_h, "struct OAuth2TokenResponse;\n");
-  fprintf(fp_h, "int cmp_oauth2_view_render(const char* token_endpoint);\n");
-  fprintf(fp_h, "int execute_password_grant(const char* token_endpoint, const "
+  fprintf(
+      fp_h,
+      "enum cdd_c_error cmp_oauth2_view_render(const char* token_endpoint);\n");
+  fprintf(fp_h, "enum cdd_c_error execute_password_grant(const char* "
+                "token_endpoint, const "
                 "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token);\n\n");
-  fprintf(fp_h, "void cmp_ui_builder_begin_column(void);\n");
-  fprintf(fp_h, "void m3_text_field_init(const char* label);\n");
-  fprintf(fp_h, "void m3_button_init(const char* label);\n");
+  fprintf(fp_h, "enum cdd_c_error cmp_ui_builder_begin_column(void);\n");
+  fprintf(fp_h, "enum cdd_c_error m3_text_field_init(const char* label);\n");
+  fprintf(fp_h, "enum cdd_c_error m3_button_init(const char* label);\n");
   fprintf(fp_h, "#ifdef __cplusplus\n");
   fprintf(fp_h, "}\n");
   fprintf(fp_h, "#endif /* __cplusplus */\n\n");
@@ -130,17 +133,21 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp_c,
       "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n ");
-  fprintf(fp_c, "extern int cdd_c_parse_oauth2_token(const char *json, struct "
+  fprintf(fp_c, "extern enum cdd_c_error cdd_c_parse_oauth2_token(const char "
+                "*json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 
   fprintf(fp_c,
           "/* GUI Stub implementations (for standalone compilation) */\n");
-  fprintf(fp_c, "void cmp_ui_builder_begin_column(void) {}\n");
-  fprintf(fp_c,
-          "void m3_text_field_init(const char* label) { (void)label; }\n");
-  fprintf(fp_c, "void m3_button_init(const char* label) { (void)label; }\n\n");
+  fprintf(fp_c, "enum cdd_c_error cmp_ui_builder_begin_column(void) { return "
+                "CDD_C_SUCCESS; }\n");
+  fprintf(fp_c, "enum cdd_c_error m3_text_field_init(const char* label) { "
+                "(void)label; return CDD_C_SUCCESS; }\n");
+  fprintf(fp_c, "enum cdd_c_error m3_button_init(const char* label) { "
+                "(void)label; return CDD_C_SUCCESS; }\n\n");
 
-  fprintf(fp_c, "int cmp_oauth2_view_render(const char* token_endpoint) {\n");
+  fprintf(fp_c, "enum cdd_c_error cmp_oauth2_view_render(const char* "
+                "token_endpoint) {\n");
   fprintf(fp_c, "  if (!token_endpoint) {\n");
   if (spec->n_servers > 0 && spec->servers[0].url) {
     fprintf(fp_c, "    token_endpoint = \"%s/oauth/token\";\n",
@@ -151,21 +158,23 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   }
   fprintf(fp_c, "  }\n");
 
-  fprintf(fp_c, "  cmp_ui_builder_begin_column();\n");
+  fprintf(fp_c, "  { enum cdd_c_error rc = cmp_ui_builder_begin_column(); "
+                "if(rc != CDD_C_SUCCESS) return rc; }\n");
   fprintf(fp_c, "  m3_text_field_init(\"Username\");\n");
   fprintf(fp_c, "  m3_text_field_init(\"Password\");\n");
   fprintf(fp_c, "  m3_button_init(\"Login\");\n");
   fprintf(fp_c, "  return CDD_C_SUCCESS;\n");
   fprintf(fp_c, "}\n\n");
 
-  fprintf(fp_c, "int execute_password_grant(const char* token_endpoint, const "
+  fprintf(fp_c, "enum cdd_c_error execute_password_grant(const char* "
+                "token_endpoint, const "
                 "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token) {\n");
   fprintf(fp_c, "  /* Generated automated request-handling logic mapping "
                 "OpenAPI password flow */\n");
   fprintf(fp_c, "  struct HttpRequest req;\n");
   fprintf(fp_c, "  struct HttpResponse res;\n");
-  fprintf(fp_c, "  int rc;\n");
+  fprintf(fp_c, "  enum cdd_c_error rc = CDD_C_SUCCESS;\n");
   fprintf(fp_c, "  char payload[512];\n");
   fprintf(fp_c, "  memset(&req, 0, sizeof(req));\n");
   fprintf(fp_c, "  memset(&res, 0, sizeof(res));\n");

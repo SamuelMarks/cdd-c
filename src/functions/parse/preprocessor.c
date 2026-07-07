@@ -2073,23 +2073,30 @@ struct ConditionalStack {
 /**
  * @brief Executes the stack push operation.
  */
-static void stack_push(struct ConditionalStack *st, enum CondState s) {
+static enum cdd_c_error stack_push(struct ConditionalStack *st,
+                                   enum CondState s) {
 
+  if (!st)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (st->top < 31) {
 
     st->states[++st->top] = s;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the stack pop operation.
  */
-static void stack_pop(struct ConditionalStack *st) {
+static enum cdd_c_error stack_pop(struct ConditionalStack *st) {
 
+  if (!st)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (st->top >= 0) {
 
     st->top--;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2318,15 +2325,15 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           if (enabled && condition_met) {
 
-            stack_push(&stack, COND_ACTIVE);
+            (void)stack_push(&stack, COND_ACTIVE);
 
           } else if (enabled && !condition_met) {
 
-            stack_push(&stack, COND_SKIPPING);
+            (void)stack_push(&stack, COND_SKIPPING);
 
           } else {
 
-            stack_push(&stack, COND_SATISFIED);
+            (void)stack_push(&stack, COND_SATISFIED);
           }
 
         } else if ((token_matches_string(cmd, "if",
@@ -2353,15 +2360,15 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           if (enabled && condition_met) {
 
-            stack_push(&stack, COND_ACTIVE);
+            (void)stack_push(&stack, COND_ACTIVE);
 
           } else if (enabled && !condition_met) {
 
-            stack_push(&stack, COND_SKIPPING);
+            (void)stack_push(&stack, COND_SKIPPING);
 
           } else {
 
-            stack_push(&stack, COND_SATISFIED);
+            (void)stack_push(&stack, COND_SATISFIED);
           }
 
         } else if ((token_matches_string(cmd, "elif",
@@ -2373,12 +2380,12 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           int parent_enabled;
 
-          stack_pop(&stack);
+          (void)stack_pop(&stack);
 
           parent_enabled = (is_enabled(&stack, &_ast_is_enabled_109) == 0 &&
                             _ast_is_enabled_109);
 
-          stack_push(&stack, current);
+          (void)stack_push(&stack, current);
 
           directive_handled = 1;
 
@@ -2388,9 +2395,9 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           } else if (current == COND_ACTIVE) {
 
-            stack_pop(&stack);
+            (void)stack_pop(&stack);
 
-            stack_push(&stack, COND_SATISFIED);
+            (void)stack_push(&stack, COND_SATISFIED);
 
           } else if (current == COND_SKIPPING && parent_enabled) {
 
@@ -2402,9 +2409,9 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
             if (val != 0) {
 
-              stack_pop(&stack);
+              (void)stack_pop(&stack);
 
-              stack_push(&stack, COND_ACTIVE);
+              (void)stack_push(&stack, COND_ACTIVE);
             }
           }
 
@@ -2417,26 +2424,26 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           int parent_enabled;
 
-          stack_pop(&stack);
+          (void)stack_pop(&stack);
 
           parent_enabled = (is_enabled(&stack, &_ast_is_enabled_112) == 0 &&
                             _ast_is_enabled_112);
 
-          stack_push(&stack, current);
+          (void)stack_push(&stack, current);
 
           directive_handled = 1;
 
           if (current == COND_ACTIVE) {
 
-            stack_pop(&stack);
+            (void)stack_pop(&stack);
 
-            stack_push(&stack, COND_SATISFIED);
+            (void)stack_push(&stack, COND_SATISFIED);
 
           } else if (current == COND_SKIPPING && parent_enabled) {
 
-            stack_pop(&stack);
+            (void)stack_pop(&stack);
 
-            stack_push(&stack, COND_ACTIVE);
+            (void)stack_push(&stack, COND_ACTIVE);
           }
 
         } else if ((token_matches_string(cmd, "endif",
@@ -2445,7 +2452,7 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           directive_handled = 1;
 
-          stack_pop(&stack);
+          (void)stack_pop(&stack);
         }
 
         /* --- Includes & Embeds --- */

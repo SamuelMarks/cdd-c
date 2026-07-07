@@ -127,12 +127,13 @@ enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
 /**
  * @brief Executes the HazE cleanup operation.
  */
-void HazE_cleanup(struct HazE *haz_e) {
+enum cdd_c_error HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   free((void *)haz_e->bzr);
   free(haz_e);
+  return CDD_C_SUCCESS;
 }
 
 /** \brief func */
@@ -365,12 +366,13 @@ enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
 /**
  * @brief Executes the FooE cleanup operation.
  */
-void FooE_cleanup(struct FooE *foo_e) {
+enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   free((void *)foo_e->bar);
-  HazE_cleanup(foo_e->haz);
+  (void)HazE_cleanup(foo_e->haz);
   free(foo_e);
+  return CDD_C_SUCCESS;
 }
 
 /** \brief func */

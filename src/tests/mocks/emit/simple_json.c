@@ -107,12 +107,13 @@ enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
   return CDD_C_SUCCESS;
 }
 
-void HazE_cleanup(struct HazE *const haz_e) {
+enum cdd_c_error HazE_cleanup(struct HazE *const haz_e) {
   if (haz_e == NULL)
-    return;
+    return CDD_C_SUCCESS;
 
   free((void *)haz_e->bzr);
   free(haz_e);
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error HazE_default(struct HazE **haz_e) {
@@ -316,12 +317,13 @@ enum cdd_c_error HazE_from_json(const char *const json, struct HazE **haz_e) {
   return rc;
 }
 
-void FooE_cleanup(struct FooE *const foo_e) {
+enum cdd_c_error FooE_cleanup(struct FooE *const foo_e) {
   if (foo_e == NULL)
-    return;
+    return CDD_C_SUCCESS;
   free((void *)foo_e->bar);
   HazE_cleanup(foo_e->haz);
   free(foo_e);
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error FooE_default(struct FooE **foo_e) {

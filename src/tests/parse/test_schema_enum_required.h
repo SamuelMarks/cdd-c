@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_schema_enum_required.h
  * @brief Unit tests for required enums in schemas.
@@ -35,7 +33,7 @@ static enum cdd_c_error load_spec_string(const char *json,
   root = json_parse_string(json);
   if (!root)
     return -1;
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(root, spec);
   json_value_free(root);
   return rc;

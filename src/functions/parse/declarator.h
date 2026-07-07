@@ -82,7 +82,7 @@ struct DeclInfo {
  * @brief Initialize a DeclInfo structure.
  * @param[out] info The structure to zero.
  */
-extern C_CDD_EXPORT void decl_info_init(struct DeclInfo *info);
+extern C_CDD_EXPORT enum cdd_c_error decl_info_init(struct DeclInfo *info);
 
 /**
  * @brief Free resources in a DeclInfo structure.

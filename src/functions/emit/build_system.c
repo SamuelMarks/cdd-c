@@ -32,7 +32,7 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc;
 /* Helper macro for I/O checking */
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-static int check_io_helper2(int rc) {
+static enum cdd_c_error test_cdd_check_io_helper2(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;
@@ -40,7 +40,7 @@ static int check_io_helper2(int rc) {
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
-    if (check_io_helper2(x) < 0)                                               \
+    if (test_cdd_check_io_helper2(x) < 0)                                      \
       return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #else

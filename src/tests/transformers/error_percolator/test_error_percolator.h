@@ -151,8 +151,6 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   PASS();
 }
 
-extern C_CDD_EXPORT int g_fail_io_after;
-
 TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =

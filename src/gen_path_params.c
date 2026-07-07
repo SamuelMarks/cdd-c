@@ -23,9 +23,9 @@
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-void ApiError_cleanup(struct ApiError *err) {
+enum cdd_c_error ApiError_cleanup(struct ApiError *err) {
   if (!err)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (err->type)
     free(err->type);
   if (err->title)
@@ -37,6 +37,7 @@ void ApiError_cleanup(struct ApiError *err) {
   if (err->raw_body)
     free(err->raw_body);
   free(err);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -47,10 +48,10 @@ static enum cdd_c_error ApiError_from_json(const char *json,
   JSON_Value *root;
   JSON_Object *obj;
   if (!json || !out)
-    return 22; /* EINVAL */
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out = calloc(1, sizeof(struct ApiError));
   if (!*out)
-    return 12; /* ENOMEM */
+    return CDD_C_ERROR_MEMORY;
   (*out)->raw_body = strdup(json);
   root = json_parse_string(json);
   if (!root)
@@ -96,7 +97,7 @@ static enum cdd_c_error ApiError_from_json(const char *json,
 enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
   int rc;
   if (!client)
-    return 22; /* EINVAL */
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = http_client_init(client);
   if (rc != 0)
     return rc;
@@ -107,7 +108,7 @@ enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
   if (base_url) {
     client->base_url = malloc(strlen(base_url) + 1);
     if (!client->base_url)
-      return 12; /* ENOMEM */
+      return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strcpy_s(client->base_url, strlen(base_url) + 1, base_url);
@@ -131,9 +132,9 @@ enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
   return rc;
 }
 
-void api_cleanup(struct HttpClient *client) {
+enum cdd_c_error api_cleanup(struct HttpClient *client) {
   if (!client)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 #ifdef USE_WININET
   http_wininet_context_free(client->transport);
 #elif defined(USE_WINHTTP)
@@ -144,6 +145,7 @@ void api_cleanup(struct HttpClient *client) {
   http_curl_context_free(client->transport);
 #endif
   http_client_free(client);
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error api_test_op(struct HttpClient *ctx, const char *x_trace,
@@ -200,7 +202,11 @@ enum cdd_c_error api_test_op(struct HttpClient *ctx, const char *x_trace,
   if (!handled) {
     rc = CDD_C_ERROR_IO;
     if (res->body && api_error) {
-      ApiError_from_json((const char *)res->body, api_error);
+      enum cdd_c_error api_rc =
+          ApiError_from_json((const char *)res->body, api_error);
+      if (api_rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("Failed to parse ApiError: %d\n", api_rc);
+      }
     }
   }
 

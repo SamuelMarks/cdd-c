@@ -35,8 +35,8 @@ static enum cdd_c_error alloc_trivia(enum cdd_trivia_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
-static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
-                          cdd_trivia_t *t) {
+static enum cdd_c_error append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
+                                      cdd_trivia_t *t) {
   if (!*head) {
     *head = t;
     *tail = t;
@@ -44,6 +44,7 @@ static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
     (*tail)->next = t;
     *tail = t;
   }
+  return CDD_C_SUCCESS;
 }
 
 static enum cdd_c_error is_identifier_start(int c) {
@@ -210,7 +211,9 @@ enum cdd_c_error cdd_lexer_tokenize(az_span source,
         if (!is_newline && prev_token && !pending_trivia_head) {
           prev_token->trailing_trivia = t;
         } else {
-          append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
+          if (append_trivia(&pending_trivia_head, &pending_trivia_tail, t) !=
+              CDD_C_SUCCESS)
+            goto error;
           prev_token = NULL;
         }
       }
@@ -250,7 +253,9 @@ enum cdd_c_error cdd_lexer_tokenize(az_span source,
                      base + start, pos - start, &t);
         if (!t)
           goto error;
-        append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
+        if (append_trivia(&pending_trivia_head, &pending_trivia_tail, t) !=
+            CDD_C_SUCCESS)
+          goto error;
       }
       continue;
     }

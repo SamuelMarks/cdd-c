@@ -116,7 +116,7 @@ str_starts_with(const char *str, const char *prefix, int *_out_val);
  * @param[in,out] str The string to trim.
  */
 
-extern C_CDD_EXPORT void trim_trailing(char *str);
+extern C_CDD_EXPORT enum cdd_c_error trim_trailing(char *str);
 
 /**
  * @brief Convert a JSON array of strings to an EnumMembers container.
@@ -197,8 +197,8 @@ extern C_CDD_EXPORT /**
                                             JSON_Object *schemas_obj_root,
                                             const char *schema_name);
 
-extern C_CDD_EXPORT void merge_struct_field(struct StructField *dest,
-                                            const struct StructField *src);
+extern C_CDD_EXPORT enum cdd_c_error
+merge_struct_field(struct StructField *dest, const struct StructField *src);
 extern C_CDD_EXPORT enum cdd_c_error
 discriminator_value_for_variant(const JSON_Object *disc_obj,
                                 const char *schema_name, const char *ref,

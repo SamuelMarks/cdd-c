@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cli_parser.h
  * @brief Unit tests for parsing C CLI argument parsers.
@@ -56,7 +54,7 @@ TEST test_cli_parser_getopt(void) {
   rc = parse_tokens(tokens, nodes);
   ASSERT_EQ(0, rc);
 
-  cli_command_init(&cmd);
+  (void)cli_command_init(&cmd);
   rc = cst_extract_cli_command(nodes, tokens, &cmd);
   ASSERT_EQ(0, rc);
 

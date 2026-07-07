@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_codegen_root_arrays.h
  * @brief Unit tests for root array codegen.
@@ -69,8 +67,8 @@ TEST test_root_int_array_from_json(void) {
                 _ast_generate_ra_code_0);
   ASSERT(code);
   /* Check signature */
-  ASSERT(strstr(
-      code, "int IntList_from_json(const char *json, int **out, size_t *len)"));
+  ASSERT(strstr(code, "enum cdd_c_error IntList_from_json(const char *json, "
+                      "int **out, size_t *len)"));
   /* Check malloc */
   ASSERT(strstr(code, "*out = malloc(count * sizeof(int));"));
   /* Check assignment cast */
@@ -87,9 +85,8 @@ TEST test_root_string_array_from_json(void) {
                 _ast_generate_ra_code_1);
   ASSERT(code);
   /* Signature: char ***out */
-  ASSERT(strstr(
-      code,
-      "int StrList_from_json(const char *json, char ***out, size_t *len)"));
+  ASSERT(strstr(code, "enum cdd_c_error StrList_from_json(const char *json, "
+                      "char ***out, size_t *len)"));
   /* Check deep copy loop */
   ASSERT(strstr(code, "json_array_get_string(arr, i)"));
   ASSERT(strstr(code, "strdup(s)"));
@@ -108,8 +105,9 @@ TEST test_root_obj_array_from_json(void) {
                 _ast_generate_ra_code_2);
   ASSERT(code);
   /* Signature: struct MyObj ***out */
-  ASSERT(strstr(code, "int ObjList_from_json(const char *json, struct MyObj "
-                      "***out, size_t *len)"));
+  ASSERT(strstr(
+      code, "enum cdd_c_error ObjList_from_json(const char *json, struct MyObj "
+            "***out, size_t *len)"));
   /* Recursive parse */
   ASSERT(strstr(
       code,
@@ -125,8 +123,8 @@ TEST test_root_int_array_to_json(void) {
                                  "integer", NULL, &_ast_generate_ra_code_3),
                 _ast_generate_ra_code_3);
   ASSERT(code);
-  ASSERT(strstr(
-      code, "int IntList_to_json(const int *in, size_t len, char **json_out)"));
+  ASSERT(strstr(code, "enum cdd_c_error IntList_to_json(const int *in, size_t "
+                      "len, char **json_out)"));
   ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"[\")"));
   ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"%d\", in[i])"));
   free(code);
@@ -140,8 +138,9 @@ TEST test_root_obj_array_to_json(void) {
                                  "object", "MyObj", &_ast_generate_ra_code_4),
                 _ast_generate_ra_code_4);
   ASSERT(code);
-  ASSERT(strstr(code, "int ObjList_to_json(struct MyObj **const in, size_t "
-                      "len, char **json_out)"));
+  ASSERT(strstr(
+      code, "enum cdd_c_error ObjList_to_json(struct MyObj **const in, size_t "
+            "len, char **json_out)"));
   ASSERT(strstr(code, "MyObj_to_json(in[i], &tmp)"));
   free(code);
   g_fail_io_after = -1;
@@ -156,7 +155,8 @@ TEST test_root_array_cleanup(void) {
                                  "string", NULL, &_ast_generate_ra_code_5),
                 _ast_generate_ra_code_5);
   ASSERT(code);
-  ASSERT(strstr(code, "void StrList_cleanup(char **in, size_t len)"));
+  ASSERT(
+      strstr(code, "enum cdd_c_error StrList_cleanup(char **in, size_t len)"));
   ASSERT(strstr(code, "free(in[i])"));
   ASSERT(strstr(code, "free(in)"));
   free(code);

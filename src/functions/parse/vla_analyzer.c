@@ -38,12 +38,13 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
  * @brief Initializes a VLA site list.
  *
  */
-void vla_site_list_init(struct VLASiteList *list) {
+enum cdd_c_error vla_site_list_init(struct VLASiteList *list) {
   if (!list)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->sites = NULL;
   list->count = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -65,7 +66,7 @@ void vla_site_list_free(struct VLASiteList *list) {
     }
     free(list->sites);
   }
-  vla_site_list_init(list);
+  (void)vla_site_list_init(list);
 }
 
 /**

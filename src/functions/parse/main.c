@@ -38,7 +38,7 @@
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static void print_version(void) {
+static enum cdd_c_error print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
 
@@ -80,6 +80,7 @@ static void print_version(void) {
 #else
   printf("Disabled (Not compiled)\n");
 #endif
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -90,10 +91,11 @@ static void print_version(void) {
  * @param[in] rc The return code from the executed command
  * @param[in] command_name The name of the command that failed
  */
-static void print_error(int rc, const char *command_name) {
+static enum cdd_c_error print_error(int rc, const char *command_name) {
   if (rc == 0)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -112,7 +114,7 @@ static enum cdd_c_error handle_audit(int argc, char **argv) {
   int rc;
   if (argc != 1)
     return CDD_C_ERROR_UNKNOWN;
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -124,7 +126,7 @@ static enum cdd_c_error handle_audit(int argc, char **argv) {
  *
  * @param[in] prog_name The program executable name (usually argv[0])
  */
-static void print_help(const char *prog_name) {
+static enum cdd_c_error print_help(const char *prog_name) {
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", prog_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
@@ -168,6 +170,7 @@ static void print_help(const char *prog_name) {
   puts("      Generate build system files.");
   puts("  schema2code <schema.json> <out_dir>");
   puts("      Generate C code from JSON schema.");
+  return CDD_C_SUCCESS;
 }
 
 /**

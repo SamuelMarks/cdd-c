@@ -8,15 +8,19 @@
 /**
  * @brief Executes the Haz cleanup operation.
  */
-void Haz_cleanup(struct Haz *haz) { free(haz); }
+enum cdd_c_error Haz_cleanup(struct Haz *haz) {
+  free(haz);
+  return CDD_C_SUCCESS;
+}
 
 /** \brief func */
 /**
  * @brief Executes the Foo cleanup operation.
  */
-void Foo_cleanup(struct Foo *foo) {
+enum cdd_c_error Foo_cleanup(struct Foo *foo) {
   if (foo == NULL)
-    return;
-  Haz_cleanup(foo->haz);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  (void)Haz_cleanup(foo->haz);
   free(foo);
+  return CDD_C_SUCCESS;
 }

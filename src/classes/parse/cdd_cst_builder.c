@@ -12,7 +12,8 @@
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
-static const char *pool_string(cdd_cst_tree_t *tree, const char *str);
+static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
+                                    const char **out_str);
 static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
                                        cdd_token_t **out_tok);
 
@@ -137,10 +138,12 @@ enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
 #else
   CDD_SNPRINTF(buf, sizeof(buf), "%d", value);
 #endif
-  pooled = pool_string(builder->tree, buf);
-  if (!pooled) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+  {
+    enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+    if (pool_rc != CDD_C_SUCCESS) {
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      return CDD_C_ERROR_MEMORY;
+    }
   }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
 }
@@ -207,10 +210,11 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
       CDD_SNPRINTF(buf, sizeof(buf), "<%s>", path);
 #endif
       {
-        const char *pooled = pool_string(builder->tree, buf);
-        if (!pooled) {
+        const char *pooled = NULL;
+        enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+        if (pool_rc != CDD_C_SUCCESS) {
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-          return CDD_C_ERROR_MEMORY;
+          return pool_rc;
         }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
       }
@@ -222,9 +226,10 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
       CDD_SNPRINTF(buf, sizeof(buf), "\"%s\"", path);
 #endif
       {
-        const char *pooled = pool_string(builder->tree, buf);
-        if (!pooled) {
-          return CDD_C_ERROR_MEMORY;
+        const char *pooled = NULL;
+        enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+        if (pool_rc != CDD_C_SUCCESS) {
+          return pool_rc;
         }
         rc = cdd_cst_bld_string(builder, pooled);
       }
@@ -363,22 +368,28 @@ enum cdd_c_error cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
   return rc;
 }
 
-static const char *pool_string(cdd_cst_tree_t *tree, const char *str) {
+static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
+                                    const char **out_str) {
   char *dup;
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
+#endif
+  if (!out_str)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_str = NULL;
+#ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail)
-    return NULL;
+    return CDD_C_ERROR_MEMORY;
 #endif
   if (!tree || !str)
-    return NULL;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(_MSC_VER)
   dup = _strdup(str);
 #else
   dup = strdup(str);
 #endif
   if (!dup)
-    return NULL;
+    return CDD_C_ERROR_MEMORY;
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
@@ -386,13 +397,14 @@ static const char *pool_string(cdd_cst_tree_t *tree, const char *str) {
         (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
       free(dup);
-      return NULL;
+      return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
     tree->string_capacity = new_cap;
   }
   tree->string_pool[tree->num_strings++] = dup;
-  return dup;
+  *out_str = dup;
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
@@ -425,10 +437,12 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
       } else {
         continue;
       }
-      pooled = pool_string(builder->tree, tok_buf);
-      if (!pooled) {
-        rc = CDD_C_ERROR_MEMORY;
-        break;
+      {
+        enum cdd_c_error pool_rc = pool_string(builder->tree, tok_buf, &pooled);
+        if (pool_rc != CDD_C_SUCCESS) {
+          rc = CDD_C_ERROR_MEMORY;
+          break;
+        }
       }
       rc = cdd_cst_bld_token(builder, t->kind, pooled);
       if (rc != 0)
@@ -447,7 +461,13 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
             if (tr->length < sizeof(tr_buf)) {
               memcpy(tr_buf, tr->start, tr->length);
               tr_buf[tr->length] = '\0';
-              tr->start = (const uint8_t *)pool_string(builder->tree, tr_buf);
+              {
+                const char *tr_pooled = NULL;
+                if (pool_string(builder->tree, tr_buf, &tr_pooled) ==
+                    CDD_C_SUCCESS) {
+                  tr->start = (const uint8_t *)tr_pooled;
+                }
+              }
             }
           }
           for (tr = last->trailing_trivia; tr; tr = tr->next) {
@@ -455,7 +475,13 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
             if (tr->length < sizeof(tr_buf)) {
               memcpy(tr_buf, tr->start, tr->length);
               tr_buf[tr->length] = '\0';
-              tr->start = (const uint8_t *)pool_string(builder->tree, tr_buf);
+              {
+                const char *tr_pooled = NULL;
+                if (pool_string(builder->tree, tr_buf, &tr_pooled) ==
+                    CDD_C_SUCCESS) {
+                  tr->start = (const uint8_t *)tr_pooled;
+                }
+              }
             }
           }
         }
@@ -645,11 +671,12 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
      Or we can synthesize a blank token to hold it. We'll append an OTHER token.
    */
   {
-    const char *pooled = pool_string(builder->tree, buf);
+    const char *pooled = NULL;
+    enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
     int rc;
-    if (!pooled) {
+    if (pool_rc != CDD_C_SUCCESS) {
       free(trivia);
-      return CDD_C_ERROR_MEMORY;
+      return pool_rc;
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
     free(trivia); /* since it became a real token via string pool mapping */

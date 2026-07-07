@@ -128,10 +128,11 @@ static int compare_patches(const void *a, const void *b) {
 /**
  * @brief Executes the patch list sort operation.
  */
-void patch_list_sort(struct PatchList *list) {
+enum cdd_c_error patch_list_sort(struct PatchList *list) {
   if (list && list->patches && list->size > 1) {
     qsort(list->patches, list->size, sizeof(struct Patch), compare_patches);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -151,7 +152,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Ensure patches are ordered so we can iterate linearly */
-  patch_list_sort(list);
+  (void)patch_list_sort(list);
 
   output = (char *)malloc(out_cap);
   if (!output) {

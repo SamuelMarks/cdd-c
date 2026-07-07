@@ -1,8 +1,6 @@
 #if defined(_MSC_VER)
 #pragma warning(disable : 4702)
 #endif
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_dataclasses.h
  * @brief Unit tests for dataclasses parsing.
@@ -51,14 +49,15 @@ struct Node {
 };
 
 /* Emulate Generated Code for Node to test the logic pattern */
-static void Node_cleanup(struct Node *const obj) {
+static enum cdd_c_error Node_cleanup(struct Node *const obj) {
   if (obj == NULL)
-    return;
+    return CDD_C_SUCCESS;
   if (obj->next) {
     Node_cleanup(obj->next);
     obj->next = NULL;
   }
   free(obj);
+  return CDD_C_SUCCESS;
 }
 
 static enum cdd_c_error Node_deepcopy(const struct Node *src,

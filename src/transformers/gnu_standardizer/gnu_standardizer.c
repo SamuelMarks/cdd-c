@@ -368,6 +368,7 @@ static const char *cdd_infer_type(cdd_token_t *tokens, size_t num_tokens) {
 enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                    const cdd_transform_config_t *config) {
   size_t i;
+  enum cdd_c_error rc = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};
   (void)config;
 
@@ -701,7 +702,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
           cdd_cst_node_t *temp = NULL;
-          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -770,7 +773,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
           cdd_cst_node_t *temp = NULL;
-          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -829,7 +834,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
           cdd_cst_node_t *temp = NULL;
-          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -907,7 +914,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (owning_node) {
             cdd_cst_node_t *temp = NULL;
             if (inferred) {
-              cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+              rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (temp) {
                 cdd_cst_builder_t bld;
                 cdd_cst_builder_init(&bld, tree, temp);
@@ -980,7 +989,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                       "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
                       base, typeof_arr_idx, arr_clean, typeof_arr_idx);
                   typeof_arr_idx++;
-                  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                  rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (temp) {
                     cdd_cst_builder_t bld;
                     cdd_cst_builder_init(&bld, tree, temp);
@@ -1012,7 +1023,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_free_node_only(temp);
                   }
                 } else {
-                  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                  rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                  if (rc != CDD_C_SUCCESS)
+                    return rc;
                   if (temp) {
                     cdd_cst_builder_t bld;
                     cdd_cst_builder_init(&bld, tree, temp);
@@ -1026,7 +1039,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                 }
               } else {
-                cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 if (temp) {
                   cdd_cst_builder_t bld;
                   cdd_cst_builder_init(&bld, tree, temp);
@@ -1065,7 +1080,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
             break;
           }
         }
-        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+        rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
         if (temp) {
           cdd_cst_builder_t bld;
           cdd_cst_builder_init(&bld, tree, temp);
@@ -1115,7 +1132,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                       &owning_node);
           if (owning_node) {
             cdd_cst_node_t *temp = NULL;
-            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -1462,7 +1481,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                       &owning_node);
           if (owning_node) {
             cdd_cst_node_t *temp = NULL;
-            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -1752,7 +1773,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
           cdd_cst_node_t *temp = NULL;
-          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -1798,7 +1821,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
           cdd_cst_node_t *temp = NULL;
-          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -2354,7 +2379,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           while (num_cleanups > 0 &&
                  cleanups[num_cleanups - 1].depth == current_depth) {
             cdd_cst_node_t *temp = NULL;
-            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -2385,7 +2412,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (config && config->fallback_vla_to_malloc) {
             while (num_vlas > 0 && vlas[num_vlas - 1].depth == current_depth) {
               cdd_cst_node_t *temp = NULL;
-              cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+              rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+              if (rc != CDD_C_SUCCESS)
+                return rc;
               if (temp) {
                 cdd_cst_builder_t bld;
                 cdd_cst_builder_init(&bld, tree, temp);
@@ -2920,7 +2949,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                               &owning_node);
                   if (owning_node) {
                     cdd_cst_node_t *temp = NULL;
-                    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                    rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     if (temp) {
                       cdd_cst_builder_t bld;
                       cdd_cst_builder_init(&bld, tree, temp);
@@ -3010,7 +3041,9 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                               &owning_node);
                   if (owning_node) {
                     cdd_cst_node_t *temp = NULL;
-                    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                    rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
+                    if (rc != CDD_C_SUCCESS)
+                      return rc;
                     if (temp) {
                       cdd_cst_builder_t bld;
                       cdd_cst_builder_init(&bld, tree, temp);

@@ -50,7 +50,9 @@ struct ParsedSig {
 /**
  * @brief Initialize ParsedSig to NULLs.
  */
-static void parsed_sig_init(struct ParsedSig *sig) {
+static enum cdd_c_error parsed_sig_init(struct ParsedSig *sig) {
+  if (!sig)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   sig->attributes = NULL;
   sig->storage = NULL;
   sig->ret_type = NULL;
@@ -58,6 +60,7 @@ static void parsed_sig_init(struct ParsedSig *sig) {
   sig->args = NULL;
   sig->k_r_decls = NULL;
   sig->is_void_ret = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -250,7 +253,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 
   if (!tokens || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  parsed_sig_init(&sig);
+  (void)parsed_sig_init(&sig);
 
   /* 1. Attributes (C23 [[...]]) */
   /* Skip whitespace/comments */

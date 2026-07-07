@@ -223,13 +223,13 @@ int main(int argc, char **argv) {
   srand((unsigned int)time(NULL));
 
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(analysis_suite);
   RUN_SUITE(code2schema_suite);
   RUN_SUITE(c_inspector_types_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(codegen_build_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
@@ -244,7 +244,7 @@ int main(int argc, char **argv) {
 #endif
   RUN_SUITE(codegen_eq_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(codegen_json_suite);
   RUN_SUITE(standalone_json_suite);
@@ -265,45 +265,45 @@ int main(int argc, char **argv) {
   RUN_SUITE(cst_parser_suite);
   RUN_SUITE(cdd_lexer_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(cdd_cst_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(cdd_cst_mutate_suite);
   RUN_SUITE(cdd_cst_query_suite);
   RUN_SUITE(cdd_cst_trivia_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(cdd_cst_emit_unit_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(transformer_extern_c_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(transformer_msvc_port_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(transformer_gnu_standardizer_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(transformer_error_percolator_suite);
   RUN_SUITE(transformer_safe_crt_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(transformer_macros_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(crypto_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
@@ -321,7 +321,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(db_loader_suite);
   RUN_SUITE(desig_init_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(vla_analyzer_suite);
   RUN_SUITE(vcpkg_integration_suite);
@@ -387,7 +387,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(cdd_helpers_suite);
   RUN_SUITE(client_gui_gen_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
+  return 0;
 #endif
   RUN_SUITE(macro_overlay_suite);
   RUN_SUITE(server_gen_suite);

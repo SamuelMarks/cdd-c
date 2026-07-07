@@ -910,7 +910,8 @@ struct OpenAPI_Spec {
  * @brief Initialize a Spec structure to zero.
  * @param[out] spec Pointer to spec structure to initialize.
  */
-extern C_CDD_EXPORT void openapi_spec_init(struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT enum cdd_c_error
+openapi_spec_init(struct OpenAPI_Spec *spec);
 
 /**
  * @brief Free a Spec structure and all nested allocations.
@@ -927,7 +928,7 @@ openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
  * @brief Initialize a document registry.
  * @param[out] registry Pointer to registry to initialize.
  */
-extern C_CDD_EXPORT void
+extern C_CDD_EXPORT enum cdd_c_error
 openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);
 
 /**

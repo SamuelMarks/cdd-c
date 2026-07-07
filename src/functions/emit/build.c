@@ -24,7 +24,7 @@
 
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
-static int check_io_helper(int rc) {
+static enum cdd_c_error check_io_helper(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;

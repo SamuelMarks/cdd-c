@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_CDD_CST_EMIT_UNIT_H
 #define TEST_CDD_CST_EMIT_UNIT_H
 

@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_c_mapping.h
  * @brief Unit tests for the C to OpenAPI Type Mapper.
@@ -35,7 +33,7 @@ TEST test_mapping_int(void) {
   struct OpenApiTypeMapping m;
   int rc;
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   rc = c_mapping_map_type("int", "x", &m);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
@@ -44,23 +42,23 @@ TEST test_mapping_int(void) {
   c_mapping_free(&m);
 
   /* Empty string */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("", "x", &m));
   c_mapping_free(&m);
 
   /* void type (not pointer) */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("void", "x", &m));
   c_mapping_free(&m);
 
   /* const volatile signed unsigned */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0,
             c_mapping_map_type("const volatile signed unsigned int", "x", &m));
   c_mapping_free(&m);
 
   /* array mapping */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct Item *", "ptr[]", &m));
   c_mapping_free(&m);
   g_fail_io_after = -1;
@@ -175,7 +173,7 @@ TEST test_mapping_long(void) {
 TEST test_mapping_void_ptr(void) {
   struct OpenApiTypeMapping m;
   int rc;
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   rc = c_mapping_map_type("void *", "data", &m);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
@@ -190,33 +188,33 @@ TEST test_mapping_coverage(void) {
   struct OpenApiTypeMapping m = {0};
 
   /* NULL tests */
-  c_mapping_init(NULL);
+  (void)c_mapping_init(NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_mapping_map_type("int", "x", NULL));
   c_mapping_free(NULL);
 
   /* long, short, float, size_t */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("long int", "x", &m));
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("integer", m.oa_type);
   ASSERT_STR_EQ("int64", m.oa_format);
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("short int", "x", &m));
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("integer", m.oa_type);
   ASSERT_EQ(NULL, m.oa_format);
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("float", "x", &m));
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("number", m.oa_type);
   ASSERT_STR_EQ("float", m.oa_format);
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("size_t", NULL, &m));
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("integer", m.oa_type);
@@ -224,15 +222,15 @@ TEST test_mapping_coverage(void) {
   c_mapping_free(&m);
 
   /* pointers and references */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct MyStruct *", "x", &m));
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("int *", "x", &m));
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("const volatile int", "x", &m));
   c_mapping_free(&m);
 
@@ -252,7 +250,7 @@ TEST test_mapping_coverage(void) {
     /* Trigger inner_type/inner_ref duplication OOM */
     for (i = 1; i < 10; i++) {
       g_cdd_strdup_fail = i;
-      c_mapping_init(&m);
+      (void)c_mapping_init(&m);
       (void)c_mapping_map_type("int *", "x[]", &m);
       g_cdd_strdup_fail = 0;
       c_mapping_free(&m);
@@ -261,37 +259,37 @@ TEST test_mapping_coverage(void) {
 #endif
 
   /* Empty string */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("", "x", &m));
   c_mapping_free(&m);
 
   /* void type (not pointer) */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("void", "x", &m));
   c_mapping_free(&m);
 
   /* const volatile signed unsigned */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0,
             c_mapping_map_type("const volatile signed unsigned int", "x", &m));
   c_mapping_free(&m);
 
   /* array mapping */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct Item *", "ptr[]", &m));
   c_mapping_free(&m);
 
   /* Test end-of-string qualifiers */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("const", "x", &m));
   c_mapping_free(&m);
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("volatile", "x", &m));
   c_mapping_free(&m);
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("signed", "x", &m));
   c_mapping_free(&m);
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("unsigned", "x", &m));
   c_mapping_free(&m);
 
@@ -329,25 +327,25 @@ TEST test_mapping_coverage(void) {
   }
 #endif
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("short", "x", &m));
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("double", "x", &m));
   c_mapping_free(&m);
 
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("_Bool", "x", &m));
   c_mapping_free(&m);
 
   /* Test spaces after struct */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct   Foo", "x", &m));
   c_mapping_free(&m);
 
   /* Test empty struct name */
-  c_mapping_init(&m);
+  (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct ", "x", &m));
   c_mapping_free(&m);
   g_fail_io_after = -1;

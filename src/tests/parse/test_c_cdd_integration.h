@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_c_cdd_integration.h
  * @brief Integration tests for C CDD parsing.
@@ -305,7 +303,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   /* 2. Initial Audit: Expect Violations */
   {
     struct AuditStats stats;
-    audit_stats_init(&stats);
+    (void)audit_stats_init(&stats);
     rc = audit_project(project_root, &stats);
     ASSERT_EQ(0, rc);                          /* Audit tool ran successfully */
     ASSERT_EQ(1, stats.allocations_unchecked); /* malloc in make_data */
@@ -326,7 +324,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   /* 4. Verification Audit: Expect Clean */
   {
     struct AuditStats stats;
-    audit_stats_init(&stats);
+    (void)audit_stats_init(&stats);
     rc = audit_project(project_root, &stats);
     ASSERT_EQ(0, rc);
     /* Failure point previously: allocations_unchecked should be 0 */
@@ -408,9 +406,9 @@ TEST test_integration_schema2code_with_guards(void) {
   rc = read_to_file(header_file, "r", &content, &sz);
   ASSERT_EQ(0, rc);
   ASSERT(strstr(content, "#ifdef ENABLE_JSON") != NULL);
-  ASSERT(strstr(content, "int S_to_json(") != NULL);
+  ASSERT(strstr(content, "enum cdd_c_error S_to_json(") != NULL);
   ASSERT(strstr(content, "#ifdef DATA_UTILS") != NULL);
-  ASSERT(strstr(content, "void S_cleanup(") != NULL);
+  ASSERT(strstr(content, "enum cdd_c_error S_cleanup(") != NULL);
   free(content);
 
   /* 4. Verify Source */

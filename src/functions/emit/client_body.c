@@ -420,7 +420,8 @@ static enum cdd_c_error first_content_type_entry(const char *content_type,
 /**
  * @brief Executes the sanitize ident operation.
  */
-static void sanitize_ident(char *out, size_t outsz, const char *in) {
+static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
+                                       const char *in) {
   size_t i = 0;
   size_t j = 0;
   out[0] = '\0';
@@ -437,17 +438,25 @@ static void sanitize_ident(char *out, size_t outsz, const char *in) {
   if (j > 0 && out[0] >= '0' && out[0] <= '9') {
     out[0] = '_';
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the multipart header param name operation.
  */
-static void multipart_header_param_name(char *out, size_t outsz,
-                                        const char *field, const char *header) {
+static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
+                                                    const char *field,
+                                                    const char *header) {
   char hdr_sanitized[128];
   out[0] = '\0';
-  sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+  {
+    enum cdd_c_error rc =
+        sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -2620,8 +2629,8 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
     if (!hdr->name || header_name_is_content_type(hdr->name))
       continue;
 
-    multipart_header_param_name(param_name, sizeof(param_name), enc->name,
-                                hdr->name);
+    (void)multipart_header_param_name(param_name, sizeof(param_name), enc->name,
+                                      hdr->name);
     if (param_name[0] == '\0')
       continue;
 
@@ -3645,8 +3654,11 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
           fprintf(fp, "      rc = %d;\n", mapped_err_code(atoi(resp->code))));
       CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
-          fp,
-          "        ApiError_from_json((const char*)res->body, api_error);\n"));
+          fp, "        enum cdd_c_error api_rc = ApiError_from_json((const "
+              "char*)res->body, api_error);\n"));
+      CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
+                           "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
+                           "%%d\\n\", api_rc); }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      break;\n"));
     }
@@ -3691,8 +3703,12 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
         CHECK_IO(
             fprintf(fp, "      rc = %d;\n", mapped_err_code((int)(i * 100))));
         CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
-        CHECK_IO(fprintf(fp, "        ApiError_from_json((const "
-                             "char*)res->body, api_error);\n"));
+        CHECK_IO(fprintf(fp, "        enum cdd_c_error api_rc = "
+                             "ApiError_from_json((const char*)res->body, "
+                             "api_error);\n"));
+        CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
+                             "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
+                             "%%d\\n\", api_rc); }\n"));
         CHECK_IO(fprintf(fp, "      }\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
       }
@@ -3745,15 +3761,22 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
       CHECK_IO(fprintf(fp, "    rc = CDD_C_ERROR_IO;\n"));
       CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
-          fp,
-          "      ApiError_from_json((const char*)res->body, api_error);\n"));
+          fp, "      enum cdd_c_error api_rc = ApiError_from_json((const "
+              "char*)res->body, api_error);\n"));
+      CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
+                           "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
+                           "%%d\\n\", api_rc); }\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
     }
   } else {
     CHECK_IO(fprintf(fp, "    rc = CDD_C_ERROR_IO;\n"));
     CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
-    CHECK_IO(fprintf(
-        fp, "      ApiError_from_json((const char*)res->body, api_error);\n"));
+    CHECK_IO(
+        fprintf(fp, "      enum cdd_c_error api_rc = ApiError_from_json((const "
+                    "char*)res->body, api_error);\n"));
+    CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
+                         "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
+                         "%%d\\n\", api_rc); }\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
   }
   CHECK_IO(fprintf(fp, "  }\n\n"));

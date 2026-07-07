@@ -417,20 +417,21 @@ static enum cdd_c_error parse_style_text(const char *s,
 /**
  * @brief Parses optional bool attr from the given input.
  */
-static void parse_optional_bool_attr(const char *attr, const char *key,
-                                     int *out_set, int *out_val) {
+static enum cdd_c_error parse_optional_bool_attr(const char *attr,
+                                                 const char *key, int *out_set,
+                                                 int *out_val) {
   char *_ast_trim_segment_13 = NULL;
   size_t key_len;
   int parsed;
 
   if (!attr || !key || !out_set || !out_val)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   key_len = strlen(key);
   if (strcmp(attr, key) == 0) {
     *out_set = 1;
     *out_val = 1;
-    return;
+    return CDD_C_SUCCESS;
   }
   if (strncmp(attr, key, key_len) == 0 &&
       (attr[key_len] == ':' || attr[key_len] == '=')) {
@@ -444,6 +445,7 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
       *out_val = value;
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -837,8 +839,8 @@ static enum cdd_c_error parse_response_header_line(const char *line,
           free(attr);
           return CDD_C_ERROR_MEMORY;
         } else {
-          parse_optional_bool_attr(attr, "required", &h->required_set,
-                                   &h->required);
+          (void)parse_optional_bool_attr(attr, "required", &h->required_set,
+                                         &h->required);
         }
         free(attr);
       }
@@ -1376,20 +1378,21 @@ static enum cdd_c_error parse_param_line(const char *line, const char *end,
             p->style_set = 1;
           }
         } else {
-          parse_optional_bool_attr(attr, "explode", &p->explode_set,
-                                   &p->explode);
-          parse_optional_bool_attr(attr, "allowReserved",
-                                   &p->allow_reserved_set, &p->allow_reserved);
-          parse_optional_bool_attr(attr, "allowEmptyValue",
-                                   &p->allow_empty_value_set,
-                                   &p->allow_empty_value);
+          (void)parse_optional_bool_attr(attr, "explode", &p->explode_set,
+                                         &p->explode);
+          (void)parse_optional_bool_attr(attr, "allowReserved",
+                                         &p->allow_reserved_set,
+                                         &p->allow_reserved);
+          (void)parse_optional_bool_attr(attr, "allowEmptyValue",
+                                         &p->allow_empty_value_set,
+                                         &p->allow_empty_value);
           if (strcmp(attr, "itemSchema") == 0 ||
               strcmp(attr, "itemSchema:true") == 0 ||
               strcmp(attr, "itemSchema=true") == 0) {
             p->item_schema = 1;
           }
-          parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
-                                   &p->deprecated);
+          (void)parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
+                                         &p->deprecated);
           if (parse_optional_example_attr(attr, &p->example) == ENOMEM) {
             free(attr);
             return CDD_C_ERROR_MEMORY;
@@ -2010,8 +2013,8 @@ static enum cdd_c_error parse_security_scheme_line(const char *line,
             }
           }
         } else {
-          parse_optional_bool_attr(attr, "deprecated", &scheme->deprecated_set,
-                                   &scheme->deprecated);
+          (void)parse_optional_bool_attr(
+              attr, "deprecated", &scheme->deprecated_set, &scheme->deprecated);
         }
         free(attr);
       }
@@ -2408,11 +2411,11 @@ static enum cdd_c_error parse_encoding_line(const char *line, const char *end,
             }
           }
         } else {
-          parse_optional_bool_attr(attr, "explode", &entry->explode_set,
-                                   &entry->explode);
-          parse_optional_bool_attr(attr, "allowReserved",
-                                   &entry->allow_reserved_set,
-                                   &entry->allow_reserved);
+          (void)parse_optional_bool_attr(attr, "explode", &entry->explode_set,
+                                         &entry->explode);
+          (void)parse_optional_bool_attr(attr, "allowReserved",
+                                         &entry->allow_reserved_set,
+                                         &entry->allow_reserved);
         }
         free(attr);
       }
@@ -2468,8 +2471,8 @@ static enum cdd_c_error parse_request_body_line(const char *line,
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
-        parse_optional_bool_attr(attr, "required", &required_set,
-                                 &required_val);
+        (void)parse_optional_bool_attr(attr, "required", &required_set,
+                                       &required_val);
         if (strncmp(attr, "contentType:", 12) == 0 ||
             strncmp(attr, "contentType=", 12) == 0) {
           char *val = (trim_segment(attr + 12, &_ast_trim_segment_108),

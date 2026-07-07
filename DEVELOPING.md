@@ -14,6 +14,29 @@ make install_base
 make build
 ```
 
+## Error Handling & API Guidelines
+
+When developing features for `cdd-c`, you **MUST** strictly adhere to the project's error handling patterns. This applies universally across the codebase.
+
+1. **Enums for Return Values**: Every non-void, non-math function **MUST** return an error enum (specifically `enum cdd_c_error`).
+2. **Output Pointers**: Output values must be passed via pointer arguments rather than return values.
+3. **Assertive Percolation**: Errors must be explicitly checked and percolated up the call stack assertively. Do not swallow errors.
+
+**Correct Example**:
+```c
+enum cdd_c_error rc;
+rc = my_function();
+if (rc != CDD_C_SUCCESS) {
+    /* handle error, printing the nonzero exit code for debug purposes */
+    fprintf(stderr, "Error occurred: %d\n", rc);
+    return rc;
+}
+rc = another_function(&my_output);
+if (rc != CDD_C_SUCCESS) {
+    return rc;
+}
+```
+
 ## Directory Structure
 
 We use a modular architecture organized by semantic responsibilities:

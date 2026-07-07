@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_factory.h
  * @brief Unit tests for the CST factory.
@@ -275,7 +273,7 @@ TEST test_cst_parse_format_extra(void) {
      * failing first) */
     g_cdd_cst_alloc_node_fail = 1000;
     rc = cdd_cst_parse_format(tree, &node, "int x;");
-    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_cst_alloc_node_fail = 0;
   }
 #endif

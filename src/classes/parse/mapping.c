@@ -19,11 +19,12 @@
 /**
  * @brief Executes the c mapping init operation.
  */
-void c_mapping_init(struct OpenApiTypeMapping *out) {
-  if (out) {
-    memset(out, 0, sizeof(*out));
-    out->kind = OA_TYPE_UNKNOWN;
-  }
+enum cdd_c_error c_mapping_init(struct OpenApiTypeMapping *out) {
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  memset(out, 0, sizeof(*out));
+  out->kind = OA_TYPE_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -150,7 +151,8 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  c_mapping_init(out);
+  if (c_mapping_init(out) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Pointer/Array detection works on raw type */
   if (strchr(c_type, '*'))

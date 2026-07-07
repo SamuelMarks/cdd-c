@@ -5164,7 +5164,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
   src_dir = argv[argi];
   out_file = argv[argi + 1];
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   if (base_file) {
     rc = load_base_spec(base_file, &spec);

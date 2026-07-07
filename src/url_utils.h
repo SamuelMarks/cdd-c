@@ -147,12 +147,8 @@ extern enum cdd_c_error url_encode_form(const char *str, char **_out_val);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern /**
-        * @brief Executes the url encode form allow reserved
-        * operation.
-        */
-    enum cdd_c_error
-    url_encode_form_allow_reserved(const char *str, char **_out_val);
+extern enum cdd_c_error url_encode_form_allow_reserved(const char *str,
+                                                       char **_out_val);
 
 /**
  * @brief Initialize a query parameters container.

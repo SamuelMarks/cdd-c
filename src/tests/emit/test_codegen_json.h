@@ -319,8 +319,9 @@ TEST test_struct_array_from_json(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "int Data_array_from_json(const char *json_str, "
-                         "struct Data ***out, size_t *out_len)"));
+  ASSERT(strstr(content,
+                "enum cdd_c_error Data_array_from_json(const char *json_str, "
+                "struct Data ***out, size_t *out_len)"));
   ASSERT(strstr(content, "json_parse_string(json_str)"));
   ASSERT(strstr(content, "json_value_get_array(val)"));
   ASSERT(strstr(
@@ -520,8 +521,6 @@ TEST test_standalone_json_func(void) {
  * @brief codegen_json_suite
  */
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #endif
 
 TEST test_json_exhaustive_io(void) {

@@ -11,12 +11,13 @@
 /**
  * @brief Executes the safe crt patch list init operation.
  */
-void safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
+enum cdd_c_error safe_crt_patch_list_init(struct SafeCrtPatchList *list) {
   if (!list)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->patches = NULL;
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -137,8 +138,8 @@ static enum cdd_c_error generate_strcpy_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma != 0 && rparen != 0) {
-    extract_token_text(tokens, lparen + 1, comma, &dest);
-    extract_token_text(tokens, comma + 1, rparen, &src);
+    (void)extract_token_text(tokens, lparen + 1, comma, &dest);
+    (void)extract_token_text(tokens, comma + 1, rparen, &src);
 
     if (dest && src) {
       /* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
@@ -228,8 +229,8 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
 
   if (assign_idx != 0 && lparen != 0 && comma1 != 0 && rparen != 0) {
     size_t id_idx = assign_idx;
-    extract_token_text(tokens, lparen + 1, comma1, &path);
-    extract_token_text(tokens, comma1 + 1, rparen, &mode);
+    (void)extract_token_text(tokens, lparen + 1, comma1, &path);
+    (void)extract_token_text(tokens, comma1 + 1, rparen, &mode);
 
     /* Go left of '=' to find the identifier */
     while (id_idx > 0) {
@@ -239,7 +240,7 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
       }
     }
 
-    extract_token_text(tokens, id_idx, id_idx + 1, &dest);
+    (void)extract_token_text(tokens, id_idx, id_idx + 1, &dest);
 
     if (path && mode && dest) {
       sprintf(replacement, "#if defined(_MSC_VER)\n"
@@ -294,9 +295,9 @@ static enum cdd_c_error generate_strncpy_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma1 != 0 && comma2 != 0 && rparen != 0) {
-    extract_token_text(tokens, lparen + 1, comma1, &dest);
-    extract_token_text(tokens, comma1 + 1, comma2, &src);
-    extract_token_text(tokens, comma2 + 1, rparen, &count);
+    (void)extract_token_text(tokens, lparen + 1, comma1, &dest);
+    (void)extract_token_text(tokens, comma1 + 1, comma2, &src);
+    (void)extract_token_text(tokens, comma2 + 1, rparen, &count);
 
     if (dest && src && count) {
       sprintf(replacement, "#if defined(_MSC_VER)\n"
@@ -352,8 +353,8 @@ static enum cdd_c_error generate_sprintf_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma1 != 0 && rparen != 0) {
-    extract_token_text(tokens, lparen + 1, comma1, &dest);
-    extract_token_text(tokens, comma1 + 1, rparen, &args);
+    (void)extract_token_text(tokens, lparen + 1, comma1, &dest);
+    (void)extract_token_text(tokens, comma1 + 1, rparen, &args);
 
     if (dest && args) {
       sprintf(replacement,
@@ -461,9 +462,9 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
 
           if (is_vla && end_bracket < n->end_token) {
             /* found a VLA */
-            char *extract_token_text(tokens, j, j + 1, &type_name);
-            char *extract_token_text(tokens, j + 1, j + 2, &var_name);
-            char *extract_token_text(tokens, j + 3, end_bracket, &expr);
+            (void)extract_token_text(tokens, j, j + 1, &type_name);
+            (void)extract_token_text(tokens, j + 1, j + 2, &var_name);
+            (void)extract_token_text(tokens, j + 3, end_bracket, &expr);
             char replacement[1024] = {0};
 
             if (type_name && var_name && expr) {

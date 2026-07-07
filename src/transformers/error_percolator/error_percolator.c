@@ -20,9 +20,10 @@
 /* clang-format on */
 /* LCOV_EXCL_START */
 
-static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
-                               cdd_token_t **modified_funcs,
-                               size_t num_modified) {
+static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
+                                           cdd_cst_node_t *node,
+                                           cdd_token_t **modified_funcs,
+                                           size_t num_modified) {
   size_t i;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -274,6 +275,7 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                          num_modified);
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -832,7 +834,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
   free(res.nodes);
 
   if (num_modified > 0) {
-    rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
+    (void)rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
   }
 
   return CDD_C_SUCCESS;

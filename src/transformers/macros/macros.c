@@ -33,7 +33,7 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
                      const cdd_transform_config_t *config) {
   cdd_cst_query_result_t calls;
   size_t i;
-  int rc;
+  enum cdd_c_error rc;
   (void)config;
 
   if (!tree || !tree->root)
@@ -48,7 +48,7 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
 
   rc = cdd_cst_find_function_calls_named(tree->root, "FOO", &calls);
 
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   for (i = 0; i < calls.size; i++) {
@@ -57,7 +57,9 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
       cdd_cst_builder_t bld;
       cdd_cst_node_t *replacement = NULL;
 
-      cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
+      rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       cdd_cst_builder_init(&bld, tree, replacement);
 
       /* Just snippet for test cases */
@@ -74,14 +76,16 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
     cdd_cst_query_result_t stringify_calls = {0};
     rc = cdd_cst_find_function_calls_named(tree->root, "STRINGIFY",
                                            &stringify_calls);
-    if (rc == 0) {
+    if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < stringify_calls.size; i++) {
         cdd_cst_node_t *call_node = stringify_calls.nodes[i];
         if (call_node) {
           cdd_cst_builder_t bld;
           cdd_cst_node_t *replacement = NULL;
 
-          cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+          rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           cdd_cst_builder_init(&bld, tree, replacement);
 
           cdd_cst_bld_snippet(&bld, "\"hello\"");
@@ -100,14 +104,16 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
   {
     cdd_cst_query_result_t concat_calls = {0};
     rc = cdd_cst_find_function_calls_named(tree->root, "CONCAT", &concat_calls);
-    if (rc == 0) {
+    if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < concat_calls.size; i++) {
         cdd_cst_node_t *call_node = concat_calls.nodes[i];
         if (call_node) {
           cdd_cst_builder_t bld;
           cdd_cst_node_t *replacement = NULL;
 
-          cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+          rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           cdd_cst_builder_init(&bld, tree, replacement);
 
           cdd_cst_bld_snippet(&bld, "42");
@@ -126,5 +132,5 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
   if (calls.nodes) {
     free(calls.nodes);
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }

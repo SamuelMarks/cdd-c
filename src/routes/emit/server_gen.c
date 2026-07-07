@@ -97,12 +97,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "/**\n"
               " * @brief Auto-generated code from OpenAPI specification\n"
               " */\n"
-              "static void init_db(void) {\n");
+              "static enum cdd_c_error init_db(void) {\n");
   fprintf(fp, "    /* Initialize your c-orm database connection here */\n");
   fprintf(
       fp,
       "    db_conn = NULL; /* c_orm_sqlite_open(\"oauth.db\", &db_conn); */\n");
-  fprintf(fp, "}\n\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
 
   /* Route handlers */
   for (i = 0; i < spec->n_paths; i++) {
@@ -191,7 +191,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
             fp,
             "    /* c_rest_response_set_body(res, resp, strlen(resp)); */\n");
         fprintf(fp, "    return 200;\n");
-        fprintf(fp, "}\n\n");
+        fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
       }
     }
   }
@@ -241,7 +241,8 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "    }\n");
   fprintf(fp, "    options[opt_idx] = 0;\n\n");
 
-  fprintf(fp, "    init_db();\n\n");
+  fprintf(fp, "    { enum cdd_c_error rc = init_db(); if(rc != CDD_C_SUCCESS) "
+              "return rc; }\n\n");
 
   fprintf(fp, "    memset(&callbacks, 0, sizeof(callbacks));\n");
   fprintf(fp, "    ctx = mg_start(&callbacks, 0, options);\n");
@@ -266,14 +267,14 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "    /* c_rest_response_add_header is pseudo; just printing "
               "headers manually or using standard HTTP framework */\n");
   fprintf(fp, "    return res->status_code;\n");
-  fprintf(fp, "}\n\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
   fprintf(fp, "static int handle_mcp_message(struct c_rest_request *req, "
               "struct c_rest_response *res, void *user_data) {\n");
   fprintf(fp, "    (void)req;\n");
   fprintf(fp, "    (void)user_data;\n");
   fprintf(fp, "    res->status_code = 202;\n");
   fprintf(fp, "    return res->status_code;\n");
-  fprintf(fp, "}\n\n");
+  fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
   fprintf(fp, "            /* MCP SSE Endpoint Registration */\n");
   fprintf(fp, "            c_rest_router_add(router, \"GET\", \"/mcp/sse\", "
               "NULL, NULL);  \n");

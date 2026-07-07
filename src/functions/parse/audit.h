@@ -55,7 +55,7 @@ struct AuditStats {
  * @brief Initialize audit statistics to zero.
  * @param[out] stats Pointer to structure.
  */
-extern C_CDD_EXPORT void audit_stats_init(struct AuditStats *stats);
+extern C_CDD_EXPORT enum cdd_c_error audit_stats_init(struct AuditStats *stats);
 
 /**
  * @brief Cleanup audit statistics structure.

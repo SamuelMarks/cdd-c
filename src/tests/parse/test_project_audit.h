@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_project_audit.h
  * @brief Unit tests for project auditing.
@@ -29,7 +27,7 @@ TEST test_audit_stats_init(void) {
   struct AuditStats stats;
   /* Set to garbage */
   memset(&stats, 0xFF, sizeof(stats));
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   ASSERT_EQ(0, stats.files_scanned);
   ASSERT_EQ(0, stats.allocations_checked);
   ASSERT_EQ(0, stats.functions_returning_alloc);
@@ -62,7 +60,7 @@ TEST test_audit_single_file(void) {
                 "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
                 " char * p = (char *)malloc(1); *p = 0; }");
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   rc = audit_project(root, &stats);
 
   ASSERT_EQ(0, rc);
@@ -103,7 +101,7 @@ TEST test_audit_ignored_files(void) {
   write_to_file(f_h, ""
                      "void f() { char * p = (char *)malloc(1); }");
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   /* Should ignore .h files */
@@ -134,7 +132,7 @@ TEST test_audit_return_alloc(void) {
   /* Detect return malloc(...) */
   write_to_file(f_ret, "char* f() { return malloc(10); }");
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   ASSERT_EQ(1, stats.files_scanned);
@@ -164,7 +162,7 @@ TEST test_audit_json_output(void) {
   struct AuditStats stats;
   char *json = NULL;
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   stats.files_scanned = 10;
   stats.allocations_checked = 20;
   stats.allocations_unchecked = 1;
@@ -213,8 +211,8 @@ TEST test_audit_json_output(void) {
 TEST test_audit_stats_null(void) {
   struct AuditStats stats;
   char *_test_json = (char *)1;
-  audit_stats_init(NULL); /* Should do nothing safely */
-  audit_stats_free(NULL); /* Should return safely */
+  (void)audit_stats_init(NULL); /* Should do nothing safely */
+  audit_stats_free(NULL);       /* Should return safely */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project(NULL, &stats));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project("dummy", NULL));
@@ -260,7 +258,7 @@ TEST test_audit_edge_cases(void) {
   asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP);
   write_to_file(f_bad_token, "char *s = \"unclosed");
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   /* strndup should be counted in functions_returning_alloc */
@@ -291,7 +289,7 @@ TEST test_audit_extras(void) {
   struct AuditStats stats;
   char *json = NULL;
 
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
   /* test json output on empty violation list */
   audit_print_json(&stats, &json);
   ASSERT(json != NULL);
@@ -305,7 +303,7 @@ TEST test_audit_extras(void) {
 
 TEST test_audit_oom(void) {
   struct AuditStats stats;
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -322,7 +320,7 @@ TEST test_audit_oom(void) {
       fclose(f);
     }
     for (i = 1; i < 200; i++) {
-      audit_stats_init(&stats);
+      (void)audit_stats_init(&stats);
       g_cdd_fail_alloc_audit = i;
       rc = audit_project("test_audit_dir", &stats);
       printf("i=%d rc=%d\n", i, rc);
@@ -333,7 +331,7 @@ TEST test_audit_oom(void) {
     }
 
     /* Also test OOM for audit_print_json */
-    audit_stats_init(&stats);
+    (void)audit_stats_init(&stats);
     rc = audit_project("test_audit_dir", &stats);
     printf("i=%d rc=%d\n", i, rc);
     for (i = 1; i < 100; i++) {
@@ -363,7 +361,7 @@ TEST test_audit_oom(void) {
 
 TEST test_audit_capacity(void) {
   struct AuditStats stats;
-  audit_stats_init(&stats);
+  (void)audit_stats_init(&stats);
 
 #ifdef CDD_BUILD_TESTS
   {

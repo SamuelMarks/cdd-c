@@ -20,13 +20,13 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_list args;
   int rc;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
@@ -37,7 +37,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return rc;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf

@@ -309,7 +309,8 @@ TEST test_root_array_string_cleanup(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "void StrArr_cleanup(char **in, size_t len)"));
+  ASSERT(strstr(content,
+                "enum cdd_c_error StrArr_cleanup(char **in, size_t len)"));
   ASSERT(strstr(content, "free(in[i])"));
   ASSERT(strstr(content, "free(in)"));
 
@@ -338,9 +339,8 @@ TEST test_root_array_int_from_json(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(
-      strstr(content,
-             "int IntArr_from_json(const char *json, int **out, size_t *len)"));
+  ASSERT(strstr(content, "enum cdd_c_error IntArr_from_json(const char *json, "
+                         "int **out, size_t *len)"));
   ASSERT(strstr(content, "malloc(count * sizeof(int))"));
   ASSERT(strstr(content, "json_array_get_number"));
 
@@ -531,8 +531,6 @@ TEST test_types_io_fail(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #endif
 
 TEST test_types_exhaustive_io(void) {

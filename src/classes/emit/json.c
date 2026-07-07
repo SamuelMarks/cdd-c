@@ -32,13 +32,13 @@
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_fail_io_after = -1;
 C_CDD_EXPORT int g_io_calls = 0;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
@@ -49,7 +49,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return ret;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -91,9 +91,10 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(
-      fp, "int %s_to_json(const struct %s *obj, char **const json) {\n",
-      struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "enum cdd_c_error %s_to_json(const struct %s *obj, "
+                        "char **const json) {\n",
+                        struct_name, struct_name));
 
   /* Variables decl */
   CHECK_IO(FPRINTF_HOOK(fp, "  int need_comma = 0;\n"));
@@ -248,7 +249,8 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
 
   CHECK_IO(FPRINTF_HOOK(
       fp,
-      "int %s_from_json(const char *json_str, struct %s **const out) {\n"
+      "enum cdd_c_error %s_from_json(const char *json_str, struct %s **const "
+      "out) {\n"
       "  JSON_Value *val = json_parse_string(json_str);\n"
       "  int rc = 0;\n"
       "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
@@ -279,16 +281,18 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
 
   CHECK_IO(FPRINTF_HOOK(
       fp,
-      "int %s_array_from_json(const char *json_str, struct %s ***out, size_t "
+      "enum cdd_c_error %s_array_from_json(const char *json_str, struct %s "
+      "***out, size_t "
       "*out_len) {\n"
       "  JSON_Value *val = json_parse_string(json_str);\n"
       "  JSON_Array *arr = NULL;\n"
       "  size_t i, count;\n"
       "  struct %s **tmp = NULL;\n"
       "  int rc = 0;\n"
-      "  if (!val) return 22; /* EINVAL */\n"
+      "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  arr = json_value_get_array(val);\n"
-      "  if (!arr) { json_value_free(val); return 22; }\n"
+      "  if (!arr) { json_value_free(val); return "
+      "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
       "  count = json_array_get_count(arr);\n"
       "  if (count == 0) {\n"
       "    *out = NULL;\n"
@@ -297,7 +301,7 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "    return CDD_C_SUCCESS;\n"
       "  }\n"
       "  tmp = (struct %s **)calloc(count, sizeof(struct %s *));\n"
-      "  if (!tmp) { json_value_free(val); return 12; /* ENOMEM */ }\n"
+      "  if (!tmp) { json_value_free(val); return CDD_C_ERROR_MEMORY; }\n"
       "  for (i = 0; i < count; ++i) {\n"
       "    rc = %s_from_jsonObject(json_array_get_object(arr, i), &tmp[i]);\n"
       "    if (rc != 0) break;\n"
@@ -363,10 +367,11 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_from_jsonObject(const JSON_Object *jsonObject, "
-                        "struct %s **const out) {\n",
-                        struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "enum cdd_c_error %s_from_jsonObject(const JSON_Object *jsonObject, "
+      "struct %s **const out) {\n",
+      struct_name, struct_name));
 
   if (rc_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));

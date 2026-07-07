@@ -38,12 +38,13 @@ static enum cdd_c_error cdd_strndup2(const char *s, size_t n, char **_out_val) {
 /**
  * @brief Executes the cli command init operation.
  */
-void cli_command_init(struct CliCommand *cmd) {
+enum cdd_c_error cli_command_init(struct CliCommand *cmd) {
   if (!cmd)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   cmd->name = NULL;
   cmd->options = NULL;
   cmd->n_options = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -98,7 +99,8 @@ enum cdd_c_error cst_extract_cli_command(const struct CstNodeList *nodes,
   if (!nodes || !tokens || !cmd)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cli_command_init(cmd);
+  if (cli_command_init(cmd) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   cmd->name = strdup("cli_app");
 
   /* Very naive parsing: Look for `while (getopt(...) != -1)`

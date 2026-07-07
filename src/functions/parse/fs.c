@@ -803,9 +803,9 @@ enum cdd_c_error tempdir(char **out_path) {
 /**
  * @brief Executes the FilenameAndPtr cleanup operation.
  */
-void FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
+enum cdd_c_error FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->fh) {
     fclose(file->fh);
     file->fh = NULL;
@@ -814,19 +814,22 @@ void FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
     free(file->filename);
     file->filename = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the FilenameAndPtr delete and cleanup operation.
  */
-void FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
+enum cdd_c_error
+FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->filename) {
     /* Ideally we unlink before freeing memory */
     unlink(file->filename);
   }
-  FilenameAndPtr_cleanup(file);
+  (void)FilenameAndPtr_cleanup(file);
+  return CDD_C_SUCCESS;
 }
 
 /**

@@ -50,7 +50,7 @@ struct MacroOverlayList {
 C_CDD_EXPORT /**
               * @brief Executes the macro overlay list init operation.
               */
-    void
+    enum cdd_c_error
     macro_overlay_list_init(struct MacroOverlayList *list);
 
 /**

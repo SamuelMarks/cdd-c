@@ -210,10 +210,11 @@ static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
 /**
  * @brief Analyze return type tokens to determine void/int/pointer status.
  */
-static void analyze_signature_tokens(const struct TokenList *tokens,
-                                     size_t start, size_t body_start,
-                                     int *is_ptr, int *is_void,
-                                     char **type_str) {
+static enum cdd_c_error analyze_signature_tokens(const struct TokenList *tokens,
+                                                 size_t start,
+                                                 size_t body_start, int *is_ptr,
+                                                 int *is_void,
+                                                 char **type_str) {
   size_t _ast_find_token_in_range_1 = 0;
   char *_ast_join_tokens_str_2 = NULL;
   size_t i;
@@ -227,7 +228,7 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
   *type_str = NULL;
 
   if (lparen == body_start)
-    return;
+    return CDD_C_SUCCESS;
 
   /* Find name start to delimit type end */
   i = lparen;
@@ -262,6 +263,7 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
   /* Pointer takes precedence (e.g. void*) */
   if (*is_ptr)
     *is_void = 0;
+  return CDD_C_SUCCESS;
 }
 
 /* --- Graph Management --- */
@@ -337,25 +339,27 @@ static void graph_free_contents(struct DependencyGraph *g) {
 /**
  * @brief Executes the propagate refactor mark operation.
  */
-static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
+static enum cdd_c_error propagate_refactor_mark(struct DependencyGraph *g,
+                                                size_t idx) {
   struct FuncNode *node = &g->nodes[idx];
   size_t i;
 
   if (node->marked_for_refactor)
-    return;
+    return CDD_C_SUCCESS;
 
   /* Mark current node */
   node->marked_for_refactor = 1;
 
   /* If main function, mark for modification but stop propagating upwards */
   if (node->is_main)
-    return;
+    return CDD_C_SUCCESS;
 
   /* Recurse to all callers */
   for (i = 0; i < node->num_callers; i++) {
     size_t caller_idx = node->callers[i];
     propagate_refactor_mark(g, caller_idx);
   }
+  return CDD_C_SUCCESS;
 }
 
 /* --- Main Orchestrator --- */

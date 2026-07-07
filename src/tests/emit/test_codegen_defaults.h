@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_CODEGEN_DEFAULTS_H
 #define TEST_CODEGEN_DEFAULTS_H
 
@@ -76,7 +74,7 @@ TEST test_default_primitive(void) {
           _ast_generate_def_code_0);
   ASSERT(code != NULL);
 
-  ASSERT(strstr(code, "int Prim_default(struct Prim **out)"));
+  ASSERT(strstr(code, "enum cdd_c_error Prim_default(struct Prim **out)"));
   ASSERT(strstr(code, "(*out)->x = 42;"));
   ASSERT(strstr(code, "(*out)->flag = 1;"));
 

@@ -59,18 +59,20 @@ typedef int cdd_socket_t;
 #endif
 
 /* Helper to respond with JSON-RPC error */
-static void send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
+static enum cdd_c_error send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
   char resp[1024];
   sprintf(resp, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":null}", code, msg);
   send(client_fd, resp, (int)strlen(resp), 0);
+  return CDD_C_SUCCESS;
 }
 
-static void send_rpc_success(cdd_socket_t client_fd) {
+static enum cdd_c_error send_rpc_success(cdd_socket_t client_fd) {
   const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":null}";
   send(client_fd, resp, (int)strlen(resp), 0);
+  return CDD_C_SUCCESS;
 }
 
-static void handle_request(cdd_socket_t client_fd) {
+static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
   char buffer[65536];
   int bytes_received;
   char *body;
@@ -79,20 +81,20 @@ static void handle_request(cdd_socket_t client_fd) {
   const char *method;
 
   bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-  if (bytes_received <= 0) return;
+  if (bytes_received <= 0) return CDD_C_ERROR_INVALID_ARGUMENT;
   buffer[bytes_received] = '\0';
 
   body = strstr(buffer, "\r\n\r\n");
   if (!body) {
     send_rpc_error(client_fd, -32700, "Parse error");
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   body += 4;
 
   root_val = json_parse_string(body);
   if (!root_val) {
     send_rpc_error(client_fd, -32700, "Parse error");
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   root_obj = json_value_get_object(root_val);
@@ -100,7 +102,7 @@ static void handle_request(cdd_socket_t client_fd) {
   if (!method) {
     send_rpc_error(client_fd, -32600, "Invalid Request");
     json_value_free(root_val);
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (strcmp(method, "version") == 0) {
@@ -307,7 +309,7 @@ static void handle_request(cdd_socket_t client_fd) {
     } else {
       send_rpc_error(client_fd, -32601, "Method not found");
       json_value_free(root_val);
-      return;
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
 
     if (input) {
@@ -340,6 +342,7 @@ static void handle_request(cdd_socket_t client_fd) {
   }
 
   json_value_free(root_val);
+  return CDD_C_SUCCESS;
 }
 
 
@@ -350,12 +353,13 @@ static void handle_request(cdd_socket_t client_fd) {
  * @param code The JSON-RPC error code.
  * @param msg The JSON-RPC error message.
  */
-static void send_stdio_rpc_error(JSON_Value *id_val, int code, const char *msg) {
+static enum cdd_c_error send_stdio_rpc_error(JSON_Value *id_val, int code, const char *msg) {
   char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
   printf("{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":%s}\n",
          code, msg, id_str ? id_str : "null");
   if (id_str) json_free_serialized_string(id_str);
   fflush(stdout);
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -363,7 +367,7 @@ static void send_stdio_rpc_error(JSON_Value *id_val, int code, const char *msg) 
  *
  * @param body The JSON-RPC request body string.
  */
-static void handle_stdio_request(const char *body) {
+static enum cdd_c_error handle_stdio_request(const char *body) {
   JSON_Value *root_val;
   JSON_Object *root_obj;
   const char *method;
@@ -372,7 +376,7 @@ static void handle_stdio_request(const char *body) {
   root_val = json_parse_string(body);
   if (!root_val) {
     send_stdio_rpc_error(NULL, -32700, "Parse error");
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   root_obj = json_value_get_object(root_val);
@@ -382,7 +386,7 @@ static void handle_stdio_request(const char *body) {
   if (!method) {
     send_stdio_rpc_error(id_val, -32600, "Invalid Request");
     json_value_free(root_val);
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (strcmp(method, "version") == 0) {
@@ -540,6 +544,7 @@ static void handle_stdio_request(const char *body) {
   }
 
   json_value_free(root_val);
+  return CDD_C_SUCCESS;
 }
 
 /**

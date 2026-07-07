@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_decl_hoist.h
  * @brief Unit tests for declaration hoisting analysis.
@@ -33,7 +31,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
       "void func() {\n      int a = 1;\n  a = 2;\n  int b = 3;\n}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
-  hoist_site_list_init(&list);
+  (void)hoist_site_list_init(&list);
 
   ASSERT_EQ(0, scan_for_mixed_declarations(tokens, &list));
 
@@ -62,7 +60,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
 TEST test_scan_for_mixed_declarations_errors(void) {
   struct TokenList *tl = setup_tokens("int a = 1;");
   struct HoistSiteList list;
-  hoist_site_list_init(&list);
+  (void)hoist_site_list_init(&list);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(NULL, &list));
@@ -82,7 +80,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 TEST test_decl_hoist_edges(void) {
   struct HoistSiteList list = {0};
   struct TokenList *tl = NULL;
-  hoist_site_list_init(NULL);
+  (void)hoist_site_list_init(NULL);
   hoist_site_list_free(NULL);
 
   hoist_site_list_free(&list);

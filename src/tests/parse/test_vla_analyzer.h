@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_vla_analyzer.h
  * @brief Unit tests for VLA analyzer.
@@ -36,7 +34,7 @@ TEST test_scan_for_vlas_basic(void) {
                     "}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
-  vla_site_list_init(&list);
+  (void)vla_site_list_init(&list);
 
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
 
@@ -64,7 +62,7 @@ TEST test_scan_for_vlas_basic(void) {
 TEST test_scan_for_vlas_errors(void) {
   struct TokenList *tl = NULL;
   struct VLASiteList list;
-  vla_site_list_init(&list);
+  (void)vla_site_list_init(&list);
   ASSERT_EQ(0, tokenize(az_span_create_from_str("int x[n];"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(NULL, &list));

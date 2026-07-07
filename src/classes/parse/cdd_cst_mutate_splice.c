@@ -30,7 +30,7 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
   cdd_cst_node_t *node = node_ptr ? *node_ptr : NULL;
   cdd_cst_node_t *new_node = NULL;
   size_t i;
-  int rc;
+  enum cdd_c_error rc;
   if (!tree || !node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -40,33 +40,57 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  cdd_cst_alloc_node(node->kind, &new_node);
-  if (!new_node) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
+  rc = cdd_cst_alloc_node(node->kind, &new_node);
+  if (rc != CDD_C_SUCCESS || !new_node) {
+    C_CDD_LOG_DEBUG("cdd_cst_alloc_node failed: %d\n", (int)rc);
+    return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
   }
 
   for (i = 0; i < start_idx; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
-      cdd_cst_append_child_token(new_node, node->children[i].val.token);
+      rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        return rc;
+      }
     } else {
-      cdd_cst_append_child_node(new_node, node->children[i].val.node);
+      rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        return rc;
+      }
     }
   }
 
   for (i = 0; i < new_children_count; i++) {
     if (new_children[i].kind == CDD_CST_CHILD_TOKEN) {
-      cdd_cst_append_child_token(new_node, new_children[i].val.token);
+      rc = cdd_cst_append_child_token(new_node, new_children[i].val.token);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        return rc;
+      }
     } else {
-      cdd_cst_append_child_node(new_node, new_children[i].val.node);
+      rc = cdd_cst_append_child_node(new_node, new_children[i].val.node);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        return rc;
+      }
     }
   }
 
   for (i = start_idx + consume_count; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
-      cdd_cst_append_child_token(new_node, node->children[i].val.token);
+      rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        return rc;
+      }
     } else {
-      cdd_cst_append_child_node(new_node, node->children[i].val.node);
+      rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        return rc;
+      }
     }
   }
 
@@ -78,7 +102,7 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
 
   if (node == tree->root) {
     tree->root = new_node;
-    rc = 0;
+    rc = CDD_C_SUCCESS;
   } else {
     rc = cdd_cst_replace_node(tree, node, new_node);
   }

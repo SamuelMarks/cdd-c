@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_c2openapi_schema.h
  * @brief Unit tests for C to OpenAPI schema mapping.
@@ -33,7 +31,7 @@ TEST test_register_single_struct(void) {
   int rc;
 
   /* Setup */
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file, "struct User { int id; char *name; };");
@@ -70,7 +68,7 @@ TEST test_register_deduplication(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_dedup.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Define struct twice (simulator for parsing multiple files) */
@@ -101,7 +99,7 @@ TEST test_register_multiple_structs(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_multi.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file,
@@ -141,7 +139,7 @@ TEST test_register_null_safety(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -162,7 +160,7 @@ TEST test_register_enum_schema(void) {
   char *header_file = "test_reg_enum.h";
   int rc;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
@@ -200,7 +198,7 @@ TEST test_register_type_union_copy(void) {
   int rc;
   char *types_arr[] = {"string", "integer"};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */
@@ -319,7 +317,7 @@ TEST test_register_deduplication(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_dedup.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Define struct twice (simulator for parsing multiple files) */
@@ -350,7 +348,7 @@ TEST test_register_multiple_structs(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_multi.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file,
@@ -390,7 +388,7 @@ TEST test_register_null_safety(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -411,7 +409,7 @@ TEST test_register_enum_schema(void) {
   char *header_file = "test_reg_enum.h";
   int rc;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
@@ -449,7 +447,7 @@ TEST test_register_type_union_copy(void) {
   int rc;
   char *types_arr[] = {"string", "integer"};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */
@@ -578,7 +576,7 @@ TEST test_register_deduplication(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_dedup.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Define struct twice (simulator for parsing multiple files) */
@@ -609,7 +607,7 @@ TEST test_register_multiple_structs(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_multi.h";
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file,
@@ -649,7 +647,7 @@ TEST test_register_null_safety(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -670,7 +668,7 @@ TEST test_register_enum_schema(void) {
   char *header_file = "test_reg_enum.h";
   int rc;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
@@ -708,7 +706,7 @@ TEST test_register_type_union_copy(void) {
   int rc;
   char *types_arr[] = {"string", "integer"};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */

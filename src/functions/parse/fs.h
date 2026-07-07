@@ -261,7 +261,8 @@ extern C_CDD_EXPORT enum cdd_c_error tempdir(char **out_path);
  *
  * @param[in] file Pointer to struct to clean.
  */
-extern C_CDD_EXPORT void FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
+extern C_CDD_EXPORT enum cdd_c_error
+FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
 
 /**
  * @brief Cleanup struct and delete the file from the filesystem.
@@ -272,7 +273,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the FilenameAndPtr delete and cleanup
                      * operation.
                      */
-    void
+    enum cdd_c_error
     FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file);
 
 /**

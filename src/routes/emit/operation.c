@@ -1908,7 +1908,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
     int _is_reserved = 0;
 
     memset(&curr_param, 0, sizeof(curr_param));
-    c_mapping_init(&type_map);
+    (void)c_mapping_init(&type_map);
 
     /* --- Heuristic: Role Detection --- */
 

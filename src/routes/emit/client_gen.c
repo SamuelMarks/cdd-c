@@ -756,7 +756,7 @@ enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
                    "/**\n"
                    " * @brief Auto-generated code from OpenAPI specification\n"
                    " */\n"
-                   "void ApiError_cleanup(struct ApiError *err);\n"
+                   "enum cdd_c_error ApiError_cleanup(struct ApiError *err);\n"
                    "\n"));
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -1197,14 +1197,15 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                       " * @param[in] base_url The API base URL (or NULL to use"
                       " the default server URL).\n"
                       " * @return 0 on success.\n */\n"));
-  CHECK_IO(fprintf(h,
-                   "int %sinit(struct HttpClient *client, const char "
-                   "*base_url);\n\n",
-                   prefix));
+  CHECK_IO(
+      fprintf(h,
+              "enum cdd_c_error %sinit(struct HttpClient *client, const char "
+              "*base_url);\n\n",
+              prefix));
 
   CHECK_IO(fprintf(h, "/**\n * @brief Cleanup the API Client.\n */\n"));
-  CHECK_IO(
-      fprintf(h, "void %scleanup(struct HttpClient *client);\n\n", prefix));
+  CHECK_IO(fprintf(
+      h, "enum cdd_c_error %scleanup(struct HttpClient *client);\n\n", prefix));
 
   /* Source */
 
@@ -1213,8 +1214,8 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "/**\n"
                    " * @brief Auto-generated code from OpenAPI specification\n"
                    " */\n"
-                   "void ApiError_cleanup(struct ApiError *err) {\n"
-                   "  if (!err) return;\n"
+                   "enum cdd_c_error ApiError_cleanup(struct ApiError *err) {\n"
+                   "  if (!err) return CDD_C_SUCCESS;\n"
                    "  if(err->type) free(err->type);\n"
                    "  if(err->title) free(err->title);\n"
                    "  if(err->detail) free(err->detail);\n"
@@ -1225,19 +1226,20 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 
   /* Helper to parse ApiError (Internal).
      Split large string literal to avoid C90 warnings. */
-  CHECK_IO(fprintf(
-      c, "/**\n"
-         " * @brief Auto-generated code from OpenAPI specification\n"
-         " */\n"
-         "static int ApiError_from_json(const char *json, struct ApiError "
-         "**out) {\n"
-         "  JSON_Value *root;\n"
-         "  JSON_Object *obj;\n"
-         "  if(!json || !out) return 22; /* EINVAL */\n"
-         "  *out = calloc(1, sizeof(struct ApiError));\n"
-         "  if(!*out) return 12; /* ENOMEM */\n"
-         "  (*out)->raw_body = strdup(json);\n"
-         "  root = json_parse_string(json);\n"));
+  CHECK_IO(fprintf(c,
+                   "/**\n"
+                   " * @brief Auto-generated code from OpenAPI specification\n"
+                   " */\n"
+                   "static enum cdd_c_error ApiError_from_json(const char "
+                   "*json, struct ApiError "
+                   "**out) {\n"
+                   "  JSON_Value *root;\n"
+                   "  JSON_Object *obj;\n"
+                   "  if(!json || !out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                   "  *out = calloc(1, sizeof(struct ApiError));\n"
+                   "  if(!*out) return CDD_C_ERROR_MEMORY;\n"
+                   "  (*out)->raw_body = strdup(json);\n"
+                   "  root = json_parse_string(json);\n"));
   CHECK_IO(fprintf(
       c, "  if(!root) return CDD_C_SUCCESS; /* Not JSON, return strict success "
          "but object "
@@ -1266,16 +1268,18 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
       "  return CDD_C_SUCCESS;\n"
       "}\n\n"));
 
-  CHECK_IO(fprintf(c,
-                   "int %sinit(struct HttpClient *client, const char "
-                   "*base_url) {\n",
-                   prefix));
+  CHECK_IO(
+      fprintf(c,
+              "enum cdd_c_error %sinit(struct HttpClient *client, const char "
+              "*base_url) {\n",
+              prefix));
   CHECK_IO(fprintf(c, "  int rc;\n"));
   if (default_url_literal) {
     CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
                      default_url_literal));
   }
-  CHECK_IO(fprintf(c, "  if (!client) return 22; /* EINVAL */\n"));
+  CHECK_IO(fprintf(
+      c, "  if (!client) return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */\n"));
   CHECK_IO(fprintf(c, "  rc = http_client_init(client);\n"));
   CHECK_IO(fprintf(c, "  if (rc != 0) return rc;\n"));
   if (default_url_literal) {
@@ -1286,7 +1290,9 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  if (base_url) {\n"));
   CHECK_IO(
       fprintf(c, "    client->base_url = malloc(strlen(base_url) + 1);\n"));
-  CHECK_IO(fprintf(c, "    if (!client->base_url) return 12; /* ENOMEM */\n"));
+  CHECK_IO(fprintf(
+      c,
+      "    if (!client->base_url) return CDD_C_ERROR_MEMORY; /* ENOMEM */\n"));
   CHECK_IO(fprintf(
       c, "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || \\\n"
          "    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__\n"
@@ -1315,8 +1321,9 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 
   CHECK_IO(fprintf(c, "  return rc;\n}\n\n"));
 
-  CHECK_IO(fprintf(c, "void %scleanup(struct HttpClient *client) {\n", prefix));
-  CHECK_IO(fprintf(c, "  if (!client) return;\n"));
+  CHECK_IO(fprintf(
+      c, "enum cdd_c_error %scleanup(struct HttpClient *client) {\n", prefix));
+  CHECK_IO(fprintf(c, "  if (!client) return CDD_C_SUCCESS;\n"));
 
   CHECK_IO(fprintf(c, "#ifdef USE_WININET\n"));
   CHECK_IO(fprintf(c, "  http_wininet_context_free(client->transport);\n"));
@@ -2481,67 +2488,72 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* --- Write MCP Adapters --- */
   if (fprintf(hfile, "\n/* MCP Client (From) API */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_list_tools(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_call_tool(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern char* %smcp_client_ping(void* params, int req_id);\n",
-              prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_initialize(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile,
-              "extern char* %smcp_client_list_resources(void* params, int "
-              "req_id);\n",
+              "extern enum cdd_c_error %smcp_client_list_tools(void* params, "
+              "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern char* %smcp_client_read_resource(void* params, int "
-              "req_id);\n",
+              "extern enum cdd_c_error %smcp_client_call_tool(void* params, "
+              "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_list_prompts(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_get_prompt(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern char* %smcp_client_complete(void* params, int req_id);\n",
+              "extern enum cdd_c_error %smcp_client_ping(void* params, int "
+              "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_subscribe(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_unsubscribe(void* params, int req_id);\n",
-          prefix) < 0)
-    rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(
-          hfile,
-          "extern char* %smcp_client_set_level(void* params, int req_id);\n",
-          prefix) < 0)
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_initialize(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern char* %smcp_client_create_message(void* params, int "
-              "req_id);\n",
+              "extern enum cdd_c_error %smcp_client_list_resources(void* "
+              "params, int "
+              "req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_read_resource(void* "
+              "params, int "
+              "req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_list_prompts(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_get_prompt(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_complete(void* params, int "
+              "req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_subscribe(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_unsubscribe(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_set_level(void* params, "
+              "int req_id, char** out);\n",
+              prefix) < 0)
+    rc = CDD_C_ERROR_MEMORY;
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_client_create_message(void* "
+              "params, int "
+              "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "\n/* Native MCP Adapters */\n") < 0)
@@ -2549,18 +2561,21 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(hfile, "/**\n * @brief Native MCP Tool Adapter\n * Retrieves all "
                      "operations exposed as MCP Tools.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile, "extern void* %smcp_get_tools(void);\n", prefix) < 0)
+  if (fprintf(hfile, "extern enum cdd_c_error %smcp_get_tools(void** out);\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief Native MCP Resource Adapter\n * Retrieves "
                      "all read-only documentation resources.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile, "extern void* %smcp_get_resources(void);\n", prefix) < 0)
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_get_resources(void** out);\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief LLM Execution Router\n * Executes a tool "
                      "by name with JSON arguments.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern int %smcp_execute_tool(const char* name, "
+              "extern enum cdd_c_error %smcp_execute_tool(const char* name, "
               "const char* json_args, char** out_result);\n\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2568,7 +2583,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "\n/* Native MCP Adapters Implementation */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
-  if (fprintf(cfile, "void* %smcp_get_tools(void) {\n", prefix) < 0)
+  if (fprintf(cfile, "enum cdd_c_error %smcp_get_tools(void** out) {\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2629,10 +2645,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+  if (fprintf(cfile, "  *out = root_val;\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
-  if (fprintf(cfile, "void* %smcp_get_resources(void) {\n", prefix) < 0)
+  if (fprintf(cfile, "enum cdd_c_error %smcp_get_resources(void** out) {\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2674,18 +2691,22 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+  if (fprintf(cfile, "  *out = root_val;\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(hfile, "/**\n * @brief Native MCP Resource Reader\n * Reads a "
                      "specific resource by URI.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile, "extern void* %smcp_read_resource(const char* uri);\n\n",
+  if (fprintf(hfile,
+              "extern enum cdd_c_error %smcp_read_resource(const char* uri, "
+              "void** out);\n\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
 
-  if (fprintf(cfile, "void* %smcp_read_resource(const char* uri) {\n", prefix) <
-      0)
+  if (fprintf(cfile,
+              "enum cdd_c_error %smcp_read_resource(const char* uri, void** "
+              "out) {\n",
+              prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2729,11 +2750,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+  if (fprintf(cfile, "  *out = root_val;\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile,
-              "int %smcp_execute_tool(const char* name, const char* json_args, "
+              "enum cdd_c_error %smcp_execute_tool(const char* name, const "
+              "char* json_args, "
               "char** out_result) {\n  (void)json_args;\n  if (out_result) "
               "*out_result = NULL;\n",
               prefix) < 0)
@@ -2764,8 +2786,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "\n/* MCP Client (From) Implementation */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_list_tools(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_list_tools(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2791,8 +2813,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_call_tool(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_call_tool(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2818,8 +2840,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_ping(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_ping(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2843,8 +2865,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_initialize(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_initialize(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2870,8 +2892,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_list_resources(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_list_resources(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2895,8 +2917,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_read_resource(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_read_resource(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2920,8 +2942,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_list_prompts(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_list_prompts(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2945,8 +2967,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_get_prompt(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_get_prompt(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2972,8 +2994,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_complete(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_complete(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -2997,8 +3019,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_subscribe(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_subscribe(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -3022,8 +3044,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_unsubscribe(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_unsubscribe(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -3047,8 +3069,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_set_level(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_set_level(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -3072,8 +3094,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "char* %smcp_client_create_message(void* params, "
-              "int req_id) {\n",
+              "enum cdd_c_error %smcp_client_create_message(void* params, "
+              "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
@@ -3228,7 +3250,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "NULL on\n"
           " * allocation failure.\n"
           " */\n"
-          "extern  int openapi_kv_join_form(const struct OpenAPI_KV *kvs,\n"
+          "extern  enum cdd_c_error openapi_kv_join_form(const struct "
+          "OpenAPI_KV *kvs,\n"
           "                                             size_t n, const char "
           "*delim,\n"
           "                                             int allow_reserved,\n"
@@ -3247,7 +3270,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "or NULL on\n"
           " * error/allocation failure.\n"
           " */\n"
-          "extern  int url_encode(const char *str, char **_out_val);\n"
+          "extern  enum cdd_c_error url_encode(const char *str, char "
+          "**_out_val);\n"
           "\n"
           "/**\n"
           " * @param[out] _out_val Pointer to store the result\n"
@@ -3264,7 +3288,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "or NULL on\n"
           " * error/allocation failure.\n"
           " */\n"
-          "extern  int url_encode_allow_reserved(const char *str,\n"
+          "extern  enum cdd_c_error url_encode_allow_reserved(const char "
+          "*str,\n"
           "                                                  char "
           "**_out_val);\n"
           "\n"
@@ -3282,7 +3307,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "or NULL on\n"
           " * error/allocation failure.\n"
           " */\n"
-          "extern  int url_encode_form(const char *str, char **_out_val);\n"
+          "extern  enum cdd_c_error url_encode_form(const char *str, char "
+          "**_out_val);\n"
           "\n"
           "/**\n"
           " * @param[out] _out_val Pointer to store the result\n"
@@ -3317,7 +3343,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           " * @param[out] qp The structure to initialize.\n"
           " * @return 0 on success, EINVAL if qp is NULL.\n"
           " */\n"
-          "extern  int url_query_init(struct UrlQueryParams *qp);\n"
+          "extern  enum cdd_c_error url_query_init(struct UrlQueryParams "
+          "*qp);\n"
           "\n"
           "/**\n"
           " * @brief Free resources associated with a query parameters "
@@ -3337,7 +3364,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
           "invalid args.\n"
           " */\n"
-          "extern  int url_query_add(struct UrlQueryParams *qp,\n"
+          "extern  enum cdd_c_error url_query_add(struct UrlQueryParams *qp,\n"
           "                                      const char *key, const char "
           "*value);\n"
           "\n"
@@ -3359,7 +3386,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
           "invalid args.\n"
           " */\n"
-          "extern  int url_query_add_encoded(struct UrlQueryParams *qp,\n"
+          "extern  enum cdd_c_error url_query_add_encoded(struct "
+          "UrlQueryParams *qp,\n"
           "                                              const char *key,\n"
           "                                              const char *value);\n"
           "\n"
@@ -3378,7 +3406,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\"\".\n"
           " * @return 0 on success, ENOMEM on allocation failure.\n"
           " */\n"
-          "extern  int url_query_build(const struct UrlQueryParams *qp,\n"
+          "extern  enum cdd_c_error url_query_build(const struct "
+          "UrlQueryParams *qp,\n"
           "                                        char **out_str);\n"
           "\n"
           "/**\n"
@@ -3394,7 +3423,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\"\".\n"
           " * @return 0 on success, ENOMEM on allocation failure.\n"
           " */\n"
-          "extern  int url_query_build_form(const struct UrlQueryParams *qp,\n"
+          "extern  enum cdd_c_error url_query_build_form(const struct "
+          "UrlQueryParams *qp,\n"
           "                                             char **out_str);\n"
           "\n"
           "#ifdef __cplusplus\n"
@@ -3523,7 +3553,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url encode operation.\n"
           " */\n"
-          "int url_encode(const char *str, char **_out_val) {\n"
+          "enum cdd_c_error url_encode(const char *str, char **_out_val) {\n"
           "  char _ast_to_hex_0;\n"
           "  char _ast_to_hex_1;\n"
           "  const char *p;\n"
@@ -3575,7 +3605,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url encode allow reserved operation.\n"
           " */\n"
-          "int url_encode_allow_reserved(const char *str, char **_out_val) {\n"
+          "enum cdd_c_error url_encode_allow_reserved(const char *str, char "
+          "**_out_val) {\n"
           "  char _ast_to_hex_2;\n"
           "  char _ast_to_hex_3;\n"
           "  const char *p;\n"
@@ -3636,7 +3667,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url encode form operation.\n"
           " */\n"
-          "int url_encode_form(const char *str, char **_out_val) {\n"
+          "enum cdd_c_error url_encode_form(const char *str, char **_out_val) "
+          "{\n"
           "  char _ast_to_hex_4;\n"
           "  char _ast_to_hex_5;\n"
           "  const char *p;\n"
@@ -3689,7 +3721,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url encode form allow reserved operation.\n"
           " */\n"
-          "int url_encode_form_allow_reserved(const char *str, char "
+          "enum cdd_c_error url_encode_form_allow_reserved(const char *str, "
+          "char "
           "**_out_val) {\n"
           "  char _ast_to_hex_6;\n"
           "  char _ast_to_hex_7;\n"
@@ -3762,7 +3795,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url query init operation.\n"
           " */\n"
-          "int url_query_init(struct UrlQueryParams *qp) {\n"
+          "enum cdd_c_error url_query_init(struct UrlQueryParams *qp) {\n"
           "  if (!qp)\n"
           "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
           "  qp->params = NULL;\n"
@@ -3795,7 +3828,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url query add operation.\n"
           " */\n"
-          "int url_query_add(struct UrlQueryParams *qp, const char *key,\n"
+          "enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const "
+          "char *key,\n"
           "                  const char *value) {\n"
           "  char *_ast_strdup_0 = NULL;\n"
           "  char *_ast_strdup_1 = NULL;\n"
@@ -3835,7 +3869,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url query add encoded operation.\n"
           " */\n"
-          "int url_query_add_encoded(struct UrlQueryParams *qp, const char "
+          "enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp, "
+          "const char "
           "*key,\n"
           "                          const char *value) {\n"
           "  char *_ast_strdup_2 = NULL;\n"
@@ -3876,7 +3911,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url query build operation.\n"
           " */\n"
-          "int url_query_build(const struct UrlQueryParams *qp, char "
+          "enum cdd_c_error url_query_build(const struct UrlQueryParams *qp, "
+          "char "
           "**out_str) {\n"
           "  char *_ast_url_encode_10 = NULL;\n"
           "  char *_ast_url_encode_11 = NULL;\n"
@@ -4002,7 +4038,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the url query build form operation.\n"
           " */\n"
-          "int url_query_build_form(const struct UrlQueryParams *qp, char "
+          "enum cdd_c_error url_query_build_form(const struct UrlQueryParams "
+          "*qp, char "
           "**out_str) {\n"
           "  char *_ast_url_encode_form_14 = NULL;\n"
           "  char *_ast_url_encode_form_15 = NULL;\n"
@@ -4182,7 +4219,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "/**\n"
           " * @brief Executes the openapi kv join form operation.\n"
           " */\n"
-          "int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,\n"
+          "enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, "
+          "size_t n,\n"
           "                         const char *delim, int allow_reserved,\n"
           "                         char **_out_val) {\n"
           "  const char *_ast_kv_value_to_string_18 = NULL;\n"

@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_openapi_client_gen.h
  * @brief Tests for the OpenAPI Client Library Generator.
@@ -31,7 +29,7 @@ static void setup_minimal_spec(struct OpenAPI_Spec *spec,
   static struct OpenAPI_Path path;
   static struct OpenAPI_Response resp = {0};
 
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
 
   memset(op, 0, sizeof(*op));
   op->operation_id = "test_op";
@@ -311,7 +309,7 @@ TEST test_gen_client_additional_operation(void) {
   size_t sz;
   int rc;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&path, 0, sizeof(path));

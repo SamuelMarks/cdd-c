@@ -53,7 +53,8 @@ struct HoistSiteList {
 /**
  * @brief Initialize a hoist site list.
  */
-extern C_CDD_EXPORT void hoist_site_list_init(struct HoistSiteList *list);
+extern C_CDD_EXPORT enum cdd_c_error
+hoist_site_list_init(struct HoistSiteList *list);
 
 /**
  * @brief Free resources associated with a hoist site list.

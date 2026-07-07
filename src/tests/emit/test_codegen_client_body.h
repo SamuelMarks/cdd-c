@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_codegen_client_body.h
  * @brief Unit tests for Client Body Logic Generator.
@@ -75,7 +73,7 @@ TEST test_body_basic_get(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -110,7 +108,7 @@ TEST test_body_base_url_override(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -141,7 +139,7 @@ TEST test_body_options_verb(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_OPTIONS;
   resp.code = "200";
@@ -170,7 +168,7 @@ TEST test_body_trace_verb(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_TRACE;
   resp.code = "200";
@@ -199,7 +197,7 @@ TEST test_body_query_verb(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_QUERY;
   resp.code = "200";
@@ -228,7 +226,7 @@ TEST test_body_additional_connect_method(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_UNKNOWN;
   op.is_additional = 1;
@@ -263,7 +261,7 @@ TEST test_body_querystring_param(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -300,7 +298,7 @@ TEST test_body_inline_response_string(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -331,7 +329,7 @@ TEST test_body_inline_response_array_number(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -363,7 +361,7 @@ TEST test_body_inline_request_body_string(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "application/json";
@@ -396,7 +394,7 @@ TEST test_body_inline_request_body_string_json_params(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "Application/JSON; charset=utf-8";
@@ -428,7 +426,7 @@ TEST test_body_inline_request_body_array(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "application/json";
@@ -457,7 +455,7 @@ TEST test_body_textual_request_body_xml(void) {
   memset(&op, 0, sizeof(op));
 
   memset(&op, 0, sizeof(op));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "application/xml";
@@ -484,7 +482,7 @@ TEST test_body_binary_request_body_pdf(void) {
   memset(&op, 0, sizeof(op));
 
   memset(&op, 0, sizeof(op));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "application/pdf";
@@ -519,7 +517,7 @@ TEST test_body_header_array_param(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -563,7 +561,7 @@ TEST test_body_header_object_param(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -609,7 +607,7 @@ TEST test_body_header_json_param_ref(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -654,7 +652,7 @@ TEST test_body_header_number_param(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -696,7 +694,7 @@ TEST test_body_cookie_param(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -738,7 +736,7 @@ TEST test_body_cookie_param_number_array(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -785,7 +783,7 @@ TEST test_body_cookie_param_array_explode_false(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -832,7 +830,7 @@ TEST test_body_cookie_param_object_form(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -876,7 +874,7 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&param, 0, sizeof(param));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -1025,7 +1023,7 @@ TEST test_body_form_urlencoded(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1077,7 +1075,7 @@ TEST test_body_form_urlencoded_with_params(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1126,7 +1124,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1179,7 +1177,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(2, sizeof(struct StructFields));
@@ -1250,7 +1248,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(2, sizeof(struct StructFields));
@@ -1322,7 +1320,7 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(2, sizeof(struct StructFields));
@@ -1390,7 +1388,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1452,7 +1450,7 @@ TEST test_body_multipart_object_fields(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1509,7 +1507,7 @@ TEST test_body_multipart_encoding_content_type(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1569,7 +1567,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1631,7 +1629,7 @@ TEST test_body_multipart_encoding_headers(void) {
   memset(&mt, 0, sizeof(mt));
   memset(&enc, 0, sizeof(enc));
   memset(&headers, 0, sizeof(headers));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
       (struct StructFields *)calloc(1, sizeof(struct StructFields));
@@ -1697,7 +1695,7 @@ TEST test_body_response_range_success(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "2XX";
@@ -1728,7 +1726,7 @@ TEST test_body_default_response_success(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "default";
@@ -1759,7 +1757,7 @@ TEST test_body_text_plain_response_string(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -1791,7 +1789,7 @@ TEST test_body_text_plain_response_range(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "2XX";
@@ -1823,7 +1821,7 @@ TEST test_body_text_plain_response_default(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "default";
@@ -1855,7 +1853,7 @@ TEST test_body_textual_response_xml(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -1887,7 +1885,7 @@ TEST test_body_binary_response_pdf(void) {
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
 
   op.verb = OA_VERB_GET;
   resp.code = "200";

@@ -38,15 +38,16 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
 /**
  * @brief Executes the build info init operation.
  */
-void build_info_init(struct ExtractedBuildInfo *info) {
+enum cdd_c_error build_info_init(struct ExtractedBuildInfo *info) {
   if (!info)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   info->source_files = NULL;
   info->source_files_n = 0;
   info->include_dirs = NULL;
   info->include_dirs_n = 0;
   info->compile_defs = NULL;
   info->compile_defs_n = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -76,7 +77,7 @@ void build_info_free(struct ExtractedBuildInfo *info) {
     free(info->compile_defs);
   }
 
-  build_info_init(info);
+  (void)build_info_init(info);
 }
 
 /**

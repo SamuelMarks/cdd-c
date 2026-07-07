@@ -155,11 +155,12 @@ static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the decl info init operation.
  */
-void decl_info_init(struct DeclInfo *info) {
-  if (info) {
-    info->identifier = NULL;
-    info->type = NULL;
-  }
+enum cdd_c_error decl_info_init(struct DeclInfo *info) {
+  if (!info)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  info->identifier = NULL;
+  info->type = NULL;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -429,7 +430,8 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
   if (!tokens || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  decl_info_init(out_info);
+  if (decl_info_init(out_info) != CDD_C_SUCCESS)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Find Pivot */
   find_pivot(tokens, start, end, &is_abstract, &pivot);

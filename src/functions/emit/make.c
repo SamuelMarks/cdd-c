@@ -21,14 +21,14 @@
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
-static int check_io_helper_make(int rc) {
+static int test_cdd_check_io_helper_make(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;
 }
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
-    if (check_io_helper_make(x) < 0)                                           \
+    if (test_cdd_check_io_helper_make(x) < 0)                                  \
       return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #else
@@ -42,13 +42,13 @@ static int check_io_helper_make(int rc) {
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
@@ -59,7 +59,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return ret;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf

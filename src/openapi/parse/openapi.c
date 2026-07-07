@@ -691,7 +691,9 @@ void openapi_free_servers_array(struct OpenAPI_Server *servers,
 /**
  * @brief Executes the openapi spec init operation.
  */
-void openapi_spec_init(struct OpenAPI_Spec *spec) {
+enum cdd_c_error openapi_spec_init(struct OpenAPI_Spec *spec) {
+  if (!spec)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (spec) {
     memset(spec, 0, sizeof(struct OpenAPI_Spec));
     spec->openapi_version = NULL;
@@ -756,6 +758,7 @@ void openapi_spec_init(struct OpenAPI_Spec *spec) {
     spec->defined_schema_dynamic_anchors = NULL;
     spec->n_defined_schemas = 0;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -4166,12 +4169,14 @@ static enum cdd_c_error resolve_ref_target(const struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the openapi doc registry init operation.
  */
-void openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
+enum cdd_c_error
+openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
   if (!registry)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   registry->entries = NULL;
   registry->count = 0;
   registry->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -14169,12 +14174,12 @@ validate_path_template_collisions(const struct OpenAPI_Path *paths,
 /**
  * @brief Executes the scan querystring usage operation.
  */
-static void scan_querystring_usage(const struct OpenAPI_Parameter *params,
-                                   size_t n_params, size_t *qs_count,
-                                   int *has_query) {
+static enum cdd_c_error
+scan_querystring_usage(const struct OpenAPI_Parameter *params, size_t n_params,
+                       size_t *qs_count, int *has_query) {
   size_t i;
   if (!qs_count || !has_query)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < n_params; ++i) {
     const struct OpenAPI_Parameter *p = &params[i];
     if (p->in == OA_PARAM_IN_QUERYSTRING) {
@@ -14183,6 +14188,7 @@ static void scan_querystring_usage(const struct OpenAPI_Parameter *params,
       *has_query = 1;
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -14200,8 +14206,8 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
     if (!path->route)
       continue;
 
-    scan_querystring_usage(path->parameters, path->n_parameters, &path_qs,
-                           &path_has_query);
+    (void)scan_querystring_usage(path->parameters, path->n_parameters, &path_qs,
+                                 &path_has_query);
     /* LCOV_EXCL_START */
     if (path_qs > 1)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -14216,9 +14222,9 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
       int op_has_query = 0;
       size_t total_qs;
       int has_query;
-      scan_querystring_usage(path->operations[op_idx].parameters,
-                             path->operations[op_idx].n_parameters, &op_qs,
-                             &op_has_query);
+      (void)scan_querystring_usage(path->operations[op_idx].parameters,
+                                   path->operations[op_idx].n_parameters,
+                                   &op_qs, &op_has_query);
       total_qs = path_qs + op_qs;
       has_query = path_has_query || op_has_query;
       /* LCOV_EXCL_START */
@@ -14236,9 +14242,10 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
       int op_has_query = 0;
       size_t total_qs;
       int has_query;
-      scan_querystring_usage(path->additional_operations[op_idx].parameters,
-                             path->additional_operations[op_idx].n_parameters,
-                             &op_qs, &op_has_query);
+      (void)scan_querystring_usage(
+          path->additional_operations[op_idx].parameters,
+          path->additional_operations[op_idx].n_parameters, &op_qs,
+          &op_has_query);
       total_qs = path_qs + op_qs;
       has_query = path_has_query || op_has_query;
       /* LCOV_EXCL_START */

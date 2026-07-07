@@ -38,7 +38,8 @@ struct ExtractedBuildInfo {
 /**
  * @brief Initialize a build info structure.
  */
-extern C_CDD_EXPORT void build_info_init(struct ExtractedBuildInfo *info);
+extern C_CDD_EXPORT enum cdd_c_error
+build_info_init(struct ExtractedBuildInfo *info);
 
 /**
  * @brief Free resources in a build info structure.

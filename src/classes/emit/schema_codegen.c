@@ -44,13 +44,13 @@
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_schema_fail_io_after = -1;
 C_CDD_EXPORT int g_schema_io_calls = 0;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_list args;
   int rc;
   printf("hook: after=%d calls=%d\n", g_schema_fail_io_after,
@@ -64,7 +64,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return rc;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf

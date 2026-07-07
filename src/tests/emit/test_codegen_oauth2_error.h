@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_codegen_oauth2_error.h
  * @brief Unit tests for OAuth2 Error generator.

@@ -1,6 +1,6 @@
 # AST-Based C Return Type Refactoring Tool
 
-This directory previously contained a standalone Python `tree-sitter` powered script for refactoring C `void` or `bool` return types into `int` based error percolation chains (`rc = ...; if (rc) return rc;`).
+This directory previously contained a standalone Python `tree-sitter` powered script for refactoring C `void` or `bool` return types into `enum cdd_c_error` based error percolation chains (`enum cdd_c_error rc = ...; if (rc != CDD_C_SUCCESS) return rc;`).
 
 This script has been superseded by a native, robust C parser (Abstract/Concrete Syntax Tree Weaver) inside `cdd-c` that preserves original macro and trivia states seamlessly.
 

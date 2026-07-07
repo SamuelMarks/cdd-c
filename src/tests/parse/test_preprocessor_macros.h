@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_preprocessor_macros.h
  * @brief Unit tests for preprocessor macros parsing.

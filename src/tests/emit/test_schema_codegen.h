@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_schema_codegen.h
  * @brief Unit tests for schema to code generation.
@@ -500,7 +498,7 @@ TEST test_codegen_config_utils_guards(void) {
 
   ASSERT(strstr(content, "#endif /* DATA_UTILS */"));
 
-  ASSERT(strstr(content, "void S_cleanup("));
+  ASSERT(strstr(content, "enum cdd_c_error S_cleanup("));
 
   free(content);
 
@@ -557,8 +555,8 @@ TEST test_schema_constraints_bounds(void) {
   }
 #endif
 
-  schema_constraints_cleanup(&sc);
-  schema_constraints_cleanup(NULL); /* Should be safe */
+  schema_constraints_free(&sc);
+  schema_constraints_free(NULL); /* Should be safe */
 
   /* Test cleanup of additional properties */
   schema_constraints_init(&sc);
@@ -571,7 +569,7 @@ TEST test_schema_constraints_bounds(void) {
   strcpy(sc.additional_properties->type, "t");
   sc.additional_properties->ref = (char *)malloc(2);
   strcpy(sc.additional_properties->ref, "r");
-  schema_constraints_cleanup(&sc);
+  schema_constraints_free(&sc);
   g_fail_io_after = -1;
 
   PASS();

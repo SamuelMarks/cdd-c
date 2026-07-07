@@ -238,7 +238,7 @@ static enum cdd_c_error find_and_mark_fopen(expr_t *head) {
   return found;
 }
 
-static void check_unsupported_calls(expr_t *head) {
+static enum cdd_c_error check_unsupported_calls(expr_t *head) {
   size_t i;
   while (head) {
     if (head->type == 1) {
@@ -260,6 +260,7 @@ static void check_unsupported_calls(expr_t *head) {
     }
     head = head->next;
   }
+  return CDD_C_SUCCESS;
 }
 
 typedef struct {
@@ -1505,7 +1506,7 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                                         const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
-  int rc;
+  enum cdd_c_error rc;
   int replaced_any;
 
   (void)config;
@@ -1607,7 +1608,9 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (first_tok)
           first_tok->leading_trivia = NULL;
 
-        cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL, &new_node);
+        rc = cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL, &new_node);
+        if (rc != CDD_C_SUCCESS)
+          goto loop_err;
         if (!new_node)
           break;
         cdd_cst_builder_init(&bld, tree, new_node);
@@ -1616,13 +1619,17 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
         cdd_cst_bld_space(&bld);
 
-        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
+        rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
+        if (rc != CDD_C_SUCCESS)
+          goto loop_err;
         cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
         msc_changes = emit_ast_bld(ast, &msc_bld, 1);
         g_msc_ctx = NULL;
 
-        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
+        rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
+        if (rc != CDD_C_SUCCESS)
+          goto loop_err;
         cdd_cst_builder_init(&else_bld, tree, else_node);
         emit_ast_bld(ast, &else_bld, 0);
 
@@ -1848,6 +1855,13 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   arena_free_all();
   current_tree = NULL;
   return CDD_C_SUCCESS;
+
+loop_err:
+  if (res.nodes)
+    free(res.nodes);
+  arena_free_all();
+  current_tree = NULL;
+  return rc;
 }
 
 /* LCOV_EXCL_STOP */

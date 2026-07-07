@@ -80,7 +80,7 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "/**\n"
               " * @brief Auto-generated code from OpenAPI specification\n"
               " */\n"
-              "void print_cli_help(void) {\n");
+              "enum cdd_c_error print_cli_help(void) {\n");
   fprintf(fp, "  printf(\"%%s v%%s\\n\", \"%s\", \"%s\");\n",
           spec->info.title ? spec->info.title : "CLI Tool",
           spec->info.version ? spec->info.version : "1.0.0");
@@ -155,7 +155,7 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  fprintf(fp, "}\n\n");
+  fprintf(fp, "  return CDD_C_SUCCESS;\n}\n\n");
 
   fprintf(fp, "/**\n"
               " * @brief Auto-generated code from OpenAPI specification\n"
@@ -192,7 +192,8 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp,
           "  if (cmd_idx >= argc || strcmp(argv[cmd_idx], \"--help\") == 0 || "
           "strcmp(argv[cmd_idx], \"-h\") == 0) {\n");
-  fprintf(fp, "    print_cli_help();\n");
+  fprintf(fp, "    enum cdd_c_error rc = print_cli_help(); if(rc != "
+              "CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");
   fprintf(fp, "  (void)db_path;\n");

@@ -66,8 +66,7 @@ schema_constraints_add_required(struct SchemaConstraints *sc,
  * @brief Cleans up schema constraints.
  * @param sc Pointer to constraints struct.
  */
-extern C_CDD_EXPORT void
-schema_constraints_cleanup(struct SchemaConstraints *sc);
+extern C_CDD_EXPORT void schema_constraints_free(struct SchemaConstraints *sc);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_REWRITER_SIG_H
 #define TEST_REWRITER_SIG_H
 

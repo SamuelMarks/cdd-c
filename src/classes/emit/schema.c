@@ -64,7 +64,7 @@ enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
   return CDD_C_SUCCESS;
 }
 
-void schema_constraints_cleanup(struct SchemaConstraints *sc) {
+void schema_constraints_free(struct SchemaConstraints *sc) {
   size_t i;
   if (!sc)
     return;

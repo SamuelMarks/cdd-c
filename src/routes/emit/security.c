@@ -134,7 +134,7 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
  * @brief Determines the active security requirements for an operation,
  * falling back to global spec requirements.
  */
-static void
+static enum cdd_c_error
 resolve_active_security(const struct OpenAPI_Operation *op,
                         const struct OpenAPI_Spec *spec,
                         const struct OpenAPI_SecurityRequirementSet **out_sets,
@@ -147,7 +147,7 @@ resolve_active_security(const struct OpenAPI_Operation *op,
     *out_set_flag = 0;
 
   if (!spec)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (op && op->security_set) {
     if (out_sets)
@@ -156,7 +156,7 @@ resolve_active_security(const struct OpenAPI_Operation *op,
       *out_count = op->n_security;
     if (out_set_flag)
       *out_set_flag = 1;
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (spec->security_set) {
     if (out_sets)
@@ -166,6 +166,7 @@ resolve_active_security(const struct OpenAPI_Operation *op,
     if (out_set_flag)
       *out_set_flag = 1;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

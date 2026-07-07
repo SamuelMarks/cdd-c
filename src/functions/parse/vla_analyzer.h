@@ -60,7 +60,8 @@ struct VLASiteList {
 /**
  * @brief Initialize a VLA site list.
  */
-extern C_CDD_EXPORT void vla_site_list_init(struct VLASiteList *list);
+extern C_CDD_EXPORT enum cdd_c_error
+vla_site_list_init(struct VLASiteList *list);
 
 /**
  * @brief Free resources associated with a VLA site list.

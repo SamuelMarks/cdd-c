@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_code2schema.h
  * @brief Unit tests for code to schema conversion.
@@ -25,7 +23,6 @@ typedef unsigned __int64 uint64_t;
 /* clang-format off */
 #include "classes/emit/schema.h"
 #include "c_cdd_export.h"
-#include "msvc/stdint.h"
 #include <stdint.h>
 #include <string.h>
 #include <greatest.h>

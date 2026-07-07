@@ -23,13 +23,13 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
@@ -40,7 +40,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return ret;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -87,9 +87,10 @@ write_union_to_json_func(FILE *fp, const char *union_name,
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->json_guard));
 
-  CHECK_IO(FPRINTF_HOOK(
-      fp, "int %s_to_json(const struct %s *obj, char **const json) {\n",
-      union_name, union_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "enum cdd_c_error %s_to_json(const struct %s *obj, "
+                        "char **const json) {\n",
+                        union_name, union_name));
 
   if (needs_nested_rc)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
@@ -252,10 +253,11 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->json_guard));
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_from_jsonObject(const JSON_Object *"
-                        "jsonObject, struct %s **const out) {\n",
-                        union_name, union_name));
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
+                   "enum cdd_c_error %s_from_jsonObject(const JSON_Object *"
+                   "jsonObject, struct %s **const out) {\n",
+                   union_name, union_name));
 
   if (needs_nested_rc)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
@@ -493,10 +495,11 @@ write_union_from_json_func(FILE *fp, const char *union_name,
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->json_guard));
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_from_json(const char *json, struct %s **const "
-                        "out) {\n",
-                        union_name, union_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
+      "enum cdd_c_error %s_from_json(const char *json, struct %s **const "
+      "out) {\n",
+      union_name, union_name));
 
   if (has_object || array_needs_rc)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
@@ -826,8 +829,8 @@ write_union_cleanup_func(FILE *fp, const char *union_name,
   if (config && config->utils_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->utils_guard));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "void %s_cleanup(struct %s *obj) {\n", union_name,
-                        union_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "enum cdd_c_error %s_cleanup(struct %s *obj) {\n",
+                        union_name, union_name));
   CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) return;\n"));
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  size_t i;\n"));
@@ -899,39 +902,41 @@ write_root_array_cleanup_func(FILE *fp, const char *name, const char *item_type,
   if (strcmp(item_type, "integer") == 0) {
     /* Simple flat array */
     CHECK_IO(FPRINTF_HOOK(fp,
-                          "void %s_cleanup(int *in, size_t len) {\n"
+                          "enum cdd_c_error %s_cleanup(int *in, size_t len) {\n"
                           "  (void)len; free(in);\n}\n",
                           name));
   } else if (strcmp(item_type, "string") == 0) {
     /* Array of pointers to strings */
-    CHECK_IO(FPRINTF_HOOK(fp,
-                          "void %s_cleanup(char **in, size_t len) {\n"
-                          "  size_t i;\n"
-                          "  if (!in) return;\n"
-                          "  for(i=0; i<len; ++i) free(in[i]);\n"
-                          "  free(in);\n"
-                          "}\n",
-                          name));
-  } else if (strcmp(item_type, "object") == 0) {
-    /* Array of pointers to structs */
     CHECK_IO(
         FPRINTF_HOOK(fp,
-                     "void %s_cleanup(struct %s **in, size_t len) {\n"
+                     "enum cdd_c_error %s_cleanup(char **in, size_t len) {\n"
                      "  size_t i;\n"
                      "  if (!in) return;\n"
-                     "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
+                     "  for(i=0; i<len; ++i) free(in[i]);\n"
                      "  free(in);\n"
                      "}\n",
-                     name,
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_7),
-                      _ast_get_type_from_ref_7),
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_8),
-                      _ast_get_type_from_ref_8)));
+                     name));
+  } else if (strcmp(item_type, "object") == 0) {
+    /* Array of pointers to structs */
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "enum cdd_c_error %s_cleanup(struct %s **in, size_t len) {\n"
+        "  size_t i;\n"
+        "  if (!in) return;\n"
+        "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
+        "  free(in);\n"
+        "}\n",
+        name,
+        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_7),
+         _ast_get_type_from_ref_7),
+        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_8),
+         _ast_get_type_from_ref_8)));
   } else {
     /* Fallback generic void* */
-    CHECK_IO(FPRINTF_HOOK(
-        fp, "void %s_cleanup(void *in, size_t len) { (void)len; free(in); }\n",
-        name));
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "enum cdd_c_error %s_cleanup(void *in, size_t len) { "
+                          "(void)len; free(in); }\n",
+                          name));
   }
 
   if (config && config->utils_guard)
@@ -955,27 +960,30 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->json_guard));
 
   if (strcmp(item_type, "integer") == 0) {
-    CHECK_IO(FPRINTF_HOOK(
-        fp, "int %s_to_json(const int *in, size_t len, char **json_out) {\n",
-        name));
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "enum cdd_c_error %s_to_json(const int *in, size_t "
+                          "len, char **json_out) {\n",
+                          name));
   } else if (strcmp(item_type, "string") == 0) {
-    CHECK_IO(FPRINTF_HOOK(
-        fp, "int %s_to_json(char **const in, size_t len, char **json_out) {\n",
-        name));
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "enum cdd_c_error %s_to_json(char **const in, size_t "
+                          "len, char **json_out) {\n",
+                          name));
   } else if (strcmp(item_type, "object") == 0) {
     {
       char *tn = NULL;
       get_type_from_ref(item_ref, &tn);
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "int %s_to_json(struct %s **const in, size_t len, char "
-                       "**json_out) {\n",
-                       name, tn));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "enum cdd_c_error %s_to_json(struct %s **const in, size_t len, char "
+          "**json_out) {\n",
+          name, tn));
     }
   } else {
-    CHECK_IO(FPRINTF_HOOK(
-        fp, "int %s_to_json(const void *in, size_t len, char **json_out) {\n",
-        name));
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "enum cdd_c_error %s_to_json(const void *in, size_t "
+                          "len, char **json_out) {\n",
+                          name));
   }
 
   CHECK_IO(FPRINTF_HOOK(
@@ -1038,30 +1046,32 @@ write_root_array_from_json_func(FILE *fp, const char *name,
 
   /* Choose arg signature */
   if (strcmp(item_type, "integer") == 0) {
-    CHECK_IO(FPRINTF_HOOK(
-        fp, "int %s_from_json(const char *json, int **out, size_t *len) {\n",
-        name));
+    CHECK_IO(FPRINTF_HOOK(fp,
+                          "enum cdd_c_error %s_from_json(const char *json, int "
+                          "**out, size_t *len) {\n",
+                          name));
   } else if (strcmp(item_type, "string") == 0) {
-    CHECK_IO(
-        FPRINTF_HOOK(fp,
-                     "int %s_from_json(const char *json, char ***out, size_t "
-                     "*len) {\n",
-                     name));
-  } else if (strcmp(item_type, "object") == 0) {
     CHECK_IO(FPRINTF_HOOK(
         fp,
-        "int %s_from_json(const char *json, struct %s ***out, size_t "
+        "enum cdd_c_error %s_from_json(const char *json, char ***out, size_t "
         "*len) {\n",
-        name,
-        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_11),
-         _ast_get_type_from_ref_11)));
-  } else {
-    /* Fallback */
+        name));
+  } else if (strcmp(item_type, "object") == 0) {
     CHECK_IO(
         FPRINTF_HOOK(fp,
-                     "int %s_from_json(const char *json, void **out, size_t "
+                     "enum cdd_c_error %s_from_json(const char *json, struct "
+                     "%s ***out, size_t "
                      "*len) {\n",
-                     name));
+                     name,
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_11),
+                      _ast_get_type_from_ref_11)));
+  } else {
+    /* Fallback */
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "enum cdd_c_error %s_from_json(const char *json, void **out, size_t "
+        "*len) {\n",
+        name));
   }
 
   CHECK_IO(FPRINTF_HOOK(

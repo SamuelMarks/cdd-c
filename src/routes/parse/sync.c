@@ -348,9 +348,10 @@ static enum cdd_c_error extract_current_sig(struct TokenList *tokens,
 /**
  * @brief Applies query sync.
  */
-static void apply_query_sync(const struct OpenAPI_Operation *op,
-                             struct TokenList *tokens, struct CstNode *node,
-                             struct PatchList *patches) {
+static enum cdd_c_error apply_query_sync(const struct OpenAPI_Operation *op,
+                                         struct TokenList *tokens,
+                                         struct CstNode *node,
+                                         struct PatchList *patches) {
   int _ast_token_matches_string_1 = 0;
   int _ast_token_matches_string_2 = 0;
   char *_ast_generate_expected_query_3 = NULL;
@@ -367,7 +368,7 @@ static void apply_query_sync(const struct OpenAPI_Operation *op,
     }
   }
   if (!body_start)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (k = body_start; k < node->end_token; k++) {
     if (tokens->tokens[k].kind == TOKEN_IDENTIFIER) {
@@ -422,14 +423,16 @@ static void apply_query_sync(const struct OpenAPI_Operation *op,
        code or we need a robust insertion heuristic.
        For this complexity level, we assume updating existing boilerplate. */
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Applies header sync.
  */
-static void apply_header_sync(const struct OpenAPI_Operation *op,
-                              struct TokenList *tokens, struct CstNode *node,
-                              struct PatchList *patches) {
+static enum cdd_c_error apply_header_sync(const struct OpenAPI_Operation *op,
+                                          struct TokenList *tokens,
+                                          struct CstNode *node,
+                                          struct PatchList *patches) {
   int _ast_token_matches_string_4 = 0;
   char *_ast_generate_expected_header_line_5 = NULL;
   size_t i, k;
@@ -507,6 +510,7 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
       }
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**

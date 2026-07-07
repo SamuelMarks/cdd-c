@@ -34,7 +34,7 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   va_list args;
   cdd_cst_tree_t *temp_tree = NULL;
   cdd_cst_node_t *result = NULL;
-  int rc;
+  enum cdd_c_error rc;
 
   if (!dest_tree || !out_node || !fmt)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -64,13 +64,13 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
   free(buf);
 
-  if (rc == 0 && temp_tree && temp_tree->root) {
+  if (rc == CDD_C_SUCCESS && temp_tree && temp_tree->root) {
     size_t i, j;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
-    if (!result) {
+    rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
+    if (rc != CDD_C_SUCCESS || !result) {
       cdd_cst_tree_free(temp_tree);
       *out_node = NULL;
-      return CDD_C_ERROR_NOT_FOUND;
+      return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
     }
 
     for (i = 0; i < temp_tree->root->num_children; i++) {
@@ -84,13 +84,27 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
       if (!stmt)
         continue;
 
-      if (cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone) == 0 && stmt_clone) {
+      if (cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone) == CDD_C_SUCCESS &&
+          stmt_clone) {
         for (j = 0; j < stmt_clone->num_children; j++) {
           if (stmt_clone->children[j].kind == CDD_CST_CHILD_TOKEN) {
-            cdd_cst_append_child_token(result,
-                                       stmt_clone->children[j].val.token);
+            rc = cdd_cst_append_child_token(result,
+                                            stmt_clone->children[j].val.token);
+            if (rc != CDD_C_SUCCESS) {
+              cdd_cst_free_node_only(stmt_clone);
+              cdd_cst_tree_free(temp_tree);
+              *out_node = NULL;
+              return rc;
+            }
           } else {
-            cdd_cst_append_child_node(result, stmt_clone->children[j].val.node);
+            rc = cdd_cst_append_child_node(result,
+                                           stmt_clone->children[j].val.node);
+            if (rc != CDD_C_SUCCESS) {
+              cdd_cst_free_node_only(stmt_clone);
+              cdd_cst_tree_free(temp_tree);
+              *out_node = NULL;
+              return rc;
+            }
           }
         }
         cdd_cst_free_node_only(stmt_clone);

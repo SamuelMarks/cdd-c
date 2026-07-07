@@ -18,12 +18,13 @@
  * @brief Initializes a hoist site list.
  *
  */
-void hoist_site_list_init(struct HoistSiteList *list) {
-  if (!list)
-    return;
-  list->sites = NULL;
-  list->count = 0;
-  list->capacity = 0;
+enum cdd_c_error hoist_site_list_init(struct HoistSiteList *list) {
+  if (list) {
+    list->sites = NULL;
+    list->count = 0;
+    list->capacity = 0;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -36,7 +37,7 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   if (list->sites) {
     free(list->sites);
   }
-  hoist_site_list_init(list);
+  (void)hoist_site_list_init(list);
 }
 
 /**

@@ -540,14 +540,15 @@ static enum cdd_c_error map_array_item_type(const char *oa_type,
 /**
  * @brief Executes the sanitize ident operation.
  */
-static void sanitize_ident(char *out, size_t outsz, const char *in) {
+static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
+                                       const char *in) {
   size_t i = 0;
   size_t j = 0;
   if (!out || outsz == 0)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   out[0] = '\0';
   if (!in)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; in[i] && j + 1 < outsz; ++i) {
     const unsigned char c = (unsigned char)in[i];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -566,22 +567,30 @@ static void sanitize_ident(char *out, size_t outsz, const char *in) {
       out[0] = '_';
     }
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the multipart header param name operation.
  */
-static void multipart_header_param_name(char *out, size_t outsz,
-                                        const char *field, const char *header) {
+static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
+                                                    const char *field,
+                                                    const char *header) {
   char hdr_sanitized[128];
   if (!out || outsz == 0) {
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   out[0] = '\0';
   if (!field || !header)
-    return;
-  sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  {
+    enum cdd_c_error rc =
+        sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
+  return CDD_C_SUCCESS;
 }
 
 /**

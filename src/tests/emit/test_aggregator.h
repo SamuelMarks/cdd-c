@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_aggregator.h
  * @brief Unit tests for OpenAPI Aggregator logic.
@@ -57,7 +55,7 @@ TEST test_aggregator_add_new(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op, "op1");
 
   ASSERT_EQ(0, openapi_aggregator_add_operation(&spec, "/users", &op));
@@ -83,7 +81,7 @@ TEST test_aggregator_merge_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op1, "getUsers");
   op1.verb = OA_VERB_GET;
 
@@ -115,7 +113,7 @@ TEST test_aggregator_distinct_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op1, "opA");
   dummy_op(&op2, "opB");
 
@@ -139,7 +137,7 @@ TEST test_aggregator_add_additional_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op, "copyUser");
   op.is_additional = 1;
   op.method = strdup("COPY");
@@ -168,7 +166,7 @@ TEST test_aggregator_add_webhook(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op, "webhookOp");
   op.verb = OA_VERB_POST;
 
@@ -193,7 +191,7 @@ TEST test_aggregator_add_webhook(void) {
 TEST test_aggregator_bad_args(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   dummy_op(&op, "x");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

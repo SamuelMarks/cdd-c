@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_openapi_loader.h
  * @brief Unit tests for OpenAPI loading.
@@ -36,7 +34,7 @@ static enum cdd_c_error load_spec_str(const char *json_str,
   int rc;
   if (!dyn)
     return -1;
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;
@@ -50,7 +48,7 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
   int rc;
   if (!dyn)
     return -1;
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
   rc = openapi_load_from_json_with_context(dyn, retrieval_uri, spec, registry);
   json_value_free(dyn);
   return rc;
@@ -1179,7 +1177,7 @@ TEST test_load_schema_root_document_with_id(void) {
   struct OpenAPI_Spec spec = {0};
   int rc;
 
-  openapi_doc_registry_init(&registry);
+  (void)openapi_doc_registry_init(&registry);
   rc = load_spec_str_with_context(json, "https://example.com/schema.json",
                                   &registry, &spec);
   ASSERT_EQ(0, rc);
@@ -3235,7 +3233,7 @@ TEST test_external_component_ref_registry_absolute(void) {
   struct OpenAPI_Spec root_spec;
   int rc;
 
-  openapi_doc_registry_init(&registry);
+  (void)openapi_doc_registry_init(&registry);
 
   rc = load_spec_str_with_context(shared, "https://example.com/shared.json",
                                   &registry, &shared_spec);
@@ -3290,7 +3288,7 @@ TEST test_external_component_ref_registry_relative(void) {
   struct OpenAPI_Spec root_spec;
   int rc;
 
-  openapi_doc_registry_init(&registry);
+  (void)openapi_doc_registry_init(&registry);
 
   rc = load_spec_str_with_context(shared, "https://example.com/api/shared.json",
                                   &registry, &shared_spec);

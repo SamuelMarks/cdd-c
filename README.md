@@ -2,7 +2,7 @@ cdd-c
 =====
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Doc Coverage](https://img.shields.io/badge/doc_coverage-100%25-brightgreen.svg)](#)
-[![Test Coverage](https://img.shields.io/badge/test_coverage-70.2%25-yellowgreen.svg)](#)
+[![Test Coverage](https://img.shields.io/badge/test_coverage-69.6%25-yellow.svg)](#)
 [![interactive WASM web demo](https://img.shields.io/badge/interactive-WASM_web_demo-blue.svg)](https://offscale.io/wasm_web_demo)
 [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
 
@@ -29,14 +29,22 @@ The CLI—at a minimum—has:
 
 ```c
 #include "cdd_api.h"
+#include "cdd_c_error.h"
 #include <stdio.h>
 
 int main() {
+    enum cdd_c_error rc;
     cdd_config config = {
         .input_path = "spec.json",
         .output_dir = "src/models"
     };
-    cdd_generate_sdk(&config);
+
+    rc = cdd_generate_sdk(&config);
+    if (rc != CDD_C_SUCCESS) {
+        fprintf(stderr, "SDK generation failed with error code: %d\n", rc);
+        return rc;
+    }
+
     printf("SDK generation complete.\n");
     return 0;
 }

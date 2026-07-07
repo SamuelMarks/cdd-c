@@ -62,16 +62,17 @@ static enum cdd_c_error read_line(FILE *fp, char *buf, size_t bufsz) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
-void trim_trailing(char *str) {
+enum cdd_c_error trim_trailing(char *str) {
   size_t len;
   if (!str)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   c_cdd_str_trim_trailing_whitespace(str);
   len = strlen(str);
   while (len > 0 &&
          (str[len - 1] == ';' || isspace((unsigned char)str[len - 1]))) {
     str[--len] = '\0';
   }
+  return CDD_C_SUCCESS;
 }
 
 enum cdd_c_error str_starts_with(const char *str, const char *prefix,
@@ -1499,8 +1500,8 @@ enum cdd_c_error merge_struct_fields(struct StructFields *dest,
 /**
  * @brief Merges a source struct field into a destination struct field.
  */
-void merge_struct_field(struct StructField *dest,
-                        const struct StructField *src);
+enum cdd_c_error merge_struct_field(struct StructField *dest,
+                                    const struct StructField *src);
 /**
  * @brief Applies an allOf JSON Schema array to a StructFields object.
  */
@@ -4181,10 +4182,11 @@ fallback:
 /**
  * @brief Merges a source struct field into a destination struct field.
  */
-void merge_struct_field(struct StructField *dest,
-                        const struct StructField *src) {
+enum cdd_c_error merge_struct_field(struct StructField *dest,
+                                    const struct StructField *src) {
+  enum cdd_c_error rc = CDD_C_SUCCESS;
   if (!dest || !src)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!dest->default_val[0] && src->default_val[0]) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -4297,6 +4299,7 @@ void merge_struct_field(struct StructField *dest,
       /* Best-effort: ignore copy failures */
     }
   }
+  return rc;
 }
 
 /**
@@ -4377,7 +4380,11 @@ enum cdd_c_error merge_struct_fields(struct StructFields *dest,
       continue;
     }
 
-    merge_struct_field(dest_field, src_field);
+    {
+      enum cdd_c_error mrc = merge_struct_field(dest_field, src_field);
+      if (mrc != CDD_C_SUCCESS)
+        return mrc;
+    }
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -5529,8 +5536,8 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
  * @brief Writes the default value of a StructField to a JSON schema
  * object.
  */
-static void write_default_value(JSON_Object *pobj,
-                                const struct StructField *field) {
+static enum cdd_c_error write_default_value(JSON_Object *pobj,
+                                            const struct StructField *field) {
   const char *def;
   const char *typ;
   char buf[256];
@@ -5539,50 +5546,51 @@ static void write_default_value(JSON_Object *pobj,
   JSON_Value *null_val;
 
   if (!pobj || !field)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   def = field->default_val;
   if (!def || def[0] == '\0')
-    return;
+    return CDD_C_SUCCESS;
   typ = field->type;
 
   if (strcmp(def, "nullptr") == 0) {
     null_val = json_value_init_null();
     if (null_val)
       json_object_set_value(pobj, "default", null_val);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (typ && strcmp(typ, "string") == 0) {
     const char *s = NULL;
     strip_quotes(def, buf, sizeof(buf), &s);
     json_object_set_string(pobj, "default", s ? s : "");
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (typ && strcmp(typ, "boolean") == 0) {
     if (parse_bool_default(def, &bval))
       json_object_set_boolean(pobj, "default", bval);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (typ && (strcmp(typ, "integer") == 0 || strcmp(typ, "number") == 0)) {
     if (parse_number_default(def, &nval))
       json_object_set_number(pobj, "default", nval);
-    return;
+    return CDD_C_SUCCESS;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Writes numeric constraints of a StructField to a JSON schema
  * object.
  */
-static void write_numeric_constraints(JSON_Object *pobj,
-                                      const struct StructField *field) {
+static enum cdd_c_error
+write_numeric_constraints(JSON_Object *pobj, const struct StructField *field) {
   if (!pobj || !field)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || !(strcmp(field->type, "integer") == 0 ||
                            strcmp(field->type, "number") == 0))
-    return;
+    return CDD_C_SUCCESS;
   if (field->has_min) {
     if (field->exclusive_min)
       json_object_set_number(pobj, "exclusiveMinimum", field->min_val);
@@ -5595,71 +5603,76 @@ static void write_numeric_constraints(JSON_Object *pobj,
     else
       json_object_set_number(pobj, "maximum", field->max_val);
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Writes string constraints of a StructField to a JSON schema
  * object.
  */
-static void write_string_constraints(JSON_Object *pobj,
-                                     const struct StructField *field) {
+static enum cdd_c_error
+write_string_constraints(JSON_Object *pobj, const struct StructField *field) {
   if (!pobj || !field)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "string") != 0)
-    return;
+    return CDD_C_SUCCESS;
   if (field->has_min_len)
     json_object_set_number(pobj, "minLength", (double)field->min_len);
   if (field->has_max_len)
     json_object_set_number(pobj, "maxLength", (double)field->max_len);
   if (field->pattern[0] != '\0')
     json_object_set_string(pobj, "pattern", field->pattern);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Writes array constraints of a StructField to a JSON schema
  * object.
  */
-static void write_array_constraints(JSON_Object *pobj,
-                                    const struct StructField *field) {
+static enum cdd_c_error
+write_array_constraints(JSON_Object *pobj, const struct StructField *field) {
   if (!pobj || !field)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "array") != 0)
-    return;
+    return CDD_C_SUCCESS;
   if (field->has_min_items)
     json_object_set_number(pobj, "minItems", (double)field->min_items);
   if (field->has_max_items)
     json_object_set_number(pobj, "maxItems", (double)field->max_items);
   if (field->unique_items)
     json_object_set_boolean(pobj, "uniqueItems", 1);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Writes a type union array to a JSON schema object.
  */
-static void write_type_union(JSON_Object *obj, const char *type,
-                             char **type_union, size_t n_type_union) {
+static enum cdd_c_error write_type_union(JSON_Object *obj, const char *type,
+                                         char **type_union,
+                                         size_t n_type_union) {
   size_t i;
   JSON_Value *arr_val;
   JSON_Array *arr;
 
   if (!obj)
-    return;
+    return CDD_C_SUCCESS;
 
   if (type_union && n_type_union > 0) {
     arr_val = json_value_init_array();
     if (!arr_val)
-      return;
+      return CDD_C_SUCCESS;
     arr = json_value_get_array(arr_val);
     for (i = 0; i < n_type_union; ++i) {
       if (type_union[i])
         json_array_append_string(arr, type_union[i]);
     }
     json_object_set_value(obj, "type", arr_val);
-    return;
+    return CDD_C_SUCCESS;
   }
 
   if (type)
     json_object_set_string(obj, "type", type);
+  return CDD_C_SUCCESS;
 }
 
 /**

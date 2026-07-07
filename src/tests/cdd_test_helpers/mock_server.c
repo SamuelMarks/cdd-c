@@ -77,7 +77,10 @@ static int platform_init(void) {
   WSADATA wsa;
   return WSAStartup(MAKEWORD(2, 2), &wsa);
 }
-static void platform_cleanup(void) { WSACleanup(); }
+static enum cdd_c_error platform_cleanup(void) {
+  WSACleanup();
+  return CDD_C_SUCCESS;
+}
 
 #else /* POSIX */
 
@@ -126,7 +129,7 @@ static int cond_wait(cond_t *c, mutex_t *m) { return pthread_cond_wait(c, m); }
 static void close_socket(socket_t s) { close(s); }
 
 static int platform_init(void) { return 0; }
-static void platform_cleanup(void) {}
+static enum cdd_c_error platform_cleanup(void) { return CDD_C_SUCCESS; }
 
 #endif
 
@@ -392,11 +395,12 @@ mock_server_wait_for_request(MockServerPtr server,
   return CDD_C_ERROR_UNKNOWN;
 }
 
-void mock_server_request_cleanup(struct MockServerRequest *req) {
+enum cdd_c_error mock_server_request_cleanup(struct MockServerRequest *req) {
   if (req && req->raw_header) {
     free(req->raw_header);
     req->raw_header = NULL;
   }
+  return CDD_C_SUCCESS;
 }
 
 /* LCOV_EXCL_STOP */

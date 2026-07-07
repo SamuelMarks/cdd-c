@@ -15,14 +15,14 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-static size_t cdd_fwrite_hook(const void *ptr, size_t size, size_t nmemb,
-                              FILE *stream) {
+static size_t test_cdd_fwrite_hook(const void *ptr, size_t size, size_t nmemb,
+                                   FILE *stream) {
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
     return 0;
   return fwrite(ptr, size, nmemb, stream);
 }
 /** @brief FWRITE_HOOK macro */
-#define FWRITE_HOOK cdd_fwrite_hook
+#define FWRITE_HOOK test_cdd_fwrite_hook
 #else
 /** @brief FWRITE_HOOK macro */
 #define FWRITE_HOOK fwrite

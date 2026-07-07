@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_c_inspector_types.h
  * @brief Unit tests for C inspector type scanning logic.

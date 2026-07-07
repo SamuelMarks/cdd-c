@@ -1,3 +1,4 @@
+#include "cdd_c_error.h"
 #ifndef C_CDD_TESTS_MOCKS_SIMPLE_H
 #define C_CDD_TESTS_MOCKS_SIMPLE_H
 
@@ -14,7 +15,7 @@ struct Haz {
   const char *bzr;
 };
 
-extern SIMPLE_MOCKS_EXPORT void Haz_cleanup(struct Haz *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Haz_cleanup(struct Haz *);
 
 struct Foo {
   const char *bar;
@@ -22,7 +23,7 @@ struct Foo {
   struct Haz *haz;
 };
 
-extern SIMPLE_MOCKS_EXPORT void Foo_cleanup(struct Foo *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error Foo_cleanup(struct Foo *);
 
 #ifdef __cplusplus
 }

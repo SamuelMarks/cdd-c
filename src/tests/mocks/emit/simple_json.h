@@ -1,3 +1,4 @@
+#include "cdd_c_error.h"
 #ifndef SIMPLE_JSON_H
 #define SIMPLE_JSON_H
 
@@ -63,7 +64,7 @@ struct HazE {
   enum Tank tank;
 };
 
-extern SIMPLE_MOCKS_EXPORT void HazE_cleanup(struct HazE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_cleanup(struct HazE *);
 
 extern SIMPLE_MOCKS_EXPORT enum cdd_c_error HazE_default(struct HazE **);
 
@@ -94,7 +95,7 @@ struct FooE {
   struct HazE *haz;
 };
 
-extern SIMPLE_MOCKS_EXPORT void FooE_cleanup(struct FooE *);
+extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_cleanup(struct FooE *);
 
 extern SIMPLE_MOCKS_EXPORT enum cdd_c_error FooE_default(struct FooE **);
 

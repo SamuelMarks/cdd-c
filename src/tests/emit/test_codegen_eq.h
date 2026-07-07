@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_CODEGEN_EQ_H
 #define TEST_CODEGEN_EQ_H
 
@@ -76,16 +74,18 @@ TEST test_eq_primitive(void) {
   ASSERT(code != NULL);
 
   /* Check signature */
-  ASSERT(
-      strstr(code, "int Prim_eq(const struct Prim *a, const struct Prim *b)"));
+  ASSERT(strstr(code, "enum cdd_c_error Prim_eq(const struct Prim *a, const "
+                      "struct Prim *b, int *out_eq)"));
   /* Check trivial */
-  ASSERT(strstr(code, "if (a == b) return 1;"));
-  ASSERT(strstr(code, "if (!a || !b) return 0;"));
+  ASSERT(strstr(code, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
+  ASSERT(strstr(code, "if (!a || !b) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   /* Check int cmp */
-  ASSERT(strstr(code, "if (a->ival != b->ival) return 0;"));
+  ASSERT(strstr(
+      code, "if (a->ival != b->ival) { *out_eq = 0; return CDD_C_SUCCESS; }"));
   /* Check double cmp */
-  ASSERT(strstr(code, "if (a->dval != b->dval) return 0;"));
+  ASSERT(strstr(
+      code, "if (a->dval != b->dval) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -113,7 +113,7 @@ TEST test_eq_string(void) {
   /* if (a->s != b->s && (!a->s || !b->s || strcmp(a->s, b->s) != 0)) return 0;
    */
   ASSERT(strstr(code, "if (a->s != b->s && (!a->s || !b->s || strcmp(a->s, "
-                      "b->s) != 0)) return 0;"));
+                      "b->s) != 0)) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -138,7 +138,9 @@ TEST test_eq_recursive_object(void) {
   ASSERT(code != NULL);
 
   /* Should call Child_eq recursively */
-  ASSERT(strstr(code, "if (!Child_eq(a->child, b->child)) return 0;"));
+  ASSERT(strstr(code, "{ int _t = 0; enum cdd_c_error _rc = Child_eq(a->child, "
+                      "b->child, &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
+                      "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -163,11 +165,15 @@ TEST test_eq_array_primitive(void) {
   ASSERT(code != NULL);
 
   /* Check length check */
-  ASSERT(strstr(code, "if (a->n_nums != b->n_nums) return 0;"));
+  ASSERT(strstr(
+      code,
+      "if (a->n_nums != b->n_nums) { *out_eq = 0; return CDD_C_SUCCESS; }"));
   /* Check loop */
   ASSERT(strstr(code, "for (i = 0; i < a->n_nums; ++i)"));
   /* Check access */
-  ASSERT(strstr(code, "if (a->nums[i] != b->nums[i]) return 0;"));
+  ASSERT(strstr(
+      code,
+      "if (a->nums[i] != b->nums[i]) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
   free(code);
   struct_fields_free(&sf);
@@ -221,7 +227,10 @@ TEST test_eq_array_object(void) {
   /* Check loop */
   ASSERT(strstr(code, "for (i = 0; i < a->n_items; ++i)"));
   /* Check recursive array access: Item_eq(a->items[i], b->items[i]) */
-  ASSERT(strstr(code, "if (!Item_eq(a->items[i], b->items[i])) return 0;"));
+  ASSERT(strstr(code,
+                "{ int _t = 0; enum cdd_c_error _rc = Item_eq(a->items[i], "
+                "b->items[i], &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
+                "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
   free(code);
   struct_fields_free(&sf);

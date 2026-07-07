@@ -95,7 +95,7 @@ mock_server_wait_for_request(MockServerPtr server,
  *
  * @param[in] req The request structure to clean.
  */
-extern CDD_TEST_HELPERS_EXPORT void
+extern CDD_TEST_HELPERS_EXPORT enum cdd_c_error
 mock_server_request_cleanup(struct MockServerRequest *req);
 
 #ifdef __cplusplus

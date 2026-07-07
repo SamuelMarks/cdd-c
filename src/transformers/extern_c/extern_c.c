@@ -78,7 +78,7 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
                                         const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
-  int rc;
+  enum cdd_c_error rc = CDD_C_SUCCESS;
   int found_cpp = 0;
   size_t insert_idx = 0;
   cdd_cst_node_t *target_parent = NULL;
@@ -259,9 +259,14 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
         }
 
         if (insert_idx < target_parent->num_children) {
-          cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
+          rc =
+              cdd_cst_insert_child_node_at(target_parent, insert_idx, top_node);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         } else {
-          cdd_cst_append_child_node(target_parent, top_node);
+          rc = cdd_cst_append_child_node(target_parent, top_node);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
         in_extern_c = 1;
       } else {
@@ -291,7 +296,9 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
                 cdd_cst_builder_init(&bld, tree, close_node);
                 cdd_cst_bld_newline(&bld);
                 cdd_cst_bld_extern_c_close(&bld);
-                cdd_cst_insert_child_node_at(target_parent, j, close_node);
+                rc = cdd_cst_insert_child_node_at(target_parent, j, close_node);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 j++; /* skip the close node we just inserted */
                 in_extern_c = 0;
 
@@ -299,7 +306,10 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
                 cdd_cst_builder_init(&bld, tree, reopen_node);
                 cdd_cst_bld_newline(&bld);
                 cdd_cst_bld_extern_c_open(&bld);
-                cdd_cst_insert_child_node_at(target_parent, j + 1, reopen_node);
+                rc = cdd_cst_insert_child_node_at(target_parent, j + 1,
+                                                  reopen_node);
+                if (rc != CDD_C_SUCCESS)
+                  return rc;
                 j++; /* skip the reopen node we just inserted */
                 in_extern_c = 1;
               } else {
@@ -340,13 +350,19 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
             bot_insert_idx--;
           }
           if (bot_insert_idx < target_parent->num_children) {
-            cdd_cst_insert_child_node_at(target_parent, bot_insert_idx,
-                                         bot_node);
+            rc = cdd_cst_insert_child_node_at(target_parent, bot_insert_idx,
+                                              bot_node);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           } else {
-            cdd_cst_append_child_node(target_parent, bot_node);
+            rc = cdd_cst_append_child_node(target_parent, bot_node);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         } else {
-          cdd_cst_append_child_node(target_parent, bot_node);
+          rc = cdd_cst_append_child_node(target_parent, bot_node);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       } else {
         free(bot_node->children);

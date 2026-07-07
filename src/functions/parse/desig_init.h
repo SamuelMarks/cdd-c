@@ -52,7 +52,8 @@ struct DesigInitList {
 /**
  * @brief Initialize a list of designated initializers.
  */
-extern C_CDD_EXPORT void desig_init_list_init(struct DesigInitList *list);
+extern C_CDD_EXPORT enum cdd_c_error
+desig_init_list_init(struct DesigInitList *list);
 
 /**
  * @brief Free resources associated with a designated initializer list.

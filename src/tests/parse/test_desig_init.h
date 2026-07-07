@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_desig_init.h
  * @brief Unit tests for designated initializer analysis.
@@ -36,7 +34,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
                     "};\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
-  desig_init_list_init(&list);
+  (void)desig_init_list_init(&list);
 
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
 
@@ -66,7 +64,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
 TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
-  desig_init_list_init(&list);
+  (void)desig_init_list_init(&list);
   ASSERT_EQ(0, tokenize(az_span_create_from_str("int x = 1;"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

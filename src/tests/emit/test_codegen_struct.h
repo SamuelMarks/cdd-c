@@ -53,7 +53,7 @@ TEST test_cleanup_generation(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "void User_cleanup(struct User *obj)"));
+  ASSERT(strstr(content, "enum cdd_c_error User_cleanup(struct User *obj)"));
   ASSERT(strstr(content, "if (!obj) return;"));
   ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
   ASSERT(strstr(content, "free(obj);"));
@@ -159,7 +159,7 @@ TEST test_eq_generation(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "if (a == b) return 1;"));
+  ASSERT(strstr(content, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
   ASSERT(strstr(content, "a->id != b->id"));
   ASSERT(strstr(content, "strcmp(a->name, b->name)"));
 
@@ -394,8 +394,6 @@ TEST test_struct_io_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_struct_fields_init_fail;
 extern C_CDD_EXPORT int g_struct_fields_add_fail;
 #endif

@@ -35,13 +35,13 @@ static const char *kStrDupFunc = "strdup";
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
 #else
     ;
 #endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
@@ -52,7 +52,7 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return ret;
 }
 /** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK cdd_fprintf_hook
+#define FPRINTF_HOOK test_cdd_fprintf_hook
 #else
 /** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
@@ -327,7 +327,7 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
   CHECK_IO(FPRINTF_HOOK(fp,
-                        "void %s_cleanup(struct %s *obj) {\n"
+                        "enum cdd_c_error %s_cleanup(struct %s *obj) {\n"
                         "  if (!obj) return;\n",
                         struct_name, struct_name));
 
@@ -393,9 +393,10 @@ write_struct_deepcopy_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(
-      fp, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
-      struct_name, struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "enum cdd_c_error %s_deepcopy(const struct %s *src, "
+                        "struct %s **dest) {\n",
+                        struct_name, struct_name, struct_name));
   CHECK_IO(FPRINTF_HOOK(fp,
                         "  if (!dest) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
                         "  if (!src) { *dest = NULL; return CDD_C_SUCCESS; }\n"
@@ -451,10 +452,12 @@ write_struct_eq_func(FILE *fp, const char *struct_name,
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
   CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_eq(const struct %s *a, const struct %s *b) {\n",
+                        "enum cdd_c_error %s_eq(const struct %s *a, const "
+                        "struct %s *b, int *out_eq) {\n",
                         struct_name, struct_name, struct_name));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (a == b) return 1;\n"
-                            "  if (!a || !b) return 0;\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }\n"
+          "  if (!a || !b) { *out_eq = 0; return CDD_C_SUCCESS; }\n"));
 
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  { size_t i;\n"));
@@ -468,35 +471,53 @@ write_struct_eq_func(FILE *fp, const char *struct_name,
     if (strcmp(t, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
                             "  if (a->%s != b->%s && (!a->%s || !b->%s || "
-                            "strcmp(a->%s, b->%s) != 0)) return 0;\n",
+                            "strcmp(a->%s, b->%s) != 0)) { *out_eq = 0; return "
+                            "CDD_C_SUCCESS; }\n",
                             n, n, n, n, n, n));
     } else if (strcmp(t, "object") == 0) {
       CHECK_IO(
-          FPRINTF_HOOK(fp, "  if (!%s_eq(a->%s, b->%s)) return 0;\n", r, n, n));
+          FPRINTF_HOOK(fp,
+                       "  { int _t = 0; enum cdd_c_error _rc = %s_eq(a->%s, "
+                       "b->%s, &_t); if (_rc != CDD_C_SUCCESS) return _rc; if "
+                       "(!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }\n",
+                       r, n, n));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (a->n_%s != b->n_%s) return 0;\n", n, n));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  if (a->n_%s != b->n_%s) { *out_eq = 0; return CDD_C_SUCCESS; }\n",
+          n, n));
       CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "number") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp, "    if (a->%s[i] != b->%s[i]) return 0;\n",
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    if (a->%s[i] != b->%s[i]) { *out_eq = 0; "
+                              "return CDD_C_SUCCESS; }\n",
                               n, n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "    if (strcmp(a->%s[i], b->%s[i]) != 0) return 0;\n", n, n));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    if (strcmp(a->%s[i], b->%s[i]) != 0) { "
+                              "*out_eq = 0; return CDD_C_SUCCESS; }\n",
+                              n, n));
       } else {
         CHECK_IO(FPRINTF_HOOK(
-            fp, "    if (!%s_eq(a->%s[i], b->%s[i])) return 0;\n", r, n, n));
+            fp,
+            "    { int _t = 0; enum cdd_c_error _rc = %s_eq(a->%s[i], "
+            "b->%s[i], &_t); if (_rc != CDD_C_SUCCESS) return _rc; if (!_t) { "
+            "*out_eq = 0; return CDD_C_SUCCESS; } }\n",
+            r, n, n));
       }
       CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
     } else {
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (a->%s != b->%s) return 0;\n", n, n));
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "  if (a->%s != b->%s) { *out_eq = 0; return CDD_C_SUCCESS; }\n",
+          n, n));
     }
   }
 
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  return 1;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  *out_eq = 1; return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
@@ -528,8 +549,8 @@ write_struct_default_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "int %s_default(struct %s **out) {\n", struct_name,
-                        struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "enum cdd_c_error %s_default(struct %s **out) {\n",
+                        struct_name, struct_name));
   if (rc_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
 

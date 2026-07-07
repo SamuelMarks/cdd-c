@@ -108,7 +108,7 @@ patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
  *
  * @param[in] list The list to sort.
  */
-extern C_CDD_EXPORT void patch_list_sort(struct PatchList *list);
+extern C_CDD_EXPORT enum cdd_c_error patch_list_sort(struct PatchList *list);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_safe_crt.h
  * @brief Unit tests for Safe CRT transformations.
@@ -45,7 +43,7 @@ TEST test_safe_crt_strcpy(void) {
   rc = parse_tokens(tokens, nodes);
   ASSERT_EQ(0, rc);
 
-  safe_crt_patch_list_init(&patches);
+  (void)safe_crt_patch_list_init(&patches);
   rc = cst_generate_safe_crt_patches(nodes, tokens, &patches);
   ASSERT_EQ(0, rc);
 

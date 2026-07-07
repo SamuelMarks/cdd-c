@@ -18,12 +18,13 @@
  * @brief Initializes a macro overlay list.
  *
  */
-void macro_overlay_list_init(struct MacroOverlayList *list) {
+enum cdd_c_error macro_overlay_list_init(struct MacroOverlayList *list) {
   if (!list)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   list->nodes = NULL;
   list->size = 0;
   list->capacity = 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

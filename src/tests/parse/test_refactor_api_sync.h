@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_refactor_api_sync.h
  * @brief Unit tests for refactoring API sync logic.
@@ -33,7 +31,7 @@ static enum cdd_c_error load_spec(const char *json, struct OpenAPI_Spec *spec) {
   int rc;
   if (!dyn)
     return -1;
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;

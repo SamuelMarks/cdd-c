@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_MACRO_OVERLAY_H
 #define TEST_MACRO_OVERLAY_H
 
@@ -21,7 +19,7 @@ TEST test_macro_overlay_basic(void) {
   cst.capacity = 0;
   cst.nodes = NULL;
 
-  macro_overlay_list_init(&list);
+  (void)macro_overlay_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_build_macro_overlay(NULL, tl, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -38,7 +36,7 @@ TEST test_macro_overlay_basic(void) {
 }
 
 TEST test_macro_overlay_null_args(void) {
-  macro_overlay_list_init(NULL);
+  (void)macro_overlay_list_init(NULL);
   macro_overlay_list_free(NULL);
   g_fail_io_after = -1;
   PASS();
@@ -56,7 +54,7 @@ TEST test_macro_overlay_with_nodes(void) {
   cst.nodes = calloc(1, sizeof(struct CstNode));
   cst.nodes[0].kind = CST_NODE_MACRO;
 
-  macro_overlay_list_init(&list);
+  (void)macro_overlay_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_build_macro_overlay(NULL, tl, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -75,7 +73,7 @@ TEST test_macro_overlay_with_nodes(void) {
   }
 
   macro_overlay_list_free(&list);
-  macro_overlay_list_init(&list);
+  (void)macro_overlay_list_init(&list);
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
   ASSERT_EQ(10, list.size);
 
@@ -94,7 +92,7 @@ TEST test_macro_overlay_free_with_expanded(void) {
   struct MacroOverlayList list;
   struct CstNodeList *expanded;
 
-  macro_overlay_list_init(&list);
+  (void)macro_overlay_list_init(&list);
 
   expanded = calloc(1, sizeof(struct CstNodeList));
   expanded->nodes = calloc(1, sizeof(struct CstNode));

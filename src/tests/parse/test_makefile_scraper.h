@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_makefile_scraper.h
  * @brief Unit tests for Makefile/configure.ac scraper.
@@ -32,7 +30,7 @@ TEST test_scrape_makefile_basic(void) {
                          "CFLAGS=-I./include -DDEBUG=1\n"
                          "SRCS=main.c util.c";
 
-  build_info_init(&info);
+  (void)build_info_init(&info);
   ASSERT_EQ(0, scrape_makefile(&info, makefile));
 
   ASSERT_EQ(2, info.source_files_n);
@@ -71,7 +69,7 @@ TEST test_scrape_errors(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
 
-  build_info_init(&info);
+  (void)build_info_init(&info);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(NULL, "Makefile"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(&info, NULL));
@@ -98,7 +96,7 @@ TEST test_scrape_configure_ac_basic(void) {
                        "AC_CONFIG_SRCDIR([main.c])\n"
                        "CFLAGS=\"-Iinc -DTEST\"\n";
 
-  build_info_init(&info);
+  (void)build_info_init(&info);
   ASSERT_EQ(0, scrape_configure_ac(&info, config));
 
   ASSERT_EQ(1, info.source_files_n);

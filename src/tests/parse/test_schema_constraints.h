@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_schema_constraints.h
  * @brief Unit tests for OpenAPI schema constraint enforcement.
@@ -762,7 +760,7 @@ TEST test_schema_type_union_roundtrip(void) {
   PASS();
 }
 
-TEST test_schema_constraints_cleanup_branch(void) {
+TEST test_schema_constraints_free_branch(void) {
   struct SchemaConstraints sc;
 
   /* NULL checks */
@@ -771,7 +769,7 @@ TEST test_schema_constraints_cleanup_branch(void) {
             schema_constraints_add_required(NULL, "a"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             schema_constraints_add_required(&sc, NULL));
-  schema_constraints_cleanup(NULL);
+  schema_constraints_free(NULL);
 
   schema_constraints_init(&sc);
 
@@ -787,14 +785,14 @@ TEST test_schema_constraints_cleanup_branch(void) {
   sc.additional_properties->ref = malloc(4);
   strcpy(sc.additional_properties->ref, "baz");
 
-  schema_constraints_cleanup(&sc);
+  schema_constraints_free(&sc);
 
   /* required[i] == NULL */
   schema_constraints_init(&sc);
   schema_constraints_add_required(&sc, "r");
   free(sc.required[0]);
   sc.required[0] = NULL;
-  schema_constraints_cleanup(&sc);
+  schema_constraints_free(&sc);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -805,7 +803,7 @@ TEST test_schema_constraints_cleanup_branch(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               schema_constraints_add_required(&sc_oom, "req2"));
     g_schema_strdup_fail = 0;
-    schema_constraints_cleanup(&sc_oom);
+    schema_constraints_free(&sc_oom);
   }
 #endif
   g_fail_io_after = -1;
@@ -813,12 +811,12 @@ TEST test_schema_constraints_cleanup_branch(void) {
   PASS();
 }
 
-TEST test_schema_constraints_cleanup_null_fields(void) {
+TEST test_schema_constraints_free_null_fields(void) {
   struct SchemaConstraints sc;
   schema_constraints_init(&sc);
 
   sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
-  schema_constraints_cleanup(&sc);
+  schema_constraints_free(&sc);
   g_fail_io_after = -1;
 
   PASS();
@@ -833,8 +831,8 @@ SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_keyword_passthrough);
   RUN_TEST(test_schema_allof_keyword_merge);
   RUN_TEST(test_schema_type_union_roundtrip);
-  RUN_TEST(test_schema_constraints_cleanup_null_fields);
-  RUN_TEST(test_schema_constraints_cleanup_branch);
+  RUN_TEST(test_schema_constraints_free_null_fields);
+  RUN_TEST(test_schema_constraints_free_branch);
 }
 
 #ifdef __cplusplus

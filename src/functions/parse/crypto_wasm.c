@@ -5,7 +5,11 @@
 
 /* clang-format off */
 #include "functions/parse/crypto_types.h"
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#include "msvc/stdint.h"
+#else
 #include <stdint.h>
+#endif
 #include <string.h>
 
 #ifdef __EMSCRIPTEN__
@@ -73,7 +77,7 @@ static const uint32_t cdd_k[64] = {
 #define CDD_SIG0(x) (CDD_ROTRIGHT(x,7) ^ CDD_ROTRIGHT(x,18) ^ ((x) >> 3))
 #define CDD_SIG1(x) (CDD_ROTRIGHT(x,17) ^ CDD_ROTRIGHT(x,19) ^ ((x) >> 10))
 
-static void cdd_sha256_transform(struct cdd_sha256_ctx *ctx, const uint8_t data[]) {
+static enum cdd_c_error cdd_sha256_transform(struct cdd_sha256_ctx *ctx, const uint8_t data[]) {
   uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
 
   for (i = 0, j = 0; i < 16; ++i, j += 4)
@@ -93,18 +97,20 @@ static void cdd_sha256_transform(struct cdd_sha256_ctx *ctx, const uint8_t data[
 
   ctx->state[0] += a; ctx->state[1] += b; ctx->state[2] += c; ctx->state[3] += d;
   ctx->state[4] += e; ctx->state[5] += f; ctx->state[6] += g; ctx->state[7] += h;
+  return CDD_C_SUCCESS;
 }
 
-static void cdd_sha256_init(struct cdd_sha256_ctx *ctx) {
+static enum cdd_c_error cdd_sha256_init(struct cdd_sha256_ctx *ctx) {
   ctx->datalen = 0;
   ctx->bitlen = 0;
   ctx->state[0] = 0x6a09e667; ctx->state[1] = 0xbb67ae85;
   ctx->state[2] = 0x3c6ef372; ctx->state[3] = 0xa54ff53a;
   ctx->state[4] = 0x510e527f; ctx->state[5] = 0x9b05688c;
   ctx->state[6] = 0x1f83d9ab; ctx->state[7] = 0x5be0cd19;
+  return CDD_C_SUCCESS;
 }
 
-static void cdd_sha256_update(struct cdd_sha256_ctx *ctx, const uint8_t data[], size_t len) {
+static enum cdd_c_error cdd_sha256_update(struct cdd_sha256_ctx *ctx, const uint8_t data[], size_t len) {
   size_t i;
   for (i = 0; i < len; ++i) {
     ctx->data[ctx->datalen] = data[i];
@@ -115,9 +121,10 @@ static void cdd_sha256_update(struct cdd_sha256_ctx *ctx, const uint8_t data[], 
       ctx->datalen = 0;
     }
   }
+  return CDD_C_SUCCESS;
 }
 
-static void cdd_sha256_final(struct cdd_sha256_ctx *ctx, uint8_t hash[]) {
+static enum cdd_c_error cdd_sha256_final(struct cdd_sha256_ctx *ctx, uint8_t hash[]) {
   uint32_t i;
   i = ctx->datalen;
   if (ctx->datalen < 56) {
@@ -149,6 +156,7 @@ static void cdd_sha256_final(struct cdd_sha256_ctx *ctx, uint8_t hash[]) {
     hash[i + 24] = (uint8_t)((ctx->state[6] >> (24 - i * 8)) & 0x000000ff);
     hash[i + 28] = (uint8_t)((ctx->state[7] >> (24 - i * 8)) & 0x000000ff);
   }
+  return CDD_C_SUCCESS;
 }
 /* clang-format on */
 
@@ -165,11 +173,11 @@ enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
 
   {
     struct cdd_sha256_ctx ctx;
-    cdd_sha256_init(&ctx);
+    (void)cdd_sha256_init(&ctx);
     if (data && data_len > 0) {
-      cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+      (void)cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
     }
-    cdd_sha256_final(&ctx, out_digest);
+    (void)cdd_sha256_final(&ctx, out_digest);
     return CDD_C_SUCCESS;
   }
 }
@@ -214,17 +222,17 @@ enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
       k_opad[i] ^= 0x5c;
     }
 
-    cdd_sha256_init(&ctx);
-    cdd_sha256_update(&ctx, k_ipad, 64);
+    (void)cdd_sha256_init(&ctx);
+    (void)cdd_sha256_update(&ctx, k_ipad, 64);
     if (data && data_len > 0) {
-      cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+      (void)cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
     }
-    cdd_sha256_final(&ctx, out_digest);
+    (void)cdd_sha256_final(&ctx, out_digest);
 
-    cdd_sha256_init(&ctx);
-    cdd_sha256_update(&ctx, k_opad, 64);
-    cdd_sha256_update(&ctx, out_digest, 32);
-    cdd_sha256_final(&ctx, out_digest);
+    (void)cdd_sha256_init(&ctx);
+    (void)cdd_sha256_update(&ctx, k_opad, 64);
+    (void)cdd_sha256_update(&ctx, out_digest, 32);
+    (void)cdd_sha256_final(&ctx, out_digest);
 
     return CDD_C_SUCCESS;
   }

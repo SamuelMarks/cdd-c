@@ -4,11 +4,15 @@
 #include "simple.h"
 /* clang-format on */
 
-void Haz_cleanup(struct Haz *const haz) { free(haz); }
+enum cdd_c_error Haz_cleanup(struct Haz *const haz) {
+  free(haz);
+  return CDD_C_SUCCESS;
+}
 
-void Foo_cleanup(struct Foo *const foo) {
+enum cdd_c_error Foo_cleanup(struct Foo *const foo) {
   if (foo == NULL)
-    return;
+    return CDD_C_SUCCESS;
   Haz_cleanup(foo->haz);
   free(foo);
+  return CDD_C_SUCCESS;
 }

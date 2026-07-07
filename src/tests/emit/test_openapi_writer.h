@@ -1,5 +1,3 @@
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_openapi_writer.h
  * @brief Unit tests for OpenAPI Writer module.
@@ -35,7 +33,7 @@ static enum cdd_c_error load_spec_str2(const char *json_str,
   dyn = json_parse_string(json_str);
   if (!dyn)
     return -1;
-  openapi_spec_init(spec);
+  (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;
@@ -157,7 +155,7 @@ TEST test_writer_schema_document(void) {
   _ast_strdup_0 = NULL;
   json = NULL;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   spec.is_schema_document = 1;
   spec.schema_root_json =
       (c_cdd_strdup("{\"type\":\"string\"}", &_ast_strdup_0), _ast_strdup_0);
@@ -4763,7 +4761,7 @@ TEST test_writer_xml_and_oauth(void) {
   char *json;
   json = NULL;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   spec.openapi_version = "3.2.0";
   spec.info.title = "test";
   spec.info.version = "1";
@@ -4805,7 +4803,7 @@ TEST test_writer_xml_types(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  openapi_spec_init(&spec);
+  (void)openapi_spec_init(&spec);
   spec.openapi_version = "3.2.0";
   spec.info.title = "test";
   spec.info.version = "1";
