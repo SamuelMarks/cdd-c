@@ -555,7 +555,7 @@ def main():
                 if found:
                     break
 
-    compile_args = ["-x", "c"]
+    compile_args = ["-x", "c", "-DC_CDD_EXPORT="]
     if args.compile_args:
         # Strip the '--' if it's there
         compile_args.extend(

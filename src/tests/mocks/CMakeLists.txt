@@ -6,7 +6,7 @@ source_group("Header Files" FILES "${Header_Files}")
 set(Source_Files "emit/simple.c" "emit/simple_json.c")
 source_group("Source Files" FILES "${Source_Files}")
 
-add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
+add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
