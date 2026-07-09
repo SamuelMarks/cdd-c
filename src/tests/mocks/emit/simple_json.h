@@ -1,4 +1,3 @@
-#include "cdd_c_error.h"
 #ifndef SIMPLE_JSON_H
 #define SIMPLE_JSON_H
 
@@ -28,14 +27,13 @@ typedef unsigned char bool;
 #endif
 #else
 /* clang-format off */
-#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #include "msvc/stdbool.h"
-#include "cdd_c_error.h"
 #else
 #include <stdbool.h>
 #endif
-#endif
+#include "cdd_c_error.h"
+/* clang-format on */
 #endif
 #endif
 #else

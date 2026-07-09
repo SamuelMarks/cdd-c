@@ -1,3 +1,5 @@
+/* clang-format off */
+/* clang-format on */
 /**
  * @file log.h
  * @brief Logging utilities.

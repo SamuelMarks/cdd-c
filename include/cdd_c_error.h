@@ -1,3 +1,5 @@
+/* clang-format off */
+/* clang-format on */
 #ifndef CDD_C_ERROR_H
 #define CDD_C_ERROR_H
 
