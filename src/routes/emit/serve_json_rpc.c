@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__WATCOMC__) || defined(__DOS__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
 /* No sockets on DOS/Watcom natively */
 #else
 #if defined(_WIN32)
@@ -38,7 +38,7 @@
 #endif
 #endif
 
-#if defined(__WATCOMC__) || defined(__DOS__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
 /** @brief cdd_socket_t */
 typedef int cdd_socket_t;
 /** @brief INVALID_SOCKET */
@@ -549,10 +549,10 @@ static enum cdd_c_error handle_stdio_request(const char *body) {
  * @brief Executes the server json rpc main operation.
  */
 C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
-#if defined(__WATCOMC__) || defined(__DOS__)
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
   (void)argc;
   (void)argv;
-  fprintf(stderr, "Server mode is not supported on DOS.\n");
+  fprintf(stderr, "Server mode is not supported on this platform.\\n");
   return CDD_C_ERROR_UNKNOWN;
 #else
   int port = getenv("CDD_PORT") ? atoi(getenv("CDD_PORT")) : 8080;

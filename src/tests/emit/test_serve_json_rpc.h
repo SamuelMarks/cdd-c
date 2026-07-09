@@ -70,7 +70,7 @@ TEST test_serve_json_rpc_bind_fail(void) {
 
   /* It should fail to bind or listen */
   rc = serve_json_rpc_main(argc, argv);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  ASSERT(rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_UNKNOWN);
 
 #if defined(_WIN32)
   closesocket(server_fd);
@@ -117,7 +117,8 @@ TEST test_serve_json_rpc_basic(void) {
   /* Note: Depending on parallel testing or permission, bind might fail if port
      12345 is in use. We can just assert it doesn't crash. If bind succeeds it
      returns 0. If fails, it returns 1. */
-  ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM);
+  ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
+         rc == CDD_C_ERROR_UNKNOWN);
   g_fail_io_after = -1;
 
   PASS();
@@ -136,7 +137,8 @@ TEST test_serve_json_rpc_bad_port(void) {
   int rc;
 
   rc = serve_json_rpc_main(argc, argv);
-  ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM);
+  ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
+         rc == CDD_C_ERROR_UNKNOWN);
   g_fail_io_after = -1;
 
   PASS();
