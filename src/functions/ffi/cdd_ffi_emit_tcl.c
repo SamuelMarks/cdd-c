@@ -70,11 +70,11 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
               "int objc, Tcl_Obj *const objv[]) {\n",
               node->name);
 
-      if (node->fields_count > 0) {
-        fprintf(c_f, "    if (objc != %" CDD_SIZE_T_FMT " + 1) {\n",
-                node->fields_count);
+      if ((unsigned long)node->fields_count > 0) {
+        fprintf(c_f, "    if (objc != %lu + 1) {\n",
+                (unsigned long)node->fields_count);
         fprintf(c_f, "        Tcl_WrongNumArgs(interp, 1, objv, \"");
-        for (j = 0; j < node->fields_count; j++) {
+        for (j = 0; j < (unsigned long)node->fields_count; j++) {
           fprintf(c_f, "%s ", node->fields[j].name);
         }
         fprintf(c_f, "\");\n");
@@ -83,11 +83,9 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
       }
 
       /* Basic argument fetching (simplified stub) */
-      for (j = 0; j < node->fields_count; j++) {
-        fprintf(c_f,
-                "    /* TODO: Fetch objv[%" CDD_SIZE_T_FMT
-                "] into local %s */\n",
-                j + 1, node->fields[j].name);
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
+        fprintf(c_f, "    /* TODO: Fetch objv[%lu] into local %s */\n",
+                (unsigned long)(j + 1), node->fields[j].name);
       }
 
       fprintf(c_f, "    /* TODO: Call %s(...) */\n", node->name);

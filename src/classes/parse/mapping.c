@@ -151,8 +151,7 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (c_mapping_init(out) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  c_mapping_init(out);
 
   /* Pointer/Array detection works on raw type */
   if (strchr(c_type, '*'))
@@ -234,7 +233,7 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
     } else {
       /* Fallback: Unknown type (defaults to string usually in schemas?) */
       /* Keep generic T as object for templates */
-      if (strlen(c_type) == 1 || (strchr(c_type, '<') && strchr(c_type, '>'))) {
+      if (strlen(c_type) == 1) {
         rc = set_ref(out, c_type);
       } else {
         rc = set_primitive(out, "string", NULL);

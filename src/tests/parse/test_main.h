@@ -99,8 +99,8 @@ TEST test_main_subcommands(void) {
   char *argv_to_openapi[] = {"cdd-c", "to_openapi", "-f", "dir"};
   char *argv_to_docs[] = {"cdd-c", "to_docs_json", "-i", "spec.json"};
   char *argv_from_openapi[] = {
-      "cdd-c",     "from_openapi", "to_sdk",        "-i",
-      "spec.json", "-o",           "test_out_dir_3"};
+      "cdd-c", "from_openapi",        "to_sdk", "-i", "spec.json",
+      "-o",    "build/test_out_dir_3"};
   char *argv_serve_json_rpc[] = {"cdd-c", "serve_json_rpc"};
   char *argv_transformer[] = {"cdd-c", "transformer", "--help"};
 
@@ -126,10 +126,11 @@ TEST test_main_subcommands(void) {
  * @return The result of the test.
  */
 TEST test_main_from_openapi_cli_options(void) {
-  char *argv_cli[] = {"cdd-c",     "from_openapi", "to_sdk_cli",  "-i",
-                      "spec.json", "-o",           "test_out_dir"};
-  char *argv_server[] = {"cdd-c",     "from_openapi", "to_server",     "-i",
-                         "spec.json", "-o",           "test_out_dir_2"};
+  char *argv_cli[] = {"cdd-c",     "from_openapi", "to_sdk_cli",        "-i",
+                      "spec.json", "-o",           "build/test_out_dir"};
+  char *argv_server[] = {
+      "cdd-c",     "from_openapi", "to_server",           "-i",
+      "spec.json", "-o",           "build/test_out_dir_2"};
   char *argv_help[] = {"cdd-c", "from_openapi", "--help"};
   char *argv_err[] = {"cdd-c", "from_openapi", "to_sdk", "-o", "out_dir"};
   char *argv_flags[] = {"cdd-c",
@@ -157,7 +158,7 @@ TEST test_main_from_openapi_cli_options(void) {
   _putenv("CDD_OUTPUT=test_out_dir_env");
 #else
   setenv("CDD_INPUT", "spec.json", 1);
-  setenv("CDD_OUTPUT", "test_out_dir_env", 1);
+  setenv("CDD_OUTPUT", "build/test_out_dir_env", 1);
 #endif
 
   /* Create a dummy spec to test the execution */

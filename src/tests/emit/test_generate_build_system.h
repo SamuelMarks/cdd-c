@@ -158,13 +158,22 @@ TEST test_gen_cmake_null_args(void) {
 }
 
 TEST test_gen_cmake_null_outdir(void) {
-  /* This should create CMakeLists.txt and src/CMakeLists.txt in the current
-   * directory */
-  int rc = generate_cmake_project(NULL, "MyLib", 0);
+  int rc;
+
+  /* Backup existing CMakeLists.txt if any */
+  rename("CMakeLists.txt", "CMakeLists.txt.bak");
+  rename("src/CMakeLists.txt", "src/CMakeLists.txt.bak");
+
+  rc = generate_cmake_project(NULL, "MyLib", 0);
   ASSERT_EQ(0, rc);
+
   remove("CMakeLists.txt");
   remove("src/CMakeLists.txt");
-  /* Don't strictly need to rmdir src but it's polite */
+
+  /* Restore */
+  rename("CMakeLists.txt.bak", "CMakeLists.txt");
+  rename("src/CMakeLists.txt.bak", "src/CMakeLists.txt");
+
   g_fail_io_after = -1;
   PASS();
 }

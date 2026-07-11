@@ -190,9 +190,6 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   ASSERT(strstr(out, "int *arr = malloc((n) * sizeof(*arr))") != NULL);
-  if (strstr(out, "free(arr)") == NULL) {
-    printf("OUTPUT:\n%s\n", out);
-  }
   ASSERT(strstr(out, "free(arr)") != NULL);
 
   free(out);
@@ -216,13 +213,7 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
-  if (strstr(out, "malloc") == NULL || strstr(out, "x * y * z") == NULL) {
-    printf("VLA_MULTIDIM OUT ERROR: [%s]\n", out);
-  }
   ASSERT(strstr(out, "malloc") != NULL);
-  if (strstr(out, "free(arr)") == NULL) {
-    printf("OUTPUT:\n%s\n", out);
-  }
   ASSERT(strstr(out, "free(arr)") != NULL);
 
   free(out);
@@ -480,9 +471,6 @@ TEST test_gnu_standardizer_shuffle(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   ASSERT(strstr(out, "cdd_builtin_shuffle(a, b, mask)") != NULL);
-  if (strstr(out, "cdd_builtin_shufflevector(a, b, 0, 1)") == NULL) {
-    printf("OUT WAS: [%s]\n", out);
-  }
   ASSERT(strstr(out, "cdd_builtin_shufflevector(a, b, 0, 1)") != NULL);
 
   free(out);
@@ -508,19 +496,11 @@ TEST test_gnu_standardizer_cleanup(void) {
   memset(&config, 0, sizeof(config));
   {
     int rc = cdd_transform_gnu(tree, &config);
-    if (rc != 0) {
-      printf("ERROR CODE: %d\n", rc);
-    }
     ASSERT_EQ(0, rc);
   }
 
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
-  if (strstr(out, "my_free(&x);") == NULL) {
-    FILE *f = fopen("DEBUG_OUT.txt", "wb");
-    fwrite(out, 1, strlen(out), f);
-    fclose(f);
-  }
   ASSERT(strstr(out, "my_free(&x);") != NULL);
   ASSERT(strstr(out, "goto cross-scope cleanups unsupported") != NULL);
   ASSERT(strstr(out, "return __cdd_ret;") != NULL);

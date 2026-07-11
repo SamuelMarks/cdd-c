@@ -24,9 +24,6 @@ typedef struct {
  */
 static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
   size_t i;
-  if (!name) {
-    return (size_t)-1;
-  }
   /* printf("toposort searching for dep: %s\n", name); */
   for (i = 0; i < ir->nodes_count; i++) {
     if (ir->nodes[i].name && strcmp(ir->nodes[i].name, name) == 0) {
@@ -41,7 +38,6 @@ static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
  * @brief DFS function for topological sorting.
  * @param ctx The sort context.
  * @param node_idx The index of the current node.
- * @return 0 on success, or an error code.
  */
 static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   cdd_ffi_ir_node_t *node;
@@ -72,9 +68,10 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
            case, but we'll sort it anyway if we find it. */
         size_t dep_idx = find_node_index(ctx->ir, type->ref_name);
         if (dep_idx != (size_t)-1) {
-          int res = toposort_dfs(ctx, dep_idx);
-          if (res != 0) {
-            return res;
+          {
+            enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
+            if (rc != CDD_C_SUCCESS)
+              return rc;
           }
         }
       }
@@ -87,9 +84,10 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
       size_t dep_idx =
           find_node_index(ctx->ir, node->return_or_base_type.ref_name);
       if (dep_idx != (size_t)-1) {
-        int res = toposort_dfs(ctx, dep_idx);
-        if (res != 0) {
-          return res;
+        {
+          enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
@@ -98,14 +96,17 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   ctx->visited[node_idx] = 2;
   /* Shallow copy the node to the sorted array */
   ctx->sorted_nodes[ctx->sorted_count++] = *node;
-
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail = 0;
+C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail = 0;
+#endif
 
 enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   toposort_ctx_t ctx;
   size_t i;
-  int res = 0;
 
   if (!ir) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -115,13 +116,23 @@ enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
   }
 
   ctx.ir = ir;
-  ctx.visited = (int *)calloc(ir->nodes_count, sizeof(int));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_ffi_ir_calloc_fail)
+    ctx.visited = NULL;
+  else
+#endif
+    ctx.visited = (int *)calloc(ir->nodes_count, sizeof(int));
   if (!ctx.visited) {
     return CDD_C_ERROR_MEMORY;
   }
 
-  ctx.sorted_nodes =
-      (cdd_ffi_ir_node_t *)malloc(ir->nodes_count * sizeof(cdd_ffi_ir_node_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_ffi_ir_malloc_fail)
+    ctx.sorted_nodes = NULL;
+  else
+#endif
+    ctx.sorted_nodes = (cdd_ffi_ir_node_t *)malloc(ir->nodes_count *
+                                                   sizeof(cdd_ffi_ir_node_t));
   if (!ctx.sorted_nodes) {
     free(ctx.visited);
     return CDD_C_ERROR_MEMORY;
@@ -130,11 +141,13 @@ enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
 
   for (i = 0; i < ir->nodes_count; i++) {
     if (ctx.visited[i] == 0) {
-      res = toposort_dfs(&ctx, i);
-      if (res != 0) {
-        free(ctx.visited);
-        free(ctx.sorted_nodes);
-        return res;
+      {
+        enum cdd_c_error rc = toposort_dfs(&ctx, i);
+        if (rc != CDD_C_SUCCESS) {
+          free(ctx.visited);
+          free(ctx.sorted_nodes);
+          return rc;
+        }
       }
     }
   }

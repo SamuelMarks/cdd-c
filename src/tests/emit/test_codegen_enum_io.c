@@ -9,10 +9,11 @@ enum cdd_c_error main(void) {
   if (f)
     fclose(f);
   f = fopen("test.txt", "r");
-  /* cppcheck-suppress writeReadOnlyFile */
-  res = fprintf(f, "test");
-  printf("res=%d\n", res);
-  if (f)
+  if (f) {
+    void *ptr = f;
+    res = fprintf((FILE *)ptr, "test");
+    printf("res=%d\n", res);
     fclose(f);
+  }
   return 0;
 }

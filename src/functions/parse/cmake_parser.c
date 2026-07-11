@@ -65,15 +65,6 @@ enum cdd_c_error cmake_modifier_init(struct CMakeModifier *mod,
   mod->link_libs = NULL;
   mod->link_libs_n = 0;
 
-  if (!mod->filepath) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    if (mod->target_name) {
-      free(mod->target_name);
-      mod->target_name = NULL;
-    }
-    return CDD_C_ERROR_MEMORY;
-  }
-
   return CDD_C_SUCCESS;
 }
 

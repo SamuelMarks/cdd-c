@@ -82,12 +82,81 @@ TEST test_cdd_transform_macros_operators(void) {
   PASS();
 }
 
+TEST test_cdd_transform_macros_alloc_fails(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "#define STRINGIFY(x) #x\n"
+                     "#define CONCAT(a, b) a ## b\n"
+                     "#define FOO(a) a + 1\n"
+                     "int main() {\n"
+                     "  STRINGIFY(hello);\n"
+                     "  CONCAT(4, 2);\n"
+                     "  FOO(42);\n"
+                     "}\n";
+  int rc;
+  int k;
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+
+  /* Null arg */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_macros(NULL, &config));
+
+  for (k = 1; k < 500; k++) {
+    tree = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+#ifdef CDD_BUILD_TESTS
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    g_cdd_cst_alloc_node_fail = k;
+    g_cdd_cst_realloc_fail = 0;
+#endif
+    rc = cdd_transform_macros(tree, &config);
+    (void)rc;
+#ifdef CDD_BUILD_TESTS
+    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_realloc_fail = 0;
+#endif
+    cdd_cst_tree_free(tree);
+  }
+
+  for (k = 1; k < 500; k++) {
+    tree = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+#ifdef CDD_BUILD_TESTS
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_realloc_fail = k;
+#endif
+    rc = cdd_transform_macros(tree, &config);
+    (void)rc;
+#ifdef CDD_BUILD_TESTS
+    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_realloc_fail = 0;
+#endif
+    cdd_cst_tree_free(tree);
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_query_err_fail;
+    tree = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    g_cdd_query_err_fail = 1;
+    rc = cdd_transform_macros(tree, &config);
+    g_cdd_query_err_fail = 0;
+    cdd_cst_tree_free(tree);
+  }
+#endif
+  g_fail_io_after = -1;
+  PASS();
+}
+
 /**
  * @brief Test suite for Macro AST transformation.
  */
 SUITE(transformer_macros_suite) {
   RUN_TEST(test_cdd_transform_macros);
   RUN_TEST(test_cdd_transform_macros_operators);
+  RUN_TEST(test_cdd_transform_macros_alloc_fails);
 }
 
 #ifdef __cplusplus

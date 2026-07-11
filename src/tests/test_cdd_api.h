@@ -26,6 +26,15 @@ TEST test_cdd_generate_from_openapi(void) {
   config.tests = 1;
   cdd_generate_from_openapi(&config);
 
+  /* Cover branches where flags are false but input_dir is not set, input not
+   * set */
+  config.input_dir = NULL;
+  config.no_github_actions = 0;
+  config.no_installable_package = 0;
+  config.tests = 0;
+  config.output = NULL;
+  cdd_generate_from_openapi(&config);
+
   PASS();
 }
 
@@ -36,6 +45,7 @@ TEST test_cdd_generate_to_openapi(void) {
   config.output = "out.json";
   cdd_generate_to_openapi(&config);
 
+  config.input = NULL;
   config.output = NULL;
   cdd_generate_to_openapi(&config);
 
@@ -51,6 +61,7 @@ TEST test_cdd_generate_docs_json(void) {
   config.no_wrapping = 1;
   cdd_generate_docs_json(&config);
 
+  config.input = NULL;
   config.no_imports = 0;
   config.no_wrapping = 0;
   config.output = NULL;
@@ -64,6 +75,10 @@ TEST test_cdd_serve_json_rpc(void) {
 
   config.port = 1; /* port > 0 */
   config.listen_host = "255";
+  cdd_serve_json_rpc(&config);
+
+  config.port = 0;
+  config.listen_host = NULL;
   cdd_serve_json_rpc(&config);
 
   PASS();

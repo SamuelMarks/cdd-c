@@ -65,6 +65,13 @@ TEST test_cst_create_token(void) {
   ASSERT_EQ(1, tree->num_synthesized);
   ASSERT_EQ(tok, tree->synthesized_tokens[0]);
 
+  /* Cover text == NULL branch */
+  rc = cdd_cst_create_token(tree, CDD_TOKEN_EOF, NULL, &tok);
+  ASSERT_EQ(0, rc);
+  ASSERT(tok != NULL);
+  ASSERT_EQ(NULL, tok->start);
+  ASSERT_EQ(0, tok->length);
+
   /* Force realloc in track_synthesized (default cap is something big, 128?
    * Let's check: 128) */
   {
@@ -74,7 +81,7 @@ TEST test_cst_create_token(void) {
       ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo",
                                         &extra_tok));
     }
-    ASSERT_EQ(131, tree->num_synthesized);
+    ASSERT_EQ(132, tree->num_synthesized);
   }
 
   cdd_cst_tree_free(tree);
@@ -161,6 +168,14 @@ TEST test_cst_append_child_token(void) {
     }
     ASSERT_EQ(16, parent->num_children);
   }
+
+  /* Explicitly expand capacity without appending to cover the `false` branch of
+   * the capacity check */
+  parent->capacity = 50;
+  parent->children = (cdd_cst_child_t *)realloc(parent->children,
+                                                50 * sizeof(cdd_cst_child_t));
+  ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
+  ASSERT_EQ(17, parent->num_children);
 
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
@@ -252,6 +267,75 @@ TEST test_cdd_cst_parse_format_oom(void) {
   PASS();
 }
 #endif
+TEST test_cst_free_node(void) {
+  cdd_cst_node_t *parent = NULL;
+  cdd_cst_node_t *child_node = NULL;
+  cdd_token_t *child_token = NULL;
+
+  /* Calling with NULL should just return */
+  cdd_cst_free_node(NULL);
+
+  /* Set up a tree with a child node and a child token */
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &parent));
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child_node));
+  child_token = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+  child_token->kind = CDD_TOKEN_IDENTIFIER;
+
+  ASSERT_EQ(0, cdd_cst_append_child_node(parent, child_node));
+  ASSERT_EQ(0, cdd_cst_append_child_token(parent, child_token));
+
+  /* cdd_cst_free_node should recursively free parent and child_node,
+     but leaves child_token allocation alone (since tokens are usually owned by
+     the tree). */
+  cdd_cst_free_node(parent);
+  free(child_token);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cst_parse_format_branches(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *node = NULL;
+  int rc;
+  int i;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+
+  /* Token at root */
+  rc = cdd_cst_parse_format(tree, &node, "/* comment */\n");
+  ASSERT_EQ(0, rc);
+  if (node)
+    cdd_cst_free_node(node);
+  node = NULL;
+
+#ifdef CDD_BUILD_TESTS
+  /* Try varying realloc fails to catch the append fails in parse_format */
+  for (i = 0; i < 500; i++) {
+    g_cdd_cst_realloc_fail = i;
+    rc = cdd_cst_parse_format(tree, &node, "int x;");
+    g_cdd_cst_realloc_fail = 0;
+    if (rc == 0 && node) {
+      cdd_cst_free_node(node);
+      node = NULL;
+    }
+
+    g_cdd_cst_realloc_fail = i;
+    rc =
+        cdd_cst_parse_format(tree, &node, "{ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; }");
+    g_cdd_cst_realloc_fail = 0;
+    if (rc == 0 && node) {
+      cdd_cst_free_node(node);
+      node = NULL;
+    }
+  }
+#endif
+
+  cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
+  PASS();
+}
+
 TEST test_cst_parse_format_extra(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
@@ -268,13 +352,18 @@ TEST test_cst_parse_format_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
     /* fail node alloc inside format parser (use a high value to avoid parser
      * failing first) */
-    g_cdd_cst_alloc_node_fail = 1000;
-    rc = cdd_cst_parse_format(tree, &node, "int x;");
+    int k;
+    for (k = 1; k < 10; k++) {
+      g_cdd_cst_alloc_node_fail = k;
+      rc = cdd_cst_parse_format(tree, &node, "int x;");
+      g_cdd_cst_alloc_node_fail = 0;
+      if (rc == CDD_C_ERROR_MEMORY)
+        break;
+    }
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    g_cdd_cst_alloc_node_fail = 0;
   }
 #endif
 
@@ -289,6 +378,8 @@ SUITE(cdd_cst_factory_suite) {
   RUN_TEST(test_cst_append_child_node);
   RUN_TEST(test_cst_append_child_token);
   RUN_TEST(test_cst_parse_format);
+  RUN_TEST(test_cst_parse_format_branches);
+  RUN_TEST(test_cst_free_node);
   RUN_TEST(test_cst_parse_format_extra);
 #ifdef CDD_BUILD_TESTS
   RUN_TEST(test_cdd_cst_parse_format_oom);

@@ -566,6 +566,7 @@ TEST test_cdd_cst_builder_oom(void) {
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_node(n1, n2));
+    g_cdd_cst_realloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_append_child_token(n1, &tok));
     cdd_cst_free_node_only(n1);
     cdd_cst_free_node_only(n2);

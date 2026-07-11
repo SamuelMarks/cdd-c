@@ -72,6 +72,143 @@ TEST test_macro_evaluator_basic(void) {
   PASS();
 }
 
+TEST test_macro_evaluator_all_ops(void) {
+  struct PreprocessorContext ctx;
+  cdd_macro_eval_result_t res;
+  int rc;
+
+  pp_context_init(&ctx);
+
+  /* Bitwise NOT, XOR, AND, Modulo, Integer Subtract, Integer Divide, Unary
+   * Minus Int */
+  rc = cdd_macro_evaluate(&ctx, "~1 ^ 2 % 3 & 4 - (-1) / 2", &res);
+  ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
+
+  /* Relational, Equality */
+  rc = cdd_macro_evaluate(
+      &ctx,
+      "(1 < 2) && (2 > 1) && (1 <= 1) && (2 >= 2) && (1 == 1) && (1 != 2)",
+      &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(1, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Shifts */
+  rc = cdd_macro_evaluate(&ctx, "(4 >> 1) << 2", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(8, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Floats: Lexing floats, exponents, hex, negate float, divide, relational on
+   * floats, float multiply */
+  rc = cdd_macro_evaluate(&ctx, "0x10 + 1.5e1 - 5.0 / 2.0 * 1.5", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_FLOAT, res.type);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx,
+                          "(1.5 < 2.5) && (2.5 > 1.5) && (1.5 <= 1.5) && (1.5 "
+                          ">= 1.5) && (1.5 == 1.5) && (1.5 != 2.5)",
+                          &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "-1.5 + .5 + 1. + 1e-1", &res);
+  ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "!1.5", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(0, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Identifiers */
+  rc = cdd_macro_evaluate(&ctx, "IDENTIFIER_WITH_NO_VALUE", &res);
+  ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
+
+  pp_context_free(&ctx);
+  PASS();
+}
+
+TEST test_macro_evaluator_errors(void) {
+  struct PreprocessorContext ctx;
+  cdd_macro_eval_result_t res;
+  int rc;
+
+  pp_context_init(&ctx);
+
+  rc = cdd_macro_evaluate(NULL, "1", &res);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 / 0", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 % 0", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1.5 % 2", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "(1 + 2", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 + ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 - ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 * ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 / ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 << ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 < ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 == ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 & ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 ^ ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 | ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 && ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1 || ", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "~1.5", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "$", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "\"unterminated", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1.5e", &res);
+  ASSERT_EQ(0, rc);
+
+  pp_context_free(&ctx);
+  PASS();
+}
+
 /**
  * @brief Tests parsing of object-like macros.
  *
@@ -225,6 +362,8 @@ TEST test_pp_define_variadic_gcc(void) {
  */
 SUITE(preprocessor_macros_suite) {
   RUN_TEST(test_macro_evaluator_basic);
+  RUN_TEST(test_macro_evaluator_all_ops);
+  RUN_TEST(test_macro_evaluator_errors);
   RUN_TEST(test_pp_define_object_like);
   RUN_TEST(test_pp_define_function_like);
   RUN_TEST(test_pp_define_variadic_standard);

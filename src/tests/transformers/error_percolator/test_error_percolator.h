@@ -23,8 +23,7 @@ TEST test_cdd_transform_percolate_errors(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   int rc = cdd_transform_percolate_errors(tree, &config);
-  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
-    ASSERT_EQ(0, rc);
+  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
   cdd_cst_tree_free(tree);
   PASS();
@@ -144,8 +143,7 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   int rc = cdd_transform_percolate_errors(tree, &config);
-  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
-    ASSERT_EQ(0, rc);
+  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
   cdd_cst_tree_free(tree);
   PASS();
@@ -171,8 +169,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   int rc = cdd_transform_percolate_errors(tree, &config);
-  if (rc != 0 && rc != CDD_C_ERROR_PARSE)
-    ASSERT_EQ(0, rc);
+  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
@@ -222,10 +219,6 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   if (tree->root && tree->root->num_children > 0 &&
       tree->root->children[0].kind == CDD_CST_CHILD_NODE) {
     cdd_cst_append_child_node(tree->root->children[0].val.node, unknown_node);
-  } else {
-    free(unknown_node->children);
-    free(unknown_node);
-    free(rbrace_tok);
   }
 
   cdd_transform_percolate_errors(tree, &config);

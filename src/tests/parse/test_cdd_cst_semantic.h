@@ -163,8 +163,6 @@ TEST test_cdd_cst_semantic_tree(void) {
 
   cdd_cst_scope_env_free(env);
   env = NULL;
-  if (env)
-    cdd_cst_scope_env_free(env);
   /* tree->base_tokens automatically tracks generated tokens, so freeing tree
    * frees them. */
   cdd_cst_tree_free(tree);

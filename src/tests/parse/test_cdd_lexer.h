@@ -319,6 +319,18 @@ TEST test_lexer_branches(void) {
   cdd_lexer_free_token_list(list);
 
   list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("$my_$var"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#\n"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \n"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
   rc = cdd_lexer_tokenize(az_span_create_from_str("\"unclosed"), &list);
   cdd_lexer_free_token_list(list);
 

@@ -286,9 +286,31 @@ TEST test_ffi_ir_extract_stl_types(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
+#endif
+
 TEST test_ffi_ir_extract_exports_oom(void) {
-  /* Skipping OOM test since global mock allocators aren't fully wired for this
-   * module yet. */
+#ifdef CDD_BUILD_TESTS
+
+  cdd_generate_bindings_config_t config = {0};
+  cdd_ffi_ir_t *ir = NULL;
+  int rc;
+  int k;
+  const char *code =
+      "struct A { int x; }; void foo(int a); struct Point<int> { int y; };";
+
+  for (k = 1; k < 200; k++) {
+    ir = NULL;
+    g_ffi_extractor_alloc_fail = k;
+    rc = cdd_ffi_ir_extract_exports("dummy.h", code, &config, &ir);
+    (void)rc;
+    g_ffi_extractor_alloc_fail = 0;
+    if (ir)
+      cdd_ffi_ir_free(ir);
+    free(ir);
+  }
+#endif
   PASS();
 }
 

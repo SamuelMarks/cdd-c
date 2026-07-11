@@ -46,6 +46,7 @@ static FILE* cdd_test_tmpfile(void) {
 #include "c_cdd/test_int128.h"
 #include "test_cdd_api.h"
 #include "emit/test_cdd_cst_emit_unit.h"
+#include "emit/test_cst_printer.h"
 #include "emit/test_codegen_build.h"
 #include "emit/test_codegen_client_body.h"
 #include "emit/test_codegen_client_sig.h"
@@ -81,8 +82,10 @@ static FILE* cdd_test_tmpfile(void) {
 #include "parse/test_c_cdd_integration.h"
 #include "parse/test_c_inspector_types.h"
 #include "ffi/test_ffi_extractor.h"
+#include "ffi/test_cdd_ffi_ir.h"
 #include "ffi/test_ffi_e2e.h"
 #include "ffi/test_ffi_variadic.h"
+#include "ffi/test_ffi_emitters.h"
 #include "parse/test_code2schema.h"
 #include "parse/test_crypto.h"
 #include "parse/test_cst_parser.h"
@@ -218,6 +221,9 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_emit_ocaml);
 }
 
+#ifdef CDD_BUILD_TESTS
+#endif
+
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   srand((unsigned int)time(NULL));
@@ -281,6 +287,7 @@ int main(int argc, char **argv) {
   return 0;
 #endif
   RUN_SUITE(cdd_cst_emit_unit_suite);
+  RUN_SUITE(cst_printer_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return 0;
 #endif
@@ -395,7 +402,9 @@ int main(int argc, char **argv) {
   RUN_SUITE(cli_cst_suite);
   RUN_SUITE(cdd_cst_factory_suite);
   RUN_SUITE(ffi_extractor_suite);
+  RUN_SUITE(cdd_ffi_ir_suite);
   RUN_SUITE(ffi_variadic_suite);
+  RUN_SUITE(ffi_emitters_suite);
 
   RUN_SUITE(cdd_cst_builder_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400

@@ -645,7 +645,7 @@ enum cdd_c_error cdd_macro_evaluate(struct PreprocessorContext *ctx,
   parser_t p;
   cdd_macro_eval_result_t r;
 
-  if (!expression || !out_result)
+  if (!ctx || !expression || !out_result)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   p.ctx = ctx;

@@ -191,7 +191,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       fprintf(idl_f, "interface %s {\n", node->name);
       fprintf(idl_f, "  void %s();\n", node->name); /* Constructor */
-      for (j = 0; j < node->fields_count; j++) {
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
         map_idl_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(idl_f, "  attribute %s %s;\n", type_str, node->fields[j].name);
       }
@@ -201,7 +201,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
         fprintf(idl_f, "  \"%s\"%s\n", var->name,
-                j + 1 < node->variants_count ? "," : "");
+                (unsigned long)(j + 1) < node->variants_count ? "," : "");
       }
       fprintf(idl_f, "};\n\n");
     }
@@ -215,10 +215,12 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       map_idl_type(&node->return_or_base_type, ret_type_str,
                    sizeof(ret_type_str));
       fprintf(idl_f, "  %s %s(", ret_type_str, node->name);
-      for (j = 0; j < node->fields_count; j++) {
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
         map_idl_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(idl_f, "%s %s%s", type_str, node->fields[j].name,
-                j + 1 < node->fields_count ? ", " : "");
+                (unsigned long)(j + 1) < (unsigned long)node->fields_count
+                    ? ", "
+                    : "");
       }
       fprintf(idl_f, ");\n");
     }
@@ -245,10 +247,12 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
                 "/* returning type */ void* "); /* Oversimplified for stub */
       }
       fprintf(cpp_f, "wasm_%s(", node->name);
-      for (j = 0; j < node->fields_count; j++) {
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
         /* cppcheck-suppress invalidPrintfArgType_uint */
-        fprintf(cpp_f, "void* arg%" CDD_SIZE_T_FMT "%s", (size_t)j,
-                j + 1 < node->fields_count ? ", " : "");
+        fprintf(cpp_f, "void* arg%lu%s", (unsigned long)j,
+                (unsigned long)(j + 1) < (unsigned long)node->fields_count
+                    ? ", "
+                    : "");
       }
       fprintf(cpp_f, ") {\n");
       fprintf(cpp_f, "    /* Call %s(...) */\n", node->name);
@@ -271,10 +275,12 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       map_ts_type(&node->return_or_base_type, ret_type_str,
                   sizeof(ret_type_str));
       fprintf(ts_f, "  _%s(", node->name);
-      for (j = 0; j < node->fields_count; j++) {
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
         map_ts_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(ts_f, "%s: %s%s", node->fields[j].name, type_str,
-                j + 1 < node->fields_count ? ", " : "");
+                (unsigned long)(j + 1) < (unsigned long)node->fields_count
+                    ? ", "
+                    : "");
       }
       fprintf(ts_f, "): %s;\n", ret_type_str);
     } else if (node->kind == CDD_FFI_NODE_STRUCT ||
@@ -290,7 +296,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
       fprintf(ts_f, "export declare class %s {\n", node->name);
-      for (j = 0; j < node->fields_count; j++) {
+      for (j = 0; j < (unsigned long)node->fields_count; j++) {
         map_ts_type(&node->fields[j].type, type_str, sizeof(type_str));
         fprintf(ts_f, "  %s: %s;\n", node->fields[j].name, type_str);
       }
@@ -300,7 +306,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->variants_count; j++) {
         var = &node->variants[j];
         fprintf(ts_f, "  %s%s\n", var->name,
-                j + 1 < node->variants_count ? "," : "");
+                (unsigned long)(j + 1) < node->variants_count ? "," : "");
       }
       fprintf(ts_f, "}\n\n");
     }

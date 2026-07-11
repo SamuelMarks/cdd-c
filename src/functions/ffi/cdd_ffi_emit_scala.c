@@ -69,14 +69,15 @@ cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
                    const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
-  const char *module_name =
-      config->module_name ? config->module_name : "Bindings";
+  const char *lib_name;
+  const char *module_name;
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
+  lib_name = config->library_name ? config->library_name : "mylib";
+  module_name = config->module_name ? config->module_name : "Bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.scala", config->output_dir,

@@ -32,7 +32,12 @@ TEST test_cdd_transform_msvc(void) {
       "#include <unistd.h>\n#include <sys/time.h>\nint "
       "main() {\n  strcasecmp /* comment */ (\"a\", \"b\");\n  "
       "strncasecmp(\"a\", \"b\", 1);\n  strdup(\"a\");\n  ssize_t s = "
-      "0;\n  __builtin_expect(1, 1);\n  return 0;\n}\n";
+      "0;\n  __builtin_expect(1, 1);\n"
+      "  off_t off; pid_t pid; mode_t m;\n"
+      "  open(1); close(2); read(3); write(4);\n"
+      "  fileno(5); unlink(6); mkdir(7); rmdir(8); getcwd(9);\n"
+      "  snprintf(0); strtok_r(1); isnan(2);\n"
+      "  return 0;\n}\n";
   char *out = NULL;
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
@@ -42,6 +47,26 @@ TEST test_cdd_transform_msvc(void) {
 
   rc = cdd_transform_msvc(tree, &config);
   ASSERT_EQ(0, rc);
+
+  {
+    int i;
+    for (i = 0; i < 100000; i++) {
+      cdd_cst_tree_t *tree_copy = NULL;
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
+      if (rc == 0 && tree_copy) {
+#ifdef CDD_BUILD_TESTS
+        extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+        g_cdd_cst_realloc_fail = i;
+#endif
+        rc = cdd_transform_msvc(tree_copy, &config);
+        (void)rc;
+#ifdef CDD_BUILD_TESTS
+        g_cdd_cst_realloc_fail = 0;
+#endif
+        cdd_cst_tree_free(tree_copy);
+      }
+    }
+  }
 
   /* Test nulls */
   {
@@ -121,16 +146,61 @@ TEST test_cdd_transform_msvc_context(void) {
 TEST test_cdd_transform_msvc_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "#include <unistd.h>\n";
+  int rc;
+  const char *code =
+      "#include <unistd.h>\nvoid f() { __builtin_expect(1, 1); }\n";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 
-  g_msvc_port_bld_fail = 1;
   cdd_transform_msvc(tree, &config);
+
+  /* We need a fresh tree since tokens get replaced */
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+
+  g_msvc_port_bld_fail = 2;
+  rc = cdd_transform_msvc(tree, &config);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_msvc_port_bld_fail = 0;
 
   cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Check token repl fail */
+  {
+    const char *fails[] = {"strcasecmp(\"a\");",
+                           "strncasecmp(\"a\", \"b\", 1);",
+                           "strdup(\"a\");",
+                           "ssize_t s;",
+                           "__builtin_expect(1, 1);",
+                           "off_t o;",
+                           "pid_t p;",
+                           "mode_t m;",
+                           "open(1);",
+                           "close(2);",
+                           "read(3);",
+                           "write(4);",
+                           "fileno(5);",
+                           "unlink(6);",
+                           "mkdir(7);",
+                           "rmdir(8);",
+                           "getcwd(9);",
+                           "snprintf(10);",
+                           "strtok_r(11);",
+                           "isnan(12);"};
+    size_t i;
+    for (i = 0; i < sizeof(fails) / sizeof(fails[0]); i++) {
+      extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+      cdd_cst_parse(az_span_create_from_str((char *)fails[i]), &tree);
+      g_cdd_cst_alloc_token_fail = 1;
+      rc = cdd_transform_msvc(tree, &config);
+      g_cdd_cst_alloc_token_fail = 0;
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+  }
 #endif
   g_fail_io_after = -1;
   PASS();

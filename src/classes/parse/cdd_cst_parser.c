@@ -168,10 +168,14 @@ static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
     {
       cdd_cst_node_t *child = NULL;
       parse_declaration_or_statement(s, b, &child);
-      if (child)
-        append_child_node(b, child);
-      else if (s->err)
+      if (child) {
+        if (append_child_node(b, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
+      } else if (s->err) {
         break;
+      }
     }
   }
 
@@ -275,17 +279,25 @@ static enum cdd_c_error parse_preproc_conditional(parser_state_t *s, cdd_cst_nod
       if (t->kind == CDD_TOKEN_PREPROC_IFDEF ||
           t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
         cdd_cst_node_t *child = NULL; parse_preproc_conditional(s, node, &child);
-        if (child)
-          append_child_node(node, child);
+        if (child) {
+          if (append_child_node(node, child) != CDD_C_SUCCESS) {
+            free_node(child);
+            s->err = CDD_C_ERROR_MEMORY;
+          }
+        }
       } else {
         append_child_token(node, advance(s));
       }
     } else {
       cdd_cst_node_t *child = NULL; parse_declaration_or_statement(s, node, &child);
-      if (child)
-        append_child_node(node, child);
-      else if (s->err)
+      if (child) {
+        if (append_child_node(node, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
+      } else if (s->err) {
         break;
+      }
     }
   }
   return node;
@@ -378,8 +390,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         {
           cdd_cst_node_t *child = NULL;
           parse_block(s, n, &child);
-          if (child)
-            append_child_node(n, child);
+          if (child) {
+            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
+            }
+          }
         }
       } else {
         advance(s, &t);
@@ -484,14 +500,20 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                 advance(s, &t);
                 append_child_token(param, t);
               }
-              append_child_node(param_list, param);
+              if (append_child_node(param_list, param) != CDD_C_SUCCESS) {
+                free_node(param);
+                s->err = CDD_C_ERROR_MEMORY;
+              }
             }
           } else {
             advance(s, &t);
             append_child_token(param_list, t);
           }
         }
-        append_child_node(n, param_list);
+        if (append_child_node(n, param_list) != CDD_C_SUCCESS) {
+          free_node(param_list);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
       }
     }
 
@@ -499,8 +521,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     {
       cdd_cst_node_t *child = NULL;
       parse_declaration_or_statement(s, n, &child);
-      if (child)
-        append_child_node(n, child);
+      if (child) {
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
+      }
     }
 
     *out_node = n;
@@ -525,8 +551,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
       parse_block(s, n, &child);
-      if (child)
-        append_child_node(n, child);
+      if (child) {
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
+      }
     }
     *out_node = n;
     return CDD_C_SUCCESS;
@@ -570,8 +600,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
       parse_block(s, n, &child);
-      if (child)
-        append_child_node(n, child);
+      if (child) {
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
+      }
     }
 
     while (s->pos < s->list->size) {
@@ -600,10 +634,17 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         if (t && t->kind == CDD_TOKEN_LBRACE) {
           cdd_cst_node_t *child = NULL;
           parse_block(s, catch_node, &child);
-          if (child)
-            append_child_node(catch_node, child);
+          if (child) {
+            if (append_child_node(catch_node, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
+            }
+          }
         }
-        append_child_node(n, catch_node);
+        if (append_child_node(n, catch_node) != CDD_C_SUCCESS) {
+          free_node(catch_node);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
       } else {
         break;
       }
@@ -654,8 +695,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         cdd_cst_node_t *child = NULL;
         parse_block(s, n, &child);
-        if (child)
-          append_child_node(n, child);
+        if (child) {
+          if (append_child_node(n, child) != CDD_C_SUCCESS) {
+            free_node(child);
+            s->err = CDD_C_ERROR_MEMORY;
+          }
+        }
       } else if (nxt->kind == CDD_TOKEN_COLON) {
         cdd_cst_node_t *base_list;
         alloc_node(CDD_CST_BASE_CLASS_LIST, n, &base_list);
@@ -691,7 +736,10 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                 advance(s, &t);
                 append_child_token(base_spec, t);
               }
-              append_child_node(base_list, base_spec);
+              if (append_child_node(base_list, base_spec) != CDD_C_SUCCESS) {
+                free_node(base_spec);
+                s->err = CDD_C_ERROR_MEMORY;
+              }
             }
 
             peek(s, &nxt);
@@ -702,7 +750,10 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
               break;
             }
           }
-          append_child_node(n, base_list);
+          if (append_child_node(n, base_list) != CDD_C_SUCCESS) {
+            free_node(base_list);
+            s->err = CDD_C_ERROR_MEMORY;
+          }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
         advance(s, &t);
@@ -860,7 +911,10 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                   break;
               }
             }
-            append_child_node(n, noexcept_node);
+            if (append_child_node(n, noexcept_node) != CDD_C_SUCCESS) {
+              free_node(noexcept_node);
+              s->err = CDD_C_ERROR_MEMORY;
+            }
             continue;
           }
         }
@@ -868,8 +922,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         if (nxt->kind == CDD_TOKEN_LBRACE) {
           cdd_cst_node_t *child = NULL;
           parse_block(s, n, &child);
-          if (child)
-            append_child_node(n, child);
+          if (child) {
+            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
+            }
+          }
           break;
         }
         if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
@@ -961,7 +1019,10 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
       cdd_cst_node_t *child = NULL;
       parse_declaration_or_statement(&state, tree->root, &child);
       if (child) {
-        append_child_node(tree->root, child);
+        if (append_child_node(tree->root, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          state.err = CDD_C_ERROR_MEMORY;
+        }
       } else {
         if (state.err)
           break;

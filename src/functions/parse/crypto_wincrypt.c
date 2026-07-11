@@ -55,6 +55,17 @@ struct PlainTextKeyBlob {
   BYTE rgbKeyData[1];
 };
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_crypto_fail_sha256;
+extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
+extern C_CDD_EXPORT int g_crypto_fail_digestinit;
+extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
+extern C_CDD_EXPORT int g_crypto_fail_hmac;
+extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+#endif
+
 /**
  * @brief Helper to acquire a cryptographic provider context.
  * Uses MS_ENH_RSA_AES_PROV for SHA-256 support.
@@ -86,16 +97,39 @@ enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
   DWORD cbHash = CRYPTO_SHA256_SIZE;
   int rc = 0;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_crypto_fail_sha256)
+    return CDD_C_ERROR_IO;
+#endif
+
   if ((!data && data_len > 0) || !out_digest)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (acquire_context(&hProv) != 0)
     return CDD_C_ERROR_IO;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_crypto_fail_mdctx_new) {
+    rc = CDD_C_ERROR_MEMORY;
+    goto cleanup;
+  }
+  if (g_crypto_fail_digestinit) {
+    rc = CDD_C_ERROR_IO;
+    goto cleanup;
+  }
+#endif
+
   if (!CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash)) {
     rc = CDD_C_ERROR_IO;
     goto cleanup;
   }
+
+#ifdef CDD_BUILD_TESTS
+  if (g_crypto_fail_digestupdate) {
+    rc = CDD_C_ERROR_IO;
+    goto cleanup;
+  }
+#endif
 
   if (data_len > 0) {
     if (!CryptHashData(hHash, (const BYTE *)data, (DWORD)data_len, 0)) {
@@ -103,6 +137,13 @@ enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
       goto cleanup;
     }
   }
+
+#ifdef CDD_BUILD_TESTS
+  if (g_crypto_fail_digestfinal || g_crypto_fail_digestfinal_len) {
+    rc = CDD_C_ERROR_IO;
+    goto cleanup;
+  }
+#endif
 
   if (!CryptGetHashParam(hHash, HP_HASHVAL, out_digest, &cbHash, 0)) {
     rc = CDD_C_ERROR_IO;
@@ -131,6 +172,11 @@ enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
   DWORD cbHash = CRYPTO_SHA256_SIZE;
   DWORD blobSize;
   int rc = 0;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_crypto_fail_hmac || g_crypto_fail_hmac_len)
+    return CDD_C_ERROR_IO;
+#endif
 
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
     return CDD_C_ERROR_INVALID_ARGUMENT;

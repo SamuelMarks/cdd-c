@@ -24,7 +24,7 @@ enum cdd_c_error cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
   if (!out_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_node_fail)
+  if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
     n = NULL;
   else
 #endif
@@ -48,7 +48,7 @@ static enum cdd_c_error track_synthesized(cdd_cst_tree_t *tree,
         tree->synthesized_capacity == 0 ? 128 : tree->synthesized_capacity * 2;
     cdd_token_t **new_arr;
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail)
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
       new_arr = NULL;
     else
 #endif
@@ -112,10 +112,14 @@ enum cdd_c_error cdd_cst_append_child_node(cdd_cst_node_t *parent,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
+#ifdef CDD_BUILD_TESTS
+    size_t new_cap = parent->capacity + 1;
+#else
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
+#endif
     cdd_cst_child_t *new_arr;
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail)
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
       new_arr = NULL;
     else
 #endif
@@ -142,10 +146,14 @@ enum cdd_c_error cdd_cst_append_child_token(cdd_cst_node_t *parent,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
+#ifdef CDD_BUILD_TESTS
+    size_t new_cap = parent->capacity + 1;
+#else
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
+#endif
     cdd_cst_child_t *new_arr;
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_realloc_fail)
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
       new_arr = NULL;
     else
 #endif

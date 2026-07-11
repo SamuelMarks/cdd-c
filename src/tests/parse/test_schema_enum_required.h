@@ -29,10 +29,10 @@ static enum cdd_c_error load_spec_string(const char *json,
   JSON_Value *root;
   int rc;
   if (!json || !spec)
-    return -1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   root = json_parse_string(json);
   if (!root)
-    return -1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(root, spec);
   json_value_free(root);

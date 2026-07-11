@@ -348,6 +348,48 @@ TEST test_mapping_coverage(void) {
   (void)c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct ", "x", &m));
   c_mapping_free(&m);
+
+  /* Test templates */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("std::vector<int>", "x", &m));
+  ASSERT_EQ(OA_TYPE_OBJECT, m.kind);
+  ASSERT_STR_EQ("std::vector<int>", m.ref_name);
+  c_mapping_free(&m);
+
+  /* Test generic T */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("T", "x", &m));
+  ASSERT_EQ(OA_TYPE_OBJECT, m.kind);
+  ASSERT_STR_EQ("T", m.ref_name);
+  c_mapping_free(&m);
+
+  /* Test multiple leading spaces */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("   int", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  c_mapping_free(&m);
+
+  /* Test template without > to hit fallback string */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("template<", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("string", m.oa_type);
+  c_mapping_free(&m);
+
+  /* Test single char to hit the false branch of is_ptr || is_array */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("char", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("string", m.oa_type);
+  c_mapping_free(&m);
+
+  /* Test char array to hit is_ptr == false but is_array == true */
+  (void)c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("char", "x[]", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("string", m.oa_type);
+  c_mapping_free(&m);
+
   g_fail_io_after = -1;
 
   PASS();

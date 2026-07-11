@@ -28,21 +28,19 @@ static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec,
                                  const char *tmpl, const char *base_url_expr,
                                  char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
   long sz;
   char *content = NULL;
+  enum cdd_c_error rc;
 
-  if (!tmp) {
-    *_out_val = NULL;
-    return 0;
-  }
+  tmp = tmpfile();
+  if (!tmp)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (codegen_client_write_body(tmp, op, spec, tmpl, base_url_expr) != 0) {
+  rc = codegen_client_write_body(tmp, op, spec, tmpl, base_url_expr);
+  if (rc != CDD_C_SUCCESS) {
     fclose(tmp);
-    {
-      *_out_val = NULL;
-      return 0;
-    }
+    return rc;
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -54,10 +52,8 @@ static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  {
-    *_out_val = content;
-    return 0;
-  }
+  *_out_val = content;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_body_basic_get(void) {

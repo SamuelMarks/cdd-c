@@ -310,6 +310,68 @@ TEST test_cst_splice_children(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+#endif
+
+TEST test_cdd_cst_splice_oom(void) {
+  int i;
+  for (i = 0; i < 20; i++) {
+    cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+    cdd_cst_node_t *root = NULL;
+    cdd_cst_node_t *n1 = NULL, *n2 = NULL, *n3 = NULL, *n4 = NULL, *n5 = NULL;
+    cdd_token_t t1 = {0}, t2 = {0}, t3 = {0}, t4 = {0}, t5 = {0};
+    cdd_cst_child_t new_children[2] = {0};
+    cdd_token_t t_new = {0};
+    cdd_cst_node_t *n_new = NULL;
+    int rc;
+
+    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    tree->root = root;
+
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n3);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n4);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n5);
+
+    cdd_cst_append_child_token(root, &t1);
+    cdd_cst_append_child_node(root, n1);
+    cdd_cst_append_child_token(root, &t2);
+    cdd_cst_append_child_node(root, n2);
+    cdd_cst_append_child_token(root, &t3);
+    cdd_cst_append_child_node(root, n3);
+    cdd_cst_append_child_token(root, &t4);
+    cdd_cst_append_child_node(root, n4);
+    cdd_cst_append_child_token(root, &t5);
+    cdd_cst_append_child_node(root, n5);
+
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n_new);
+    new_children[0].kind = CDD_CST_CHILD_TOKEN;
+    new_children[0].val.token = &t_new;
+    new_children[1].kind = CDD_CST_CHILD_NODE;
+    new_children[1].val.node = n_new;
+
+    /* Force root->capacity to be accurate so realloc occurs */
+    root->capacity = root->num_children;
+
+#ifdef CDD_BUILD_TESTS
+    g_cdd_cst_realloc_fail = i;
+#endif
+    rc = cdd_cst_splice_children(tree, &tree->root, 4, 4, new_children, 2);
+#ifdef CDD_BUILD_TESTS
+    g_cdd_cst_realloc_fail = 0;
+#endif
+
+    if (rc != 0) {
+      cdd_cst_free_node_only(n_new);
+    }
+    cdd_cst_tree_free(tree);
+  }
+  g_fail_io_after = -1;
+  PASS();
+}
+
 /**
  * @brief Tests finding node for token
  * @return TEST
@@ -421,6 +483,7 @@ SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cdd_cst_mutate_errors);
   RUN_TEST(test_mutate_utils);
   RUN_TEST(test_cst_splice_children);
+  RUN_TEST(test_cdd_cst_splice_oom);
   RUN_TEST(test_cst_find_node_for_token);
   RUN_TEST(test_cdd_cst_insert_node_after_success);
   RUN_TEST(test_cdd_cst_insert_node_before_success);

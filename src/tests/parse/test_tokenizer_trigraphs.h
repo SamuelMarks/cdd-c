@@ -28,22 +28,14 @@ extern "C" {
 
 static enum cdd_c_error tokenize_string(const char *s,
                                         struct TokenList **_out_val) {
-
   struct TokenList *tl = NULL;
-
   az_span span = az_span_create_from_str((char *)s);
-
-  if (tokenize(span, &tl) != 0)
-
-  {
-    *_out_val = NULL;
-    return 0;
+  enum cdd_c_error rc = tokenize(span, &tl);
+  if (rc != CDD_C_SUCCESS) {
+    return rc;
   }
-
-  {
-    *_out_val = tl;
-    return 0;
-  }
+  *_out_val = tl;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_trigraph_basic(void) {

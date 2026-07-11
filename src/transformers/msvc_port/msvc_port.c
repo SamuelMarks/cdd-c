@@ -314,8 +314,22 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
         cdd_cst_bld_endif(&bld);
         if (bld.error_state == 0) {
           /* insert at start of root's children */
-
-          cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
+#ifdef CDD_BUILD_TESTS
+          extern int g_msvc_port_bld_fail;
+          if (g_msvc_port_bld_fail == 2) {
+            rc = CDD_C_ERROR_MEMORY;
+          } else {
+            rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
+          }
+#else
+          rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
+#endif
+          if (rc != CDD_C_SUCCESS) {
+            free(deps_node->children);
+            free(deps_node);
+            cdd_cst_builder_free(&bld);
+            return rc;
+          }
         } else {
           free(deps_node->children);
           free(deps_node);

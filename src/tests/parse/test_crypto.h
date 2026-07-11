@@ -29,6 +29,17 @@ extern "C" {
 /* clang-format on */
 /* LCOV_EXCL_START */
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_crypto_fail_sha256;
+extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
+extern C_CDD_EXPORT int g_crypto_fail_digestinit;
+extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
+extern C_CDD_EXPORT int g_crypto_fail_hmac;
+extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+#endif
+
 /* Helpers */
 
 /**
@@ -81,6 +92,7 @@ TEST test_sha256_empty_string(void) {
     SKIPm("Crypto backend not compiled");
 
   ASSERT_EQ(0, crypto_sha256(NULL, 0, digest));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256(NULL, 1, digest));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256("", 0, NULL));
 
   ASSERT_EQ(0, crypto_sha256("", 0, digest));
@@ -200,12 +212,62 @@ TEST test_hmac_empty_keys_or_data(void) {
 
   /* Valid empty data -> HMAC should run on empty buffer */
   ASSERT_EQ(0, crypto_hmac_sha256(key, strlen(key), "", 0, mac));
+  ASSERT_EQ(0, crypto_hmac_sha256(key, strlen(key), NULL, 0, mac));
 
   /* Valid empty key -> HMAC should run using 0-length key (e.g. key padded with
    * 0 usually) */
   ASSERT_EQ(0, crypto_hmac_sha256("", 0, data, strlen(data), mac));
+  ASSERT_EQ(0, crypto_hmac_sha256(NULL, 0, data, strlen(data), mac));
   g_fail_io_after = -1;
 
+  PASS();
+}
+
+TEST test_crypto_errors(void) {
+#ifdef CDD_BUILD_TESTS
+  unsigned char digest[CRYPTO_SHA256_SIZE];
+  const char *data = "data";
+  unsigned char mac[CRYPTO_SHA256_SIZE];
+  const char *key = "key";
+
+  if (!is_crypto_supported())
+    SKIPm("Crypto backend not compiled");
+
+  g_crypto_fail_sha256 = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_sha256 = 0;
+
+  g_crypto_fail_mdctx_new = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_mdctx_new = 0;
+
+  g_crypto_fail_digestinit = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_digestinit = 0;
+
+  g_crypto_fail_digestupdate = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_digestupdate = 0;
+
+  g_crypto_fail_digestfinal = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_digestfinal = 0;
+
+  g_crypto_fail_digestfinal_len = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
+  g_crypto_fail_digestfinal_len = 0;
+
+  g_crypto_fail_hmac = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            crypto_hmac_sha256(key, strlen(key), data, strlen(data), mac));
+  g_crypto_fail_hmac = 0;
+
+  g_crypto_fail_hmac_len = 1;
+  ASSERT_EQ(CDD_C_ERROR_IO,
+            crypto_hmac_sha256(key, strlen(key), data, strlen(data), mac));
+  g_crypto_fail_hmac_len = 0;
+
+#endif
   PASS();
 }
 
@@ -218,6 +280,7 @@ SUITE(crypto_suite) {
   RUN_TEST(test_hmac_rfc4231_case1);
   RUN_TEST(test_hmac_rfc4231_case2);
   RUN_TEST(test_hmac_empty_keys_or_data);
+  RUN_TEST(test_crypto_errors);
 }
 
 #ifdef __cplusplus

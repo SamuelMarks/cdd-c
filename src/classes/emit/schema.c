@@ -26,6 +26,7 @@ enum cdd_c_error schema_constraints_init(struct SchemaConstraints *sc) {
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_schema_strdup_fail = 0;
+C_CDD_EXPORT int g_schema_realloc_fail = 0;
 #endif
 
 enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
@@ -40,7 +41,15 @@ enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
         new_cap > ((size_t)-1) / (2 * sizeof(char *))) {
       return CDD_C_ERROR_MEMORY;
     }
-    new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+    if (g_schema_realloc_fail) {
+      new_req = NULL;
+    } else {
+#endif
+      new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+    }
+#endif
     if (!new_req) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;

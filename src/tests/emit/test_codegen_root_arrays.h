@@ -27,37 +27,42 @@ static enum cdd_c_error generate_ra_code(
     enum cdd_c_error (*fn)(FILE *, const char *, const char *, const char *,
                            const struct CodegenTypesConfig *),
     const char *name, const char *type, const char *ref, char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
   long sz;
   char *content = NULL;
-  if (!tmp) {
-    *_out_val = NULL;
-    return 0;
+  enum cdd_c_error rc;
+
+  tmp = tmpfile();
+  if (!tmp)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  rc = fn(tmp, name, type, ref, NULL);
+  if (rc != CDD_C_SUCCESS) {
+    fclose(tmp);
+    return rc;
   }
 
-  if (fn(tmp, name, type, ref, NULL) != 0) {
-    fclose(tmp);
-    {
-      *_out_val = NULL;
-      return 0;
-    }
-  }
   fseek(tmp, 0, SEEK_END);
-  if ((sz = ftell(tmp)) <= 0) {
+  sz = ftell(tmp);
+  if (sz <= 0) {
     fclose(tmp);
-    {
-      *_out_val = NULL;
-      return 0;
-    }
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
+
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
-  fclose(tmp);
-  {
-    *_out_val = content;
-    return 0;
+  if (!content) {
+    fclose(tmp);
+    return CDD_C_ERROR_MEMORY;
   }
+  if (fread(content, 1, sz, tmp) != (size_t)sz) {
+    free(content);
+    fclose(tmp);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  fclose(tmp);
+  *_out_val = content;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_root_int_array_from_json(void) {

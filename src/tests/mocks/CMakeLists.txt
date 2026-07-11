@@ -28,7 +28,7 @@ else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
 endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
+target_link_libraries("${LIBRARY_NAME}" PUBLIC parson::parson)
 target_include_directories(
         "${LIBRARY_NAME}"
         PRIVATE
@@ -47,6 +47,11 @@ target_include_directories(
         PRIVATE
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>"
 )
+
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
+endif()
+
 set_target_properties(
         "${LIBRARY_NAME}"
         PROPERTIES

@@ -41,9 +41,9 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
   }
 
   rc = cdd_cst_alloc_node(node->kind, &new_node);
-  if (rc != CDD_C_SUCCESS || !new_node) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("cdd_cst_alloc_node failed: %d\n", (int)rc);
-    return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
   for (i = 0; i < start_idx; i++) {
@@ -51,12 +51,14 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     }
@@ -67,12 +69,14 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, new_children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, new_children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     }
@@ -83,12 +87,14 @@ enum cdd_c_error cdd_cst_splice_children(cdd_cst_tree_t *tree,
       rc = cdd_cst_append_child_token(new_node, node->children[i].val.token);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_token failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     } else {
       rc = cdd_cst_append_child_node(new_node, node->children[i].val.node);
       if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("cdd_cst_append_child_node failed: %d\n", (int)rc);
+        cdd_cst_free_node_only(new_node);
         return rc;
       }
     }

@@ -516,12 +516,11 @@ TEST test_codegen_config_utils_guards(void) {
  */
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_schema_strdup_fail;
+extern C_CDD_EXPORT int g_schema_realloc_fail;
 #endif
 
 TEST test_schema_constraints_bounds(void) {
   struct SchemaConstraints sc;
-  if (getenv("RUNNING_UNDER_VALGRIND"))
-    SKIPm("Valgrind crash");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, schema_constraints_init(NULL));
   ASSERT_EQ(0, schema_constraints_init(&sc));
@@ -545,6 +544,12 @@ TEST test_schema_constraints_bounds(void) {
 
     ASSERT_EQ(CDD_C_ERROR_MEMORY, schema_constraints_add_required(&sc, "oom"));
 
+    /* Force integer overflow on required_capacity * 2 */
+    sc.required_capacity = ((size_t)-1) / 2 + 10;
+    sc.required_count = sc.required_capacity;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              schema_constraints_add_required(&sc, "oom_overflow"));
+
     sc.required_capacity = old_cap;
     sc.required_count = old_count;
     sc.required = old_req;
@@ -552,6 +557,13 @@ TEST test_schema_constraints_bounds(void) {
     g_schema_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, schema_constraints_add_required(&sc, "oom2"));
     g_schema_strdup_fail = 0;
+
+    old_cap = sc.required_capacity;
+    sc.required_capacity = sc.required_count;
+    g_schema_realloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, schema_constraints_add_required(&sc, "oom3"));
+    g_schema_realloc_fail = 0;
+    sc.required_capacity = old_cap;
   }
 #endif
 

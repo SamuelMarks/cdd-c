@@ -82,18 +82,18 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
   switch (tank) {
   case Tank_BIG:
     *str = strdup("BIG");
-    if (!str)
+    if (!*str)
       return CDD_C_ERROR_MEMORY;
     break;
   case Tank_SMALL:
     *str = strdup("SMALL");
-    if (!str)
+    if (!*str)
       return CDD_C_ERROR_MEMORY;
     break;
   case Tank_UNKNOWN:
   default:
     *str = strdup("UNKNOWN");
-    if (!str)
+    if (!*str)
       return CDD_C_ERROR_MEMORY;
   }
 
@@ -187,8 +187,10 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
 enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
-  if (rc != 0)
+  if (rc != 0) {
+    free(s);
     return rc;
+  }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
     rc = 0;
@@ -443,8 +445,10 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
 enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
-  if (rc != 0)
+  if (rc != 0) {
+    free(s);
     return rc;
+  }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
     rc = 0;

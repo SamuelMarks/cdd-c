@@ -1,11 +1,11 @@
-#include <stddef.h>
-#include <stdio.h>
 /**
  * @file cdd_cst_emit.c
  * @brief CST emit implementation
  */
 
 /* clang-format off */
+#include <stddef.h>
+#include <stdio.h>
 #include "c_cdd_export.h"
 #include "cdd_cst_emit.h"
 #include <errno.h>
@@ -23,6 +23,10 @@ typedef struct emit_ctx_t {
   /** @brief Capacity of the buffer */
   size_t capacity;
 } emit_ctx_t;
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail = 0;
+#endif
 
 /**
  * @brief Appends a string to the emit context buffer.
@@ -50,7 +54,15 @@ static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
       }
       new_cap = next_cap;
     }
-    new_buf = (char *)realloc(ctx->buf, new_cap);
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_cst_emit_realloc_fail) {
+      new_buf = NULL;
+    } else {
+#endif
+      new_buf = (char *)realloc(ctx->buf, new_cap);
+#ifdef CDD_BUILD_TESTS
+    }
+#endif
     if (!new_buf) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;

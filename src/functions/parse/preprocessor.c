@@ -837,7 +837,7 @@ static enum cdd_c_error match(struct ExprState *s, enum TokenKind kind,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
 
-  (skip_ws(s, &_ast_skip_ws_5), _ast_skip_ws_5);
+  skip_ws(s, &_ast_skip_ws_5);
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == kind) {
 
@@ -945,7 +945,7 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
 
   /* Expect '(' */
 
-  (skip_ws(s, &_ast_skip_ws_7), _ast_skip_ws_7);
+  skip_ws(s, &_ast_skip_ws_7);
 
   if (!(match(s, TOKEN_LPAREN, &_ast_match_8) == 0 && _ast_match_8)) {
 
@@ -957,7 +957,7 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     }
   }
 
-  (skip_ws(s, &_ast_skip_ws_9), _ast_skip_ws_9);
+  skip_ws(s, &_ast_skip_ws_9);
 
   if (s->pos >= s->end) {
 
@@ -1042,7 +1042,7 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     s->pos++;
   }
 
-  (skip_ws(s, &_ast_skip_ws_11), _ast_skip_ws_11);
+  skip_ws(s, &_ast_skip_ws_11);
 
   if (!(match(s, TOKEN_RPAREN, &_ast_match_12) == 0 && _ast_match_12)) {
     fprintf(stderr, "Missing RPAREN, setting error!\n");
@@ -1100,7 +1100,7 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
 
   char *attr_name = NULL;
 
-  (skip_ws(s, &_ast_skip_ws_14), _ast_skip_ws_14);
+  skip_ws(s, &_ast_skip_ws_14);
 
   if (!(match(s, TOKEN_LPAREN, &_ast_match_15) == 0 && _ast_match_15)) {
 
@@ -1112,7 +1112,7 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
     }
   }
 
-  (skip_ws(s, &_ast_skip_ws_16), _ast_skip_ws_16);
+  skip_ws(s, &_ast_skip_ws_16);
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
@@ -1143,7 +1143,7 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
 
   /* Support scoping `::` */
 
-  (skip_ws(s, &_ast_skip_ws_20), _ast_skip_ws_20);
+  skip_ws(s, &_ast_skip_ws_20);
 
   if (s->pos + 1 < s->end && s->tokens->tokens[s->pos].kind == TOKEN_COLON &&
 
@@ -1155,7 +1155,7 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
 
     s->pos += 2; /* Skip :: */
 
-    (skip_ws(s, &_ast_skip_ws_21), _ast_skip_ws_21);
+    skip_ws(s, &_ast_skip_ws_21);
 
     if (s->pos < s->end &&
 
@@ -1218,7 +1218,7 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
     free(attr_name);
   }
 
-  (skip_ws(s, &_ast_skip_ws_23), _ast_skip_ws_23);
+  skip_ws(s, &_ast_skip_ws_23);
 
   if (!(match(s, TOKEN_RPAREN, &_ast_match_24) == 0 && _ast_match_24)) {
 
@@ -1248,7 +1248,7 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
   long _ast_handle_has_c_attribute_35;
   int _ast_token_matches_string_36 = 0;
 
-  (skip_ws(s, &_ast_skip_ws_25), _ast_skip_ws_25);
+  skip_ws(s, &_ast_skip_ws_25);
 
   if (s->pos >= s->end) {
 
@@ -1419,7 +1419,7 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   int _ast_match_51 = 0;
   long _ast_parse_primary_52;
 
-  (skip_ws(s, &_ast_skip_ws_37), _ast_skip_ws_37);
+  skip_ws(s, &_ast_skip_ws_37);
 
   if ((match(s, TOKEN_BANG, &_ast_match_38) == 0 && _ast_match_38)) {
 
@@ -1465,13 +1465,13 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
 
     s->pos++;
 
-    (skip_ws(s, &_ast_skip_ws_47), _ast_skip_ws_47);
+    skip_ws(s, &_ast_skip_ws_47);
 
     if ((match(s, TOKEN_LPAREN, &_ast_match_48) == 0 && _ast_match_48))
 
       has_paren = true;
 
-    (skip_ws(s, &_ast_skip_ws_49), _ast_skip_ws_49);
+    skip_ws(s, &_ast_skip_ws_49);
 
     if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 

@@ -133,7 +133,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       CHECK_IO(
           FPRINTF_HOOK(fp,
                        "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
-                       "&s); if (rc != 0) return rc;\n",
+                       "&s); if (rc != 0) { free(s); return rc; }\n",
                        (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
                         _ast_get_type_from_ref_0),
                        name));
@@ -146,7 +146,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
                        "      {\n"
                        "        char *sub = NULL;\n"
                        "        rc = %s_to_json(obj->data.%s, &sub);\n"
-                       "        if (rc != 0) return rc;\n"
+                       "        if (rc != 0) { free(sub); return rc; }\n"
                        "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
                        "        free(sub);\n"
                        "      }\n",
@@ -195,7 +195,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "          {\n"
             "            char *sub = NULL;\n"
             "            rc = %s_to_json(obj->data.%s.%s[i], &sub);\n"
-            "            if (rc != 0) return rc;\n"
+            "            if (rc != 0) { free(sub); return rc; }\n"
             "            c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "            free(sub);\n"
             "          }\n",
@@ -1008,7 +1008,7 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
                      "    {\n"
                      "      char *tmp = NULL;\n"
                      "      int rc = %s_to_json(in[i], &tmp);\n"
-                     "      if (rc != 0) return rc;\n"
+                     "      if (rc != 0) { free(tmp); return rc; }\n"
                      "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
                      "      free(tmp);\n"
                      "    }\n",

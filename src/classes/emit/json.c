@@ -158,7 +158,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
         CHECK_IO(
             FPRINTF_HOOK(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n));
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (rc) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "    if (rc) { free(s); return rc; }\n"));
       CHECK_IO(FPRINTF_HOOK(
           fp, "    c89stringutils_jasprintf(json, \"\\\"%s\\\": %%s\", s);\n",
           n));
@@ -171,10 +171,10 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(FPRINTF_HOOK(
-            fp,
-            "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if (rc) return rc;\n",
-            tn, n));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if "
+                              "(rc) { free(s); return rc; }\n",
+                              tn, n));
       }
       CHECK_IO(FPRINTF_HOOK(fp,
                             "    c89stringutils_jasprintf(json, "
@@ -203,7 +203,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
           CHECK_IO(
               FPRINTF_HOOK(fp,
                            "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
-                           "if (rc) return rc;\n",
+                           "if (rc) { free(s); return rc; }\n",
                            tn, n));
         }
         CHECK_IO(FPRINTF_HOOK(fp, "      c89stringutils_jasprintf(json, "

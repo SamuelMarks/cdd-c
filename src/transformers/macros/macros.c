@@ -58,17 +58,26 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
       cdd_cst_node_t *replacement = NULL;
 
       rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        free(calls.nodes);
         return rc;
+      }
       cdd_cst_builder_init(&bld, tree, replacement);
 
       /* Just snippet for test cases */
       cdd_cst_bld_snippet(&bld, "\"hello\"");
 
       cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-      cdd_cst_free_node(call_node);
-
-      cdd_cst_builder_free(&bld);
+      if (bld.error_state == 0) {
+        cdd_cst_free_node(call_node);
+        cdd_cst_builder_free(&bld);
+      } else {
+        cdd_cst_free_node(replacement);
+        rc = bld.error_state;
+        free(calls.nodes);
+        cdd_cst_builder_free(&bld);
+        return rc;
+      }
     }
   }
 
@@ -84,16 +93,29 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
           cdd_cst_node_t *replacement = NULL;
 
           rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            free(stringify_calls.nodes);
+            if (calls.nodes)
+              free(calls.nodes);
             return rc;
+          }
           cdd_cst_builder_init(&bld, tree, replacement);
 
           cdd_cst_bld_snippet(&bld, "\"hello\"");
 
           cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-          cdd_cst_free_node(call_node);
-
-          cdd_cst_builder_free(&bld);
+          if (bld.error_state == 0) {
+            cdd_cst_free_node(call_node);
+            cdd_cst_builder_free(&bld);
+          } else {
+            cdd_cst_free_node(replacement);
+            rc = bld.error_state;
+            free(stringify_calls.nodes);
+            cdd_cst_builder_free(&bld);
+            if (calls.nodes)
+              free(calls.nodes);
+            return rc;
+          }
         }
       }
       if (stringify_calls.nodes)
@@ -112,16 +134,29 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
           cdd_cst_node_t *replacement = NULL;
 
           rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
-          if (rc != CDD_C_SUCCESS)
+          if (rc != CDD_C_SUCCESS) {
+            free(concat_calls.nodes);
+            if (calls.nodes)
+              free(calls.nodes);
             return rc;
+          }
           cdd_cst_builder_init(&bld, tree, replacement);
 
           cdd_cst_bld_snippet(&bld, "42");
 
           cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-          cdd_cst_free_node(call_node);
-
-          cdd_cst_builder_free(&bld);
+          if (bld.error_state == 0) {
+            cdd_cst_free_node(call_node);
+            cdd_cst_builder_free(&bld);
+          } else {
+            cdd_cst_free_node(replacement);
+            rc = bld.error_state;
+            free(concat_calls.nodes);
+            cdd_cst_builder_free(&bld);
+            if (calls.nodes)
+              free(calls.nodes);
+            return rc;
+          }
         }
       }
       if (concat_calls.nodes)

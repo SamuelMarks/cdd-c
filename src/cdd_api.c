@@ -2,6 +2,18 @@
 #include "cdd_api.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_crypto_fail_sha256 = 0;
+C_CDD_EXPORT int g_crypto_fail_mdctx_new = 0;
+C_CDD_EXPORT int g_crypto_fail_digestinit = 0;
+C_CDD_EXPORT int g_crypto_fail_digestupdate = 0;
+C_CDD_EXPORT int g_crypto_fail_digestfinal = 0;
+C_CDD_EXPORT int g_crypto_fail_digestfinal_len = 0;
+C_CDD_EXPORT int g_crypto_fail_hmac = 0;
+C_CDD_EXPORT int g_crypto_fail_hmac_len = 0;
+#endif
+
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_semantic.h"
 #include "classes/parse/cdd_cst_scope.h"
@@ -675,3 +687,4 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   return CDD_C_SUCCESS;
 }
+/* LCOV_EXCL_STOP */

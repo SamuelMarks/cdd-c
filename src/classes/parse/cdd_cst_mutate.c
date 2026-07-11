@@ -1,5 +1,6 @@
 /* clang-format off */
 #include "cdd_cst_mutate.h"
+#include "cdd_cst_factory.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,7 +188,11 @@ enum cdd_c_error cdd_cst_insert_child_node_at(cdd_cst_node_t *parent,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (parent->num_children >= parent->capacity) {
+#ifdef CDD_BUILD_TESTS
+    size_t new_cap = parent->capacity + 1;
+#else
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
+#endif
     cdd_cst_child_t *new_arr;
 #ifdef CDD_BUILD_TESTS
     extern int g_cdd_cst_realloc_fail;
@@ -382,11 +387,7 @@ enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 
 err:
-  /* Free partially constructed clone (this implementation is rough and might
-   * leak trivia, but good enough for now) */
-  if (clone->children)
-    free(clone->children);
-  free(clone);
+  cdd_cst_free_node(clone);
   return rc;
 }
 

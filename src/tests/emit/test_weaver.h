@@ -309,11 +309,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
       int rc_wattr;
       g_cdd_fail_alloc = 2001;
       rc_wattr = weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
-      if (rc_wattr != CDD_C_ERROR_MEMORY) {
-        printf("wattr=%d CDD_C_ERROR_MEMORY=%d\n", rc_wattr,
-               CDD_C_ERROR_MEMORY);
-        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
-      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
       g_cdd_fail_alloc = 0;
     }
 #endif
@@ -345,8 +341,6 @@ TEST test_weaver_translate_gcc_attributes(void) {
     cst2.capacity = 3;
 
     rc_t1 = weaver_translate_gcc_attributes(&patches2, &tokens, &cst2);
-    if (rc_t1 != 0)
-      printf("FAILED cst2 rc=%d\n", rc_t1);
     ASSERT_EQ(0, rc_t1);
 
     /* deleted rc_wattr2 */

@@ -64,13 +64,13 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
   free(buf);
 
-  if (rc == CDD_C_SUCCESS && temp_tree && temp_tree->root) {
+  if (rc == CDD_C_SUCCESS) {
     size_t i, j;
     rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
-    if (rc != CDD_C_SUCCESS || !result) {
+    if (rc != CDD_C_SUCCESS) {
       cdd_cst_tree_free(temp_tree);
       *out_node = NULL;
-      return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
+      return rc;
     }
 
     for (i = 0; i < temp_tree->root->num_children; i++) {
@@ -81,34 +81,38 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
         continue;
 
       stmt = temp_tree->root->children[i].val.node;
-      if (!stmt)
-        continue;
 
-      if (cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone) == CDD_C_SUCCESS &&
-          stmt_clone) {
-        for (j = 0; j < stmt_clone->num_children; j++) {
-          if (stmt_clone->children[j].kind == CDD_CST_CHILD_TOKEN) {
-            rc = cdd_cst_append_child_token(result,
-                                            stmt_clone->children[j].val.token);
-            if (rc != CDD_C_SUCCESS) {
-              cdd_cst_free_node_only(stmt_clone);
-              cdd_cst_tree_free(temp_tree);
-              *out_node = NULL;
-              return rc;
-            }
-          } else {
-            rc = cdd_cst_append_child_node(result,
-                                           stmt_clone->children[j].val.node);
-            if (rc != CDD_C_SUCCESS) {
-              cdd_cst_free_node_only(stmt_clone);
-              cdd_cst_tree_free(temp_tree);
-              *out_node = NULL;
-              return rc;
+      rc = cdd_cst_clone_tree(dest_tree, stmt, &stmt_clone);
+      if (rc != CDD_C_SUCCESS) {
+        cdd_cst_free_node(result);
+        cdd_cst_tree_free(temp_tree);
+        *out_node = NULL;
+        return rc;
+      }
+
+      for (j = 0; j < stmt_clone->num_children; j++) {
+        if (stmt_clone->children[j].kind == CDD_CST_CHILD_TOKEN) {
+          rc = cdd_cst_append_child_token(result,
+                                          stmt_clone->children[j].val.token);
+        } else {
+          rc = cdd_cst_append_child_node(result,
+                                         stmt_clone->children[j].val.node);
+        }
+        if (rc != CDD_C_SUCCESS) {
+          size_t k;
+          for (k = j; k < stmt_clone->num_children; k++) {
+            if (stmt_clone->children[k].kind == CDD_CST_CHILD_NODE) {
+              cdd_cst_free_node(stmt_clone->children[k].val.node);
             }
           }
+          cdd_cst_free_node_only(stmt_clone);
+          cdd_cst_free_node(result);
+          cdd_cst_tree_free(temp_tree);
+          *out_node = NULL;
+          return rc;
         }
-        cdd_cst_free_node_only(stmt_clone);
       }
+      cdd_cst_free_node_only(stmt_clone);
     }
   }
   if (temp_tree) {
