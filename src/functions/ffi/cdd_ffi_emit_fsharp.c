@@ -86,6 +86,7 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   cdd_ffi_enum_variant_t *var;
   char type_str[256];
   char ret_type_str[256];
+  extern volatile int g_fail_io_after;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -97,11 +98,18 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\Bindings.fs",
                config->output_dir);
+  if (g_fail_io_after == 1) {
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (fopen_s(&f, filepath, "w") != 0) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(proj_filepath, sizeof(proj_filepath), "%s\\%s.fsproj",
                config->output_dir, module_name);
+  if (g_fail_io_after == 2) {
+    fclose(f);
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (fopen_s(&proj_f, proj_filepath, "w") != 0) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;
@@ -110,12 +118,24 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/Bindings.fs",
                config->output_dir);
   f = fopen(filepath, "w");
+  if (g_fail_io_after == 1) {
+    if (f) {
+      fclose(f);
+      f = NULL;
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(proj_filepath, sizeof(proj_filepath), "%s/%s.fsproj",
                config->output_dir, module_name);
   proj_f = fopen(proj_filepath, "w");
+  if (g_fail_io_after == 2) {
+    if (proj_f) {
+      fclose(proj_f);
+      proj_f = NULL;
+    }
+  }
   if (!proj_f) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;

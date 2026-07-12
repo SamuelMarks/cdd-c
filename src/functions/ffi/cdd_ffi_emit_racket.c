@@ -12,8 +12,12 @@
 
 static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
+  if (!out_name || out_sz == 0)
     return;
+  if (!c_name) {
+    out_name[0] = '\0';
+    return;
+  }
   while (c_name[i] && j < out_sz - 1) {
     if (c_name[i] == '_') {
       out_name[j++] = '-';

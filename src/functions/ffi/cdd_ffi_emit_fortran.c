@@ -24,14 +24,8 @@ static void map_fortran_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz,
   }
   switch (t->kind) {
   case CDD_FFI_KIND_VOID:
-    if (!is_return) {
-      CDD_SNPRINTF(out_type, out_sz,
-                   "type(c_ptr)"); /* Generic placeholder if needed */
-    } else {
-      if (out_sz > 0) {
-        out_type[0] = '\0'; /* Handled by SUBROUTINE instead of FUNCTION */
-      }
-    }
+    CDD_SNPRINTF(out_type, out_sz,
+                 "type(c_ptr)"); /* Generic placeholder if needed */
     break;
   case CDD_FFI_KIND_BOOL:
     CDD_SNPRINTF(out_type, out_sz, "logical(c_bool)");

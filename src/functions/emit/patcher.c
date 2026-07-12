@@ -172,17 +172,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-#ifdef CDD_BUILD_TESTS
-        {
-          extern C_CDD_EXPORT int g_cdd_fail_alloc;
-          if (g_cdd_fail_alloc == 3000)
-            tmp = NULL;
-          else
-            tmp = (char *)realloc(output, out_cap);
-        }
-#else
         tmp = (char *)realloc(output, out_cap);
-#endif
         if (!tmp) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -219,17 +209,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
-#ifdef CDD_BUILD_TESTS
-        {
-          extern C_CDD_EXPORT int g_cdd_fail_alloc;
-          if (g_cdd_fail_alloc == 3000)
-            tmp = NULL;
-          else
-            tmp = (char *)realloc(output, out_cap);
-        }
-#else
         tmp = (char *)realloc(output, out_cap);
-#endif
         if (!tmp) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -255,17 +235,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-#ifdef CDD_BUILD_TESTS
-        {
-          extern C_CDD_EXPORT int g_cdd_fail_alloc;
-          if (g_cdd_fail_alloc == 3000)
-            tmp = NULL;
-          else
-            tmp = (char *)realloc(output, out_cap);
-        }
-#else
         tmp = (char *)realloc(output, out_cap);
-#endif
         if (!tmp) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;

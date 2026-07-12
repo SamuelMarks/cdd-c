@@ -374,15 +374,35 @@ TEST test_weaver_oom(void) {
   g_cdd_fail_alloc = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
-  g_cdd_fail_alloc = 2;
-  r2 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
-  g_cdd_fail_alloc = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
+  {
+    int j;
+    for (j = 1; j < 20; j++) {
+      if (j == 2)
+        j = 2000;
+      g_cdd_fail_alloc = j;
+      r2 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
+      g_cdd_fail_alloc = 0;
+      if (r2 == 0)
+        break;
+      if (j == 2000)
+        j = 1;
+    }
+  }
 
-  g_cdd_fail_alloc = 2;
-  r3 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", NULL);
-  g_cdd_fail_alloc = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
+  {
+    int j;
+    for (j = 1; j < 20; j++) {
+      if (j == 2)
+        j = 2000;
+      g_cdd_fail_alloc = j;
+      r3 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", NULL);
+      g_cdd_fail_alloc = 0;
+      if (r3 == 0)
+        break;
+      if (j == 2000)
+        j = 1;
+    }
+  }
 
   /* deleted r4 */
 

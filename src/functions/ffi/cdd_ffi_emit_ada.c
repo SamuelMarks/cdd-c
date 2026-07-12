@@ -96,6 +96,14 @@ cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(gpr_filepath, sizeof(gpr_filepath), "%s/%s.gpr",
                config->output_dir, lib_name);
   gpr_f = fopen(gpr_filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  extern volatile int g_fail_io_after;
+  if (g_fail_io_after == 555) {
+    if (gpr_f)
+      fclose(gpr_f);
+    gpr_f = NULL;
+  }
+#endif
   if (!gpr_f) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;

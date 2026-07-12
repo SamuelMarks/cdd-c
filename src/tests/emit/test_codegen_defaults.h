@@ -272,15 +272,27 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
+  enum_members_add(&sf.enum_members, "M1");
+  enum_members_add(&sf.enum_members, "UNKNOWN");
+  enum_members_add(&sf.enum_members, NULL);
+  cfg.enum_guard = "MY_GUARD";
 
   ASSERT(tmp);
   g_fail_io_after = 0;
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
-  printf("RC WAS %d\n", rc);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  {
+    int j;
+    for (j = 0; j < 20; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+  }
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -297,13 +309,33 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
+  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
+  struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
+  struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
+  struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
+  struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
+  struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
+  cfg.json_guard = "JSON_G";
+  cfg.utils_guard = "UTILS_G";
 
   ASSERT(tmp);
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  ASSERT_EQ(CDD_C_ERROR_IO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
+  {
+    int j;
+    for (j = 0; j < 200; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_struct_declaration_h(tmp, "S", &sf, &cfg);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+  }
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -320,15 +352,33 @@ TEST test_write_union_declaration_h_io_fail(void) {
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
+  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
+  struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
+  struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
+  struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
+  struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
+  struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
+  cfg.json_guard = "JSON_G";
+  cfg.utils_guard = "UTILS_G";
 
   ASSERT(tmp);
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
-  printf("RC WAS %d\n", rc);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  {
+    int j;
+    for (j = 0; j < 200; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+  }
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;

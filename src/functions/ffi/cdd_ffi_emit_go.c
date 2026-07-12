@@ -234,15 +234,25 @@ static enum cdd_c_error
 emit_go_mod(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
+  extern volatile int g_fail_io_after;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\go.mod", config->output_dir);
+  if (g_fail_io_after == 2) {
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (fopen_s(&f, filepath, "w") != 0) {
     return CDD_C_ERROR_UNKNOWN;
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/go.mod", config->output_dir);
   f = fopen(filepath, "w");
+  if (g_fail_io_after == 2) {
+    if (f) {
+      fclose(f);
+      f = NULL;
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

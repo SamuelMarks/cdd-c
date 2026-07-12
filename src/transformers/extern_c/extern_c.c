@@ -28,6 +28,7 @@
  * @return 0 on success, or an error code.
  */
 #ifdef CDD_BUILD_TESTS
+extern volatile int g_fail_io_after;
 C_CDD_EXPORT volatile int g_extern_c_top_node_fail = 0;
 C_CDD_EXPORT volatile int g_extern_c_bot_node_fail = 0;
 #endif
@@ -245,6 +246,7 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_open(&bld);
 #ifdef CDD_BUILD_TESTS
+      extern volatile int g_fail_io_after;
       if (g_extern_c_top_node_fail)
         bld.error_state = 1;
 #endif
@@ -302,12 +304,8 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
                 cdd_cst_bld_extern_c_close(&bld);
                 rc = cdd_cst_insert_child_node_at(target_parent, j, close_node);
                 if (rc != CDD_C_SUCCESS) {
-                  if (close_node->children)
-                    free(close_node->children);
-                  free(close_node);
-                  if (reopen_node->children)
-                    free(reopen_node->children);
-                  free(reopen_node);
+                  cdd_cst_free_node(close_node);
+                  cdd_cst_free_node(reopen_node);
                   return rc;
                 }
                 j++; /* skip the close node we just inserted */
@@ -354,6 +352,7 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_close(&bld);
 #ifdef CDD_BUILD_TESTS
+      extern volatile int g_fail_io_after;
       if (g_extern_c_bot_node_fail == 1)
         bld.error_state = 1;
 #endif
@@ -368,14 +367,26 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
             bot_insert_idx--;
           }
           if (bot_insert_idx < target_parent->num_children) {
-            rc = cdd_cst_insert_child_node_at(target_parent, bot_insert_idx,
-                                              bot_node);
+#ifdef CDD_BUILD_TESTS
+            extern volatile int g_fail_io_after;
+            if (g_fail_io_after == 12345)
+              rc = CDD_C_ERROR_MEMORY;
+            else
+#endif
+              rc = cdd_cst_insert_child_node_at(target_parent, bot_insert_idx,
+                                                bot_node);
             if (rc != CDD_C_SUCCESS) {
               cdd_cst_free_node(bot_node);
               return rc;
             }
           } else {
-            rc = cdd_cst_append_child_node(target_parent, bot_node);
+#ifdef CDD_BUILD_TESTS
+            extern volatile int g_fail_io_after;
+            if (g_fail_io_after == 12346)
+              rc = CDD_C_ERROR_MEMORY;
+            else
+#endif
+              rc = cdd_cst_append_child_node(target_parent, bot_node);
             if (rc != CDD_C_SUCCESS) {
               cdd_cst_free_node(bot_node);
               return rc;

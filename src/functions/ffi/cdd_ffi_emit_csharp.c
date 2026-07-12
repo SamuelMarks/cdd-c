@@ -10,8 +10,6 @@
 
 static const char *get_csharp_primitive(cdd_ffi_primitive_kind_t kind) {
   switch (kind) {
-  case CDD_FFI_KIND_VOID:
-    return "void";
   case CDD_FFI_KIND_BOOL:
     return "byte";
   case CDD_FFI_KIND_INT8:
@@ -86,6 +84,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   FILE *f;
   char filepath[1024];
   size_t i, j;
+  extern volatile int g_fail_io_after;
   const char *libname = config->library_name ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
@@ -96,6 +95,13 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
                config->output_dir);
   f = fopen(filepath, "w");
 #endif
+
+  if (g_fail_io_after == 555) {
+    if (f) {
+      fclose(f);
+      f = NULL;
+    }
+  }
 
   if (!f)
     return CDD_C_ERROR_IO;
@@ -238,6 +244,7 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
   FILE *f;
   char filepath[1024];
   size_t i;
+  extern volatile int g_fail_io_after;
   const char *libname = config->library_name ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
@@ -249,6 +256,13 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
                config->output_dir);
   f = fopen(filepath, "w");
 #endif
+
+  if (g_fail_io_after == 557) {
+    if (f) {
+      fclose(f);
+      f = NULL;
+    }
+  }
 
   if (!f)
     return CDD_C_ERROR_IO;
@@ -283,6 +297,7 @@ static enum cdd_c_error
 emit_csproj(const cdd_generate_bindings_config_t *config) {
   FILE *f;
   char filepath[1024];
+  extern volatile int g_fail_io_after;
   const char *libname = config->library_name ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
@@ -294,6 +309,13 @@ emit_csproj(const cdd_generate_bindings_config_t *config) {
                config->output_dir, libname);
   f = fopen(filepath, "w");
 #endif
+
+  if (g_fail_io_after == 556) {
+    if (f) {
+      fclose(f);
+      f = NULL;
+    }
+  }
 
   if (!f)
     return CDD_C_ERROR_IO;

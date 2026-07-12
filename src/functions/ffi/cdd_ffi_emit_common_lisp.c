@@ -145,6 +145,14 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(asd_filepath, sizeof(asd_filepath), "%s/%s.asd",
                config->output_dir, lisp_lib_name);
   asd_f = fopen(asd_filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  extern volatile int g_fail_io_after;
+  if (g_fail_io_after == 555) {
+    if (asd_f)
+      fclose(asd_f);
+    asd_f = NULL;
+  }
+#endif
   if (!asd_f) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;

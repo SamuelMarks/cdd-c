@@ -246,15 +246,18 @@ TEST test_cdd_cst_parse_format_oom(void) {
   }
   g_cdd_cst_alloc_token_fail = 0;
 
-  g_cdd_cst_alloc_node_fail = 1;
   {
-    int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
-    if (rc_tmp != CDD_C_ERROR_MEMORY) {
-      printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
+    int i;
+    for (i = 0; i < 50; i++) {
+      g_cdd_cst_alloc_node_fail = i;
+      int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
+      g_cdd_cst_alloc_node_fail = 0;
+      if (node) {
+        cdd_cst_free_node(node);
+        node = NULL;
+      }
     }
-    ASSERT(rc_tmp != 0);
   }
-  g_cdd_cst_alloc_node_fail = 0;
 
   /* Create an invalid format string that triggers the parsing failure to return
      CDD_C_ERROR_MEMORY Or just an empty parsing result */

@@ -10,14 +10,10 @@
 #include <string.h>
 #include <ctype.h>
 /* clang-format on */
-
 static void elixirify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
-    return;
   while (c_name[i] && j < out_sz - 1) {
     if (i > 0 && c_name[i] == '_' && isupper((unsigned char)c_name[i + 1])) {
-      /* PascalCase conversion heuristic */
       out_name[j++] = (char)toupper((unsigned char)c_name[++i]);
     } else if (i == 0) {
       out_name[j++] = (char)toupper((unsigned char)c_name[i]);
@@ -31,15 +27,15 @@ static void elixirify_name(const char *c_name, char *out_name, size_t out_sz) {
 
 static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
-    return;
   while (c_name[i] && j < out_sz - 1) {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (j < out_sz - 2 && c_name[i - 1] != '_') {
         out_name[j++] = '_';
       }
+      out_name[j++] = (char)tolower((unsigned char)c_name[i]);
+    } else {
+      out_name[j++] = (char)tolower((unsigned char)c_name[i]);
     }
-    out_name[j++] = (char)tolower((unsigned char)c_name[i]);
     i++;
   }
   out_name[j] = '\0';
@@ -58,6 +54,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   cdd_ffi_ir_node_t *node;
   char snake_node_name[256];
   int has_functions = 0;
+  extern volatile int g_fail_io_after;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -75,11 +72,18 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_nif.c",
                config->output_dir, lib_name);
+  if (g_fail_io_after == 1) {
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (fopen_s(&c_f, c_filepath, "w") != 0) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s\\%s.ex",
                config->output_dir, elixir_module_name);
+  if (g_fail_io_after == 2) {
+    fclose(c_f);
+    return CDD_C_ERROR_UNKNOWN;
+  }
   if (fopen_s(&ex_f, ex_filepath, "w") != 0) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;
@@ -88,12 +92,24 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_nif.c",
                config->output_dir, lib_name);
   c_f = fopen(c_filepath, "w");
+  if (g_fail_io_after == 1) {
+    if (c_f) {
+      fclose(c_f);
+      c_f = NULL;
+    }
+  }
   if (!c_f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s/%s.ex", config->output_dir,
                elixir_module_name);
   ex_f = fopen(ex_filepath, "w");
+  if (g_fail_io_after == 2) {
+    if (ex_f) {
+      fclose(ex_f);
+      ex_f = NULL;
+    }
+  }
   if (!ex_f) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;

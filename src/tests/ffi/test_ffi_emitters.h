@@ -53,52 +53,276 @@ extern "C" {
 
 static cdd_ffi_ir_t *create_dummy_ir(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
-  if (!ir)
-    return NULL;
+  ir->nodes = (cdd_ffi_ir_node_t *)calloc(30, sizeof(cdd_ffi_ir_node_t));
 
-  ir->nodes = (cdd_ffi_ir_node_t *)calloc(10, sizeof(cdd_ffi_ir_node_t));
-  ir->nodes_capacity = 10;
-  ir->nodes_count = 5;
-
-  /* node 0: Struct */
+  /* node 0: Struct with all types */
   ir->nodes[0].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[0].name = "TestStruct";
-  ir->nodes[0].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
-  ir->nodes[0].fields_count = 2;
-  ir->nodes[0].fields[0].name = "field1";
-  ir->nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[0].fields[1].name = "field2";
-  ir->nodes[0].fields[1].type.kind = CDD_FFI_KIND_FLOAT32;
-  ir->nodes[0].fields[1].type.pointer_depth = 1;
+  ir->nodes[0].doc = "Struct doc";
+  ir->nodes[0].fields = (cdd_ffi_field_t *)calloc(30, sizeof(cdd_ffi_field_t));
+  ir->nodes[0].fields_count = 28;
+  ir->nodes[0].fields[0].name = "f_void";
+  ir->nodes[0].fields[0].type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[0].fields[1].name = "f_bool";
+  ir->nodes[0].fields[1].type.kind = CDD_FFI_KIND_BOOL;
+  ir->nodes[0].fields[2].name = "f_i8";
+  ir->nodes[0].fields[2].type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[0].fields[3].name = "f_u8";
+  ir->nodes[0].fields[3].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[0].fields[4].name = "f_i16";
+  ir->nodes[0].fields[4].type.kind = CDD_FFI_KIND_INT16;
+  ir->nodes[0].fields[5].name = "f_u16";
+  ir->nodes[0].fields[5].type.kind = CDD_FFI_KIND_UINT16;
+  ir->nodes[0].fields[6].name = "f_i32";
+  ir->nodes[0].fields[6].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[0].fields[7].name = "f_u32";
+  ir->nodes[0].fields[7].type.kind = CDD_FFI_KIND_UINT32;
+  ir->nodes[0].fields[8].name = "f_i64";
+  ir->nodes[0].fields[8].type.kind = CDD_FFI_KIND_INT64;
+  ir->nodes[0].fields[9].name = "f_u64";
+  ir->nodes[0].fields[9].type.kind = CDD_FFI_KIND_UINT64;
+  ir->nodes[0].fields[10].name = "f_f32";
+  ir->nodes[0].fields[10].type.kind = CDD_FFI_KIND_FLOAT32;
+  ir->nodes[0].fields[11].name = "f_f64";
+  ir->nodes[0].fields[11].type.kind = CDD_FFI_KIND_FLOAT64;
+  ir->nodes[0].fields[12].name = "f_struct_ref";
+  ir->nodes[0].fields[12].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[0].fields[12].type.ref_name = "OtherStruct";
+  ir->nodes[0].fields[13].name = "f_enum_ref";
+  ir->nodes[0].fields[13].type.kind = CDD_FFI_KIND_ENUM_REF;
+  ir->nodes[0].fields[13].type.ref_name = "OtherEnum";
+  ir->nodes[0].fields[14].name = "f_opaque";
+  ir->nodes[0].fields[14].type.kind = CDD_FFI_KIND_OPAQUE_PTR;
+  ir->nodes[0].fields[15].name = "f_func_ptr";
+  ir->nodes[0].fields[15].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+  ir->nodes[0].fields[16].name = "f_string";
+  ir->nodes[0].fields[16].type.kind = CDD_FFI_KIND_STD_STRING;
+  ir->nodes[0].fields[17].name = "f_ptr";
+  ir->nodes[0].fields[17].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[0].fields[17].type.pointer_depth = 1;
+  ir->nodes[0].fields[18].name = "f_const_u8_ptr";
+  ir->nodes[0].fields[18].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[0].fields[18].type.pointer_depth = 1;
+  ir->nodes[0].fields[18].type.is_const = 1;
+  ir->nodes[0].fields[19].name = "f_arr";
+  ir->nodes[0].fields[19].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[0].fields[19].type.array_size = 4;
+  ir->nodes[0].fields[20].name = "f_unknown";
+  ir->nodes[0].fields[20].type.kind = 999; /* INVALID KIND */
+  ir->nodes[0].fields[21].name = "f_typedef_ref";
+  ir->nodes[0].fields[21].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[0].fields[21].type.ref_name = "size_t";
+  ir->nodes[0].fields[22].name = "f_struct_ref_ptr";
+  ir->nodes[0].fields[22].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[0].fields[22].type.ref_name = "OtherStruct";
+  ir->nodes[0].fields[22].type.pointer_depth = 1;
+  ir->nodes[0].fields[23].name = "f_typedef_ref_ptr";
+  ir->nodes[0].fields[23].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[0].fields[23].type.ref_name = "OtherTypedef";
+  ir->nodes[0].fields[23].type.pointer_depth = 1;
+  ir->nodes[0].fields[24].name = "f_void_ptr2";
+  ir->nodes[0].fields[24].type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[0].fields[24].type.pointer_depth = 2;
+  ir->nodes[0].fields[25].name = "f_u8_ptr";
+  ir->nodes[0].fields[25].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[0].fields[25].type.pointer_depth = 1;
+  ir->nodes[0].fields[25].type.is_const = 0;
+  ir->nodes[0].fields[26].name = "f_void_ptr1";
+  ir->nodes[0].fields[26].type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[0].fields[26].type.pointer_depth = 1;
+  ir->nodes[0].fields[27].name = "f_i8_ptr_ptr";
+  ir->nodes[0].fields[27].type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[0].fields[27].type.pointer_depth = 2;
 
   /* node 1: Enum */
   ir->nodes[1].kind = CDD_FFI_NODE_ENUM;
   ir->nodes[1].name = "TestEnum";
+  ir->nodes[1].doc = "Enum doc";
   ir->nodes[1].variants =
       (cdd_ffi_enum_variant_t *)calloc(2, sizeof(cdd_ffi_enum_variant_t));
   ir->nodes[1].variants_count = 2;
   ir->nodes[1].variants[0].name = "VARIANT_A";
+  ir->nodes[1].variants[0].value = "10";
+  ir->nodes[1].variants[0].doc = "Variant doc";
   ir->nodes[1].variants[1].name = "VARIANT_B";
 
   /* node 2: Function (void return) */
   ir->nodes[2].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[2].name = "test_func_void";
   ir->nodes[2].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
-  ir->nodes[2].fields_count = 1;
+  ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+  ir->nodes[2].fields_count = 2;
   ir->nodes[2].fields[0].name = "param1";
   ir->nodes[2].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir->nodes[2].fields[0].type.ref_name = "TestStruct";
+  ir->nodes[2].fields[1].name = "in";
+  ir->nodes[2].fields[1].type.kind = CDD_FFI_KIND_INT32;
 
   /* node 3: Function (int return, no params) */
   ir->nodes[3].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[3].name = "test_func_int";
+  ir->nodes[3].name = "testFunc";
   ir->nodes[3].return_or_base_type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[3].fields_count = 0;
 
   /* node 4: Union */
   ir->nodes[4].kind = CDD_FFI_NODE_UNION;
   ir->nodes[4].name = "TestUnion";
+  ir->nodes[4].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[4].fields_count = 1;
+  ir->nodes[4].fields[0].name = "field1";
+  ir->nodes[4].fields[0].type.kind = CDD_FFI_KIND_INT32;
+
+  /* node 5: Function (void return, no params) */
+  ir->nodes[5].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[5].name = "Test_Func";
+  ir->nodes[5].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[5].fields_count = 0;
+
+  /* node 6: Function (int return, with params) */
+  ir->nodes[6].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[6].name = "test_func_int_with_args";
+  ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(17, sizeof(cdd_ffi_field_t));
+  ir->nodes[6].fields_count = 17;
+  ir->nodes[6].fields[0].name = "param1";
+  ir->nodes[6].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[6].fields[1].name = "type";
+  ir->nodes[6].fields[1].type.kind = CDD_FFI_KIND_BOOL;
+  ir->nodes[6].fields[2].name = "func";
+  ir->nodes[6].fields[2].type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[6].fields[3].name = "p_u8";
+  ir->nodes[6].fields[3].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[6].fields[4].name = "p_i16";
+  ir->nodes[6].fields[4].type.kind = CDD_FFI_KIND_INT16;
+  ir->nodes[6].fields[5].name = "p_u16";
+  ir->nodes[6].fields[5].type.kind = CDD_FFI_KIND_UINT16;
+  ir->nodes[6].fields[6].name = "p_u32";
+  ir->nodes[6].fields[6].type.kind = CDD_FFI_KIND_UINT32;
+  ir->nodes[6].fields[7].name = "p_i64";
+  ir->nodes[6].fields[7].type.kind = CDD_FFI_KIND_INT64;
+  ir->nodes[6].fields[8].name = "p_u64";
+  ir->nodes[6].fields[8].type.kind = CDD_FFI_KIND_UINT64;
+  ir->nodes[6].fields[9].name = "p_f32";
+  ir->nodes[6].fields[9].type.kind = CDD_FFI_KIND_FLOAT32;
+  ir->nodes[6].fields[10].name = "p_f64";
+  ir->nodes[6].fields[10].type.kind = CDD_FFI_KIND_FLOAT64;
+  ir->nodes[6].fields[11].name = "p_func_ptr";
+  ir->nodes[6].fields[11].type.kind = CDD_FFI_KIND_FUNCTION_PTR;
+  ir->nodes[6].fields[12].name = "p_enum_ref";
+  ir->nodes[6].fields[12].type.kind = CDD_FFI_KIND_ENUM_REF;
+  ir->nodes[6].fields[13].name = "p_typedef_ref";
+  ir->nodes[6].fields[13].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[6].fields[13].type.ref_name = "MyTypedef";
+  ir->nodes[6].fields[14].name = "p_opaque";
+  ir->nodes[6].fields[14].type.kind = CDD_FFI_KIND_OPAQUE_PTR;
+  ir->nodes[6].fields[15].name = "p_unknown";
+  ir->nodes[6].fields[15].type.kind = 999;
+  ir->nodes[6].fields[16].name = "p_void";
+  ir->nodes[6].fields[16].type.kind = CDD_FFI_KIND_VOID;
+
+  /* node 7: Null ref_name field */
+  ir->nodes[7].kind = CDD_FFI_NODE_STRUCT;
+  ir->nodes[7].name = "BadStruct";
+  ir->nodes[7].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[7].fields_count = 3;
+  ir->nodes[7].fields[0].name = NULL;
+  ir->nodes[7].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[7].fields[0].type.ref_name = NULL;
+  ir->nodes[7].fields[0].type.pointer_depth = 0;
+  ir->nodes[7].fields[1].name = "f_bad2";
+  ir->nodes[7].fields[1].type.kind = CDD_FFI_KIND_ENUM_REF;
+  ir->nodes[7].fields[1].type.ref_name = NULL;
+  ir->nodes[7].fields[1].type.pointer_depth = 0;
+  ir->nodes[7].fields[2].name = "f_bad3";
+  ir->nodes[7].fields[2].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[7].fields[2].type.ref_name = NULL;
+  ir->nodes[7].fields[2].type.pointer_depth = 0;
+  ir->nodes[7].fields[0].type.ref_name = NULL;
+
+  /* node 8: Typedef */
+  ir->nodes[8].kind = CDD_FFI_NODE_TYPEDEF;
+  ir->nodes[8].name = "MyTypedef";
+  ir->nodes[8].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+
+  /* node 9: Macro */
+  ir->nodes[9].kind = CDD_FFI_NODE_MACRO;
+  ir->nodes[9].name = "MyMacro";
+
+  /* node 10: Trampoline struct */
+  ir->nodes[10].kind = CDD_FFI_NODE_STRUCT;
+  ir->nodes[10].name = "TestClass_Trampoline";
+  ir->nodes[10].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[10].fields_count = 4;
+  ir->nodes[10].fields[0].name = "ctx";
+  ir->nodes[10].fields[1].name = "cb_AddRef";
+  ir->nodes[10].fields[2].name = "cb_Release";
+  ir->nodes[10].fields[3].name = "cb_MyVirtualFunc";
+
+  /* node 11: Function with class and this args */
+  ir->nodes[11].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[11].name = "test_func_cpp_args";
+  ir->nodes[11].doc = "My docstring";
+  ir->nodes[11].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[11].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+  ir->nodes[11].fields_count = 2;
+  ir->nodes[11].fields[0].name = "class";
+  ir->nodes[11].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[11].fields[1].name = "this";
+  ir->nodes[11].fields[1].type.kind = CDD_FFI_KIND_INT32;
+
+  /* node 12: Base Class struct */
+  ir->nodes[12].kind = CDD_FFI_NODE_STRUCT;
+  ir->nodes[12].name = "BaseClass";
+
+  /* node 13: Derived struct */
+  ir->nodes[13].kind = CDD_FFI_NODE_STRUCT;
+  ir->nodes[13].name = "DerivedStruct";
+  ir->nodes[13].base_classes =
+      (cdd_ffi_base_class_t *)calloc(2, sizeof(cdd_ffi_base_class_t));
+  ir->nodes[13].base_classes_count = 2;
+  ir->nodes[13].base_classes[0].name = "BaseClass";
+  ir->nodes[13].base_classes[1].name = "OtherBaseClass";
+
+  /* node 14: Function returning char* */
+  ir->nodes[14].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[14].name = "test_func_char_ptr";
+  ir->nodes[14].return_or_base_type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[14].return_or_base_type.pointer_depth = 1;
+  ir->nodes[14].fields_count = 0;
+
+  /* node 15: Function with out, inout, and variadic args */
+  ir->nodes[15].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[15].name = "test_func_out_inout_var";
+  ir->nodes[15].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[15].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[15].fields_count = 4;
+  ir->nodes[15].is_variadic = 1;
+  ir->nodes[15].fields[0].name = "out_arg";
+  ir->nodes[15].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[15].fields[0].type.pointer_depth = 1;
+  ir->nodes[15].fields[0].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[15].fields[1].name = "inout_arg";
+  ir->nodes[15].fields[1].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[15].fields[1].type.ref_name = "TestStruct";
+  ir->nodes[15].fields[1].type.pointer_depth = 1;
+  ir->nodes[15].fields[1].intent = CDD_FFI_INTENT_INOUT;
+  ir->nodes[15].fields[2].name = "string_out";
+  ir->nodes[15].fields[2].type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[15].fields[2].type.pointer_depth = 2;
+  ir->nodes[15].fields[2].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[15].fields[3].name = "u8_ptr_arg";
+  ir->nodes[15].fields[3].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[15].fields[3].type.pointer_depth = 1;
+
+  /* node 16: Function returning uint8* */
+  ir->nodes[16].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[16].name = "test_func_uchar_ptr";
+  ir->nodes[16].return_or_base_type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[16].return_or_base_type.pointer_depth = 1;
+  ir->nodes[16].fields_count = 0;
+
+  ir->nodes_count = 17;
+  ir->nodes_capacity = 30;
 
   return ir;
 }
@@ -109,6 +333,13 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   free(ir->nodes[0].fields);
   free(ir->nodes[1].variants);
   free(ir->nodes[2].fields);
+  free(ir->nodes[4].fields);
+  free(ir->nodes[6].fields);
+  free(ir->nodes[7].fields);
+  free(ir->nodes[10].fields);
+  free(ir->nodes[11].fields);
+  free(ir->nodes[13].base_classes);
+  free(ir->nodes[15].fields);
   free(ir->nodes);
   free(ir);
 }
@@ -117,20 +348,45 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   TEST test_ffi_emit_##lang(void) {                                            \
     cdd_ffi_ir_t *ir = create_dummy_ir();                                      \
     cdd_generate_bindings_config_t config = {0};                               \
+    int i;                                                                     \
+    config.input = "my_input.h";                                               \
     config.output_dir = "build/test_out_dir";                                  \
-    config.library_name = "testlib";                                           \
+    config.library_name = "test_Lib_name";                                     \
     config.module_name = "TestMod";                                            \
+    config.generate_tests = 1;                                                 \
+                                                                               \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+                                                                               \
+    config.input = NULL;                                                       \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+                                                                               \
+    config.module_name = NULL;                                                 \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+    config.module_name = "TestMod";                                            \
+                                                                               \
+    for (i = 1; i <= 5; i++) {                                                 \
+      g_fail_io_after = i;                                                     \
+      cdd_ffi_emit_##lang(ir, &config);                                        \
+    }                                                                          \
+    for (i = 555; i <= 557; i++) {                                             \
+      g_fail_io_after = i;                                                     \
+      cdd_ffi_emit_##lang(ir, &config);                                        \
+    }                                                                          \
+    g_fail_io_after = -1;                                                      \
                                                                                \
     cdd_ffi_emit_##lang(NULL, &config);                                        \
                                                                                \
     config.output_dir = NULL;                                                  \
     cdd_ffi_emit_##lang(ir, &config);                                          \
-    config.output_dir = "build/test_out_dir";                                  \
                                                                                \
+    config.output_dir = "/dev/null/invalid_dir";                               \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
-    /* Also test with no fields in struct/func */                              \
+    config.output_dir = "build/test_out_dir";                                  \
     ir->nodes[0].fields_count = 0;                                             \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+                                                                               \
+    ir->nodes_count = 0;                                                       \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
     free_dummy_ir(ir);                                                         \
