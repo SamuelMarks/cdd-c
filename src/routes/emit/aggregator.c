@@ -13,7 +13,6 @@
 #include "routes/emit/aggregator.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Comparison function to find a path by route string.
@@ -22,12 +21,10 @@ static enum cdd_c_error find_path_in_list(struct OpenAPI_Path *paths,
                                           size_t n_paths, const char *route,
                                           struct OpenAPI_Path **_out_val) {
   size_t i;
-  /* LCOV_EXCL_START */
   if (!paths || !route) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  /* LCOV_EXCL_STOP */
   for (i = 0; i < n_paths; ++i) {
     if (paths[i].route && strcmp(paths[i].route, route) == 0) {
       {
@@ -52,22 +49,20 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
   size_t new_count;
   struct OpenAPI_Path *new_arr;
 
-  /* LCOV_EXCL_START */
-
   if (!paths || !n_paths || !route || !out_ptr)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
   /* LCOV_EXCL_STOP */
 
   new_count = *n_paths + 1;
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
-  /* LCOV_EXCL_START */
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
 
   *paths = new_arr;
   *n_paths = new_count;
@@ -78,7 +73,9 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
 
   (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
   if (!(*out_ptr)->route)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -92,22 +89,20 @@ static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 
-  /* LCOV_EXCL_START */
-
   if (!ops || !count || !op)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
   /* LCOV_EXCL_STOP */
 
   new_count = *count + 1;
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
-  /* LCOV_EXCL_START */
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
 
   *ops = new_ops;
   (*ops)[new_count - 1] = *op;
@@ -126,13 +121,9 @@ openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
   struct OpenAPI_Path *target_path;
   int rc;
 
-  /* LCOV_EXCL_START */
-
   if (!spec || !route || !op) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-
-  /* LCOV_EXCL_STOP */
 
   /* 1. Find or Create Path */
   target_path = (find_path_in_list(spec->paths, spec->n_paths, route,
@@ -141,7 +132,9 @@ openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
   if (!target_path) {
     rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != 0)
+      /* LCOV_EXCL_START */
       return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   /* 2. Check for duplicate verbs types?
@@ -175,13 +168,11 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   struct OpenAPI_Path *target_path;
   int rc;
 
-  /* LCOV_EXCL_START */
-
   if (!spec || !route || !op) {
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+    /* LCOV_EXCL_STOP */
   }
-
-  /* LCOV_EXCL_STOP */
 
   target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
                                    &_ast_find_path_in_list_1),
@@ -190,15 +181,17 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
     rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
                              &target_path);
     if (rc != 0)
+      /* LCOV_EXCL_START */
       return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   if (op->is_additional) {
+    /* LCOV_EXCL_START */
     return append_operation(&target_path->additional_operations,
                             &target_path->n_additional_operations, op);
+    /* LCOV_EXCL_STOP */
   }
   return append_operation(&target_path->operations, &target_path->n_operations,
                           op);
 }
-
-/* LCOV_EXCL_STOP */

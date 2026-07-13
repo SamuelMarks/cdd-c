@@ -1,4 +1,4 @@
-/* LCOV_EXCL_START */
+/*  */
 /**
  * @file schema_codegen.c
  * @brief Implementation of C code generation from JSON Schema.
@@ -226,14 +226,18 @@ generate_header(const char *prefix, const char *basename,
     const JSON_Object *props = json_object_get_object(s, "properties");
 
     if (struct_fields_init(&sf) != 0) {
+      /* LCOV_EXCL_START */
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
+      /* LCOV_EXCL_START */
       struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
 
     is_object_schema =
@@ -320,8 +324,10 @@ generate_source(const char *prefix, const char *basename,
     int is_object_schema = 0;
 
     if (struct_fields_init(&sf) != 0) {
+      /* LCOV_EXCL_START */
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
@@ -381,16 +387,20 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
   int i;
 
   if (argc < 2) {
+    /* LCOV_EXCL_START */
     if (basename)
       free(basename);
+    /* LCOV_EXCL_STOP */
     return CDD_C_ERROR_UNKNOWN;
   }
   schema_file = argv[0];
   prefix = argv[1];
   if (get_basename(prefix, &basename) != 0) {
+    /* LCOV_EXCL_START */
     if (basename)
       free(basename);
     return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
   }
 
   for (i = 2; i < argc; ++i) {
@@ -438,4 +448,4 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
   return CDD_C_SUCCESS;
 }
 
-/* LCOV_EXCL_STOP */
+/*  */

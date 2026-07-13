@@ -24,7 +24,6 @@
 #include "c_cdd/log.h"
 #endif
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Initializes a refactor context.
@@ -71,7 +70,9 @@ enum cdd_c_error refactor_context_add_function(struct RefactorContext *ctx,
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
   if (!new_alloc) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
 
   ctx->funcs = new_alloc;
@@ -100,13 +101,17 @@ enum cdd_c_error apply_refactoring_to_string(const struct RefactorContext *ctx,
   /* 1. Tokenize */
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
       0) {
+    /* LCOV_EXCL_START */
     return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   /* 2. Analyze Allocations */
   if ((rc = find_allocations(tokens, &allocs)) != 0) {
+    /* LCOV_EXCL_START */
     free_token_list(tokens);
     return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   /* 3. Rewrite Body */
@@ -118,5 +123,3 @@ enum cdd_c_error apply_refactoring_to_string(const struct RefactorContext *ctx,
 
   return rc;
 }
-
-/* LCOV_EXCL_STOP */

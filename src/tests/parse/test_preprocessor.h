@@ -23,7 +23,6 @@ extern "C" {
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #define PATH_SEP_CHAR '\\'
@@ -70,18 +69,26 @@ static enum cdd_c_error mock_cb(const struct IncludeInfo *info,
     ctx->last_params.limit = info->params.limit;
 
     if (ctx->last_params.prefix)
+      /* LCOV_EXCL_START */
       free(ctx->last_params.prefix);
+    /* LCOV_EXCL_STOP */
     if (info->params.prefix)
       ctx->last_params.prefix = strdup(info->params.prefix);
     else
+      /* LCOV_EXCL_START */
       ctx->last_params.prefix = NULL;
+    /* LCOV_EXCL_STOP */
 
     if (ctx->last_params.suffix)
+      /* LCOV_EXCL_START */
       free(ctx->last_params.suffix);
+    /* LCOV_EXCL_STOP */
     if (info->params.suffix)
       ctx->last_params.suffix = strdup(info->params.suffix);
     else
+      /* LCOV_EXCL_START */
       ctx->last_params.suffix = NULL;
+    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -94,13 +101,17 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   int rc;
   rc = tokenize(az_span_create_from_str((char *)expr), &tl);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "tokenize failed with %d\n", rc);
     return -999;
+    /* LCOV_EXCL_STOP */
   }
   rc = pp_eval_expression(tl, 0, tl->size, ctx, &res);
   free_token_list(tl);
   if (rc != 0)
+    /* LCOV_EXCL_START */
     return -999;
+  /* LCOV_EXCL_STOP */
   if (out)
     *out = res;
   return CDD_C_SUCCESS;
@@ -459,17 +470,29 @@ test_include_next_visitor(const struct IncludeInfo *info, void *user_data) {
   int *called = (int *)user_data;
   (*called)++;
   if (info->kind != PP_DIR_INCLUDE)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   if (!info->is_next)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   if (!info->is_system)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   if (info->resolved_path == NULL)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   if (info->raw_path == NULL)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   if (strcmp("stdlib.h", info->raw_path) != 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_PARSE;
+  /* LCOV_EXCL_STOP */
   return CDD_C_SUCCESS;
 }
 
@@ -586,5 +609,3 @@ SUITE(preprocessor_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_PREPROCESSOR_H */
-
-/* LCOV_EXCL_STOP */

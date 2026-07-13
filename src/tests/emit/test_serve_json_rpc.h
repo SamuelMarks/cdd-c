@@ -34,7 +34,6 @@ extern "C" {
 #endif
 #endif
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Tests binding failure scenario for the JSON RPC server.
@@ -240,8 +239,10 @@ TEST test_serve_mcp_stdio_main(void) {
       fclose(devnull);
     ASSERT_EQ(0, rc);
   } else {
+    /* LCOV_EXCL_START */
     rc = serve_mcp_stdio_main(argc, argv);
     ASSERT_EQ(0, rc);
+    /* LCOV_EXCL_STOP */
   }
 
   PASS();
@@ -267,5 +268,3 @@ SUITE(serve_json_rpc_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_SERVER_JSON_RPC_H */
-
-/* LCOV_EXCL_STOP */

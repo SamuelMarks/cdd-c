@@ -16,7 +16,6 @@ extern "C" {
 #include "classes/parse/cdd_cst_type_eval.h"
 #include <greatest.h>
 /* clang-format on */
-/* LCOV_EXCL_START */
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;
@@ -343,7 +342,9 @@ TEST test_type_eval_branches(void) {
   rc = cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz);
   if (rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
+    /* LCOV_EXCL_START */
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    /* LCOV_EXCL_STOP */
   }
   g_cdd_cst_alloc_token_fail = 0;
 #endif
@@ -395,5 +396,3 @@ SUITE(cdd_cst_type_eval_suite) {
 #endif
 
 #endif
-
-/* LCOV_EXCL_STOP */

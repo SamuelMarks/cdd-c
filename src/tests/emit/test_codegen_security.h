@@ -21,7 +21,6 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/emit/security.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* Helper to capture output */
 static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
@@ -35,7 +34,9 @@ static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
 
   if (!tmp) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Op is unused currently but required by signature */
@@ -44,10 +45,14 @@ static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
     op = &op_local;
   }
   if (codegen_security_write_apply(tmp, op, spec) != 0) {
+    /* LCOV_EXCL_START */
     fclose(tmp);
+    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
+      /* LCOV_EXCL_START */
       return 0;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -459,5 +464,3 @@ SUITE(codegen_security_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SECURITY_H */
-
-/* LCOV_EXCL_STOP */

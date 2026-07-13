@@ -21,7 +21,6 @@ extern "C" {
 
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error token_to_cstr(char *buf, size_t buf_len,
                                       const struct Token *tok,
@@ -29,7 +28,9 @@ static enum cdd_c_error token_to_cstr(char *buf, size_t buf_len,
   size_t copy_len;
   if (buf_len == 0) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 
   copy_len = (tok->length < (buf_len - 1)) ? tok->length : (buf_len - 1);
@@ -236,5 +237,3 @@ SUITE(tokenizer_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_TOKENIZER_H */
-
-/* LCOV_EXCL_STOP */

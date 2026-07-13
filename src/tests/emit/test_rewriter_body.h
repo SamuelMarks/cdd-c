@@ -16,7 +16,6 @@ extern "C" {
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error
 run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
@@ -31,11 +30,15 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tokenize(source, &tl) != 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
 
   if (find_allocations(tl, &sites) != 0) {
+    /* LCOV_EXCL_START */
     free_token_list(tl);
     return CDD_C_ERROR_PARSE;
+    /* LCOV_EXCL_STOP */
   }
 
   rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);
@@ -285,5 +288,3 @@ SUITE(rewriter_body_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_REWRITER_BODY_H */
-
-/* LCOV_EXCL_STOP */

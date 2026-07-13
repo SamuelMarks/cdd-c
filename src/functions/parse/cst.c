@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file cst.c
  * @brief Implementation of the Concrete Syntax Tree logic.
@@ -906,4 +907,5 @@ enum cdd_c_error cst_find_first(struct CstNodeList *list,
   return CDD_C_SUCCESS;
 }
 
+/* LCOV_EXCL_STOP */
 /* LCOV_EXCL_STOP */

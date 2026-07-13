@@ -24,7 +24,6 @@
 #include <dlfcn.h>
 #endif
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Internal function to check if a dynamic library can be loaded.
@@ -87,7 +86,9 @@ static enum cdd_c_error check_lib(const char *win_name, const char *posix_name,
   }
 #endif
 #endif
+  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
 }
 
 enum cdd_c_error check_libpq_available(int *out_avail) {
@@ -101,5 +102,3 @@ enum cdd_c_error check_sqlite3_available(int *out_avail) {
 enum cdd_c_error check_mysql_available(int *out_avail) {
   return check_lib("libmysql.dll", "libmysqlclient.so", out_avail);
 }
-
-/* LCOV_EXCL_STOP */

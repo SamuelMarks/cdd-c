@@ -22,7 +22,6 @@ extern "C" {
 #include "classes/emit/struct.h" /* For struct_fields init helpers */
 #include "classes/emit/types.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* --- Union Tests --- */
 
@@ -778,7 +777,9 @@ TEST test_types_exhaustive_io(void) {
     rc = write_union_from_jsonObject_func(tmp, "MyUnion", &sf, &config);
     fclose(tmp);
     if (rc == 0)
+      /* LCOV_EXCL_START */
       break;
+    /* LCOV_EXCL_STOP */
   }
 
   free(sf.union_discriminator);
@@ -823,5 +824,3 @@ SUITE(codegen_types_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_TYPES_H */
-
-/* LCOV_EXCL_STOP */

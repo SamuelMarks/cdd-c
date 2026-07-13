@@ -794,6 +794,151 @@ TEST test_schema_codegen_main_paths(void) {
   PASS();
 }
 
+extern int g_struct_fields_init_fail;
+TEST test_schema_codegen_init_fail(void) {
+  void *root;
+  void *schemas;
+  int rc;
+  const char *schema_json =
+      "{\"components\": {\"schemas\": {\"MyStruct\": {\"properties\": {}}}}}";
+  FILE *f = fopen("test_codegen_schema_init.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  root = json_parse_file("test_codegen_schema_init.json");
+  schemas = json_object_get_object(json_value_get_object(root), "components");
+  schemas = json_object_get_object(schemas, "schemas");
+
+  g_struct_fields_init_fail = 1;
+  rc = generate_header("test_out2", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+  rc = generate_source("test_out2", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_struct_fields_init_fail = 0;
+
+  json_value_free(root);
+  remove("test_codegen_schema_init.json");
+  remove("test_out2.h");
+  remove("test_out2.c");
+  PASS();
+}
+
+TEST test_schema_codegen_parse_error(void) {
+  void *root;
+  void *schemas;
+  int rc;
+  const char *schema_json =
+      "{\"components\": {\"schemas\": {\"MyStruct\": 123}}}";
+  FILE *f = fopen("test_codegen_schema_parse.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  root = json_parse_file("test_codegen_schema_parse.json");
+  schemas = json_object_get_object(json_value_get_object(root), "components");
+  schemas = json_object_get_object(schemas, "schemas");
+
+  rc = generate_header("test_out", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+  rc = generate_source("test_out", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+  json_value_free(root);
+  remove("test_codegen_schema_parse.json");
+  remove("test_out.h");
+  remove("test_out.c");
+  PASS();
+}
+
+TEST test_schema_codegen_source_fail(void) {
+  void *root;
+  void *schemas;
+  int rc;
+  const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
+                            "{\"type\": \"object\",\"properties\": {}}}}}";
+  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  root = json_parse_file("test_codegen_schema_io.json");
+  schemas = json_object_get_object(json_value_get_object(root), "components");
+  schemas = json_object_get_object(schemas, "schemas");
+
+  f = fopen("test_out_source.c", "w");
+  fclose(f);
+  system("chmod 0444 test_out_source.c");
+
+  /* Call main which calls generate_header and generate_source */
+  {
+    char *argv_bad[] = {"test_codegen_schema_io.json", "test_out_source"};
+    rc = schema2code_main(2, argv_bad);
+#ifndef _MSC_VER
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+#endif
+  }
+
+  system("chmod 0666 test_out_source.c");
+  remove("test_out_source.c");
+  remove("test_out_source.h");
+  json_value_free(root);
+  remove("test_codegen_schema_io.json");
+  PASS();
+}
+TEST test_schema_codegen_system_error(void) {
+  void *root;
+  void *schemas;
+  int rc;
+  const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
+                            "{\"type\": \"object\",\"properties\": {}}}}}";
+  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  root = json_parse_file("test_codegen_schema_io.json");
+  schemas = json_object_get_object(json_value_get_object(root), "components");
+  schemas = json_object_get_object(schemas, "schemas");
+
+  rc = generate_header("/invalid/path/prefix", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+
+  rc = generate_source("/invalid/path/prefix", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+
+  json_value_free(root);
+  remove("test_codegen_schema_io.json");
+  PASS();
+}
+
+TEST test_schema_codegen_main_errors(void) {
+  int rc;
+  char *argv_bad1[] = {"file.json"};
+  char *argv_bad2[] = {"file.json", NULL};
+  char *argv_bad3[] = {"nonexistent.json", "prefix"};
+  char *argv_bad4[] = {"file.json", "/invalid/path/prefix"};
+  const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
+                            "{\"type\": \"object\",\"properties\": {}}}}}";
+  FILE *f = fopen("file.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  rc = schema2code_main(1, argv_bad1);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  rc = schema2code_main(2, argv_bad2);
+  ASSERT_EQ(0, rc);
+  remove("(null).h");
+  remove("(null).c");
+
+  rc = schema2code_main(2, argv_bad3);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  rc = schema2code_main(2, argv_bad4);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  remove("file.json");
+  PASS();
+}
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_cli_exhaustive_io);
   RUN_TEST(test_schema_constraints_bounds);
@@ -807,6 +952,11 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_codegen_config_utils_guards);
   RUN_TEST(test_schema_codegen_specific_structs);
   RUN_TEST(test_schema_codegen_main_paths);
+  RUN_TEST(test_schema_codegen_init_fail);
+  RUN_TEST(test_schema_codegen_parse_error);
+  RUN_TEST(test_schema_codegen_source_fail);
+  RUN_TEST(test_schema_codegen_system_error);
+  RUN_TEST(test_schema_codegen_main_errors);
 }
 
 #ifdef __cplusplus

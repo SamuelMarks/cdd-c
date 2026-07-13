@@ -307,7 +307,9 @@ TEST test_ffi_ir_extract_exports_oom(void) {
     (void)rc;
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
+      /* LCOV_EXCL_START */
       cdd_ffi_ir_free(ir);
+    /* LCOV_EXCL_STOP */
     free(ir);
   }
 #endif

@@ -246,7 +246,6 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_open(&bld);
 #ifdef CDD_BUILD_TESTS
-      extern volatile int g_fail_io_after;
       if (g_extern_c_top_node_fail)
         bld.error_state = 1;
 #endif
@@ -352,7 +351,6 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_close(&bld);
 #ifdef CDD_BUILD_TESTS
-      extern volatile int g_fail_io_after;
       if (g_extern_c_bot_node_fail == 1)
         bld.error_state = 1;
 #endif
@@ -368,7 +366,6 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
           }
           if (bot_insert_idx < target_parent->num_children) {
 #ifdef CDD_BUILD_TESTS
-            extern volatile int g_fail_io_after;
             if (g_fail_io_after == 12345)
               rc = CDD_C_ERROR_MEMORY;
             else
@@ -381,7 +378,6 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
             }
           } else {
 #ifdef CDD_BUILD_TESTS
-            extern volatile int g_fail_io_after;
             if (g_fail_io_after == 12346)
               rc = CDD_C_ERROR_MEMORY;
             else

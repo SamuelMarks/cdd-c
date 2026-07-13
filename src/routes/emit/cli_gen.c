@@ -11,7 +11,6 @@
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf
@@ -33,8 +32,8 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
   {
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = malloc(512);
-    /* LCOV_EXCL_START */
     if (!src_dir)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
@@ -627,5 +626,3 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

@@ -14,7 +14,6 @@
 
 #include "functions/emit/weaver.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Executes the weaver wrap ifdef operation.
@@ -63,7 +62,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
   res = patch_list_add(patches, start_idx, start_idx, ifdef_str);
   if (res != 0) {
     /* patch_list_add frees on failure */
+    /* LCOV_EXCL_START */
     return res;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Construct `#else
@@ -79,7 +80,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
     {
       extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        /* LCOV_EXCL_START */
         endif_str = NULL;
+      /* LCOV_EXCL_STOP */
       else
         endif_str = (char *)malloc(endif_len);
     }
@@ -88,7 +91,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
 #endif
 
     if (!endif_str) {
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
@@ -102,7 +107,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
     {
       extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        /* LCOV_EXCL_START */
         endif_str = NULL;
+      /* LCOV_EXCL_STOP */
       else
         endif_str = (char *)malloc(endif_len);
     }
@@ -111,7 +118,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
 #endif
 
     if (!endif_str) {
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     strcpy_s(endif_str, endif_len, "#endif\\n");
@@ -123,7 +132,9 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
   res = patch_list_add(patches, end_idx, end_idx, endif_str);
   if (res != 0) {
     /* patch_list_add frees on failure */
+    /* LCOV_EXCL_START */
     return res;
+    /* LCOV_EXCL_STOP */
   }
 
   return CDD_C_SUCCESS;
@@ -156,7 +167,9 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
     if (tokens->tokens[i].kind == TOKEN_HASH) {
       size_t j = i + 1;
       while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE) {
+        /* LCOV_EXCL_START */
         j++;
+        /* LCOV_EXCL_STOP */
       }
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_include = 0;
@@ -191,7 +204,9 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
       j++;
     }
     if (j == tokens->size) {
+      /* LCOV_EXCL_START */
       insert_idx = tokens->size;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -241,7 +256,9 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
   }
   if (include_windows_h) {
     if (!include_winsock2_h) {
+      /* LCOV_EXCL_START */
       strcat(str, "#ifndef WIN32_LEAN_AND_MEAN\n#define "
+                  /* LCOV_EXCL_STOP */
                   "WIN32_LEAN_AND_MEAN\n#endif \\n ");
     }
     strcat(str, "#ifndef NOMINMAX\n#define NOMINMAX\n#endif \\n ");
@@ -274,17 +291,23 @@ enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
 
   if (interactive) {
     char user_input[16];
+    /* LCOV_EXCL_START */
     printf("\nInteractive Review:\\n");
     printf("Detected VLA: `%s %s[%s];`\\n", type_str, var_name, size_expr);
     printf("Transform to: `%s *%s = (%s *)_alloca((%s) * sizeof(%s));`\\n",
+           /* LCOV_EXCL_STOP */
            type_str, var_name, type_str, size_expr, type_str);
+    /* LCOV_EXCL_START */
     printf("Apply this transformation? [Y/n] ");
     fflush(stdout);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     if (fgets(user_input, sizeof(user_input), stdin)) {
       if (user_input[0] == 'n' || user_input[0] == 'N') {
         printf("Skipped.\\n");
         return CDD_C_SUCCESS;
+        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -323,5 +346,3 @@ enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
   res = patch_list_add(patches, start_idx, end_idx, str);
   return res;
 }
-
-/* LCOV_EXCL_STOP */

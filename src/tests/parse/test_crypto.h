@@ -27,7 +27,6 @@ extern "C" {
 
 #include "functions/parse/crypto_types.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_crypto_fail_sha256;
@@ -69,7 +68,9 @@ static void bin2hex(const unsigned char *bin, size_t len, char *out) {
 static enum cdd_c_error is_crypto_supported(void) {
   unsigned char buf[CRYPTO_SHA256_SIZE];
   if (crypto_sha256("test", 4, buf) == CDD_C_ERROR_SYSTEM) {
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
   return 1;
 }
@@ -89,7 +90,9 @@ TEST test_sha256_empty_string(void) {
       "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   ASSERT_EQ(0, crypto_sha256(NULL, 0, digest));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256(NULL, 1, digest));
@@ -116,7 +119,9 @@ TEST test_sha256_known_string(void) {
       "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   ASSERT_EQ(0, crypto_sha256(input, strlen(input), digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
@@ -142,7 +147,9 @@ TEST test_hmac_rfc4231_case1(void) {
       "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             crypto_hmac_sha256(NULL, 1, data, strlen(data), mac));
@@ -175,7 +182,9 @@ TEST test_hmac_rfc4231_case2(void) {
       "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   ASSERT_EQ(0, crypto_hmac_sha256(key, strlen(key), data, strlen(data), mac));
   bin2hex(mac, CRYPTO_SHA256_SIZE, hex);
@@ -195,7 +204,9 @@ TEST test_hmac_empty_keys_or_data(void) {
   const char *data = "data";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   /* Null Output */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -231,7 +242,9 @@ TEST test_crypto_errors(void) {
   const char *key = "key";
 
   if (!is_crypto_supported())
+    /* LCOV_EXCL_START */
     SKIPm("Crypto backend not compiled");
+  /* LCOV_EXCL_STOP */
 
   g_crypto_fail_sha256 = 1;
   ASSERT_EQ(CDD_C_ERROR_IO, crypto_sha256(data, strlen(data), digest));
@@ -288,5 +301,3 @@ SUITE(crypto_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CRYPTO_H */
-
-/* LCOV_EXCL_STOP */

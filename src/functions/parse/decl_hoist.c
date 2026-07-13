@@ -12,7 +12,6 @@
 
 #include "functions/parse/decl_hoist.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Initializes a hoist site list.
@@ -47,7 +46,9 @@ void hoist_site_list_free(struct HoistSiteList *list) {
 static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
                                               int *out_is_basic) {
   if (!out_is_basic)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
@@ -127,7 +128,9 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
             (tokens->tokens[look].kind == TOKEN_IDENTIFIER ||
              tokens->tokens[look].kind == TOKEN_STAR)) {
           /* Exception for labels and macros, but simple heuristic: */
+          /* LCOV_EXCL_START */
           is_decl = 1;
+          /* LCOV_EXCL_STOP */
         }
         /* Further disambiguation: if it's an assignment or function call, it's
          * not a decl unless it was a type */
@@ -158,7 +161,9 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
               new_sites = (struct HoistSite *)realloc(
                   list->sites, list->capacity * sizeof(struct HoistSite));
               if (!new_sites)
+                /* LCOV_EXCL_START */
                 return CDD_C_ERROR_MEMORY;
+              /* LCOV_EXCL_STOP */
               list->sites = new_sites;
             }
             list->sites[list->count].start_token_idx = stmt_start;
@@ -178,5 +183,3 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

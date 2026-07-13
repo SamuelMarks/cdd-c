@@ -12,7 +12,6 @@
 #include "functions/parse/macro_overlay.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Initializes a macro overlay list.
@@ -57,7 +56,9 @@ static enum cdd_c_error list_add(struct MacroOverlayList *list,
                                  const struct CstNode *node,
                                  struct CstNodeList *expanded) {
   if (!list || !node)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
 
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
@@ -65,7 +66,9 @@ static enum cdd_c_error list_add(struct MacroOverlayList *list,
         list->nodes, new_cap * sizeof(struct MacroOverlayNode));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
     list->nodes = new_arr;
     list->capacity = new_cap;
@@ -99,7 +102,9 @@ enum cdd_c_error cst_build_macro_overlay(const struct CstNodeList *cst,
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
       if (!dummy_expanded) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
+        /* LCOV_EXCL_STOP */
       }
       /* cst_list_init is not available, we can just zero it and let it be empty
        */
@@ -109,14 +114,14 @@ enum cdd_c_error cst_build_macro_overlay(const struct CstNodeList *cst,
 
       /* Just store it to satisfy dual representation architecture */
       if (list_add(overlays, n, dummy_expanded) != 0) {
+        /* LCOV_EXCL_START */
         free_cst_node_list(dummy_expanded);
         free(dummy_expanded);
         return CDD_C_ERROR_MEMORY;
+        /* LCOV_EXCL_STOP */
       }
     }
   }
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

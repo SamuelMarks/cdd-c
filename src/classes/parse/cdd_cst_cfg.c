@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_cfg_alloc_fail = 0;
 #endif
@@ -13,8 +12,10 @@ static enum cdd_c_error alloc_block(cdd_cst_cfg_t *cfg,
                                     enum cdd_cst_cfg_block_kind_t kind,
                                     cdd_cst_cfg_block_t **out_block) {
   cdd_cst_cfg_block_t *block;
+  /* LCOV_EXCL_START */
   if (!cfg || !out_block)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+    /* LCOV_EXCL_STOP */
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
     block = NULL;
@@ -100,8 +101,10 @@ static enum cdd_c_error build_block(cdd_cst_cfg_t *cfg,
   size_t i;
   int is_return = 0;
 
+  /* LCOV_EXCL_START */
   if (!stmt)
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
 
   /* Check for return token inside the node */
   for (i = 0; i < stmt->num_children; i++) {
@@ -250,5 +253,3 @@ void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
     free(cfg->blocks);
   free(cfg);
 }
-
-/* LCOV_EXCL_STOP */

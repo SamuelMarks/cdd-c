@@ -26,7 +26,6 @@ extern "C" {
 #include "classes/emit/struct.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error load_spec_str(const char *json_str,
                                       struct OpenAPI_Spec *spec) {
@@ -47,7 +46,9 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
   if (!dyn)
+    /* LCOV_EXCL_START */
     return -1;
+  /* LCOV_EXCL_STOP */
   (void)openapi_spec_init(spec);
   rc = openapi_load_from_json_with_context(dyn, retrieval_uri, spec, registry);
   json_value_free(dyn);
@@ -58,14 +59,18 @@ static enum cdd_c_error find_raw_schema_index(const struct OpenAPI_Spec *spec,
                                               const char *name) {
   size_t i;
   if (!spec || !name)
+    /* LCOV_EXCL_START */
     return -1;
+  /* LCOV_EXCL_STOP */
   for (i = 0; i < spec->n_raw_schemas; ++i) {
     if (spec->raw_schema_names && spec->raw_schema_names[i] &&
         strcmp(spec->raw_schema_names[i], name) == 0) {
       return (int)i;
     }
   }
+  /* LCOV_EXCL_START */
   return -1;
+  /* LCOV_EXCL_STOP */
 }
 
 static enum cdd_c_error find_scheme(const struct OpenAPI_Spec *spec,
@@ -74,7 +79,9 @@ static enum cdd_c_error find_scheme(const struct OpenAPI_Spec *spec,
   size_t i;
   if (!spec || !name) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
   for (i = 0; i < spec->n_security_schemes; ++i) {
     if (spec->security_schemes[i].name &&
@@ -87,7 +94,9 @@ static enum cdd_c_error find_scheme(const struct OpenAPI_Spec *spec,
   }
   {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -97,7 +106,9 @@ static enum cdd_c_error find_media_type(const struct OpenAPI_MediaType *mts,
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
@@ -107,7 +118,9 @@ static enum cdd_c_error find_media_type(const struct OpenAPI_MediaType *mts,
   }
   {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -1788,19 +1801,25 @@ TEST test_load_request_body_metadata_and_response_description(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
   {
+    /* LCOV_EXCL_START */
     struct OpenAPI_Operation *op = &spec.paths[0].operations[0];
     ASSERT_STR_EQ("Payload", op->req_body_description);
     ASSERT_EQ(1, op->req_body_required_set);
     ASSERT_EQ(0, op->req_body_required);
     ASSERT_STR_EQ("OK", op->responses[0].description);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_request_body_component_ref(void) {
@@ -1905,26 +1924,36 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
   {
+    /* LCOV_EXCL_START */
     struct OpenAPI_Operation *op = &spec.paths[0].operations[0];
     ASSERT_EQ(2, op->n_req_body_media_types);
     ASSERT_STR_EQ("application/json", op->req_body.content_type);
     ASSERT_STR_EQ("Pet", op->req_body.ref_name);
+    /* LCOV_EXCL_STOP */
     {
+      /* LCOV_EXCL_START */
       const struct OpenAPI_MediaType *mt =
           (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                           /* LCOV_EXCL_STOP */
                            "application/json", &_ast_find_media_type_2),
            _ast_find_media_type_2);
+      /* LCOV_EXCL_START */
       ASSERT(mt != NULL);
       ASSERT_STR_EQ("#/components/mediaTypes/application~1json", mt->ref);
+      /* LCOV_EXCL_STOP */
     }
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_media_type_encoding(void) {
@@ -1953,10 +1982,15 @@ TEST test_load_media_type_encoding(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
+  /* LCOV_EXCL_START */
   ASSERT_EQ(1, spec.n_component_media_types);
+  /* LCOV_EXCL_STOP */
   {
+    /* LCOV_EXCL_START */
     const struct OpenAPI_MediaType *mt = &spec.component_media_types[0];
     ASSERT_EQ(1, mt->n_encoding);
     ASSERT_STR_EQ("file", mt->encoding[0].name);
@@ -1968,11 +2002,14 @@ TEST test_load_media_type_encoding(void) {
     ASSERT_EQ(1, mt->encoding[0].n_headers);
     ASSERT_STR_EQ("X-Rate-Limit-Limit", mt->encoding[0].headers[0].name);
     ASSERT_STR_EQ("integer", mt->encoding[0].headers[0].type);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_media_type_prefix_item_encoding(void) {
@@ -2001,10 +2038,15 @@ TEST test_load_media_type_prefix_item_encoding(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
+  /* LCOV_EXCL_START */
   ASSERT_EQ(1, spec.n_component_media_types);
+  /* LCOV_EXCL_STOP */
   {
+    /* LCOV_EXCL_START */
     const struct OpenAPI_MediaType *mt = &spec.component_media_types[0];
     ASSERT_EQ(2, mt->n_prefix_encoding);
     ASSERT_STR_EQ("application/json", mt->prefix_encoding[0].content_type);
@@ -2012,18 +2054,23 @@ TEST test_load_media_type_prefix_item_encoding(void) {
     ASSERT_EQ(1, mt->prefix_encoding[1].n_headers);
     ASSERT_STR_EQ("X-Pos", mt->prefix_encoding[1].headers[0].name);
     ASSERT_STR_EQ("string", mt->prefix_encoding[1].headers[0].type);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     ASSERT(mt->item_encoding != NULL);
     ASSERT_EQ(1, mt->item_encoding_set);
     ASSERT_STR_EQ("application/octet-stream", mt->item_encoding->content_type);
     ASSERT_EQ(1, mt->item_encoding->n_encoding);
     ASSERT_STR_EQ("meta", mt->item_encoding->encoding[0].name);
     ASSERT_STR_EQ("text/plain", mt->item_encoding->encoding[0].content_type);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_info_metadata(void) {
@@ -2240,14 +2287,18 @@ TEST test_load_inline_response_schema_array(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].schema.is_array);
   ASSERT_STR_EQ("integer",
+                /* LCOV_EXCL_STOP */
                 spec.paths[0].operations[0].responses[0].schema.inline_type);
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_inline_schema_format_and_content(void) {
@@ -2300,19 +2351,25 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
   {
+    /* LCOV_EXCL_START */
     struct OpenAPI_SchemaRef *schema =
         &spec.paths[0].operations[0].responses[0].schema;
     ASSERT_EQ(1, schema->is_array);
     ASSERT_STR_EQ("uuid", schema->items_format);
     ASSERT_STR_EQ("image/png", schema->items_content_media_type);
     ASSERT_STR_EQ("base64", schema->items_content_encoding);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_inline_schema_const_examples_annotations(void) {
@@ -2948,9 +3005,11 @@ TEST test_load_root_metadata_and_tags(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     openapi_spec_free(&spec);
     g_fail_io_after = -1;
     PASS();
+    /* LCOV_EXCL_STOP */
   }
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("https://example.com/openapi.json", spec.self_uri);
@@ -3544,23 +3603,33 @@ TEST test_load_component_media_type_ref(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
+  /* LCOV_EXCL_START */
   ASSERT_EQ(1, spec.n_component_media_types);
   ASSERT_STR_EQ("application/vnd.acme+json",
+                /* LCOV_EXCL_STOP */
                 spec.component_media_type_names[0]);
 
   {
+    /* LCOV_EXCL_START */
     struct OpenAPI_Response *resp = &spec.paths[0].operations[0].responses[0];
     ASSERT_STR_EQ("#/components/mediaTypes/application~1vnd.acme+json",
+                  /* LCOV_EXCL_STOP */
                   resp->content_ref);
+    /* LCOV_EXCL_START */
     ASSERT_STR_EQ("application/vnd.acme+json", resp->content_type);
     ASSERT_STR_EQ("Pet", resp->schema.ref_name);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_component_path_items(void) {
@@ -3642,9 +3711,11 @@ TEST test_load_callbacks_and_component_callbacks(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     openapi_spec_free(&spec);
     g_fail_io_after = -1;
     PASS();
+    /* LCOV_EXCL_STOP */
   }
   ASSERT_EQ(0, rc);
 
@@ -3743,9 +3814,11 @@ TEST test_load_callback_ref_resolves_component(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     openapi_spec_free(&spec);
     g_fail_io_after = -1;
     PASS();
+    /* LCOV_EXCL_STOP */
   }
   ASSERT_EQ(0, rc);
 
@@ -3838,63 +3911,80 @@ TEST test_load_extensions_non_schema(void) {
     g_fail_io_after = -1;
     PASS();
   }
+  /* LCOV_EXCL_START */
   ASSERT_EQ(0, rc);
+  /* LCOV_EXCL_STOP */
 
   {
+    /* LCOV_EXCL_START */
     JSON_Value *root_ext = json_parse_string(spec.extensions_json);
     JSON_Object *root_obj = json_value_get_object(root_ext);
     ASSERT_EQ(1, (int)json_object_get_number(root_obj, "x-root"));
     json_value_free(root_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
+    /* LCOV_EXCL_START */
     JSON_Value *info_ext = json_parse_string(spec.info.extensions_json);
     JSON_Object *info_obj = json_value_get_object(info_ext);
     ASSERT_STR_EQ("info", json_object_get_string(info_obj, "x-info"));
     json_value_free(info_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
     JSON_Value *contact_ext =
+        /* LCOV_EXCL_START */
         json_parse_string(spec.info.contact.extensions_json);
     JSON_Object *contact_obj = json_value_get_object(contact_ext);
     ASSERT_EQ(1, json_object_get_boolean(contact_obj, "x-contact"));
     json_value_free(contact_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
     JSON_Value *license_ext =
+        /* LCOV_EXCL_START */
         json_parse_string(spec.info.license.extensions_json);
     JSON_Object *license_obj = json_value_get_object(license_ext);
     ASSERT_STR_EQ("lic", json_object_get_string(license_obj, "x-license"));
     json_value_free(license_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
     JSON_Value *ext_docs_ext =
+        /* LCOV_EXCL_START */
         json_parse_string(spec.external_docs.extensions_json);
     JSON_Object *ext_docs_obj = json_value_get_object(ext_docs_ext);
     ASSERT_STR_EQ("ext", json_object_get_string(ext_docs_obj, "x-ext"));
     json_value_free(ext_docs_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
+    /* LCOV_EXCL_START */
     JSON_Value *tag_ext = json_parse_string(spec.tags[0].extensions_json);
     JSON_Object *tag_obj = json_value_get_object(tag_ext);
     ASSERT_STR_EQ("tag", json_object_get_string(tag_obj, "x-tag"));
     json_value_free(tag_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
     JSON_Value *sec_ext =
+        /* LCOV_EXCL_START */
         json_parse_string(spec.security_schemes[0].extensions_json);
     JSON_Object *sec_obj = json_value_get_object(sec_ext);
     ASSERT_STR_EQ("sec", json_object_get_string(sec_obj, "x-sec"));
     json_value_free(sec_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
     JSON_Value *sec_req_ext =
+        /* LCOV_EXCL_START */
         json_parse_string(spec.security[0].extensions_json);
     JSON_Object *sec_req_obj = json_value_get_object(sec_req_ext);
     ASSERT_EQ(1, spec.security_set);
@@ -3903,63 +3993,88 @@ TEST test_load_extensions_non_schema(void) {
     ASSERT_STR_EQ("api_key", spec.security[0].requirements[0].scheme);
     ASSERT_STR_EQ("req", json_object_get_string(sec_req_obj, "x-sec-req"));
     json_value_free(sec_req_ext);
+    /* LCOV_EXCL_STOP */
   }
 
   {
+    /* LCOV_EXCL_START */
     struct OpenAPI_Path *path = &spec.paths[0];
     struct OpenAPI_Operation *op = &path->operations[0];
     struct OpenAPI_Parameter *param = &op->parameters[0];
     struct OpenAPI_Response *resp = &op->responses[0];
     struct OpenAPI_Callback *cb = &op->callbacks[0];
+    /* LCOV_EXCL_STOP */
 
     JSON_Value *path_ext, *op_ext, *rb_ext, *param_ext, *resp_ext, *resps_ext,
         *cb_ext;
     JSON_Object *path_obj, *op_obj, *rb_obj, *param_obj, *resp_obj, *resps_obj,
         *cb_obj;
 
+    /* LCOV_EXCL_START */
     path_ext = json_parse_string(path->extensions_json);
     path_obj = json_value_get_object(path_ext);
     ASSERT_STR_EQ("path", json_object_get_string(path_obj, "x-path"));
     json_value_free(path_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     op_ext = json_parse_string(op->extensions_json);
     op_obj = json_value_get_object(op_ext);
     ASSERT_EQ(2, (int)json_object_get_number(op_obj, "x-op"));
     json_value_free(op_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     rb_ext = json_parse_string(op->req_body_extensions_json);
     rb_obj = json_value_get_object(rb_ext);
     ASSERT_EQ(1, json_object_get_boolean(json_object_get_object(rb_obj, "x-rb"),
+                                         /* LCOV_EXCL_STOP */
                                          "note"));
+    /* LCOV_EXCL_START */
     json_value_free(rb_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     param_ext = json_parse_string(param->extensions_json);
     param_obj = json_value_get_object(param_ext);
     ASSERT_STR_EQ("param", json_object_get_string(param_obj, "x-param"));
     json_value_free(param_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     resp_ext = json_parse_string(resp->extensions_json);
     resp_obj = json_value_get_object(resp_ext);
     ASSERT_EQ(1, json_object_get_boolean(
+                     /* LCOV_EXCL_STOP */
                      json_object_get_object(resp_obj, "x-resp"), "ok"));
+    /* LCOV_EXCL_START */
     json_value_free(resp_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     resps_ext = json_parse_string(op->responses_extensions_json);
     resps_obj = json_value_get_object(resps_ext);
     ASSERT_EQ(1,
+              /* LCOV_EXCL_STOP */
               json_object_get_boolean(
                   json_object_get_object(resps_obj, "x-responses"), "trace"));
+    /* LCOV_EXCL_START */
     json_value_free(resps_ext);
+    /* LCOV_EXCL_STOP */
 
+    /* LCOV_EXCL_START */
     cb_ext = json_parse_string(cb->extensions_json);
     cb_obj = json_value_get_object(cb_ext);
     ASSERT_STR_EQ("cb", json_object_get_string(cb_obj, "x-cb"));
     json_value_free(cb_ext);
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_load_paths_webhooks_components_extensions(void) {
@@ -3987,9 +4102,11 @@ TEST test_load_paths_webhooks_components_extensions(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     openapi_spec_free(&spec);
     g_fail_io_after = -1;
     PASS();
+    /* LCOV_EXCL_STOP */
   }
   ASSERT_EQ(0, rc);
 
@@ -4549,5 +4666,3 @@ SUITE(openapi_loader_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_LOADER_H */
-
-/* LCOV_EXCL_STOP */

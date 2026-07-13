@@ -22,7 +22,6 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
                                struct OpenAPI_Operation *op) {
@@ -1197,5 +1196,3 @@ SUITE(openapi_client_gen_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_CLIENT_GEN_H */
-
-/* LCOV_EXCL_STOP */

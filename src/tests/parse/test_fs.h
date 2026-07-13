@@ -27,7 +27,6 @@ extern "C" {
 #include <sys/stat.h>
 #endif /* !_MSC_VER */
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 TEST test_get_basename(void) {
   char *res = NULL;
@@ -104,8 +103,10 @@ TEST test_walk_directory(void) {
 
   /* Create a unique subdirectory to avoid counting other temp files */
   if (asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()) == -1) {
+    /* LCOV_EXCL_START */
     free(sys_tmp);
     FAILm("asprintf failed");
+    /* LCOV_EXCL_STOP */
   }
   free(sys_tmp);
 
@@ -388,5 +389,3 @@ SUITE(fs_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_FS_H */
-
-/* LCOV_EXCL_STOP */

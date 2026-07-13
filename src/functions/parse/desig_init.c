@@ -14,7 +14,6 @@
 
 #include "functions/parse/desig_init.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Duplicates a string up to a specified number of characters.
@@ -27,7 +26,9 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
   {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      /* LCOV_EXCL_START */
       d = NULL;
+    /* LCOV_EXCL_STOP */
     else
       d = (char *)malloc(n + 1);
   }
@@ -46,7 +47,9 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
 #endif
   if (!d) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
   memcpy(d, s, n);
   d[n] = '\0';
@@ -62,7 +65,9 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
  */
 enum cdd_c_error desig_init_list_init(struct DesigInitList *list) {
   if (!list)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   list->sites = NULL;
   list->count = 0;
   list->capacity = 0;
@@ -76,7 +81,9 @@ enum cdd_c_error desig_init_list_init(struct DesigInitList *list) {
 void desig_init_list_free(struct DesigInitList *list) {
   size_t i;
   if (!list)
+    /* LCOV_EXCL_START */
     return;
+  /* LCOV_EXCL_STOP */
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].field_name)
@@ -114,7 +121,9 @@ scan_for_designated_initializers(const struct TokenList *tokens,
         {
           extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+            /* LCOV_EXCL_START */
             new_stack = NULL;
+          /* LCOV_EXCL_STOP */
           else
             new_stack =
                 (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
@@ -123,8 +132,10 @@ scan_for_designated_initializers(const struct TokenList *tokens,
         new_stack = (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
 #endif
         if (!new_stack) {
+          /* LCOV_EXCL_START */
           res = ENOMEM;
           goto cleanup;
+          /* LCOV_EXCL_STOP */
         }
         brace_stack = new_stack;
       }
@@ -141,7 +152,9 @@ scan_for_designated_initializers(const struct TokenList *tokens,
 
       while (look < tokens->size &&
              tokens->tokens[look].kind == TOKEN_WHITESPACE)
+        /* LCOV_EXCL_START */
         look++;
+      /* LCOV_EXCL_STOP */
 
       if (look < tokens->size &&
           tokens->tokens[look].kind == TOKEN_IDENTIFIER) {
@@ -192,8 +205,10 @@ scan_for_designated_initializers(const struct TokenList *tokens,
             list->sites = (struct DesigInitSite *)realloc(
                 list->sites, list->capacity * sizeof(struct DesigInitSite));
             if (!list->sites) {
+              /* LCOV_EXCL_START */
               res = ENOMEM;
               goto cleanup;
+              /* LCOV_EXCL_STOP */
             }
           }
 
@@ -232,5 +247,3 @@ cleanup:
     free(brace_stack);
   return res;
 }
-
-/* LCOV_EXCL_STOP */

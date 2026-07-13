@@ -1,3 +1,6 @@
+#ifdef CDD_BUILD_TESTS
+extern volatile int g_fail_io_after;
+#endif
 /* clang-format off */
 #include "cdd_ffi_emit_ada.h"
 
@@ -97,7 +100,7 @@ cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
                config->output_dir, lib_name);
   gpr_f = fopen(gpr_filepath, "w");
 #ifdef CDD_BUILD_TESTS
-  extern volatile int g_fail_io_after;
+
   if (g_fail_io_after == 555) {
     if (gpr_f)
       fclose(gpr_f);

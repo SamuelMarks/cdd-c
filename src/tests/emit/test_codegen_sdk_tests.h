@@ -20,7 +20,6 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "tests/emit/sdk_tests.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 TEST test_gen_sdk_test_basic(void) {
   struct OpenAPI_Spec spec;
@@ -33,7 +32,9 @@ TEST test_gen_sdk_test_basic(void) {
   char *content = NULL;
 
   if (!tmp)
+    /* LCOV_EXCL_START */
     return -1;
+  /* LCOV_EXCL_STOP */
 
   /* Setup Spec */
   memset(&spec, 0, sizeof(spec));
@@ -169,5 +170,3 @@ SUITE(codegen_sdk_tests_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SDK_TESTS_H */
-
-/* LCOV_EXCL_STOP */

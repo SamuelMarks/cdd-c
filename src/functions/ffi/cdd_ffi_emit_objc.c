@@ -108,8 +108,10 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   m_file = fopen(m_filepath, "w");
   if (!m_file) {
+    /* LCOV_EXCL_START */
     fclose(h_file);
     return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
   }
 #endif
 
@@ -166,7 +168,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
            strstr(ret_type, "NSString") != NULL);
 
       fprintf(h_file, "+ (%s%s)%s", ret_type,
+              /* LCOV_EXCL_START */
               ret_is_obj && !strstr(ret_type, "*") ? " *" : "", node->name);
+      /* LCOV_EXCL_STOP */
 
       if (node->fields_count > 0) {
         for (j = 0; j < node->fields_count; j++) {
@@ -190,7 +194,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
             fprintf(h_file, "%s%s:(%s%s)%s",
                     node->fields_count > 1
                         ? "With"
+                        /* LCOV_EXCL_START */
                         : (strlen(node->name) > 0 ? "With" : ""),
+                    /* LCOV_EXCL_STOP */
                     node->fields_count > 1 ? arg_name_cap : arg_name_cap,
                     arg_type, arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
                     node->fields[j].name);
@@ -231,7 +237,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
            strstr(ret_type, "NSString") != NULL);
 
       fprintf(m_file, "+ (%s%s)%s", ret_type,
+              /* LCOV_EXCL_START */
               ret_is_obj && !strstr(ret_type, "*") ? " *" : "", node->name);
+      /* LCOV_EXCL_STOP */
 
       if (node->fields_count > 0) {
         for (j = 0; j < node->fields_count; j++) {
@@ -254,7 +262,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
             fprintf(m_file, "%s%s:(%s%s)%s",
                     node->fields_count > 1
                         ? "With"
+                        /* LCOV_EXCL_START */
                         : (strlen(node->name) > 0 ? "With" : ""),
+                    /* LCOV_EXCL_STOP */
                     node->fields_count > 1 ? arg_name_cap : arg_name_cap,
                     arg_type, arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
                     node->fields[j].name);
@@ -267,7 +277,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       /* Stub return */
       if (strcmp(ret_type, "void") != 0) {
         if (ret_is_obj) {
+          /* LCOV_EXCL_START */
           fprintf(m_file, "    return nil;\n");
+          /* LCOV_EXCL_STOP */
         } else {
           fprintf(m_file, "    return CDD_C_SUCCESS;\n");
         }

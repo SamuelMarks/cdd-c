@@ -20,7 +20,6 @@ extern "C" {
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error find_allocs(const char *code,
                                     struct AllocationSiteList *sites) {
@@ -29,7 +28,9 @@ static enum cdd_c_error find_allocs(const char *code,
   const az_span source = az_span_create_from_str((char *)code);
 
   if (tokenize(source, &tl) != 0)
+    /* LCOV_EXCL_START */
     return -1;
+  /* LCOV_EXCL_STOP */
 
   rc = find_allocations(tl, sites);
   free_token_list(tl);
@@ -143,5 +144,3 @@ SUITE(analysis_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_ANALYSIS_H */
-
-/* LCOV_EXCL_STOP */

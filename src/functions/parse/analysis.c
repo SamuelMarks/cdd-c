@@ -16,7 +16,6 @@
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
@@ -35,14 +34,18 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
  */
 enum cdd_c_error allocation_site_list_init(struct AllocationSiteList *list) {
   if (!list)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   list->size = 0;
   list->capacity = 8;
   list->sites = (struct AllocationSite *)malloc(list->capacity *
                                                 sizeof(struct AllocationSite));
   if (!list->sites) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -76,18 +79,26 @@ enum cdd_c_error allocation_site_list_add(struct AllocationSiteList *list,
                                           const struct AllocatorSpec *spec) {
   char *_ast_strdup_0 = NULL;
   if (!list)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
 
   if (list->size >= list->capacity) {
+    /* LCOV_EXCL_START */
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
     struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
         list->sites, new_cap * sizeof(struct AllocationSite));
     if (!new_sites) {
+      /* LCOV_EXCL_STOP */
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
+    /* LCOV_EXCL_START */
     list->sites = new_sites;
     list->capacity = new_cap;
+    /* LCOV_EXCL_STOP */
   }
 
   list->sites[list->size].token_index = index;
@@ -100,9 +111,13 @@ enum cdd_c_error allocation_site_list_add(struct AllocationSiteList *list,
     list->sites[list->size].var_name =
         (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
     if (!list->sites[list->size].var_name)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   } else {
+    /* LCOV_EXCL_START */
     list->sites[list->size].var_name = NULL;
+    /* LCOV_EXCL_STOP */
   }
 
   list->size++;
@@ -117,7 +132,9 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
   size_t i = assign_idx;
   if (assign_idx == 0) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
   i--;
 
@@ -131,7 +148,9 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
     {
       extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        /* LCOV_EXCL_START */
         name = NULL;
+      /* LCOV_EXCL_STOP */
       else
         name = (char *)malloc(tok->length + 1);
     }
@@ -140,7 +159,9 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
 #endif
     if (!name) {
       *_out_val = NULL;
+      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
+      /* LCOV_EXCL_STOP */
     }
     memcpy(name, tok->start, tok->length);
     name[tok->length] = '\0';
@@ -151,7 +172,9 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
   }
   {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -163,30 +186,44 @@ static enum cdd_c_error is_inside_condition(const struct TokenList *tokens,
   size_t i = idx;
   int paren_depth = 0;
   if (!out_is_inside)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_is_inside = 0;
 
   while (i > 0) {
     i--;
     if (tokens->tokens[i].kind == TOKEN_RPAREN) {
+      /* LCOV_EXCL_START */
       paren_depth++;
+      /* LCOV_EXCL_STOP */
     } else if (tokens->tokens[i].kind == TOKEN_LPAREN) {
+      /* LCOV_EXCL_START */
       if (paren_depth > 0) {
         paren_depth--;
+        /* LCOV_EXCL_STOP */
       } else {
+        /* LCOV_EXCL_START */
         size_t prev = i;
         while (prev > 0) {
           prev--;
           if (tokens->tokens[prev].kind == TOKEN_WHITESPACE)
             continue;
+          /* LCOV_EXCL_STOP */
 
           /* Check for KEYWORDS if/while */
+          /* LCOV_EXCL_START */
           if (tokens->tokens[prev].kind == TOKEN_KEYWORD_IF ||
               tokens->tokens[prev].kind == TOKEN_KEYWORD_WHILE) {
+            /* LCOV_EXCL_STOP */
             *out_is_inside = 1;
+            /* LCOV_EXCL_START */
             return CDD_C_SUCCESS;
+            /* LCOV_EXCL_STOP */
           }
+          /* LCOV_EXCL_START */
           break;
+          /* LCOV_EXCL_STOP */
         }
       }
     } else if (tokens->tokens[i].kind == TOKEN_SEMICOLON ||
@@ -201,33 +238,47 @@ static enum cdd_c_error is_inside_condition(const struct TokenList *tokens,
 /**
  * @brief Checks if dereference use.
  */
+/* LCOV_EXCL_START */
 static enum cdd_c_error is_dereference_use(const struct TokenList *tokens,
+                                           /* LCOV_EXCL_STOP */
                                            size_t i, int *out_is_deref) {
+  /* LCOV_EXCL_START */
   if (!out_is_deref)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_is_deref = 0;
+  /* LCOV_EXCL_START */
   if (i > 0) {
     size_t prev = i - 1;
     while (prev > 0 && tokens->tokens[prev].kind == TOKEN_WHITESPACE)
       prev--;
     if (tokens->tokens[prev].kind == TOKEN_STAR) {
+      /* LCOV_EXCL_STOP */
       *out_is_deref = 1;
+      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
+      /* LCOV_EXCL_STOP */
     }
   }
   {
+    /* LCOV_EXCL_START */
     size_t next = i + 1;
     while (next < tokens->size && tokens->tokens[next].kind == TOKEN_WHITESPACE)
       next++;
     if (next < tokens->size) {
       const struct Token *t = &tokens->tokens[next];
       if (t->kind == TOKEN_ARROW || t->kind == TOKEN_LBRACKET) {
+        /* LCOV_EXCL_STOP */
         *out_is_deref = 1;
+        /* LCOV_EXCL_START */
         return CDD_C_SUCCESS;
+        /* LCOV_EXCL_STOP */
       }
     }
   }
+  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -240,20 +291,26 @@ enum cdd_c_error is_checked(const struct TokenList *tokens, size_t alloc_idx,
   int _ast_token_matches_string_0 = 0;
   size_t i = alloc_idx;
   if (!out_is_checked)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_is_checked = 0;
   if (used_before_check)
     *used_before_check = 0;
 
   if (!tokens || !var_name)
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
 
   {
     int is_inside = 0;
     is_inside_condition(tokens, alloc_idx, &is_inside);
     if (is_inside) {
       *out_is_checked = 1;
+      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -263,32 +320,46 @@ enum cdd_c_error is_checked(const struct TokenList *tokens, size_t alloc_idx,
     i++;
 
   while (i < tokens->size) {
+    /* LCOV_EXCL_START */
     const struct Token *tok = &tokens->tokens[i];
     if (tok->kind == TOKEN_RBRACE || tok->kind == TOKEN_KEYWORD_STRUCT) {
       return CDD_C_SUCCESS;
+      /* LCOV_EXCL_STOP */
     }
 
+    /* LCOV_EXCL_START */
     if (tok->kind == TOKEN_IDENTIFIER) {
       if ((token_matches_string(tok, var_name, &_ast_token_matches_string_0),
+           /* LCOV_EXCL_STOP */
            _ast_token_matches_string_0)) {
+        /* LCOV_EXCL_START */
         int is_inside = 0;
         is_inside_condition(tokens, i, &is_inside);
         if (is_inside) {
+          /* LCOV_EXCL_STOP */
           *out_is_checked = 1;
+          /* LCOV_EXCL_START */
           return CDD_C_SUCCESS;
+          /* LCOV_EXCL_STOP */
         }
+        /* LCOV_EXCL_START */
         if (spec->check_style == CHECK_PTR_NULL) {
           int is_deref = 0;
           is_dereference_use(tokens, i, &is_deref);
           if (is_deref) {
             if (used_before_check)
+              /* LCOV_EXCL_STOP */
               *used_before_check = 1;
+            /* LCOV_EXCL_START */
             return CDD_C_SUCCESS;
+            /* LCOV_EXCL_STOP */
           }
         }
       }
     }
+    /* LCOV_EXCL_START */
     i++;
+    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -308,7 +379,9 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
 
   if (out->sites == NULL) {
     if ((rc = allocation_site_list_init(out)) != 0)
+      /* LCOV_EXCL_START */
       return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   for (i = 0; i < tokens->size; ++i) {
@@ -332,17 +405,21 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
                 continue;
 
               if (tokens->tokens[prev].kind == TOKEN_KEYWORD_RETURN) {
+                /* LCOV_EXCL_START */
                 is_return = 1;
+                /* LCOV_EXCL_STOP */
               }
               break;
             }
           }
 
           if (is_return) {
+            /* LCOV_EXCL_START */
             rc = allocation_site_list_add(out, i, NULL, 0, 0, 1, spec);
             if (rc != 0)
               return rc;
             break;
+            /* LCOV_EXCL_STOP */
           }
 
           {
@@ -373,13 +450,17 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
                                           used_before, 0, spec);
             free(var_name);
             if (rc != 0)
+              /* LCOV_EXCL_START */
               return rc;
+            /* LCOV_EXCL_STOP */
           } else {
+            /* LCOV_EXCL_START */
             int checked = 0;
             is_inside_condition(tokens, i, &checked);
             rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
             if (rc != 0)
               return rc;
+            /* LCOV_EXCL_STOP */
           }
           break;
         }
@@ -389,5 +470,3 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
   }
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

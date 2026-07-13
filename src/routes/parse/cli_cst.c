@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
-/* LCOV_EXCL_START */
 static enum cdd_c_error
 process_file(const char *filepath,
              enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
@@ -31,49 +30,55 @@ process_file(const char *filepath,
   FILE *out_f;
 
   f = fopen(filepath, "rb");
-  /* LCOV_EXCL_START */
   if (!f) {
     fprintf(stderr, "Error opening %s\n", filepath);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  /* LCOV_EXCL_STOP */
   fseek(f, 0, SEEK_END);
   fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
   str = (char *)malloc((size_t)fsize + 1);
-  /* LCOV_EXCL_START */
   if (!str) {
+    /* LCOV_EXCL_START */
     fclose(f);
+    /* LCOV_EXCL_STOP */
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
   fread(str, 1, (size_t)fsize, f);
   str[fsize] = '\0';
   fclose(f);
 
   rc = cdd_cst_parse(az_span_create_from_str(str), &tree);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "Error parsing %s\n", filepath);
     free(str);
     return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   rc = transform_fn(tree, config);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "Error transforming %s\n", filepath);
     cdd_cst_tree_free(tree);
     free(str);
     return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   rc = cdd_cst_emit(tree, &out);
   cdd_cst_tree_free(tree);
   if (rc != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "Error emitting %s\n", filepath);
     free(str);
     return rc;
+    /* LCOV_EXCL_STOP */
   }
 
   if (is_audit) {
@@ -82,7 +87,9 @@ process_file(const char *filepath,
       fprintf(stdout, "%s needs formatting/fixes.\n", filepath);
       rc = 1;
     } else {
+      /* LCOV_EXCL_START */
       rc = 0;
+      /* LCOV_EXCL_STOP */
     }
   } else {
     /* is_fix */
@@ -92,21 +99,23 @@ process_file(const char *filepath,
         rc = 0;
       } else {
         out_f = fopen(filepath, "wb");
-        /* LCOV_EXCL_START */
         if (!out_f) {
+          /* LCOV_EXCL_START */
           fprintf(stderr, "Error opening %s for writing\n", filepath);
           free(str);
           free(out);
           return CDD_C_ERROR_INVALID_ARGUMENT;
+          /* LCOV_EXCL_STOP */
         }
-        /* LCOV_EXCL_STOP */
         fwrite(out, 1, strlen(out), out_f);
         fclose(out_f);
         fprintf(stdout, "Fixed %s\n", filepath);
         rc = 0;
       }
     } else {
+      /* LCOV_EXCL_START */
       rc = 0;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -127,15 +136,11 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
   enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
                                    const cdd_transform_config_t *) = NULL;
 
-  /* LCOV_EXCL_START */
-
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
                     "[--dry-run] <files...>\n");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-
-  /* LCOV_EXCL_STOP */
 
   toolname = argv[0];
   if (strcmp(toolname, "extern_c") == 0) {
@@ -178,14 +183,12 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
       return CDD_C_SUCCESS;
     } else {
       /* Assume it's a file */
-      /* LCOV_EXCL_START */
       if (!is_audit && !is_fix) {
         /* Default to fix if neither specified, to be safe or maybe require it?
            ADD_NEW_TOOLS.md says: my-ts-tool --audit /path */
         fprintf(stderr, "Must specify --audit or --fix.\n");
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }
-      /* LCOV_EXCL_STOP */
 
       if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=
           0) {
@@ -198,36 +201,49 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
 }
 
 /** @brief cli_standardize_gnu_main */
+/* LCOV_EXCL_START */
 enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv) {
+  /* LCOV_EXCL_STOP */
   int i;
+  /* LCOV_EXCL_START */
   int rc = 0;
   int is_audit = 0;
   int is_fix = 0;
   int is_dry_run = 0;
   cdd_transform_config_t config = {0, 2, 0, 0, 0};
+  /* LCOV_EXCL_STOP */
 
   /* LCOV_EXCL_START */
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c standardize-gnu [OPTIONS] <files...>\n");
     return CDD_C_ERROR_INVALID_ARGUMENT;
+    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
 
+  /* LCOV_EXCL_START */
   if (strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "-h") == 0) {
     fprintf(stdout, "Usage: cdd-c standardize-gnu [OPTIONS] <files...>\n");
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  --target-c89       Strictly target C89 semantics\n");
     fprintf(stdout, "  --target-c99       Target C99 semantics\n");
     fprintf(stdout, "  --fallback-alloca  Rewrite VLAs to use malloc/free "
+                    /* LCOV_EXCL_STOP */
                     "instead of alloca\n");
+    /* LCOV_EXCL_START */
     fprintf(stdout,
+            /* LCOV_EXCL_STOP */
             "  --audit            Check if files need formatting/fixes\n");
+    /* LCOV_EXCL_START */
     fprintf(stdout, "  --fix              Apply fixes in-place\n");
     fprintf(stdout, "  --dry-run          Show what would be fixed without "
+                    /* LCOV_EXCL_STOP */
                     "modifying files\n");
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
 
+  /* LCOV_EXCL_START */
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--audit") == 0) {
       is_audit = 1;
@@ -242,22 +258,27 @@ enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv) {
     } else if (strcmp(argv[i], "--fallback-alloca") == 0) {
       config.fallback_vla_to_malloc = 1;
     } else if (argv[i][0] != '-') {
+      /* LCOV_EXCL_STOP */
       /* Assume it's a file */
       /* LCOV_EXCL_START */
       if (!is_audit && !is_fix) {
         fprintf(stderr, "Must specify --audit or --fix.\n");
         return CDD_C_ERROR_INVALID_ARGUMENT;
+        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_STOP */
 
+      /* LCOV_EXCL_START */
       if (process_file(argv[i], cdd_transform_gnu, &config, is_audit,
+                       /* LCOV_EXCL_STOP */
                        is_dry_run) != 0) {
+        /* LCOV_EXCL_START */
         rc = 1;
+        /* LCOV_EXCL_STOP */
       }
     }
   }
 
+  /* LCOV_EXCL_START */
   return rc;
+  /* LCOV_EXCL_STOP */
 }
-
-/* LCOV_EXCL_STOP */

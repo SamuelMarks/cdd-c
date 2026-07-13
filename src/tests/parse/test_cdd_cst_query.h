@@ -19,7 +19,6 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
@@ -373,7 +372,9 @@ static enum cdd_c_error fail_visitor_post(cdd_cst_node_t *node,
   (void)user_data;
   if (node->kind == CDD_CST_EXPRESSION)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_START */
   return 0;
+  /* LCOV_EXCL_STOP */
 }
 TEST test_query_postorder_fail(void) {
   cdd_cst_node_t *n1 = NULL, *n2 = NULL;
@@ -415,14 +416,18 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   tok.start = (const uint8_t *)"bar";
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_NUMBER;
@@ -430,7 +435,9 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_IDENTIFIER;
@@ -439,7 +446,9 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
   tok.length = 3;
 
@@ -460,14 +469,18 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   tok.start = (const uint8_t *)"bar";
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_NUMBER;
@@ -475,7 +488,9 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   id_child.kind = CDD_CST_CHILD_NODE;
@@ -483,14 +498,18 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   id_node.num_children = 0;
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
   id_node.kind = CDD_CST_EXPRESSION;
@@ -501,7 +520,9 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
   memset(&res, 0, sizeof(res));
 
 #ifdef CDD_BUILD_TESTS
@@ -516,7 +537,9 @@ TEST test_query_call_expr_coverage(void) {
   }
   g_cdd_query_err_fail = 0;
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
 
   dummy_call.kind = CDD_CST_UNKNOWN;
   dummy_call.num_children = 2;
@@ -530,7 +553,9 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+  /* LCOV_EXCL_STOP */
 
   dummy_call.kind = CDD_CST_CALL_EXPR;
   g_cdd_query_err_fail = 1;
@@ -538,7 +563,9 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
+    /* LCOV_EXCL_START */
     free(res.nodes);
+/* LCOV_EXCL_STOP */
 #endif
   g_fail_io_after = -1;
 
@@ -558,5 +585,3 @@ SUITE(cdd_cst_query_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_QUERY_H */
-
-/* LCOV_EXCL_STOP */

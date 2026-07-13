@@ -16,20 +16,25 @@
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_val = NULL;
   if (!s)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   len = strlen(s) + 1;
   d = (char *)malloc(len);
   if (!d)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
   memcpy(d, s, len);
   *out_val = d;
   return CDD_C_SUCCESS;
@@ -40,7 +45,9 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
  */
 enum cdd_c_error build_info_init(struct ExtractedBuildInfo *info) {
   if (!info)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   info->source_files = NULL;
   info->source_files_n = 0;
   info->include_dirs = NULL;
@@ -56,7 +63,9 @@ enum cdd_c_error build_info_init(struct ExtractedBuildInfo *info) {
 void build_info_free(struct ExtractedBuildInfo *info) {
   size_t i;
   if (!info)
+    /* LCOV_EXCL_START */
     return;
+  /* LCOV_EXCL_STOP */
 
   if (info->source_files) {
     for (i = 0; i < info->source_files_n; i++) {
@@ -91,15 +100,21 @@ static enum cdd_c_error add_string_to_array(char ***arr, size_t *n,
   /* check dupes */
   for (i = 0; i < *n; i++) {
     if (strcmp((*arr)[i], str) == 0)
+      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
   new_arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
   if (!new_arr)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
   *arr = new_arr;
   rc = my_strdup(str, &(*arr)[*n]);
   if (rc != CDD_C_SUCCESS)
+    /* LCOV_EXCL_START */
     return rc;
+  /* LCOV_EXCL_STOP */
   (*n)++;
   return CDD_C_SUCCESS;
 }
@@ -117,11 +132,15 @@ static enum cdd_c_error process_token(struct ExtractedBuildInfo *info,
       rc = add_string_to_array(&info->source_files, &info->source_files_n,
                                eq + 1);
       if (rc != CDD_C_SUCCESS)
+        /* LCOV_EXCL_START */
         return rc;
+      /* LCOV_EXCL_STOP */
     } else {
       rc = add_string_to_array(&info->source_files, &info->source_files_n, tok);
       if (rc != CDD_C_SUCCESS)
+        /* LCOV_EXCL_START */
         return rc;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -132,13 +151,17 @@ static enum cdd_c_error process_token(struct ExtractedBuildInfo *info,
       rc = add_string_to_array(&info->include_dirs, &info->include_dirs_n,
                                inc + 2);
       if (rc != CDD_C_SUCCESS)
+        /* LCOV_EXCL_START */
         return rc;
+      /* LCOV_EXCL_STOP */
     }
     if (def) {
       rc = add_string_to_array(&info->compile_defs, &info->compile_defs_n,
                                def + 2);
       if (rc != CDD_C_SUCCESS)
+        /* LCOV_EXCL_START */
         return rc;
+      /* LCOV_EXCL_STOP */
     }
   }
   return CDD_C_SUCCESS;
@@ -160,7 +183,9 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   my_strdup(makefile_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
 
 #if defined(_WIN32)
@@ -171,8 +196,10 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
+      /* LCOV_EXCL_START */
       free(copy);
       return rc;
+      /* LCOV_EXCL_STOP */
     }
 #if defined(_WIN32)
     tok = strtok_s(NULL, " \t\n\r\\", &saveptr);
@@ -204,7 +231,9 @@ enum cdd_c_error scrape_configure_ac(
   my_strdup(configure_ac_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
 
 #if defined(_WIN32)
@@ -215,8 +244,10 @@ enum cdd_c_error scrape_configure_ac(
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
+      /* LCOV_EXCL_START */
       free(copy);
       return rc;
+      /* LCOV_EXCL_STOP */
     }
 #if defined(_WIN32)
     tok = strtok_s(NULL, " \t\n\r\\()[]\",", &saveptr);
@@ -246,7 +277,9 @@ enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
   buf = (char *)malloc(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -335,5 +368,3 @@ enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
   *out_cmake = buf;
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

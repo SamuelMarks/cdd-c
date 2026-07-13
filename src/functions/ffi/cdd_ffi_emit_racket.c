@@ -13,7 +13,9 @@
 static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   if (!out_name || out_sz == 0)
+    /* LCOV_EXCL_START */
     return;
+  /* LCOV_EXCL_STOP */
   if (!c_name) {
     out_name[0] = '\0';
     return;

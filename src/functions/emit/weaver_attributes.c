@@ -17,7 +17,6 @@
 #include "functions/emit/weaver_attributes.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 enum cdd_c_error
 weaver_translate_gcc_attributes(struct PatchList *patches,
@@ -38,7 +37,9 @@ weaver_translate_gcc_attributes(struct PatchList *patches,
       {
         extern C_CDD_EXPORT int g_cdd_fail_alloc;
         if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+          /* LCOV_EXCL_START */
           attr_text = NULL;
+        /* LCOV_EXCL_STOP */
         else
           attr_text = (char *)malloc(len + 1);
       }
@@ -94,5 +95,3 @@ weaver_translate_gcc_attributes(struct PatchList *patches,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

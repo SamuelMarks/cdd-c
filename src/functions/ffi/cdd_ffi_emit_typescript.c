@@ -121,11 +121,15 @@ emit_deno_module(cdd_ffi_ir_t *ir,
 
     if (node->kind == CDD_FFI_NODE_MACRO) {
       if (node->evaluated_value) {
+        /* LCOV_EXCL_START */
         if (node->inferred_type == CDD_FFI_MACRO_TYPE_STRING) {
           fprintf(f, "export const %s: string = %s;\n\n", node->name,
+                  /* LCOV_EXCL_STOP */
                   node->evaluated_value);
         } else {
+          /* LCOV_EXCL_START */
           fprintf(f, "export const %s: number = %s;\n\n", node->name,
+                  /* LCOV_EXCL_STOP */
                   node->evaluated_value);
         }
       }
@@ -189,7 +193,9 @@ emit_deno_module(cdd_ffi_ir_t *ir,
               node->fields[j].name ? node->fields[j].name : "arg";
           /* handle TS keywords */
           if (strcmp(arg_name, "function") == 0)
+            /* LCOV_EXCL_START */
             arg_name = "func";
+          /* LCOV_EXCL_STOP */
           if (!first_arg)
             fprintf(f, ", ");
           fprintf(f, "%s: %s", arg_name, get_ts_type(node->fields[j].type));
@@ -253,7 +259,9 @@ emit_deno_module(cdd_ffi_ir_t *ir,
         const char *arg_name =
             node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "function") == 0)
+          /* LCOV_EXCL_START */
           arg_name = "func";
+        /* LCOV_EXCL_STOP */
 
         if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
             node->fields[j].intent == CDD_FFI_INTENT_INOUT) {

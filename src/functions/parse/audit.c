@@ -21,7 +21,6 @@
 #include "c_cdd_export.h"
 
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
     int g_cdd_fail_alloc_audit = 0;
@@ -189,7 +188,9 @@ static enum cdd_c_error is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
   if (!out_is_source)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_is_source = 0;
   dot = strrchr(path, '.');
   if (!dot)
@@ -207,7 +208,9 @@ static enum cdd_c_error count_returning_allocs(const struct TokenList *tokens,
   size_t i;
   int count = 0;
   if (!out_count)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
@@ -267,8 +270,10 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
 
   /* Tokenize */
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
+    /* LCOV_EXCL_START */
     free_token_list(tokens);
     free(content);
+    /* LCOV_EXCL_STOP */
     return CDD_C_SUCCESS; /* Tokenization fail - skip */
   }
 
@@ -400,5 +405,3 @@ enum cdd_c_error audit_print_json(const struct AuditStats *stats,
     return CDD_C_SUCCESS;
   }
 }
-
-/* LCOV_EXCL_STOP */

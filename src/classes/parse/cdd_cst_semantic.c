@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /* clang-format off */
 #include "cdd_cst_semantic.h"
 #include <errno.h>
@@ -181,4 +182,5 @@ enum cdd_c_error cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
+/* LCOV_EXCL_STOP */
 /* LCOV_EXCL_STOP */

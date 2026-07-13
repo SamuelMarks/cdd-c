@@ -12,6 +12,7 @@
 
 static void map_fortran_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz,
                              int is_return) {
+  (void)is_return;
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {

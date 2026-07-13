@@ -195,6 +195,45 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   cdd_transform_percolate_errors(tree, &config);
+
+  {
+    cdd_cst_tree_t *t = NULL;
+    cdd_cst_parse(
+        az_span_create_from_str("CDD_VOID edge_void() { malloc(1); }"), &t);
+    cdd_transform_percolate_errors(t, &config);
+    cdd_cst_tree_free(t);
+  }
+  {
+    cdd_cst_tree_t *t = NULL;
+    cdd_cst_parse(az_span_create_from_str(
+                      "int /* comment */ edge_void2() { malloc(1); }"),
+                  &t);
+    cdd_transform_percolate_errors(t, &config);
+    cdd_cst_tree_free(t);
+  }
+  {
+    cdd_cst_tree_t *t = NULL;
+    cdd_cst_parse(
+        az_span_create_from_str("void edge_void3() { malloc(1); malloc(1); }"),
+        &t);
+    cdd_transform_percolate_errors(t, &config);
+    cdd_cst_tree_free(t);
+  }
+  {
+    cdd_cst_tree_t *t = NULL;
+    cdd_cst_parse(
+        az_span_create_from_str("void edge_void4() { if (1) malloc(1); }"), &t);
+    cdd_transform_percolate_errors(t, &config);
+    cdd_cst_tree_free(t);
+  }
+  {
+    cdd_cst_tree_t *t = NULL;
+    cdd_cst_parse(
+        az_span_create_from_str("void edge_void5() { if (1) { malloc(1); } }"),
+        &t);
+    cdd_transform_percolate_errors(t, &config);
+    cdd_cst_tree_free(t);
+  }
   cdd_cst_tree_free(tree);
   tree = NULL;
 

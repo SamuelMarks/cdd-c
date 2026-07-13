@@ -20,7 +20,6 @@ extern "C" {
 #include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Tests node allocation.
@@ -240,7 +239,9 @@ TEST test_cdd_cst_parse_format_oom(void) {
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
     if (rc_tmp != CDD_C_ERROR_MEMORY) {
+      /* LCOV_EXCL_START */
       printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
+      /* LCOV_EXCL_STOP */
     }
     ASSERT(rc_tmp != 0);
   }
@@ -251,6 +252,7 @@ TEST test_cdd_cst_parse_format_oom(void) {
     for (i = 0; i < 50; i++) {
       g_cdd_cst_alloc_node_fail = i;
       int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
+      (void)rc_tmp;
       g_cdd_cst_alloc_node_fail = 0;
       if (node) {
         cdd_cst_free_node(node);
@@ -394,5 +396,3 @@ SUITE(cdd_cst_factory_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_FACTORY_H */
-
-/* LCOV_EXCL_STOP */

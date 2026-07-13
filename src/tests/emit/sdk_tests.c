@@ -14,7 +14,6 @@
 #include "tests/emit/sdk_tests.h"
 
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \
@@ -87,8 +86,10 @@ write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
     {
       char group_buf[512];
       if (op->n_tags > 0 && op->tags[0] && op->tags[0][0]) {
+        /* LCOV_EXCL_START */
         CDD_SNPRINTF(group_buf, sizeof(group_buf), "%s", op->tags[0]);
         group_buf[0] = toupper((unsigned char)group_buf[0]);
+        /* LCOV_EXCL_STOP */
       } else {
         CDD_SNPRINTF(group_buf, sizeof(group_buf), "Default");
       }
@@ -163,7 +164,9 @@ codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
   for (i = 0; i < spec->n_paths; ++i) {
     for (j = 0; j < spec->paths[i].n_operations; ++j) {
       if (write_test_operation(fp, &spec->paths[i].operations[j], config) != 0)
+        /* LCOV_EXCL_START */
         return CDD_C_ERROR_IO;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -185,5 +188,3 @@ codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
 
   return 0;
 }
-
-/* LCOV_EXCL_STOP */

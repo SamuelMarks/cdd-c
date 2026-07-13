@@ -23,7 +23,6 @@ extern "C" {
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_structs, const size_t expected_enums,
@@ -39,15 +38,19 @@ TEST parsing_test(const char *const test_name, const az_span source,
   printf("Running test: %s\n", test_name);
 
   if (tokenize(source, &tokens) != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "tokenize() failed in test %s\n", test_name);
     rc = EXIT_FAILURE;
     goto cleanup;
+    /* LCOV_EXCL_STOP */
   }
 
   if (parse_tokens(tokens, cst_nodes) != 0) {
+    /* LCOV_EXCL_START */
     fprintf(stderr, "parse_tokens() failed in test %s\n", test_name);
     rc = EXIT_FAILURE;
     goto cleanup;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Count node kinds */
@@ -89,7 +92,9 @@ cleanup:
   free(cst_nodes);
   if (rc == EXIT_SUCCESS)
     PASS();
+  /* LCOV_EXCL_START */
   FAIL();
+  /* LCOV_EXCL_STOP */
 }
 
 TEST test_precondition_failure(void) {
@@ -200,5 +205,3 @@ SUITE(parsing_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_PARSING_H */
-
-/* LCOV_EXCL_STOP */

@@ -12,7 +12,6 @@
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 /** @brief SNPRINTF macro for MSVC */
@@ -34,18 +33,14 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   FILE *fp_h = NULL;
   FILE *fp_c = NULL;
 
-  /* LCOV_EXCL_START */
-
   if (!spec || !config || !config->filename_base)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  /* LCOV_EXCL_STOP */
 
   {
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = malloc(512);
-    /* LCOV_EXCL_START */
     if (!src_dir)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
@@ -75,20 +70,26 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   if (!fp_h || !fp_c) {
     if (fp_h)
+      /* LCOV_EXCL_START */
       fclose(fp_h);
+    /* LCOV_EXCL_STOP */
     if (fp_c)
+      /* LCOV_EXCL_START */
       fclose(fp_c);
+    /* LCOV_EXCL_STOP */
     return CDD_C_SUCCESS;
   }
 
   /* Duplicate check inside the original file; left as is to match logic but we
    * don't strictly need it. */
   if (!fp_h || !fp_c) {
+    /* LCOV_EXCL_START */
     if (fp_h)
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Header Generation */
@@ -214,5 +215,3 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

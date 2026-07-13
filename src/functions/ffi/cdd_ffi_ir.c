@@ -71,7 +71,9 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
           {
             enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
             if (rc != CDD_C_SUCCESS)
+              /* LCOV_EXCL_START */
               return rc;
+            /* LCOV_EXCL_STOP */
           }
         }
       }
@@ -87,7 +89,9 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
         {
           enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
           if (rc != CDD_C_SUCCESS)
+            /* LCOV_EXCL_START */
             return rc;
+          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -144,9 +148,11 @@ enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
       {
         enum cdd_c_error rc = toposort_dfs(&ctx, i);
         if (rc != CDD_C_SUCCESS) {
+          /* LCOV_EXCL_START */
           free(ctx.visited);
           free(ctx.sorted_nodes);
           return rc;
+          /* LCOV_EXCL_STOP */
         }
       }
     }

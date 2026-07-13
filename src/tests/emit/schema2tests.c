@@ -30,7 +30,6 @@
 #include <errno.h>
 #endif
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \
@@ -69,14 +68,18 @@ static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
   to_c_ident(c_enum_name, sizeof(c_enum_name), enum_name);
 
   if (fprintf(f, "/* Test enum %s to_str/from_str */\n", enum_name) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
   if (fprintf(f,
               "TEST test_%s_to_str_from_str(void) {\n"
               "  char *str = NULL;\n"
               "  enum %s val;\n"
               "  int rc;\n\n",
               c_enum_name, enum_name) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
 
   /* Test to_str for each enum value */
   for (i = 0; i < n; i++) {
@@ -92,7 +95,9 @@ static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
                 "  ASSERT_STR_EQ(\"%s\", str);\n"
                 "  free(str);\n\n",
                 enum_name, enum_name, c_val, val) < 0)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_IO;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Test from_str for each enum value */
@@ -108,7 +113,9 @@ static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
                 "  ASSERT_EQ(0, rc);\n"
                 "  ASSERT_EQ(%s_%s, val);\n\n",
                 enum_name, val, enum_name, c_val) < 0)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_IO;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Test from_str unknown string */
@@ -117,10 +124,14 @@ static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
               "  ASSERT_EQ(0, rc);\n"
               "  ASSERT_EQ(%s_UNKNOWN, val);\n\n",
               enum_name, enum_name) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
 
   if (fputs("  PASS();\n}\n", f) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
 
   return 0;
 }
@@ -153,7 +164,9 @@ static enum cdd_c_error write_test_struct(FILE *f,
               struct_name, c_struct_name, struct_name, struct_name, struct_name,
               struct_name, struct_name, struct_name, struct_name,
               struct_name) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
 
   /* Add JSON roundtrip test */
   if (fprintf(f,
@@ -185,7 +198,9 @@ static enum cdd_c_error write_test_struct(FILE *f,
               "}\n\n",
               c_struct_name, struct_name, struct_name, struct_name, struct_name,
               struct_name, struct_name, struct_name, struct_name) < 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_IO;
+  /* LCOV_EXCL_STOP */
 
   return 0;
 }
@@ -244,18 +259,26 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
       char *output_dir = NULL;
       rc = get_dirname(output_file, &output_dir);
       if (rc != 0) {
+        /* LCOV_EXCL_START */
         fprintf(stderr, "Failed to get dirname of output file: %s (rc %d)\n",
+                /* LCOV_EXCL_STOP */
                 output_file, rc);
+        /* LCOV_EXCL_START */
         json_value_free(root_val);
         return rc;
+        /* LCOV_EXCL_STOP */
       }
       rc = makedirs(output_dir);
       if (rc != 0) {
+        /* LCOV_EXCL_START */
         fprintf(stderr, "Failed to create output directory: %s (rc %d)\n",
+                /* LCOV_EXCL_STOP */
                 output_dir, rc);
+        /* LCOV_EXCL_START */
         free(output_dir);
         json_value_free(root_val);
         return rc;
+        /* LCOV_EXCL_STOP */
       }
       free(output_dir);
     }
@@ -288,10 +311,12 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
         char *base = NULL;
         rc = get_basename(schema_file, &base);
         if (rc != 0) {
+          /* LCOV_EXCL_START */
           fprintf(stderr, "Failed to get basename of: %s\n", schema_file);
           fclose(f);
           json_value_free(root_val);
           return rc;
+          /* LCOV_EXCL_STOP */
         }
         to_c_ident(sanitized, sizeof(sanitized), base);
         free(base);
@@ -325,13 +350,17 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
               char *include_name = NULL;
 
               if (asprintf(&include_name, "%s.h", sanitized_name) == -1)
+                /* LCOV_EXCL_START */
                 continue;
+              /* LCOV_EXCL_STOP */
 
               if (strcmp(output_dir, ".") != 0) {
                 if (asprintf(&path_to_check, "%s%s%s", output_dir, PATH_SEP,
                              include_name) == -1) {
+                  /* LCOV_EXCL_START */
                   free(include_name);
                   continue;
+                  /* LCOV_EXCL_STOP */
                 }
               } else {
                 path_to_check = strdup(include_name);
@@ -458,11 +487,15 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
       char *p = NULL;
       rc = get_dirname(output_file, &output_dir);
       if (rc != 0)
+        /* LCOV_EXCL_START */
         return rc;
+      /* LCOV_EXCL_STOP */
 
       if (asprintf(&p, "%s%s%s", output_dir, PATH_SEP, "test_main.c") == -1) {
+        /* LCOV_EXCL_START */
         free(output_dir);
         return CDD_C_ERROR_MEMORY;
+        /* LCOV_EXCL_STOP */
       }
       free(output_dir);
 
@@ -483,9 +516,11 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
         f0 = fopen(p, "w");
 #endif
         if (!f0) {
+          /* LCOV_EXCL_START */
           fprintf(stderr, "Failed to open output file: %s\n", p);
           free(p);
           return CDD_C_ERROR_UNKNOWN;
+          /* LCOV_EXCL_STOP */
         }
 #endif
         {
@@ -508,7 +543,9 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
                     base);
             free(base);
           } else {
+            /* LCOV_EXCL_START */
             fprintf(stderr, "Failed to determine basename for %s\n",
+                    /* LCOV_EXCL_STOP */
                     output_file);
           }
         }
@@ -523,5 +560,3 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
     return 0;
   }
 }
-
-/* LCOV_EXCL_STOP */

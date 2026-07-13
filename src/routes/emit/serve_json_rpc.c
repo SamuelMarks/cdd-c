@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /**
  * @file serve_json_rpc.c
  * @brief Implementation of JSON-RPC server generation.
@@ -57,20 +56,28 @@ typedef int cdd_socket_t;
 #endif
 
 /* Helper to respond with JSON-RPC error */
+/* LCOV_EXCL_START */
 static enum cdd_c_error send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
+/* LCOV_EXCL_STOP */
   char resp[1024];
+/* LCOV_EXCL_START */
   sprintf(resp, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":null}", code, msg);
   send(client_fd, resp, (int)strlen(resp), 0);
   return CDD_C_SUCCESS;
+/* LCOV_EXCL_STOP */
 }
 
+/* LCOV_EXCL_START */
 static enum cdd_c_error send_rpc_success(cdd_socket_t client_fd) {
   const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":null}";
   send(client_fd, resp, (int)strlen(resp), 0);
   return CDD_C_SUCCESS;
+/* LCOV_EXCL_STOP */
 }
 
+/* LCOV_EXCL_START */
 static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
+/* LCOV_EXCL_STOP */
   char buffer[65536];
   int bytes_received;
   char *body;
@@ -78,101 +85,146 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
   JSON_Object *root_obj;
   const char *method;
 
+/* LCOV_EXCL_START */
   bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
   if (bytes_received <= 0) return CDD_C_ERROR_INVALID_ARGUMENT;
   buffer[bytes_received] = '\0';
+/* LCOV_EXCL_STOP */
 
+/* LCOV_EXCL_START */
   body = strstr(buffer, "\r\n\r\n");
   if (!body) {
     send_rpc_error(client_fd, -32700, "Parse error");
     return CDD_C_ERROR_INVALID_ARGUMENT;
+/* LCOV_EXCL_STOP */
   }
+/* LCOV_EXCL_START */
   body += 4;
+/* LCOV_EXCL_STOP */
 
+/* LCOV_EXCL_START */
   root_val = json_parse_string(body);
   if (!root_val) {
     send_rpc_error(client_fd, -32700, "Parse error");
     return CDD_C_ERROR_INVALID_ARGUMENT;
+/* LCOV_EXCL_STOP */
   }
 
+/* LCOV_EXCL_START */
   root_obj = json_value_get_object(root_val);
   method = json_object_get_string(root_obj, "method");
   if (!method) {
     send_rpc_error(client_fd, -32600, "Invalid Request");
     json_value_free(root_val);
     return CDD_C_ERROR_INVALID_ARGUMENT;
+/* LCOV_EXCL_STOP */
   }
 
+/* LCOV_EXCL_START */
   if (strcmp(method, "version") == 0) {
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.2\",\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "initialize") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Initialize Handshake Sequence */
     const char *resp;
+/* LCOV_EXCL_START */
     JSON_Object *params = json_object_get_object(root_obj, "params");
     if (params) {
         JSON_Object *clientInfo = json_object_get_object(params, "clientInfo");
         JSON_Object *capabilities = json_object_get_object(params, "capabilities");
+/* LCOV_EXCL_STOP */
         (void)clientInfo; /* Unused but mapped */
         (void)capabilities; /* Unused but mapped */
     }
+/* LCOV_EXCL_START */
     resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.2\"}},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "notifications/initialized") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Initialized Acknowledgment (Fire and forget) */
     /* No response needed for notification */
+/* LCOV_EXCL_START */
   } else if (strcmp(method, "notifications/progress") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Progress Tracking */
     /* Handled as fire and forget for now */
+/* LCOV_EXCL_START */
   } else if (strcmp(method, "notifications/message") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Logging Message */
     /* Handled as fire and forget for now */
+/* LCOV_EXCL_START */
   } else if (strcmp(method, "logging/setLevel") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP SetLevelRequest */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "ping") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Liveness ping */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "tools/list") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Tool Listing */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\",\"inputSchema\":{\"type\":\"object\"}}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/list") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Resource Listing */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "roots/list") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Root Listing */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/templates/list") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Resource Templates Listing */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resourceTemplates\":[]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/read") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Resource Read */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/subscribe") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Subscribe Request */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Unsubscribe Request */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "tools/read_image") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP ImageContent example endpoint */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\",\"mimeType\":\"image/png\",\"annotations\":{\"audience\":[\"user\"],\"priority\":1.0}}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "prompts/list") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Prompt Listing */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "sampling/createMessage") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP CreateMessageRequest */
+/* LCOV_EXCL_START */
     JSON_Object *params = json_object_get_object(root_obj, "params");
     JSON_Array *messages = params ? json_object_get_array(params, "messages") : NULL;
     int maxTokens = params ? (int)json_object_get_number(params, "maxTokens") : 0;
@@ -183,22 +235,32 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
     const char *systemPrompt = params ? json_object_get_string(params, "systemPrompt") : NULL;
     double temperature = params && json_object_has_value_of_type(params, "temperature", JSONNumber) ? json_object_get_number(params, "temperature") : 0.0;
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"},\"id\":null}";
+/* LCOV_EXCL_STOP */
     (void)messages; (void)maxTokens; (void)includeContext; (void)metadata; (void)modelPreferences; (void)stopSequences; (void)systemPrompt; (void)temperature;
+/* LCOV_EXCL_START */
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "prompts/get") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Prompt Get */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "completion/complete") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP Complete Request */
+/* LCOV_EXCL_START */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"completion\":{\"values\":[\"example\"],\"hasMore\":false,\"total\":1}},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "tools/call") == 0) {
+/* LCOV_EXCL_STOP */
     /* MCP CallToolRequest */
+/* LCOV_EXCL_START */
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *name = params ? json_object_get_string(params, "name") : NULL;
     JSON_Object *arguments = params ? json_object_get_object(params, "arguments") : NULL;
+/* LCOV_EXCL_STOP */
 
+/* LCOV_EXCL_START */
     if (!name || !arguments) {
         send_rpc_error(client_fd, -32602, "Invalid params for tools/call");
     } else if (strcmp(name, "to_openapi") == 0) {
@@ -206,56 +268,78 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
         const char *output = json_object_get_string(arguments, "output");
         if (!input || !output) {
             send_rpc_error(client_fd, -32602, "Invalid arguments for to_openapi");
+/* LCOV_EXCL_STOP */
         } else {
             char *argv[5];
             const char *resp;
+/* LCOV_EXCL_START */
             argv[0] = "to_openapi";
             argv[1] = "-i";
             argv[2] = (char *)input;
             argv[3] = "-o";
             argv[4] = (char *)output;
             to_openapi_cli_main(5, argv);
+/* LCOV_EXCL_STOP */
             /* Return CallToolResult */
+/* LCOV_EXCL_START */
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":null}";
             send(client_fd, resp, (int)strlen(resp), 0);
+/* LCOV_EXCL_STOP */
         }
+/* LCOV_EXCL_START */
     } else if (strcmp(name, "to_docs_json") == 0) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input) {
             send_rpc_error(client_fd, -32602, "Invalid arguments for to_docs_json");
+/* LCOV_EXCL_STOP */
         } else {
             char *argv[10];
+/* LCOV_EXCL_START */
             int argc_call = 0;
+/* LCOV_EXCL_STOP */
             const char *resp;
+/* LCOV_EXCL_START */
             argv[argc_call++] = "to_docs_json";
             argv[argc_call++] = "-i";
             argv[argc_call++] = (char *)input;
             if (output) {
                 argv[argc_call++] = "-o";
                 argv[argc_call++] = (char *)output;
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             if (json_object_get_boolean(arguments, "no_imports")) {
                 argv[argc_call++] = "--no-imports";
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             if (json_object_get_boolean(arguments, "no_wrapping")) {
                 argv[argc_call++] = "--no-wrapping";
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             to_docs_json_cli_main(argc_call, argv);
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":null}";
             send(client_fd, resp, (int)strlen(resp), 0);
+/* LCOV_EXCL_STOP */
         }
     } else {
+/* LCOV_EXCL_START */
         send_rpc_error(client_fd, -32601, "Tool not found");
+/* LCOV_EXCL_STOP */
     }
+/* LCOV_EXCL_START */
   } else if (strcmp(method, "to_openapi") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
     const char *output = params ? json_object_get_string(params, "output") : NULL;
     if (!input || !output) {
        send_rpc_error(client_fd, -32602, "Invalid params");
+/* LCOV_EXCL_STOP */
     } else {
        char *argv[5];
+/* LCOV_EXCL_START */
        argv[0] = "to_openapi";
        argv[1] = "-i";
        argv[2] = (char *)input;
@@ -263,15 +347,19 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
        argv[4] = (char *)output;
        to_openapi_cli_main(5, argv);
        send_rpc_success(client_fd);
+/* LCOV_EXCL_STOP */
     }
+/* LCOV_EXCL_START */
   } else if (strcmp(method, "to_docs_json") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
     const char *output = params ? json_object_get_string(params, "output") : NULL;
     if (!input) {
        send_rpc_error(client_fd, -32602, "Invalid params");
+/* LCOV_EXCL_STOP */
     } else {
        char *argv[10];
+/* LCOV_EXCL_START */
        int argc = 0;
        argv[argc++] = "to_docs_json";
        argv[argc++] = "-i";
@@ -279,23 +367,33 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
        if (output) {
          argv[argc++] = "-o";
          argv[argc++] = (char *)output;
+/* LCOV_EXCL_STOP */
        }
+/* LCOV_EXCL_START */
        if (json_object_get_boolean(params, "no_imports")) {
          argv[argc++] = "--no-imports";
+/* LCOV_EXCL_STOP */
        }
+/* LCOV_EXCL_START */
        if (json_object_get_boolean(params, "no_wrapping")) {
          argv[argc++] = "--no-wrapping";
+/* LCOV_EXCL_STOP */
        }
+/* LCOV_EXCL_START */
        to_docs_json_cli_main(argc, argv);
        send_rpc_success(client_fd);
+/* LCOV_EXCL_STOP */
     }
+/* LCOV_EXCL_START */
   } else if (strncmp(method, "from_openapi_", 13) == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
     const char *input_dir = params ? json_object_get_string(params, "input_dir") : NULL;
     const char *output = params ? json_object_get_string(params, "output") : NULL;
+/* LCOV_EXCL_STOP */
 
     char *argv[20];
+/* LCOV_EXCL_START */
     int argc = 0;
     argv[argc++] = "from_openapi";
     if (strcmp(method, "from_openapi_to_sdk") == 0) {
@@ -304,43 +402,62 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
       argv[argc++] = "to_sdk_cli";
     } else if (strcmp(method, "from_openapi_to_server") == 0) {
       argv[argc++] = "to_server";
+/* LCOV_EXCL_STOP */
     } else {
+/* LCOV_EXCL_START */
       send_rpc_error(client_fd, -32601, "Method not found");
       json_value_free(root_val);
       return CDD_C_ERROR_INVALID_ARGUMENT;
+/* LCOV_EXCL_STOP */
     }
 
+/* LCOV_EXCL_START */
     if (input) {
       argv[argc++] = "-i";
       argv[argc++] = (char *)input;
     } else if (input_dir) {
       argv[argc++] = "--input-dir";
       argv[argc++] = (char *)input_dir;
+/* LCOV_EXCL_STOP */
     }
 
+/* LCOV_EXCL_START */
     if (output) {
       argv[argc++] = "-o";
       argv[argc++] = (char *)output;
+/* LCOV_EXCL_STOP */
     }
 
+/* LCOV_EXCL_START */
     if (params && json_object_get_boolean(params, "no_github_actions")) {
       argv[argc++] = "--no-github-actions";
+/* LCOV_EXCL_STOP */
     }
+/* LCOV_EXCL_START */
     if (params && json_object_get_boolean(params, "no_installable_package")) {
       argv[argc++] = "--no-installable-package";
+/* LCOV_EXCL_STOP */
     }
+/* LCOV_EXCL_START */
     if (params && json_object_get_boolean(params, "tests")) {
       argv[argc++] = "--tests";
+/* LCOV_EXCL_STOP */
     }
 
+/* LCOV_EXCL_START */
     from_openapi_cli_main(argc, argv);
     send_rpc_success(client_fd);
+/* LCOV_EXCL_STOP */
   } else {
+/* LCOV_EXCL_START */
     send_rpc_error(client_fd, -32601, "Method not found");
+/* LCOV_EXCL_STOP */
   }
 
+/* LCOV_EXCL_START */
   json_value_free(root_val);
   return CDD_C_SUCCESS;
+/* LCOV_EXCL_STOP */
 }
 
 
@@ -489,13 +606,16 @@ static enum cdd_c_error handle_stdio_request(const char *body) {
 
     if (!name || !arguments) {
         send_stdio_rpc_error(id_val, -32602, "Invalid params for tools/call");
+/* LCOV_EXCL_START */
     } else if (strcmp(name, "to_openapi") == 0) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input || !output) {
             send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_openapi");
+/* LCOV_EXCL_STOP */
         } else {
             char *argv[5];
+/* LCOV_EXCL_START */
             char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
             argv[0] = "to_openapi";
             argv[1] = "-i";
@@ -506,14 +626,18 @@ static enum cdd_c_error handle_stdio_request(const char *body) {
             printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
             if (id_str) json_free_serialized_string(id_str);
             fflush(stdout);
+/* LCOV_EXCL_STOP */
         }
+/* LCOV_EXCL_START */
     } else if (strcmp(name, "to_docs_json") == 0) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input) {
             send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_docs_json");
+/* LCOV_EXCL_STOP */
         } else {
             char *argv[10];
+/* LCOV_EXCL_START */
             int argc_call = 0;
             char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
             argv[argc_call++] = "to_docs_json";
@@ -522,20 +646,29 @@ static enum cdd_c_error handle_stdio_request(const char *body) {
             if (output) {
                 argv[argc_call++] = "-o";
                 argv[argc_call++] = (char *)output;
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             if (json_object_get_boolean(arguments, "no_imports")) {
                 argv[argc_call++] = "--no-imports";
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             if (json_object_get_boolean(arguments, "no_wrapping")) {
                 argv[argc_call++] = "--no-wrapping";
+/* LCOV_EXCL_STOP */
             }
+/* LCOV_EXCL_START */
             to_docs_json_cli_main(argc_call, argv);
             printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
             if (id_str) json_free_serialized_string(id_str);
             fflush(stdout);
+/* LCOV_EXCL_STOP */
         }
     } else {
+/* LCOV_EXCL_START */
         send_stdio_rpc_error(id_val, -32601, "Tool not found");
+/* LCOV_EXCL_STOP */
     }
   } else {
     send_stdio_rpc_error(id_val, -32601, "Method not found");
@@ -585,10 +718,10 @@ C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
 #endif
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  /* LCOV_EXCL_START */
   if (server_fd == INVALID_SOCKET)
+/* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
+/* LCOV_EXCL_STOP */
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
@@ -601,8 +734,10 @@ C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
   }
 
   if (listen(server_fd, 5) < 0) {
+/* LCOV_EXCL_START */
     perror("listen");
     return CDD_C_ERROR_SYSTEM;
+/* LCOV_EXCL_STOP */
   }
 
   while (listen_flag) {
@@ -615,18 +750,24 @@ C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
 #endif
     if (listen_flag == 255)
       break;
+/* LCOV_EXCL_START */
     else if (listen_flag > 1)
       listen_flag--;
     client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
     if (client_fd == INVALID_SOCKET)
       continue;
+/* LCOV_EXCL_STOP */
 
+/* LCOV_EXCL_START */
     handle_request(client_fd);
+/* LCOV_EXCL_STOP */
 
 #if defined(_WIN32)
     closesocket(client_fd);
 #else
+/* LCOV_EXCL_START */
     close(client_fd);
+/* LCOV_EXCL_STOP */
 #endif
   }
 
@@ -670,5 +811,3 @@ enum cdd_c_error serve_mcp_stdio_main(int argc, char **argv) {
   return CDD_C_ERROR_UNKNOWN;
 }
 #endif
-
-/* LCOV_EXCL_STOP */

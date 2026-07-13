@@ -20,7 +20,6 @@ extern "C" {
 
 #include "functions/emit/codegen.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* Helper: generate code and return as buffer */
 static enum cdd_c_error
@@ -31,14 +30,20 @@ gen_parse_code(const char *name, struct StructFields *sf, char **_out_val) {
 
   if (!tmp) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 
   if (write_struct_from_jsonObject_func(tmp, name, sf, NULL) != 0) {
+    /* LCOV_EXCL_START */
     fclose(tmp);
+    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
+      /* LCOV_EXCL_START */
       return 0;
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -394,5 +399,3 @@ SUITE(codegen_validation_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_VALIDATION_H */
-
-/* LCOV_EXCL_STOP */

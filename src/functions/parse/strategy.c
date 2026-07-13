@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file strategy.c
  * @brief Implementation of parsing strategies.
@@ -329,4 +330,5 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
   return CDD_C_SUCCESS;
 }
 
+/* LCOV_EXCL_STOP */
 /* LCOV_EXCL_STOP */

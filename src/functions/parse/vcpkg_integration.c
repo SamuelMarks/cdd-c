@@ -16,20 +16,25 @@
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   *out_val = NULL;
   if (!s)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   len = strlen(s) + 1;
   d = (char *)malloc(len);
   if (!d)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
   memcpy(d, s, len);
   *out_val = d;
   return CDD_C_SUCCESS;
@@ -60,8 +65,10 @@ enum cdd_c_error vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
 
   if (!builder->project_name || !builder->version_string ||
       !builder->description) {
+    /* LCOV_EXCL_START */
     vcpkg_builder_free(builder);
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -72,7 +79,9 @@ enum cdd_c_error vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
 void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
   size_t i;
   if (!builder)
+    /* LCOV_EXCL_START */
     return;
+  /* LCOV_EXCL_STOP */
 
   if (builder->project_name)
     free(builder->project_name);
@@ -113,7 +122,9 @@ enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
         builder->deps, new_cap * sizeof(struct VcpkgDependency));
     if (!new_deps) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
+      /* LCOV_EXCL_STOP */
     }
     builder->deps = new_deps;
     builder->deps_capacity = new_cap;
@@ -121,7 +132,9 @@ enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 
   my_strdup(dep_name, &builder->deps[builder->deps_count].name);
   if (!builder->deps[builder->deps_count].name)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
   builder->deps_count++;
 
   return CDD_C_SUCCESS;
@@ -141,7 +154,9 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
 
   res = tokenize(az_span_create_from_str((char *)file_content), &tokens);
   if (res != 0)
+    /* LCOV_EXCL_START */
     return res;
+  /* LCOV_EXCL_STOP */
 
   for (i = 0; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_HASH) {
@@ -213,7 +228,9 @@ vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   json = (char *)malloc(cap);
   if (!json) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+    /* LCOV_EXCL_STOP */
   }
 
   /* Basic manual string builder without heavy dependencies */
@@ -258,7 +275,9 @@ vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE, "\\n");
 #else
+    /* LCOV_EXCL_START */
     len += CDD_SNPRINTF(json + len, cap - len, "\\n");
+/* LCOV_EXCL_STOP */
 #endif
   }
 
@@ -271,5 +290,3 @@ vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   *out_json = json;
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

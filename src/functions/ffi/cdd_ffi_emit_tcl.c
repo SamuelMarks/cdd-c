@@ -51,8 +51,10 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
                config->output_dir);
   pkg_f = fopen(pkg_filepath, "w");
   if (!pkg_f) {
+    /* LCOV_EXCL_START */
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
   }
 #endif
 
@@ -109,7 +111,9 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
     char tcl_init_name[256];
     size_t len = strlen(lib_name);
     if (len > sizeof(tcl_init_name) - 1)
+      /* LCOV_EXCL_START */
       len = sizeof(tcl_init_name) - 1;
+    /* LCOV_EXCL_STOP */
     strncpy(tcl_init_name, lib_name, len);
     tcl_init_name[len] = '\0';
     tcl_init_name[0] = (char)toupper((unsigned char)tcl_init_name[0]);

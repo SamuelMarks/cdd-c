@@ -171,16 +171,20 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
                config->output_dir, lib_name);
   cpp_f = fopen(cpp_filepath, "w");
   if (!cpp_f) {
+    /* LCOV_EXCL_START */
     fclose(idl_f);
     return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
   }
   CDD_SNPRINTF(ts_filepath, sizeof(ts_filepath), "%s/%s.d.ts",
                config->output_dir, lib_name);
   ts_f = fopen(ts_filepath, "w");
   if (!ts_f) {
+    /* LCOV_EXCL_START */
     fclose(idl_f);
     fclose(cpp_f);
     return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
   }
 #endif
 

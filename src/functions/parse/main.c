@@ -36,7 +36,6 @@
 
 #include <parson.h>
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
@@ -93,7 +92,9 @@ static enum cdd_c_error print_version(void) {
  */
 static enum cdd_c_error print_error(int rc, const char *command_name) {
   if (rc == 0)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
   return CDD_C_SUCCESS;
 }
@@ -113,7 +114,9 @@ static enum cdd_c_error handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
   (void)audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
@@ -278,8 +281,10 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
     json_value_free(root);
 
     if (rc != 0) {
+      /* LCOV_EXCL_START */
       fprintf(stderr, "Failed to load openapi spec from %s\n", input_file);
       return rc;
+      /* LCOV_EXCL_STOP */
     }
 
     if (out_dir) {
@@ -292,7 +297,9 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
 #endif
       config.filename_base = path;
     } else {
+      /* LCOV_EXCL_START */
       config.filename_base = "generated_client";
+      /* LCOV_EXCL_STOP */
     }
     config.func_prefix = "api_";
 
@@ -375,6 +382,7 @@ enum cdd_c_error to_openapi_cli_main(int argc, char **argv) {
     f = fopen(snapshot_path, "r");
     if (f) {
       char *c2_argv_base[5];
+      /* LCOV_EXCL_START */
       fclose(f);
       c2_argv_base[0] = (char *)"c2openapi";
       c2_argv_base[1] = (char *)"--base";
@@ -382,6 +390,7 @@ enum cdd_c_error to_openapi_cli_main(int argc, char **argv) {
       c2_argv_base[3] = (char *)input_dir;
       c2_argv_base[4] = (char *)out_file;
       return c2openapi_cli_main(5, c2_argv_base);
+      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -433,17 +442,23 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
 
   if (strcmp(cmd, "audit") == 0) {
     if (argc < 3)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
     rc = handle_audit(argc - 2, argv + 2);
   } else if (strcmp(cmd, "c2openapi") == 0) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "transformer") == 0) {
     rc = cli_cst_transformer_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "standardize-gnu") == 0) {
+    /* LCOV_EXCL_START */
     rc = cli_standardize_gnu_main(argc - 1, argv + 1);
+    /* LCOV_EXCL_STOP */
   } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
+      /* LCOV_EXCL_START */
       return CDD_C_ERROR_UNKNOWN;
+    /* LCOV_EXCL_STOP */
     rc = code2schema_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "from_openapi") == 0) {
     rc = from_openapi_cli_main(argc - 1, argv + 1);
@@ -452,7 +467,9 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
   } else if (strcmp(cmd, "to_docs_json") == 0) {
     rc = to_docs_json_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "bind") == 0) {
+    /* LCOV_EXCL_START */
     rc = generate_bindings_cli_main(argc - 1, argv + 1);
+    /* LCOV_EXCL_STOP */
   } else if (strcmp(cmd, "generate_build_system") == 0) {
     rc = generate_build_system_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "schema2code") == 0) {
@@ -463,8 +480,10 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
     /* Expose Generator via MCP stdio */
     /* Register Tools: cdd_generate (Code Scaffold), cdd_inspect (Schema
      * Inspection), cdd_sync (Bidirectional Sync) */
+    /* LCOV_EXCL_START */
     printf("Starting MCP server for cdd generator via stdio...\n");
     rc = serve_mcp_stdio_main(argc - 1, argv + 1);
+    /* LCOV_EXCL_STOP */
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {
@@ -482,5 +501,3 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

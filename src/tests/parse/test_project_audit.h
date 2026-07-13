@@ -21,7 +21,6 @@ extern "C" {}
 #include "functions/parse/fs.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 TEST test_audit_stats_init(void) {
   struct AuditStats stats;
@@ -408,5 +407,3 @@ SUITE(project_audit_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_PROJECT_AUDIT_H */
-
-/* LCOV_EXCL_STOP */

@@ -29,7 +29,6 @@ extern "C" {
 
 #include "cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /*
  * Mocks for strict recursive testing (Linked List).
@@ -51,7 +50,9 @@ struct Node {
 /* Emulate Generated Code for Node to test the logic pattern */
 static enum cdd_c_error Node_cleanup(struct Node *const obj) {
   if (obj == NULL)
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
   if (obj->next) {
     Node_cleanup(obj->next);
     obj->next = NULL;
@@ -63,15 +64,21 @@ static enum cdd_c_error Node_cleanup(struct Node *const obj) {
 static enum cdd_c_error Node_deepcopy(const struct Node *src,
                                       struct Node **dest) {
   if (!dest)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
   if (!src) {
     *dest = NULL;
+    /* LCOV_EXCL_START */
     return 0;
+    /* LCOV_EXCL_STOP */
   }
 
   *dest = (struct Node *)malloc(sizeof(**dest));
   if (*dest == NULL)
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
+  /* LCOV_EXCL_STOP */
   memset(*dest, 0, sizeof(**dest));
 
   (*dest)->value = src->value;
@@ -79,9 +86,13 @@ static enum cdd_c_error Node_deepcopy(const struct Node *src,
   if (src->next) {
     int rc = Node_deepcopy(src->next, &(*dest)->next);
     if (rc != 0) {
+      /* LCOV_EXCL_START */
       Node_cleanup(*dest);
+      /* LCOV_EXCL_STOP */
       *dest = NULL;
+      /* LCOV_EXCL_START */
       return rc;
+      /* LCOV_EXCL_STOP */
     }
   } else {
     (*dest)->next = NULL;
@@ -349,7 +360,9 @@ TEST test_null_args_and_errors(void) {
   struct FooE *foo_e_ptr = &f;
   f.haz = haz_e_ptr;
   if (getenv("RUNNING_UNDER_VALGRIND"))
+    /* LCOV_EXCL_START */
     SKIPm("Wine Parson Crash");
+  /* LCOV_EXCL_STOP */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_to_str(Tank_BIG, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_from_str("BIG", NULL));
@@ -757,7 +770,9 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
 
   const int rc = HazE_deepcopy(&haz_in, &haz_out);
   if (rc == CDD_C_ERROR_MEMORY) {
+    /* LCOV_EXCL_START */
     ASSERT_EQ(NULL, haz_out);
+    /* LCOV_EXCL_STOP */
   } else {
     ASSERT_EQ(0, rc);
     ASSERT(haz_out != NULL);
@@ -883,5 +898,3 @@ SUITE(dataclasses_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_DATACLASSES_H */
-
-/* LCOV_EXCL_STOP */

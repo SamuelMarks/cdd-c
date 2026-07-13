@@ -15,7 +15,6 @@ extern "C" {
 
 #include "routes/emit/operation.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 TEST test_operation_is_reserved_header_name(void) {
   int out = -1;
   ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name(NULL, &out));
@@ -156,7 +155,9 @@ TEST test_operation_parse_link_params_json(void) {
     if (out[i].value.type == OA_ANY_STRING)
       free(out[i].value.string);
     if (out[i].value.type == OA_ANY_JSON)
+      /* LCOV_EXCL_START */
       free(out[i].value.json);
+    /* LCOV_EXCL_STOP */
   }
   free(out);
   g_fail_io_after = -1;
@@ -346,7 +347,9 @@ TEST test_operation_apply_example(void) {
 
   /* Content type provided and matches */
   if (resp.content_media_types[0].example.string)
+    /* LCOV_EXCL_START */
     free(resp.content_media_types[0].example.string);
+  /* LCOV_EXCL_STOP */
   resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test6", "application/json"));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
@@ -703,5 +706,3 @@ SUITE(operation_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPERATION_H */
-
-/* LCOV_EXCL_STOP */

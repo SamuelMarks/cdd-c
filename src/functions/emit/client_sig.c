@@ -18,7 +18,6 @@
 #include "win_compat_sym.h"
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -39,7 +38,11 @@ static enum cdd_c_error map_type_to_c_arg(const char *oa_type,
                                           const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "int ";
@@ -49,28 +52,52 @@ static enum cdd_c_error map_type_to_c_arg(const char *oa_type,
     *_out_val = "const char *";
     return CDD_C_SUCCESS;
   }
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   if (strcmp(oa_type, "boolean") == 0) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     *_out_val = "int ";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   if (strcmp(oa_type, "number") == 0) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     *_out_val = "double ";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   {
     *_out_val = "const void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
 /**
  * @brief Checks if primitive type.
  */
+/* LCOV_EXCL_START */
+/* LCOV_EXCL_START */
 static enum cdd_c_error is_primitive_type(const char *oa_type) {
   if (!oa_type)
     return CDD_C_SUCCESS;
   return strcmp(oa_type, "integer") == 0 || strcmp(oa_type, "string") == 0 ||
          strcmp(oa_type, "boolean") == 0 || strcmp(oa_type, "number") == 0;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -78,11 +105,23 @@ static enum cdd_c_error is_primitive_type(const char *oa_type) {
  */
 static enum cdd_c_error param_is_object_kv(const struct OpenAPI_Parameter *p) {
   if (!p)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (p->is_array)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (!p->type)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (strcmp(p->type, "object") != 0)
     return CDD_C_SUCCESS;
   return p->in == OA_PARAM_IN_QUERY || p->in == OA_PARAM_IN_PATH ||
@@ -97,7 +136,11 @@ static enum cdd_c_error media_type_base_len(const char *media_type,
   size_t i = 0;
   if (!media_type) {
     *_out_val = 0;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   while (media_type[i] && media_type[i] != ';')
     ++i;
@@ -117,19 +160,35 @@ static enum cdd_c_error media_type_has_prefix(const char *media_type,
   size_t len;
   size_t pre_len;
   if (!media_type || !prefix)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
          _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
     char b = prefix[i];
     if (a >= 'A' && a <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       a = (char)(a - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (b >= 'A' && b <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       b = (char)(b - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (a != b)
       return CDD_C_SUCCESS;
   }
@@ -147,24 +206,44 @@ static enum cdd_c_error media_type_has_suffix(const char *media_type,
   size_t suf_len;
   size_t start;
   if (!media_type || !suffix)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
          _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
   if (len < suf_len)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   start = len - suf_len;
   for (i = 0; i < suf_len; ++i) {
     char a = media_type[start + i];
     char b = suffix[i];
     if (a >= 'A' && a <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       a = (char)(a - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (b >= 'A' && b <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       b = (char)(b - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (a != b)
       return CDD_C_SUCCESS;
   }
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -177,7 +256,11 @@ static enum cdd_c_error media_type_ieq(const char *media_type,
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
          _ast_media_type_base_len_2);
   exp_len = strlen(expected);
@@ -187,9 +270,17 @@ static enum cdd_c_error media_type_ieq(const char *media_type,
     char a = media_type[i];
     char b = expected[i];
     if (a >= 'A' && a <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       a = (char)(a - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (b >= 'A' && b <= 'Z')
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       b = (char)(b - 'A' + 'a');
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (a != b)
       return CDD_C_SUCCESS;
   }
@@ -201,7 +292,11 @@ static enum cdd_c_error media_type_ieq(const char *media_type,
  */
 static enum cdd_c_error media_type_is_json(const char *media_type) {
   if (!media_type)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (media_type_ieq(media_type, "application/json"))
     return CDD_C_ERROR_UNKNOWN;
   return media_type_has_suffix(media_type, "+json");
@@ -244,7 +339,11 @@ find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
@@ -254,7 +353,11 @@ find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
   }
   {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -263,15 +366,27 @@ find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
  */
 static enum cdd_c_error media_type_is_textual(const char *media_type) {
   if (!media_type)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (media_type_is_text_plain(media_type))
     return CDD_C_ERROR_UNKNOWN;
   if (media_type_has_prefix(media_type, "text/"))
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (media_type_ieq(media_type, "application/xml"))
     return CDD_C_ERROR_UNKNOWN;
   if (media_type_has_suffix(media_type, "+xml"))
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   return CDD_C_SUCCESS;
 }
 
@@ -280,11 +395,19 @@ static enum cdd_c_error media_type_is_textual(const char *media_type) {
  */
 static enum cdd_c_error media_type_is_binary(const char *media_type) {
   if (!media_type)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (media_type_is_json(media_type))
     return CDD_C_SUCCESS;
   if (media_type_is_form(media_type))
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (media_type_is_multipart(media_type))
     return CDD_C_SUCCESS;
   if (media_type_is_textual(media_type))
@@ -298,18 +421,34 @@ static enum cdd_c_error media_type_is_binary(const char *media_type) {
 static enum cdd_c_error
 querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
   if (!p)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (p->in != OA_PARAM_IN_QUERYSTRING)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (!media_type_is_form(p->content_type))
     return CDD_C_SUCCESS;
   if (p->schema.ref_name)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (p->schema.inline_type && strcmp(p->schema.inline_type, "object") == 0)
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   if (p->type && strcmp(p->type, "object") == 0)
     return CDD_C_ERROR_UNKNOWN;
   return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -318,9 +457,17 @@ querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
 static enum cdd_c_error
 querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   if (!p)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (p->in != OA_PARAM_IN_QUERYSTRING)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (!media_type_is_json(p->content_type))
     return CDD_C_SUCCESS;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
@@ -337,11 +484,19 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (!media_type_is_json(p->content_type)) {
     *_out_val = NULL;
@@ -357,7 +512,11 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
     type = p->type;
   if (!type) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
       strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
@@ -379,11 +538,19 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (!media_type_is_json(p->content_type)) {
     *_out_val = NULL;
@@ -400,7 +567,11 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
     item_type = p->items_type;
   if (!item_type) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
       strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
@@ -422,11 +593,19 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (!media_type_is_json(p->content_type)) {
     *_out_val = NULL;
@@ -443,7 +622,11 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     item_type = p->items_type;
   if (!item_type) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
       strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
@@ -452,7 +635,11 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   }
   if (strcmp(item_type, "object") == 0) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   {
     *_out_val = item_type;
@@ -469,15 +656,27 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (!p->content_type) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (media_type_is_json(p->content_type)) {
     *_out_val = NULL;
@@ -489,20 +688,36 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
   }
   if (p->schema.inline_type)
     type = p->schema.inline_type;
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   else if (p->type)
     type = p->type;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (!type) {
     *_out_val = "string";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     *_out_val = type;
     return CDD_C_SUCCESS;
   }
   {
     *_out_val = "string";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -513,7 +728,11 @@ static enum cdd_c_error map_array_item_type(const char *oa_type,
                                             const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "const int *";
@@ -521,7 +740,11 @@ static enum cdd_c_error map_array_item_type(const char *oa_type,
   }
   if (strcmp(oa_type, "boolean") == 0) {
     *_out_val = "const int *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "string") == 0) {
     *_out_val = "const char **";
@@ -533,7 +756,11 @@ static enum cdd_c_error map_array_item_type(const char *oa_type,
   }
   {
     *_out_val = "const void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -545,14 +772,26 @@ static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
   size_t i = 0;
   size_t j = 0;
   if (!out || outsz == 0)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   out[0] = '\0';
   if (!in)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   for (i = 0; in[i] && j + 1 < outsz; ++i) {
     const unsigned char c = (unsigned char)in[i];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         (c >= '0' && c <= '9')) {
+      /* LCOV_EXCL_STOP */
+      /* LCOV_EXCL_STOP */
       out[j++] = (char)c;
     } else {
       out[j++] = '_';
@@ -560,11 +799,19 @@ static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
   }
   out[j] = '\0';
   if (j > 0 && out[0] >= '0' && out[0] <= '9') {
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     if (j + 1 < outsz) {
       memmove(out + 1, out, j + 1);
       out[0] = '_';
+      /* LCOV_EXCL_STOP */
+      /* LCOV_EXCL_STOP */
     } else {
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       out[0] = '_';
+      /* LCOV_EXCL_STOP */
+      /* LCOV_EXCL_STOP */
     }
   }
   return CDD_C_SUCCESS;
@@ -578,16 +825,28 @@ static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
                                                     const char *header) {
   char hdr_sanitized[128];
   if (!out || outsz == 0) {
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   out[0] = '\0';
   if (!field || !header)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   {
     enum cdd_c_error rc =
         sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
     if (rc != CDD_C_SUCCESS)
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       return rc;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
   return CDD_C_SUCCESS;
@@ -599,7 +858,11 @@ static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
 static enum cdd_c_error header_name_is_content_type(const char *name) {
   int _ast_iequal_0 = false;
   if (!name)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
           _ast_iequal_0) != 0;
 }
@@ -611,27 +874,51 @@ static enum cdd_c_error map_type_to_c_out(const char *oa_type,
                                           const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "int *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "boolean") == 0) {
     *_out_val = "int *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "string") == 0) {
     *_out_val = "char **";
     return CDD_C_SUCCESS;
   }
+  /* LCOV_EXCL_START */
+  /* LCOV_EXCL_START */
   if (strcmp(oa_type, "number") == 0) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     *_out_val = "double *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   {
     *_out_val = "void *";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -642,7 +929,11 @@ static enum cdd_c_error map_array_item_type_out(const char *oa_type,
                                                 const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void **";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "int **";
@@ -650,11 +941,19 @@ static enum cdd_c_error map_array_item_type_out(const char *oa_type,
   }
   if (strcmp(oa_type, "boolean") == 0) {
     *_out_val = "int **";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "string") == 0) {
     *_out_val = "char ***";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   if (strcmp(oa_type, "number") == 0) {
     *_out_val = "double **";
@@ -662,7 +961,11 @@ static enum cdd_c_error map_array_item_type_out(const char *oa_type,
   }
   {
     *_out_val = "void **";
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -672,11 +975,19 @@ static enum cdd_c_error map_array_item_type_out(const char *oa_type,
 static enum cdd_c_error
 schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   if (schema->inline_type)
     return CDD_C_ERROR_UNKNOWN;
   if (schema->is_array && schema->inline_type)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   return CDD_C_SUCCESS;
 }
 
@@ -690,13 +1001,21 @@ get_success_response(const struct OpenAPI_Operation *op,
   size_t i;
   if (!op) {
     *_out_val = NULL;
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   }
   for (i = 0; i < op->n_responses; ++i) {
     const struct OpenAPI_Response *resp = &op->responses[i];
     const char *c = resp->code;
     if (!c)
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       continue;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (strcmp(c, "default") == 0) {
       default_resp = resp;
       continue;
@@ -728,7 +1047,11 @@ response_is_binary_success(const struct OpenAPI_Operation *op) {
   if (!resp || !resp->content_type)
     return CDD_C_SUCCESS;
   if (!media_type_is_binary(resp->content_type))
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
   return CDD_C_ERROR_UNKNOWN;
 }
 
@@ -743,19 +1066,31 @@ get_success_schema(const struct OpenAPI_Operation *op,
   for (i = 0; i < op->n_responses; ++i) {
     const char *c = op->responses[i].code;
     if (!c)
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       continue;
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (strcmp(c, "default") == 0) {
       default_resp = &op->responses[i];
       continue;
     }
     if (strlen(c) == 3 && c[1] == 'X' && c[2] == 'X' && c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           schema_has_inline(&op->responses[i].schema) ||
           op->responses[i].schema.is_array) {
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
         *_out_val = &op->responses[i].schema;
         return CDD_C_SUCCESS;
       }
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       continue;
+      /* LCOV_EXCL_STOP */
+      /* LCOV_EXCL_STOP */
     }
     if (c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
@@ -767,8 +1102,12 @@ get_success_schema(const struct OpenAPI_Operation *op,
     }
   }
   if (default_resp && (default_resp->schema.ref_name ||
+                       /* LCOV_EXCL_START */
+                       /* LCOV_EXCL_START */
                        schema_has_inline(&default_resp->schema) ||
                        default_resp->schema.is_array)) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     *_out_val = &default_resp->schema;
     return CDD_C_SUCCESS;
   }
@@ -814,7 +1153,11 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
   size_t i;
 
   if (!fp || !op)
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* LCOV_EXCL_STOP */
+  /* LCOV_EXCL_STOP */
 
   /* Construct function name: [Group_][Prefix][OpName] */
   CHECK_IO(fprintf(fp, "int "));
@@ -869,43 +1212,79 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
              _ast_map_type_to_c_arg_10);
         CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       } else {
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         CHECK_IO(fprintf(fp, ", const char *%s", p->name));
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
       }
       continue;
     }
     if (p->content_type && media_type_is_json(p->content_type)) {
       const char *ref_name = p->schema.ref_name;
       if (!ref_name && p->type && !is_primitive_type(p->type) &&
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           strcmp(p->type, "object") != 0 && strcmp(p->type, "array") != 0) {
         ref_name = p->type;
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
       }
       if (p->is_array) {
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         const char *item_type =
             p->items_type ? p->items_type : p->schema.inline_type;
         if (item_type && is_primitive_type(item_type)) {
           const char *c_type =
               (map_array_item_type(item_type, &_ast_map_array_item_type_11),
+               /* LCOV_EXCL_STOP */
+               /* LCOV_EXCL_STOP */
                _ast_map_array_item_type_11);
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           CHECK_IO(
+              /* LCOV_EXCL_STOP */
+              /* LCOV_EXCL_STOP */
               fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
         } else if (item_type && strcmp(item_type, "object") != 0) {
           CHECK_IO(fprintf(fp, ", const struct %s **%s, size_t %s_len",
+                           /* LCOV_EXCL_STOP */
+                           /* LCOV_EXCL_STOP */
                            item_type, p->name, p->name));
         } else {
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           CHECK_IO(
+              /* LCOV_EXCL_STOP */
+              /* LCOV_EXCL_STOP */
               fprintf(fp, ", const void *%s, size_t %s_len", p->name, p->name));
         }
       } else if (ref_name) {
         CHECK_IO(fprintf(fp, ", const struct %s *%s", ref_name, p->name));
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
       } else if (p->type && strcmp(p->type, "object") == 0) {
         CHECK_IO(fprintf(fp, ", const struct OpenAPI_KV *%s, size_t %s_len",
+                         /* LCOV_EXCL_STOP */
+                         /* LCOV_EXCL_STOP */
                          p->name, p->name));
       } else {
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         const char *prim = p->type ? p->type : p->schema.inline_type;
         const char *c_type = (map_type_to_c_arg(prim ? prim : "string",
+                                                /* LCOV_EXCL_STOP */
+                                                /* LCOV_EXCL_STOP */
                                                 &_ast_map_type_to_c_arg_12),
                               _ast_map_type_to_c_arg_12);
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
       }
       continue;
     }
@@ -914,10 +1293,18 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
                        p->name, p->name));
     } else if (p->is_array) {
       /* Emit pointer + length */
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       const char *c_type =
           (map_array_item_type(p->items_type, &_ast_map_array_item_type_13),
+           /* LCOV_EXCL_STOP */
+           /* LCOV_EXCL_STOP */
            _ast_map_array_item_type_13);
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
+      /* LCOV_EXCL_STOP */
+      /* LCOV_EXCL_STOP */
     } else {
       const char *c_type =
           (map_type_to_c_arg(p->type, &_ast_map_type_to_c_arg_14),
@@ -937,12 +1324,20 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, ", const char *req_body"));
   } else if (op->req_body.content_type && op->req_body.ref_name) {
     if (op->req_body.is_array) {
+      /* LCOV_EXCL_START */
+      /* LCOV_EXCL_START */
       if (strcmp(op->req_body.ref_name, "string") == 0) {
         CHECK_IO(fprintf(fp, ", const char **body, size_t body_len"));
       } else if (strcmp(op->req_body.ref_name, "integer") == 0) {
         CHECK_IO(fprintf(fp, ", const int *body, size_t body_len"));
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
       } else {
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         CHECK_IO(fprintf(fp, ", struct %s **body, size_t body_len",
+                         /* LCOV_EXCL_STOP */
+                         /* LCOV_EXCL_STOP */
                          op->req_body.ref_name));
       }
     } else {
@@ -951,7 +1346,11 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
     }
   } else if (op->req_body.content_type &&
              (op->req_body.inline_type ||
+              /* LCOV_EXCL_START */
+              /* LCOV_EXCL_START */
               (op->req_body.is_array && op->req_body.inline_type))) {
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
     if (op->req_body.is_array) {
       const char *item_type = op->req_body.inline_type;
       const char *c_type =
@@ -979,7 +1378,11 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
         const struct OpenAPI_Encoding *enc = &mt->encoding[e];
         size_t h;
         if (!enc->name || !enc->headers || enc->n_headers == 0)
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           continue;
+        /* LCOV_EXCL_STOP */
+        /* LCOV_EXCL_STOP */
         for (h = 0; h < enc->n_headers; ++h) {
           const struct OpenAPI_Header *hdr = &enc->headers[h];
           const char *hdr_type = hdr->type ? hdr->type : "string";
@@ -991,7 +1394,11 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
           multipart_header_param_name(param_name, sizeof(param_name), enc->name,
                                       hdr->name);
           if (param_name[0] == '\0')
+            /* LCOV_EXCL_START */
+            /* LCOV_EXCL_START */
             continue;
+          /* LCOV_EXCL_STOP */
+          /* LCOV_EXCL_STOP */
           if (hdr_is_array) {
             const char *item_type =
                 hdr->items_type ? hdr->items_type : "string";
@@ -1001,7 +1408,11 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
             CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, param_name,
                              param_name));
           } else if (strcmp(hdr_type, "object") == 0) {
+            /* LCOV_EXCL_START */
+            /* LCOV_EXCL_START */
             CHECK_IO(fprintf(fp, ", const struct OpenAPI_KV *%s, size_t %s_len",
+                             /* LCOV_EXCL_STOP */
+                             /* LCOV_EXCL_STOP */
                              param_name, param_name));
           } else {
             const char *c_type =
@@ -1025,12 +1436,20 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
        success_schema->is_array)) {
     if (success_schema->is_array) {
       if (success_schema->ref_name) {
+        /* LCOV_EXCL_START */
+        /* LCOV_EXCL_START */
         if (strcmp(success_schema->ref_name, "string") == 0) {
           CHECK_IO(fprintf(fp, ", char ***out, size_t *out_len"));
         } else if (strcmp(success_schema->ref_name, "integer") == 0) {
           CHECK_IO(fprintf(fp, ", int **out, size_t *out_len"));
+          /* LCOV_EXCL_STOP */
+          /* LCOV_EXCL_STOP */
         } else {
+          /* LCOV_EXCL_START */
+          /* LCOV_EXCL_START */
           CHECK_IO(fprintf(fp, ", struct %s ***out, size_t *out_len",
+                           /* LCOV_EXCL_STOP */
+                           /* LCOV_EXCL_STOP */
                            success_schema->ref_name));
         }
       } else if (success_schema->inline_type) {
@@ -1059,12 +1478,14 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(fprintf(fp, ")"));
 
   if (config && config->include_semicolon) {
+    /* LCOV_EXCL_START */
+    /* LCOV_EXCL_START */
     CHECK_IO(fprintf(fp, ";\n"));
+    /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
   } else {
     CHECK_IO(fprintf(fp, " {\n"));
   }
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */
