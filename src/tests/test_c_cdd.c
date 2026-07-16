@@ -160,6 +160,7 @@ static FILE* cdd_test_tmpfile(void) {
 #include "parse/test_macro_overlay.h"
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
+#include "parse/test_cli_c2openapi.h"
 #include "parse/test_cli_cst.h"
 #include "parse/test_cdd_cst_builder.h"
 #include "parse/test_cdd_cst_factory.h"
@@ -399,6 +400,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(macro_overlay_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(serve_json_rpc_suite);
+  RUN_SUITE(cli_c2openapi_suite);
   RUN_SUITE(cli_cst_suite);
   RUN_SUITE(cdd_cst_factory_suite);
   RUN_SUITE(ffi_extractor_suite);

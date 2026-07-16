@@ -1043,7 +1043,79 @@ TEST test_querystring_param_null_checks(void) {
   PASS();
 }
 
+TEST test_codegen_url_coverage_extras(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter p;
+  char *out = NULL;
+  size_t len = 0;
+
+  memset(&op, 0, sizeof(op));
+  memset(&p, 0, sizeof(p));
+
+  /* media_type_base_len_url with NULL */
+  media_type_base_len_url(NULL, &len);
+
+  /* querystring_param_json_array_item_ref with object */
+  p.in = OA_PARAM_IN_QUERYSTRING;
+  p.content_type = "application/json";
+  p.schema.is_array = 1;
+  p.items_type = "object";
+  {
+    const char *out_str = NULL;
+    querystring_param_json_array_item_ref(&p, &out_str);
+  }
+
+  op.n_parameters = 1;
+  op.parameters = &p;
+
+  p.name = "test_param";
+  p.in = OA_PARAM_IN_QUERYSTRING;
+
+  p.content_type = NULL;
+
+  p.schema.inline_type = NULL;
+  p.type = "invalid_type";
+  gen_query_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = "number";
+  gen_query_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = "boolean";
+  gen_query_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = NULL;
+  gen_query_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* 1733: missing path param */
+  {
+    FILE *fp = tmpfile();
+    if (fp) {
+      codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
+      fclose(fp);
+    }
+  }
+
+  PASS();
+}
+
 SUITE(codegen_url_suite) {
+  RUN_TEST(test_codegen_url_coverage_extras);
   /* Re-run original tests */
   /* (Omitted for brevity in this file update but would be here) */
   RUN_TEST(test_media_type_is_json_url);

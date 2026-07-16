@@ -3152,6 +3152,117 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   PASS();
 }
 
+TEST test_client_body_write_joined_form_array_direct(void) {
+  FILE *fp = tmpfile();
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Encoding enc = {0};
+  struct StructFields sf = {0};
+  struct StructField f = {0};
+  struct OpenAPI_MediaType mt = {0};
+  openapi_spec_init(&spec);
+  strcpy(f.name, "arr");
+  strcpy(f.type, "array");
+  strcpy(f.ref, "MyOtherStruct");
+  sf.size = 1;
+  sf.capacity = 1;
+  sf.fields = calloc(1, sizeof(struct StructField));
+  sf.fields[0] = f;
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0] = sf;
+  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names[0] = strdup("MyStruct");
+  spec.n_defined_schemas = 1;
+  op.verb = OA_VERB_POST;
+  op.req_body.ref_name = "MyStruct";
+  enc.name = "arr";
+  enc.style = OA_STYLE_FORM;
+  enc.explode = 0;
+  enc.explode_set = 1;
+  mt.name = "application/x-www-form-urlencoded";
+  mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
+  mt.encoding[0] = enc;
+  mt.n_encoding = 1;
+  op.req_body_media_types = calloc(1, sizeof(struct OpenAPI_MediaType));
+  op.req_body_media_types[0] = mt;
+  op.n_req_body_media_types = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+  op.req_body_media_types[0].encoding[0].style = OA_STYLE_SPACE_DELIMITED;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+  op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+  fclose(fp);
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names[0]);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types[0].encoding);
+  free(op.req_body_media_types);
+  PASS();
+}
+
+TEST test_client_body_write_joined_form_array_direct_io(void) {
+  int i;
+  for (i = 0; i < 50; ++i) {
+    FILE *fp = tmpfile();
+    struct OpenAPI_Operation op = {0};
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Encoding enc = {0};
+    struct StructFields sf = {0};
+    struct StructField f = {0};
+    struct OpenAPI_MediaType mt = {0};
+    openapi_spec_init(&spec);
+    strcpy(f.name, "arr");
+    strcpy(f.type, "array");
+    strcpy(f.ref, "MyOtherStruct");
+    sf.size = 1;
+    sf.capacity = 1;
+    sf.fields = calloc(1, sizeof(struct StructField));
+    sf.fields[0] = f;
+    spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+    spec.defined_schemas[0] = sf;
+    spec.defined_schema_names = calloc(1, sizeof(char *));
+    spec.defined_schema_names[0] = strdup("MyStruct");
+    spec.n_defined_schemas = 1;
+    op.verb = OA_VERB_POST;
+    op.req_body.ref_name = "MyStruct";
+    enc.name = "arr";
+    enc.style = OA_STYLE_FORM;
+    enc.explode = 0;
+    enc.explode_set = 1;
+    mt.name = "application/x-www-form-urlencoded";
+    mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
+    mt.encoding[0] = enc;
+    mt.n_encoding = 1;
+    op.req_body_media_types = calloc(1, sizeof(struct OpenAPI_MediaType));
+    op.req_body_media_types[0] = mt;
+    op.n_req_body_media_types = 1;
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_SPACE_DELIMITED;
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(spec.defined_schemas[0].fields);
+    free(spec.defined_schemas);
+    free(spec.defined_schema_names[0]);
+    free(spec.defined_schema_names);
+    free(op.req_body_media_types[0].encoding);
+    free(op.req_body_media_types);
+  }
+  PASS();
+}
+
 TEST test_client_body_write_joined_form_array(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -3260,7 +3371,11 @@ SUITE(client_body_suite) {
   RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed4);
   RUN_TEST(test_client_body_write_inline_json_parse_types_indirect_string);
   RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_joined_form_array_direct);
+  RUN_TEST(test_client_body_write_joined_form_array_direct_io);
   RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_joined_form_array_direct);
+  RUN_TEST(test_client_body_write_joined_form_array_direct_io);
   RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed3);
   RUN_TEST(test_body_basic_get);
   RUN_TEST(test_body_base_url_override);

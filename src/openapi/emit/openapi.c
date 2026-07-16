@@ -442,7 +442,6 @@ enum cdd_c_error style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
     *_out_val = "form";
     return CDD_C_SUCCESS;
   }
-    /* LCOV_EXCL_START */
   case OA_STYLE_SIMPLE: {
     /* LCOV_EXCL_STOP */
     *_out_val = "simple";

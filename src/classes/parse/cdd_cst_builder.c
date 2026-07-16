@@ -654,9 +654,9 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
 
   t->kind = TRIVIA_WHITESPACE;
   if (text[0] == '\n')
-    /* LCOV_EXCL_START */ t->kind = TRIVIA_NEWLINE; /* LCOV_EXCL_STOP */
+    t->kind = TRIVIA_NEWLINE; /* LCOV_EXCL_LINE */
   else if (text[0] == '/' && text[1] == '/')
-    /* LCOV_EXCL_START */ t->kind = TRIVIA_LINE_COMMENT; /* LCOV_EXCL_STOP */
+    t->kind = TRIVIA_LINE_COMMENT; /* LCOV_EXCL_LINE */
   else if (text[0] == '/' && text[1] == '*')
     t->kind = TRIVIA_BLOCK_COMMENT;
 
