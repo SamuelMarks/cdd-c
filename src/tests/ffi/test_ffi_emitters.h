@@ -60,7 +60,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[0].name = "TestStruct";
   ir->nodes[0].doc = "Struct doc";
   ir->nodes[0].fields = (cdd_ffi_field_t *)calloc(30, sizeof(cdd_ffi_field_t));
-  ir->nodes[0].fields_count = 28;
+  ir->nodes[0].fields_count = 29;
   ir->nodes[0].fields[0].name = "f_void";
   ir->nodes[0].fields[0].type.kind = CDD_FFI_KIND_VOID;
   ir->nodes[0].fields[1].name = "f_bool";
@@ -134,6 +134,11 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[0].fields[27].type.kind = CDD_FFI_KIND_INT8;
   ir->nodes[0].fields[27].type.pointer_depth = 2;
 
+  ir->nodes[0].fields[28].name = "f_const_u8_ptr";
+  ir->nodes[0].fields[28].type.kind = CDD_FFI_KIND_UINT8;
+  ir->nodes[0].fields[28].type.pointer_depth = 1;
+  ir->nodes[0].fields[28].type.is_const = 1;
+
   /* node 1: Enum */
   ir->nodes[1].kind = CDD_FFI_NODE_ENUM;
   ir->nodes[1].name = "TestEnum";
@@ -150,19 +155,26 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[2].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[2].name = "test_func_void";
   ir->nodes[2].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
-  ir->nodes[2].fields_count = 2;
+  ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[2].fields_count = 3;
   ir->nodes[2].fields[0].name = "param1";
   ir->nodes[2].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir->nodes[2].fields[0].type.ref_name = "TestStruct";
   ir->nodes[2].fields[1].name = "in";
   ir->nodes[2].fields[1].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[2].fields[2].name = "const_str";
+  ir->nodes[2].fields[2].type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[2].fields[2].type.pointer_depth = 1;
+  ir->nodes[2].fields[2].type.is_const = 1;
 
   /* node 3: Function (int return, no params) */
   ir->nodes[3].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[3].name = "testFunc";
   ir->nodes[3].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[3].fields_count = 0;
+  ir->nodes[3].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[3].fields_count = 1;
+  ir->nodes[3].fields[0].name = "function";
+  ir->nodes[3].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
   /* node 4: Union */
   ir->nodes[4].kind = CDD_FFI_NODE_UNION;

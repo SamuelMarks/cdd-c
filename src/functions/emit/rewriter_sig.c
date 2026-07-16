@@ -50,12 +50,6 @@ struct ParsedSig {
  * @brief Initialize ParsedSig to NULLs.
  */
 static enum cdd_c_error parsed_sig_init(struct ParsedSig *sig) {
-  if (!sig)
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_STOP */
   sig->attributes = NULL;
   sig->storage = NULL;
   sig->ret_type = NULL;
@@ -96,11 +90,7 @@ static enum cdd_c_error join_tokens(const struct TokenList *tokens,
 
   if (start >= end) {
     *out = strdup("");
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
-    return *out ? 0 : ENOMEM;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
+    return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
   for (i = start; i < end; ++i) {
@@ -110,11 +100,7 @@ static enum cdd_c_error join_tokens(const struct TokenList *tokens,
   buf = (char *)malloc(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
 
   p = buf;
@@ -139,14 +125,10 @@ static enum cdd_c_error is_storage_specifier(const struct Token *tok) {
   case TOKEN_KEYWORD_THREAD_LOCAL:
     return CDD_C_ERROR_UNKNOWN;
   case TOKEN_IDENTIFIER: /* Check extensions like __inline */
-                         /* LCOV_EXCL_START */
-                         /* LCOV_EXCL_START */
     if (tok->length == 8 &&
         strncmp((const char *)tok->start, "__inline", 8) == 0)
       return CDD_C_ERROR_UNKNOWN;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   default:
     return CDD_C_SUCCESS;
   }
@@ -183,11 +165,7 @@ static enum cdd_c_error find_balanced_end(const struct TokenList *tokens,
   } /* Return index of the closer */
   {
     *_out_val = tokens->size;
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -206,11 +184,7 @@ static enum cdd_c_error check_is_void(const struct TokenList *tokens,
 
     /* If we see a pointer start ('*') or brackets, it's not void */
     if (tokens->tokens[i].kind == TOKEN_STAR) {
-      /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
     }
 
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_VOID) {
@@ -256,11 +230,7 @@ static enum cdd_c_error has_meaningful_tokens(const struct TokenList *tokens,
       return CDD_C_ERROR_UNKNOWN;
     }
   }
-  /* LCOV_EXCL_START */
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -286,11 +256,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
   /* Skip whitespace/comments */
   while (i < tokens->size && (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
                               tokens->tokens[i].kind == TOKEN_COMMENT))
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     i++;
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_STOP */
 
   if (i < tokens->size && tokens->tokens[i].kind == TOKEN_LBRACKET) {
     if (i + 1 < tokens->size && tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
@@ -305,11 +271,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
       if (attr_end_idx > 0) {
         rc = join_tokens(tokens, i, attr_end_idx, &sig.attributes);
         if (rc)
-          /* LCOV_EXCL_START */
-          /* LCOV_EXCL_START */
           goto cleanup;
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
         i = attr_end_idx;
       }
     }
@@ -337,20 +299,12 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
     if (found_storage) {
       rc = join_tokens(tokens, start_storage, storage_end_idx, &sig.storage);
       if (rc)
-        /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         goto cleanup;
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
     } else {
       if (start_storage < storage_end_idx) {
         rc = join_tokens(tokens, start_storage, storage_end_idx, &sig.storage);
         if (rc)
-          /* LCOV_EXCL_START */
-          /* LCOV_EXCL_START */
           goto cleanup;
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       } else {
         sig.storage = strdup("");
       }
@@ -403,26 +357,14 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 
   rc = join_tokens(tokens, name_idx, lparen_idx, &sig.name);
   if (rc)
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     goto cleanup;
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_STOP */
 
   if (type_end_idx > storage_end_idx) {
     rc = join_tokens(tokens, storage_end_idx, type_end_idx, &sig.ret_type);
     if (rc)
-      /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       goto cleanup;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   } else {
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     sig.ret_type = strdup("int ");
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
 
   sig.is_void_ret = check_is_void(tokens, storage_end_idx, type_end_idx);
@@ -432,12 +374,8 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
     size_t rparen = 0;
     find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN, &rparen);
     if (rparen >= tokens->size) {
-      /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       rc = CDD_C_ERROR_INVALID_ARGUMENT;
       goto cleanup;
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
     }
     rparen_idx = rparen;
 
@@ -448,11 +386,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
       sig.args = strdup("");
     }
     if (rc)
-      /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       goto cleanup;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
 
   /* 6. Extract K&R Declarations (if any) */
@@ -460,11 +394,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
     if (has_meaningful_tokens(tokens, rparen_idx + 1, tokens->size)) {
       rc = join_tokens(tokens, rparen_idx + 1, tokens->size, &sig.k_r_decls);
       if (rc)
-        /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         goto cleanup;
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -560,12 +490,8 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
       }
 
       if (!new_args) {
-        /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       }
 
       /* Assemble final string */

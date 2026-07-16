@@ -228,8 +228,6 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           }
           fprintf(f, "I%s", node->base_classes[j].name);
         }
-        if (first_iface)
-          fprintf(f, "implements ");
         fprintf(f, " {\n");
       } else {
         fprintf(f, "{\n");
