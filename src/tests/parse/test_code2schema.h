@@ -864,6 +864,7 @@ TEST test_code2schema_make_unique_variant_name(void) {
   ASSERT_EQ(0, make_unique_variant_name(&sf, NULL, 0, &val));
   ASSERT(val != NULL);
   free(val);
+  struct_fields_free(&sf);
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "test", "int", NULL, NULL, NULL);
