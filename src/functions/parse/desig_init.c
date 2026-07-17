@@ -26,17 +26,6 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
   {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      /* LCOV_EXCL_START */
-      d = NULL;
-    /* LCOV_EXCL_STOP */
-    else
-      d = (char *)malloc(n + 1);
-  }
-#else
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
       d = (char *)malloc(n + 1);
@@ -44,12 +33,9 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
 #else
   d = (char *)malloc(n + 1);
 #endif
-#endif
   if (!d) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
-    return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
+    return CDD_C_ERROR_MEMORY;
   }
   memcpy(d, s, n);
   d[n] = '\0';
@@ -65,9 +51,7 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
  */
 enum cdd_c_error desig_init_list_init(struct DesigInitList *list) {
   if (!list)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   list->sites = NULL;
   list->count = 0;
   list->capacity = 0;
@@ -81,9 +65,7 @@ enum cdd_c_error desig_init_list_init(struct DesigInitList *list) {
 void desig_init_list_free(struct DesigInitList *list) {
   size_t i;
   if (!list)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].field_name)
@@ -121,9 +103,7 @@ scan_for_designated_initializers(const struct TokenList *tokens,
         {
           extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-            /* LCOV_EXCL_START */
             new_stack = NULL;
-          /* LCOV_EXCL_STOP */
           else
             new_stack =
                 (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
@@ -132,10 +112,8 @@ scan_for_designated_initializers(const struct TokenList *tokens,
         new_stack = (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
 #endif
         if (!new_stack) {
-          /* LCOV_EXCL_START */
           res = ENOMEM;
           goto cleanup;
-          /* LCOV_EXCL_STOP */
         }
         brace_stack = new_stack;
       }
@@ -152,9 +130,7 @@ scan_for_designated_initializers(const struct TokenList *tokens,
 
       while (look < tokens->size &&
              tokens->tokens[look].kind == TOKEN_WHITESPACE)
-        /* LCOV_EXCL_START */
         look++;
-      /* LCOV_EXCL_STOP */
 
       if (look < tokens->size &&
           tokens->tokens[look].kind == TOKEN_IDENTIFIER) {
@@ -202,13 +178,22 @@ scan_for_designated_initializers(const struct TokenList *tokens,
 
           if (list->count >= list->capacity) {
             list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
+#ifdef CDD_BUILD_TESTS
+            {
+              extern C_CDD_EXPORT int g_cdd_fail_alloc;
+              if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+                list->sites = NULL;
+              else
+                list->sites = (struct DesigInitSite *)realloc(
+                    list->sites, list->capacity * sizeof(struct DesigInitSite));
+            }
+#else
             list->sites = (struct DesigInitSite *)realloc(
                 list->sites, list->capacity * sizeof(struct DesigInitSite));
+#endif
             if (!list->sites) {
-              /* LCOV_EXCL_START */
               res = ENOMEM;
               goto cleanup;
-              /* LCOV_EXCL_STOP */
             }
           }
 
@@ -221,16 +206,29 @@ scan_for_designated_initializers(const struct TokenList *tokens,
                 0; /* Will be resolved later if needed, hard to know exact end
                       in forward pass without full parse */
 
-            c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
-                          tokens->tokens[ident_idx].length, &s->field_name);
+            if (c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
+                              tokens->tokens[ident_idx].length,
+                              &s->field_name) != CDD_C_SUCCESS) {
+              res = ENOMEM;
+              goto cleanup;
+            }
 
-            {
+            if (expr_end > expr_start) {
               const char *e_start =
                   (const char *)tokens->tokens[expr_start].start;
               const char *e_end =
                   (const char *)tokens->tokens[expr_end - 1].start +
                   tokens->tokens[expr_end - 1].length;
-              c_cdd_strndup(e_start, (size_t)(e_end - e_start), &s->value_expr);
+              if (c_cdd_strndup(e_start, (size_t)(e_end - e_start),
+                                &s->value_expr) != CDD_C_SUCCESS) {
+                res = ENOMEM;
+                goto cleanup;
+              }
+            } else {
+              if (c_cdd_strndup("", 0, &s->value_expr) != CDD_C_SUCCESS) {
+                res = ENOMEM;
+                goto cleanup;
+              }
             }
 
             list->count++;

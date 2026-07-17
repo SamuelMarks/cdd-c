@@ -13,6 +13,19 @@
 
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#undef malloc
+#define malloc(sz)                                                             \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (malloc)(sz))
+#undef realloc
+#define realloc(ptr, sz)                                                       \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
+       ? NULL                                                                  \
+       : (realloc)(ptr, sz))
+#endif
 
 /**
  * @brief Duplicates a string up to a specified number of characters.
@@ -23,9 +36,7 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
   char *d = (char *)malloc(n + 1);
   if (!d) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   memcpy(d, s, n);
   d[n] = '\0';
@@ -41,9 +52,7 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
  */
 enum cdd_c_error vla_site_list_init(struct VLASiteList *list) {
   if (!list)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   list->sites = NULL;
   list->count = 0;
   list->capacity = 0;
@@ -57,9 +66,7 @@ enum cdd_c_error vla_site_list_init(struct VLASiteList *list) {
 void vla_site_list_free(struct VLASiteList *list) {
   size_t i;
   if (!list)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].type_str)
@@ -81,9 +88,7 @@ void vla_site_list_free(struct VLASiteList *list) {
 static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
                                               int *out_is_basic) {
   if (!out_is_basic)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
@@ -141,15 +146,11 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
       size_t lookahead = i + 1;
       while (lookahead < tokens->size &&
              tokens->tokens[lookahead].kind == TOKEN_WHITESPACE)
-        /* LCOV_EXCL_START */
         lookahead++;
-      /* LCOV_EXCL_STOP */
       if (lookahead < tokens->size &&
           (tokens->tokens[lookahead].kind == TOKEN_IDENTIFIER ||
            tokens->tokens[lookahead].kind == TOKEN_STAR)) {
-        /* LCOV_EXCL_START */
         is_type = 1;
-        /* LCOV_EXCL_STOP */
       }
     }
 
@@ -193,19 +194,13 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
       }
 
       /* 2. Identify variable name */
-      while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE)
-        /* LCOV_EXCL_START */
-        i++;
-      /* LCOV_EXCL_STOP */
       if (i < tokens->size && tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
         var_name_idx = i;
         i++;
 
         /* 3. Identify array bracket `[` */
         while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE)
-          /* LCOV_EXCL_START */
           i++;
-        /* LCOV_EXCL_STOP */
         if (i < tokens->size && tokens->tokens[i].kind == TOKEN_LBRACKET) {
           i++;
           size_expr_start = i;
@@ -224,9 +219,7 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
             /* 5. Check if it ends with `;` to be a basic declaration */
             while (i < tokens->size &&
                    tokens->tokens[i].kind == TOKEN_WHITESPACE)
-              /* LCOV_EXCL_START */
               i++;
-            /* LCOV_EXCL_STOP */
             if (i < tokens->size && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
               /* It's an array declaration. Is it a VLA? Check if size expr is
                * purely a literal number */
@@ -249,9 +242,7 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
               }
 
               if (expr_toks == 0)
-                /* LCOV_EXCL_START */
                 is_vla =
-                    /* LCOV_EXCL_STOP */
                     0; /* `int arr[]` or `int arr[ ]` is incomplete, not VLA */
 
               if (is_vla) {
@@ -261,9 +252,7 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
                   new_sites = (struct VLASite *)realloc(
                       list->sites, list->capacity * sizeof(struct VLASite));
                   if (!new_sites)
-                    /* LCOV_EXCL_START */
                     return CDD_C_ERROR_MEMORY;
-                  /* LCOV_EXCL_STOP */
                   list->sites = new_sites;
                 }
 
@@ -321,3 +310,10 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT enum cdd_c_error is_basic_type_keyword_test(enum TokenKind k,
+                                                         int *out_is_basic) {
+  return is_basic_type_keyword(k, out_is_basic);
+}
+#endif

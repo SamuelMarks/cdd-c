@@ -196,7 +196,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(17, sizeof(cdd_ffi_field_t));
   ir->nodes[6].fields_count = 17;
-  ir->nodes[6].fields[0].name = "param1";
+  ir->nodes[6].fields[0].name = "interface";
   ir->nodes[6].fields[0].type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[6].fields[1].name = "type";
   ir->nodes[6].fields[1].type.kind = CDD_FFI_KIND_BOOL;
@@ -294,6 +294,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[13].base_classes_count = 2;
   ir->nodes[13].base_classes[0].name = "BaseClass";
   ir->nodes[13].base_classes[1].name = "OtherBaseClass";
+  ir->nodes[13].base_classes[1].is_virtual = 1;
 
   /* node 14: Function returning char* */
   ir->nodes[14].kind = CDD_FFI_NODE_FUNCTION;
@@ -333,7 +334,69 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[16].return_or_base_type.pointer_depth = 1;
   ir->nodes[16].fields_count = 0;
 
-  ir->nodes_count = 17;
+  /* node 17: Python specific GIL */
+  ir->nodes[17].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[17].name = "test_gil";
+  ir->nodes[17].requires_gil_release = 1;
+
+  /* node 18: Function with array out param */
+  ir->nodes[18].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[18].name = "test_arr_out";
+  ir->nodes[18].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[18].fields_count = 1;
+  ir->nodes[18].fields[0].name = "arr_out";
+  ir->nodes[18].fields[0].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[18].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[18].fields[0].type.pointer_depth = 1;
+  ir->nodes[18].fields[0].array_length_ref = "4";
+
+  /* node 19: Macros string */
+  ir->nodes[19].kind = CDD_FFI_NODE_MACRO;
+  ir->nodes[19].name = "MY_STR_MACRO";
+  ir->nodes[19].evaluated_value = "\"hello\"";
+  ir->nodes[19].inferred_type = CDD_FFI_MACRO_TYPE_STRING;
+
+  /* node 20: Macro float */
+  ir->nodes[20].kind = CDD_FFI_NODE_MACRO;
+  ir->nodes[20].name = "MY_FLT_MACRO";
+  ir->nodes[20].evaluated_value = "3.14";
+  ir->nodes[20].inferred_type = CDD_FFI_MACRO_TYPE_FLOAT;
+
+  /* node 21: Macro int */
+  ir->nodes[21].kind = CDD_FFI_NODE_MACRO;
+  ir->nodes[21].name = "MY_INT_MACRO";
+  ir->nodes[21].evaluated_value = "42";
+  ir->nodes[21].inferred_type = CDD_FFI_MACRO_TYPE_INT;
+
+  /* node 22: Empty struct */
+  ir->nodes[22].kind = CDD_FFI_NODE_STRUCT;
+  ir->nodes[22].name = "EmptyStruct";
+  ir->nodes[22].fields_count = 0;
+
+  /* node 23: Empty enum */
+  ir->nodes[23].kind = CDD_FFI_NODE_ENUM;
+  ir->nodes[23].name = "EmptyEnum";
+  ir->nodes[23].variants_count = 0;
+
+  /* node 24: Function with various OUT params */
+  ir->nodes[24].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[24].name = "test_func_many_out";
+  ir->nodes[24].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[24].fields_count = 3;
+  ir->nodes[24].fields[0].name = "out_i64";
+  ir->nodes[24].fields[0].type.kind = CDD_FFI_KIND_INT64;
+  ir->nodes[24].fields[0].type.pointer_depth = 1;
+  ir->nodes[24].fields[0].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[24].fields[1].name = "out_f32";
+  ir->nodes[24].fields[1].type.kind = CDD_FFI_KIND_FLOAT32;
+  ir->nodes[24].fields[1].type.pointer_depth = 1;
+  ir->nodes[24].fields[1].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[24].fields[2].name = "out_f64";
+  ir->nodes[24].fields[2].type.kind = CDD_FFI_KIND_FLOAT64;
+  ir->nodes[24].fields[2].type.pointer_depth = 1;
+  ir->nodes[24].fields[2].intent = CDD_FFI_INTENT_OUT;
+
+  ir->nodes_count = 25;
   ir->nodes_capacity = 30;
 
   return ir;

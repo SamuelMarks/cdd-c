@@ -3,6 +3,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern int g_cdd_strdup_fail;
+#ifdef __cplusplus
 #endif /* __cplusplus */
 
 /* clang-format off */
@@ -16,6 +21,11 @@ extern "C" {
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/tokenizer.h"
+
+extern enum cdd_c_error add_type_node(struct DeclInfo *info, struct DeclType **current_tail, struct DeclType *node);
+
+
+extern enum cdd_c_error is_grouping_paren(const struct TokenList *tokens, size_t paren_idx, size_t limit, int *out_is_grouping);
 /* clang-format on */
 
 /**
@@ -304,9 +314,160 @@ TEST test_parse_decl_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(NULL, 0, 0, &info));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_declaration(tl, 0, tl->size, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, decl_info_init(NULL));
 
   free_token_list(tl);
   g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_add_type_node_nulls(void) {
+  struct DeclInfo info;
+  struct DeclType *tail = NULL;
+  (void)decl_info_init(&info);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_type_node(&info, &tail, NULL));
+  PASS();
+}
+
+TEST test_parse_declarator_oom(void) {
+  const char *code = "int * const volatile p[10](void)";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int i, rc;
+
+  for (i = 0; i < 20; ++i) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    g_cdd_strdup_fail = i;
+    rc = parse_declaration(tl, 0, tl->size, &info);
+    g_fail_io_after = -1;
+    g_cdd_strdup_fail = -1;
+
+    if (rc == 0) {
+      decl_info_free(&info);
+      break; /* Reached success */
+    } else {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+  }
+
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_parse_declarator_more_edge_cases(void) {
+  struct TokenList *tl;
+  struct DeclInfo info;
+  int rc;
+  int is_group;
+
+  tl = setup_tokens("enum { A, B } x");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("struct MyStruct { int a; } x");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("(*)");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            is_grouping_paren(tl, 0, tl->size, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
+  ASSERT_EQ(1, is_group);
+  free_token_list(tl);
+
+  tl = setup_tokens("enum { A, B } *");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("struct { int a; } *");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("_Atomic(int) *");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("(int)");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
+  ASSERT_EQ(0, is_group);
+  free_token_list(tl);
+
+  tl = setup_tokens("()");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
+  ASSERT_EQ(0, is_group);
+  free_token_list(tl);
+
+  tl = setup_tokens("int (*)(int)");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  PASS();
+}
+
+TEST test_parse_declarator_empty_array(void) {
+  const char *code = "int x[]";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_parse_declarator_just_x(void) {
+  const char *code = "x";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  ASSERT(info.type != NULL);
+  ASSERT_STR_EQ("int", info.type->data.base.name);
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_parse_declarator_edge_cases(void) {
+  struct TokenList *tl;
+  struct DeclInfo info;
+  int rc;
+
+  /* No explicit base type (implicit int) */
+  tl = setup_tokens("*p");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* Abstract declarator pointer */
+  tl = setup_tokens("*");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(NULL, info.identifier);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* Empty tokens -> Parses as implicit abstract int */
+  tl = setup_tokens("");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(info.type != NULL);
+  ASSERT(info.type->kind == DECL_BASE);
+  decl_info_free(&info);
+  free_token_list(tl);
+
   PASS();
 }
 
@@ -314,6 +475,7 @@ SUITE(declarator_parser_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return;
 #endif
+
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
   RUN_TEST(test_parse_pointer_qualifiers);
@@ -327,6 +489,12 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_abstract_func_ptr);
   RUN_TEST(test_abstract_array);
   RUN_TEST(test_parse_decl_errors);
+  RUN_TEST(test_add_type_node_nulls);
+  RUN_TEST(test_parse_declarator_oom);
+  RUN_TEST(test_parse_declarator_edge_cases);
+  RUN_TEST(test_parse_declarator_more_edge_cases);
+  RUN_TEST(test_parse_declarator_empty_array);
+  RUN_TEST(test_parse_declarator_just_x);
 }
 
 #ifdef __cplusplus

@@ -17,15 +17,11 @@
 static enum cdd_c_error uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   for (i = 0; i < len; ++i) {
     char c = uri[i];
     if (c == ':')
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
     if (c == '/' || c == '?' || c == '#')
       break;
   }
@@ -44,46 +40,34 @@ static enum cdd_c_error ref_base_matches_self_uri(const char *self_uri,
   size_t self_len;
 
   if (!self_uri || !*self_uri || !ref || base_len == 0)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
   self_hash = strchr(self_uri, '#');
   self_base = self_uri;
   self_len = self_hash ? (size_t)(self_hash - self_uri) : strlen(self_uri);
 
   if (base_len == self_len && strncmp(ref, self_base, base_len) == 0)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 
   if (!uri_has_scheme_prefix(self_base, self_len)) {
     while (self_len >= 2 && self_base[0] == '.' && self_base[1] == '/') {
-      /* LCOV_EXCL_START */
       self_base += 2;
       self_len -= 2;
-      /* LCOV_EXCL_STOP */
     }
     if (self_len == 0)
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
     if (base_len >= self_len &&
         strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
       if (self_base[0] == '/')
         return CDD_C_ERROR_UNKNOWN;
-      /* LCOV_EXCL_START */
       if (base_len == self_len)
         return CDD_C_ERROR_UNKNOWN;
       if (ref[base_len - self_len - 1] == '/')
         return CDD_C_ERROR_UNKNOWN;
-      /* LCOV_EXCL_STOP */
     }
   }
 
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -98,28 +82,20 @@ scheme_ref_matches_name(const char *req_scheme, const char *scheme_name,
   const char *hash;
 
   if (!req_scheme || !scheme_name)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   if (strcmp(req_scheme, scheme_name) == 0)
     return CDD_C_ERROR_UNKNOWN;
   if (strncmp(req_scheme, prefix, prefix_len) == 0) {
-    /* LCOV_EXCL_START */
     return strcmp(req_scheme + prefix_len, scheme_name) == 0;
-    /* LCOV_EXCL_STOP */
   }
   hash = strchr(req_scheme, '#');
   if (!hash || strncmp(hash, prefix, prefix_len) != 0)
     return CDD_C_SUCCESS;
   if (!spec || !spec->self_uri)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   if (!ref_base_matches_self_uri(spec->self_uri, req_scheme,
                                  (size_t)(hash - req_scheme)))
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   return strcmp(hash + prefix_len, scheme_name) == 0;
 }
 
@@ -133,9 +109,7 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
                         const struct OpenAPI_Spec *spec) {
   size_t i, j;
   if (!sets || !scheme_name)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   for (i = 0; i < n_sets; ++i) {
     const struct OpenAPI_SecurityRequirementSet *set = &sets[i];
     for (j = 0; j < set->n_requirements; ++j) {
@@ -164,26 +138,16 @@ resolve_active_security(const struct OpenAPI_Operation *op,
     *out_set_flag = 0;
 
   if (!spec)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   if (op && op->security_set) {
-    /* LCOV_EXCL_START */
     if (out_sets)
-      /* LCOV_EXCL_STOP */
       *out_sets = op->security;
-    /* LCOV_EXCL_START */
     if (out_count)
-      /* LCOV_EXCL_STOP */
       *out_count = op->n_security;
-    /* LCOV_EXCL_START */
     if (out_set_flag)
-      /* LCOV_EXCL_STOP */
       *out_set_flag = 1;
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
   }
   if (spec->security_set) {
     if (out_sets)
@@ -206,9 +170,7 @@ scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
                  size_t n_sets, int security_set,
                  const struct OpenAPI_Spec *spec) {
   if (!sch)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   if (!security_set)
     return CDD_C_ERROR_UNKNOWN;
   return scheme_in_security_sets(sets, n_sets, sch->name, spec);
@@ -219,43 +181,29 @@ scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
  * require parameters in the URL query string.
  */
 enum cdd_c_error
-/* LCOV_EXCL_START */
 codegen_security_requires_query(const struct OpenAPI_Operation *op,
-                                /* LCOV_EXCL_STOP */
                                 const struct OpenAPI_Spec *spec) {
-  /* LCOV_EXCL_START */
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
-  /* LCOV_EXCL_STOP */
   size_t i;
 
-  /* LCOV_EXCL_START */
   if (!spec)
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
-                          /* LCOV_EXCL_STOP */
                           &security_set);
-  /* LCOV_EXCL_START */
   if (security_set && n_active_sets == 0)
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_QUERY)
       continue;
     if (scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
       return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -263,43 +211,29 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
  * require parameters via HTTP cookies.
  */
 enum cdd_c_error
-/* LCOV_EXCL_START */
 codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
-                                 /* LCOV_EXCL_STOP */
                                  const struct OpenAPI_Spec *spec) {
-  /* LCOV_EXCL_START */
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
   size_t n_active_sets = 0;
   int security_set = 0;
-  /* LCOV_EXCL_STOP */
   size_t i;
 
-  /* LCOV_EXCL_START */
   if (!spec)
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
-                          /* LCOV_EXCL_STOP */
                           &security_set);
-  /* LCOV_EXCL_START */
   if (security_set && n_active_sets == 0)
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_COOKIE)
       continue;
     if (scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
       return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -452,23 +386,17 @@ codegen_security_write_server_apply(FILE *fp,
                           &security_set);
 
   if (security_set && n_active_sets == 0) {
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   if (spec->security_schemes == NULL || spec->n_security_schemes == 0) {
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     if (!scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
-      /* LCOV_EXCL_START */
       continue;
-    /* LCOV_EXCL_STOP */
 
     if ((sch->type == OA_SEC_HTTP && sch->scheme &&
          strcmp(sch->scheme, "bearer") == 0) ||
@@ -496,3 +424,39 @@ codegen_security_write_server_apply(FILE *fp,
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT enum cdd_c_error uri_has_scheme_prefix_test(const char *uri,
+                                                         size_t len) {
+  return uri_has_scheme_prefix(uri, len);
+}
+C_CDD_EXPORT enum cdd_c_error
+ref_base_matches_self_uri_test(const char *self_uri, const char *ref,
+                               size_t base_len) {
+  return ref_base_matches_self_uri(self_uri, ref, base_len);
+}
+C_CDD_EXPORT enum cdd_c_error
+scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
+                             const struct OpenAPI_Spec *spec) {
+  return scheme_ref_matches_name(req_scheme, scheme_name, spec);
+}
+C_CDD_EXPORT enum cdd_c_error
+scheme_in_security_sets_test(const struct OpenAPI_SecurityRequirementSet *sets,
+                             size_t n_sets, const char *scheme_name,
+                             const struct OpenAPI_Spec *spec) {
+  return scheme_in_security_sets(sets, n_sets, scheme_name, spec);
+}
+C_CDD_EXPORT enum cdd_c_error resolve_active_security_test(
+    const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
+    const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
+    int *out_set_flag) {
+  return resolve_active_security(op, spec, out_sets, out_count, out_set_flag);
+}
+C_CDD_EXPORT enum cdd_c_error
+scheme_is_active_test(const struct OpenAPI_SecurityScheme *sch,
+                      const struct OpenAPI_SecurityRequirementSet *sets,
+                      size_t n_sets, int security_set,
+                      const struct OpenAPI_Spec *spec) {
+  return scheme_is_active(sch, sets, n_sets, security_set, spec);
+}
+#endif

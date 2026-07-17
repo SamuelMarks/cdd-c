@@ -99,6 +99,15 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   f = fopen(filepath, "w");
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 1) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -396,6 +405,14 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
                  config->output_dir);
     fc = fopen(filepath, "w");
 #endif
+    {
+      extern volatile int g_fail_io_after;
+      if (g_fail_io_after == 2) {
+        if (fc)
+          fclose(fc);
+        fc = NULL;
+      }
+    }
     if (fc) {
       fprintf(fc, "/* Auto-generated Python C API Wrapper */\n");
       fprintf(fc, "#define PY_SSIZE_T_CLEAN\n");
@@ -430,6 +447,14 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
                  config->output_dir);
     f = fopen(filepath, "w");
 #endif
+    {
+      extern volatile int g_fail_io_after;
+      if (g_fail_io_after == 3) {
+        if (f)
+          fclose(f);
+        f = NULL;
+      }
+    }
     if (f) {
       fprintf(f, "# Auto-generated pytest harness for cdd-c bindings\n");
       fprintf(f, "import pytest\n");

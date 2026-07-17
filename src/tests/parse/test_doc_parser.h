@@ -30,6 +30,32 @@ extern "C" {
 /* clang-format on */
 
 /* --- Test Helpers --- */
+extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
+static int doc_parse_block_with_oom(const char *comment,
+                                    struct DocMetadata *meta) {
+  int i;
+  for (i = 1; i < 50; ++i) {
+    struct DocMetadata tmp;
+    g_cdd_fail_alloc = i;
+    if (doc_metadata_init(&tmp) == 0) {
+      (doc_parse_block)(comment, &tmp);
+      doc_metadata_free(&tmp);
+    }
+  }
+  g_cdd_fail_alloc = 0;
+  for (i = 1; i < 50; ++i) {
+    struct DocMetadata tmp;
+    g_cdd_strdup_fail = i;
+    if (doc_metadata_init(&tmp) == 0) {
+      (doc_parse_block)(comment, &tmp);
+      doc_metadata_free(&tmp);
+    }
+  }
+  g_cdd_strdup_fail = 0;
+  return (doc_parse_block)(comment, meta);
+}
+#define doc_parse_block(comment, meta) doc_parse_block_with_oom(comment, meta)
 
 /* --- Tests --- */
 

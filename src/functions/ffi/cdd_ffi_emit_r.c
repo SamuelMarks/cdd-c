@@ -69,6 +69,15 @@ emit_r_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 1) {
+      if (f)
+        fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
+
   fprintf(f, "# Auto-generated R bindings for %s\n\n", lib_name);
 
   fprintf(f, "if (!is.loaded(\"%s\")) {\n", lib_name);

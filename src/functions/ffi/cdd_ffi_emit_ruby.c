@@ -101,6 +101,15 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 1) {
+      if (f)
+        fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
+
   fprintf(f, "# Auto-generated Ruby Fiddle bindings for %s\n\n", lib_name);
   fprintf(f, "require 'fiddle'\n");
   fprintf(f, "require 'fiddle/import'\n\n");
@@ -187,6 +196,14 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
                  config->output_dir);
     fc = fopen(filepath_c, "w");
 #endif
+    {
+      extern volatile int g_fail_io_after;
+      if (g_fail_io_after == 2) {
+        if (fc)
+          fclose(fc);
+        fc = NULL;
+      }
+    }
     if (fc) {
       fprintf(fc, "/* Auto-generated Ruby C Extension Wrapper */\n");
       fprintf(fc, "#include <ruby.h>\n");
@@ -224,6 +241,14 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
                  config->output_dir, lib_name);
     f = fopen(filepath_test, "w");
 #endif
+    {
+      extern volatile int g_fail_io_after;
+      if (g_fail_io_after == 3) {
+        if (f)
+          fclose(f);
+        f = NULL;
+      }
+    }
     if (f) {
       fprintf(f, "# Auto-generated tests for %s\n", lib_name);
       fprintf(f, "require_relative '%s'\n\n", lib_name);

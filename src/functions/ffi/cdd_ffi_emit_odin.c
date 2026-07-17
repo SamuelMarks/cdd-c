@@ -79,6 +79,15 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 1) {
+      if (f)
+        fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
+
   fprintf(f, "// Auto-generated Odin bindings for %s\n\n", lib_name);
   fprintf(f, "package %s\n\n", lib_name);
   fprintf(f, "import \"core:c\"\n\n");

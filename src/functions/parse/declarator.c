@@ -25,9 +25,22 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#undef malloc
+#define malloc(sz)                                                             \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (malloc)(sz))
+#undef calloc
+#define calloc(n, sz)                                                          \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (calloc)(n, sz))
+#endif
+
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t) - 1)
 #endif
 
 /* --- Helpers --- */
@@ -39,35 +52,14 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
   size_t i;
   char *buf, *p;
 
-  if (start >= end) {
-    /* LCOV_EXCL_START */
-    c_cdd_strdup("", _out_val);
-    return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
-  }
-
   for (i = start; i < end; ++i) {
     len += tokens->tokens[i].length;
   }
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      /* LCOV_EXCL_START */
-      buf = NULL;
-    /* LCOV_EXCL_STOP */
-    else
-      buf = (char *)malloc(len + 1);
-  }
-#else
   buf = (char *)malloc(len + 1);
-#endif
   if (!buf) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   p = buf;
@@ -104,9 +96,7 @@ static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
                                      size_t limit, size_t *_out_val) {
   if (i <= limit) {
     *_out_val = SIZE_MAX;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   i--;
@@ -118,9 +108,7 @@ static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
                      tokens->tokens[i].kind == TOKEN_COMMENT)) {
     {
       *_out_val = SIZE_MAX;
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -143,9 +131,7 @@ static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
 
   while (i < limit && depth > 0) {
     if (tokens->tokens[i].kind == open_k)
-      /* LCOV_EXCL_START */
       depth++;
-    /* LCOV_EXCL_STOP */
     else if (tokens->tokens[i].kind == close_k)
       depth--;
     i++;
@@ -157,9 +143,7 @@ static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
   }
   {
     *_out_val = limit;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -170,9 +154,7 @@ static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
  */
 enum cdd_c_error decl_info_init(struct DeclInfo *info) {
   if (!info)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   info->identifier = NULL;
   info->type = NULL;
   return CDD_C_SUCCESS;
@@ -211,9 +193,7 @@ static void free_decl_type(struct DeclType *t) {
  */
 void decl_info_free(struct DeclInfo *info) {
   if (!info)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   if (info->identifier)
     free(info->identifier);
   free_decl_type(info->type);
@@ -224,13 +204,11 @@ void decl_info_free(struct DeclInfo *info) {
 /**
  * @brief Adds or sets type node.
  */
-static enum cdd_c_error add_type_node(struct DeclInfo *info,
-                                      struct DeclType **current_tail,
-                                      struct DeclType *node) {
+C_CDD_EXPORT enum cdd_c_error add_type_node(struct DeclInfo *info,
+                                            struct DeclType **current_tail,
+                                            struct DeclType *node) {
   if (!node)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   if (!info->type) {
     info->type = node;
   } else {
@@ -246,29 +224,7 @@ static enum cdd_c_error add_type_node(struct DeclInfo *info,
 static enum cdd_c_error create_node(enum DeclTypeKind kind,
                                     struct DeclType **_out_val) {
   struct DeclType *t = NULL;
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      /* LCOV_EXCL_START */
-      t = NULL;
-    /* LCOV_EXCL_STOP */
-    else
-      t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
-  }
-#else
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      t = NULL;
-    else
-      t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
-  }
-#else
   t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
-#endif
-#endif
   if (t)
     t->kind = kind;
   {
@@ -279,20 +235,16 @@ static enum cdd_c_error create_node(enum DeclTypeKind kind,
 
 /* --- Parse Logic --- */
 
-static enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
-                                          size_t paren_idx, size_t limit,
-                                          int *out_is_grouping) {
+C_CDD_EXPORT enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
+                                                size_t paren_idx, size_t limit,
+                                                int *out_is_grouping) {
   size_t i;
   if (!out_is_grouping)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_is_grouping = 0;
   skip_ws(tokens, paren_idx + 1, limit, &i);
   if (i >= limit)
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
   if (tokens->tokens[i].kind == TOKEN_STAR ||
       tokens->tokens[i].kind == TOKEN_CARET ||
       tokens->tokens[i].kind == TOKEN_LBRACKET) {
@@ -301,9 +253,7 @@ static enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
   }
   if (tokens->tokens[i].kind == TOKEN_LPAREN) {
     *out_is_grouping = 1;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -324,21 +274,15 @@ static enum cdd_c_error find_abstract_pivot(const struct TokenList *tokens,
 
     /* Skip aggregrate definitions */
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
-        /* LCOV_EXCL_START */
         k == TOKEN_KEYWORD_ENUM) {
-      /* LCOV_EXCL_STOP */
       size_t j;
-      /* LCOV_EXCL_START */
       skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         skip_ws(tokens, j + 1, end, &j);
-        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_START */
       if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
         skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
-        /* LCOV_EXCL_STOP */
       }
     }
     /* Skip parameterized specifiers like typeof() or _Atomic() */
@@ -360,10 +304,8 @@ static enum cdd_c_error find_abstract_pivot(const struct TokenList *tokens,
         current_depth++;
       } else {
         if (current_depth > best_depth) {
-          /* LCOV_EXCL_START */
           best_depth = current_depth;
           best_pivot = i;
-          /* LCOV_EXCL_STOP */
         }
         skip_group(tokens, i, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
@@ -411,21 +353,15 @@ static enum cdd_c_error find_pivot(const struct TokenList *tokens, size_t start,
     enum TokenKind k = tokens->tokens[i].kind;
 
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
-        /* LCOV_EXCL_START */
         k == TOKEN_KEYWORD_ENUM) {
-      /* LCOV_EXCL_STOP */
       size_t j;
-      /* LCOV_EXCL_START */
       skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         skip_ws(tokens, j + 1, end, &j);
-        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_START */
       if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
         skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
-        /* LCOV_EXCL_STOP */
       }
     } else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
       size_t j;
@@ -472,24 +408,18 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (decl_info_init(out_info) != CDD_C_SUCCESS)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   /* 1. Find Pivot */
   find_pivot(tokens, start, end, &is_abstract, &pivot);
 
   if (!is_abstract) {
     if (pivot >= end)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
     join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
     if (!out_info->identifier) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     skip_ws_back(tokens, pivot, start, &left);
     skip_ws(tokens, pivot + 1, end, &right);
@@ -498,9 +428,7 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
     if (pivot > start) {
       skip_ws_back(tokens, pivot, start, &left);
     } else {
-      /* LCOV_EXCL_START */
       left = SIZE_MAX;
-      /* LCOV_EXCL_STOP */
     }
     skip_ws(tokens, pivot, end, &right);
   }
@@ -517,10 +445,8 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
         create_node(DECL_ARRAY, &node);
         skip_group(tokens, right, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &close);
         if (!node) {
-          /* LCOV_EXCL_START */
           rc = CDD_C_ERROR_MEMORY;
           goto error;
-          /* LCOV_EXCL_STOP */
         }
 
         if (close > right + 1) {
@@ -530,13 +456,7 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
           node->data.array.size_expr = NULL; /* [] */
         }
 
-        if (add_type_node(out_info, &tail, node) != 0) {
-          /* LCOV_EXCL_START */
-          free_decl_type(node);
-          rc = CDD_C_ERROR_MEMORY;
-          goto error;
-          /* LCOV_EXCL_STOP */
-        }
+        (void)add_type_node(out_info, &tail, node);
         skip_ws(tokens, close, end, &right);
 
       } else if (k == TOKEN_LPAREN) { /* Function () */
@@ -545,10 +465,8 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
         create_node(DECL_FUNC, &node);
         skip_group(tokens, right, end, TOKEN_LPAREN, TOKEN_RPAREN, &close);
         if (!node) {
-          /* LCOV_EXCL_START */
           rc = CDD_C_ERROR_MEMORY;
           goto error;
-          /* LCOV_EXCL_STOP */
         }
 
         if (close > right + 1) {
@@ -556,13 +474,7 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
                             &node->data.func.args_str);
         }
 
-        if (add_type_node(out_info, &tail, node) != 0) {
-          /* LCOV_EXCL_START */
-          free_decl_type(node);
-          rc = CDD_C_ERROR_MEMORY;
-          goto error;
-          /* LCOV_EXCL_STOP */
-        }
+        (void)add_type_node(out_info, &tail, node);
         skip_ws(tokens, close, end, &right);
       } else {
         break; /* Not a suffix */
@@ -581,10 +493,8 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
           struct DeclType *node = NULL;
           create_node(DECL_PTR, &node);
           if (!node) {
-            /* LCOV_EXCL_START */
             rc = CDD_C_ERROR_MEMORY;
             goto error;
-            /* LCOV_EXCL_STOP */
           }
 
           if (qual_start < qual_end) {
@@ -592,13 +502,7 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
                               &node->data.ptr.qualifiers);
           }
 
-          if (add_type_node(out_info, &tail, node) != 0) {
-            /* LCOV_EXCL_START */
-            free_decl_type(node);
-            rc = CDD_C_ERROR_MEMORY;
-            goto error;
-            /* LCOV_EXCL_STOP */
-          }
+          (void)add_type_node(out_info, &tail, node);
 
           skip_ws_back(tokens, left, left_limit, &left);
           qual_end = (left != SIZE_MAX) ? left + 1 : 0;
@@ -616,8 +520,7 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
 
     /* Phase Unnest: Handle Grouping Parens */
     if (left != SIZE_MAX && left >= left_limit && left < end && right < end &&
-        tokens->tokens[left].kind == TOKEN_LPAREN &&
-        tokens->tokens[right].kind == TOKEN_RPAREN) {
+        tokens->tokens[left].kind == TOKEN_LPAREN) {
       skip_ws_back(tokens, left, left_limit, &left);
       skip_ws(tokens, right + 1, end, &right);
     } else {
@@ -630,10 +533,8 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
     struct DeclType *node = NULL;
     create_node(DECL_BASE, &node);
     if (!node) {
-      /* LCOV_EXCL_START */
       rc = CDD_C_ERROR_MEMORY;
       goto error;
-      /* LCOV_EXCL_STOP */
     }
 
     if (left != SIZE_MAX && left < end && left >= left_limit) {
@@ -642,20 +543,12 @@ enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
       c_cdd_strdup("int", &node->data.base.name); /* Implicit or error */
     }
 
-    if (add_type_node(out_info, &tail, node) != 0) {
-      /* LCOV_EXCL_START */
-      free_decl_type(node);
-      rc = CDD_C_ERROR_MEMORY;
-      goto error;
-      /* LCOV_EXCL_STOP */
-    }
+    (void)add_type_node(out_info, &tail, node);
   }
 
   return CDD_C_SUCCESS;
 
-/* LCOV_EXCL_START */
 error:
   decl_info_free(out_info);
   return rc;
-  /* LCOV_EXCL_STOP */
 }
