@@ -275,8 +275,40 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
-
   free(code);
+
+  /* Test primitive arrays */
+  param.is_array = 1;
+  param.items_type = "string";
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "integer";
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "number";
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "boolean";
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "unsupported";
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
+  ASSERT(code);
+  free(code);
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -536,6 +568,31 @@ TEST test_body_header_array_param(void) {
   ASSERT(strstr(code, "joined_len") != NULL);
 
   free(code);
+
+  /* Test string array */
+  param.items_type = "string";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  ASSERT(code);
+  free(code);
+
+  /* Test number array */
+  param.items_type = "number";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  ASSERT(code);
+  free(code);
+
+  /* Test boolean array */
+  param.items_type = "boolean";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  ASSERT(code);
+  free(code);
+
+  /* Test unsupported array */
+  param.items_type = "unsupported";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  ASSERT(code);
+  free(code);
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -627,6 +684,90 @@ TEST test_body_header_json_param_ref(void) {
       NULL);
 
   free(code);
+
+  /* Test primitive arrays */
+  param.is_array = 1;
+  param.items_type = "string";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "integer";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "number";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "boolean";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "unsupported";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON object */
+  param.is_array = 0;
+  param.type = "object";
+  param.schema.ref_name = NULL;
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON array (no is_array flag) */
+  param.type = "array";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON primitive string */
+  param.type = "string";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON primitive integer */
+  param.type = "integer";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON primitive number */
+  param.type = "number";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON primitive boolean */
+  param.type = "boolean";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON primitive unsupported */
+  param.type = "unsupported";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON missing type */
+  param.type = NULL;
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
+  /* Test JSON unknown type */
+  param.type = "unknown";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  ASSERT(code);
+  free(code);
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -709,8 +850,35 @@ TEST test_body_cookie_param(void) {
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
-
   free(code);
+
+  /* Test primitive arrays */
+  param.is_array = 1;
+  param.items_type = "string";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "integer";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "number";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "boolean";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  ASSERT(code);
+  free(code);
+
+  param.items_type = "unsupported";
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  ASSERT(code);
+  free(code);
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -3175,8 +3343,10 @@ TEST test_client_body_write_joined_form_array_direct(void) {
   spec.n_defined_schemas = 1;
   op.verb = OA_VERB_POST;
   op.req_body.ref_name = "MyStruct";
+  op.req_body.content_type = "application/x-www-form-urlencoded";
   enc.name = "arr";
   enc.style = OA_STYLE_FORM;
+  enc.style_set = 1;
   enc.explode = 0;
   enc.explode_set = 1;
   mt.name = "application/x-www-form-urlencoded";
@@ -3194,6 +3364,29 @@ TEST test_client_body_write_joined_form_array_direct(void) {
   op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
   ASSERT_EQ(CDD_C_SUCCESS,
             codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
+  op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+
+  strcpy(spec.defined_schemas[0].fields[0].ref, "integer");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
+  strcpy(spec.defined_schemas[0].fields[0].ref, "number");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
+  strcpy(spec.defined_schemas[0].fields[0].ref, "boolean");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
+  strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
+  strcpy(spec.defined_schemas[0].fields[0].ref, "unsupported_type");
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_client_write_body(fp, &op, &spec, "/test", NULL));
+
   fclose(fp);
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
@@ -3229,8 +3422,10 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
     spec.n_defined_schemas = 1;
     op.verb = OA_VERB_POST;
     op.req_body.ref_name = "MyStruct";
+    op.req_body.content_type = "application/x-www-form-urlencoded";
     enc.name = "arr";
     enc.style = OA_STYLE_FORM;
+    enc.style_set = 1;
     enc.explode = 0;
     enc.explode_set = 1;
     mt.name = "application/x-www-form-urlencoded";
@@ -3252,6 +3447,34 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
     g_fail_io_after = i;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
     g_fail_io_after = -1;
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+
+    strcpy(spec.defined_schemas[0].fields[0].ref, "integer");
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+
+    strcpy(spec.defined_schemas[0].fields[0].ref, "number");
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+
+    strcpy(spec.defined_schemas[0].fields[0].ref, "boolean");
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+
+    strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+
+    strcpy(spec.defined_schemas[0].fields[0].ref, "unsupported_type");
+    g_fail_io_after = i;
+    codegen_client_write_body(fp, &op, &spec, "/test", NULL);
+    g_fail_io_after = -1;
+
     fclose(fp);
     free(spec.defined_schemas[0].fields);
     free(spec.defined_schemas);
@@ -3288,7 +3511,18 @@ TEST test_client_body_write_joined_form_array(void) {
 
   /* Set array of strings basically via mock */
   op.parameters[0].items_type = "string";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
+  op.parameters[0].items_type = "integer";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.parameters[0].items_type = "number";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.parameters[0].items_type = "boolean";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.parameters[0].items_type = "unsupported";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also try different delim via pipedd */
@@ -3343,6 +3577,119 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   PASS();
 }
 
+TEST test_body_header_param_string(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_body_h1 = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-String";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "string";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h1), _ast_gen_body_h1);
+  ASSERT(code);
+  ASSERT(
+      strstr(code, "http_headers_add(&req.headers, \"X-String\", X-String)") !=
+      NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_body_header_param_integer(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_body_h2 = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Int";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "integer";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h2), _ast_gen_body_h2);
+  ASSERT(code);
+  ASSERT(strstr(code, "sprintf(num_buf, \"%d\", X-Int);") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_body_header_param_number(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_body_h3 = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Num";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "number";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h3), _ast_gen_body_h3);
+  ASSERT(code);
+  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Num);") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_body_header_param_boolean(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_body_h4 = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Bool";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "boolean";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h4), _ast_gen_body_h4);
+  ASSERT(code);
+  ASSERT(strstr(code, "X-Bool ? \"true\" : \"false\"") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
 SUITE(client_body_suite) {
   RUN_TEST(test_client_body_verb_mapping);
   RUN_TEST(test_client_body_mapped_err_code);
@@ -3420,6 +3767,10 @@ SUITE(client_body_suite) {
   RUN_TEST(test_body_text_plain_response_default);
   RUN_TEST(test_body_textual_response_xml);
   RUN_TEST(test_body_binary_response_pdf);
+  RUN_TEST(test_body_header_param_string);
+  RUN_TEST(test_body_header_param_integer);
+  RUN_TEST(test_body_header_param_number);
+  RUN_TEST(test_body_header_param_boolean);
 }
 
 #ifdef __cplusplus

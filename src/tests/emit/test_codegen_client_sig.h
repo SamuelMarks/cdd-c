@@ -1052,6 +1052,126 @@ TEST test_sig_json_content_query_ref(void) {
 }
 
 /* LCOV_EXCL_START */
+
+/* LCOV_EXCL_START */
+TEST test_sig_header_param_boolean(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_sig_x = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Bool";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "boolean";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  ASSERT(strstr(code, "int X-Bool") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+/* LCOV_EXCL_STOP */
+
+/* LCOV_EXCL_START */
+TEST test_sig_header_param_number(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_sig_x = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Num";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "number";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  ASSERT(strstr(code, "double X-Num") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+/* LCOV_EXCL_STOP */
+
+/* LCOV_EXCL_START */
+TEST test_sig_header_param_integer(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_sig_x = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-Int";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "integer";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  ASSERT(strstr(code, "int X-Int") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+/* LCOV_EXCL_STOP */
+
+/* LCOV_EXCL_START */
+TEST test_sig_header_param_string(void) {
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Operation op = {0};
+  char *code = NULL;
+  char *_ast_gen_sig_x = NULL;
+
+  (void)openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "X-String";
+  param.in = OA_PARAM_IN_HEADER;
+  param.type = "string";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  ASSERT(strstr(code, "char *X-String") != NULL);
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+/* LCOV_EXCL_STOP */
 SUITE(client_sig_suite) {
   RUN_TEST(test_sig_simple_get);
   RUN_TEST(test_sig_verify_apierror);
@@ -1081,11 +1201,15 @@ SUITE(client_sig_suite) {
   RUN_TEST(test_sig_path_object_param_kv);
   RUN_TEST(test_sig_header_object_param_kv);
   RUN_TEST(test_sig_cookie_object_param_kv);
+  RUN_TEST(test_sig_header_param_string);
+  RUN_TEST(test_sig_header_param_integer);
+  RUN_TEST(test_sig_header_param_number);
+  RUN_TEST(test_sig_header_param_boolean);
 }
 /* LCOV_EXCL_STOP */
+
+#endif /* TEST_CODEGEN_CLIENT_SIG_H */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* TEST_CODEGEN_CLIENT_SIG_H */
