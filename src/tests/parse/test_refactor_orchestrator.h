@@ -173,39 +173,33 @@ TEST test_orchestrator_edge_cases(void) {
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    /* Try failing allocations to hit OOM paths in orchestrator.c */
-    g_cdd_fail_alloc = 1;
-    orchestrate_fix("void A() { malloc(1); }\n"
-                    "void B() {\n"
-                    "      A(); }",
-                    &out);
-    if (out) {
-      free(out);
-      out = NULL;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    int i;
+    for (i = 1; i < 100; ++i) {
+      g_cdd_fail_alloc = i;
+      orchestrate_fix("void A() { malloc(1); }\n"
+                      "void B() {\n"
+                      "      A(); }",
+                      &out);
+      if (out) {
+        free(out);
+        out = NULL;
+      }
     }
     g_cdd_fail_alloc = 0;
-
-    g_cdd_fail_alloc = 2;
-    orchestrate_fix("void A() { malloc(1); }\n"
-                    "void B() {\n"
-                    "      A(); }",
-                    &out);
-    if (out) {
-      free(out);
-      out = NULL;
+    
+    for (i = 1; i < 100; ++i) {
+      g_cdd_strdup_fail = i;
+      orchestrate_fix("void A() { malloc(1); }\n"
+                      "void B() {\n"
+                      "      A(); }",
+                      &out);
+      if (out) {
+        free(out);
+        out = NULL;
+      }
     }
-    g_cdd_fail_alloc = 0;
-
-    g_cdd_fail_alloc = 3;
-    orchestrate_fix("void A() { malloc(1); }\n"
-                    "void B() {\n"
-                    "      A(); }",
-                    &out);
-    if (out) {
-      free(out);
-      out = NULL;
-    }
-    g_cdd_fail_alloc = 0;
+    g_cdd_strdup_fail = 0;
   }
 #endif
 

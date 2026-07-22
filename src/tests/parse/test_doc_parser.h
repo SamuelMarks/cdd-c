@@ -35,7 +35,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
-  for (i = 1; i < 50; ++i) {
+  for (i = 1; i < 200; ++i) {
     struct DocMetadata tmp;
     g_cdd_fail_alloc = i;
     if (doc_metadata_init(&tmp) == 0) {
@@ -44,7 +44,7 @@ static int doc_parse_block_with_oom(const char *comment,
     }
   }
   g_cdd_fail_alloc = 0;
-  for (i = 1; i < 50; ++i) {
+  for (i = 1; i < 200; ++i) {
     struct DocMetadata tmp;
     g_cdd_strdup_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
@@ -182,6 +182,47 @@ TEST test_doc_parse_param_attributes_extended(void) {
   ASSERT(meta.params[0].allow_empty_value_set);
   ASSERT_EQ(1, meta.params[0].allow_empty_value);
 
+  doc_metadata_free(&meta);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_doc_parse_param_all_styles(void) {
+  struct DocMetadata meta;
+  const char *comment = "/**\n"
+                        " * @param p1 [style:simple]\n"
+                        " * @param p2 [style:matrix]\n"
+                        " * @param p3 [style:label]\n"
+                        " * @param p4 [style:pipeDelimited]\n"
+                        " * @param p5 [style:deepObject]\n"
+                        " * @param p6 [style:cookie]\n"
+                        " */";
+
+  doc_metadata_init(&meta);
+  ASSERT_EQ(0, doc_parse_block(comment, &meta));
+
+  ASSERT_EQ(6, meta.n_params);
+  ASSERT_EQ(DOC_PARAM_STYLE_SIMPLE, meta.params[0].style);
+  ASSERT_EQ(DOC_PARAM_STYLE_MATRIX, meta.params[1].style);
+  ASSERT_EQ(DOC_PARAM_STYLE_LABEL, meta.params[2].style);
+  ASSERT_EQ(DOC_PARAM_STYLE_PIPE_DELIMITED, meta.params[3].style);
+  ASSERT_EQ(DOC_PARAM_STYLE_DEEP_OBJECT, meta.params[4].style);
+  ASSERT_EQ(DOC_PARAM_STYLE_COOKIE, meta.params[5].style);
+
+  doc_metadata_free(&meta);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_doc_parse_invalid_style(void) {
+  struct DocMetadata meta;
+  const char *comment = "/**\n"
+                        " * @param p1 [style:unknownStyle]\n"
+                        " */";
+
+  doc_metadata_init(&meta);
+  ASSERT_EQ(0, doc_parse_block(comment, &meta));
+  ASSERT_EQ(1, meta.n_params);
   doc_metadata_free(&meta);
   g_fail_io_after = -1;
   PASS();
@@ -445,8 +486,8 @@ TEST test_doc_parse_tag_meta(void) {
   const char *comment =
       "/**\n"
       " * @tagMeta users [summary:User Ops] [description:User endpoints] "
-      "[parent:external] [kind:nav] [externalDocs:https://example.com/docs] "
-      "[externalDocsDescription:More docs]\n"
+      "[parent:external] [kind:nav] [externalDocs=https://example.com/docs] "
+      "[externalDocsDescription=More docs]\n"
       " */";
 
   doc_metadata_init(&meta);
@@ -832,6 +873,8 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_response_header_format);
   RUN_TEST(test_doc_parse_link);
   RUN_TEST(test_doc_parse_param_attributes_extended);
+  RUN_TEST(test_doc_parse_param_all_styles);
+  RUN_TEST(test_doc_parse_invalid_style);
   RUN_TEST(test_doc_parse_param_format);
   RUN_TEST(test_doc_parse_param_deprecated);
   RUN_TEST(test_doc_parse_param_content_type);
