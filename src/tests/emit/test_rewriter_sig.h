@@ -52,6 +52,41 @@ static enum cdd_c_error test_rewrite(const char *input, const char *expected) {
   return 0; /* Success */
 }
 
+static int test_rewrite_error(const char *input) {
+  struct TokenList *tl = NULL;
+  char *output = NULL;
+  int rc;
+
+  if (tokenize(az_span_create_from_str((char *)input), &tl) != 0)
+    return -1;
+
+  rc = rewrite_signature(tl, &output);
+  if (output)
+    free(output);
+  free_token_list(tl);
+  return rc;
+}
+
+/**
+ * @brief test_rewrite_failures
+ * @return TEST
+ */
+TEST test_rewrite_failures(void) {
+#ifdef CDD_BUILD_TESTS
+  {
+    int _rc;
+    _rc = test_rewrite("int x = 1;", "int f()");
+    ASSERT(_rc != 0);
+  }
+#endif
+
+  /* Force mismatch */
+  ASSERT_EQ(1, test_rewrite("void f()", "int nope()"));
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
 /**
  * @brief test_rewrite_void_ret
  * @return TEST
@@ -73,6 +108,9 @@ TEST test_rewrite_void_ret(void) {
 TEST test_rewrite_ptr_ret(void) {
   /* char *f() -> int f(char * *out) */
   ASSERT_EQ(0, test_rewrite("char *f()", "int f(char * *out)"));
+
+  /* void *f() -> int f(void * *out) */
+  ASSERT_EQ(0, test_rewrite("void *f()", "int f(void * *out)"));
   /* preserving internal spaces */
   ASSERT_EQ(0, test_rewrite("char * f()", "int f(char * *out)"));
   g_fail_io_after = -1;
@@ -104,6 +142,10 @@ TEST test_rewrite_storage_class(void) {
 
   /* static inline void h() -> static inline int h() */
   ASSERT_EQ(0, test_rewrite("static inline void h()", "static inline int h()"));
+
+  /* __inline void h() -> __inline int h() */
+  ASSERT_EQ(0, test_rewrite("__inline void h()", "__inline int h()"));
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -186,6 +228,8 @@ TEST test_rewrite_invalid_input(void) {
   char *out = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rewrite_signature(NULL, &out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rewrite_signature(&tmpl, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, test_rewrite_error("void f("));
+  ASSERT_EQ(0, test_rewrite("my_func(int x)", "int my_func(int x, int *out)"));
   g_fail_io_after = -1;
   PASS();
 }
@@ -270,7 +314,31 @@ TEST test_rewrite_kr_empty_args(void) {
 /**
  * @brief rewriter_sig_suite
  */
+TEST test_rewrite_oom(void) {
+  int i;
+  for (i = 1; i < 50; i++) {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    g_cdd_fail_alloc = i;
+    int rc = test_rewrite_error("int my_func(int x)");
+    g_cdd_fail_alloc = 0;
+    if (rc == CDD_C_SUCCESS)
+      break;
+  }
+  for (i = 1; i < 50; i++) {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    g_cdd_fail_alloc = i;
+    int rc = test_rewrite_error("void f()");
+    g_cdd_fail_alloc = 0;
+    if (rc == CDD_C_SUCCESS)
+      break;
+  }
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(rewriter_sig_suite) {
+  RUN_TEST(test_rewrite_oom);
+  RUN_TEST(test_rewrite_failures);
   RUN_TEST(test_rewrite_void_ret);
   RUN_TEST(test_rewrite_ptr_ret);
   RUN_TEST(test_rewrite_struct_ret);

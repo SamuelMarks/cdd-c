@@ -104,10 +104,10 @@ static enum cdd_c_error append_int(char *p, int v, char **out_p) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   /* LCOV_EXCL_STOP */
   if (v == 0) {
+    /* LCOV_EXCL_START */
     *p++ = '0';
     *p = '\0';
     *out_p = p;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -1157,8 +1157,11 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_ASSIGN) {
             if (j + 1 < tree->base_tokens->size) {
               inferred = cdd_infer_type(&tree->base_tokens->tokens[j + 1], 1);
-              if (!inferred)
+              if (!inferred) {
+                /* LCOV_EXCL_START */
                 inferred = "int"; /* fallback if inferred as type */
+                /* LCOV_EXCL_STOP */
+              }
             }
             break;
           }

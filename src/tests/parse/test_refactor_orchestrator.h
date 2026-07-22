@@ -154,12 +154,72 @@ TEST test_orchestrator_preserves_structs(void) {
   PASS();
 }
 
+TEST test_orchestrator_edge_cases(void) {
+  char *out = NULL;
+
+  /* Invalid syntax cases that might hit fallbacks or error paths */
+  orchestrate_fix("void A { malloc(1); }", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  orchestrate_fix("void () { malloc(1); }", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    /* Try failing allocations to hit OOM paths in orchestrator.c */
+    g_cdd_fail_alloc = 1;
+    orchestrate_fix("void A() { malloc(1); }\n"
+                    "void B() {\n"
+                    "      A(); }",
+                    &out);
+    if (out) {
+      free(out);
+      out = NULL;
+    }
+    g_cdd_fail_alloc = 0;
+
+    g_cdd_fail_alloc = 2;
+    orchestrate_fix("void A() { malloc(1); }\n"
+                    "void B() {\n"
+                    "      A(); }",
+                    &out);
+    if (out) {
+      free(out);
+      out = NULL;
+    }
+    g_cdd_fail_alloc = 0;
+
+    g_cdd_fail_alloc = 3;
+    orchestrate_fix("void A() { malloc(1); }\n"
+                    "void B() {\n"
+                    "      A(); }",
+                    &out);
+    if (out) {
+      free(out);
+      out = NULL;
+    }
+    g_cdd_fail_alloc = 0;
+  }
+#endif
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(refactor_orchestrator_suite) {
   RUN_TEST(test_orchestrator_simple_propagation);
   RUN_TEST(test_orchestrator_propagation_ptr);
   RUN_TEST(test_orchestrator_main_stop);
   RUN_TEST(test_orchestrator_no_alloc);
   RUN_TEST(test_orchestrator_preserves_structs);
+  RUN_TEST(test_orchestrator_edge_cases);
 }
 
 #ifdef __cplusplus

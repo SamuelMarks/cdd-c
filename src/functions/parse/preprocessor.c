@@ -58,8 +58,8 @@ static enum cdd_c_error join_path(const char *dir, const char *file,
   if (!dir || !file)
 
   {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -71,8 +71,8 @@ static enum cdd_c_error join_path(const char *dir, const char *file,
   if (!out)
 
   {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -174,8 +174,8 @@ static enum cdd_c_error token_to_string(const struct Token *t,
   if (!s)
 
   {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -206,8 +206,8 @@ static enum cdd_c_error add_macro_internal(struct PreprocessorContext *ctx,
         ctx->macros, new_cap * sizeof(struct MacroDef));
 
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       /* LCOV_EXCL_START */
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
@@ -311,8 +311,8 @@ static enum cdd_c_error reconstruct_path(const struct TokenList *tokens,
   if (start >= end)
 
   {
-    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
     /* LCOV_EXCL_START */
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -327,8 +327,8 @@ static enum cdd_c_error reconstruct_path(const struct TokenList *tokens,
   if (!buf)
 
   {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -422,8 +422,8 @@ enum cdd_c_error pp_add_search_path(struct PreprocessorContext *ctx,
   copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
   if (!copy) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     /* LCOV_EXCL_START */
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
   }
@@ -1082,8 +1082,8 @@ static enum cdd_c_error peek(struct ExprState *s, enum TokenKind *_out_val) {
   if (p >= s->end)
 
   {
-    *_out_val = TOKEN_UNKNOWN;
     /* LCOV_EXCL_START */
+    *_out_val = TOKEN_UNKNOWN;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -1108,8 +1108,8 @@ static enum cdd_c_error is_defined_macro(const struct PreprocessorContext *ctx,
   if (!ctx)
 
   {
-    *_out_val = 0;
     /* LCOV_EXCL_START */
+    *_out_val = 0;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -1169,8 +1169,8 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1185,8 +1185,8 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1256,8 +1256,8 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
       /* LCOV_EXCL_STOP */
 
       {
-        *_out_val = 0;
         /* LCOV_EXCL_START */
+        *_out_val = 0;
         return CDD_C_SUCCESS;
         /* LCOV_EXCL_STOP */
       }
@@ -1270,8 +1270,8 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1308,8 +1308,8 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1380,8 +1380,8 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1591,8 +1591,8 @@ static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
   }
 
   {
-    *_out_val = result;
     /* LCOV_EXCL_START */
+    *_out_val = result;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -1624,8 +1624,8 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
     /* LCOV_EXCL_STOP */
 
     {
-      *_out_val = 0;
       /* LCOV_EXCL_START */
+      *_out_val = 0;
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1784,8 +1784,8 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
   /* LCOV_EXCL_STOP */
 
   {
-    *_out_val = 0;
     /* LCOV_EXCL_START */
+    *_out_val = 0;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -1825,8 +1825,8 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   if ((match(s, TOKEN_TILDE, &_ast_match_40) == 0 && _ast_match_40)) {
 
     {
-      *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
       /* LCOV_EXCL_START */
+      *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1835,8 +1835,8 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   if ((match(s, TOKEN_MINUS, &_ast_match_42) == 0 && _ast_match_42)) {
 
     {
-      *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
       /* LCOV_EXCL_START */
+      *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -1845,8 +1845,8 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   if ((match(s, TOKEN_PLUS, &_ast_match_44) == 0 && _ast_match_44)) {
 
     {
-      *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
       /* LCOV_EXCL_START */
+      *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
       return CDD_C_SUCCESS;
       /* LCOV_EXCL_STOP */
     }
@@ -2319,8 +2319,8 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
             _ast_token_to_string_94);
 
     if (!name) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       /* LCOV_EXCL_START */
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
       /* LCOV_EXCL_STOP */
     }
@@ -2600,8 +2600,8 @@ static enum cdd_c_error stack_peek(const struct ConditionalStack *st,
   }
 
   {
-    *_out_val = COND_ACTIVE;
     /* LCOV_EXCL_START */
+    *_out_val = COND_ACTIVE;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }

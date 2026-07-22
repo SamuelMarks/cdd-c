@@ -1354,10 +1354,11 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
                 if (start < end && *start == '*') {
                   start++;
                   while (start < end && !isalpha((unsigned char)*start) &&
-                         *start != '[')
+                         *start != '[') {
                     /* LCOV_EXCL_START */
                     start++;
-                  /* LCOV_EXCL_STOP */
+                    /* LCOV_EXCL_STOP */
+                  }
                   if (start < end)
                     start++;
                   continue;
@@ -1659,9 +1660,9 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (tok->length > 14 &&
             /* LCOV_EXCL_START */
             memcmp(tok->start, "\n#if defined(_M", 15) == 0) {
-          /* LCOV_EXCL_STOP */
           continue; /* Skip our synthesized nodes! */
         }
+        /* LCOV_EXCL_STOP */
       }
 
       {

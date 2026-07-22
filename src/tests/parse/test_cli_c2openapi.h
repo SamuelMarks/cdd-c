@@ -12,7 +12,10 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[] = {"c2openapi", "../src/tests/mocks", "out.json"};
-  ASSERT_EQ(CDD_C_SUCCESS, c2openapi_cli_main(3, argv1));
+  int rc = c2openapi_cli_main(3, argv1);
+  if (rc != CDD_C_SUCCESS)
+    printf("test_c2openapi_cli_main_valid_args failed with %d\n", rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
 
@@ -26,7 +29,11 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "http://example.com/dialect",
                    "../src/tests/mocks",
                    "out2.json"};
-  ASSERT_EQ(CDD_C_SUCCESS, c2openapi_cli_main(9, argv1));
+  int rc = c2openapi_cli_main(9, argv1);
+  if (rc != CDD_C_SUCCESS)
+    printf("test_c2openapi_cli_main_valid_args_with_options failed with %d\n",
+           rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
 
@@ -46,7 +53,10 @@ TEST test_to_docs_json_cli_main_valid(void) {
   char *argv1[] = {"to_docs_json", "-i",
                    "../src/tests/mocks/emit/simple.schema.json", "--no-imports",
                    "--no-wrapping"};
-  ASSERT_EQ(CDD_C_SUCCESS, to_docs_json_cli_main(5, argv1));
+  int rc = to_docs_json_cli_main(5, argv1);
+  if (rc != CDD_C_SUCCESS)
+    printf("test_to_docs_json_cli_main_valid failed with %d\n", rc);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
 

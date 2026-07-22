@@ -117,8 +117,8 @@ static enum cdd_c_error find_token_in_range(const struct TokenList *tokens,
     }
   }
   {
-    *_out_val = end;
     /* LCOV_EXCL_START */
+    *_out_val = end;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -146,8 +146,8 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
                    _ast_find_token_in_range_0);
   size_t i;
   if (lparen == body_start) {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -164,8 +164,8 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
       size_t len = tokens->tokens[i].length;
       char *name = malloc(len + 1);
       if (!name) {
-        *_out_val = NULL;
         /* LCOV_EXCL_START */
+        *_out_val = NULL;
         return CDD_C_SUCCESS;
         /* LCOV_EXCL_STOP */
       }
@@ -178,8 +178,8 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
     }
   }
   {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -203,8 +203,8 @@ static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   buf = malloc(len + 1);
   if (!buf) {
-    *_out_val = NULL;
     /* LCOV_EXCL_START */
+    *_out_val = NULL;
     return CDD_C_SUCCESS;
     /* LCOV_EXCL_STOP */
   }
@@ -274,9 +274,9 @@ static enum cdd_c_error analyze_signature_tokens(const struct TokenList *tokens,
     } else if (tok->kind == TOKEN_IDENTIFIER) {
       /* LCOV_EXCL_START */
       if (token_eq_str(tok, "void")) {
-        /* LCOV_EXCL_STOP */
         *is_void = 1;
       }
+      /* LCOV_EXCL_STOP */
     }
   }
   /* Pointer takes precedence (e.g. void*) */

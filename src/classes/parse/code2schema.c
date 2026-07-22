@@ -1665,12 +1665,9 @@ enum cdd_c_error parse_struct_member_line(const char *line,
   if (!last_space) {
     /* Maybe it's "int*p;" without space? Parser assumes space separator. */
     /* Check for * split if no space */
-    /* LCOV_EXCL_START */
     last_space = strrchr(buf, '*');
     if (!last_space) {
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS; /* Skip invalid */
-      /* LCOV_EXCL_STOP */
     }
   }
 

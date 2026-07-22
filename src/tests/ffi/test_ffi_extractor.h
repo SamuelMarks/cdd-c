@@ -33,6 +33,39 @@
 extern "C" {
 #endif /* __cplusplus */
 
+TEST test_ffi_ir_extract_exports_all_types(void) {
+  const char *filename = "all_types.h";
+  const char *code = "struct AllTypes {\n"
+                     "  void v;\n"
+                     "  std::string s;\n"
+                     "  std::vector v2;\n"
+                     "  std::shared_ptr p1;\n"
+                     "  std::unique_ptr p2;\n"
+                     "  int8_t i8;\n"
+                     "  uint8_t u8;\n"
+                     "  int16_t i16;\n"
+                     "  uint16_t u16;\n"
+                     "  int32_t i32;\n"
+                     "  uint32_t u32;\n"
+                     "  int64_t i64;\n"
+                     "  uint64_t u64;\n"
+                     "  float f;\n"
+                     "  double d;\n"
+                     "  bool b;\n"
+                     "  size_t sz;\n"
+                     "  ssize_t ssz;\n"
+                     "};\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+
+  write_to_file(filename, code);
+  ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
+  ASSERT_EQ(1, ir != NULL);
+  cdd_ffi_ir_free(ir);
+  remove(filename);
+  PASS();
+}
+
 TEST test_ffi_ir_extract_exports_basic(void) {
   const char *filename = "dummy_header.h";
   const char *code = "struct MyStruct { int x; char *s; };\n"
@@ -889,6 +922,11 @@ TEST test_ffi_ir_emit_java(void) {
   nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  nodes[0].base_classes_count = 2;
+  nodes[0].base_classes =
+      (cdd_ffi_base_class_t *)calloc(2, sizeof(cdd_ffi_base_class_t));
+  nodes[0].base_classes[0].name = strdup("Base1");
+  nodes[0].base_classes[1].name = strdup("Base2");
 
   nodes[1].kind = CDD_FFI_NODE_FUNCTION;
   nodes[1].name = strdup("my_func");
@@ -1363,6 +1401,10 @@ TEST test_ffi_ir_emit_odin(void) {
   nodes[1].kind = CDD_FFI_NODE_FUNCTION;
   nodes[1].name = strdup("my_func");
   nodes[1].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  nodes[1].fields_count = 1;
+  nodes[1].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  nodes[1].fields[0].name = strdup("context");
+  nodes[1].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
   ASSERT_EQ(0, cdd_ffi_emit_odin(ir, &config));
 
@@ -1654,3 +1696,19 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
 }
 #endif /* __cplusplus */
 #endif /* TEST_FFI_EXTRACTOR_H */
+
+TEST test_ffi_emit_java_fopen_fail(void) {
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
+  cdd_generate_bindings_config_t config = {0};
+  config.target_langs = "java";
+  config.output_dir =
+      "/dev/null/invalid"; /* invalid dir to force fopen to fail */
+  config.library_name = "test_lib";
+
+  ASSERT_EQ(1, ir != NULL);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_java(ir, &config));
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  PASS();
+}

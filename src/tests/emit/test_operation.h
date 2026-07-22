@@ -613,8 +613,12 @@ TEST test_operation_response_has_media_type(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test", &out));
   ASSERT_EQ(1, out);
+  resp.content_type = "fast";
+  ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "fast", &out));
+  ASSERT_EQ(1, out);
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test2", &out));
   ASSERT_EQ(0, out);
+  resp.content_type = NULL;
 
   free(resp.content_media_types);
   g_fail_io_after = -1;

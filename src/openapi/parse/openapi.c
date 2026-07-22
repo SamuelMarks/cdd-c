@@ -14,7 +14,6 @@
 #include "openapi/parse/openapi.h"
 #include "win_compat_sym.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* --- Helper Function Prototypes --- */
 
@@ -2314,51 +2313,36 @@ validate_parameter_style(const struct OpenAPI_Parameter *p,
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_SIMPLE && style != OA_STYLE_MATRIX &&
         style != OA_STYLE_LABEL)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     break;
   case OA_PARAM_IN_HEADER:
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_SIMPLE)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
     break;
-    /* LCOV_EXCL_START */
   case OA_PARAM_IN_COOKIE:
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (style != OA_STYLE_FORM && style != OA_STYLE_COOKIE)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     break;
   default:
     break;
     /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
-
   if (style == OA_STYLE_DEEP_OBJECT) {
     if (p->is_array || !param_type_is_object_like(p))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (style == OA_STYLE_SPACE_DELIMITED || style == OA_STYLE_PIPE_DELIMITED) {
     /* LCOV_EXCL_START */
     if (!p->is_array && !param_type_is_object_like(p))
       return CDD_C_ERROR_INVALID_ARGUMENT;
     /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -2623,9 +2607,7 @@ static enum cdd_c_error parse_any_value(const JSON_Value *val,
     out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_13), _ast_strdup_13);
     /* LCOV_EXCL_START */
     if (!out->string)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     break;
   case JSONNumber:
@@ -2646,18 +2628,14 @@ static enum cdd_c_error parse_any_value(const JSON_Value *val,
     json_str = json_serialize_to_string(val);
     /* LCOV_EXCL_START */
     if (!json_str)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     out->type = OA_ANY_JSON;
     out->json = (c_cdd_strdup(json_str, &_ast_strdup_14), _ast_strdup_14);
     json_free_serialized_string(json_str);
     /* LCOV_EXCL_START */
     if (!out->json)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     break;
     /* LCOV_EXCL_START */
@@ -2725,9 +2703,7 @@ static enum cdd_c_error parse_any_array(const JSON_Array *arr,
   *out = (struct OpenAPI_Any *)calloc(count, sizeof(struct OpenAPI_Any));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -2784,22 +2760,16 @@ static enum cdd_c_error clone_json_value(const JSON_Value *val,
   JSON_Value *copy;
 
   /* LCOV_EXCL_START */
-
   if (!val) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
-
   /* LCOV_EXCL_STOP */
   serialized = json_serialize_to_string((JSON_Value *)val);
   /* LCOV_EXCL_START */
   if (!serialized) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   copy = json_parse_string(serialized);
@@ -2828,17 +2798,13 @@ static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
     *out_json = NULL;
   /* LCOV_EXCL_START */
   if (!obj || !out_json)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   extras_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!extras_val)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   extras_obj = json_value_get_object(extras_val);
 
@@ -2855,10 +2821,8 @@ static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
             _ast_clone_json_value_0);
     /* LCOV_EXCL_START */
     if (!copy) {
-      /* LCOV_EXCL_START */
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
@@ -2878,10 +2842,8 @@ static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
   serialized = json_serialize_to_string(extras_val);
   /* LCOV_EXCL_START */
   if (!serialized) {
-    /* LCOV_EXCL_START */
     json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_15), _ast_strdup_15);
@@ -2906,17 +2868,13 @@ static enum cdd_c_error collect_extensions(const JSON_Object *obj,
     *out_json = NULL;
   /* LCOV_EXCL_START */
   if (!obj || !out_json)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   extras_val = json_value_init_object();
   /* LCOV_EXCL_START */
   if (!extras_val)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   extras_obj = json_value_get_object(extras_val);
 
@@ -2932,10 +2890,8 @@ static enum cdd_c_error collect_extensions(const JSON_Object *obj,
             _ast_clone_json_value_1);
     /* LCOV_EXCL_START */
     if (!copy) {
-      /* LCOV_EXCL_START */
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
@@ -2955,10 +2911,8 @@ static enum cdd_c_error collect_extensions(const JSON_Object *obj,
   serialized = json_serialize_to_string(extras_val);
   /* LCOV_EXCL_START */
   if (!serialized) {
-    /* LCOV_EXCL_START */
     json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_16), _ast_strdup_16);
@@ -2996,9 +2950,7 @@ static enum cdd_c_error openapi_version_supported(const char *version) {
 static enum cdd_c_error example_fields_valid(const struct OpenAPI_Example *ex) {
   /* LCOV_EXCL_START */
   if (!ex)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   if (ex->data_value_set && ex->value_set)
     return CDD_C_SUCCESS;
@@ -3042,9 +2994,7 @@ static enum cdd_c_error parse_schema_type(const JSON_Object *schema,
   /* LCOV_EXCL_START */
   if (!schema) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 
@@ -3177,12 +3127,8 @@ parse_schema_constraints(const JSON_Object *schema,
       if (pattern) {
         *target->pattern =
             (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
-        /* LCOV_EXCL_START */
         if (!*target->pattern)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
     }
@@ -3246,9 +3192,7 @@ parse_string_enum_array(const JSON_Array *arr, char ***out, size_t *out_count) {
   *out = (char **)calloc(count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -3313,9 +3257,7 @@ static enum cdd_c_error copy_string_array(char ***dst, size_t *dst_count,
   *dst = (char **)calloc(src_count, sizeof(char *));
   /* LCOV_EXCL_START */
   if (!*dst)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
@@ -3358,86 +3300,52 @@ static enum cdd_c_error copy_example_fields(struct OpenAPI_Example *dst,
     /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
   /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->name && !dst->name) {
-    /* LCOV_EXCL_START */
     dst->name = (c_cdd_strdup(src->name, &_ast_strdup_20), _ast_strdup_20);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->name)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->ref && !dst->ref) {
-    /* LCOV_EXCL_START */
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_21), _ast_strdup_21);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->ref)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->extensions_json && !dst->extensions_json) {
-    /* LCOV_EXCL_START */
     dst->extensions_json =
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_22), _ast_strdup_22);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->summary && !dst->summary) {
     dst->summary =
         (c_cdd_strdup(src->summary, &_ast_strdup_23), _ast_strdup_23);
     /* LCOV_EXCL_START */
     if (!dst->summary)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->description && !dst->description) {
-    /* LCOV_EXCL_START */
     dst->description =
         (c_cdd_strdup(src->description, &_ast_strdup_24), _ast_strdup_24);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->description)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->extensions_json && !dst->extensions_json) {
-    /* LCOV_EXCL_START */
     dst->extensions_json =
         (c_cdd_strdup(src->extensions_json, &_ast_strdup_25), _ast_strdup_25);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->extensions_json)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
   if (src->data_value_set && !dst->data_value_set) {
     {
       /* LCOV_EXCL_START */
@@ -3460,34 +3368,22 @@ static enum cdd_c_error copy_example_fields(struct OpenAPI_Example *dst,
     }
     dst->value_set = 1;
   }
-  /* LCOV_EXCL_START */
   if (src->serialized_value && !dst->serialized_value) {
-    /* LCOV_EXCL_START */
     dst->serialized_value =
         (c_cdd_strdup(src->serialized_value, &_ast_strdup_26), _ast_strdup_26);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->serialized_value)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->external_value && !dst->external_value) {
-    /* LCOV_EXCL_START */
     dst->external_value =
         (c_cdd_strdup(src->external_value, &_ast_strdup_27), _ast_strdup_27);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!dst->external_value)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
   return CDD_C_SUCCESS;
 }
 
@@ -3619,28 +3515,20 @@ static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
     return CDD_C_SUCCESS;
   /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
-
   if (name) {
     out->name = (c_cdd_strdup(name, &_ast_strdup_28), _ast_strdup_28);
     /* LCOV_EXCL_START */
     if (!out->name)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-
-  /* LCOV_EXCL_STOP */
 
   ref = json_object_get_string(ex_obj, "$ref");
   if (ref) {
     out->ref = (c_cdd_strdup(ref, &_ast_strdup_29), _ast_strdup_29);
     /* LCOV_EXCL_START */
     if (!out->ref)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     if (resolve_refs && spec) {
       const struct OpenAPI_Example *comp =
@@ -3662,26 +3550,16 @@ static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
   /* LCOV_EXCL_START */
   if (summary) {
     out->summary = (c_cdd_strdup(summary, &_ast_strdup_30), _ast_strdup_30);
-    /* LCOV_EXCL_START */
     if (!out->summary)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   desc = json_object_get_string(ex_obj, "description");
   /* LCOV_EXCL_START */
   if (desc) {
-    /* LCOV_EXCL_START */
     out->description = (c_cdd_strdup(desc, &_ast_strdup_31), _ast_strdup_31);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     if (!out->description)
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (!ref) {
@@ -3715,12 +3593,8 @@ static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
   if (serialized) {
     out->serialized_value =
         (c_cdd_strdup(serialized, &_ast_strdup_32), _ast_strdup_32);
-    /* LCOV_EXCL_START */
     if (!out->serialized_value)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   external = json_object_get_string(ex_obj, "externalValue");
@@ -3728,12 +3602,8 @@ static enum cdd_c_error parse_example_object(const JSON_Object *ex_obj,
   if (external) {
     out->external_value =
         (c_cdd_strdup(external, &_ast_strdup_33), _ast_strdup_33);
-    /* LCOV_EXCL_START */
     if (!out->external_value)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 
@@ -3774,9 +3644,7 @@ static enum cdd_c_error parse_examples_object(const JSON_Object *examples,
       (struct OpenAPI_Example *)calloc(count, sizeof(struct OpenAPI_Example));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *out_count = count;
 
@@ -3849,9 +3717,7 @@ static enum cdd_c_error parse_oauth_scopes(const JSON_Object *scopes_obj,
                                              sizeof(struct OpenAPI_OAuthScope));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *out_count = count;
   for (i = 0; i < count; ++i) {
@@ -3861,9 +3727,7 @@ static enum cdd_c_error parse_oauth_scopes(const JSON_Object *scopes_obj,
     if (name) {
       (*out)[i].name = (c_cdd_strdup(name, &_ast_strdup_34), _ast_strdup_34);
       if (!(*out)[i].name)
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
@@ -3871,9 +3735,7 @@ static enum cdd_c_error parse_oauth_scopes(const JSON_Object *scopes_obj,
       (*out)[i].description =
           (c_cdd_strdup(desc, &_ast_strdup_35), _ast_strdup_35);
       if (!(*out)[i].description)
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
   }
@@ -3898,17 +3760,13 @@ static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
   count = json_object_get_count(flows_obj);
   /* LCOV_EXCL_START */
   if (count == 0)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   out->flows = (struct OpenAPI_OAuthFlow *)calloc(
       count, sizeof(struct OpenAPI_OAuthFlow));
   /* LCOV_EXCL_START */
   if (!out->flows)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   out->n_flows = count;
   for (i = 0; i < count; ++i) {
@@ -3941,14 +3799,10 @@ static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
 
       /* LCOV_EXCL_STOP */
       switch (flow->type) {
-        /* LCOV_EXCL_START */
       case OA_OAUTH_FLOW_IMPLICIT:
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_START */
         /* LCOV_EXCL_START */
         if (!authorization_url)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_START */
         break;
@@ -3956,10 +3810,8 @@ static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
         /* LCOV_EXCL_STOP */
       case OA_OAUTH_FLOW_CLIENT_CREDENTIALS:
         /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         if (!token_url)
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_START */
         break;
@@ -3967,9 +3819,7 @@ static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
       case OA_OAUTH_FLOW_AUTHORIZATION_CODE:
         /* LCOV_EXCL_START */
         if (!authorization_url || !token_url)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_INVALID_ARGUMENT;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
         break;
       case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION:
@@ -3987,73 +3837,49 @@ static enum cdd_c_error parse_oauth_flows(const JSON_Object *flows_obj,
         /* LCOV_EXCL_STOP */
       }
 
-      /* LCOV_EXCL_START */
-
       if (authorization_url) {
         flow->authorization_url =
             (c_cdd_strdup(authorization_url, &_ast_strdup_36), _ast_strdup_36);
         /* LCOV_EXCL_START */
         if (!flow->authorization_url)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       }
-
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_START */
       if (token_url) {
         flow->token_url =
             (c_cdd_strdup(token_url, &_ast_strdup_37), _ast_strdup_37);
         /* LCOV_EXCL_START */
         if (!flow->token_url)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_MEMORY;
         /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_START */
       if (refresh_url) {
         flow->refresh_url =
             (c_cdd_strdup(refresh_url, &_ast_strdup_38), _ast_strdup_38);
         /* LCOV_EXCL_START */
         if (!flow->refresh_url)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
       if (device_authorization_url) {
-        /* LCOV_EXCL_START */
         flow->device_authorization_url =
             (c_cdd_strdup(device_authorization_url, &_ast_strdup_39),
-             /* LCOV_EXCL_STOP */
              _ast_strdup_39);
-        /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         if (!flow->device_authorization_url)
           return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
       {
         int _rc =
             parse_oauth_scopes(scopes_obj, &flow->scopes, &flow->n_scopes);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       {
         int _rc = collect_extensions(flow_obj, &flow->extensions_json);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -4069,9 +3895,7 @@ static enum cdd_c_error json_pointer_unescape(const char *in, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!in) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   len = strlen(in);
@@ -4079,9 +3903,7 @@ static enum cdd_c_error json_pointer_unescape(const char *in, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   for (i = 0, j = 0; i < len; ++i) {
@@ -4184,18 +4006,14 @@ static enum cdd_c_error dup_substr(const char *src, size_t len,
   /* LCOV_EXCL_START */
   if (!src) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   out = (char *)malloc(len + 1);
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   memcpy(out, src, len);
@@ -4224,14 +4042,10 @@ static enum cdd_c_error normalize_path(const char *path, char **_out_val) {
   size_t out_len = 0;
 
   /* LCOV_EXCL_START */
-
   if (!path) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
-
   /* LCOV_EXCL_STOP */
   if (path[0] == '/')
     absolute = 1;
@@ -4406,14 +4220,10 @@ resolve_uri_reference(const char *base_uri, const char *ref, char **_out_val) {
   char *out = NULL;
 
   /* LCOV_EXCL_START */
-
   if (!ref) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
-
   /* LCOV_EXCL_STOP */
   ref_len = strlen(ref);
   if (ref_len == 0) {
@@ -4448,13 +4258,9 @@ resolve_uri_reference(const char *base_uri, const char *ref, char **_out_val) {
       out = (char *)malloc(out_len + 1);
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       if (!out) {
-        /* LCOV_EXCL_STOP */
         *_out_val = NULL;
-        /* LCOV_EXCL_START */
         return CDD_C_SUCCESS;
-        /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
@@ -4528,9 +4334,7 @@ resolve_uri_reference(const char *base_uri, const char *ref, char **_out_val) {
     /* LCOV_EXCL_START */
     if (!combined) {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     if (base_dir_len > 0)
@@ -4545,9 +4349,7 @@ resolve_uri_reference(const char *base_uri, const char *ref, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!normalized) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 
@@ -4605,14 +4407,10 @@ static enum cdd_c_error compute_document_uri(const char *self_uri,
   }
 
   /* LCOV_EXCL_START */
-
   if (!resolved) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
-
   /* LCOV_EXCL_STOP */
 
   {
@@ -4685,9 +4483,7 @@ static enum cdd_c_error store_schema_root_json(struct OpenAPI_Spec *spec,
   char *raw_json;
   /* LCOV_EXCL_START */
   if (!spec || !root)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   if (spec->schema_root_json)
     /* LCOV_EXCL_START */
@@ -4696,18 +4492,14 @@ static enum cdd_c_error store_schema_root_json(struct OpenAPI_Spec *spec,
   raw_json = json_serialize_to_string(root);
   /* LCOV_EXCL_START */
   if (!raw_json)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   spec->schema_root_json =
       (c_cdd_strdup(raw_json, &_ast_strdup_49), _ast_strdup_49);
   json_free_serialized_string(raw_json);
   /* LCOV_EXCL_START */
   if (!spec->schema_root_json)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   return CDD_C_SUCCESS;
 }
@@ -4852,20 +4644,14 @@ enum cdd_c_error openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
   struct OpenAPI_DocRegistryEntry *tmp;
 
   /* LCOV_EXCL_START */
-
   if (!registry || !spec)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
   spec->doc_registry = registry;
   base_src = spec->document_uri ? spec->document_uri : spec->self_uri;
   /* LCOV_EXCL_START */
   if (!base_src || !*base_src)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   {
@@ -4873,17 +4659,13 @@ enum cdd_c_error openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
         (uri_base_len(base_src, &_ast_uri_base_len_19), _ast_uri_base_len_19);
     /* LCOV_EXCL_START */
     if (len == 0)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     base = (dup_substr(base_src, len, &_ast_dup_substr_20), _ast_dup_substr_20);
   }
   /* LCOV_EXCL_START */
   if (!base)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < registry->count; ++i) {
@@ -4902,10 +4684,8 @@ enum cdd_c_error openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
         registry->entries, new_cap * sizeof(*registry->entries));
     /* LCOV_EXCL_START */
     if (!tmp) {
-      /* LCOV_EXCL_START */
       free(base);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     registry->entries = tmp;
@@ -4971,16 +4751,12 @@ static enum cdd_c_error ref_base_matches_self(const struct OpenAPI_Spec *spec,
           return CDD_C_ERROR_UNKNOWN;
         /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_START */
-        /* LCOV_EXCL_START */
         if (base_len == rel_len)
           return CDD_C_ERROR_UNKNOWN;
         /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_STOP */
-        /* LCOV_EXCL_START */
         /* LCOV_EXCL_START */
         if (ref[base_len - rel_len - 1] == '/')
           return CDD_C_ERROR_UNKNOWN;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
       }
     }
@@ -5023,22 +4799,16 @@ static enum cdd_c_error ref_base_matches_self(const struct OpenAPI_Spec *spec,
         strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
       /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_START */
-      /* LCOV_EXCL_START */
       if (self_base[0] == '/')
         return CDD_C_ERROR_UNKNOWN;
       /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_START */
       /* LCOV_EXCL_START */
       if (base_len == self_len)
         return CDD_C_ERROR_UNKNOWN;
       /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_START */
       /* LCOV_EXCL_START */
       if (ref[base_len - self_len - 1] == '/')
         return CDD_C_ERROR_UNKNOWN;
-      /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_STOP */
     }
   }
@@ -5061,9 +4831,7 @@ static enum cdd_c_error ref_name_from_prefix(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!ref || !prefix) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   prefix_len = strlen(prefix);
@@ -5072,9 +4840,7 @@ static enum cdd_c_error ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     /* LCOV_EXCL_START */
     if (!name || !*name) {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     if (strchr(name, '/') != NULL) {
@@ -5107,9 +4873,7 @@ static enum cdd_c_error ref_name_from_prefix(const struct OpenAPI_Spec *spec,
   /* LCOV_EXCL_START */
   if (!name || !*name) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (strchr(name, '/') != NULL) {
@@ -5648,35 +5412,23 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   if (src->ref_name) {
     dst->ref_name =
         (c_cdd_strdup(src->ref_name, &_ast_strdup_50), _ast_strdup_50);
-    /* LCOV_EXCL_START */
     if (!dst->ref_name)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_START */
   if (src->ref) {
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_51), _ast_strdup_51);
     /* LCOV_EXCL_START */
     if (!dst->ref)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (src->inline_type) {
     dst->inline_type =
         (c_cdd_strdup(src->inline_type, &_ast_strdup_52), _ast_strdup_52);
-    /* LCOV_EXCL_START */
     if (!dst->inline_type)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (src->type_union && src->n_type_union > 0) {
@@ -5692,24 +5444,16 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   /* LCOV_EXCL_START */
   if (src->format) {
     dst->format = (c_cdd_strdup(src->format, &_ast_strdup_53), _ast_strdup_53);
-    /* LCOV_EXCL_START */
     if (!dst->format)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (src->content_type) {
     dst->content_type =
         (c_cdd_strdup(src->content_type, &_ast_strdup_54), _ast_strdup_54);
-    /* LCOV_EXCL_START */
     if (!dst->content_type)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
@@ -5717,12 +5461,8 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->content_media_type =
         (c_cdd_strdup(src->content_media_type, &_ast_strdup_55),
          _ast_strdup_55);
-    /* LCOV_EXCL_START */
     if (!dst->content_media_type)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
@@ -5867,9 +5607,7 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       {
         int _rc = copy_any_value(&dst->examples[i], &src->examples[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -5907,9 +5645,7 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       {
         int _rc = copy_any_value(&dst->enum_values[i], &src->enum_values[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -6121,9 +5857,7 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         int _rc = copy_any_value(&dst->items_enum_values[i],
                                  &src->items_enum_values[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -6208,9 +5942,7 @@ static enum cdd_c_error copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         int _rc =
             copy_any_value(&dst->items_examples[i], &src->items_examples[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -6808,9 +6540,7 @@ static enum cdd_c_error copy_link_fields(struct OpenAPI_Link *dst,
         int _rc = copy_any_value(&dst->parameters[i].value,
                                  &src->parameters[i].value);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -7526,9 +7256,7 @@ copy_media_type_array(struct OpenAPI_MediaType **dst, size_t *dst_count,
                                             sizeof(struct OpenAPI_MediaType));
   /* LCOV_EXCL_START */
   if (!*dst)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
   *dst_count = src_count;
   for (i = 0; i < src_count; ++i) {
@@ -7689,9 +7417,7 @@ copy_response_fields(struct OpenAPI_Response *dst,
       {
         int _rc = copy_header_fields(dst_hdr, src_hdr);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -7974,9 +7700,7 @@ copy_callback_fields(struct OpenAPI_Callback *dst,
       {
         int _rc = copy_path_fields(&dst->paths[i], &src->paths[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -8290,9 +8014,7 @@ copy_operation_fields(struct OpenAPI_Operation *dst,
       {
         int _rc = copy_response_fields(&dst->responses[i], &src->responses[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -8468,9 +8190,7 @@ static enum cdd_c_error copy_path_fields(struct OpenAPI_Path *dst,
         int _rc =
             copy_operation_fields(&dst->operations[i], &src->operations[i]);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -9618,9 +9338,7 @@ parse_security_requirements(const JSON_Array *arr,
       count, sizeof(struct OpenAPI_SecurityRequirementSet));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   *out_count = count;
@@ -10433,9 +10151,7 @@ static enum cdd_c_error parse_schema_ref(const JSON_Object *schema,
       {
         int _rc = parse_discriminator_object(disc_obj, &out->discriminator);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -10447,9 +10163,7 @@ static enum cdd_c_error parse_schema_ref(const JSON_Object *schema,
       {
         int _rc = parse_xml_object(xml_obj, &out->xml);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -10681,17 +10395,13 @@ static enum cdd_c_error parse_schema_ref(const JSON_Object *schema,
         int _rc = parse_any_field(items, "const", &out->items_const_value,
                                   &out->items_const_value_set);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       {
         int _rc = parse_any_field(items, "default", &out->items_default_value,
                                   &out->items_default_value_set);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       if (collect_schema_extras(items, k_items_skip_keys,
                                 sizeof(k_items_skip_keys) /
@@ -11000,9 +10710,7 @@ static enum cdd_c_error sanitize_component_name(const char *name,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   for (i = 0; i < len; ++i) {
@@ -11461,9 +11169,7 @@ build_inline_request_name(const char *op_id, int is_item, char **_out_val) {
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -11493,9 +11199,7 @@ static enum cdd_c_error build_inline_response_name(const char *op_id,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -11530,9 +11234,7 @@ static enum cdd_c_error build_inline_param_name(const char *param_name,
   /* LCOV_EXCL_START */
   if (!out) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -12492,9 +12194,7 @@ static enum cdd_c_error parse_links_object(const JSON_Object *links,
       {
         int _rc = parse_link_object(link_obj, curr, spec, resolve_refs);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -12767,9 +12467,7 @@ static enum cdd_c_error parse_encoding_map(const JSON_Object *enc_obj,
       (struct OpenAPI_Encoding *)calloc(count, sizeof(struct OpenAPI_Encoding));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -13404,31 +13102,21 @@ static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
 
   ref = json_object_get_string(media_obj, "$ref");
   if (ref) {
-    /* LCOV_EXCL_START */
     out->ref = (c_cdd_strdup(ref, &_ast_strdup_241), _ast_strdup_241);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     /* LCOV_EXCL_START */
     if (!out->ref)
       return CDD_C_ERROR_MEMORY;
     /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     if (resolve_refs && spec) {
       const struct OpenAPI_MediaType *mt =
           (find_component_media_type(spec, ref,
-                                     /* LCOV_EXCL_STOP */
                                      &_ast_find_component_media_type_63),
            _ast_find_component_media_type_63);
-      /* LCOV_EXCL_START */
       if (mt) {
-        /* LCOV_EXCL_STOP */
         {
-          /* LCOV_EXCL_START */
           int _rc = copy_media_type_fields(out, mt);
           if (_rc != 0)
             return _rc;
-          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -13450,9 +13138,7 @@ static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
       {
         int _rc = parse_schema_ref(schema_obj, &out->schema, spec);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       out->schema_set = 1;
     }
@@ -13473,9 +13159,7 @@ static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
       {
         int _rc = parse_schema_ref(item_schema_obj, &out->item_schema, spec);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       out->item_schema_set = 1;
     }
@@ -13491,9 +13175,7 @@ static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
 
   prefix_encoding_arr = json_object_get_array(media_obj, "prefixEncoding");
   if (prefix_encoding_arr) {
-    /* LCOV_EXCL_START */
     int rc = parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
-                                  /* LCOV_EXCL_STOP */
                                   &out->n_prefix_encoding, spec, resolve_refs);
     /* LCOV_EXCL_START */
     if (rc != 0)
@@ -13517,9 +13199,7 @@ static enum cdd_c_error parse_media_type_object(const JSON_Object *media_obj,
     out->item_encoding_set = 1;
     /* LCOV_EXCL_STOP */
     {
-      /* LCOV_EXCL_START */
       int rc = parse_encoding_object(item_encoding_obj, out->item_encoding,
-                                     /* LCOV_EXCL_STOP */
                                      spec, resolve_refs);
       /* LCOV_EXCL_START */
       if (rc != 0)
@@ -13862,9 +13542,7 @@ static enum cdd_c_error parse_content_object(const JSON_Object *content,
                                             sizeof(struct OpenAPI_MediaType));
   /* LCOV_EXCL_START */
   if (!*out)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < count; ++i) {
@@ -14063,9 +13741,7 @@ parse_request_body_object(const JSON_Object *rb_obj,
           (c_cdd_strdup(desc, &_ast_strdup_244), _ast_strdup_244);
       /* LCOV_EXCL_START */
       if (!out_rb->description)
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
@@ -14314,7 +13990,6 @@ parse_request_body_object(const JSON_Object *rb_obj,
           int _rc = copy_any_value(&out_rb->example, &primary->example);
           if (_rc != 0)
             return _rc;
-          /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_START */
         out_rb->example_set = 1;
@@ -14878,9 +14553,7 @@ static enum cdd_c_error parse_responses(const JSON_Object *responses,
   count = json_object_get_count(responses);
   /* LCOV_EXCL_START */
   if (count == 0)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_STOP */
 
   {
@@ -15098,9 +14771,7 @@ parse_callbacks_object(const JSON_Object *callbacks,
       {
         int _rc = parse_callback_object(cb_obj, curr, spec, resolve_refs);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -15434,9 +15105,7 @@ parse_component_parameters(const JSON_Object *components,
         int _rc = parse_parameter_object(p_obj, &out->component_parameters[i],
                                          out, 0);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -15584,9 +15253,7 @@ static enum cdd_c_error parse_component_headers(const JSON_Object *components,
         int _rc =
             parse_header_object(h_obj, &out->component_headers[i], out, 0);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -15838,9 +15505,7 @@ static enum cdd_c_error parse_component_examples(const JSON_Object *components,
         int _rc = parse_example_object(ex_obj, name,
                                        &out->component_examples[i], out, 0);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -15982,9 +15647,7 @@ static enum cdd_c_error parse_component_callbacks(const JSON_Object *components,
       {
         int _rc = parse_callback_object(cb_obj, curr, out, 0);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -16530,9 +16193,7 @@ static enum cdd_c_error parse_paths_object(const JSON_Object *paths_obj,
       {
         int _rc = collect_extensions(p_obj, &curr_path->extensions_json);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       {
         int rc = parse_parameters_array(path_params, &curr_path->parameters,
@@ -16546,9 +16207,7 @@ static enum cdd_c_error parse_paths_object(const JSON_Object *paths_obj,
         int _rc = parse_servers_array(p_obj, "servers", &curr_path->servers,
                                       &curr_path->n_servers);
         if (_rc != 0)
-          /* LCOV_EXCL_START */
           return _rc;
-        /* LCOV_EXCL_STOP */
       }
       {
         int _rc = parse_additional_operations(p_obj, curr_path, spec);

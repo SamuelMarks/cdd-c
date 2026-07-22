@@ -271,6 +271,61 @@ TEST test_rewriter_body_bounds2(void) {
   PASS();
 }
 
+TEST test_propagate_void_stmt_return(void) {
+  const char *input = "void f() { do_work(); return ; }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {{"f", REF_VOID_TO_INT, NULL}};
+  struct SignatureTransform trans;
+  int rc;
+  trans.type = TRANSFORM_VOID_TO_INT;
+
+  rc = run_body_rewrite(input, funcs, 1, &trans, &output);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(output, "return 0;") != NULL);
+
+  free(output);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_propagate_void_stmt_transform(void) {
+  const char *input = "void f() { do_work(); }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {{"f", REF_VOID_TO_INT, NULL}};
+  struct SignatureTransform trans;
+  int rc;
+  trans.type = TRANSFORM_VOID_TO_INT;
+
+  rc = run_body_rewrite(input, funcs, 1, &trans, &output);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(output, "return CDD_C_SUCCESS;") != NULL);
+
+  free(output);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_propagate_nested_parens(void) {
+  const char *input = "void f() { char* tmp; inner ((1 + 2)); }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {{"inner", REF_PTR_TO_INT_OUT, "char *"}};
+  int rc;
+
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(output, "rc = inner((1 + 2));") != NULL ||
+         strstr(output, "rc = inner ((1 + 2));") != NULL ||
+         strstr(output, "rc = inner((1 + 2) , &tmp);") != NULL ||
+         strstr(output, "rc = inner ((1 + 2) , &tmp);") != NULL);
+
+  free(output);
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
   RUN_TEST(test_rewriter_body_bounds);
   RUN_TEST(test_propagate_void_stmt);
@@ -281,6 +336,10 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_realloc_safety_injection);
   RUN_TEST(test_rewriter_body_bounds2);
   RUN_TEST(test_rewriter_body_oom);
+
+  RUN_TEST(test_propagate_void_stmt_return);
+  RUN_TEST(test_propagate_void_stmt_transform);
+  RUN_TEST(test_propagate_nested_parens);
 }
 
 #ifdef __cplusplus

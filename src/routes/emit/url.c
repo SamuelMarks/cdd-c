@@ -14,7 +14,6 @@
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -180,12 +179,11 @@ querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
     return CDD_C_SUCCESS;
   if (!media_type_is_form_url(p->content_type))
     return CDD_C_SUCCESS;
-  /* LCOV_EXCL_START */
-  if (p->schema.ref_name)
+  if (p->schema.ref_name) {
     /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
-  /* LCOV_EXCL_STOP */
+    /* LCOV_EXCL_STOP */
+  }
   if (p->schema.inline_type && strcmp(p->schema.inline_type, "object") == 0)
     return CDD_C_ERROR_UNKNOWN;
   /* LCOV_EXCL_START */
@@ -247,9 +245,7 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!type) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
@@ -274,17 +270,13 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!p) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (!media_type_is_json_url(p->content_type)) {
@@ -303,9 +295,7 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!item_type) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
@@ -330,17 +320,13 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!p) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (!media_type_is_json_url(p->content_type)) {
@@ -359,9 +345,7 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!item_type) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
@@ -391,17 +375,13 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
   /* LCOV_EXCL_START */
   if (!p) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
@@ -458,12 +438,8 @@ enum cdd_c_error write_query_json_param(FILE *fp,
   const char *type;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
   if (!p->content_type || !media_type_is_json_url(p->content_type))
     /* LCOV_EXCL_START */
@@ -829,12 +805,8 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
   int allow_reserved;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   name = p->name ? p->name : "param";
@@ -1217,12 +1189,8 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
   const char *encode_fn;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   name = p->name ? p->name : "param";
@@ -1397,12 +1365,8 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
   const char *encode_fn = NULL;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p || !prefix || !delim)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   name = p->name ? p->name : "param";
@@ -1526,12 +1490,8 @@ write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
   const int do_encode = (encode_fn && encode_fn[0] != '\0');
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   name = p->name ? p->name : "param";
@@ -1634,12 +1594,8 @@ static enum cdd_c_error write_joined_query_array_encoded_delim(
   size_t delim_len;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !p || !delim_enc || !encode_fn)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   name = p->name ? p->name : "param";
@@ -1760,9 +1716,7 @@ static enum cdd_c_error parse_segments(const char *tmpl,
           /* LCOV_EXCL_START */
           if (!segs) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            /* LCOV_EXCL_START */
             return CDD_C_ERROR_MEMORY;
-            /* LCOV_EXCL_STOP */
           }
           /* LCOV_EXCL_STOP */
         }
@@ -1770,9 +1724,7 @@ static enum cdd_c_error parse_segments(const char *tmpl,
         segs[count].text = malloc(len + 1);
         /* LCOV_EXCL_START */
         if (!segs[count].text)
-          /* LCOV_EXCL_START */
           return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
         /* LCOV_EXCL_STOP */
         memcpy(segs[count].text, start, len);
         segs[count].text[len] = '\0';
@@ -1784,12 +1736,10 @@ static enum cdd_c_error parse_segments(const char *tmpl,
         /* LCOV_EXCL_START */
         if (!close) {
           size_t i;
-          /* LCOV_EXCL_START */
           for (i = 0; i < count; ++i)
             free(segs[i].text);
           free(segs);
           return CDD_C_ERROR_INVALID_ARGUMENT;
-          /* LCOV_EXCL_STOP */
         }
         /* LCOV_EXCL_STOP */
         {
@@ -1801,13 +1751,9 @@ static enum cdd_c_error parse_segments(const char *tmpl,
                 /* LCOV_EXCL_STOP */
                 segs, cap * sizeof(struct UrlSegment));
             /* LCOV_EXCL_START */
-            /* LCOV_EXCL_START */
             if (!segs) {
-              /* LCOV_EXCL_STOP */
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-              /* LCOV_EXCL_START */
               return CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
             /* LCOV_EXCL_STOP */
           }
@@ -1815,9 +1761,7 @@ static enum cdd_c_error parse_segments(const char *tmpl,
           segs[count].text = malloc(len + 1);
           /* LCOV_EXCL_START */
           if (!segs[count].text)
-            /* LCOV_EXCL_START */
             return CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
           /* LCOV_EXCL_STOP */
           memcpy(segs[count].text, start, len);
           segs[count].text[len] = '\0';
@@ -1831,23 +1775,15 @@ static enum cdd_c_error parse_segments(const char *tmpl,
     }
   }
   if (p > start) {
-    /* LCOV_EXCL_START */
     size_t len = p - start;
     if (count >= cap) {
       cap = (cap == 0) ? 8 : cap * 2;
-      /* LCOV_EXCL_STOP */
       segs =
-          /* LCOV_EXCL_START */
           (struct UrlSegment *)realloc(segs, cap * sizeof(struct UrlSegment));
-      /* LCOV_EXCL_STOP */
-      /* LCOV_EXCL_START */
       /* LCOV_EXCL_START */
       if (!segs) {
-        /* LCOV_EXCL_STOP */
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
       }
       /* LCOV_EXCL_STOP */
     }
@@ -1856,10 +1792,8 @@ static enum cdd_c_error parse_segments(const char *tmpl,
     segs[count].text = malloc(len + 1);
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
-    /* LCOV_EXCL_START */
     if (!segs[count].text)
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_STOP */
     /* LCOV_EXCL_START */
     memcpy(segs[count].text, start, len);
@@ -1896,12 +1830,8 @@ enum cdd_c_error codegen_url_write_builder(
       (config && config->out_variable) ? config->out_variable : "url";
 
   /* LCOV_EXCL_START */
-
   if (!fp || !path_template)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   if ((rc = parse_segments(path_template, &segs, &n_segs)) != 0) {
@@ -2117,12 +2047,8 @@ codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
   const struct OpenAPI_Parameter *querystring_param = NULL;
 
   /* LCOV_EXCL_START */
-
   if (!fp || !op)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
-
   /* LCOV_EXCL_STOP */
 
   for (i = 0; i < op->n_parameters; ++i) {
@@ -2845,5 +2771,3 @@ codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

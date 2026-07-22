@@ -385,6 +385,11 @@ TEST test_parse_declarator_more_edge_cases(void) {
   decl_info_free(&info);
   free_token_list(tl);
 
+  tl = setup_tokens("enum Name { A, B } *");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  decl_info_free(&info);
+  free_token_list(tl);
+
   tl = setup_tokens("struct { int a; } *");
   rc = parse_declaration(tl, 0, tl->size, &info);
   decl_info_free(&info);
@@ -405,7 +410,21 @@ TEST test_parse_declarator_more_edge_cases(void) {
   ASSERT_EQ(0, is_group);
   free_token_list(tl);
 
+  tl = setup_tokens("((int))");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_group));
+  ASSERT_EQ(1, is_group);
+  free_token_list(tl);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_grouping_paren(tl, 0, 0, NULL));
+  decl_info_free(NULL);
+
   tl = setup_tokens("int (*)(int)");
+  rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("int (*( *x() )())()");
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
   decl_info_free(&info);

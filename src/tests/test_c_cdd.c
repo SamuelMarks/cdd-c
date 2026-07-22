@@ -185,6 +185,7 @@ SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
 
 SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_e2e_complex_codebase);
+  RUN_TEST(test_ffi_ir_extract_exports_all_types);
   RUN_TEST(test_ffi_ir_extract_exports_basic);
   RUN_TEST(test_ffi_ir_extract_macros);
   RUN_TEST(test_ffi_ir_extract_templates);
@@ -205,6 +206,7 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_emit_typescript);
   RUN_TEST(test_ffi_ir_emit_napi);
   RUN_TEST(test_ffi_ir_emit_java);
+  RUN_TEST(test_ffi_emit_java_fopen_fail);
   RUN_TEST(test_ffi_ir_emit_cpp);
   RUN_TEST(test_ffi_ir_emit_go);
   RUN_TEST(test_ffi_ir_emit_swift);
