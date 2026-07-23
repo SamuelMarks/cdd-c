@@ -111,7 +111,7 @@ enum cdd_c_error struct_fields_init(struct StructFields *sf) {
   sf->size = 0;
   sf->capacity = 8;
 #ifdef CDD_BUILD_TESTS
-  if (g_struct_fields_init_fail) {
+  if (g_struct_fields_init_fail && --g_struct_fields_init_fail == 0) {
     sf->fields = NULL;
   } else {
 #endif
@@ -225,7 +225,7 @@ enum cdd_c_error struct_fields_add(struct StructFields *sf, const char *name,
     const size_t new_cap = sf->capacity * 2;
     struct StructField *new_arr;
 #ifdef CDD_BUILD_TESTS
-    if (g_struct_fields_add_fail) {
+    if (g_struct_fields_add_fail && --g_struct_fields_add_fail == 0) {
       new_arr = NULL;
     } else {
 #endif

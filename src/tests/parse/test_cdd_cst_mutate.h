@@ -50,9 +50,83 @@ TEST test_cdd_cst_mutate_replace(void) {
   rc = cdd_cst_clone_tree(tree, target, &clone);
   ASSERT_EQ(0, rc);
 
+#ifdef CDD_BUILD_TESTS
+  {
+    cdd_cst_node_t *clone_err = NULL;
+    int fails[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                   14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+    size_t j;
+    for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
+      g_cdd_cst_alloc_token_fail = fails[j];
+      rc = cdd_cst_clone_tree(tree, target, &clone_err);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc == 0) {
+        /* No failure means we ran out of allocations to fail */
+        if (clone_err)
+          cdd_cst_free_node(clone_err);
+      } else {
+        ASSERT(rc != 0);
+      }
+    }
+
+    extern int g_cdd_cst_realloc_fail;
+    for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
+      tree->synthesized_capacity =
+          tree->num_synthesized; /* force realloc on first token cloned */
+      g_cdd_cst_realloc_fail = fails[j];
+      rc = cdd_cst_clone_tree(tree, target, &clone_err);
+      g_cdd_cst_realloc_fail = 0;
+      if (rc == 0) {
+        if (clone_err)
+          cdd_cst_free_node(clone_err);
+      }
+    }
+
+    /* Test clone_trivia_list_mutate invalid arguments */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              clone_trivia_list_mutate(NULL, NULL));
+  }
+#endif
+
   /* Just test replace works without crashing and unparses */
   rc = cdd_cst_replace_node(tree, target, clone);
   ASSERT_EQ(0, rc);
+
+  /* Test find_first_token_mutate recursion */
+  {
+    cdd_cst_node_t *nested_parent;
+    cdd_cst_node_t *nested_child;
+    cdd_cst_node_t *replacement;
+    cdd_cst_node_t *grandparent;
+    cdd_token_t tok = {0};
+    tok.kind = CDD_TOKEN_IDENTIFIER;
+    tok.start = (const uint8_t *)"nested";
+    tok.length = 6;
+
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &grandparent);
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_parent);
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_child);
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &replacement);
+
+    cdd_cst_append_child_node(grandparent, nested_parent);
+    cdd_cst_append_child_node(nested_parent, nested_child);
+    cdd_cst_append_child_token(nested_child, &tok);
+
+    /* Dummy tree for replacement */
+    cdd_cst_tree_t *dummy_tree;
+    dummy_tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+    dummy_tree->root = grandparent;
+
+    /* replace nested_parent with replacement */
+    ASSERT_EQ(0, cdd_cst_replace_node(dummy_tree, nested_parent, replacement));
+
+    dummy_tree->root = NULL; /* prevent double free */
+    cdd_cst_tree_free(dummy_tree);
+    cdd_cst_free_node_only(nested_parent);
+    cdd_cst_free_node_only(nested_child);
+    cdd_cst_free_node_only(replacement);
+    cdd_cst_free_node_only(grandparent);
+  }
 
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
@@ -183,6 +257,13 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_insert_node_after(node, NULL));
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_insert_node_after(node, node2));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_child_node_at(NULL, 0, node2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_child_node_at(node, 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_insert_child_node_at(node, 100, node2));
 
   cdd_cst_tree_free(tree);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -436,9 +517,24 @@ TEST test_cdd_cst_insert_node_after_success(void) {
 
   ASSERT_EQ(0, cdd_cst_insert_node_after(child1, child2));
 
-  ASSERT_EQ(2, parent->num_children);
-  ASSERT_EQ(child1, parent->children[0].val.node);
-  ASSERT_EQ(child2, parent->children[1].val.node);
+  /* Capacity expansion */
+  {
+    cdd_cst_node_t *child3;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &child3);
+    parent->capacity = parent->num_children; /* Force expansion */
+    ASSERT_EQ(0, cdd_cst_insert_node_after(child1, child3));
+
+    parent->capacity = parent->num_children;
+    g_cdd_cst_realloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_insert_node_after(child1, child3));
+    g_cdd_cst_realloc_fail = 0;
+
+    ASSERT_EQ(3, parent->num_children);
+    ASSERT_EQ(child1, parent->children[0].val.node);
+    ASSERT_EQ(child3, parent->children[1].val.node);
+    ASSERT_EQ(child2, parent->children[2].val.node);
+    cdd_cst_free_node_only(child3);
+  }
 
   cdd_cst_free_node_only(parent);
   cdd_cst_free_node_only(child1);
@@ -478,6 +574,128 @@ TEST test_cdd_cst_insert_node_before_success(void) {
   PASS();
 }
 
+TEST test_cdd_cst_detach_node_success(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *parent = NULL;
+  cdd_cst_node_t *child1 = NULL;
+  cdd_cst_node_t *child2 = NULL;
+  cdd_cst_node_t *child3 = NULL;
+  cdd_token_t tok1 = {0}, tok2 = {0};
+  cdd_trivia_t triv1 = {0}, triv2 = {0};
+
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &parent);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &child1);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &child2);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &child3);
+
+  /* Add trivia to tokens so we hit 275 and 280 */
+  tok1.leading_trivia = &triv1;
+  tok2.trailing_trivia = &triv2;
+
+  cdd_cst_append_child_token(child2, &tok1);
+  cdd_cst_append_child_token(child2, &tok2);
+
+  cdd_cst_append_child_node(parent, child1);
+  cdd_cst_append_child_node(parent, child2);
+  cdd_cst_append_child_node(parent, child3);
+
+  /* Error checks */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(NULL, child2));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, NULL));
+
+  {
+    cdd_cst_node_t *orphan;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &orphan);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, orphan));
+
+    /* Make orphan have a parent but not in parent's children (simulate error in
+     * find_child_index_mutate) */
+    orphan->parent = parent;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, cdd_cst_detach_node(tree, orphan));
+
+    cdd_cst_free_node_only(orphan);
+  }
+
+  /* Remove middle child to hit memmove */
+  ASSERT_EQ(0, cdd_cst_detach_node(tree, child2));
+  ASSERT_EQ(2, parent->num_children);
+  ASSERT_EQ(child1, parent->children[0].val.node);
+  ASSERT_EQ(child3, parent->children[1].val.node);
+
+  /* Remove child with no tokens to hit find_first_token_mutate returning error
+   * -> first_tok = NULL */
+  ASSERT_EQ(0, cdd_cst_detach_node(tree, child1));
+
+  cdd_cst_free_node_only(child1);
+  cdd_cst_free_node_only(child2);
+  cdd_cst_free_node_only(child3);
+  cdd_cst_free_node_only(parent);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+TEST test_cdd_cst_remove_child_success(void) {
+  cdd_cst_node_t *parent;
+  cdd_cst_node_t *child1;
+  cdd_cst_node_t *child2;
+
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &child1);
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &child2);
+
+  cdd_cst_append_child_node(parent, child1);
+  cdd_cst_append_child_node(parent, child2);
+
+  ASSERT_EQ(0, cdd_cst_remove_child(parent, 0));
+  ASSERT_EQ(1, parent->num_children);
+  ASSERT_EQ(child2, parent->children[0].val.node);
+
+  ASSERT_EQ(0, cdd_cst_remove_child(parent, 0));
+  ASSERT_EQ(0, parent->num_children);
+
+  cdd_cst_free_node_only(parent);
+  cdd_cst_free_node_only(child1);
+  cdd_cst_free_node_only(child2);
+  PASS();
+}
+
+TEST test_cdd_cst_clone_trivia_list_mutate(void) {
+  cdd_trivia_t t1 = {0};
+  cdd_trivia_t t2 = {0};
+  cdd_trivia_t *out = NULL;
+
+  t1.kind = TRIVIA_NEWLINE;
+  t1.start = (const uint8_t *)"\n";
+  t1.length = 1;
+  t1.next = &t2;
+
+  t2.kind = TRIVIA_WHITESPACE;
+  t2.start = (const uint8_t *)"  ";
+  t2.length = 2;
+
+  /* Success */
+  ASSERT_EQ(0, clone_trivia_list_mutate(&t1, &out));
+  if (out) {
+    free(out->next);
+    free(out);
+    out = NULL;
+  }
+
+  /* Fail on first */
+#ifdef CDD_BUILD_TESTS
+  g_cdd_cst_alloc_token_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_trivia_list_mutate(&t1, &out));
+  g_cdd_cst_alloc_token_fail = 0;
+
+  /* Fail on second */
+  g_cdd_cst_alloc_token_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, clone_trivia_list_mutate(&t1, &out));
+  g_cdd_cst_alloc_token_fail = 0;
+#endif
+
+  PASS();
+}
+
 SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cdd_cst_mutate_replace);
   RUN_TEST(test_cdd_cst_mutate_errors);
@@ -487,6 +705,9 @@ SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cst_find_node_for_token);
   RUN_TEST(test_cdd_cst_insert_node_after_success);
   RUN_TEST(test_cdd_cst_insert_node_before_success);
+  RUN_TEST(test_cdd_cst_detach_node_success);
+  RUN_TEST(test_cdd_cst_remove_child_success);
+  RUN_TEST(test_cdd_cst_clone_trivia_list_mutate);
 }
 
 #ifdef __cplusplus

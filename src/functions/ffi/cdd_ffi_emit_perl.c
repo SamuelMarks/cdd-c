@@ -85,10 +85,8 @@ static void map_xs_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   if (t->pointer_depth > 0) {
     if ((t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) &&
         t->is_const) {
-      /* LCOV_EXCL_START */
       CDD_SNPRINTF(out_type, out_sz, "const char *");
       return;
-      /* LCOV_EXCL_STOP */
     }
     if (t->ref_name) {
       CDD_SNPRINTF(out_type, out_sz, "%s *", t->ref_name);
@@ -213,31 +211,25 @@ cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
                module_name);
   xs_f = fopen(xs_filepath, "w");
   if (!xs_f) {
-    /* LCOV_EXCL_START */
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
   CDD_SNPRINTF(make_filepath, sizeof(make_filepath), "%s/Makefile.PL",
                config->output_dir);
   make_f = fopen(make_filepath, "w");
   if (!make_f) {
-    /* LCOV_EXCL_START */
     fclose(f);
     fclose(xs_f);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
   CDD_SNPRINTF(typemap_filepath, sizeof(typemap_filepath), "%s/typemap",
                config->output_dir);
   typemap_f = fopen(typemap_filepath, "w");
   if (!typemap_f) {
-    /* LCOV_EXCL_START */
     fclose(f);
     fclose(xs_f);
     fclose(make_f);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 #endif
 

@@ -270,9 +270,7 @@ TEST test_cdd_lexer_oom(void) {
   g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
   if (tl)
-    /* LCOV_EXCL_START */
     cdd_lexer_free_token_list(tl);
-  /* LCOV_EXCL_STOP */
   tl = NULL;
 
   g_cdd_cst_alloc_token_fail = 4;
@@ -288,9 +286,7 @@ TEST test_cdd_lexer_oom(void) {
   g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t4);
   if (tl)
-    /* LCOV_EXCL_START */
     cdd_lexer_free_token_list(tl);
-  /* LCOV_EXCL_STOP */
   tl = NULL;
   g_fail_io_after = -1;
 

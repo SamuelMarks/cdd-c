@@ -777,9 +777,7 @@ TEST test_types_exhaustive_io(void) {
     rc = write_union_from_jsonObject_func(tmp, "MyUnion", &sf, &config);
     fclose(tmp);
     if (rc == 0)
-      /* LCOV_EXCL_START */
       break;
-    /* LCOV_EXCL_STOP */
   }
 
   free(sf.union_discriminator);

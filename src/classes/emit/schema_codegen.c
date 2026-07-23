@@ -97,7 +97,8 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     }                                                                          \
   } while (0)
 
-#define F_CHECK_RC(x)                                                          \
+#ifndef CDD_BUILD_TESTS
+#define F_CHECK_RC_TESTABLE(x)                                                 \
   do {                                                                         \
     int err = (x);                                                             \
     if (err != 0) {                                                            \
@@ -105,6 +106,19 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
       return err;                                                              \
     }                                                                          \
   } while (0)
+#else
+C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
+#define F_CHECK_RC_TESTABLE(x)                                                 \
+  do {                                                                         \
+    int err = (x);                                                             \
+    if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
+      err = CDD_C_ERROR_MEMORY;                                                \
+    if (err != 0) {                                                            \
+      fclose(fp);                                                              \
+      return err;                                                              \
+    }                                                                          \
+  } while (0)
+#endif
 
 /* Write Header Guard Start */
 static enum cdd_c_error print_header_guard(FILE *hfile, const char *basename) {
@@ -151,7 +165,7 @@ generate_header(const char *prefix, const char *basename,
   if (!fp)
     return CDD_C_ERROR_SYSTEM;
 
-  F_CHECK_RC(print_header_guard(fp, basename));
+  F_CHECK_RC_TESTABLE(print_header_guard(fp, basename));
   F_CHECK_IO(FPRINTF_HOOK(fp,
                           "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
                           "#include \"lib_export.h\"\n\n"
@@ -209,7 +223,7 @@ generate_header(const char *prefix, const char *basename,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_union || is_object_schema) {
-      F_CHECK_RC(write_forward_decl(fp, name));
+      F_CHECK_RC_TESTABLE(write_forward_decl(fp, name));
     }
     struct_fields_free(&sf);
   }
@@ -226,36 +240,32 @@ generate_header(const char *prefix, const char *basename,
     const JSON_Object *props = json_object_get_object(s, "properties");
 
     if (struct_fields_init(&sf) != 0) {
-      /* LCOV_EXCL_START */
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
-      /* LCOV_EXCL_START */
       struct_fields_free(&sf);
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
 
     is_object_schema =
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      F_CHECK_RC(write_enum_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE(write_enum_declaration_h(fp, name, &sf, config));
     } else if (sf.is_union) {
-      F_CHECK_RC(write_union_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE(write_union_declaration_h(fp, name, &sf, config));
     } else if (is_object_schema) {
-      F_CHECK_RC(write_struct_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE(write_struct_declaration_h(fp, name, &sf, config));
     }
 
     struct_fields_free(&sf);
   }
 
   F_CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
-  F_CHECK_RC(print_header_guard_end(fp, basename));
+  F_CHECK_RC_TESTABLE(print_header_guard_end(fp, basename));
   fclose(fp);
   return 0;
 }
@@ -324,10 +334,8 @@ generate_source(const char *prefix, const char *basename,
     int is_object_schema = 0;
 
     if (struct_fields_init(&sf) != 0) {
-      /* LCOV_EXCL_START */
       fclose(fp);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
         0) {
@@ -340,33 +348,42 @@ generate_source(const char *prefix, const char *basename,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      F_CHECK_RC(write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
-      F_CHECK_RC(
+      F_CHECK_RC_TESTABLE(
+          write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
+      F_CHECK_RC_TESTABLE(
           write_enum_from_str_func(fp, name, &sf.enum_members, &enum_cfg));
     } else if (sf.is_union) {
-      F_CHECK_RC(write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC(write_union_from_json_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC(write_union_to_json_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC(write_union_cleanup_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_union_from_json_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE(write_union_to_json_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE(write_union_cleanup_func(fp, name, &sf, &types_cfg));
     } else if (is_object_schema) {
-      F_CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
-      F_CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
-      F_CHECK_RC(write_struct_array_from_json_func(fp, name, &json_cfg));
-      F_CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
-      F_CHECK_RC(write_struct_to_form_urlencoded_func(fp, name, &sf));
+      F_CHECK_RC_TESTABLE(
+          write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
+      F_CHECK_RC_TESTABLE(write_struct_from_json_func(fp, name, &json_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_struct_array_from_json_func(fp, name, &json_cfg));
+      F_CHECK_RC_TESTABLE(write_struct_to_json_func(fp, name, &sf, &json_cfg));
+      F_CHECK_RC_TESTABLE(write_struct_to_form_urlencoded_func(fp, name, &sf));
       if (strcmp(name, "OAuth2Error") == 0) {
-        F_CHECK_RC(write_oauth2_error_parser_func(fp, name, &sf));
+        F_CHECK_RC_TESTABLE(write_oauth2_error_parser_func(fp, name, &sf));
       }
       if (strcmp(name, "JwtPayload") == 0) {
-        F_CHECK_RC(write_struct_from_jwt_func(fp, name, &sf));
+        F_CHECK_RC_TESTABLE(write_struct_from_jwt_func(fp, name, &sf));
       }
       if (strcmp(name, "OAuth2TokenResponse") == 0) {
-        F_CHECK_RC(write_struct_from_json_standalone_func(fp, name, &sf));
+        F_CHECK_RC_TESTABLE(
+            write_struct_from_json_standalone_func(fp, name, &sf));
       }
-      F_CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC(write_struct_default_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC(write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC(write_struct_eq_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_struct_default_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC_TESTABLE(
+          write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC_TESTABLE(write_struct_eq_func(fp, name, &sf, &struct_cfg));
     }
 
     struct_fields_free(&sf);
@@ -387,20 +404,12 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
   int i;
 
   if (argc < 2) {
-    /* LCOV_EXCL_START */
-    if (basename)
-      free(basename);
-    /* LCOV_EXCL_STOP */
     return CDD_C_ERROR_UNKNOWN;
   }
   schema_file = argv[0];
   prefix = argv[1];
   if (get_basename(prefix, &basename) != 0) {
-    /* LCOV_EXCL_START */
-    if (basename)
-      free(basename);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = 2; i < argc; ++i) {
@@ -415,8 +424,7 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
 
   root = json_parse_file(schema_file);
   if (!root) {
-    if (basename)
-      free(basename);
+    free(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 

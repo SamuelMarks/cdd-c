@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /**
  * @file initializer.c
  * @brief Implementation of the recursive descent initializer parser.
@@ -373,5 +372,3 @@ error:
   init_list_free(out);
   return rc;
 }
-
-/* LCOV_EXCL_STOP */

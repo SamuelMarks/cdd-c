@@ -84,11 +84,82 @@ TEST test_cdd_serve_json_rpc(void) {
   PASS();
 }
 
+extern volatile int g_ffi_extractor_alloc_fail;
+extern int g_cdd_ffi_ir_calloc_fail;
+
+TEST test_cdd_generate_bindings(void) {
+  cdd_generate_bindings_config_t config = {0};
+  FILE *f;
+  const char *langs[] = {
+      "python",      "rust",    "csharp", "typescript",  "napi",
+      "java",        "cpp",     "go",     "swift",       "dart",
+      "ruby",        "kotlin",  "php",    "lua",         "zig",
+      "odin",        "julia",   "r",      "matlab",      "haskell",
+      "ocaml",       "elixir",  "erlang", "common_lisp", "racket",
+      "scheme",      "scala",   "fsharp", "clojure",     "groovy",
+      "webassembly", "nim",     "vlang",  "dlang",       "perl",
+      "tcl",         "fortran", "delphi", "ada",         "objc",
+      "crystal",     "all",     "*"};
+  size_t i;
+
+  /* NULL config / args */
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(NULL));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
+
+  config.input = "nonexistent.c";
+  config.output_dir = "out_dir";
+  config.target_langs = "all";
+  /* Read file failure */
+  ASSERT_NEQ(0, cdd_generate_bindings(&config));
+
+  /* Create a valid dummy file */
+  f = fopen("test_dummy_bindings.h", "w");
+  if (f) {
+    fprintf(f, "/* dummy */\nstruct Point { int x; };\n");
+    fclose(f);
+  }
+
+  config.input = "test_dummy_bindings.h";
+
+  /* Extractor failure */
+  g_ffi_extractor_alloc_fail = 1;
+  ASSERT_NEQ(0, cdd_generate_bindings(&config));
+  g_ffi_extractor_alloc_fail = 0;
+
+  /* Sort failure */
+  g_cdd_ffi_ir_calloc_fail = 1;
+  ASSERT_NEQ(0, cdd_generate_bindings(&config));
+  g_cdd_ffi_ir_calloc_fail = 0;
+
+  /* Test failure branch (rc != 0) for each language */
+  config.output_dir = "nonexistent_dir_12345/nonexistent";
+  for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
+    config.target_langs = langs[i];
+    ASSERT_NEQ(0, cdd_generate_bindings(&config));
+  }
+
+  /* Test success branch for each language */
+  config.output_dir = ".";
+  for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
+    config.target_langs = langs[i];
+    int rc = cdd_generate_bindings(&config);
+    if (rc != 0) {
+      printf("Failed for language: %s, rc = %d\n", langs[i], rc);
+    }
+    ASSERT_EQ(0, rc);
+  }
+
+  remove("test_dummy_bindings.h");
+
+  PASS();
+}
+
 SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_from_openapi);
   RUN_TEST(test_cdd_generate_to_openapi);
   RUN_TEST(test_cdd_generate_docs_json);
   RUN_TEST(test_cdd_serve_json_rpc);
+  RUN_TEST(test_cdd_generate_bindings);
 }
 
 #ifdef __cplusplus

@@ -31,19 +31,13 @@ static enum cdd_c_error gen_url_code(const char *tmpl,
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
   if (codegen_url_write_builder(tmp, tmpl, params, n_params, NULL) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
   fseek(tmp, 0, SEEK_END);
@@ -67,19 +61,13 @@ static enum cdd_c_error gen_query_code(const struct OpenAPI_Operation *op,
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
   if (codegen_url_write_query_params(tmp, op, 0) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
   fseek(tmp, 0, SEEK_END);

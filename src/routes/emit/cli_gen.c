@@ -33,9 +33,7 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = malloc(512);
     if (!src_dir)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     get_dirname(config->filename_base, &dir_name);
     get_basename(config->filename_base, &base_name);
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");

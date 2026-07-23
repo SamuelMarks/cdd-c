@@ -12,10 +12,6 @@ static enum cdd_c_error alloc_block(cdd_cst_cfg_t *cfg,
                                     enum cdd_cst_cfg_block_kind_t kind,
                                     cdd_cst_cfg_block_t **out_block) {
   cdd_cst_cfg_block_t *block;
-  /* LCOV_EXCL_START */
-  if (!cfg || !out_block)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
     block = NULL;
@@ -100,11 +96,6 @@ static enum cdd_c_error build_block(cdd_cst_cfg_t *cfg,
   int rc;
   size_t i;
   int is_return = 0;
-
-  /* LCOV_EXCL_START */
-  if (!stmt)
-    return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 
   /* Check for return token inside the node */
   for (i = 0; i < stmt->num_children; i++) {

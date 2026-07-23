@@ -187,7 +187,7 @@ TEST test_orchestrator_edge_cases(void) {
       }
     }
     g_cdd_fail_alloc = 0;
-    
+
     for (i = 1; i < 100; ++i) {
       g_cdd_strdup_fail = i;
       orchestrate_fix("void A() { malloc(1); }\n"

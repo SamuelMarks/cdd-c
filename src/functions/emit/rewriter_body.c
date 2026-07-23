@@ -27,10 +27,8 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
                      const struct RefactoredFunction **_out_val) {
   size_t i;
   if (!funcs || !name) {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
   for (i = 0; i < func_count; ++i) {
     if (strcmp(funcs[i].name, name) == 0) {
@@ -53,10 +51,8 @@ static enum cdd_c_error extract_token_text(const struct Token *tok,
                                            char **_out_val) {
   char *s = malloc(tok->length + 1);
   if (!s) {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return 12;
-    /* LCOV_EXCL_STOP */
   }
   memcpy(s, tok->start, tok->length);
   s[tok->length] = '\0';
@@ -79,17 +75,13 @@ static enum cdd_c_error find_semicolon(const struct TokenList *tokens,
     }
     if (tokens->tokens[i].kind == TOKEN_LBRACE ||
         tokens->tokens[i].kind == TOKEN_RBRACE) {
-      /* LCOV_EXCL_START */
       *_out_val = tokens->size;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
   {
-    /* LCOV_EXCL_START */
     *_out_val = tokens->size;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -111,10 +103,8 @@ static enum cdd_c_error find_stmt_start(const struct TokenList *tokens,
     i--;
   }
   {
-    /* LCOV_EXCL_START */
     *_out_val = 0;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -129,10 +119,8 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
   char *buf, *p;
 
   if (start >= end) {
-    /* LCOV_EXCL_START */
     c_cdd_strdup("", _out_val);
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = start; i < end; ++i)
@@ -140,10 +128,8 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
 
   buf = malloc(len + 1);
   if (!buf) {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   p = buf;
@@ -188,19 +174,15 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
   }
 #endif
   if (patch_list_init(&patches) != 0) {
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 2. Apply Safety Strategies */
   if (allocs) {
     rc = strategy_inject_safety_checks(tokens, allocs, &patches);
     if (rc != 0) {
-      /* LCOV_EXCL_START */
       patch_list_free(&patches);
       return rc;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -220,9 +202,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
           size_t next = i + 1;
           while (next < tokens->size &&
                  tokens->tokens[next].kind == TOKEN_WHITESPACE) {
-            /* LCOV_EXCL_START */
             next++;
-            /* LCOV_EXCL_STOP */
           }
 
           if (next < tokens->size &&
@@ -240,9 +220,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
             k = lparen + 1;
             while (k < tokens->size && arg_depth > 0) {
               if (tokens->tokens[k].kind == TOKEN_LPAREN) {
-                /* LCOV_EXCL_START */
                 arg_depth++;
-                /* LCOV_EXCL_STOP */
               } else if (tokens->tokens[k].kind == TOKEN_RPAREN)
                 arg_depth--;
               k++;
@@ -308,11 +286,9 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                     };
                   } else {
                     {
-                      /* LCOV_EXCL_START */
                       char *tmp = NULL;
                       c_cdd_strdup("rc =", &tmp);
                       patch_list_add(&patches, lhs_start, eq_idx + 1, tmp);
-                      /* LCOV_EXCL_STOP */
                     };
                   }
 
@@ -331,9 +307,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                       sprintf_s(arg_append, strlen(lhs_name) + 10, "&%s",
                                 lhs_name);
 #else
-                      /* LCOV_EXCL_START */
                       sprintf(arg_append, "&%s", lhs_name);
-                      /* LCOV_EXCL_STOP */
 #endif
                     else
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -447,7 +421,6 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
     for (i = 0; i < tokens->size; ++i) {
       if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {
 
-        /* LCOV_EXCL_START */
         if (transform->type == TRANSFORM_VOID_TO_INT) {
           size_t next = i + 1;
           while (next < tokens->size &&
@@ -455,63 +428,46 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
             next++;
           if (next < tokens->size &&
               tokens->tokens[next].kind == TOKEN_SEMICOLON) {
-            /* LCOV_EXCL_STOP */
             {
-              /* LCOV_EXCL_START */
               char *tmp = NULL;
               c_cdd_strdup("return 0", &tmp);
               patch_list_add(&patches, i, next, tmp);
-              /* LCOV_EXCL_STOP */
             };
           }
-          /* LCOV_EXCL_START */
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
           size_t semi = 0;
           find_semicolon(tokens, i, &semi);
           if (semi < tokens->size) {
-            /* LCOV_EXCL_STOP */
             /* Fix: Check for inline unchecked alloc in return statement */
-            /* LCOV_EXCL_START */
             int contains_alloc = 0;
             if (allocs) {
-              /* LCOV_EXCL_STOP */
               size_t k;
-              /* LCOV_EXCL_START */
               for (k = 0; k < allocs->size; k++) {
-                /* LCOV_EXCL_STOP */
                 /* If site is between return and semicolon */
-                /* LCOV_EXCL_START */
                 if (allocs->sites[k].token_index > i &&
                     allocs->sites[k].token_index < semi) {
                   contains_alloc = 1;
                   break;
                 }
-                /* LCOV_EXCL_STOP */
               }
             }
 
-            /* LCOV_EXCL_START */
             if (contains_alloc) {
-              /* LCOV_EXCL_STOP */
               /* Transform: return malloc(...) -> { Type _safe_ret =
                * malloc(...); if(!_safe_ret) return CDD_C_ERROR_MEMORY; *out =
                * _safe_ret; return CDD_C_SUCCESS; } */
               /* Extract expr between return (i) and semi (inclusive of nothing,
                * wait range excludes return kw) */
-              /* LCOV_EXCL_START */
               char *expr = NULL;
               char *replacement = NULL;
               join_tokens_range(tokens, i + 1, semi, &expr);
-              /* LCOV_EXCL_STOP */
 
 #ifdef HAVE_ASPRINTF
-              /* LCOV_EXCL_START */
               asprintf(&replacement,
                        "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
                        "_safe_ret; return %s; }",
                        transform->return_type, expr, transform->error_code,
                        transform->arg_name, transform->success_code);
-              /* LCOV_EXCL_STOP */
 #else
               replacement = malloc(strlen(expr) + 256);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -529,25 +485,19 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
 #endif
 #endif
               /* Replace entire statement "return ...;" */
-              /* LCOV_EXCL_START */
               patch_list_add(&patches, i, semi + 1, replacement);
               free(expr);
-              /* LCOV_EXCL_STOP */
             } else {
               /* Replace return val; -> *out = val; return CDD_C_SUCCESS; */
               {
-                /* LCOV_EXCL_START */
                 char *tmp = NULL;
                 c_cdd_strdup("*out =", &tmp);
                 patch_list_add(&patches, i, i + 1, tmp);
-                /* LCOV_EXCL_STOP */
               };
               {
-                /* LCOV_EXCL_START */
                 char *tmp = NULL;
                 c_cdd_strdup("; return CDD_C_SUCCESS;", &tmp);
                 patch_list_add(&patches, semi, semi + 1, tmp);
-                /* LCOV_EXCL_STOP */
               };
             }
           }
@@ -555,12 +505,10 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
       }
     }
 
-    /* LCOV_EXCL_START */
     if (transform->type == TRANSFORM_VOID_TO_INT && tokens->size > 0) {
       size_t last = tokens->size - 1;
       while (last > 0 && tokens->tokens[last].kind != TOKEN_RBRACE)
         last--;
-      /* LCOV_EXCL_STOP */
 
       if (tokens->tokens[last].kind == TOKEN_RBRACE) {
         size_t prev_stmt = last;
@@ -571,22 +519,16 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
             has_ret = 1;
             break;
           }
-          /* LCOV_EXCL_START */
           if (tokens->tokens[prev_stmt].kind == TOKEN_SEMICOLON ||
               tokens->tokens[prev_stmt].kind == TOKEN_RBRACE ||
               tokens->tokens[prev_stmt].kind == TOKEN_LBRACE)
             break;
-          /* LCOV_EXCL_STOP */
         }
-        /* LCOV_EXCL_START */
         if (!has_ret) {
-          /* LCOV_EXCL_STOP */
           {
-            /* LCOV_EXCL_START */
             char *tmp = NULL;
             c_cdd_strdup(" return CDD_C_SUCCESS; ", &tmp);
             patch_list_add(&patches, last, last, tmp);
-            /* LCOV_EXCL_STOP */
           };
         }
       }

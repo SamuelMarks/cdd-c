@@ -604,13 +604,28 @@ TEST test_struct_exhaustive_io(void) {
 }
 
 TEST test_struct_fields_init_oom(void) {
-  struct StructFields sf;
-  struct StructField *f = NULL;
+  struct StructFields sf = {0};
+  struct StructField *f_ptr = NULL;
   char *val = NULL;
 #ifdef CDD_BUILD_TESTS
   g_struct_fields_init_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, struct_fields_init(&sf));
+  struct_fields_free(&sf); /* hit sf->fields == NULL branch */
   g_struct_fields_init_fail = 0;
+
+  g_struct_fields_add_fail = 2;
+  ASSERT_EQ(0, struct_fields_init(&sf));
+
+  sf.capacity = 1;
+  sf.size = 1;
+  ASSERT_EQ(0, struct_fields_add(&sf, "a", "b", NULL, NULL, NULL));
+
+  sf.capacity = sf.size;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            struct_fields_add(&sf, "c", "d", NULL, NULL, NULL));
+
+  g_struct_fields_add_fail = 0;
+  struct_fields_free(&sf);
 #endif
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, struct_fields_init(NULL));
@@ -622,8 +637,8 @@ TEST test_struct_fields_init_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             struct_fields_add(&sf, "a", NULL, NULL, NULL, NULL));
 
-  ASSERT_EQ(0, struct_fields_get(NULL, "a", &f));
-  ASSERT_EQ(0, struct_fields_get(&sf, NULL, &f));
+  ASSERT_EQ(0, struct_fields_get(NULL, "a", &f_ptr));
+  ASSERT_EQ(0, struct_fields_get(&sf, NULL, &f_ptr));
 
   /* Test get_type_from_ref null */
   ASSERT_EQ(0, get_type_from_ref(NULL, &val));

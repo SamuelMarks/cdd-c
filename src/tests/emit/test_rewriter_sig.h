@@ -27,9 +27,7 @@ static enum cdd_c_error test_rewrite(const char *input, const char *expected) {
   const az_span source = az_span_create_from_str((char *)input);
 
   if (tokenize(source, &tl) != 0)
-    /* LCOV_EXCL_START */
     return -1;
-  /* LCOV_EXCL_STOP */
 
   rc = rewrite_signature(tl, &output);
   if (rc != 0) {
@@ -38,12 +36,10 @@ static enum cdd_c_error test_rewrite(const char *input, const char *expected) {
   }
 
   if (output == NULL || strcmp(output, expected) != 0) {
-    /* LCOV_EXCL_START */
     fprintf(stderr, "\nExpected: '%s'\nGot:      '%s'\n", expected,
             output ? output : "(null)");
     free(output);
     free_token_list(tl);
-    /* LCOV_EXCL_STOP */
     return 1; /* Fail */
   }
 

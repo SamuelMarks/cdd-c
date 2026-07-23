@@ -50,18 +50,14 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
   struct OpenAPI_Path *new_arr;
 
   if (!paths || !n_paths || !route || !out_ptr)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   new_count = *n_paths + 1;
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   *paths = new_arr;
@@ -73,9 +69,7 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
 
   (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
   if (!(*out_ptr)->route)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -90,18 +84,14 @@ static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
   size_t new_count;
 
   if (!ops || !count || !op)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   new_count = *count + 1;
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   *ops = new_ops;
@@ -132,9 +122,7 @@ openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
   if (!target_path) {
     rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != 0)
-      /* LCOV_EXCL_START */
       return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 2. Check for duplicate verbs types?
@@ -169,9 +157,7 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   int rc;
 
   if (!spec || !route || !op) {
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
   }
 
   target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
@@ -181,16 +167,12 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
     rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
                              &target_path);
     if (rc != 0)
-      /* LCOV_EXCL_START */
       return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   if (op->is_additional) {
-    /* LCOV_EXCL_START */
     return append_operation(&target_path->additional_operations,
                             &target_path->n_additional_operations, op);
-    /* LCOV_EXCL_STOP */
   }
   return append_operation(&target_path->operations, &target_path->n_operations,
                           op);

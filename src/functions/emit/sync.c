@@ -78,17 +78,11 @@ enum cdd_c_error sync_code_main(int argc, char **argv) {
   if (!out) {
     type_def_list_free(&types);
     if (errno == ENOENT)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_NOT_FOUND;
-    /* LCOV_EXCL_STOP */
     if (errno == ENOMEM)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     if (errno == EINVAL)
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
     return CDD_C_ERROR_IO;
   }
 
@@ -164,34 +158,24 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
   /* Init structures */
   rc = func_sig_list_init(&sigs);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
   rc = patch_list_init(&patches);
   if (rc != 0) {
-    /* LCOV_EXCL_START */
     func_sig_list_free(&sigs);
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 1. Extract signatures from implementation source code */
   if ((rc = c_inspector_extract_signatures(refactored_source, &sigs)) != 0) {
-    /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 2. Read and Tokenize Header */
   if ((rc = read_to_file(header_path, "r", &hdr_content, &hdr_sz)) != 0) {
-    /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
   if ((rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens)) != 0) {
-    /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 3. Match signatures and build patches */
@@ -210,9 +194,7 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
         size_t next = k + 1;
         while (next < hdr_tokens->size &&
                hdr_tokens->tokens[next].kind == TOKEN_WHITESPACE)
-          /* LCOV_EXCL_START */
           next++;
-        /* LCOV_EXCL_STOP */
 
         if (next < hdr_tokens->size &&
             hdr_tokens->tokens[next].kind == TOKEN_LPAREN) {
@@ -261,9 +243,7 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
 
   /* 4. Apply Patches */
   if ((rc = patch_list_apply(&patches, hdr_tokens, &new_header)) != 0) {
-    /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
 
   /* 5. Write Patch */
@@ -279,15 +259,11 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
       fputs(new_header, fp);
       fclose(fp);
     } else {
-      /* LCOV_EXCL_START */
       rc = CDD_C_ERROR_SYSTEM ? errno : EIO;
-      /* LCOV_EXCL_STOP */
     }
   }
 
-/* LCOV_EXCL_START */
 cleanup:
-  /* LCOV_EXCL_STOP */
   func_sig_list_free(&sigs);
   patch_list_free(&patches);
   free_token_list(hdr_tokens);

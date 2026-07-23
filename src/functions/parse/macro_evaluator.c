@@ -111,9 +111,7 @@ static void next_tok(macro_lexer_t *lex) {
         char ch = lex->str[lex->pos];
         if (ch == 'u' || ch == 'U' || ch == 'l' || ch == 'L' || ch == 'f' ||
             ch == 'F')
-          /* LCOV_EXCL_START */
           lex->pos++;
-        /* LCOV_EXCL_STOP */
         else
           break;
       }
@@ -122,10 +120,8 @@ static void next_tok(macro_lexer_t *lex) {
         size_t len = lex->pos - start;
         char *buf = (char *)malloc(len + 1);
         if (!buf) {
-          /* LCOV_EXCL_START */
           lex->cur.kind = TOK_ERROR;
           return;
-          /* LCOV_EXCL_STOP */
         }
         memcpy(buf, lex->str + start, len);
         buf[len] = '\0';
@@ -160,9 +156,7 @@ static void next_tok(macro_lexer_t *lex) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
         } else {
-          /* LCOV_EXCL_START */
           lex->cur.kind = TOK_ERROR;
-          /* LCOV_EXCL_STOP */
         }
       }
       return;
@@ -176,18 +170,14 @@ static void next_tok(macro_lexer_t *lex) {
         lex->pos++;
       }
       if (lex->pos < lex->len) {
-        /* LCOV_EXCL_START */
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_STR;
         lex->cur.str_val = (char *)malloc(len + 1);
         if (lex->cur.str_val) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
-          /* LCOV_EXCL_STOP */
         }
-        /* LCOV_EXCL_START */
         lex->pos++;
-        /* LCOV_EXCL_STOP */
       } else {
         lex->cur.kind = TOK_ERROR;
       }
@@ -266,9 +256,7 @@ static void next_tok(macro_lexer_t *lex) {
         lex->pos++;
         lex->cur.kind = TOK_EQEQ;
       } else {
-        /* LCOV_EXCL_START */
         lex->cur.kind = TOK_ERROR;
-        /* LCOV_EXCL_STOP */
       }
       return;
     case '!':
@@ -331,10 +319,8 @@ static cdd_macro_eval_result_t make_float(double v) {
 
 static void promote(cdd_macro_eval_result_t *a, cdd_macro_eval_result_t *b) {
   if (a->type == MACRO_EVAL_TYPE_FLOAT && b->type == MACRO_EVAL_TYPE_INT) {
-    /* LCOV_EXCL_START */
     b->type = MACRO_EVAL_TYPE_FLOAT;
     b->float_val = (double)b->int_val;
-    /* LCOV_EXCL_STOP */
   } else if (a->type == MACRO_EVAL_TYPE_INT &&
              b->type == MACRO_EVAL_TYPE_FLOAT) {
     a->type = MACRO_EVAL_TYPE_FLOAT;
@@ -565,10 +551,8 @@ static cdd_macro_eval_result_t parse_multiplicative(parser_t *p) {
 
 static cdd_macro_eval_result_t parse_unary(parser_t *p) {
   if (p->lex.cur.kind == TOK_PLUS) {
-    /* LCOV_EXCL_START */
     next_tok(&p->lex);
     return parse_unary(p);
-    /* LCOV_EXCL_STOP */
   }
   if (p->lex.cur.kind == TOK_MINUS) {
     cdd_macro_eval_result_t r;
@@ -614,11 +598,9 @@ static cdd_macro_eval_result_t parse_primary(parser_t *p) {
     r = make_float(p->lex.cur.float_val);
     next_tok(&p->lex);
   } else if (p->lex.cur.kind == TOK_STR) {
-    /* LCOV_EXCL_START */
     r.type = MACRO_EVAL_TYPE_STRING;
     r.str_val = strdup(p->lex.cur.str_val);
     next_tok(&p->lex);
-    /* LCOV_EXCL_STOP */
   } else if (p->lex.cur.kind == TOK_IDENT) {
     /* macro reference */
     struct MacroDef *def = NULL;
@@ -636,9 +618,7 @@ static cdd_macro_eval_result_t parse_primary(parser_t *p) {
       if (cdd_macro_evaluate(p->ctx, def->value, &ref_res) == 0) {
         r = ref_res;
       } else {
-        /* LCOV_EXCL_START */
         p->err = 1;
-        /* LCOV_EXCL_STOP */
       }
     } else {
       /* Unknown identifier, typical C preprocessor treats it as 0 */
@@ -679,9 +659,7 @@ enum cdd_c_error cdd_macro_evaluate(struct PreprocessorContext *ctx,
   next_tok(&p.lex);
 
   if (p.lex.cur.kind == TOK_EOF) {
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
   }
 
   r = parse_expr(&p);
@@ -699,9 +677,7 @@ enum cdd_c_error cdd_macro_evaluate(struct PreprocessorContext *ctx,
 
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
   if (result && result->str_val) {
-    /* LCOV_EXCL_START */
     free(result->str_val);
     result->str_val = NULL;
-    /* LCOV_EXCL_STOP */
   }
 }

@@ -28,9 +28,7 @@ static enum cdd_c_error find_allocs(const char *code,
   const az_span source = az_span_create_from_str((char *)code);
 
   if (tokenize(source, &tl) != 0)
-    /* LCOV_EXCL_START */
     return -1;
-  /* LCOV_EXCL_STOP */
 
   rc = find_allocations(tl, sites);
   free_token_list(tl);

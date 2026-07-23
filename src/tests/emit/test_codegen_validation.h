@@ -30,20 +30,14 @@ gen_parse_code(const char *name, struct StructFields *sf, char **_out_val) {
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
 
   if (write_struct_from_jsonObject_func(tmp, name, sf, NULL) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
 

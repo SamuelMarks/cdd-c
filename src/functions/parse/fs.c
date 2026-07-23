@@ -107,7 +107,6 @@ static enum cdd_c_error errno_to_cdd_error(int err) {
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -1075,5 +1074,3 @@ enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

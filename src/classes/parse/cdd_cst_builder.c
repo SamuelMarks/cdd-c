@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /* clang-format off */
 #include "cdd_cst_builder.h"
 #include "cdd_cst_factory.h"
@@ -83,10 +82,8 @@ enum cdd_c_error cdd_cst_bld_token(cdd_cst_builder_t *builder,
 
   rc = cdd_cst_append_child_token(builder->target_node, tok);
   if (rc != 0) {
-    /* LCOV_EXCL_START */
     builder->error_state = rc;
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   return CDD_C_SUCCESS;
@@ -143,10 +140,8 @@ enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   {
     enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
     if (pool_rc != CDD_C_SUCCESS) {
-      /* LCOV_EXCL_START */
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
   }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
@@ -217,10 +212,8 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
         const char *pooled = NULL;
         enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return pool_rc;
-          /* LCOV_EXCL_STOP */
         }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
       }
@@ -235,9 +228,7 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
         const char *pooled = NULL;
         enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           return pool_rc;
-          /* LCOV_EXCL_STOP */
         }
         rc = cdd_cst_bld_string(builder, pooled);
       }
@@ -382,40 +373,30 @@ static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
-  /* LCOV_EXCL_START */
   if (!out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_str = NULL;
 #ifdef CDD_BUILD_TESTS
-  /* LCOV_EXCL_START */
-  if (g_cdd_cst_alloc_token_fail)
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
 #endif
-  /* LCOV_EXCL_START */
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-    /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER)
   dup = _strdup(str);
 #else
   dup = strdup(str);
 #endif
-  /* LCOV_EXCL_START */
   if (!dup)
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
         (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      /* LCOV_EXCL_START */
       free(dup);
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     tree->string_pool = new_pool;
     tree->string_capacity = new_cap;
@@ -440,10 +421,8 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
   span = az_span_create_from_str((char *)snippet);
   rc = cdd_lexer_tokenize(span, &list);
   if (rc != 0) {
-    /* LCOV_EXCL_START */
     builder->error_state = rc;
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = 0; i < list->size; i++) {
@@ -460,17 +439,13 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
       {
         enum cdd_c_error pool_rc = pool_string(builder->tree, tok_buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           rc = CDD_C_ERROR_MEMORY;
           break;
-          /* LCOV_EXCL_STOP */
         }
       }
       rc = cdd_cst_bld_token(builder, t->kind, pooled);
       if (rc != 0)
-        /* LCOV_EXCL_START */
         break;
-      /* LCOV_EXCL_STOP */
       {
         cdd_token_t *last = NULL;
         get_last_token(builder->target_node, &last);
@@ -515,9 +490,7 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
 
   cdd_lexer_free_token_list(list);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     builder->error_state = rc;
-  /* LCOV_EXCL_STOP */
   return rc;
 }
 
@@ -548,9 +521,7 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
           rc = cdd_cst_bld_snippet(builder, snippet_buf);
           snippet_len = 0;
           if (rc != 0)
-            /* LCOV_EXCL_START */
             break;
-          /* LCOV_EXCL_STOP */
         }
 
         if (*p == 's') {
@@ -566,9 +537,7 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
           }
         }
         if (rc != 0)
-          /* LCOV_EXCL_START */
           break;
-        /* LCOV_EXCL_STOP */
       }
     } else {
       if (snippet_len < sizeof(snippet_buf) - 1) {
@@ -577,18 +546,14 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
     }
   }
 
-  /* LCOV_EXCL_START */
   if (rc == 0 && snippet_len > 0) {
     snippet_buf[snippet_len] = '\0';
     rc = cdd_cst_bld_snippet(builder, snippet_buf);
   }
-  /* LCOV_EXCL_STOP */
 
   va_end(args);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     builder->error_state = rc;
-  /* LCOV_EXCL_STOP */
   return rc;
 }
 
@@ -606,14 +571,12 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
   extern int g_cdd_cst_alloc_token_fail;
 #endif
   cdd_trivia_t *t;
-  char *dup;
-  /* LCOV_EXCL_START */
+  const char *dup;
   if (!tree || !text || !out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_trivia = NULL;
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail)
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
     t = NULL;
   else
 #endif
@@ -623,42 +586,13 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-#if defined(_MSC_VER)
-  dup = _strdup(text);
-#else
-  dup = strdup(text);
-#endif
-  /* LCOV_EXCL_START */
-  if (!dup) {
+  enum cdd_c_error pool_rc = pool_string(tree, text, (const char **)&dup);
+  if (pool_rc != CDD_C_SUCCESS) {
     free(t);
-    return CDD_C_ERROR_MEMORY;
+    return pool_rc;
   }
-  /* LCOV_EXCL_STOP */
 
-  if (tree->num_strings >= tree->string_capacity) {
-    size_t new_cap =
-        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-    char **new_pool =
-        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
-    /* LCOV_EXCL_START */
-    if (!new_pool) {
-      free(dup);
-      free(t);
-      return CDD_C_ERROR_MEMORY;
-    }
-    /* LCOV_EXCL_STOP */
-    tree->string_pool = new_pool;
-    tree->string_capacity = new_cap;
-  }
-  tree->string_pool[tree->num_strings++] = dup;
-
-  t->kind = TRIVIA_WHITESPACE;
-  if (text[0] == '\n')
-    t->kind = TRIVIA_NEWLINE; /* LCOV_EXCL_LINE */
-  else if (text[0] == '/' && text[1] == '/')
-    t->kind = TRIVIA_LINE_COMMENT; /* LCOV_EXCL_LINE */
-  else if (text[0] == '/' && text[1] == '*')
-    t->kind = TRIVIA_BLOCK_COMMENT;
+  t->kind = TRIVIA_BLOCK_COMMENT;
 
   t->start = (const uint8_t *)dup;
   t->length = strlen(dup);
@@ -697,11 +631,9 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
       /* append as trailing trivia */
       if (target_tok->trailing_trivia) {
         cdd_trivia_t *tail = target_tok->trailing_trivia;
-        /* LCOV_EXCL_START */
         while (tail->next)
           tail = tail->next;
         tail->next = trivia;
-        /* LCOV_EXCL_STOP */
       } else {
         target_tok->trailing_trivia = trivia;
       }
@@ -717,10 +649,8 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
     enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
     int rc;
     if (pool_rc != CDD_C_SUCCESS) {
-      /* LCOV_EXCL_START */
       free(trivia);
       return pool_rc;
-      /* LCOV_EXCL_STOP */
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
     free(trivia); /* since it became a real token via string pool mapping */
@@ -731,16 +661,13 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
 static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
                                         cdd_token_t **out_tok) {
   size_t i;
-  /* LCOV_EXCL_START */
   if (!node || !out_tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_tok = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_START */
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
       if (get_first_token(node->children[i].val.node, &t) == 0 && t) {
@@ -748,7 +675,6 @@ static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
         return CDD_C_SUCCESS;
       }
     }
-    /* LCOV_EXCL_STOP */
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
@@ -756,16 +682,13 @@ static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
 static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
                                        cdd_token_t **out_tok) {
   int i;
-  /* LCOV_EXCL_START */
   if (!node || !out_tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_tok = NULL;
   for (i = (int)node->num_children - 1; i >= 0; i--) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_START */
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
       if (get_last_token(node->children[i].val.node, &t) == 0 && t) {
@@ -773,7 +696,6 @@ static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
         return CDD_C_SUCCESS;
       }
     }
-    /* LCOV_EXCL_STOP */
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
@@ -786,10 +708,8 @@ enum cdd_c_error cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
   *out_trivia = NULL;
   get_first_token(node, &t);
   if (t) {
-    /* LCOV_EXCL_START */
     *out_trivia = t->leading_trivia;
     t->leading_trivia = NULL;
-    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -802,10 +722,8 @@ enum cdd_c_error cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
   *out_trivia = NULL;
   get_last_token(node, &t);
   if (t) {
-    /* LCOV_EXCL_START */
     *out_trivia = t->trailing_trivia;
     t->trailing_trivia = NULL;
-    /* LCOV_EXCL_STOP */
   }
   return CDD_C_SUCCESS;
 }
@@ -826,7 +744,6 @@ enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   get_first_token(target_node, &t_first);
   get_last_token(target_node, &t_last);
 
-  /* LCOV_EXCL_START */
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
     while (tail->next)
@@ -836,9 +753,7 @@ enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   } else if (lead) {
     /* Leak / Lost trivia if target has no tokens */
   }
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (trail && t_last) {
     if (t_last->trailing_trivia) {
       cdd_trivia_t *tail = t_last->trailing_trivia;
@@ -851,7 +766,6 @@ enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   } else if (trail) {
     /* Leak / Lost trivia if target has no tokens */
   }
-  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -895,7 +809,7 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
 #ifdef CDD_BUILD_TESTS
   {
     extern int g_cdd_cst_alloc_token_fail;
-    if (g_cdd_cst_alloc_token_fail)
+    if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
       children_wrappers = NULL;
     else
       children_wrappers =
@@ -924,5 +838,3 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   }
   return rc;
 }
-
-/* LCOV_EXCL_STOP */

@@ -29,9 +29,7 @@ static enum cdd_c_error setup_patch_tokens(const char *code,
   int rc = tokenize(az_span_create_from_str((char *)code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
   {
     *_out_val = tl;

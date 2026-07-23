@@ -30,15 +30,11 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (tokenize(source, &tl) != 0)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   if (find_allocations(tl, &sites) != 0) {
-    /* LCOV_EXCL_START */
     free_token_list(tl);
     return CDD_C_ERROR_PARSE;
-    /* LCOV_EXCL_STOP */
   }
 
   rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);

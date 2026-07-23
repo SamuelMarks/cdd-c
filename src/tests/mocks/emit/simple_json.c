@@ -75,10 +75,8 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
       len = vsnprintf(NULL, 0, fmt, ap2);
       va_end(ap2);
       if (len < 0) {
-/* LCOV_EXCL_START */
         va_end(ap);
         return -1;
-/* LCOV_EXCL_STOP */
       }
       if (*strp == NULL) {
         new_str = malloc(len + 1);
@@ -116,7 +114,7 @@ static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
     if (*s1 == NULL)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     return CDD_C_SUCCESS;
   }
   {
@@ -124,7 +122,7 @@ static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
     size_t i;
     *s1 = malloc((n + 3) * sizeof(char));
     if (*s1 == NULL)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     (*s1)[0] = '"';
     for (i = 0; i < n; ++i)
       (*s1)[i + 1] = s[i];
@@ -136,9 +134,7 @@ static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
 
 static enum cdd_c_error c_str_eq(const char *const s0, const char *const s1) {
   return ((s0 == NULL && s1 == NULL) ||
-          /* LCOV_EXCL_START */
           (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
-             /* LCOV_EXCL_STOP */
              ? 0
              : 1;
 }
@@ -156,23 +152,22 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
   case Tank_BIG:
     *str = strdup("BIG");
     if (!*str)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_SMALL:
     *str = strdup("SMALL");
     if (!*str)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_UNKNOWN:
   default:
     *str = strdup("UNKNOWN");
     if (!*str)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
   }
 
   if (*str == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
-
+    return CDD_C_ERROR_MEMORY;
   return CDD_C_SUCCESS;
 }
 
@@ -206,7 +201,7 @@ enum cdd_c_error HazE_default(struct HazE **haz_e) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *haz_e = malloc(sizeof(**haz_e));
   if (*haz_e == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
   Tank_default(&(*haz_e)->tank);
   (*haz_e)->bzr = NULL;
   return CDD_C_SUCCESS;
@@ -222,7 +217,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *const haz_e_original,
   }
   *haz_e_dest = malloc(sizeof(**haz_e_dest));
   if (*haz_e_dest == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
 
   if (haz_e_original->bzr == NULL) {
     (*haz_e_dest)->bzr = NULL;
@@ -231,7 +226,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *const haz_e_original,
     if ((*haz_e_dest)->bzr == NULL) {
       free(*haz_e_dest);
       *haz_e_dest = NULL;
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     }
   }
   (*haz_e_dest)->tank = haz_e_original->tank;
@@ -248,9 +243,7 @@ enum cdd_c_error HazE_display(const struct HazE *const haz_e, FILE *fh) {
   rc = fprintf(fh, "%s\n", s);
   if (rc >= 0) {
     if (fflush(fh) != 0)
-      /* LCOV_EXCL_START */
       rc = -1;
-    /* LCOV_EXCL_STOP */
     else
       rc = 0;
   }
@@ -266,9 +259,7 @@ enum cdd_c_error HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   }
   rc = fputs("struct HazE dbg = {\n", fh);
   if (rc < 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
   {
     char *quoted = NULL;
     rc = quote_or_null(haz_e->bzr, &quoted);
@@ -277,15 +268,11 @@ enum cdd_c_error HazE_debug(const struct HazE *const haz_e, FILE *fh) {
     rc = fprintf(fh, "  /* const char * */ bzr = %s,\n", quoted);
     free(quoted);
     if (rc < 0)
-      /* LCOV_EXCL_START */
       return rc;
-    /* LCOV_EXCL_STOP */
   }
   rc = fprintf(fh, "  /* enum Tank */ tank = %d\n", haz_e->tank);
   if (rc < 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
   rc = fputs("};\n", fh);
   return rc < 0 ? rc : 0;
 }
@@ -296,9 +283,7 @@ enum cdd_c_error HazE_eq(const struct HazE *const haz_e0,
     return haz_e0 == haz_e1 ? 0 : 1;
 
   if (haz_e0->tank != haz_e1->tank)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
@@ -317,7 +302,7 @@ enum cdd_c_error HazE_to_json(const struct HazE *const haz_e, char **json) {
 
   c89stringutils_jasprintf(json, "{");
   if (*json == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    goto cleanup;
 
   if (haz_e->bzr) {
     c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
@@ -327,28 +312,23 @@ enum cdd_c_error HazE_to_json(const struct HazE *const haz_e, char **json) {
     need_comma = 1;
   }
   if (*json == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    goto cleanup;
 
   if (need_comma) {
     c89stringutils_jasprintf(json, ",");
     if (*json == NULL)
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      goto cleanup;
   }
   if (Tank_to_str(haz_e->tank, &tank_str) != 0) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
     goto cleanup;
   }
   c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
   if (*json == NULL) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
-                             /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
 
   c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
   }
 
 cleanup:
@@ -372,20 +352,18 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *const jsonObject,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = Tank_from_str(tank_str, &tank_val);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
   new_haz = malloc(sizeof(*new_haz));
   if (new_haz == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
 
   bzr_str = json_object_get_string(jsonObject, "bzr");
   if (bzr_str) {
     new_haz->bzr = strdup(bzr_str);
     if (new_haz->bzr == NULL) {
       free(new_haz);
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     }
   } else {
     new_haz->bzr = NULL;
@@ -434,7 +412,7 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
 
   *foo_e = malloc(sizeof(**foo_e));
   if (*foo_e == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
 
   memset(*foo_e, 0, sizeof(**foo_e));
 
@@ -442,7 +420,6 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
   if (rc != 0) {
     free(*foo_e);
     *foo_e = NULL;
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
   }
   return CDD_C_SUCCESS;
 }
@@ -460,14 +437,13 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *const foo_e_original,
 
   new_foo = calloc(1, sizeof(*new_foo));
   if (new_foo == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
-  memset(new_foo, 0, sizeof(*new_foo));
+    return CDD_C_ERROR_MEMORY;
 
   if (foo_e_original->bar != NULL) {
     new_foo->bar = strdup(foo_e_original->bar);
     if (new_foo->bar == NULL) {
       free(new_foo);
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -475,7 +451,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *const foo_e_original,
 
   if (HazE_deepcopy(foo_e_original->haz, &new_foo->haz) != 0) {
     FooE_cleanup(new_foo);
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
   }
 
   *foo_e_dest = new_foo;
@@ -492,9 +468,7 @@ enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   rc = fprintf(fh, "%s\n", s);
   if (rc >= 0) {
     if (fflush(fh) != 0)
-      /* LCOV_EXCL_START */
       rc = -1;
-    /* LCOV_EXCL_STOP */
     else
       rc = 0;
   }
@@ -510,9 +484,7 @@ enum cdd_c_error FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   }
   rc = fputs("struct FooE dbg = {\n", fh);
   if (rc < 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
   {
     char *quoted = NULL;
@@ -522,21 +494,15 @@ enum cdd_c_error FooE_debug(const struct FooE *const foo_e, FILE *fh) {
     rc = fprintf(fh, "  /* const char * */ bar = %s,\n", quoted);
     free(quoted);
     if (rc < 0)
-      /* LCOV_EXCL_START */
       return rc;
-    /* LCOV_EXCL_STOP */
   }
   rc = fprintf(fh, "  /* int can */ can = %d,\n", foo_e->can);
   if (rc < 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
   rc = HazE_debug(foo_e->haz, fh);
   if (rc < 0)
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
   rc = fputs("};\n", fh);
   return rc < 0 ? rc : 0;
@@ -568,7 +534,7 @@ enum cdd_c_error FooE_to_json(const struct FooE *const foo_e,
 
   c89stringutils_jasprintf(json, "{");
   if (*json == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    goto cleanup;
 
   if (foo_e->bar) {
     c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
@@ -576,28 +542,23 @@ enum cdd_c_error FooE_to_json(const struct FooE *const foo_e,
     c89stringutils_jasprintf(json, "\"bar\": null,");
   }
   if (*json == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    goto cleanup;
 
   c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
   if (*json == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    goto cleanup;
 
   if (HazE_to_json(foo_e->haz, &haz_e_json) != 0) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
     goto cleanup;
   }
 
   c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
   if (*json == NULL) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
-                             /* LCOV_EXCL_START */
     goto cleanup;
-    /* LCOV_EXCL_STOP */
   }
 
   c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
-    rc = CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
   }
 
 cleanup:
@@ -617,14 +578,14 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *const jsonObject,
 
   new_foo = (struct FooE *)calloc(1, sizeof(*new_foo));
   if (new_foo == NULL)
-    return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+    return CDD_C_ERROR_MEMORY;
 
   bar_str = json_object_get_string(jsonObject, "bar");
   if (bar_str) {
     new_foo->bar = strdup(bar_str);
     if (new_foo->bar == NULL) {
       free(new_foo);
-      return CDD_C_ERROR_MEMORY; /* LCOV_EXCL_LINE */
+      return CDD_C_ERROR_MEMORY;
     }
   }
 

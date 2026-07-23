@@ -86,9 +86,7 @@ static enum cdd_c_error check_lib(const char *win_name, const char *posix_name,
   }
 #endif
 #endif
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 enum cdd_c_error check_libpq_available(int *out_avail) {

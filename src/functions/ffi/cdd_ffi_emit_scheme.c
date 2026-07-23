@@ -174,11 +174,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
         }
         if (node->fields_count == 0) {
 
-          /* LCOV_EXCL_START */
-
           fprintf(f, "      [data void*]\n"); /* Fallback for empty union */
-
-          /* LCOV_EXCL_STOP */
         }
         fprintf(f, "    ))\n\n");
       } else {

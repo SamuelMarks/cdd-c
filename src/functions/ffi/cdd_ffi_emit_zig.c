@@ -132,9 +132,7 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           const char *arg_name =
               node->fields[j].name ? node->fields[j].name : "arg";
           if (strcmp(arg_name, "error") == 0)
-            /* LCOV_EXCL_START */
             arg_name = "err";
-          /* LCOV_EXCL_STOP */
           if (strcmp(arg_name, "type") == 0)
             arg_name = "type_";
           fprintf(f, "%s: %s", arg_name, get_zig_type(node->fields[j].type));

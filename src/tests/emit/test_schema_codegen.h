@@ -731,6 +731,16 @@ TEST test_schema_codegen_main_paths(void) {
       "{"
       "\"$defs\":{"
       "\"X\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}}}"
+      ","
+      "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"A\",\"B\"]},"
+      "\"MyUnion\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"integer\"}]},"
+      "\"JwtPayload\":{\"type\":\"object\",\"properties\":{\"sub\":{\"type\":"
+      "\"string\"}}},"
+      "\"OAuth2TokenResponse\":{\"type\":\"object\",\"properties\":{\"access_"
+      "token\":{\"type\":\"string\"}}},"
+      "\"OAuth2Error\":{\"type\":\"object\",\"properties\":{\"error\":{"
+      "\"type\":\"string\"}}},"
+      "\"MyString\":{\"type\":\"string\"}"
       "}}";
 
   /* 1. argc < 2 */
@@ -740,14 +750,17 @@ TEST test_schema_codegen_main_paths(void) {
   /* 2. get_basename fails */
 #ifdef CDD_BUILD_TESTS
   argv[0] = "a";
-  argv[1] = "b";
-  g_cdd_fail_alloc = 1;
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT(rc != 0);
-  g_cdd_fail_alloc = 0;
+  argv[1] = "";
+  {
+    extern int g_cdd_strdup_fail;
+    g_cdd_strdup_fail = 1;
+    rc = schema2code_main(2, (char **)argv);
+    ASSERT(rc != 0);
+    g_cdd_strdup_fail = 0;
+  }
 #endif
 
-  /* 3. flags parsing */
+  /* 3. flags parsing and io failures */
   rc = write_to_file(filename, schema_defs);
   ASSERT_EQ(0, rc);
   argv[0] = filename;
@@ -755,8 +768,41 @@ TEST test_schema_codegen_main_paths(void) {
   argv[2] = "--guard-enum=EG";
   argv[3] = "--guard-json=JG";
   argv[4] = "--guard-utils=UG";
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int io_i = 1;
+    extern int g_schema_codegen_force_fail;
+    while (1) {
+      g_fail_io_after = io_i++;
+      g_io_calls = 0;
+      rc = schema2code_main(5, (char **)argv);
+      if (rc == 0)
+        break;
+    }
+    g_fail_io_after = -1;
+
+    io_i = 1;
+    while (1) {
+      g_schema_codegen_force_fail = io_i++;
+      rc = schema2code_main(5, (char **)argv);
+      if (rc == 0)
+        break;
+    }
+    g_schema_codegen_force_fail = 0;
+  }
+#else
   rc = schema2code_main(5, (char **)argv);
   ASSERT_EQ(0, rc);
+#endif
+
+  /* call once with unknown flag to cover else branch fallthrough */
+  {
+    const char *argv_unk[3] = {filename, "main_out", "--unknown-flag"};
+    rc = schema2code_main(3, (char **)argv_unk);
+    ASSERT_EQ(0, rc);
+  }
+
   remove("main_out.h");
   remove("main_out.c");
 
@@ -795,6 +841,8 @@ TEST test_schema_codegen_main_paths(void) {
 }
 
 extern int g_struct_fields_init_fail;
+extern int g_json_object_to_struct_fields_fail;
+
 TEST test_schema_codegen_init_fail(void) {
   void *root;
   void *schemas;
@@ -813,6 +861,16 @@ TEST test_schema_codegen_init_fail(void) {
   rc = generate_header("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
+  g_struct_fields_init_fail = 2; /* Fail Pass 2 of generate_header */
+  rc = generate_header("test_out2", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+  g_json_object_to_struct_fields_fail = 2; /* Fail Pass 2 mapping */
+  rc = generate_header("test_out2", "basename", schemas, NULL);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_json_object_to_struct_fields_fail = 0;
+
+  g_struct_fields_init_fail = 1;
   rc = generate_source("test_out2", "basename", schemas, NULL);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   g_struct_fields_init_fail = 0;

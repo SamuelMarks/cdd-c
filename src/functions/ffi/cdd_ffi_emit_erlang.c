@@ -14,9 +14,7 @@
 static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
   if (!c_name || !out_name || out_sz == 0)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   while (c_name[i] && j < out_sz - 1) {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (j < out_sz - 2 && c_name[i - 1] != '_') {
@@ -79,10 +77,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
                config->output_dir, erl_module_name);
   erl_f = fopen(erl_filepath, "w");
   if (!erl_f) {
-    /* LCOV_EXCL_START */
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 #endif
 

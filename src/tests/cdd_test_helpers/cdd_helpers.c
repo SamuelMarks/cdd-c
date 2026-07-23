@@ -59,30 +59,22 @@ enum cdd_c_error write_to_file(const char *const filename,
   if (fh == NULL) {
     if (errno == ENOENT)
       return CDD_C_ERROR_NOT_FOUND;
-    /* LCOV_EXCL_START */
     if (errno == ENOMEM)
       return CDD_C_ERROR_MEMORY;
     if (errno == EINVAL)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 #endif
 
-  /* LCOV_EXCL_START */
   if (fputs(contents, fh) < 0) {
     fprintf(stderr, "Failure to write to %s\n", filename);
     rc = CDD_C_ERROR_IO;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   if (fclose(fh) != 0) {
     rc = CDD_C_ERROR_IO;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   return rc;
-  /* LCOV_EXCL_STOP */
 }

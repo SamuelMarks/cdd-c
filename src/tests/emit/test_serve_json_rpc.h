@@ -239,10 +239,8 @@ TEST test_serve_mcp_stdio_main(void) {
       fclose(devnull);
     ASSERT_EQ(0, rc);
   } else {
-    /* LCOV_EXCL_START */
     rc = serve_mcp_stdio_main(argc, argv);
     ASSERT_EQ(0, rc);
-    /* LCOV_EXCL_STOP */
   }
 
   PASS();

@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /* clang-format off */
 #include "cdd_cst_semantic.h"
 #include <errno.h>
@@ -6,7 +5,6 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_semantic_oom_extract = 0;
 C_CDD_EXPORT int g_cdd_semantic_oom_scope = 0;
@@ -181,6 +179,3 @@ enum cdd_c_error cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   *out_env = env;
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */
-/* LCOV_EXCL_STOP */

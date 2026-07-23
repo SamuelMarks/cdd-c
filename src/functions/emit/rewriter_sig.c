@@ -89,10 +89,8 @@ static enum cdd_c_error join_tokens(const struct TokenList *tokens,
   char *p;
 
   if (start >= end) {
-    /* LCOV_EXCL_START */
     *out = strdup("");
     return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = start; i < end; ++i) {

@@ -55,9 +55,7 @@ static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Op is unused currently but required by signature */
@@ -66,14 +64,10 @@ static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
     op = &op_local;
   }
   if (codegen_security_write_apply(tmp, op, spec) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
 

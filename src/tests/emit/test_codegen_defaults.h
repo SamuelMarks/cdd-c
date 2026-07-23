@@ -30,20 +30,14 @@ static enum cdd_c_error generate_def_code(const char *struct_name,
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
 
   if (write_struct_default_func(tmp, struct_name, sf, NULL) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
 

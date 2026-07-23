@@ -58,10 +58,8 @@ static enum cdd_c_error join_path(const char *dir, const char *file,
   if (!dir || !file)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   len = strlen(dir) + strlen(file) + 2;
@@ -71,10 +69,8 @@ static enum cdd_c_error join_path(const char *dir, const char *file,
   if (!out)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -99,9 +95,7 @@ static enum cdd_c_error join_path(const char *dir, const char *file,
 static enum cdd_c_error file_exists(const char *path, int *out_exists) {
   FILE *f;
   if (!out_exists)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_exists = 0;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -148,18 +142,12 @@ static void free_macro_def(struct MacroDef *def) {
 
   if (def->args) {
 
-    /* LCOV_EXCL_START */
     for (i = 0; i < def->arg_count; i++) {
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       free(def->args[i]);
-      /* LCOV_EXCL_STOP */
     }
 
-    /* LCOV_EXCL_START */
     free(def->args);
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -174,10 +162,8 @@ static enum cdd_c_error token_to_string(const struct Token *t,
   if (!s)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   memcpy(s, t->start, t->length);
@@ -206,10 +192,8 @@ static enum cdd_c_error add_macro_internal(struct PreprocessorContext *ctx,
         ctx->macros, new_cap * sizeof(struct MacroDef));
 
     if (!new_arr) {
-      /* LCOV_EXCL_START */
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
 
     ctx->macros = new_arr;
@@ -256,9 +240,7 @@ static enum cdd_c_error resolve_path(const struct PreprocessorContext *ctx,
         }
       }
 
-      /* LCOV_EXCL_START */
       free(candidate);
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -311,10 +293,8 @@ static enum cdd_c_error reconstruct_path(const struct TokenList *tokens,
   if (start >= end)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = start; i < end; ++i) {
@@ -327,10 +307,8 @@ static enum cdd_c_error reconstruct_path(const struct TokenList *tokens,
   if (!buf)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = NULL;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   p = buf;
@@ -361,9 +339,7 @@ enum cdd_c_error pp_context_init(struct PreprocessorContext *ctx) {
 
   if (!ctx)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   memset(ctx, 0, sizeof(*ctx));
 
@@ -379,9 +355,7 @@ void pp_context_free(struct PreprocessorContext *ctx) {
 
   if (!ctx)
 
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
 
   for (i = 0; i < ctx->size; ++i)
 
@@ -415,17 +389,13 @@ enum cdd_c_error pp_add_search_path(struct PreprocessorContext *ctx,
 
   if (!ctx || !path)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
   if (!copy) {
-    /* LCOV_EXCL_START */
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   if (ctx->size >= ctx->capacity) {
@@ -436,13 +406,9 @@ enum cdd_c_error pp_add_search_path(struct PreprocessorContext *ctx,
 
     if (!new_paths) {
 
-      /* LCOV_EXCL_START */
       free(copy);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
 
     ctx->search_paths = new_paths;
@@ -468,9 +434,7 @@ enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (!ctx || !name)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   memset(&def, 0, sizeof(def));
 
@@ -478,9 +442,7 @@ enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (!def.name)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-  /* LCOV_EXCL_STOP */
 
   if (value) {
 
@@ -488,13 +450,9 @@ enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
     if (!def.value) {
 
-      /* LCOV_EXCL_START */
       free(def.name);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -502,13 +460,9 @@ enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (add_macro_internal(ctx, &def) != 0) {
 
-    /* LCOV_EXCL_START */
     free_macro_def(&def);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   return CDD_C_SUCCESS;
@@ -517,331 +471,188 @@ enum cdd_c_error pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 /**
  * @brief Executes the pp scan defines operation.
  */
-/* LCOV_EXCL_START */
 enum cdd_c_error pp_scan_defines(struct PreprocessorContext *ctx,
-                                 /* LCOV_EXCL_STOP */
                                  const char *filename) {
-  /* LCOV_EXCL_START */
   int _ast_token_matches_string_2 = 0;
   char *_ast_token_to_string_3 = NULL;
   char *_ast_token_to_string_4 = NULL;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   char *content = NULL;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   size_t sz = 0;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   struct TokenList *tokens = NULL;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   int rc = 0;
-  /* LCOV_EXCL_STOP */
 
   size_t i;
 
-  /* LCOV_EXCL_START */
   if (!ctx || !filename)
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   rc = read_to_file(filename, "r", &content, &sz);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (rc != 0)
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   rc = tokenize(az_span_create_from_str(content), &tokens);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (rc != 0) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     free(content);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   for (i = 0; i < tokens->size; ++i) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (tokens->tokens[i].kind == TOKEN_HASH) {
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       size_t next = i + 1;
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       while (next < tokens->size &&
-             /* LCOV_EXCL_STOP */
 
-             /* LCOV_EXCL_START */
              tokens->tokens[next].kind == TOKEN_WHITESPACE)
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         next++;
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       if (next < tokens->size &&
-          /* LCOV_EXCL_STOP */
 
-          /* LCOV_EXCL_START */
           (token_matches_string(&tokens->tokens[next], "define",
                                 &_ast_token_matches_string_2) == 0 &&
-           /* LCOV_EXCL_STOP */
            _ast_token_matches_string_2)) {
 
-        /* LCOV_EXCL_START */
         size_t name_idx = next + 1;
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         while (name_idx < tokens->size &&
-               /* LCOV_EXCL_STOP */
 
-               /* LCOV_EXCL_START */
                tokens->tokens[name_idx].kind == TOKEN_WHITESPACE)
-          /* LCOV_EXCL_STOP */
 
-          /* LCOV_EXCL_START */
           name_idx++;
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         if (name_idx < tokens->size &&
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             tokens->tokens[name_idx].kind == TOKEN_IDENTIFIER) {
-          /* LCOV_EXCL_STOP */
 
           struct MacroDef def;
-          /* LCOV_EXCL_START */
           size_t val_start_idx = name_idx + 1;
-          /* LCOV_EXCL_STOP */
 
-          /* LCOV_EXCL_START */
           memset(&def, 0, sizeof(def));
-          /* LCOV_EXCL_STOP */
 
-          /* LCOV_EXCL_START */
           def.name = (token_to_string(&tokens->tokens[name_idx],
-                                      /* LCOV_EXCL_STOP */
                                       &_ast_token_to_string_3),
                       _ast_token_to_string_3);
 
-          /* LCOV_EXCL_START */
           if (name_idx + 1 < tokens->size &&
-              /* LCOV_EXCL_STOP */
 
-              /* LCOV_EXCL_START */
               tokens->tokens[name_idx + 1].kind == TOKEN_LPAREN) {
-            /* LCOV_EXCL_STOP */
 
             /* Function-like macro */
 
-            /* LCOV_EXCL_START */
             def.is_function_like = 1;
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             {
-              /* LCOV_EXCL_STOP */
 
-              /* LCOV_EXCL_START */
               size_t curr = name_idx + 2;
-              /* LCOV_EXCL_STOP */
 
-              /* LCOV_EXCL_START */
               int done_args = 0;
-              /* LCOV_EXCL_STOP */
 
-              /* LCOV_EXCL_START */
               while (curr < tokens->size && !done_args) {
-                /* LCOV_EXCL_STOP */
 
-                /* LCOV_EXCL_START */
                 while (curr < tokens->size &&
-                       /* LCOV_EXCL_STOP */
 
-                       /* LCOV_EXCL_START */
                        tokens->tokens[curr].kind == TOKEN_WHITESPACE)
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   curr++;
-                /* LCOV_EXCL_STOP */
 
-                /* LCOV_EXCL_START */
                 if (curr >= tokens->size)
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   break;
-                /* LCOV_EXCL_STOP */
 
-                /* LCOV_EXCL_START */
                 if (tokens->tokens[curr].kind == TOKEN_RPAREN) {
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   done_args = 1;
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   curr++;
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                 } else if (tokens->tokens[curr].kind == TOKEN_IDENTIFIER) {
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   char *argName = (token_to_string(&tokens->tokens[curr],
-                                                   /* LCOV_EXCL_STOP */
                                                    &_ast_token_to_string_4),
                                    _ast_token_to_string_4);
 
-                  /* LCOV_EXCL_START */
                   char **new_args = (char **)realloc(
-                      /* LCOV_EXCL_STOP */
 
-                      /* LCOV_EXCL_START */
                       def.args, (def.arg_count + 1) * sizeof(char *));
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   if (new_args) {
-                    /* LCOV_EXCL_STOP */
 
-                    /* LCOV_EXCL_START */
                     def.args = new_args;
-                    /* LCOV_EXCL_STOP */
 
-                    /* LCOV_EXCL_START */
                     def.args[def.arg_count++] = argName;
-                    /* LCOV_EXCL_STOP */
 
                   } else {
 
-                    /* LCOV_EXCL_START */
                     free(argName);
-                    /* LCOV_EXCL_STOP */
                   }
 
-                  /* LCOV_EXCL_START */
                   curr++;
-                  /* LCOV_EXCL_STOP */
 
                   /* Check for GCC variadic "args..." */
 
-                  /* LCOV_EXCL_START */
                   if (curr < tokens->size &&
-                      /* LCOV_EXCL_STOP */
 
-                      /* LCOV_EXCL_START */
                       tokens->tokens[curr].kind == TOKEN_ELLIPSIS) {
-                    /* LCOV_EXCL_STOP */
 
-                    /* LCOV_EXCL_START */
                     def.is_variadic = 1;
-                    /* LCOV_EXCL_STOP */
 
-                    /* LCOV_EXCL_START */
                     curr++;
-                    /* LCOV_EXCL_STOP */
                   }
 
-                  /* LCOV_EXCL_START */
                 } else if (tokens->tokens[curr].kind == TOKEN_ELLIPSIS) {
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   def.is_variadic = 1;
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   curr++;
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                 } else if (tokens->tokens[curr].kind == TOKEN_COMMA) {
-                  /* LCOV_EXCL_STOP */
 
-                  /* LCOV_EXCL_START */
                   curr++;
-                  /* LCOV_EXCL_STOP */
 
                 } else {
 
                   curr++; /* Error recovery */
                 }
               }
-              /* LCOV_EXCL_START */
               val_start_idx = curr;
-              /* LCOV_EXCL_STOP */
             }
 
           } else {
 
             /* Object-like */
 
-            /* LCOV_EXCL_START */
             def.is_function_like = 0;
-            /* LCOV_EXCL_STOP */
           }
 
           {
-            /* LCOV_EXCL_START */
             size_t val_end_idx = val_start_idx;
             while (val_end_idx < tokens->size) {
               if (tokens->tokens[val_end_idx].kind == TOKEN_WHITESPACE) {
-                /* LCOV_EXCL_STOP */
                 size_t idx;
-                /* LCOV_EXCL_START */
                 int has_nl = 0;
                 for (idx = 0; idx < tokens->tokens[val_end_idx].length; idx++) {
                   if (tokens->tokens[val_end_idx].start[idx] == '\n') {
                     has_nl = 1;
                     break;
-                    /* LCOV_EXCL_STOP */
                   }
                 }
-                /* LCOV_EXCL_START */
                 if (has_nl)
                   break;
-                /* LCOV_EXCL_STOP */
               }
-              /* LCOV_EXCL_START */
               val_end_idx++;
-              /* LCOV_EXCL_STOP */
             }
-            /* LCOV_EXCL_START */
             if (val_end_idx > val_start_idx) {
               size_t val_start_byte =
                   (size_t)(tokens->tokens[val_start_idx].start -
@@ -861,34 +672,25 @@ enum cdd_c_error pp_scan_defines(struct PreprocessorContext *ctx,
                          (v[val_len - 1] == ' ' || v[val_len - 1] == '\t' ||
                           v[val_len - 1] == '\r')) {
                     v[--val_len] = '\0';
-                    /* LCOV_EXCL_STOP */
                   }
-                  /* LCOV_EXCL_START */
                   while (k < val_len && (v[k] == ' ' || v[k] == '\t'))
                     k++;
                   if (k > 0 && k < val_len) {
                     memmove(v, v + k, val_len - k + 1);
                   } else if (k == val_len) {
                     v[0] = '\0';
-                    /* LCOV_EXCL_STOP */
                   }
-                  /* LCOV_EXCL_START */
                   if (strlen(v) > 0) {
                     def.value = v;
-                    /* LCOV_EXCL_STOP */
                   } else {
-                    /* LCOV_EXCL_START */
                     free(v);
-                    /* LCOV_EXCL_STOP */
                   }
                 }
               }
             }
           }
 
-          /* LCOV_EXCL_START */
           add_macro_internal(ctx, &def);
-          /* LCOV_EXCL_STOP */
         }
 
         i = name_idx; /* Advance */
@@ -896,17 +698,11 @@ enum cdd_c_error pp_scan_defines(struct PreprocessorContext *ctx,
     }
   }
 
-  /* LCOV_EXCL_START */
   free_token_list(tokens);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   free(content);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   return rc;
-  /* LCOV_EXCL_STOP */
 }
 
 /**
@@ -916,9 +712,7 @@ void pp_embed_params_free(struct EmbedParams *params) {
 
   if (!params)
 
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
 
   if (params->prefix)
 
@@ -930,9 +724,7 @@ void pp_embed_params_free(struct EmbedParams *params) {
 
   if (params->if_empty)
 
-    /* LCOV_EXCL_START */
     free(params->if_empty);
-  /* LCOV_EXCL_STOP */
 
   params->prefix = NULL;
 
@@ -1041,9 +833,7 @@ static enum cdd_c_error match(struct ExprState *s, enum TokenKind kind,
                               int *_out_val) {
   size_t _ast_skip_ws_5 = 0;
   if (!_out_val)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *_out_val = 0;
 
   skip_ws(s, &_ast_skip_ws_5);
@@ -1075,17 +865,13 @@ static enum cdd_c_error peek(struct ExprState *s, enum TokenKind *_out_val) {
 
   while (p < s->end && s->tokens->tokens[p].kind == TOKEN_WHITESPACE)
 
-    /* LCOV_EXCL_START */
     p++;
-  /* LCOV_EXCL_STOP */
 
   if (p >= s->end)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = TOKEN_UNKNOWN;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   {
@@ -1108,10 +894,8 @@ static enum cdd_c_error is_defined_macro(const struct PreprocessorContext *ctx,
   if (!ctx)
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = 0;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   for (i = 0; i < ctx->macro_count; ++i) {
@@ -1164,15 +948,11 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
 
   if (!(match(s, TOKEN_LPAREN, &_ast_match_8) == 0 && _ast_match_8)) {
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1180,15 +960,11 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
 
   if (s->pos >= s->end) {
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1212,68 +988,44 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
 
     s->pos++;
 
-    /* LCOV_EXCL_START */
   } else if (s->tokens->tokens[s->pos].kind == TOKEN_LESS) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     size_t start_p = s->pos + 1;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     size_t end_p = start_p;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     while (end_p < s->end && s->tokens->tokens[end_p].kind != TOKEN_GREATER) {
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       end_p++;
-      /* LCOV_EXCL_STOP */
     }
 
-    /* LCOV_EXCL_START */
     if (end_p < s->end) {
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       path = (reconstruct_path(s->tokens, start_p, end_p,
-                               /* LCOV_EXCL_STOP */
                                &_ast_reconstruct_path_10),
               _ast_reconstruct_path_10);
 
       s->pos = end_p + 1; /* Skip closing '>' */
 
-      /* LCOV_EXCL_START */
       is_header = 1;
-      /* LCOV_EXCL_STOP */
 
     } else {
 
-      /* LCOV_EXCL_START */
       s->error = 1;
-      /* LCOV_EXCL_STOP */
 
       {
-        /* LCOV_EXCL_START */
         *_out_val = 0;
         return CDD_C_SUCCESS;
-        /* LCOV_EXCL_STOP */
       }
     }
 
   } else {
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1286,32 +1038,22 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
       break;
     }
 
-    /* LCOV_EXCL_START */
     s->pos++;
-    /* LCOV_EXCL_STOP */
   }
 
   skip_ws(s, &_ast_skip_ws_11);
 
   if (!(match(s, TOKEN_RPAREN, &_ast_match_12) == 0 && _ast_match_12)) {
-    /* LCOV_EXCL_START */
     fprintf(stderr, "Missing RPAREN, setting error!\n");
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (path)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       free(path);
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1339,262 +1081,152 @@ static enum cdd_c_error handle_has_include_embed(struct ExprState *s,
  * @brief Handle __has_c_attribute logic.
  */
 
-/* LCOV_EXCL_START */
 static enum cdd_c_error handle_has_c_attribute(struct ExprState *s,
-                                               /* LCOV_EXCL_STOP */
                                                long *_out_val) {
-  /* LCOV_EXCL_START */
   size_t _ast_skip_ws_14 = 0;
   int _ast_match_15 = 0;
   size_t _ast_skip_ws_16 = 0;
   char *_ast_token_to_string_17 = NULL;
-  /* LCOV_EXCL_STOP */
   enum TokenKind _ast_identify_keyword_or_id_18;
-  /* LCOV_EXCL_START */
   char *_ast_token_to_string_19 = NULL;
   size_t _ast_skip_ws_20 = 0;
   size_t _ast_skip_ws_21 = 0;
   char *_ast_token_to_string_22 = NULL;
   size_t _ast_skip_ws_23 = 0;
   int _ast_match_24 = 0;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   long result = 0;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   char *attr_name = NULL;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   skip_ws(s, &_ast_skip_ws_14);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (!(match(s, TOKEN_LPAREN, &_ast_match_15) == 0 && _ast_match_15)) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
-  /* LCOV_EXCL_START */
   skip_ws(s, &_ast_skip_ws_16);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     attr_name =
         (token_to_string(&s->tokens->tokens[s->pos], &_ast_token_to_string_17),
-         /* LCOV_EXCL_STOP */
          _ast_token_to_string_17);
 
-    /* LCOV_EXCL_START */
     s->pos++;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
   } else if (s->pos < s->end &&
-             /* LCOV_EXCL_STOP */
 
-             /* LCOV_EXCL_START */
              (identify_keyword_or_id(s->tokens->tokens[s->pos].start,
-                                     /* LCOV_EXCL_STOP */
 
-                                     /* LCOV_EXCL_START */
                                      s->tokens->tokens[s->pos].length,
-                                     /* LCOV_EXCL_STOP */
                                      &_ast_identify_keyword_or_id_18),
-              /* LCOV_EXCL_START */
               _ast_identify_keyword_or_id_18) !=
-                 /* LCOV_EXCL_STOP */
 
                  TOKEN_IDENTIFIER) {
 
     /* Handle keywords treated as attributes */
 
-    /* LCOV_EXCL_START */
     attr_name =
         (token_to_string(&s->tokens->tokens[s->pos], &_ast_token_to_string_19),
-         /* LCOV_EXCL_STOP */
          _ast_token_to_string_19);
 
-    /* LCOV_EXCL_START */
     s->pos++;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Support scoping `::` */
 
-  /* LCOV_EXCL_START */
   skip_ws(s, &_ast_skip_ws_20);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (s->pos + 1 < s->end && s->tokens->tokens[s->pos].kind == TOKEN_COLON &&
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       s->tokens->tokens[s->pos + 1].kind == TOKEN_COLON) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     char *scope = attr_name;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     char *name = NULL;
-    /* LCOV_EXCL_STOP */
 
     s->pos += 2; /* Skip :: */
 
-    /* LCOV_EXCL_START */
     skip_ws(s, &_ast_skip_ws_21);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (s->pos < s->end &&
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         (s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER)) {
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       name = (token_to_string(&s->tokens->tokens[s->pos],
-                              /* LCOV_EXCL_STOP */
                               &_ast_token_to_string_22),
               _ast_token_to_string_22);
 
-      /* LCOV_EXCL_START */
       s->pos++;
-      /* LCOV_EXCL_STOP */
     }
 
-    /* LCOV_EXCL_START */
     if (name)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       free(name);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (scope)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       free(scope);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     attr_name = NULL;
-    /* LCOV_EXCL_STOP */
 
     result = 0; /* Scoped ignored currently */
   }
 
-  /* LCOV_EXCL_START */
   if (attr_name) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (strcmp(attr_name, "deprecated") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 201904L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "fallthrough") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 201904L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "maybe_unused") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 201904L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "nodiscard") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 201904L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "noreturn") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 202202L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "unsequenced") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 202311L;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     else if (strcmp(attr_name, "reproducible") == 0)
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       result = 202311L;
-    /* LCOV_EXCL_STOP */
 
     else
 
-      /* LCOV_EXCL_START */
       result = 0;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     free(attr_name);
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   skip_ws(s, &_ast_skip_ws_23);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (!(match(s, TOKEN_RPAREN, &_ast_match_24) == 0 && _ast_match_24)) {
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
   }
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = result;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -1619,15 +1251,11 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
 
   if (s->pos >= s->end) {
 
-    /* LCOV_EXCL_START */
     s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = 0;
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1637,9 +1265,7 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
 
     if (!(match(s, TOKEN_RPAREN, &_ast_match_28) == 0 && _ast_match_28))
 
-      /* LCOV_EXCL_START */
       s->error = 1;
-    /* LCOV_EXCL_STOP */
 
     {
       *_out_val = val;
@@ -1659,15 +1285,11 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
 
       if (strlen(txt) > 2 && txt[0] == '0' &&
 
-          /* LCOV_EXCL_START */
           (txt[1] == 'b' || txt[1] == 'B')) {
-        /* LCOV_EXCL_STOP */
 
         char *endptr;
 
-        /* LCOV_EXCL_START */
         val = strtol(txt + 2, &endptr, 2);
-        /* LCOV_EXCL_STOP */
 
       } else {
 
@@ -1687,9 +1309,7 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
 
   if (s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER ||
 
-      /* LCOV_EXCL_START */
       s->tokens->tokens[s->pos].kind >= TOKEN_KEYWORD_AUTO) {
-    /* LCOV_EXCL_STOP */
 
     const struct Token *tok = &s->tokens->tokens[s->pos];
     if ((token_matches_string(tok, "__has_include",
@@ -1710,19 +1330,13 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
                               &_ast_token_matches_string_32) == 0 &&
          _ast_token_matches_string_32)) {
 
-      /* LCOV_EXCL_START */
       s->pos++;
-      /* LCOV_EXCL_STOP */
 
       {
         *_out_val =
-            /* LCOV_EXCL_START */
             (handle_has_include_embed(s, &_ast_handle_has_include_embed_33),
-             /* LCOV_EXCL_STOP */
              _ast_handle_has_include_embed_33);
-        /* LCOV_EXCL_START */
         return CDD_C_SUCCESS;
-        /* LCOV_EXCL_STOP */
       }
     }
 
@@ -1730,16 +1344,12 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
                               &_ast_token_matches_string_34) == 0 &&
          _ast_token_matches_string_34)) {
 
-      /* LCOV_EXCL_START */
       s->pos++;
-      /* LCOV_EXCL_STOP */
 
       {
         *_out_val = (handle_has_c_attribute(s, &_ast_handle_has_c_attribute_35),
                      _ast_handle_has_c_attribute_35);
-        /* LCOV_EXCL_START */
         return CDD_C_SUCCESS;
-        /* LCOV_EXCL_STOP */
       }
     }
 
@@ -1779,15 +1389,11 @@ static enum cdd_c_error parse_primary(struct ExprState *s, long *_out_val) {
     }
   }
 
-  /* LCOV_EXCL_START */
   s->pos++;
-  /* LCOV_EXCL_STOP */
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = 0;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -1825,30 +1431,24 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
   if ((match(s, TOKEN_TILDE, &_ast_match_40) == 0 && _ast_match_40)) {
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
   if ((match(s, TOKEN_MINUS, &_ast_match_42) == 0 && _ast_match_42)) {
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
   if ((match(s, TOKEN_PLUS, &_ast_match_44) == 0 && _ast_match_44)) {
 
     {
-      /* LCOV_EXCL_START */
       *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -1885,18 +1485,14 @@ static enum cdd_c_error parse_unary(struct ExprState *s, long *_out_val) {
 
     } else {
 
-      /* LCOV_EXCL_START */
       s->error = 1;
-      /* LCOV_EXCL_STOP */
     }
 
     if (has_paren) {
 
       if (!(match(s, TOKEN_RPAREN, &_ast_match_51) == 0 && _ast_match_51))
 
-        /* LCOV_EXCL_START */
         s->error = 1;
-      /* LCOV_EXCL_STOP */
     }
 
     {
@@ -1940,9 +1536,7 @@ static enum cdd_c_error parse_multiplicative(struct ExprState *s,
 
       if (divisor == 0)
 
-        /* LCOV_EXCL_START */
         val = 0;
-      /* LCOV_EXCL_STOP */
 
       else
 
@@ -1956,9 +1550,7 @@ static enum cdd_c_error parse_multiplicative(struct ExprState *s,
 
       if (divisor == 0)
 
-        /* LCOV_EXCL_START */
         val = 0;
-      /* LCOV_EXCL_STOP */
 
       else
 
@@ -2030,17 +1622,13 @@ static enum cdd_c_error parse_shift(struct ExprState *s, long *_out_val) {
 
     if ((match(s, TOKEN_LSHIFT, &_ast_match_66) == 0 && _ast_match_66)) {
 
-      /* LCOV_EXCL_START */
       val <<=
           (parse_additive(s, &_ast_parse_additive_67), _ast_parse_additive_67);
-      /* LCOV_EXCL_STOP */
 
     } else if ((match(s, TOKEN_RSHIFT, &_ast_match_68) == 0 && _ast_match_68)) {
 
-      /* LCOV_EXCL_START */
       val >>=
           (parse_additive(s, &_ast_parse_additive_69), _ast_parse_additive_69);
-      /* LCOV_EXCL_STOP */
 
     } else {
 
@@ -2084,24 +1672,16 @@ static enum cdd_c_error parse_relational(struct ExprState *s, long *_out_val) {
 
     } else if (k == TOKEN_GEQ) {
 
-      /* LCOV_EXCL_START */
       (match(s, k, &_ast_match_74) == 0 && _ast_match_74);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       val =
           (val >= (parse_shift(s, &_ast_parse_shift_75), _ast_parse_shift_75));
-      /* LCOV_EXCL_STOP */
 
     } else if (k == TOKEN_LESS) {
 
-      /* LCOV_EXCL_START */
       (match(s, k, &_ast_match_76) == 0 && _ast_match_76);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       val = (val < (parse_shift(s, &_ast_parse_shift_77), _ast_parse_shift_77));
-      /* LCOV_EXCL_STOP */
 
     } else if (k == TOKEN_GREATER) {
 
@@ -2236,9 +1816,7 @@ enum cdd_c_error pp_eval_expression(const struct TokenList *tokens,
 
   if (!tokens || !result)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   s.tokens = tokens;
 
@@ -2254,9 +1832,7 @@ enum cdd_c_error pp_eval_expression(const struct TokenList *tokens,
 
   if (s.error)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -2300,17 +1876,11 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
     if (tokens->tokens[i].kind != TOKEN_IDENTIFIER &&
 
-        /* LCOV_EXCL_START */
         (identify_keyword_or_id(tokens->tokens[i].start,
-                                /* LCOV_EXCL_STOP */
 
-                                /* LCOV_EXCL_START */
                                 tokens->tokens[i].length,
-                                /* LCOV_EXCL_STOP */
                                 &_ast_identify_keyword_or_id_93),
-         /* LCOV_EXCL_START */
          _ast_identify_keyword_or_id_93) != TOKEN_IDENTIFIER) {
-      /* LCOV_EXCL_STOP */
 
       /* Try identify and accept as ID if keyword-like */
     }
@@ -2319,10 +1889,8 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
             _ast_token_to_string_94);
 
     if (!name) {
-      /* LCOV_EXCL_START */
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
 
     i++;
@@ -2331,68 +1899,42 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
     while (i < end && tokens->tokens[i].kind == TOKEN_WHITESPACE)
 
-      /* LCOV_EXCL_START */
       i++;
-    /* LCOV_EXCL_STOP */
 
     if (i + 1 < end && tokens->tokens[i].kind == TOKEN_COLON &&
 
-        /* LCOV_EXCL_START */
         tokens->tokens[i + 1].kind == TOKEN_COLON) {
-      /* LCOV_EXCL_STOP */
 
       /* Scoped */
 
-      /* LCOV_EXCL_START */
       scope = name;
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       name = NULL;
-      /* LCOV_EXCL_STOP */
 
       i += 2; /* Skip :: */
 
-      /* LCOV_EXCL_START */
       while (i < end && tokens->tokens[i].kind == TOKEN_WHITESPACE)
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         i++;
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       if (i < end && (tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
-                      /* LCOV_EXCL_STOP */
 
-                      /* LCOV_EXCL_START */
                       (identify_keyword_or_id(tokens->tokens[i].start,
-                                              /* LCOV_EXCL_STOP */
 
-                                              /* LCOV_EXCL_START */
                                               tokens->tokens[i].length,
-                                              /* LCOV_EXCL_STOP */
                                               &_ast_identify_keyword_or_id_95),
-                       /* LCOV_EXCL_START */
                        _ast_identify_keyword_or_id_95) !=
-                          /* LCOV_EXCL_STOP */
 
                           TOKEN_IDENTIFIER)) {
 
-        /* LCOV_EXCL_START */
         name = (token_to_string(&tokens->tokens[i], &_ast_token_to_string_96),
-                /* LCOV_EXCL_STOP */
                 _ast_token_to_string_96);
 
-        /* LCOV_EXCL_START */
         i++;
-        /* LCOV_EXCL_STOP */
 
       } else {
 
-        /* LCOV_EXCL_START */
         free(scope);
-        /* LCOV_EXCL_STOP */
 
         return CDD_C_ERROR_INVALID_ARGUMENT; /* Expected identifier after :: */
       }
@@ -2402,29 +1944,19 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
     while (i < end && tokens->tokens[i].kind == TOKEN_WHITESPACE)
 
-      /* LCOV_EXCL_START */
       i++;
-    /* LCOV_EXCL_STOP */
 
     if (i >= end || tokens->tokens[i].kind != TOKEN_LPAREN) {
 
       /* Embed params must have value clause? Standard params do. */
 
-      /* LCOV_EXCL_START */
       free(name);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       if (scope)
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         free(scope);
-      /* LCOV_EXCL_STOP */
 
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_INVALID_ARGUMENT;
-      /* LCOV_EXCL_STOP */
     }
 
     {
@@ -2443,9 +1975,7 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
         if (tokens->tokens[i].kind == TOKEN_LPAREN)
 
-          /* LCOV_EXCL_START */
           depth++;
-        /* LCOV_EXCL_STOP */
 
         else if (tokens->tokens[i].kind == TOKEN_RPAREN) {
 
@@ -2464,17 +1994,11 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
       if (depth != 0) {
 
-        /* LCOV_EXCL_START */
         free(name);
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         if (scope)
-          /* LCOV_EXCL_STOP */
 
-          /* LCOV_EXCL_START */
           free(scope);
-        /* LCOV_EXCL_STOP */
 
         return CDD_C_ERROR_INVALID_ARGUMENT; /* Unbalanced */
       }
@@ -2503,17 +2027,11 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
                                                &_ast_reconstruct_path_98),
                               _ast_reconstruct_path_98);
 
-        /* LCOV_EXCL_START */
       } else if (strcmp(name, "if_empty") == 0 && !scope) {
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         out_params->if_empty =
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             (reconstruct_path(tokens, open_idx + 1, close_idx,
-                              /* LCOV_EXCL_STOP */
                               &_ast_reconstruct_path_99),
              _ast_reconstruct_path_99);
 
@@ -2527,9 +2045,7 @@ static enum cdd_c_error parse_embed_params(const struct TokenList *tokens,
 
     if (scope)
 
-      /* LCOV_EXCL_START */
       free(scope);
-    /* LCOV_EXCL_STOP */
 
     i++; /* Skip RPAREN - loop continues to next param */
   }
@@ -2560,9 +2076,7 @@ static enum cdd_c_error stack_push(struct ConditionalStack *st,
                                    enum CondState s) {
 
   if (!st)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   if (st->top < 31) {
 
     st->states[++st->top] = s;
@@ -2576,9 +2090,7 @@ static enum cdd_c_error stack_push(struct ConditionalStack *st,
 static enum cdd_c_error stack_pop(struct ConditionalStack *st) {
 
   if (!st)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   if (st->top >= 0) {
 
     st->top--;
@@ -2600,10 +2112,8 @@ static enum cdd_c_error stack_peek(const struct ConditionalStack *st,
   }
 
   {
-    /* LCOV_EXCL_START */
     *_out_val = COND_ACTIVE;
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 }
 
@@ -2676,9 +2186,7 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
   if (!filename || !ctx)
 
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   /* Init stack */
 
@@ -2688,38 +2196,26 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
   if (rc != 0)
 
-    /* LCOV_EXCL_START */
     return rc;
-  /* LCOV_EXCL_STOP */
 
   rc = tokenize(az_span_create_from_str(content), &tokens);
 
   if (rc != 0) {
 
-    /* LCOV_EXCL_START */
     free(content);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   rc = get_dirname(filename, &dir_name);
 
   if (rc != 0) {
 
-    /* LCOV_EXCL_START */
     free_token_list(tokens);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     free(content);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   ctx->current_file_dir = dir_name;
@@ -2734,9 +2230,7 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
              tokens->tokens[next].kind == TOKEN_WHITESPACE)
 
-        /* LCOV_EXCL_START */
         next++;
-      /* LCOV_EXCL_STOP */
 
       if (next < tokens->size) {
 
@@ -2770,21 +2264,15 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
             if (tokens->tokens[k].kind == TOKEN_HASH) {
 
-              /* LCOV_EXCL_START */
               eol = k;
-              /* LCOV_EXCL_STOP */
 
-              /* LCOV_EXCL_START */
               break;
-              /* LCOV_EXCL_STOP */
             }
           }
 
           if (k == tokens->size)
 
-            /* LCOV_EXCL_START */
             eol = tokens->size;
-          /* LCOV_EXCL_STOP */
 
           break;
         }
@@ -2838,19 +2326,13 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
             (void)stack_push(&stack, COND_ACTIVE);
 
-            /* LCOV_EXCL_START */
           } else if (enabled && !condition_met) {
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             (void)stack_push(&stack, COND_SKIPPING);
-            /* LCOV_EXCL_STOP */
 
           } else {
 
-            /* LCOV_EXCL_START */
             (void)stack_push(&stack, COND_SATISFIED);
-            /* LCOV_EXCL_STOP */
           }
 
         } else if ((token_matches_string(cmd, "if",
@@ -2885,9 +2367,7 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           } else {
 
-            /* LCOV_EXCL_START */
             (void)stack_push(&stack, COND_SATISFIED);
-            /* LCOV_EXCL_STOP */
           }
 
         } else if ((token_matches_string(cmd, "elif",
@@ -2914,13 +2394,9 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           } else if (current == COND_ACTIVE) {
 
-            /* LCOV_EXCL_START */
             (void)stack_pop(&stack);
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             (void)stack_push(&stack, COND_SATISFIED);
-            /* LCOV_EXCL_STOP */
 
           } else if (current == COND_SKIPPING && parent_enabled) {
 
@@ -2958,13 +2434,9 @@ enum cdd_c_error pp_scan_includes(const char *filename,
 
           if (current == COND_ACTIVE) {
 
-            /* LCOV_EXCL_START */
             (void)stack_pop(&stack);
-            /* LCOV_EXCL_STOP */
 
-            /* LCOV_EXCL_START */
             (void)stack_push(&stack, COND_SATISFIED);
-            /* LCOV_EXCL_STOP */
 
           } else if (current == COND_SKIPPING && parent_enabled) {
 
@@ -3111,9 +2583,7 @@ enum cdd_c_error pp_scan_includes(const char *filename,
                     if (cb(&info, user_data) != 0) {
 
                       if (input_is_embed) {
-                        /* LCOV_EXCL_START */
                         pp_embed_params_free(&info.params);
-                        /* LCOV_EXCL_STOP */
                       }
 
                       free(resolved);

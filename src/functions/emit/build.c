@@ -24,10 +24,8 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
 static enum cdd_c_error check_io_helper(int rc) {
-  /* LCOV_EXCL_START */
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
-  /* LCOV_EXCL_STOP */
   return rc;
 }
 /** @brief CHECK_IO definition */

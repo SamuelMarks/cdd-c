@@ -6,7 +6,6 @@
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 static enum cdd_c_error alloc_node(enum cdd_cst_node_kind_t kind,
                                    cdd_cst_node_t *parent,
@@ -15,9 +14,7 @@ static enum cdd_c_error alloc_node(enum cdd_cst_node_kind_t kind,
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_node_fail;
   if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
-    /* LCOV_EXCL_START */
     n = NULL;
-  /* LCOV_EXCL_STOP */
   else
 #endif
     n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
@@ -37,18 +34,14 @@ static enum cdd_c_error append_child_token(cdd_cst_node_t *node,
 #ifdef CDD_BUILD_TESTS
     extern int g_cdd_cst_realloc_fail;
     if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      /* LCOV_EXCL_START */
       new_arr = NULL;
-    /* LCOV_EXCL_STOP */
     else
 #endif
       new_arr = (cdd_cst_child_t *)realloc(node->children,
                                            new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     node->children = new_arr;
     node->capacity = new_cap;
@@ -67,18 +60,14 @@ static enum cdd_c_error append_child_node(cdd_cst_node_t *node,
 #ifdef CDD_BUILD_TESTS
     extern int g_cdd_cst_realloc_fail;
     if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
-      /* LCOV_EXCL_START */
       new_arr = NULL;
-    /* LCOV_EXCL_STOP */
     else
 #endif
       new_arr = (cdd_cst_child_t *)realloc(node->children,
                                            new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     node->children = new_arr;
     node->capacity = new_cap;
@@ -93,9 +82,7 @@ static enum cdd_c_error append_child_node(cdd_cst_node_t *node,
 static void free_node(cdd_cst_node_t *node) {
   size_t i;
   if (!node)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       free_node(node->children[i].val.node);
@@ -130,34 +117,26 @@ typedef struct parser_state_t {
 C_CDD_EXPORT enum cdd_c_error peek(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT enum cdd_c_error peek(parser_state_t *s, cdd_token_t **out_tok) {
   if (!s || !out_tok)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos];
     return 0;
   }
-  /* LCOV_EXCL_START */
   return CDD_C_ERROR_NOT_FOUND;
-  /* LCOV_EXCL_STOP */
 }
 
 C_CDD_EXPORT enum cdd_c_error advance(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT enum cdd_c_error advance(parser_state_t *s,
                                       cdd_token_t **out_tok) {
   if (!s || !out_tok)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos++];
     return 0;
   }
-  /* LCOV_EXCL_START */
   return CDD_C_ERROR_NOT_FOUND;
-  /* LCOV_EXCL_STOP */
 }
 
 static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
@@ -172,13 +151,9 @@ static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   cdd_cst_node_t *b = NULL;
   alloc_node(CDD_CST_BLOCK, parent, &b);
   if (!b) {
-    /* LCOV_EXCL_START */
     s->err = CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
     *out_node = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   advance(s, &t); /* { */
@@ -194,15 +169,11 @@ static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
       parse_declaration_or_statement(s, b, &child);
       if (child) {
         if (append_child_node(b, child) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(child);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
-        /* LCOV_EXCL_START */
       } else if (s->err) {
         break;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
@@ -214,9 +185,7 @@ static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   return CDD_C_SUCCESS;
 }
 
-/* LCOV_EXCL_START */
 static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
-                                          /* LCOV_EXCL_STOP */
                                           size_t end_pos, int *out_val) {
   /* Simple placeholder for now: evaluate defined(X), 1, or 0.
    * A full boolean expression parser requires an expression grammar tree.
@@ -224,53 +193,38 @@ static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
    * evaluation. */
   size_t i;
 
-  /* LCOV_EXCL_START */
   if (start_pos >= end_pos) {
-    /* LCOV_EXCL_STOP */
     *out_val = 0;
-    /* LCOV_EXCL_START */
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Fallback single token evaluation */
-  /* LCOV_EXCL_START */
   if (end_pos - start_pos == 1) {
     cdd_token_t *t = &s->list->tokens[start_pos];
     if (t->kind == CDD_TOKEN_NUMBER) {
       if (t->length == 1 && t->start[0] == '0') {
-        /* LCOV_EXCL_STOP */
         *out_val = 0;
       } else {
         *out_val = 1;
       }
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
     } else if (t->kind == CDD_TOKEN_IDENTIFIER) {
-      /* LCOV_EXCL_STOP */
       /* Macro value check */
       size_t k;
-      /* LCOV_EXCL_START */
       for (k = 0; k < s->macros.count; k++) {
         if (strlen(s->macros.defs[k].name) == t->length &&
             strncmp(s->macros.defs[k].name, (const char *)t->start,
-                    /* LCOV_EXCL_STOP */
                     t->length) == 0) {
           *out_val = 1; /* Found */
-                        /* LCOV_EXCL_START */
           return CDD_C_SUCCESS;
-          /* LCOV_EXCL_STOP */
         }
       }
       *out_val = 0;
-      /* LCOV_EXCL_START */
       return CDD_C_SUCCESS;
-      /* LCOV_EXCL_STOP */
     }
   }
 
   /* Scan for "defined ( X )" or "defined X" */
-  /* LCOV_EXCL_START */
   for (i = start_pos; i < end_pos; i++) {
     cdd_token_t *t = &s->list->tokens[i];
     if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 7 &&
@@ -279,41 +233,28 @@ static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
       if (target_idx < end_pos &&
           s->list->tokens[target_idx].kind == CDD_TOKEN_LPAREN) {
         target_idx++;
-        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_START */
       if (target_idx < end_pos &&
           s->list->tokens[target_idx].kind == CDD_TOKEN_IDENTIFIER) {
-        /* LCOV_EXCL_STOP */
         size_t k;
-        /* LCOV_EXCL_START */
         cdd_token_t *target = &s->list->tokens[target_idx];
-        /* LCOV_EXCL_STOP */
         *out_val = 0;
-        /* LCOV_EXCL_START */
         for (k = 0; k < s->macros.count; k++) {
           if (strlen(s->macros.defs[k].name) == target->length &&
               strncmp(s->macros.defs[k].name, (const char *)target->start,
-                      /* LCOV_EXCL_STOP */
                       target->length) == 0) {
             *out_val = 1;
-            /* LCOV_EXCL_START */
             break;
-            /* LCOV_EXCL_STOP */
           }
         }
-        /* LCOV_EXCL_START */
         return CDD_C_SUCCESS;
-        /* LCOV_EXCL_STOP */
       }
     }
   }
 
   /* Default unresolvable expression to 0 (false) */
   *out_val = 0;
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 #if 0
@@ -388,9 +329,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   peek(s, &t);
   if (!t) {
     *out_node = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Note: cdd_token.h does not currently map #if specifically to its own token;
@@ -408,23 +347,17 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
 
     if (is_if_elif) {
       /* advance to end of logical line for the expression evaluation */
-      /* LCOV_EXCL_START */
       while (expr_end < s->list->size &&
              s->list->tokens[expr_end].kind != CDD_TOKEN_OTHER) {
-        /* LCOV_EXCL_STOP */
         /* simplistic boundary check for expressions on single lines */
-        /* LCOV_EXCL_START */
         if (s->list->tokens[expr_end].length == 1 &&
             s->list->tokens[expr_end].start[0] == '\n')
           break;
         expr_end++;
-        /* LCOV_EXCL_STOP */
       }
       {
-        /* LCOV_EXCL_START */
         int val = 0;
         eval_preproc_expr(s, expr_start, expr_end, &val);
-        /* LCOV_EXCL_STOP */
         /* If we wanted a fully evaluating engine, we could skip/keep nodes
          * based on val here. */
         (void)val;
@@ -433,13 +366,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
 
     alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     append_child_token(n, p);
     while (s->pos < s->list->size) {
@@ -458,14 +387,12 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       }
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         {
-          /* LCOV_EXCL_START */
           cdd_cst_node_t *child = NULL;
           parse_block(s, n, &child);
           if (child) {
             if (append_child_node(n, child) != CDD_C_SUCCESS) {
               free_node(child);
               s->err = CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
           }
         }
@@ -490,7 +417,6 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         peek(s, &macro_name_tok);
         if (macro_name_tok && macro_name_tok->kind == CDD_TOKEN_IDENTIFIER) {
           /* Add to local environment */
-          /* LCOV_EXCL_START */
           if (s->macros.count >= s->macros.capacity) {
             size_t new_cap =
                 s->macros.capacity == 0 ? 16 : s->macros.capacity * 2;
@@ -499,23 +425,18 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
             if (new_arr) {
               s->macros.defs = new_arr;
               s->macros.capacity = new_cap;
-              /* LCOV_EXCL_STOP */
 
               /* Temporarily just capture name, we'll parse the rest as child
                * tokens */
-              /* LCOV_EXCL_START */
               s->macros.defs[s->macros.count].name =
                   (char *)malloc(macro_name_tok->length + 1);
               if (s->macros.defs[s->macros.count].name) {
                 memcpy(s->macros.defs[s->macros.count].name,
                        macro_name_tok->start, macro_name_tok->length);
                 s->macros.defs[s->macros.count].name[macro_name_tok->length] =
-                    /* LCOV_EXCL_STOP */
                     '\0';
-                /* LCOV_EXCL_START */
                 s->macros.defs[s->macros.count].value = NULL;
                 s->macros.count++;
-                /* LCOV_EXCL_STOP */
               }
             }
           }
@@ -527,21 +448,15 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   if (t->kind == CDD_TOKEN_LBRACE) {
-    /* LCOV_EXCL_START */
     return parse_block(s, parent, out_node);
-    /* LCOV_EXCL_STOP */
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_TEMPLATE) {
     alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     advance(s, &t); /* template */
     append_child_token(n, t);
@@ -557,9 +472,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         while (s->pos < s->list->size) {
           peek(s, &t);
           if (!t)
-            /* LCOV_EXCL_START */
             break;
-          /* LCOV_EXCL_STOP */
           if (t->kind == CDD_TOKEN_GT) {
             advance(s, &t);
             append_child_token(param_list, t);
@@ -587,24 +500,18 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                 append_child_token(param, t);
               }
               if (append_child_node(param_list, param) != CDD_C_SUCCESS) {
-                /* LCOV_EXCL_START */
                 free_node(param);
                 s->err = CDD_C_ERROR_MEMORY;
-                /* LCOV_EXCL_STOP */
               }
             }
           } else {
-            /* LCOV_EXCL_START */
             advance(s, &t);
             append_child_token(param_list, t);
-            /* LCOV_EXCL_STOP */
           }
         }
         if (append_child_node(n, param_list) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(param_list);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -615,10 +522,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       parse_declaration_or_statement(s, n, &child);
       if (child) {
         if (append_child_node(n, child) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(child);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -630,13 +535,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_NAMESPACE) {
     alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     advance(s, &t); /* namespace */
     append_child_token(n, t);
@@ -651,10 +552,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       parse_block(s, n, &child);
       if (child) {
         if (append_child_node(n, child) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(child);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -665,13 +564,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_USING) {
     alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
@@ -693,13 +588,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_TRY) {
     alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     advance(s, &t); /* try */
     append_child_token(n, t);
@@ -710,10 +601,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       parse_block(s, n, &child);
       if (child) {
         if (append_child_node(n, child) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(child);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       }
     }
@@ -746,23 +635,17 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
           parse_block(s, catch_node, &child);
           if (child) {
             if (append_child_node(catch_node, child) != CDD_C_SUCCESS) {
-              /* LCOV_EXCL_START */
               free_node(child);
               s->err = CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
           }
         }
         if (append_child_node(n, catch_node) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(catch_node);
           s->err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       } else {
-        /* LCOV_EXCL_START */
         break;
-        /* LCOV_EXCL_STOP */
       }
     }
 
@@ -773,13 +656,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_THROW) {
     alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     advance(s, &t); /* throw */
     append_child_token(n, t);
@@ -787,9 +666,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     while (s->pos < s->list->size) {
       peek(s, &t);
       if (!t)
-        /* LCOV_EXCL_START */
         break;
-      /* LCOV_EXCL_STOP */
       if (t->kind == CDD_TOKEN_SEMICOLON) {
         advance(s, &t);
         append_child_token(n, t);
@@ -805,13 +682,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_CLASS) {
     alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
@@ -823,10 +696,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         parse_block(s, n, &child);
         if (child) {
           if (append_child_node(n, child) != CDD_C_SUCCESS) {
-            /* LCOV_EXCL_START */
             free_node(child);
             s->err = CDD_C_ERROR_MEMORY;
-            /* LCOV_EXCL_STOP */
           }
         }
       } else if (nxt->kind == CDD_TOKEN_COLON) {
@@ -865,10 +736,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                 append_child_token(base_spec, t);
               }
               if (append_child_node(base_list, base_spec) != CDD_C_SUCCESS) {
-                /* LCOV_EXCL_START */
                 free_node(base_spec);
                 s->err = CDD_C_ERROR_MEMORY;
-                /* LCOV_EXCL_STOP */
               }
             }
 
@@ -881,10 +750,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
             }
           }
           if (append_child_node(n, base_list) != CDD_C_SUCCESS) {
-            /* LCOV_EXCL_START */
             free_node(base_list);
             s->err = CDD_C_ERROR_MEMORY;
-            /* LCOV_EXCL_STOP */
           }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
@@ -905,22 +772,16 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       t->kind == CDD_TOKEN_KEYWORD_PROTECTED) {
     alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     advance(s, &t);
     append_child_token(n, t);
     peek(s, &t);
     if (t && t->kind == CDD_TOKEN_OTHER && t->length == 1 && *t->start == ':') {
-      /* LCOV_EXCL_START */
       advance(s, &t);
       append_child_token(n, t);
-      /* LCOV_EXCL_STOP */
     }
     *out_node = n;
     return CDD_C_SUCCESS;
@@ -931,13 +792,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
        (t->length == 3 && memcmp(t->start, "asm", 3) == 0))) {
     alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
     if (!n) {
-      /* LCOV_EXCL_START */
       s->err = CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
       *out_node = NULL;
-      /* LCOV_EXCL_START */
       return CDD_C_ERROR_MEMORY;
-      /* LCOV_EXCL_STOP */
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
@@ -948,9 +805,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
         break;
       }
       if (nxt->kind == CDD_TOKEN_RBRACE)
-        /* LCOV_EXCL_START */
         break;
-      /* LCOV_EXCL_STOP */
       advance(s, &t);
       if (t)
         append_child_token(n, t);
@@ -1024,13 +879,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     if (is_func || node_kind != CDD_CST_UNKNOWN) {
       alloc_node(node_kind, parent, &n);
       if (!n) {
-        /* LCOV_EXCL_START */
         s->err = CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
         *out_node = NULL;
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
       }
       while (s->pos < s->list->size) {
         cdd_token_t *nxt = NULL;
@@ -1045,7 +896,6 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
 
             peek(s, &nxt);
             if (nxt && nxt->kind == CDD_TOKEN_LPAREN) {
-              /* LCOV_EXCL_START */
               int noexcept_paren = 0;
               while (s->pos < s->list->size) {
                 peek(s, &nxt);
@@ -1053,21 +903,16 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
                   noexcept_paren++;
                 else if (nxt->kind == CDD_TOKEN_RPAREN)
                   noexcept_paren--;
-                /* LCOV_EXCL_STOP */
 
-                /* LCOV_EXCL_START */
                 advance(s, &t);
                 append_child_token(noexcept_node, t);
                 if (noexcept_paren == 0)
                   break;
-                /* LCOV_EXCL_STOP */
               }
             }
             if (append_child_node(n, noexcept_node) != CDD_C_SUCCESS) {
-              /* LCOV_EXCL_START */
               free_node(noexcept_node);
               s->err = CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
             continue;
           }
@@ -1078,20 +923,16 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
           parse_block(s, n, &child);
           if (child) {
             if (append_child_node(n, child) != CDD_C_SUCCESS) {
-              /* LCOV_EXCL_START */
               free_node(child);
               s->err = CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
           }
           break;
         }
         if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
-          /* LCOV_EXCL_START */
           advance(s, &t);
           append_child_token(n, t);
           break;
-          /* LCOV_EXCL_STOP */
         }
         advance(s, &t);
         append_child_token(n, t);
@@ -1101,13 +942,9 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     } else {
       alloc_node(CDD_CST_UNKNOWN, parent, &n);
       if (!n) {
-        /* LCOV_EXCL_START */
         s->err = CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
         *out_node = NULL;
-        /* LCOV_EXCL_START */
         return CDD_C_ERROR_MEMORY;
-        /* LCOV_EXCL_STOP */
       }
       {
         int paren_depth = 0;
@@ -1120,14 +957,10 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
             paren_depth--;
           }
           if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
-            /* LCOV_EXCL_START */
             if (n->num_children == 0) {
               free_node(n);
-              /* LCOV_EXCL_STOP */
               *out_node = NULL;
-              /* LCOV_EXCL_START */
               return CDD_C_ERROR_MEMORY;
-              /* LCOV_EXCL_STOP */
             }
             break;
           }
@@ -1149,24 +982,18 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   int rc;
 
   if (!out_tree)
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  /* LCOV_EXCL_STOP */
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   if (!tree) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   rc = cdd_lexer_tokenize(source, &tree->base_tokens);
   if (rc != 0) {
-    /* LCOV_EXCL_START */
     free(tree);
     return rc;
-    /* LCOV_EXCL_STOP */
   }
 
   state.list = tree->base_tokens;
@@ -1175,81 +1002,59 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   alloc_node(CDD_CST_TRANSLATION_UNIT, NULL, &tree->root);
   if (!tree->root) {
-    /* LCOV_EXCL_START */
     cdd_cst_tree_free(tree);
     return CDD_C_ERROR_MEMORY;
-    /* LCOV_EXCL_STOP */
   }
 
   while (state.pos < state.list->size) {
     cdd_token_t *t = NULL;
     peek(&state, &t);
     if (t->kind == CDD_TOKEN_EOF) {
-      /* LCOV_EXCL_START */
       advance(&state, &t);
       append_child_token(tree->root, t);
       break;
-      /* LCOV_EXCL_STOP */
     }
     {
       cdd_cst_node_t *child = NULL;
       parse_declaration_or_statement(&state, tree->root, &child);
       if (child) {
         if (append_child_node(tree->root, child) != CDD_C_SUCCESS) {
-          /* LCOV_EXCL_START */
           free_node(child);
           state.err = CDD_C_ERROR_MEMORY;
-          /* LCOV_EXCL_STOP */
         }
       } else {
-        /* LCOV_EXCL_START */
         if (state.err)
           break;
-        /* LCOV_EXCL_STOP */
         /* Fallback */
-        /* LCOV_EXCL_START */
         advance(&state, &t);
         if (t)
           append_child_token(tree->root, t);
-        /* LCOV_EXCL_STOP */
       }
     }
   }
 
   if (state.err) {
-    /* LCOV_EXCL_START */
     if (state.macros.defs) {
-      /* LCOV_EXCL_STOP */
       size_t k;
-      /* LCOV_EXCL_START */
       for (k = 0; k < state.macros.count; k++) {
         free(state.macros.defs[k].name);
         if (state.macros.defs[k].value)
           free(state.macros.defs[k].value);
-        /* LCOV_EXCL_STOP */
       }
-      /* LCOV_EXCL_START */
       free(state.macros.defs);
-      /* LCOV_EXCL_STOP */
     }
-    /* LCOV_EXCL_START */
     cdd_cst_tree_free(tree);
     return state.err;
-    /* LCOV_EXCL_STOP */
   }
 
   if (state.macros.defs) {
     size_t k;
-    /* LCOV_EXCL_START */
     for (k = 0; k < state.macros.count; k++) {
       free(state.macros.defs[k].name);
       if (state.macros.defs[k].value)
         free(state.macros.defs[k].value);
-      /* LCOV_EXCL_STOP */
     }
-    /* LCOV_EXCL_START */
     free(state.macros.defs);
-    /* LCOV_EXCL_STOP */
   }
 
   *out_tree = tree;
@@ -1259,9 +1064,7 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
   size_t i;
   if (!tree)
-    /* LCOV_EXCL_START */
     return;
-  /* LCOV_EXCL_STOP */
   if (tree->root)
     free_node(tree->root);
   if (tree->base_tokens)
@@ -1272,19 +1075,15 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
         /* Need to free trivia attached */
         cdd_trivia_t *t = tree->synthesized_tokens[i]->leading_trivia;
         while (t) {
-          /* LCOV_EXCL_START */
           cdd_trivia_t *n = t->next;
           free(t);
           t = n;
-          /* LCOV_EXCL_STOP */
         }
         t = tree->synthesized_tokens[i]->trailing_trivia;
         while (t) {
-          /* LCOV_EXCL_START */
           cdd_trivia_t *n = t->next;
           free(t);
           t = n;
-          /* LCOV_EXCL_STOP */
         }
         free(tree->synthesized_tokens[i]);
       }
@@ -1292,16 +1091,10 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
     free(tree->synthesized_tokens);
   }
   if (tree->string_pool) {
-    /* LCOV_EXCL_START */
     for (i = 0; i < tree->num_strings; i++) {
       free(tree->string_pool[i]);
-      /* LCOV_EXCL_STOP */
     }
-    /* LCOV_EXCL_START */
     free(tree->string_pool);
-    /* LCOV_EXCL_STOP */
   }
   free(tree);
 }
-
-/* LCOV_EXCL_STOP */

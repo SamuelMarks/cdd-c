@@ -300,9 +300,7 @@ TEST test_sync_oom(void) {
     printf("test_sync_oom rc_s=%d\n", rc_s);
     g_cdd_fail_alloc = 0;
     if (rc_s != CDD_C_ERROR_IO)
-      /* LCOV_EXCL_START */
       printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
-    /* LCOV_EXCL_STOP */
     g_fail_io_after = 0;
     g_io_calls = 0;
     g_fail_io_after = 0;

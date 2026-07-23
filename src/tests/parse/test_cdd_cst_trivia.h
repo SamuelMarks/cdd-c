@@ -172,9 +172,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   g_cdd_cst_alloc_token_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   if (rc_tmp != CDD_C_ERROR_MEMORY) {
-    /* LCOV_EXCL_START */
     printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
-           /* LCOV_EXCL_STOP */
            rc_tmp);
   }
   ASSERT(rc_tmp != 0);
@@ -182,9 +180,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   g_cdd_cst_alloc_token_fail = 2;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   if (rc_tmp != CDD_C_ERROR_MEMORY) {
-    /* LCOV_EXCL_START */
     printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
-           /* LCOV_EXCL_STOP */
            rc_tmp);
   }
   ASSERT(rc_tmp != 0);

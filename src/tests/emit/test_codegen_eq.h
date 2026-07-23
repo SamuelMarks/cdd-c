@@ -26,20 +26,14 @@ static enum cdd_c_error generate_eq_code(const char *struct_name,
 
   if (!tmp) {
     *_out_val = NULL;
-    /* LCOV_EXCL_START */
     return 0;
-    /* LCOV_EXCL_STOP */
   }
 
   if (write_struct_eq_func(tmp, struct_name, sf, NULL) != 0) {
-    /* LCOV_EXCL_START */
     fclose(tmp);
-    /* LCOV_EXCL_STOP */
     {
       *_out_val = NULL;
-      /* LCOV_EXCL_START */
       return 0;
-      /* LCOV_EXCL_STOP */
     }
   }
 
@@ -51,9 +45,7 @@ static enum cdd_c_error generate_eq_code(const char *struct_name,
     content = (char *)calloc(1, sz + 1);
     fread(content, 1, sz, tmp);
   } else {
-    /* LCOV_EXCL_START */
     content = strdup("");
-    /* LCOV_EXCL_STOP */
   }
 
   fclose(tmp);

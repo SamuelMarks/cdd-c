@@ -31,9 +31,7 @@ static enum cdd_c_error load_spec_str2(const char *json_str,
   int rc;
   dyn = json_parse_string(json_str);
   if (!dyn)
-    /* LCOV_EXCL_START */
     return -1;
-  /* LCOV_EXCL_STOP */
   (void)openapi_spec_init(spec);
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
@@ -92,9 +90,7 @@ TEST test_writer_empty_spec(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -126,9 +122,7 @@ TEST test_writer_basic_operation(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -168,9 +162,7 @@ TEST test_writer_schema_document(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   ASSERT_STR_EQ("{\"type\":\"string\"}", json);
@@ -206,9 +198,7 @@ TEST test_writer_root_metadata_and_tags(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -286,9 +276,7 @@ TEST test_writer_path_ref_and_servers(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -348,9 +336,7 @@ TEST test_writer_webhooks(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -388,9 +374,7 @@ TEST test_writer_params_responses(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -460,9 +444,7 @@ TEST test_writer_parameter_metadata(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -505,9 +487,7 @@ TEST test_writer_allow_empty_value(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -553,9 +533,7 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -609,9 +587,7 @@ TEST test_writer_info_metadata(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -702,9 +678,7 @@ TEST test_writer_operation_metadata(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -743,9 +717,7 @@ TEST test_writer_response_content_type(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -792,9 +764,7 @@ TEST test_writer_inline_response_schema_primitive(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -840,9 +810,7 @@ TEST test_writer_inline_response_schema_array(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -893,9 +861,7 @@ TEST test_writer_inline_schema_format_and_content(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -948,9 +914,7 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1021,9 +985,7 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -1113,9 +1075,7 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1180,16 +1140,12 @@ TEST test_writer_preserves_composed_component_schema(void) {
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -1256,16 +1212,12 @@ TEST test_writer_preserves_inline_composed_schema(void) {
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -1312,9 +1264,7 @@ TEST test_writer_schema_ref_summary_description(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1388,9 +1338,7 @@ TEST test_writer_options_trace_verbs(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1425,9 +1373,7 @@ TEST test_writer_query_and_external_docs(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1471,9 +1417,7 @@ TEST test_writer_parameter_styles(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1517,9 +1461,7 @@ TEST test_writer_parameter_explode_false(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1562,9 +1504,7 @@ TEST test_writer_parameter_style_matrix(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1615,9 +1555,7 @@ TEST test_writer_parameter_content_any(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1706,9 +1644,7 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1787,9 +1723,7 @@ TEST test_writer_parameter_examples_object(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1839,9 +1773,7 @@ TEST test_writer_parameter_examples_media(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1892,9 +1824,7 @@ TEST test_writer_component_examples(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1945,9 +1875,7 @@ TEST test_writer_oauth2_flows(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -1995,9 +1923,7 @@ TEST test_writer_servers(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2048,9 +1974,7 @@ TEST test_writer_querystring_param(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2115,9 +2039,7 @@ TEST test_writer_ignores_reserved_header_params(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2175,9 +2097,7 @@ TEST test_writer_ignores_content_type_response_header(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2231,9 +2151,7 @@ TEST test_writer_path_level_parameters(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2288,9 +2206,7 @@ TEST test_writer_server_variables(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2357,9 +2273,7 @@ TEST test_writer_security_schemes(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2442,9 +2356,7 @@ TEST test_writer_security_requirements(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2505,9 +2417,7 @@ TEST test_writer_multipart_schema(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2622,9 +2532,7 @@ TEST test_writer_components_and_response_headers(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2718,9 +2626,7 @@ TEST test_writer_components_request_bodies(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2783,9 +2689,7 @@ TEST test_writer_components_schemas(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2828,9 +2732,7 @@ TEST test_writer_components_schemas_raw(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2878,9 +2780,7 @@ TEST test_writer_schema_ref_external(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2930,9 +2830,7 @@ TEST test_writer_schema_dynamic_ref_external(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -2982,9 +2880,7 @@ TEST test_writer_schema_items_ref_external(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3038,9 +2934,7 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3103,9 +2997,7 @@ TEST test_writer_additional_operations(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3168,9 +3060,7 @@ TEST test_writer_component_media_types_and_content_ref(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3241,9 +3131,7 @@ TEST test_writer_response_multiple_content(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3315,9 +3203,7 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3405,9 +3291,7 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3487,9 +3371,7 @@ TEST test_writer_component_path_items(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3567,9 +3449,7 @@ TEST test_writer_response_links(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3653,9 +3533,7 @@ TEST test_writer_callbacks(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3730,9 +3608,7 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3822,9 +3698,7 @@ TEST test_writer_parameter_schema_format_and_content(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3884,9 +3758,7 @@ TEST test_writer_request_body_ref_with_description(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3932,9 +3804,7 @@ TEST test_writer_security_scheme_deprecated(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -3981,9 +3851,7 @@ TEST test_writer_schema_enum_default_nullable(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4040,9 +3908,7 @@ TEST test_writer_schema_type_union(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4098,9 +3964,7 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4158,9 +4022,7 @@ TEST test_writer_schema_items_type_union(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4209,9 +4071,7 @@ TEST test_writer_schema_boolean(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4261,9 +4121,7 @@ TEST test_writer_schema_numeric_enum(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4317,9 +4175,7 @@ TEST test_writer_schema_items_examples(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4369,9 +4225,7 @@ TEST test_writer_schema_items_boolean(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4424,9 +4278,7 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4483,9 +4335,7 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4535,16 +4385,12 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -4705,9 +4551,7 @@ TEST test_writer_extensions_non_schema(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
 
   {
@@ -4815,9 +4659,7 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -4901,9 +4743,7 @@ TEST test_writer_methods_and_styles(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);
@@ -4942,9 +4782,7 @@ TEST test_writer_xml_and_oauth(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);
@@ -5006,9 +4844,7 @@ TEST test_writer_xml_types(void) {
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
-    /* LCOV_EXCL_START */
     printf("LOAD RC %d\n", rc);
-  /* LCOV_EXCL_STOP */
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);

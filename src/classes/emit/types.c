@@ -17,7 +17,6 @@
 #include <stdarg.h>
 
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* Wrapper for fprintf to check errors tersely */
 #ifdef CDD_BUILD_TESTS
@@ -1145,5 +1144,3 @@ write_root_array_from_json_func(FILE *fp, const char *name,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */

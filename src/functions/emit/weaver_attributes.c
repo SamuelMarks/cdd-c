@@ -37,9 +37,7 @@ weaver_translate_gcc_attributes(struct PatchList *patches,
       {
         extern C_CDD_EXPORT int g_cdd_fail_alloc;
         if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-          /* LCOV_EXCL_START */
           attr_text = NULL;
-        /* LCOV_EXCL_STOP */
         else
           attr_text = (char *)malloc(len + 1);
       }

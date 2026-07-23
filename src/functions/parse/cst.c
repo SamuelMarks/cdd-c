@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /**
  * @file cst.c
  * @brief Implementation of the Concrete Syntax Tree logic.
@@ -27,7 +26,6 @@
 #include "functions/parse/cst.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /**
  * @brief Helper to skip whitespace tokens.
@@ -906,6 +904,3 @@ enum cdd_c_error cst_find_first(struct CstNodeList *list,
   }
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */
-/* LCOV_EXCL_STOP */

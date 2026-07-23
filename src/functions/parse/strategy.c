@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /**
  * @file strategy.c
  * @brief Implementation of parsing strategies.
@@ -14,7 +13,6 @@
 #include "functions/parse/strategy.h"
 #include "c_cdd/log.h"
 /* clang-format on */
-/* LCOV_EXCL_START */
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */
@@ -329,6 +327,3 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
   return CDD_C_SUCCESS;
 }
-
-/* LCOV_EXCL_STOP */
-/* LCOV_EXCL_STOP */

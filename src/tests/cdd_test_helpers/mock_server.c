@@ -104,31 +104,21 @@ typedef pthread_cond_t cond_t;
 #define THREAD_FUNC_RETURN void *
 #define THREAD_FUNC_ARG void *
 
-/* LCOV_EXCL_START */
 static void sleep_ms(int ms) { usleep(ms * 1000); }
-/* LCOV_EXCL_STOP */
 
-/* LCOV_EXCL_START */
 static void mutex_init(mutex_t *m) { pthread_mutex_init(m, NULL); }
 static void mutex_destroy(mutex_t *m) { pthread_mutex_destroy(m); }
 static void mutex_lock(mutex_t *m) { pthread_mutex_lock(m); }
 static void mutex_unlock(mutex_t *m) { pthread_mutex_unlock(m); }
-/* LCOV_EXCL_STOP */
 
-/* LCOV_EXCL_START */
 static void cond_init(cond_t *c) { pthread_cond_init(c, NULL); }
 static void cond_signal(cond_t *c) { pthread_cond_signal(c); }
 static int cond_wait(cond_t *c, mutex_t *m) { return pthread_cond_wait(c, m); }
-/* LCOV_EXCL_STOP */
 
-/* LCOV_EXCL_START */
 static void close_socket(socket_t s) { close(s); }
-/* LCOV_EXCL_STOP */
 
-/* LCOV_EXCL_START */
 static int platform_init(void) { return 0; }
 static enum cdd_c_error platform_cleanup(void) { return CDD_C_SUCCESS; }
-/* LCOV_EXCL_STOP */
 
 #endif
 
@@ -160,48 +150,34 @@ struct MockServer_ {
 
 /* --- Thread Routine --- */
 
-/* LCOV_EXCL_START */
 static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
   struct MockServer_ *s = (struct MockServer_ *)arg;
   const char *response = "HTTP/1.1 200 OK\r\n"
-                         /* LCOV_EXCL_STOP */
                          "Content-Type: text/plain\r\n"
                          "Content-Length: 2\r\n"
                          "\r\n"
                          "OK";
 
-  /* LCOV_EXCL_START */
   while (s->running) {
-    /* LCOV_EXCL_STOP */
     socket_t client_fd;
     struct sockaddr_in client_addr;
 #if defined(_WIN32)
     int addr_len = sizeof(client_addr);
 #else
-    /* LCOV_EXCL_START */
     socklen_t addr_len = sizeof(client_addr);
-/* LCOV_EXCL_STOP */
 #endif
 
     /* Blocking Accept */
     client_fd =
-        /* LCOV_EXCL_START */
         accept(s->server_fd, (struct sockaddr *)&client_addr, &addr_len);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     if (client_fd == INVALID_SOCK) {
-      /* LCOV_EXCL_STOP */
       /* If stopped, this failure is expected */
-      /* LCOV_EXCL_START */
       if (!s->running)
         break;
-      /* LCOV_EXCL_STOP */
       /* Temporary error or real error, just retry or sleep */
-      /* LCOV_EXCL_START */
       sleep_ms(10);
       continue;
-      /* LCOV_EXCL_STOP */
     }
 
     /* Read Request */
@@ -209,13 +185,10 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
       char buffer[4096];
       int bytes_read;
       sleep_ms(100); /* Wait for body packets (e.g. from WinHTTP) */
-                     /* LCOV_EXCL_START */
       bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
       if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
-        /* LCOV_EXCL_STOP */
 
-        /* LCOV_EXCL_START */
         mutex_lock(&s->lock);
         if (s->captured_request)
           free(s->captured_request);
@@ -225,200 +198,131 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
           s->captured_len = bytes_read;
           s->has_request = 1;
           cond_signal(&s->cond_req_ready);
-          /* LCOV_EXCL_STOP */
         }
-        /* LCOV_EXCL_START */
         mutex_unlock(&s->lock);
-        /* LCOV_EXCL_STOP */
       }
     }
 
     /* Send Response */
-    /* LCOV_EXCL_START */
     send(client_fd, response, (int)strlen(response), 0);
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     close_socket(client_fd);
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   return 0;
-  /* LCOV_EXCL_STOP */
 }
 
 /* --- Wrapper API --- */
 
-/* LCOV_EXCL_START */
 enum cdd_c_error mock_server_init(MockServerPtr *out) {
-  /* LCOV_EXCL_STOP */
   struct MockServer_ *s;
-  /* LCOV_EXCL_START */
   if (platform_init() != 0) {
     if (out)
-      /* LCOV_EXCL_STOP */
       *out = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   s = (struct MockServer_ *)calloc(1, sizeof(struct MockServer_));
   if (!s) {
     if (out)
-      /* LCOV_EXCL_STOP */
       *out = NULL;
-    /* LCOV_EXCL_START */
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   s->server_fd = INVALID_SOCK;
   s->running = 0;
   s->init_success = 1;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   mutex_init(&s->lock);
   cond_init(&s->cond_req_ready);
-  /* LCOV_EXCL_STOP */
 
   *out = s;
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
-/* LCOV_EXCL_START */
 void mock_server_destroy(MockServerPtr server) {
   if (!server)
     return;
-  /* LCOV_EXCL_STOP */
 
   /* Stop thread if running */
-  /* LCOV_EXCL_START */
   if (server->running) {
     server->running = 0;
-    /* LCOV_EXCL_STOP */
     /* Force accept to unblock by shutting down and closing socket */
-    /* LCOV_EXCL_START */
     if (server->server_fd != INVALID_SOCK) {
-/* LCOV_EXCL_STOP */
 #if defined(_WIN32)
       shutdown(server->server_fd, SD_BOTH);
 #else
-      /* LCOV_EXCL_START */
       shutdown(server->server_fd, SHUT_RDWR);
-/* LCOV_EXCL_STOP */
 #endif
-      /* LCOV_EXCL_START */
       close_socket(server->server_fd);
       server->server_fd = INVALID_SOCK;
-      /* LCOV_EXCL_STOP */
     }
 
 #if defined(_WIN32)
     WaitForSingleObject(server->thread, INFINITE);
     CloseHandle(server->thread);
 #else
-    /* LCOV_EXCL_START */
     pthread_join(server->thread, NULL);
-/* LCOV_EXCL_STOP */
 #endif
   }
 
-  /* LCOV_EXCL_START */
   if (server->server_fd != INVALID_SOCK) {
     close_socket(server->server_fd);
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   mutex_destroy(&server->lock);
-  /* LCOV_EXCL_STOP */
   /* cond_destroy not strictly needed in simple pthread wrapper or windows CV */
 
-  /* LCOV_EXCL_START */
   if (server->captured_request)
     free(server->captured_request);
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   free(server);
   platform_cleanup();
-  /* LCOV_EXCL_STOP */
 }
 
-/* LCOV_EXCL_START */
 enum cdd_c_error mock_server_start(MockServerPtr server) {
-  /* LCOV_EXCL_STOP */
   struct sockaddr_in addr;
 #if defined(_WIN32)
   int addr_len = sizeof(addr);
 #else
-  /* LCOV_EXCL_START */
   socklen_t addr_len = sizeof(addr);
-/* LCOV_EXCL_STOP */
 #endif
 
-  /* LCOV_EXCL_START */
   if (!server || server->running)
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   server->server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server->server_fd == INVALID_SOCK)
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 
   /* Bind to loopback, port 0 (ephemeral) */
-  /* LCOV_EXCL_START */
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
   addr.sin_port = 0;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   if (bind(server->server_fd, (struct sockaddr *)&addr, sizeof(addr)) ==
-      /* LCOV_EXCL_STOP */
       SOCK_ERROR) {
-    /* LCOV_EXCL_START */
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Listen */
-  /* LCOV_EXCL_START */
   if (listen(server->server_fd, 1) == SOCK_ERROR) {
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 
   /* Retrieve assigned port */
-  /* LCOV_EXCL_START */
   if (getsockname(server->server_fd, (struct sockaddr *)&addr, &addr_len) ==
-      /* LCOV_EXCL_STOP */
       SOCK_ERROR) {
-    /* LCOV_EXCL_START */
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_START */
   server->port = ntohs(addr.sin_port);
-  /* LCOV_EXCL_STOP */
 
   /* Launch Thread */
-  /* LCOV_EXCL_START */
   server->running = 1;
-  /* LCOV_EXCL_STOP */
 
 #if defined(_WIN32)
   server->thread =
@@ -429,91 +333,61 @@ enum cdd_c_error mock_server_start(MockServerPtr server) {
     return CDD_C_ERROR_UNKNOWN;
   }
 #else
-  /* LCOV_EXCL_START */
   if (pthread_create(&server->thread, NULL, server_thread_func, server) != 0) {
     server->running = 0;
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;
-    /* LCOV_EXCL_STOP */
   }
 #endif
 
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
-/* LCOV_EXCL_START */
 enum cdd_c_error mock_server_get_port(MockServerPtr server, int *out_port) {
   if (server)
-    /* LCOV_EXCL_STOP */
     *out_port = server->port;
   else
     *out_port = 0;
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }
 
 enum cdd_c_error
-/* LCOV_EXCL_START */
 mock_server_wait_for_request(MockServerPtr server,
-                             /* LCOV_EXCL_STOP */
                              struct MockServerRequest *out_req) {
-  /* LCOV_EXCL_START */
   if (!server || !out_req)
     return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 
-  /* LCOV_EXCL_START */
   mutex_lock(&server->lock);
   while (!server->has_request && server->running) {
     cond_wait(&server->cond_req_ready, &server->lock);
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   if (server->has_request && server->captured_request) {
-    /* LCOV_EXCL_STOP */
     /* Copy data out */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     out_req->raw_header = _strdup(server->captured_request);
 #else
-    /* LCOV_EXCL_START */
     out_req->raw_header = strdup(server->captured_request);
-/* LCOV_EXCL_STOP */
 #endif
-    /* LCOV_EXCL_START */
     out_req->header_len = server->captured_len;
-    /* LCOV_EXCL_STOP */
 
     /* Consume it */
-    /* LCOV_EXCL_START */
     free(server->captured_request);
     server->captured_request = NULL;
     server->has_request = 0;
-    /* LCOV_EXCL_STOP */
 
-    /* LCOV_EXCL_START */
     mutex_unlock(&server->lock);
     return CDD_C_SUCCESS;
-    /* LCOV_EXCL_STOP */
   }
 
-  /* LCOV_EXCL_START */
   mutex_unlock(&server->lock);
   return CDD_C_ERROR_UNKNOWN;
-  /* LCOV_EXCL_STOP */
 }
 
-/* LCOV_EXCL_START */
 enum cdd_c_error mock_server_request_cleanup(struct MockServerRequest *req) {
   if (req && req->raw_header) {
     free(req->raw_header);
     req->raw_header = NULL;
-    /* LCOV_EXCL_STOP */
   }
-  /* LCOV_EXCL_START */
   return CDD_C_SUCCESS;
-  /* LCOV_EXCL_STOP */
 }

@@ -239,9 +239,7 @@ TEST test_cdd_cst_parse_format_oom(void) {
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
     if (rc_tmp != CDD_C_ERROR_MEMORY) {
-      /* LCOV_EXCL_START */
       printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
-      /* LCOV_EXCL_STOP */
     }
     ASSERT(rc_tmp != 0);
   }

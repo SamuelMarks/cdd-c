@@ -103,10 +103,8 @@ TEST test_walk_directory(void) {
 
   /* Create a unique subdirectory to avoid counting other temp files */
   if (asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()) == -1) {
-    /* LCOV_EXCL_START */
     free(sys_tmp);
     FAILm("asprintf failed");
-    /* LCOV_EXCL_STOP */
   }
   free(sys_tmp);
 

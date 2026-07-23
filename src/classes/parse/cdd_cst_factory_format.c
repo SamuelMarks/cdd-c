@@ -40,7 +40,7 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail)
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
     buf = NULL;
   else
 #endif

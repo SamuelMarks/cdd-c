@@ -53,9 +53,7 @@ TEST test_cst_print_exact(void) {
 #else
   f = fopen("test_cst_print.txt", "wb+");
   if (!f)
-    /* LCOV_EXCL_START */
     FAILm("Could not open file");
-/* LCOV_EXCL_STOP */
 #endif
 
   rc = cst_print_tokens_exact(tokens, f);

@@ -1,4 +1,3 @@
-/* LCOV_EXCL_START */
 /**
  * @file inspector.c
  * @brief Implementation of C code inspection logic.
@@ -536,5 +535,3 @@ cleanup:
   free_token_list(tl);
   return rc;
 }
-
-/* LCOV_EXCL_STOP */

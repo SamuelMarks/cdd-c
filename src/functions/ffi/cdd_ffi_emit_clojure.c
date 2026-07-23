@@ -152,6 +152,10 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
     }
   }
 
+  if (f)
+    fclose(f);
+  f = NULL;
+
   /* Write deps.edn snippet */
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\deps.edn", config->output_dir);
