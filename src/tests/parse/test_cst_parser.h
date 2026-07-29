@@ -405,25 +405,32 @@ TEST test_cst_parser_extra(void) {
 
     g_cdd_cst_realloc_fail = 1;
     tree = NULL;
-    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    cdd_c_error_t parse_rc =
+        cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
+    if (parse_rc != 0) {
+      printf("PARSE FAILED WITH %d\n", parse_rc);
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_rc);
     if (tree)
       cdd_cst_tree_free(tree);
     g_cdd_cst_realloc_fail = 0;
 
     g_cdd_cst_realloc_fail = 2;
     tree = NULL;
-    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
-                                   "int a, b, c, d, e, f, g, h, i, j;"),
-                               &tree));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_parse(
+                  az_span_create_from_str("int a, b, c, d, e, f, g, h, i, j;"),
+                  &tree));
     if (tree)
       cdd_cst_tree_free(tree);
     g_cdd_cst_realloc_fail = 0;
 
     g_cdd_cst_realloc_fail = 2;
     tree = NULL;
-    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
-                                   "int a, b, c, d, e, f, g, h, i, j;"),
-                               &tree));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_parse(
+                  az_span_create_from_str("int a, b, c, d, e, f, g, h, i, j;"),
+                  &tree));
     if (tree)
       cdd_cst_tree_free(tree);
     g_cdd_cst_realloc_fail = 0;

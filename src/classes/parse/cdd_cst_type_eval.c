@@ -167,23 +167,26 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
-  if (rc == 0) {
-    if (is_pointer) {
-      rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-    } else {
-      rc = cdd_cst_eval_primitive_type(name, abi, &info);
-      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-    }
-    free(name);
-    if (rc == 0) {
-      *out_size = info.size;
-      return CDD_C_SUCCESS;
-    }
+  if (rc != CDD_C_SUCCESS) {
+    *out_size = 0;
+    return rc;
   }
 
-  /* Fallback / Stub for structs, unions, arrays, etc. */
-  *out_size = 0;
-  return CDD_C_ERROR_SYSTEM;
+  if (is_pointer) {
+    rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+  } else {
+    rc = cdd_cst_eval_primitive_type(name, abi, &info);
+    C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
+  }
+  free(name);
+
+  if (rc != CDD_C_SUCCESS) {
+    *out_size = 0;
+    return rc;
+  }
+
+  *out_size = info.size;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
@@ -199,21 +202,24 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
-  if (rc == 0) {
-    if (is_pointer) {
-      rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-    } else {
-      rc = cdd_cst_eval_primitive_type(name, abi, &info);
-      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-    }
-    free(name);
-    if (rc == 0) {
-      *out_align = info.alignment;
-      return CDD_C_SUCCESS;
-    }
+  if (rc != CDD_C_SUCCESS) {
+    *out_align = 0;
+    return rc;
   }
 
-  /* Fallback / Stub for structs, unions, arrays, etc. */
-  *out_align = 0;
-  return CDD_C_ERROR_SYSTEM;
+  if (is_pointer) {
+    rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+  } else {
+    rc = cdd_cst_eval_primitive_type(name, abi, &info);
+    C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
+  }
+  free(name);
+
+  if (rc != CDD_C_SUCCESS) {
+    *out_align = 0;
+    return rc;
+  }
+
+  *out_align = info.alignment;
+  return CDD_C_SUCCESS;
 }

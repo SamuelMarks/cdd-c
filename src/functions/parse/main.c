@@ -424,12 +424,16 @@ cdd_c_error_t cdd_main(int argc, char **argv) {
 
   if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
     rc = print_version();
-    return rc;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
     rc = print_help(argv[0]);
-    return rc;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(cmd, "audit") == 0) {

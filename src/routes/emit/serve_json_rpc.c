@@ -260,8 +260,12 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
        argv[2] = (char *)input;
        argv[3] = "-o";
        argv[4] = (char *)output;
-       to_openapi_cli_main(5, argv);
-       send_rpc_success(client_fd);
+       {
+         cdd_c_error_t rc = to_openapi_cli_main(5, argv);
+         if (rc != CDD_C_SUCCESS) return rc;
+         rc = send_rpc_success(client_fd);
+         if (rc != CDD_C_SUCCESS) return rc;
+       }
     }
   } else if (strcmp(method, "to_docs_json") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -285,8 +289,12 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
        if (json_object_get_boolean(params, "no_wrapping")) {
          argv[argc++] = "--no-wrapping";
        }
-       to_docs_json_cli_main(argc, argv);
-       send_rpc_success(client_fd);
+       {
+         cdd_c_error_t rc = to_docs_json_cli_main(argc, argv);
+         if (rc != CDD_C_SUCCESS) return rc;
+         rc = send_rpc_success(client_fd);
+         if (rc != CDD_C_SUCCESS) return rc;
+       }
     }
   } else if (strncmp(method, "from_openapi_", 13) == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -332,8 +340,12 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
       argv[argc++] = "--tests";
     }
 
-    from_openapi_cli_main(argc, argv);
-    send_rpc_success(client_fd);
+    {
+      cdd_c_error_t rc = from_openapi_cli_main(argc, argv);
+      if (rc != CDD_C_SUCCESS) return rc;
+      rc = send_rpc_success(client_fd);
+      if (rc != CDD_C_SUCCESS) return rc;
+    }
   } else {
     { cdd_c_error_t _rc = send_rpc_error(client_fd, -32601, "Method not found"); if (_rc != CDD_C_SUCCESS) return _rc; }
   }

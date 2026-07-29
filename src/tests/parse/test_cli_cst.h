@@ -111,7 +111,8 @@ TEST test_cli_cst_errors(void) {
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_help2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(2, argv_nofix));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cli_cst_transformer_main(3, argv_badfile));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cli_cst_transformer_main(3, argv_badfile));
 
   /* Hit branches for other tools */
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_msvc));

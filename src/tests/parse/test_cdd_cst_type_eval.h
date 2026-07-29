@@ -120,10 +120,10 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT(decl2 != NULL);
 
   rc = cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &size);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
 
   rc = cdd_cst_eval_alignof(env, decl2, CDD_CST_ABI_LP64, &align);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
 
   cdd_cst_tree_free(tree2);
 
@@ -142,8 +142,9 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     }
     ASSERT(decl3 != NULL);
     rc = cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &size);
-    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc); /* "unsigned long long int" is not in the
-                              hardcoded primitive map but tests loop coverage */
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+              rc); /* "unsigned long long int" is not in the
+       hardcoded primitive map but tests loop coverage */
     cdd_cst_tree_free(tree3);
   }
 
@@ -167,7 +168,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     }
     ASSERT(decl4 != NULL);
     rc = cdd_cst_eval_sizeof(env, decl4, CDD_CST_ABI_LP64, &size);
-    ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
     cdd_cst_tree_free(tree4);
   }
 
@@ -176,9 +177,9 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   /* Fallback testing (e.g. unsupported type or empty declaration) */
   cdd_cst_alloc_node(CDD_CST_ASM_STATEMENT, &empty_node);
   rc = cdd_cst_eval_sizeof(env, empty_node, CDD_CST_ABI_LP64, &size);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   rc = cdd_cst_eval_alignof(env, empty_node, CDD_CST_ABI_LP64, &align);
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
   cdd_cst_free_node(empty_node);
 
   /* Error paths */
@@ -333,7 +334,7 @@ TEST test_type_eval_branches(void) {
   tok2.length = 290;
   cdd_cst_append_child_token(decl2, &tok2);
 
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &sz));
 
   /* Test OOM */
@@ -371,7 +372,7 @@ TEST test_type_eval_branches(void) {
   cdd_cst_append_child_token(decl3, &tok3);
   cdd_cst_append_child_token(decl3, &tok3);
 
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
             cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &sz));
   cdd_cst_free_node_only(decl3);
 

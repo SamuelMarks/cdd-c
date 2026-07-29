@@ -456,6 +456,7 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
       "  scanf(\"123\", &dummy, &dummy);\n"
 
       "  printf(\"hello\");\n" /* not transformed without args */
+      "#endif\n"
       "}\n";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 

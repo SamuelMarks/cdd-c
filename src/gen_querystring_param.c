@@ -228,6 +228,7 @@ cdd_c_error_t api_test_op(struct HttpClient *ctx, const char *qs,
       if (api_rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("Failed to parse ApiError: %d\n", api_rc);
         rc = api_rc;
+        goto cleanup;
       }
     }
   }

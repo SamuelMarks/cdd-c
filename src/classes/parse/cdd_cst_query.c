@@ -93,14 +93,16 @@ typedef struct type_query_ctx_t {
 static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
-    ctx->err = append_result(ctx->res, node);
+    cdd_c_error_t rc = append_result(ctx->res, node);
 #ifdef CDD_BUILD_TESTS
 
     if (g_cdd_query_err_fail)
-      ctx->err = CDD_C_ERROR_MEMORY;
+      rc = CDD_C_ERROR_MEMORY;
 #endif
-    if (ctx->err != CDD_C_SUCCESS)
-      return ctx->err;
+    if (rc != CDD_C_SUCCESS) {
+      ctx->err = rc;
+      return rc;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -122,17 +124,22 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
 
   {
     cdd_c_error_t rc = cdd_cst_traverse_preorder(root, type_visitor, &ctx);
-    if (rc != CDD_C_SUCCESS && ctx.err == CDD_C_SUCCESS)
-      ctx.err = rc;
-  }
-
-  if (ctx.err != CDD_C_SUCCESS) {
-    if (out_result->nodes)
-      free(out_result->nodes);
-    out_result->nodes = NULL;
-    out_result->size = 0;
-    out_result->capacity = 0;
-    return ctx.err;
+    if (rc != CDD_C_SUCCESS) {
+      if (out_result->nodes)
+        free(out_result->nodes);
+      out_result->nodes = NULL;
+      out_result->size = 0;
+      out_result->capacity = 0;
+      return rc;
+    }
+    if (ctx.err != CDD_C_SUCCESS) {
+      if (out_result->nodes)
+        free(out_result->nodes);
+      out_result->nodes = NULL;
+      out_result->size = 0;
+      out_result->capacity = 0;
+      return ctx.err;
+    }
   }
 
   return CDD_C_SUCCESS;
@@ -245,17 +252,22 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
 
   {
     cdd_c_error_t rc = cdd_cst_traverse_preorder(root, call_visitor, &ctx);
-    if (rc != CDD_C_SUCCESS && ctx.err == CDD_C_SUCCESS)
-      ctx.err = rc;
-  }
-
-  if (ctx.err != CDD_C_SUCCESS) {
-    if (out_result->nodes)
-      free(out_result->nodes);
-    out_result->nodes = NULL;
-    out_result->size = 0;
-    out_result->capacity = 0;
-    return ctx.err;
+    if (rc != CDD_C_SUCCESS) {
+      if (out_result->nodes)
+        free(out_result->nodes);
+      out_result->nodes = NULL;
+      out_result->size = 0;
+      out_result->capacity = 0;
+      return rc;
+    }
+    if (ctx.err != CDD_C_SUCCESS) {
+      if (out_result->nodes)
+        free(out_result->nodes);
+      out_result->nodes = NULL;
+      out_result->size = 0;
+      out_result->capacity = 0;
+      return ctx.err;
+    }
   }
 
   return CDD_C_SUCCESS;

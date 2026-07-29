@@ -279,7 +279,9 @@ void mock_server_destroy(MockServerPtr server) {
   free(server);
   {
     cdd_c_error_t rc = platform_cleanup();
-    (void)rc;
+    if (rc != CDD_C_SUCCESS) {
+      /* ignore */
+    }
   }
 }
 

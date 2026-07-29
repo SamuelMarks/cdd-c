@@ -91,7 +91,8 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   case CDD_CST_DECLARATION: {
     const char *name = NULL;
     /* Very simplified extraction of identifier */
-    if (extract_identifier(node, &name) == CDD_C_SUCCESS && name) {
+    rc = extract_identifier(node, &name);
+    if (rc == CDD_C_SUCCESS && name) {
       cdd_c_error_t _rc;
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
 #ifdef CDD_BUILD_TESTS
@@ -109,7 +110,8 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   }
   case CDD_CST_TYPE_SPECIFIER: {
     const char *name = NULL;
-    if (extract_identifier(node, &name) == CDD_C_SUCCESS && name) {
+    rc = extract_identifier(node, &name);
+    if (rc == CDD_C_SUCCESS && name) {
       cdd_c_error_t _rc;
       /* Assuming Struct tag for simplicity */
       _rc =

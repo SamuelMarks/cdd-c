@@ -647,6 +647,7 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   char buf[1024];
   cdd_trivia_t *trivia = NULL;
   cdd_token_t *target_tok = NULL;
+  cdd_c_error_t rc;
 
   if (!builder || !text)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -689,14 +690,16 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   {
     const char *pooled = NULL;
     cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
-    cdd_c_error_t rc;
+
     if (pool_rc != CDD_C_SUCCESS) {
       free(trivia);
       return pool_rc;
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
     free(trivia); /* since it became a real token via string pool mapping */
-    return rc;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -712,7 +715,8 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
-      if (get_first_token(node->children[i].val.node, &t) == 0 && t) {
+      if (get_first_token(node->children[i].val.node, &t) == CDD_C_SUCCESS &&
+          t) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -733,7 +737,8 @@ static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
-      if (get_last_token(node->children[i].val.node, &t) == 0 && t) {
+      if (get_last_token(node->children[i].val.node, &t) == CDD_C_SUCCESS &&
+          t) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }

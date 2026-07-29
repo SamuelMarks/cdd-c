@@ -202,7 +202,14 @@ cdd_c_error_t HazE_default(struct HazE **haz_e) {
   *haz_e = malloc(sizeof(**haz_e));
   if (*haz_e == NULL)
     return CDD_C_ERROR_MEMORY;
-  Tank_default(&(*haz_e)->tank);
+  {
+    cdd_c_error_t rc = Tank_default(&(*haz_e)->tank);
+    if (rc != CDD_C_SUCCESS) {
+      free(*haz_e);
+      *haz_e = NULL;
+      return rc;
+    }
+  }
   (*haz_e)->bzr = NULL;
   return CDD_C_SUCCESS;
 }
@@ -319,8 +326,11 @@ cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
     if (*json == NULL)
       goto cleanup;
   }
-  if (Tank_to_str(haz_e->tank, &tank_str) != 0) {
-    goto cleanup;
+  {
+    cdd_c_error_t tank_rc = Tank_to_str(haz_e->tank, &tank_str);
+    if (tank_rc != CDD_C_SUCCESS) {
+      goto cleanup;
+    }
   }
   c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
   if (*json == NULL) {
@@ -400,7 +410,11 @@ cdd_c_error_t FooE_cleanup(struct FooE *const foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
   free((void *)foo_e->bar);
-  HazE_cleanup(foo_e->haz);
+  {
+    cdd_c_error_t rc = HazE_cleanup(foo_e->haz);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   free(foo_e);
   return CDD_C_SUCCESS;
 }
@@ -417,9 +431,10 @@ cdd_c_error_t FooE_default(struct FooE **foo_e) {
   memset(*foo_e, 0, sizeof(**foo_e));
 
   rc = HazE_default(&(*foo_e)->haz);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     free(*foo_e);
     *foo_e = NULL;
+    return rc;
   }
   return CDD_C_SUCCESS;
 }
@@ -449,9 +464,14 @@ cdd_c_error_t FooE_deepcopy(const struct FooE *const foo_e_original,
 
   new_foo->can = foo_e_original->can;
 
-  if (HazE_deepcopy(foo_e_original->haz, &new_foo->haz) != 0) {
-    FooE_cleanup(new_foo);
-    return CDD_C_ERROR_MEMORY;
+  {
+    cdd_c_error_t deep_rc = HazE_deepcopy(foo_e_original->haz, &new_foo->haz);
+    if (deep_rc != CDD_C_SUCCESS) {
+      cdd_c_error_t cleanup_rc = FooE_cleanup(new_foo);
+      if (cleanup_rc != CDD_C_SUCCESS)
+        return cleanup_rc;
+      return deep_rc;
+    }
   }
 
   *foo_e_dest = new_foo;

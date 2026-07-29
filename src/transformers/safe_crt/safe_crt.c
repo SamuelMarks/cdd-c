@@ -192,11 +192,14 @@ static cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
   return head ? 0 : ENOENT;
 }
 
-static cdd_c_error_t find_and_mark_fopen(expr_t *head) {
+static cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
   expr_t *curr = head;
   expr_t *lhs_start = head;
   int found = 0;
   size_t i;
+  cdd_c_error_t rc;
+  if (!out_found)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   while (curr) {
     if (curr->type == 0 && curr->tok->kind == CDD_TOKEN_SEMICOLON) {
@@ -226,16 +229,27 @@ static cdd_c_error_t find_and_mark_fopen(expr_t *head) {
 
     if (curr->type == 1 || curr->type == 2) {
       for (i = 0; i < curr->num_args; i++) {
-        if (find_and_mark_fopen(curr->args[i]))
+        int sub_found = 0;
+        rc = find_and_mark_fopen(curr->args[i], &sub_found);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (sub_found)
           found = 1;
       }
-      if (curr->type == 2 && find_and_mark_fopen(curr->args[0]))
-        found = 1;
+      if (curr->type == 2) {
+        int sub_found = 0;
+        rc = find_and_mark_fopen(curr->args[0], &sub_found);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+        if (sub_found)
+          found = 1;
+      }
     }
 
     curr = curr->next;
   }
-  return found;
+  *out_found = found;
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t check_unsupported_calls(expr_t *head) {
@@ -253,10 +267,14 @@ static cdd_c_error_t check_unsupported_calls(expr_t *head) {
                 name);
       }
       for (i = 0; i < head->num_args; i++) {
-        check_unsupported_calls(head->args[i]);
+        cdd_c_error_t rc = check_unsupported_calls(head->args[i]);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     } else if (head->type == 2) {
-      check_unsupported_calls(head->args[0]);
+      cdd_c_error_t rc = check_unsupported_calls(head->args[0]);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     head = head->next;
   }
@@ -1619,8 +1637,17 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       /* printf("PROCESSING STATEMENT: %.*s\n", (int)first_tok->length,
              first_tok->start); */
       parse_expr_ast(stmt, &idx, 0, &ast);
-      find_and_mark_fopen(ast);
-      check_unsupported_calls(ast);
+      {
+        int dummy_found = 0;
+        rc = find_and_mark_fopen(ast, &dummy_found);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_LOG_DEBUG("find_and_mark_fopen failed");
+        }
+      }
+      rc = check_unsupported_calls(ast);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("check_unsupported_calls failed");
+      }
 
       chk_rc = check_needs_transform(ast);
       if (chk_rc == CDD_C_ERROR_PARSE) {
