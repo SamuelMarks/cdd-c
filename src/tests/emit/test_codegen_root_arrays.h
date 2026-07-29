@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -50,13 +51,13 @@ static enum cdd_c_error generate_ra_code(
   }
 
   rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   if (!content) {
     fclose(tmp);
     return CDD_C_ERROR_MEMORY;
   }
   if (fread(content, 1, sz, tmp) != (size_t)sz) {
-    free(content);
+    C_CDD_FREE(content);
     fclose(tmp);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -75,11 +76,11 @@ TEST test_root_int_array_from_json(void) {
   ASSERT(strstr(code, "enum cdd_c_error IntList_from_json(const char *json, "
                       "int **out, size_t *len)"));
   /* Check malloc */
-  ASSERT(strstr(code, "*out = malloc(count * sizeof(int));"));
+  ASSERT(strstr(code, "*out = C_CDD_MALLOC(count * sizeof(int));"));
   /* Check assignment cast */
   ASSERT(strstr(code, "(*out)[i] = (int)json_array_get_number(arr, i);"));
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -96,9 +97,9 @@ TEST test_root_string_array_from_json(void) {
   ASSERT(strstr(code, "json_array_get_string(arr, i)"));
   ASSERT(strstr(code, "strdup(s)"));
   /* cleanup on failure */
-  ASSERT(strstr(code, "free((*out)[j])"));
-  free(code);
-  g_fail_io_after = -1;
+  ASSERT(strstr(code, "C_CDD_FREE((*out)[j])"));
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -117,8 +118,8 @@ TEST test_root_obj_array_from_json(void) {
   ASSERT(strstr(
       code,
       "MyObj_from_jsonObject(json_array_get_object(arr, i), &(*out)[i])"));
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -132,8 +133,8 @@ TEST test_root_int_array_to_json(void) {
                       "len, char **json_out)"));
   ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"[\")"));
   ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"%d\", in[i])"));
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -147,8 +148,8 @@ TEST test_root_obj_array_to_json(void) {
       code, "enum cdd_c_error ObjList_to_json(struct MyObj **const in, size_t "
             "len, char **json_out)"));
   ASSERT(strstr(code, "MyObj_to_json(in[i], &tmp)"));
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -162,22 +163,61 @@ TEST test_root_array_cleanup(void) {
   ASSERT(code);
   ASSERT(
       strstr(code, "enum cdd_c_error StrList_cleanup(char **in, size_t len)"));
-  ASSERT(strstr(code, "free(in[i])"));
-  ASSERT(strstr(code, "free(in)"));
-  free(code);
+  ASSERT(strstr(code, "C_CDD_FREE(in[i])"));
+  ASSERT(strstr(code, "C_CDD_FREE(in)"));
+  C_CDD_FREE(code);
 
   /* Int cleanup (simple free) */
   code = (generate_ra_code(write_root_array_cleanup_func, "IntList", "integer",
                            NULL, &_ast_generate_ra_code_6),
           _ast_generate_ra_code_6);
   ASSERT(code);
-  ASSERT(strstr(code, "free(in)"));
-  free(code);
-  g_fail_io_after = -1;
+  ASSERT(strstr(code, "C_CDD_FREE(in)"));
+  C_CDD_FREE(code);
+
+  PASS();
+}
+
+TEST test_root_string_array_to_json(void) {
+  char *_ast_generate_ra_code_7 = NULL;
+  char *code = (generate_ra_code(write_root_array_to_json_func, "StrList",
+                                 "string", NULL, &_ast_generate_ra_code_7),
+                _ast_generate_ra_code_7);
+  ASSERT(code);
+  ASSERT(strstr(code, "enum cdd_c_error StrList_to_json(char **const in, "
+                      "size_t len, char **json_out)"));
+  ASSERT(strstr(code,
+                "c89stringutils_jasprintf(json_out, \"\\\"%s\\\"\", in[i])"));
+  C_CDD_FREE(code);
+
+  PASS();
+}
+
+TEST test_root_fallback_to_json(void) {
+  char *_ast_generate_ra_code_8 = NULL;
+  char *code = (generate_ra_code(write_root_array_to_json_func, "UnknownList",
+                                 "unknown", NULL, &_ast_generate_ra_code_8),
+                _ast_generate_ra_code_8);
+  ASSERT(code);
+  ASSERT(strstr(code, "enum cdd_c_error UnknownList_to_json(const void *in, "
+                      "size_t len, char **json_out)"));
+  C_CDD_FREE(code);
+
+  char *_ast_generate_ra_code_9 = NULL;
+  code = (generate_ra_code(write_root_array_cleanup_func, "UnknownList",
+                           "unknown", NULL, &_ast_generate_ra_code_9),
+          _ast_generate_ra_code_9);
+  ASSERT(code);
+  ASSERT(strstr(code,
+                "enum cdd_c_error UnknownList_cleanup(void *in, size_t len)"));
+  C_CDD_FREE(code);
+
   PASS();
 }
 
 SUITE(root_array_suite) {
+  RUN_TEST(test_root_string_array_to_json);
+  RUN_TEST(test_root_fallback_to_json);
   RUN_TEST(test_root_int_array_from_json);
   RUN_TEST(test_root_string_array_from_json);
   RUN_TEST(test_root_obj_array_from_json);

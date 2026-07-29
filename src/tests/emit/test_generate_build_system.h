@@ -16,6 +16,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -31,6 +32,28 @@ extern "C" {
  * @brief test_gen_cmake_basic
  * @return TEST
  */
+
+TEST test_gen_cmake_oom(void) {
+  char *argv[] = {"cdd-c", "generate_build_system", "cmake",
+                  "-o",    "test_build_dir_oom",    "--src",
+                  "lib.c"};
+  int i;
+  int rc;
+
+  for (i = 1; i < 30; ++i) {
+    extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+    g_cdd_fprintf_fail = i;
+    rc = generate_build_system_main(7, argv);
+    if (g_cdd_fprintf_fail != 0) {
+      g_cdd_fprintf_fail = 0;
+      break;
+    }
+  }
+  remove("test_build_dir_oom/CMakeLists.txt");
+  remove("test_build_dir_oom/src/CMakeLists.txt");
+  PASS();
+}
+
 TEST test_gen_cmake_basic(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
@@ -46,10 +69,10 @@ TEST test_gen_cmake_basic(void) {
 
   ASSERT(strstr(content, "project(MyLib C)"));
 
-  free(content);
+  C_CDD_FREE(content);
   remove(out_file);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -72,10 +95,10 @@ TEST test_gen_cmake_with_tests(void) {
 
   ASSERT(strstr(content, "enable_testing()"));
 
-  free(content);
+  C_CDD_FREE(content);
   remove(out_file);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -113,7 +136,7 @@ TEST test_gen_build_system_cli_args(void) {
   }
   remove("test_build_dir/src/CMakeLists.txt");
   remove("test_build_dir/CMakeLists.txt");
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -145,7 +168,6 @@ TEST test_gen_build_system_bad_args(void) {
   /* Unsupported type */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             generate_build_system_main(3, argv_bad));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -153,7 +175,7 @@ TEST test_gen_build_system_bad_args(void) {
 TEST test_gen_cmake_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             generate_cmake_project("out", NULL, 0));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -174,7 +196,6 @@ TEST test_gen_cmake_null_outdir(void) {
   rename("CMakeLists.txt.bak", "CMakeLists.txt");
   rename("src/CMakeLists.txt.bak", "src/CMakeLists.txt");
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -189,7 +210,7 @@ TEST test_gen_cmake_bad_makedirs(void) {
                                          "MyLib", 0));
     remove("test_dummy_file_for_makedirs");
   }
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -200,7 +221,7 @@ TEST test_gen_build_system_cli_args_tests(void) {
 
   remove("test_build_dir_tests/src/CMakeLists.txt");
   remove("test_build_dir_tests/CMakeLists.txt");
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -213,7 +234,7 @@ TEST test_gen_build_system_cli_args_fail(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, generate_build_system_main(3, argv));
     remove("test_dummy_file_for_makedirs");
   }
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -221,6 +242,7 @@ TEST test_gen_build_system_cli_args_fail(void) {
  * @brief generate_build_system_suite
  */
 SUITE(generate_build_system_suite) {
+  RUN_TEST(test_gen_cmake_oom);
   RUN_TEST(test_gen_cmake_basic);
   RUN_TEST(test_gen_cmake_with_tests);
   RUN_TEST(test_gen_build_system_cli_args);

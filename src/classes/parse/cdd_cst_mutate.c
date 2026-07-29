@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_mutate.h"
 #include "cdd_cst_factory.h"
 #include <errno.h>
@@ -33,19 +34,17 @@ enum cdd_c_error find_first_token_mutate(cdd_cst_node_t *node,
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_token = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    } else {
-      cdd_token_t *t = NULL;
-      if (find_first_token_mutate(node->children[i].val.node, &t) == 0) {
-        *out_token = t;
-        return CDD_C_SUCCESS;
-      }
+    }
+    if (find_first_token_mutate(node->children[i].val.node, out_token) ==
+        CDD_C_SUCCESS) {
+      return CDD_C_SUCCESS;
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-static enum cdd_c_error find_last_token_mutate(cdd_cst_node_t *node,
-                                               cdd_token_t **out_tok) {
+enum cdd_c_error find_last_token_mutate(cdd_cst_node_t *node,
+                                        cdd_token_t **out_tok) {
   size_t i;
   *out_tok = NULL;
   for (i = node->num_children; i > 0; i--) {
@@ -53,12 +52,10 @@ static enum cdd_c_error find_last_token_mutate(cdd_cst_node_t *node,
     if (node->children[idx].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[idx].val.token;
       return CDD_C_SUCCESS;
-    } else {
-      cdd_token_t *t = NULL;
-      if (find_last_token_mutate(node->children[idx].val.node, &t) == 0) {
-        *out_tok = t;
-        return CDD_C_SUCCESS;
-      }
+    }
+    if (find_last_token_mutate(node->children[idx].val.node, out_tok) ==
+        CDD_C_SUCCESS) {
+      return CDD_C_SUCCESS;
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
@@ -79,14 +76,14 @@ enum cdd_c_error clone_trivia_list_mutate(cdd_trivia_t *head,
       t = NULL;
     else
 #endif
-      t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+      t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
     if (!t) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       /* Need to properly loop and free it */
       while (new_head) {
         cdd_trivia_t *tmp = new_head;
         new_head = new_head->next;
-        free(tmp);
+        C_CDD_FREE(tmp);
       }
       return CDD_C_ERROR_MEMORY;
     }
@@ -118,8 +115,8 @@ enum cdd_c_error track_synthesized_token_mutate(cdd_cst_tree_t *tree,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_token_t **)realloc(tree->synthesized_tokens,
-                                        new_cap * sizeof(cdd_token_t *));
+      new_arr = (cdd_token_t **)C_CDD_REALLOC(tree->synthesized_tokens,
+                                              new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -199,8 +196,8 @@ enum cdd_c_error cdd_cst_insert_child_node_at(cdd_cst_node_t *parent,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+          parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -306,10 +303,10 @@ enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
     if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
       clone = NULL;
     else
-      clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+      clone = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   }
 #else
-  clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  clone = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
 #endif
   if (!clone) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -325,15 +322,15 @@ enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
       if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
         clone->children = NULL;
       else
-        clone->children =
-            (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
+        clone->children = (cdd_cst_child_t *)C_CDD_CALLOC(
+            clone->capacity, sizeof(cdd_cst_child_t));
     }
 #else
-    clone->children =
-        (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
+    clone->children = (cdd_cst_child_t *)C_CDD_CALLOC(clone->capacity,
+                                                      sizeof(cdd_cst_child_t));
 #endif
     if (!clone->children) {
-      free(clone);
+      C_CDD_FREE(clone);
       return CDD_C_ERROR_MEMORY;
     }
 
@@ -347,7 +344,7 @@ enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
           new_tok = NULL;
         else
 #endif
-          new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+          new_tok = (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
         if (!new_tok) {
           rc = CDD_C_ERROR_MEMORY;
           goto err;
@@ -357,19 +354,19 @@ enum cdd_c_error cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         rc = clone_trivia_list_mutate(orig_tok->leading_trivia,
                                       &new_tok->leading_trivia);
         if (rc != 0) {
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
         rc = clone_trivia_list_mutate(orig_tok->trailing_trivia,
                                       &new_tok->trailing_trivia);
         if (rc != 0) {
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
 
         rc = track_synthesized_token_mutate(tree, new_tok);
         if (rc != 0) {
-          free(new_tok);
+          C_CDD_FREE(new_tok);
           goto err;
         }
 

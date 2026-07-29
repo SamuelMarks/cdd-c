@@ -121,6 +121,15 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.go", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -171,8 +180,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       /* Accessors */
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname =
-            node->fields[j].name ? node->fields[j].name : "field";
+        const char *fname = node->fields[j].name;
         const char *gtype = get_go_type(node->fields[j].type);
         fprintf(f, "func (s *%s) Get%s() %s {\n", node->name, fname, gtype);
         fprintf(f, "    return (%s)(s.inner.%s)\n", gtype, fname);
@@ -189,8 +197,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "func %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "type") == 0)
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
@@ -207,8 +214,7 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "C.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "type") == 0)
           arg_name = "type_";
         if (strcmp(arg_name, "func") == 0)
@@ -253,6 +259,15 @@ emit_go_mod(const cdd_generate_bindings_config_t *config) {
       f = NULL;
     }
   }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -269,9 +284,8 @@ emit_go_mod(const cdd_generate_bindings_config_t *config) {
 enum cdd_c_error cdd_ffi_emit_go(cdd_ffi_ir_t *ir,
                                  const cdd_generate_bindings_config_t *config) {
   int rc;
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   rc = emit_go_file(ir, config);
   if (rc != 0)

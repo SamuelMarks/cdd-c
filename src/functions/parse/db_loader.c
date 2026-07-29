@@ -22,8 +22,8 @@
 #endif
 #else
 #include <dlfcn.h>
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Internal function to check if a dynamic library can be loaded.

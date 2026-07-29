@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -42,9 +43,9 @@ TEST test_cdd_transform_macros(void) {
 
   ASSERT(strstr(out, "FOO(42)") == NULL);
 
-  free(out);
+  C_CDD_FREE(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -76,9 +77,9 @@ TEST test_cdd_transform_macros_operators(void) {
   ASSERT(strstr(out, "CONCAT(4, 2)") == NULL);
   ASSERT(strstr(out, "42") != NULL);
 
-  free(out);
+  C_CDD_FREE(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -146,7 +147,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     cdd_cst_tree_free(tree);
   }
 #endif
-  g_fail_io_after = -1;
+
   PASS();
 }
 

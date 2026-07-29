@@ -56,9 +56,8 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   int has_functions = 0;
   extern volatile int g_fail_io_after;
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
 

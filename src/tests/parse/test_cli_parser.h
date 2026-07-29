@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
@@ -42,12 +43,12 @@ TEST test_cli_parser_getopt(void) {
   struct CliCommand cmd;
   int rc;
 
-  nodes = calloc(1, sizeof(struct CstNodeList));
+  nodes = C_CDD_CALLOC(1, sizeof(struct CstNodeList));
 
   az_span span = az_span_create((uint8_t *)src, strlen(src));
   rc = tokenize(span, &tokens);
   if (rc != 0) {
-    free(nodes);
+    C_CDD_FREE(nodes);
     FAILm("tokenize failed");
   }
 
@@ -81,9 +82,9 @@ TEST test_cli_parser_getopt(void) {
 
   cli_command_free(&cmd);
   free_cst_node_list(nodes);
-  free(nodes);
+  C_CDD_FREE(nodes);
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -94,7 +95,6 @@ TEST test_cli_parser_mappings(void) {
   /* No wait, these are in client_body.c. */
   /* We want the mappings from cli.c which are internal to `cli.c`. */
   /* cli.c isn't mocked directly. */
-  g_fail_io_after = -1;
 
   PASS();
 }

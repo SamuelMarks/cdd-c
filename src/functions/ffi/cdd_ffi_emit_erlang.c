@@ -13,8 +13,7 @@
 
 static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
-    return;
+
   while (c_name[i] && j < out_sz - 1) {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
       if (j < out_sz - 2 && c_name[i - 1] != '_') {
@@ -41,9 +40,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   char snake_node_name[256];
   int has_functions = 0;
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
 
@@ -76,6 +74,15 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(erl_filepath, sizeof(erl_filepath), "%s/%s.erl",
                config->output_dir, erl_module_name);
   erl_f = fopen(erl_filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (erl_f) {
+        fclose(erl_f);
+        erl_f = NULL;
+      }
+    }
+  }
   if (!erl_f) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;

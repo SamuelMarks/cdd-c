@@ -1,5 +1,5 @@
 extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+
 /**
  * @file test_unions.c
  * @brief Unit tests for Tagged Union code generation.
@@ -8,6 +8,7 @@ extern C_CDD_EXPORT int g_io_calls;
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +43,7 @@ TEST test_write_union_to_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)C_CDD_MALLOC(sz + 1);
   if (!content)
     return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
@@ -57,10 +58,10 @@ TEST test_write_union_to_json(void) {
   ASSERT(strstr(content, "case MyUnion_name:"));
   ASSERT(strstr(content, "obj->data.name"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -80,23 +81,23 @@ TEST test_write_union_from_json_object(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)C_CDD_MALLOC(sz + 1);
   if (!content)
     return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
   /* Check malloc */
-  ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
+  ASSERT(strstr(content, "C_CDD_MALLOC(sizeof(struct ObjU))"));
   ASSERT(strstr(content, "match_count"));
   ASSERT(strstr(content, "json_object_get_count"));
   ASSERT(strstr(content, "ret->tag = ObjU_pet;"));
   ASSERT(strstr(content, "Pet_from_jsonObject"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -116,7 +117,7 @@ TEST test_write_union_from_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)C_CDD_MALLOC(sz + 1);
   if (!content)
     return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
@@ -128,10 +129,10 @@ TEST test_write_union_from_json(void) {
   ASSERT(strstr(content, "case JSONNumber"));
   ASSERT(strstr(content, "ret->tag = MixU_i;"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 TEST test_write_union_cleanup(void) {
@@ -150,7 +151,7 @@ TEST test_write_union_cleanup(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)C_CDD_MALLOC(sz + 1);
   if (!content)
     return CDD_C_ERROR_MEMORY;
   fread(content, 1, sz, tmp);
@@ -161,12 +162,13 @@ TEST test_write_union_cleanup(void) {
   /* Integer should do nothing (just break) */
   ASSERT(strstr(content, "case U_num:\n      break;"));
   /* String should free */
-  ASSERT(strstr(content, "case U_str:\n      free((void*)obj->data.str);"));
+  ASSERT(
+      strstr(content, "case U_str:\n      C_CDD_FREE((void*)obj->data.str);"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_scope.h"
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -26,7 +27,7 @@ enum cdd_c_error cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
     env = NULL;
   else
 #endif
-    env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
+    env = (cdd_cst_scope_env_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_env_t));
   if (!env) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -37,9 +38,9 @@ enum cdd_c_error cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
     global = NULL;
   else
 #endif
-    global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+    global = (cdd_cst_scope_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t));
   if (!global) {
-    free(env);
+    C_CDD_FREE(env);
     return CDD_C_ERROR_MEMORY;
   }
   global->kind = CDD_CST_SCOPE_FILE;
@@ -54,8 +55,8 @@ enum cdd_c_error cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 static void free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
-    free((void *)sym->name);
-    free(sym);
+    C_CDD_FREE((void *)sym->name);
+    C_CDD_FREE(sym);
     sym = next;
   }
 }
@@ -69,15 +70,15 @@ static void free_scope(cdd_cst_scope_t *scope) {
     free_scope(scope->children[i]);
   }
   if (scope->children)
-    free(scope->children);
-  free(scope);
+    C_CDD_FREE(scope->children);
+  C_CDD_FREE(scope);
 }
 
 void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
     return;
   free_scope(env->global_scope);
-  free(env);
+  C_CDD_FREE(env);
 }
 
 enum cdd_c_error cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
@@ -96,7 +97,7 @@ enum cdd_c_error cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
     new_scope = NULL;
   else
 #endif
-    new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+    new_scope = (cdd_cst_scope_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t));
   if (!new_scope) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -114,10 +115,10 @@ enum cdd_c_error cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_scope_t **)realloc(
+      new_arr = (cdd_cst_scope_t **)C_CDD_REALLOC(
           parent->children, new_cap * sizeof(cdd_cst_scope_t *));
     if (!new_arr) {
-      free(new_scope);
+      C_CDD_FREE(new_scope);
       return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
@@ -148,7 +149,7 @@ static enum cdd_c_error cdd_strdup(const char *s, char **out_s) {
     d = NULL;
   else
 #endif
-    d = (char *)malloc(len + 1);
+    d = (char *)C_CDD_MALLOC(len + 1);
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -173,7 +174,7 @@ enum cdd_c_error cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
     sym = NULL;
   else
 #endif
-    sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
+    sym = (cdd_cst_symbol_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_symbol_t));
   if (!sym) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -182,7 +183,7 @@ enum cdd_c_error cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
   if (cdd_strdup(name, (char **)&sym->name) != 0)
     sym->name = NULL;
   if (!sym->name) {
-    free(sym);
+    C_CDD_FREE(sym);
     return CDD_C_ERROR_MEMORY;
   }
   sym->kind = kind;

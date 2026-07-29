@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #ifndef TEST_CDD_CST_SEMANTIC_H
 #define TEST_CDD_CST_SEMANTIC_H
@@ -53,7 +54,8 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   ASSERT_EQ(0, cdd_cst_scope_add_symbol(env, "foo_tag",
                                         CDD_CST_SYMBOL_STRUCT_TAG, node));
 
-  /* Force scope children capacity realloc (requires 5 blocks within one parent)
+  /* Force scope children capacity C_CDD_REALLOC(requires 5 blocks within one
+   * parent)
    */
   {
     int i;
@@ -101,17 +103,18 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   env = NULL;
   cdd_cst_free_node(node);
   cdd_cst_scope_env_free(NULL); /* no-op */
-  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_cdd_cst_semantic_basic(void) {
-  cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_t *tree = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_build_semantic_info(NULL, &env));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_build_semantic_info(tree, NULL));
 
   ASSERT_EQ(0, cdd_cst_build_semantic_info(tree, &env));
   ASSERT_NEQ(NULL, env);
@@ -119,13 +122,12 @@ TEST test_cdd_cst_semantic_basic(void) {
   cdd_cst_scope_env_free(env);
   env = NULL;
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_cdd_cst_semantic_tree(void) {
-  cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_t *tree = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *root = NULL, *func = NULL, *block = NULL, *decl = NULL,
                  *id_node = NULL, *type_decl = NULL, *id_node2 = NULL;
@@ -135,6 +137,11 @@ TEST test_cdd_cst_semantic_tree(void) {
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
+  {
+    cdd_cst_node_t *ns = NULL;
+    cdd_cst_alloc_node(CDD_CST_NAMESPACE_DECLARATION, &ns);
+    cdd_cst_append_child_node(root, ns);
+  }
   cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
   cdd_cst_append_child_node(root, func);
 
@@ -166,13 +173,12 @@ TEST test_cdd_cst_semantic_tree(void) {
   /* tree->base_tokens automatically tracks generated tokens, so freeing tree
    * frees them. */
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_cdd_cst_semantic_errors(void) {
-  cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_t *tree = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *root = NULL, *decl = NULL, *id_node = NULL,
                  *non_id_node = NULL;
@@ -196,7 +202,7 @@ TEST test_cdd_cst_semantic_errors(void) {
 #ifdef CDD_BUILD_TESTS
   g_cdd_semantic_oom_extract = 5;
 #else
-  tok_oom->length = (size_t)-2; /* malloc(SIZE_MAX) will fail */
+  tok_oom->length = (size_t)-2; /* C_CDD_MALLOC(SIZE_MAX) will fail */
 #endif
   cdd_cst_append_child_token(id_node, tok_oom);
 
@@ -205,6 +211,27 @@ TEST test_cdd_cst_semantic_errors(void) {
   /* Node with child node that fails extract_identifier */
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &non_id_node);
   cdd_cst_append_child_node(decl, non_id_node);
+
+  /* Node with child node that is NULL */
+  {
+    cdd_cst_node_t *null_child_node = NULL;
+    cdd_cst_child_t c = {0};
+    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &null_child_node);
+    null_child_node->capacity = 1;
+    null_child_node->num_children = 1;
+    null_child_node->children = C_CDD_MALLOC(sizeof(cdd_cst_child_t));
+    c.kind = CDD_CST_CHILD_NODE;
+    c.val.node = NULL;
+    null_child_node->children[0] = c;
+    cdd_cst_append_child_node(decl, null_child_node);
+  }
+
+  /* Empty TYPE_SPECIFIER to fail extraction */
+  {
+    cdd_cst_node_t *empty_type_spec = NULL;
+    cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &empty_type_spec);
+    cdd_cst_append_child_node(decl, empty_type_spec);
+  }
 
   /* Add child node traversal test by adding a child to root that has a child */
   {
@@ -225,14 +252,13 @@ TEST test_cdd_cst_semantic_errors(void) {
 #ifdef CDD_BUILD_TESTS
   g_cdd_semantic_oom_extract = 0;
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_cdd_cst_semantic_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_t *tree = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *root = NULL, *func = NULL, *block = NULL, *decl = NULL,
                  *id_node = NULL, *type_decl = NULL, *id_node2 = NULL;
@@ -242,6 +268,11 @@ TEST test_cdd_cst_semantic_oom(void) {
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 
+  {
+    cdd_cst_node_t *ns = NULL;
+    cdd_cst_alloc_node(CDD_CST_NAMESPACE_DECLARATION, &ns);
+    cdd_cst_append_child_node(root, ns);
+  }
   cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
   cdd_cst_append_child_node(root, func);
 
@@ -291,13 +322,71 @@ TEST test_cdd_cst_semantic_oom(void) {
   /* ASSERT(cdd_cst_build_semantic_info(tree, &env) != 0); */
   cdd_cst_build_semantic_info(tree, &env);
   g_cdd_semantic_oom_scope2 = 0;
-  if (env)
+  if (env) {
     cdd_cst_scope_env_free(env);
+    env = NULL;
+  }
+
+  g_cdd_semantic_oom_scope2 = 2;
+  cdd_cst_build_semantic_info(tree, &env);
+  g_cdd_semantic_oom_scope2 = 0;
+  if (env) {
+    cdd_cst_scope_env_free(env);
+    env = NULL;
+  }
+
+  /* branch: IDENTIFIER node with no IDENTIFIER tokens */
+  {
+    cdd_cst_node_t *node = NULL;
+    cdd_token_t tok = {0};
+    cdd_cst_child_t child = {0};
+    cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node);
+
+    /* branch: IDENTIFIER node with no IDENTIFIER tokens */
+    tok.kind = CDD_TOKEN_LPAREN; /* Not an IDENTIFIER token */
+    child.kind = CDD_CST_CHILD_TOKEN;
+    child.val.token = &tok;
+
+    node->children = (cdd_cst_child_t *)C_CDD_MALLOC(sizeof(cdd_cst_child_t));
+    node->children[0] = child;
+    node->num_children = 1;
+    node->capacity = 1;
+
+    /* Needs to be passed directly to extract_identifier... wait,
+     * cdd_cst_build_semantic_info doesn't use it directly on IDENTIFIER node
+     * unless it's looking for the name of something. */
+    /* It is called in analyze_node on CDD_CST_DECLARATION: */
+    {
+      cdd_cst_node_t *decl_node = NULL;
+      cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl_node);
+      cdd_cst_append_child_node(decl_node, node);
+      cdd_cst_append_child_node(root, decl_node);
+    }
+
+    cdd_cst_build_semantic_info(tree, &env);
+    if (env) {
+      cdd_cst_scope_env_free(env);
+      env = NULL;
+    }
+    C_CDD_FREE(node->children);
+    node->children = NULL;
+    node->num_children = 0;
+    node->capacity = 0;
+  }
+
+  /* Test env == NULL failure */
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+    g_cdd_alloc_fail_countdown_countdown = 1;
+    cdd_cst_build_semantic_info(tree, &env);
+    g_cdd_alloc_fail_countdown_countdown = 0;
+  }
+
   /* tree->base_tokens automatically tracks generated tokens, so freeing tree
    * frees them. */
   cdd_cst_tree_free(tree);
 #endif
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -317,7 +406,7 @@ TEST test_cdd_cst_semantic_extract_null(void) {
    * method */
 
   cdd_cst_free_node(node);
-  g_fail_io_after = -1;
+
   PASS();
 }
 SUITE(cdd_cst_semantic_suite) {

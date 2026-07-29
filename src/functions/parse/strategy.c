@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include <string.h>
 
 #include "functions/parse/str.h" /* For string duplication utilities if specific needed */
@@ -53,7 +54,7 @@ static enum cdd_c_error range_to_string(const struct TokenList *tokens,
   *out_val = NULL;
 
   if (start >= end) {
-    char *empty = (char *)malloc(1);
+    char *empty = (char *)C_CDD_MALLOC(1);
     if (empty) {
       *empty = '\0';
       *out_val = empty;
@@ -65,7 +66,7 @@ static enum cdd_c_error range_to_string(const struct TokenList *tokens,
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -136,7 +137,7 @@ enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
          tokens->tokens[stmt_start].kind == TOKEN_WHITESPACE)
     stmt_start++;
 
-  /* 3. Check arguments: realloc(ptr, size) */
+  /* 3. Check arguments: C_CDD_REALLOC(ptr, size) */
   find_next_token_idx(tokens, call_idx, TOKEN_LPAREN, &lparen_idx);
   if (lparen_idx >= tokens->size)
     return CDD_C_SUCCESS;
@@ -164,7 +165,7 @@ enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
     char *call_expr = NULL;
     char *replacement = NULL;
 
-    /* Extract "realloc(p, n)" text */
+    /* Extract "C_CDD_REALLOC(p, n)" text */
     range_to_string(tokens, call_idx, semi_idx, &call_expr);
     if (!call_expr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -189,7 +190,7 @@ enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
                  "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
                  "_safe_tmp; }",
                  call_expr, DEFAULT_ERROR_CODE, site->var_name) == -1) {
-      free(call_expr);
+      C_CDD_FREE(call_expr);
       return CDD_C_ERROR_MEMORY;
     }
 #else
@@ -197,7 +198,7 @@ enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
     /* This sample assumes HAVE_ASPRINTF */
     {
       size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
-      replacement = (char *)malloc(replacement_len);
+      replacement = (char *)C_CDD_MALLOC(replacement_len);
       if (replacement) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         sprintf_s(replacement, replacement_len,
@@ -211,14 +212,14 @@ enum cdd_c_error strategy_rewrite_realloc(const struct TokenList *tokens,
                 call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #endif
       } else {
-        free(call_expr);
+        C_CDD_FREE(call_expr);
         return CDD_C_ERROR_MEMORY;
       }
     }
 #endif
-    free(call_expr);
+    C_CDD_FREE(call_expr);
 
-    /* Replace the entire statement "p = realloc(...);" with the block */
+    /* Replace the entire statement "p = C_CDD_REALLOC(...);" with the block */
     /* Range: [stmt_start, semi_idx + 1) (to include semicolon) */
     return patch_list_add(patches, stmt_start, semi_idx + 1, replacement);
   }
@@ -270,7 +271,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     if (site->spec->check_style == CHECK_PTR_NULL) {
       /* " if (!var) { return CDD_C_ERROR_MEMORY; }" */
       size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -285,7 +286,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
       size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -300,7 +301,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
       size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

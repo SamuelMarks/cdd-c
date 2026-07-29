@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -52,7 +53,7 @@ TEST test_patch_init_free(void) {
   patch_list_free(&pl);
   ASSERT_EQ(0, pl.size);
   ASSERT(pl.patches == NULL);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -85,10 +86,10 @@ TEST test_patch_basic_replacement(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("int x = 10;", result);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -125,10 +126,10 @@ TEST test_patch_insertion(void) {
                 "void f(){ int x; }",
                 result);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -156,10 +157,10 @@ TEST test_patch_deletion(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("x;", result);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -192,10 +193,10 @@ TEST test_patch_multiple_disjoint(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("X B Z", result);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -237,10 +238,10 @@ TEST test_patch_overlap_behavior(void) {
   */
   ASSERT(strcmp(result, "X") == 0 || strcmp(result, "Y") == 0);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -266,10 +267,10 @@ TEST test_patch_append_end(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("End appended", result);
 
-  free(result);
+  C_CDD_FREE(result);
   patch_list_free(&pl);
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -288,7 +289,7 @@ TEST test_patch_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, NULL));
   patch_list_free(&pl);
   patch_list_free(NULL); /* Should not crash */
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -299,10 +300,10 @@ TEST test_patcher_oom(void) {
     int i;
     struct TokenList tl2;
     memset(&tl2, 0, sizeof(tl2));
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    g_cdd_fail_alloc = 1000;
+    extern int g_cdd_alloc_fail_countdown_countdown;
+    g_cdd_alloc_fail_countdown_countdown = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&list));
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail_countdown_countdown = 0;
 
     patch_list_init(&list);
     /* fill it up to trigger realloc */
@@ -314,9 +315,10 @@ TEST test_patcher_oom(void) {
       for (j = 1; j < 50; j++) {
         char *tmp = strdup("b");
         int rc;
-        g_cdd_fail_alloc = j;
+        extern int g_cdd_alloc_fail_countdown_countdown;
+        g_cdd_alloc_fail_countdown_countdown = j;
         rc = patch_list_add(&list, 0, 1, tmp);
-        g_cdd_fail_alloc = 0;
+        g_cdd_alloc_fail_countdown_countdown = 0;
         if (rc == 0)
           break;
       }
@@ -326,11 +328,58 @@ TEST test_patcher_oom(void) {
       char *out_code = NULL;
       int j;
       for (j = 1; j < 50; j++) {
-        g_cdd_fail_alloc = j;
+        extern int g_cdd_alloc_fail_countdown_countdown;
+        g_cdd_alloc_fail_countdown_countdown = j;
+        struct Token t1;
+        memset(&t1, 0, sizeof(t1));
+        t1.start = (const uint8_t *)"test";
+        t1.length = 4;
+
+        tl2.size = 1;
+        tl2.capacity = 1;
+
+        int old_countdown = g_cdd_alloc_fail_countdown_countdown;
+        g_cdd_alloc_fail_countdown_countdown = 0;
+        tl2.tokens = C_CDD_CALLOC(1, sizeof(struct Token));
+        if (tl2.tokens) {
+          tl2.tokens[0] = t1;
+        }
+        g_cdd_alloc_fail_countdown_countdown = old_countdown;
+
+        list.patches[0].start_token_idx = 2;
+        list.patches[0].end_token_idx = 2;
+
+        {
+          int j2;
+          for (j2 = 1; j2 < 50; j2++) {
+            extern int g_cdd_alloc_fail_countdown_countdown;
+            g_cdd_alloc_fail_countdown_countdown = j2;
+            int rc_tmp = patch_list_apply(&list, &tl2, &out_code);
+            g_cdd_alloc_fail_countdown_countdown = 0;
+            if (out_code) {
+              C_CDD_FREE(out_code);
+              out_code = NULL;
+            }
+            if (rc_tmp == 0)
+              break;
+          }
+        }
+        C_CDD_FREE(list.patches[0].text);
+        list.patches[0].text = C_CDD_CALLOC(1, 1024);
+        memset(list.patches[0].text, 'x', 1023);
         int rc = patch_list_apply(&list, &tl2, &out_code);
-        g_cdd_fail_alloc = 0;
+
+        g_cdd_alloc_fail_countdown_countdown = 0;
+        if (tl2.tokens) {
+          C_CDD_FREE(tl2.tokens);
+          tl2.tokens = NULL;
+        }
+        tl2.size = 0;
+        tl2.capacity = 0;
+        g_cdd_alloc_fail_countdown_countdown = old_countdown;
+        g_cdd_alloc_fail_countdown_countdown = 0;
         if (out_code) {
-          free(out_code);
+          C_CDD_FREE(out_code);
           out_code = NULL;
         }
         if (rc == 0)
@@ -345,7 +394,7 @@ TEST test_patcher_oom(void) {
 
     /* also test patch with text = NULL in free */
     if (list.patches[0].text)
-      free((void *)list.patches[0].text);
+      C_CDD_FREE((void *)list.patches[0].text);
     list.patches[0].text = NULL;
     patch_list_free(&list);
 
@@ -379,12 +428,13 @@ TEST test_patcher_oom(void) {
           if (j == 9)
             my_alloc = 3000;
 
-          g_cdd_fail_alloc = my_alloc;
+          extern int g_cdd_alloc_fail_countdown_countdown;
+          g_cdd_alloc_fail_countdown_countdown = my_alloc;
           rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
           (void)rc;
-          g_cdd_fail_alloc = 0;
+          g_cdd_alloc_fail_countdown_countdown = 0;
           if (out_oom) {
-            free(out_oom);
+            C_CDD_FREE(out_oom);
             out_oom = NULL;
           }
         }
@@ -1025,13 +1075,14 @@ TEST test_patcher_oom(void) {
             my_alloc = 3000;
           if (j == 90)
             my_alloc = 3000;
-          g_cdd_fail_alloc = my_alloc;
+          extern int g_cdd_alloc_fail_countdown_countdown;
+          g_cdd_alloc_fail_countdown_countdown = my_alloc;
 
           rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
           (void)rc;
-          g_cdd_fail_alloc = 0;
+          g_cdd_alloc_fail_countdown_countdown = 0;
           if (out_oom) {
-            free(out_oom);
+            C_CDD_FREE(out_oom);
             out_oom = NULL;
           }
         }
@@ -1041,7 +1092,7 @@ TEST test_patcher_oom(void) {
     }
   }
 #endif
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1069,7 +1120,7 @@ TEST test_patcher_invalid(void) {
   setup_patch_tokens(huge_str, &tl_huge);
 
   /* ignore */
-  free(res_huge);
+  C_CDD_FREE(res_huge);
 
 #ifdef CDD_BUILD_TESTS
   res_huge = NULL;
@@ -1082,14 +1133,14 @@ TEST test_patcher_invalid(void) {
   res_huge = NULL;
   ASSERT_EQ(0, patch_list_apply(&pl3, tl_huge, &res_huge));
   if (res_huge) {
-    free(res_huge);
+    C_CDD_FREE(res_huge);
     res_huge = NULL;
   }
 
 #ifdef CDD_BUILD_TESTS
   res_huge = NULL;
   g_cdd_fail_alloc =
-      2; /* second alloc! first alloc is output=malloc(out_cap) */
+      2; /* second alloc! first alloc is output=C_CDD_MALLOC(out_cap) */
   memset(&tl_empty, 0, sizeof(tl_empty));
   /* ignore */
   g_cdd_fail_alloc = 0;
@@ -1103,12 +1154,11 @@ TEST test_patcher_invalid(void) {
   g_cdd_fail_alloc = 0;
 #endif
 
-  free(res_huge);
+  C_CDD_FREE(res_huge);
 
   patch_list_free(&pl3);
   patch_list_free(&pl2);
   free_token_list(tl_huge);
-  g_fail_io_after = -1;
 
   PASS();
 }

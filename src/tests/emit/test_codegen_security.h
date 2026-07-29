@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -75,7 +76,7 @@ static enum cdd_c_error gen_sec_code(const struct OpenAPI_Spec *spec,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 
@@ -113,8 +114,8 @@ TEST test_sec_bearer_token(void) {
   /* Check error handling */
   ASSERT(strstr(code, "if (rc != 0) goto cleanup;"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -140,8 +141,8 @@ TEST test_sec_oauth2_bearer_token(void) {
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -167,8 +168,8 @@ TEST test_sec_openid_bearer_token(void) {
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -195,8 +196,8 @@ TEST test_sec_basic_token(void) {
   ASSERT(strstr(code,
                 "http_request_set_auth_basic(&req, NULL /* basic_token */)"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -226,8 +227,8 @@ TEST test_sec_api_key_header(void) {
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\", "
                       "NULL /* api_key_ApiKeyAuth */)"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -270,8 +271,8 @@ TEST test_sec_uri_requirement_matches_component(void) {
 
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\"") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -299,8 +300,8 @@ TEST test_sec_api_key_query(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"api_key\", "
                       "NULL /* api_key_QueryKey */)") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -327,8 +328,8 @@ TEST test_sec_api_key_cookie(void) {
   ASSERT(strstr(code, "cookie_str") != NULL);
   ASSERT(strstr(code, "session_id") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -373,8 +374,8 @@ TEST test_sec_multiple_schemes(void) {
   ASSERT(strstr(code, "bearer_token"));
   ASSERT(strstr(code, "api_key_key"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -383,7 +384,7 @@ TEST test_sec_null_safety(void) {
             codegen_security_write_apply(NULL, NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_security_write_server_apply(NULL, NULL, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -429,7 +430,7 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "Validate Bearer Token / OAuth2"));
@@ -437,9 +438,9 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
   ASSERT(strstr(content, "Validate Basic Auth"));
   ASSERT(strstr(content, "c_rest_middleware_basic_auth"));
 
-  free(content);
+  C_CDD_FREE(content);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -493,8 +494,8 @@ TEST test_sec_security_requirements_filter(void) {
   ASSERT(strstr(code, "api_key_ApiKeyAuth"));
   ASSERT(!strstr(code, "bearer_token"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 

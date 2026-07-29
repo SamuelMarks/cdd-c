@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -28,10 +29,10 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
-      d = (char *)malloc(len);
+      d = (char *)C_CDD_MALLOC(len);
   }
 #else
-  d = (char *)malloc(len);
+  d = (char *)C_CDD_MALLOC(len);
 #endif
   if (!d)
     return CDD_C_ERROR_MEMORY;
@@ -55,7 +56,7 @@ enum cdd_c_error cmake_modifier_init(struct CMakeModifier *mod,
     return CDD_C_ERROR_MEMORY;
   if (target_name) {
     if (my_strdup(target_name, &mod->target_name) != 0) {
-      free(mod->filepath);
+      C_CDD_FREE(mod->filepath);
       mod->filepath = NULL;
       return CDD_C_ERROR_MEMORY;
     }
@@ -82,11 +83,11 @@ enum cdd_c_error cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       mod->compile_opts = NULL;
     else
-      mod->compile_opts = (char **)realloc(
+      mod->compile_opts = (char **)C_CDD_REALLOC(
           mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
   }
 #else
-  mod->compile_opts = (char **)realloc(
+  mod->compile_opts = (char **)C_CDD_REALLOC(
       mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
 #endif
   if (!mod->compile_opts) {
@@ -116,12 +117,12 @@ enum cdd_c_error cmake_modifier_add_link_lib(struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       mod->link_libs = NULL;
     else
-      mod->link_libs = (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) *
-                                                            sizeof(char *));
+      mod->link_libs = (char **)C_CDD_REALLOC(
+          mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
   }
 #else
-  mod->link_libs =
-      (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
+  mod->link_libs = (char **)C_CDD_REALLOC(
+      mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
 #endif
   if (!mod->link_libs) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -144,22 +145,22 @@ void cmake_modifier_free(struct CMakeModifier *mod) {
   if (!mod)
     return;
 
-  free(mod->filepath);
+  C_CDD_FREE(mod->filepath);
   if (mod->target_name)
-    free(mod->target_name);
+    C_CDD_FREE(mod->target_name);
 
   if (mod->compile_opts) {
     for (i = 0; i < mod->compile_opts_n; i++) {
-      free(mod->compile_opts[i]);
+      C_CDD_FREE(mod->compile_opts[i]);
     }
-    free(mod->compile_opts);
+    C_CDD_FREE(mod->compile_opts);
   }
 
   if (mod->link_libs) {
     for (i = 0; i < mod->link_libs_n; i++) {
-      free(mod->link_libs[i]);
+      C_CDD_FREE(mod->link_libs[i]);
     }
-    free(mod->link_libs);
+    C_CDD_FREE(mod->link_libs);
   }
 }
 
@@ -201,10 +202,10 @@ static enum cdd_c_error read_file_to_string(const char *filename,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       buf = NULL;
     else
-      buf = (char *)malloc((size_t)size + 1);
+      buf = (char *)C_CDD_MALLOC((size_t)size + 1);
   }
 #else
-  buf = (char *)malloc((size_t)size + 1);
+  buf = (char *)C_CDD_MALLOC((size_t)size + 1);
 #endif
   if (!buf) {
     fclose(f);
@@ -262,13 +263,13 @@ enum cdd_c_error cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       diff = NULL;
     else
-      diff = (char *)malloc(diff_cap);
+      diff = (char *)C_CDD_MALLOC(diff_cap);
   }
 #else
-  diff = (char *)malloc(diff_cap);
+  diff = (char *)C_CDD_MALLOC(diff_cap);
 #endif
   if (!diff) {
-    free(src);
+    C_CDD_FREE(src);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -286,14 +287,14 @@ enum cdd_c_error cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str_buf = NULL;
     else
-      str_buf = (char *)malloc(1024);
+      str_buf = (char *)C_CDD_MALLOC(1024);
   }
 #else
-  str_buf = (char *)malloc(1024);
+  str_buf = (char *)C_CDD_MALLOC(1024);
 #endif
   if (!str_buf) {
-    free(src);
-    free(diff);
+    C_CDD_FREE(src);
+    C_CDD_FREE(diff);
     return CDD_C_ERROR_MEMORY;
   }
   str_buf[0] = '\0';
@@ -429,8 +430,8 @@ enum cdd_c_error cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   }
 
   *out_diff = diff;
-  free(str_buf);
-  free(src);
+  C_CDD_FREE(str_buf);
+  C_CDD_FREE(src);
 
   return CDD_C_SUCCESS;
 }

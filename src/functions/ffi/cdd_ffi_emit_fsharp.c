@@ -88,9 +88,8 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   char ret_type_str[256];
   extern volatile int g_fail_io_after;
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
   module_name = config->module_name ? config->module_name : "MyLibBindings";
@@ -122,6 +121,15 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
     if (f) {
       fclose(f);
       f = NULL;
+    }
+  }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
     }
   }
   if (!f) {

@@ -14,6 +14,7 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
+  size_t func_idx = 0;
   const char *lib_name = config->library_name ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
@@ -26,6 +27,15 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s_mex.c", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -59,7 +69,7 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      if (i > 0) {
+      if (func_idx++ > 0) {
         fprintf(f, "    else if (strcmp(func_name, \"%s\") == 0) {\n",
                 node->name);
       } else {
@@ -77,7 +87,7 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
       fprintf(f, "        /* Map MATLAB inputs to C types here... */\n");
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "        /* prhs[%" CDD_PRIz "] -> %s */\n", j + 1,
-                node->fields[j].name ? node->fields[j].name : "arg");
+                node->fields[j].name);
       }
 
       fprintf(f, "\n        /* Call original function */\n");
@@ -110,6 +120,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
+  size_t func_idx = 0;
   const char *lib_name = config->library_name ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
@@ -122,6 +133,15 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.m", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -143,8 +163,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "%s(", node->name);
 
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         /* avoid matlab keywords */
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
@@ -163,8 +182,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       fprintf(f, "%s_mex('%s'", lib_name, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "function") == 0)
@@ -187,9 +205,8 @@ enum cdd_c_error
 cdd_ffi_emit_matlab(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
   int rc;
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   rc = emit_matlab_mex(ir, config);
   if (rc != 0)

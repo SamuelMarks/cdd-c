@@ -72,6 +72,15 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.zig", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -112,8 +121,7 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub const %s = extern struct {\n", node->name);
         for (j = 0; j < node->fields_count; j++) {
-          const char *fname =
-              node->fields[j].name ? node->fields[j].name : "field";
+          const char *fname = node->fields[j].name;
           fprintf(f, "    %s: %s,\n", fname,
                   get_zig_type(node->fields[j].type));
         }
@@ -129,8 +137,7 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           fprintf(f, "/// %s\n", node->doc);
         fprintf(f, "pub extern fn %s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
-          const char *arg_name =
-              node->fields[j].name ? node->fields[j].name : "arg";
+          const char *arg_name = node->fields[j].name;
           if (strcmp(arg_name, "error") == 0)
             arg_name = "err";
           if (strcmp(arg_name, "type") == 0)
@@ -151,9 +158,8 @@ emit_zig_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 enum cdd_c_error
 cdd_ffi_emit_zig(cdd_ffi_ir_t *ir,
                  const cdd_generate_bindings_config_t *config) {
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   return emit_zig_file(ir, config);
 }

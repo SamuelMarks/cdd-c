@@ -55,7 +55,7 @@ TEST test_orchestrator_simple_propagation(void) {
   /* "if (rc != 0) return rc;" */
 
   free(out);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -88,7 +88,7 @@ TEST test_orchestrator_propagation_ptr(void) {
   ASSERT(strstr(out, "rc = A(&x);") != NULL);
 
   free(out);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -122,7 +122,7 @@ TEST test_orchestrator_main_stop(void) {
   ASSERT(strstr(out, "rc = A();") != NULL);
 
   free(out);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -138,7 +138,7 @@ TEST test_orchestrator_no_alloc(void) {
                      "void A() {") != NULL);
   ASSERT(strstr(out, "int x=1;") != NULL);
   free(out);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -150,7 +150,7 @@ TEST test_orchestrator_preserves_structs(void) {
   ASSERT_EQ(0, rc);
   ASSERT(strstr(out, "struct S {") != NULL);
   free(out);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -203,7 +203,6 @@ TEST test_orchestrator_edge_cases(void) {
   }
 #endif
 
-  g_fail_io_after = -1;
   PASS();
 }
 

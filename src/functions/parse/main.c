@@ -9,6 +9,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,7 +283,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
     }
 
     if (out_dir) {
-      char *path = malloc(strlen(out_dir) + 32);
+      char *path = C_CDD_MALLOC(strlen(out_dir) + 32);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       sprintf_s(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
@@ -307,7 +308,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
     /* Always generate ORM models for to_sdk and to_server */
 
     if (out_dir) {
-      free((void *)config.filename_base);
+      C_CDD_FREE((void *)config.filename_base);
     }
     openapi_spec_free(&spec);
   }

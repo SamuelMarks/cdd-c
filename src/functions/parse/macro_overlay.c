@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,10 +39,10 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
     for (i = 0; i < list->size; ++i) {
       if (list->nodes[i].expanded_ast) {
         free_cst_node_list(list->nodes[i].expanded_ast);
-        free(list->nodes[i].expanded_ast);
+        C_CDD_FREE(list->nodes[i].expanded_ast);
       }
     }
-    free(list->nodes);
+    C_CDD_FREE(list->nodes);
   }
   list->nodes = NULL;
   list->size = 0;
@@ -60,7 +61,7 @@ static enum cdd_c_error list_add(struct MacroOverlayList *list,
 
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
-    struct MacroOverlayNode *new_arr = (struct MacroOverlayNode *)realloc(
+    struct MacroOverlayNode *new_arr = (struct MacroOverlayNode *)C_CDD_REALLOC(
         list->nodes, new_cap * sizeof(struct MacroOverlayNode));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -95,7 +96,7 @@ enum cdd_c_error cst_build_macro_overlay(const struct CstNodeList *cst,
       /* Create a dummy expanded list for now, since actual preprocessor
          evaluation is a complex step that requires building a full env. */
       struct CstNodeList *dummy_expanded =
-          (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+          (struct CstNodeList *)C_CDD_CALLOC(1, sizeof(struct CstNodeList));
       if (!dummy_expanded) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -109,7 +110,7 @@ enum cdd_c_error cst_build_macro_overlay(const struct CstNodeList *cst,
       /* Just store it to satisfy dual representation architecture */
       if (list_add(overlays, n, dummy_expanded) != 0) {
         free_cst_node_list(dummy_expanded);
-        free(dummy_expanded);
+        C_CDD_FREE(dummy_expanded);
         return CDD_C_ERROR_MEMORY;
       }
     }

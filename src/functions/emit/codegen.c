@@ -5,34 +5,7 @@
 #include <string.h>
 #include "functions/emit/codegen.h"
 #include <stdarg.h>
-
 /* clang-format on */
-
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-/** @brief fprintf macro */
-#define fprintf test_cdd_fprintf_hook
-#else
-/** @brief fprintf macro */
-#define fprintf fprintf
-#endif
 
 /** @brief CHECK_IO definition */
 #ifndef CHECK_IO

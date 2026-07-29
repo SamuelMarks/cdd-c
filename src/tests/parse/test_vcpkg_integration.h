@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -46,9 +47,9 @@ TEST test_vcpkg_builder_basic(void) {
   ASSERT(strstr(json, "\"zlib\"") != NULL);
   ASSERT(strstr(json, "\"dirent\"") == NULL);
 
-  free(json);
+  C_CDD_FREE(json);
   vcpkg_builder_free(&builder);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -73,7 +74,7 @@ TEST test_vcpkg_builder_duplicate(void) {
   ASSERT_STR_EQ("pthreads", builder.deps[0].name);
 
   vcpkg_builder_free(&builder);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -103,7 +104,7 @@ TEST test_vcpkg_builder_errors(void) {
             vcpkg_builder_generate(&builder, NULL));
 
   vcpkg_builder_free(&builder);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -118,9 +119,9 @@ TEST test_vcpkg_builder_extras(void) {
 
   ASSERT(strstr(json, "\"dirent\"") != NULL);
 
-  free(json);
+  C_CDD_FREE(json);
   vcpkg_builder_free(&builder);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

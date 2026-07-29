@@ -1,14 +1,20 @@
-/* clang-format off */
 #ifndef CDD_FFI_VARIADIC_H
 #define CDD_FFI_VARIADIC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
+/* clang-format off */
 #include "../../src/cdd_api.h"
 #include "cdd_ffi_ir.h"
 #include <stddef.h>
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef signed __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
+/* clang-format on */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief Parses a printf-style format string and returns an array of types.
@@ -21,10 +27,9 @@ extern "C" {
  * @param max_types The maximum number of types out_types can hold.
  * @return The number of arguments found in the format string.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_ffi_parse_printf_format(const char *fmt,
-                                                cdd_ffi_type_t *out_types,
-                                                size_t max_types,
-                                                size_t *out_count);
+C_CDD_EXPORT enum cdd_c_error
+cdd_ffi_parse_printf_format(const char *fmt, cdd_ffi_type_t *out_types,
+                            size_t max_types, size_t *out_count);
 
 /**
  * @brief A generic union for passing arguments to the variadic trampoline.
@@ -32,7 +37,7 @@ C_CDD_EXPORT enum cdd_c_error cdd_ffi_parse_printf_format(const char *fmt,
 typedef union cdd_ffi_var_arg_t {
   int i;
   long l;
-  long long ll;
+  int64_t ll;
   double d;
   void *p;
 } cdd_ffi_var_arg_t;
@@ -50,13 +55,12 @@ typedef union cdd_ffi_var_arg_t {
  * @param argc Number of arguments in the args array.
  * @return The integer result of the variadic function.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_ffi_invoke_variadic(enum cdd_c_error (*fn)(const char *, ...),
-                                         const char *fmt,
-                                         cdd_ffi_var_arg_t *args, size_t argc);
+C_CDD_EXPORT enum cdd_c_error
+cdd_ffi_invoke_variadic(enum cdd_c_error (*fn)(const char *, ...),
+                        const char *fmt, cdd_ffi_var_arg_t *args, size_t argc);
+
+#endif /* CDD_FFI_VARIADIC_H */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* CDD_FFI_VARIADIC_H */
-/* clang-format on */

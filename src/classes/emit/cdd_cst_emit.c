@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <stddef.h>
 #include <stdio.h>
 #include "c_cdd_export.h"
@@ -59,7 +60,7 @@ static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
       new_buf = NULL;
     } else {
 #endif
-      new_buf = (char *)realloc(ctx->buf, new_cap);
+      new_buf = (char *)C_CDD_REALLOC(ctx->buf, new_cap);
 #ifdef CDD_BUILD_TESTS
     }
 #endif
@@ -153,7 +154,7 @@ enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   rc = emit_node(&ctx, tree->root);
   if (rc != 0) {
     if (ctx.buf)
-      free(ctx.buf);
+      C_CDD_FREE(ctx.buf);
     return rc;
   }
 
@@ -162,9 +163,9 @@ enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
 
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : malloc(1));
+    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : C_CDD_MALLOC(1));
 #else
-    ctx.buf = (char *)malloc(1);
+    ctx.buf = (char *)C_CDD_MALLOC(1);
 #endif
 
     if (!ctx.buf)

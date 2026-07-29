@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,10 +31,10 @@ void safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
   if (list->patches) {
     for (i = 0; i < list->size; ++i) {
       if (list->patches[i].replacement_text) {
-        free(list->patches[i].replacement_text);
+        C_CDD_FREE(list->patches[i].replacement_text);
       }
     }
-    free(list->patches);
+    C_CDD_FREE(list->patches);
   }
   list->patches = NULL;
   list->size = 0;
@@ -52,7 +53,7 @@ static enum cdd_c_error add_patch(struct SafeCrtPatchList *list, size_t start,
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
     struct SafeCrtPatch *new_arr =
-        realloc(list->patches, new_cap * sizeof(struct SafeCrtPatch));
+        C_CDD_REALLOC(list->patches, new_cap * sizeof(struct SafeCrtPatch));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -93,7 +94,7 @@ static enum cdd_c_error extract_token_text(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   }
 
-  str = malloc(len + 1);
+  str = C_CDD_MALLOC(len + 1);
   if (!str) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -165,9 +166,9 @@ static enum cdd_c_error generate_strcpy_patch(const struct TokenList *tokens,
     }
 
     if (dest)
-      free(dest);
+      C_CDD_FREE(dest);
     if (src)
-      free(src);
+      C_CDD_FREE(src);
   }
   return CDD_C_SUCCESS;
 }
@@ -261,11 +262,11 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
       add_patch(out, assign_idx - 1, call_end, replacement);
     }
     if (path)
-      free(path);
+      C_CDD_FREE(path);
     if (mode)
-      free(mode);
+      C_CDD_FREE(mode);
     if (dest)
-      free(dest);
+      C_CDD_FREE(dest);
   }
   return CDD_C_SUCCESS;
 }
@@ -321,11 +322,11 @@ static enum cdd_c_error generate_strncpy_patch(const struct TokenList *tokens,
     }
 
     if (dest)
-      free(dest);
+      C_CDD_FREE(dest);
     if (src)
-      free(src);
+      C_CDD_FREE(src);
     if (count)
-      free(count);
+      C_CDD_FREE(count);
   }
   return CDD_C_SUCCESS;
 }
@@ -368,9 +369,9 @@ static enum cdd_c_error generate_sprintf_patch(const struct TokenList *tokens,
     }
 
     if (dest)
-      free(dest);
+      C_CDD_FREE(dest);
     if (args)
-      free(args);
+      C_CDD_FREE(args);
   }
   return CDD_C_SUCCESS;
 }
@@ -491,11 +492,11 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
               }
             }
             if (type_name)
-              free(type_name);
+              C_CDD_FREE(type_name);
             if (var_name)
-              free(var_name);
+              C_CDD_FREE(var_name);
             if (expr)
-              free(expr);
+              C_CDD_FREE(expr);
           }
         }
       }

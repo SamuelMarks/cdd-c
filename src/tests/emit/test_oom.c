@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,12 +13,12 @@ enum cdd_c_error main(void) {
   }
   rl.rlim_cur = 1024 * 1024 * 10; /* 10 MB */
   if (setrlimit(RLIMIT_AS, &rl) == 0) {
-    void *p = malloc(1024 * 1024 * 20);
+    void *p = C_CDD_MALLOC(1024 * 1024 * 20);
     if (!p) {
       printf("OOM worked\n");
     } else {
       printf("OOM failed\n");
-      free(p);
+      C_CDD_FREE(p);
     }
   } else {
     perror("setrlimit");

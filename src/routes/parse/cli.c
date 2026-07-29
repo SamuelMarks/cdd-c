@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -248,7 +249,7 @@ static enum cdd_c_error spec_add_tag(struct OpenAPI_Spec *spec,
   if (spec_has_tag(spec, name))
     return CDD_C_SUCCESS;
 
-  new_tags = (struct OpenAPI_Tag *)realloc(
+  new_tags = (struct OpenAPI_Tag *)C_CDD_REALLOC(
       spec->tags, (spec->n_tags + 1) * sizeof(struct OpenAPI_Tag));
   if (!new_tags)
     return CDD_C_ERROR_MEMORY;
@@ -787,19 +788,19 @@ static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
     if (var->name)
-      free(var->name);
+      C_CDD_FREE(var->name);
     if (var->default_value)
-      free(var->default_value);
+      C_CDD_FREE(var->default_value);
     if (var->description)
-      free(var->description);
+      C_CDD_FREE(var->description);
     if (var->enum_values) {
       for (e = 0; e < var->n_enum_values; ++e) {
-        free(var->enum_values[e]);
+        C_CDD_FREE(var->enum_values[e]);
       }
-      free(var->enum_values);
+      C_CDD_FREE(var->enum_values);
     }
   }
-  free(srv->variables);
+  C_CDD_FREE(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
 }
@@ -815,7 +816,7 @@ static enum cdd_c_error copy_doc_server_variables(struct OpenAPI_Server *dst,
   char *_ast_strdup_5 = NULL;
   size_t i;
 
-  dst->variables = (struct OpenAPI_ServerVariable *)calloc(
+  dst->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
       src->n_variables, sizeof(struct OpenAPI_ServerVariable));
   if (!dst->variables)
     return CDD_C_ERROR_MEMORY;
@@ -852,7 +853,8 @@ static enum cdd_c_error copy_doc_server_variables(struct OpenAPI_Server *dst,
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
-      dv->enum_values = (char **)calloc(sv->n_enum_values, sizeof(char *));
+      dv->enum_values =
+          (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
         free_openapi_server_variables(dst);
         return CDD_C_ERROR_MEMORY;
@@ -1083,7 +1085,7 @@ static enum cdd_c_error merge_scopes(struct OpenAPI_OAuthFlow *dst,
     }
     if (!found) {
       struct OpenAPI_OAuthScope *new_scopes =
-          (struct OpenAPI_OAuthScope *)realloc(
+          (struct OpenAPI_OAuthScope *)C_CDD_REALLOC(
               dst->scopes, (dst->n_scopes + 1) * sizeof(*dst->scopes));
       if (!new_scopes)
         return CDD_C_ERROR_MEMORY;
@@ -1579,9 +1581,10 @@ static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
       continue;
     }
     {
-      struct OpenAPI_OAuthFlow *new_flows = (struct OpenAPI_OAuthFlow *)realloc(
-          scheme->flows,
-          (scheme->n_flows + 1) * sizeof(struct OpenAPI_OAuthFlow));
+      struct OpenAPI_OAuthFlow *new_flows =
+          (struct OpenAPI_OAuthFlow *)C_CDD_REALLOC(
+              scheme->flows,
+              (scheme->n_flows + 1) * sizeof(struct OpenAPI_OAuthFlow));
       if (!new_flows)
         return CDD_C_ERROR_MEMORY;
       scheme->flows = new_flows;
@@ -1613,7 +1616,7 @@ static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
         return CDD_C_ERROR_MEMORY;
       if (doc->flows[i].scopes && doc->flows[i].n_scopes > 0) {
         size_t s;
-        dst_flow->scopes = (struct OpenAPI_OAuthScope *)calloc(
+        dst_flow->scopes = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
             doc->flows[i].n_scopes, sizeof(struct OpenAPI_OAuthScope));
         if (!dst_flow->scopes)
           return CDD_C_ERROR_MEMORY;
@@ -1857,7 +1860,7 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
             _ast_spec_find_security_scheme_3);
   if (!scheme) {
     struct OpenAPI_SecurityScheme *new_schemes =
-        (struct OpenAPI_SecurityScheme *)realloc(
+        (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
             spec->security_schemes, (spec->n_security_schemes + 1) *
                                         sizeof(struct OpenAPI_SecurityScheme));
     if (!new_schemes)
@@ -2408,7 +2411,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
 
   {
     struct OpenAPI_SecurityRequirementSet *new_sets =
-        (struct OpenAPI_SecurityRequirementSet *)realloc(
+        (struct OpenAPI_SecurityRequirementSet *)C_CDD_REALLOC(
             spec->security, (spec->n_security + meta->n_security) *
                                 sizeof(struct OpenAPI_SecurityRequirementSet));
     if (!new_sets)
@@ -2420,7 +2423,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
     struct OpenAPI_SecurityRequirementSet *set =
         &spec->security[spec->n_security + i];
     memset(set, 0, sizeof(*set));
-    set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
+    set->requirements = (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
         1, sizeof(struct OpenAPI_SecurityRequirement));
     if (!set->requirements)
       return CDD_C_ERROR_MEMORY;
@@ -2433,7 +2436,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
     if (src->n_scopes > 0) {
       size_t s;
       set->requirements[0].scopes =
-          (char **)calloc(src->n_scopes, sizeof(char *));
+          (char **)C_CDD_CALLOC(src->n_scopes, sizeof(char *));
       if (!set->requirements[0].scopes)
         return CDD_C_ERROR_MEMORY;
       set->requirements[0].n_scopes = src->n_scopes;
@@ -2676,7 +2679,7 @@ static enum cdd_c_error append_root_servers(struct OpenAPI_Spec *spec,
   if (!spec || !meta || meta->n_servers == 0)
     return CDD_C_SUCCESS;
   {
-    struct OpenAPI_Server *new_servers = (struct OpenAPI_Server *)realloc(
+    struct OpenAPI_Server *new_servers = (struct OpenAPI_Server *)C_CDD_REALLOC(
         spec->servers,
         (spec->n_servers + meta->n_servers) * sizeof(struct OpenAPI_Server));
     if (!new_servers)
@@ -4517,7 +4520,7 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
       k--;
     if (tl->tokens[k].kind == TOKEN_IDENTIFIER) {
       size_t len = tl->tokens[k].length;
-      char *n = malloc(len + 1);
+      char *n = C_CDD_MALLOC(len + 1);
       if (!n) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -4587,7 +4590,7 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
           size_t t_len = 0;
           char *t_str;
           size_t m;
-          char *n_str = malloc(nt->length + 1);
+          char *n_str = C_CDD_MALLOC(nt->length + 1);
           if (!n_str) {
             rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
@@ -4602,9 +4605,9 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
           for (m = name_idx + 1; m < seg_end; m++)
             t_len += tl->tokens[m].length;
 
-          t_str = malloc(t_len + 1);
+          t_str = C_CDD_MALLOC(t_len + 1);
           if (!t_str) {
-            free(n_str);
+            C_CDD_FREE(n_str);
             rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
           }
@@ -4624,12 +4627,12 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
 
           /* Add to list */
           {
-            struct C2OpenAPI_ParsedArg *new_arr =
-                realloc(out->args,
-                        (out->n_args + 1) * sizeof(struct C2OpenAPI_ParsedArg));
+            struct C2OpenAPI_ParsedArg *new_arr = C_CDD_REALLOC(
+                out->args,
+                (out->n_args + 1) * sizeof(struct C2OpenAPI_ParsedArg));
             if (!new_arr) {
-              free(n_str);
-              free(t_str);
+              C_CDD_FREE(n_str);
+              C_CDD_FREE(t_str);
               rc = CDD_C_ERROR_MEMORY;
               goto cleanup;
             }
@@ -4653,14 +4656,14 @@ cleanup:
   free_token_list(tl);
   if (rc != 0) {
     if (out->name)
-      free(out->name);
+      C_CDD_FREE(out->name);
     if (out->args) {
       size_t k;
       for (k = 0; k < out->n_args; k++) {
-        free(out->args[k].name);
-        free(out->args[k].type);
+        C_CDD_FREE(out->args[k].name);
+        C_CDD_FREE(out->args[k].type);
       }
-      free(out->args);
+      C_CDD_FREE(out->args);
     }
     memset(out, 0, sizeof(*out));
   }
@@ -4673,15 +4676,15 @@ cleanup:
 static void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   size_t i;
   if (sig->name)
-    free(sig->name);
+    C_CDD_FREE(sig->name);
   if (sig->return_type)
-    free(sig->return_type);
+    C_CDD_FREE(sig->return_type);
   if (sig->args) {
     for (i = 0; i < sig->n_args; ++i) {
-      free(sig->args[i].name);
-      free(sig->args[i].type);
+      C_CDD_FREE(sig->args[i].name);
+      C_CDD_FREE(sig->args[i].type);
     }
-    free(sig->args);
+    C_CDD_FREE(sig->args);
   }
   memset(sig, 0, sizeof(*sig));
 }
@@ -4715,17 +4718,17 @@ static enum cdd_c_error process_file(const char *path,
     return rc;
 
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
-    free(content);
+    C_CDD_FREE(content);
     return CDD_C_ERROR_IO;
   }
   parse_tokens(tokens, &cst); /* Best effort */
 
   if (cst.size > 0) {
-    comment_used = (int *)calloc(cst.size, sizeof(int));
+    comment_used = (int *)C_CDD_CALLOC(cst.size, sizeof(int));
     if (!comment_used) {
       free_cst_node_list(&cst);
       free_token_list(tokens);
-      free(content);
+      C_CDD_FREE(content);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -4748,7 +4751,7 @@ static enum cdd_c_error process_file(const char *path,
 
       if (doc_node) {
         /* Extract comment text */
-        char *doc_text = malloc(doc_node->length + 1);
+        char *doc_text = C_CDD_MALLOC(doc_node->length + 1);
         if (doc_text) {
           struct DocMetadata meta;
           memcpy(doc_text, doc_node->start, doc_node->length);
@@ -4763,12 +4766,12 @@ static enum cdd_c_error process_file(const char *path,
               rc_meta = apply_doc_global_meta(spec, &meta);
             if (rc_meta != 0) {
               doc_metadata_free(&meta);
-              free(doc_text);
+              C_CDD_FREE(doc_text);
               free_cst_node_list(&cst);
               free_token_list(tokens);
-              free(content);
+              C_CDD_FREE(content);
               if (comment_used)
-                free(comment_used);
+                C_CDD_FREE(comment_used);
               return rc_meta;
             }
             if (comment_used && doc_index != (size_t)-1)
@@ -4782,7 +4785,7 @@ static enum cdd_c_error process_file(const char *path,
                                                    body? */
             /* We need signature string up to brace. CST Node
              * includes body. */
-            char *sig_raw = malloc(sig_len + 1);
+            char *sig_raw = C_CDD_MALLOC(sig_len + 1);
             if (sig_raw) {
               struct C2OpenAPI_ParsedSig psig;
               const uint8_t *brace = memchr(func_node->start, '{', sig_len);
@@ -4813,11 +4816,11 @@ static enum cdd_c_error process_file(const char *path,
                 }
                 free_parsed_sig(&psig);
               }
-              free(sig_raw);
+              C_CDD_FREE(sig_raw);
             }
           }
           doc_metadata_free(&meta);
-          free(doc_text);
+          C_CDD_FREE(doc_text);
         }
       }
     }
@@ -4828,7 +4831,7 @@ static enum cdd_c_error process_file(const char *path,
     for (i = 0; i < cst.size; ++i) {
       if (cst.nodes[i].kind == CST_NODE_COMMENT && !comment_used[i]) {
         struct DocMetadata meta;
-        char *doc_text = malloc(cst.nodes[i].length + 1);
+        char *doc_text = C_CDD_MALLOC(cst.nodes[i].length + 1);
         if (!doc_text)
           continue;
         memcpy(doc_text, cst.nodes[i].start, cst.nodes[i].length);
@@ -4843,25 +4846,25 @@ static enum cdd_c_error process_file(const char *path,
             rc_meta = apply_doc_global_meta(spec, &meta);
           if (rc_meta != 0) {
             doc_metadata_free(&meta);
-            free(doc_text);
+            C_CDD_FREE(doc_text);
             free_cst_node_list(&cst);
             free_token_list(tokens);
-            free(content);
-            free(comment_used);
+            C_CDD_FREE(content);
+            C_CDD_FREE(comment_used);
             return rc_meta;
           }
         }
         doc_metadata_free(&meta);
-        free(doc_text);
+        C_CDD_FREE(doc_text);
       }
     }
   }
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
-  free(content);
+  C_CDD_FREE(content);
   if (comment_used)
-    free(comment_used);
+    C_CDD_FREE(comment_used);
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -5407,7 +5410,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
 
   if (self_uri && *self_uri) {
     if (spec.self_uri)
-      free(spec.self_uri);
+      C_CDD_FREE(spec.self_uri);
     spec.self_uri = strdup(self_uri);
     if (!spec.self_uri) {
       fprintf(stderr, "Failed to set $self URI\n");
@@ -5417,7 +5420,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
   }
   if (dialect_uri && *dialect_uri) {
     if (spec.json_schema_dialect)
-      free(spec.json_schema_dialect);
+      C_CDD_FREE(spec.json_schema_dialect);
     spec.json_schema_dialect = strdup(dialect_uri);
     if (!spec.json_schema_dialect) {
       fprintf(stderr, "Failed to set jsonSchemaDialect\n");
@@ -5459,7 +5462,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
     rc = 0;
   }
 
-  free(json);
+  C_CDD_FREE(json);
   openapi_spec_free(&spec);
 
   return (rc == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -5614,30 +5617,24 @@ enum cdd_c_error generate_bindings_cli_main(int argc, char **argv) {
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      puts("Usage: cdd-c bind [OPTIONS]\n\n"
-           "Options:\n"
-           "  -i, --input <file|dir>    Input C header/source "
-           "or directory\n"
-           "  -o, --output-dir <dir>    Output directory for "
-           "bindings\n"
-           "  -l, --lang <langs>        Comma-separated list "
-           "of languages or "
-           "'*' "
-           "(e.g., python,rust)\n"
-           "  -n, --lib-name <name>     Name of the shared "
-           "library (e.g., "
-           "sqlite3)\n"
-           "  -m, --module-name <name>  Name of the generated "
-           "namespace/module\n"
-           "  --skip-static             Skip static inline "
-           "functions\n"
-           "  --opaque-pointers         Treat unknown structs "
-           "as void* "
-           "(opaque)\n"
-           "  --generate-tests          Generate basic "
-           "sanity-check tests\n"
-           "  -h, --help                Show this help "
-           "message\n");
+      fputs("Usage: cdd-c bind [OPTIONS]\n\n"
+            "Options:\n"
+            "  -i, --input <file|dir>    Input C header/source or directory\n"
+            "  -o, --output-dir <dir>    Output directory for bindings\n"
+            "  -l, --lang <langs>        Comma-separated list of languages or "
+            "'*'\n"
+            "                            (e.g., python,rust)\n",
+            stdout);
+      fputs(
+          "  -n, --lib-name <name>     Name of the shared library (e.g., "
+          "sqlite3)\n"
+          "  -m, --module-name <name>  Name of the generated namespace/module\n"
+          "  --skip-static             Skip static inline functions\n"
+          "  --opaque-pointers         Treat unknown structs as void* "
+          "(opaque)\n"
+          "  --generate-tests          Generate basic sanity-check tests\n"
+          "  -h, --help                Show this help message\n",
+          stdout);
       return CDD_C_SUCCESS;
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&

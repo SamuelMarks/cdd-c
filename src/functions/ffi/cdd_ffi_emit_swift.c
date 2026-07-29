@@ -74,6 +74,15 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.swift", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -98,8 +107,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
       fprintf(f, "    }\n\n");
 
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname =
-            node->fields[j].name ? node->fields[j].name : "field";
+        const char *fname = node->fields[j].name;
         const char *stype = get_swift_type(node->fields[j].type);
         fprintf(f, "    public var %s: %s {\n", fname, stype);
         fprintf(f, "        get { return inner.%s }\n", fname);
@@ -120,11 +128,10 @@ emit_swift_file(cdd_ffi_ir_t *ir,
       fprintf(f, "    public static func %s(", node->name);
 
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
-        if (strcmp(arg_name, "inout") == 0)
+        if (strcmp(arg_name, "inout") == 0 || strcmp(arg_name, "error") == 0)
           arg_name = "inout_";
         fprintf(f, "_ %s: %s", arg_name, get_swift_type(node->fields[j].type));
         if (j < node->fields_count - 1)
@@ -146,11 +153,10 @@ emit_swift_file(cdd_ffi_ir_t *ir,
        * it's global */
       fprintf(f, "::%s(", node->name); /* Just calling the C function */
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
-        if (strcmp(arg_name, "inout") == 0)
+        if (strcmp(arg_name, "inout") == 0 || strcmp(arg_name, "error") == 0)
           arg_name = "inout_";
         fprintf(f, "%s", arg_name);
         if (j < node->fields_count - 1)
@@ -182,6 +188,15 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/module.modulemap",
                config->output_dir);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -202,9 +217,8 @@ enum cdd_c_error
 cdd_ffi_emit_swift(cdd_ffi_ir_t *ir,
                    const cdd_generate_bindings_config_t *config) {
   int rc;
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   rc = emit_swift_file(ir, config);
   if (rc != 0)

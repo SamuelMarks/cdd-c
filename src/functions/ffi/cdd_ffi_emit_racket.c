@@ -117,9 +117,8 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
   char var_name[256];
   char ret_type_str[256];
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
   racketify_name(lib_name, racket_lib_name, sizeof(racket_lib_name));

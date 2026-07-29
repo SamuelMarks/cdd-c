@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,19 +14,6 @@
 
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-#undef malloc
-#define malloc(sz)                                                             \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
-                                                            : (malloc)(sz))
-#undef realloc
-#define realloc(ptr, sz)                                                       \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
-       ? NULL                                                                  \
-       : (realloc)(ptr, sz))
-#endif
 
 /**
  * @brief Duplicates a string up to a specified number of characters.
@@ -33,7 +21,7 @@ extern int g_io_calls;
  */
 static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
                                       char **_out_val) {
-  char *d = (char *)malloc(n + 1);
+  char *d = (char *)C_CDD_MALLOC(n + 1);
   if (!d) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -70,13 +58,13 @@ void vla_site_list_free(struct VLASiteList *list) {
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].type_str)
-        free(list->sites[i].type_str);
+        C_CDD_FREE(list->sites[i].type_str);
       if (list->sites[i].var_name)
-        free(list->sites[i].var_name);
+        C_CDD_FREE(list->sites[i].var_name);
       if (list->sites[i].size_expr)
-        free(list->sites[i].size_expr);
+        C_CDD_FREE(list->sites[i].size_expr);
     }
-    free(list->sites);
+    C_CDD_FREE(list->sites);
   }
   (void)vla_site_list_init(list);
 }
@@ -249,7 +237,7 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
                 if (list->count >= list->capacity) {
                   struct VLASite *new_sites;
                   list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-                  new_sites = (struct VLASite *)realloc(
+                  new_sites = (struct VLASite *)C_CDD_REALLOC(
                       list->sites, list->capacity * sizeof(struct VLASite));
                   if (!new_sites)
                     return CDD_C_ERROR_MEMORY;
@@ -312,6 +300,9 @@ enum cdd_c_error scan_for_vlas(const struct TokenList *tokens,
 }
 
 #ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT enum cdd_c_error is_basic_type_keyword_test(enum TokenKind k,
+                                                         int *out_is_basic);
+
 C_CDD_EXPORT enum cdd_c_error is_basic_type_keyword_test(enum TokenKind k,
                                                          int *out_is_basic) {
   return is_basic_type_keyword(k, out_is_basic);

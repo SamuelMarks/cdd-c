@@ -11,6 +11,7 @@ extern "C" {
 #include <stddef.h>
 #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1800) || defined(__GNUC__) || defined(__clang__)
 #include <stdbool.h>
+/* clang-format on */
 #else
 typedef size_t _c_cdd_bool;
 
@@ -28,7 +29,6 @@ typedef size_t _c_cdd_bool;
 #define true 1
 #define false 0
 #endif
-/* clang-format on */
 
 #ifdef __cplusplus
 }

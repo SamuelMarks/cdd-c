@@ -10,6 +10,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +30,7 @@
 #include "functions/parse/str.h"
 #include <limits.h>
 #include <stdarg.h>
-
-
+/* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
@@ -39,37 +39,8 @@
 #define PATH_MAX _MAX_PATH
 #else
 #endif
-/* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_schema_fail_io_after = -1;
-C_CDD_EXPORT int g_schema_io_calls = 0;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  va_list args;
-  int rc;
-  printf("hook: after=%d calls=%d\n", g_schema_fail_io_after,
-         g_schema_io_calls);
-  if (g_schema_fail_io_after >= 0 &&
-      ++g_schema_io_calls > g_schema_fail_io_after)
-    return -1;
-  va_start(args, format);
-  rc = vfprintf(stream, format, args);
-  va_end(args);
-  return rc;
-}
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
-#endif
-
+static
 #ifndef PATH_MAX
 /** @brief PATH_MAX definition */
 #define PATH_MAX 4096
@@ -107,7 +78,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     }                                                                          \
   } while (0)
 #else
-C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
+    C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   do {                                                                         \
     int err = (x);                                                             \
@@ -120,10 +91,11 @@ C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
   } while (0)
 #endif
 
-/* Write Header Guard Start */
-static enum cdd_c_error print_header_guard(FILE *hfile, const char *basename) {
-  CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef %s_H\n", basename));
-  CHECK_IO(FPRINTF_HOOK(hfile, "#define %s_H\n\n", basename));
+    /* Write Header Guard Start */
+    static enum cdd_c_error
+    print_header_guard(FILE *hfile, const char *basename) {
+  CHECK_IO(fprintf(hfile, "#ifndef %s_H\n", basename));
+  CHECK_IO(fprintf(hfile, "#define %s_H\n\n", basename));
   return CDD_C_SUCCESS;
 }
 
@@ -133,7 +105,7 @@ static enum cdd_c_error print_header_guard(FILE *hfile, const char *basename) {
  */
 static enum cdd_c_error print_header_guard_end(FILE *hfile,
                                                const char *basename) {
-  CHECK_IO(FPRINTF_HOOK(hfile, "#endif /* !%s_H */\n", basename));
+  CHECK_IO(fprintf(hfile, "#endif /* !%s_H */\n", basename));
   return CDD_C_SUCCESS;
 }
 
@@ -166,37 +138,36 @@ generate_header(const char *prefix, const char *basename,
     return CDD_C_ERROR_SYSTEM;
 
   F_CHECK_RC_TESTABLE(print_header_guard(fp, basename));
-  F_CHECK_IO(FPRINTF_HOOK(fp,
-                          "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
-                          "#include \"lib_export.h\"\n\n"
-                          "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
-                          "typedef signed __int8 int8_t;\n"
-                          "typedef unsigned __int8 uint8_t;\n"
-                          "typedef signed __int16 int16_t;\n"
-                          "typedef unsigned __int16 uint16_t;\n"
-                          "typedef signed __int32 int32_t;\n"
-                          "typedef unsigned __int32 uint32_t;\n"
-                          "typedef signed __int64 int64_t;\n"
-                          "typedef unsigned __int64 uint64_t;\n"
-                          "#else\n"
-                          "#include <stdint.h>\n"
-                          "#endif\n\n"
-                          "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-                          "#if !defined(__cplusplus)\n"
-                          "#ifndef bool\n"
-                          "#define bool unsigned char\n"
-                          "#endif\n"
-                          "#ifndef true\n"
-                          "#define true 1\n"
-                          "#endif\n"
-                          "#ifndef false\n"
-                          "#define false 0\n"
-                          "#endif\n"
-                          "#endif\n"
-                          "#else\n"
-                          "#include <stdbool.h>\n"
-                          "#endif\n\n"
-                          "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
+  F_CHECK_IO(fprintf(fp, "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
+                         "#include \"lib_export.h\"\n\n"
+                         "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                         "typedef signed __int8 int8_t;\n"
+                         "typedef unsigned __int8 uint8_t;\n"
+                         "typedef signed __int16 int16_t;\n"
+                         "typedef unsigned __int16 uint16_t;\n"));
+  F_CHECK_IO(fprintf(fp, "typedef signed __int32 int32_t;\n"
+                         "typedef unsigned __int32 uint32_t;\n"
+                         "typedef signed __int64 int64_t;\n"
+                         "typedef unsigned __int64 uint64_t;\n"
+                         "#else\n"
+                         "#include <stdint.h>\n"
+                         "#endif\n\n"
+                         "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+                         "#if !defined(__cplusplus)\n"
+                         "#ifndef bool\n"
+                         "#define bool unsigned char\n"
+                         "#endif\n"
+                         "#ifndef true\n"
+                         "#define true 1\n"
+                         "#endif\n"
+                         "#ifndef false\n"
+                         "#define false 0\n"
+                         "#endif\n"
+                         "#endif\n"
+                         "#else\n"
+                         "#include <stdbool.h>\n"
+                         "#endif\n\n"
+                         "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
@@ -264,7 +235,7 @@ generate_header(const char *prefix, const char *basename,
     struct_fields_free(&sf);
   }
 
-  F_CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
+  F_CHECK_IO(fprintf(fp, "#ifdef __cplusplus\n}\n#endif\n"));
   F_CHECK_RC_TESTABLE(print_header_guard_end(fp, basename));
   fclose(fp);
   return 0;
@@ -317,12 +288,12 @@ generate_source(const char *prefix, const char *basename,
     return CDD_C_ERROR_SYSTEM;
 
   F_CHECK_IO(
-      FPRINTF_HOOK(fp,
-                   "#include <errno.h>\\n#include <stdio.h>\\n#include "
-                   "<stdlib.h>\\n#include "
-                   "<string.h>\\n#include <parson.h>\\n#include "
-                   "<c89stringutils_string_extras.h>\\n#include \"%s.h\"\\n\\n",
-                   basename));
+      fprintf(fp,
+              "#include <errno.h>\\n#include <stdio.h>\\n#include "
+              "<stdlib.h>\\n#include "
+              "<string.h>\\n#include <parson.h>\\n#include "
+              "<c89stringutils_string_extras.h>\\n#include \"%s.h\"\\n\\n",
+              basename));
 
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
     const char *name = json_object_get_name(schemas_obj, i);
@@ -424,7 +395,7 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
 
   root = json_parse_file(schema_file);
   if (!root) {
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
@@ -436,23 +407,23 @@ enum cdd_c_error schema2code_main(int argc, char **argv) {
 
   if (!schemas) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   if (generate_header(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
   if (generate_source(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
-    free(basename);
+    C_CDD_FREE(basename);
     return CDD_C_ERROR_UNKNOWN;
   }
 
   json_value_free(root);
-  free(basename);
+  C_CDD_FREE(basename);
   return CDD_C_SUCCESS;
 }
 

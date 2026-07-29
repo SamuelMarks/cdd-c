@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <stdio.h>
 #include <string.h>
@@ -31,7 +32,7 @@ TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_whitespace) {
   struct TokenList *tokens = NULL;
   struct CstNodeList *cst_nodes =
-      (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
+      (struct CstNodeList *)C_CDD_CALLOC(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
   int rc = EXIT_SUCCESS;
 
@@ -85,7 +86,7 @@ TEST parsing_test(const char *const test_name, const az_span source,
 cleanup:
   free_token_list(tokens);
   free_cst_node_list(cst_nodes);
-  free(cst_nodes);
+  C_CDD_FREE(cst_nodes);
   if (rc == EXIT_SUCCESS)
     PASS();
   FAIL();
@@ -93,7 +94,7 @@ cleanup:
 
 TEST test_precondition_failure(void) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -102,7 +103,7 @@ TEST test_parsing_struct(void) {
   CHECK_CALL(parsing_test("Struct parsing",
                           AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
                           1, 0, 0, 0, 0, 1));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -111,7 +112,7 @@ TEST test_parsing_enum(void) {
   CHECK_CALL(parsing_test("Enum parsing",
                           AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"),
                           0, 1, 0, 0, 0, 1));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -120,7 +121,7 @@ TEST test_parsing_union(void) {
   CHECK_CALL(parsing_test("Union parsing",
                           AZ_SPAN_FROM_STR("union Data { int i; float f; };"),
                           0, 0, 1, 0, 0, 1));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -130,7 +131,7 @@ TEST test_parsing_comments(void) {
       "Comments parsing",
       AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"), 0, 0, 0,
       2, 0, 3));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -139,7 +140,7 @@ TEST test_parsing_macros(void) {
   CHECK_CALL(parsing_test("Macros parsing",
                           AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0, 0, 0,
                           0, 1, 2));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -155,7 +156,7 @@ TEST test_parsing_complex(void) {
                        ""
                        "int main() { return 0; }\n"),
       1, 1, 1, 2, 1, 7));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -163,7 +164,7 @@ TEST test_parsing_empty(void) {
 
   CHECK_CALL(
       parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -177,7 +178,7 @@ TEST test_parsing_struct_with_anonymous_union(void) {
                           0, /* comments */
                           0, /* macros */
                           2 /* whitespace */));
-  g_fail_io_after = -1;
+
   PASS();
 }
 

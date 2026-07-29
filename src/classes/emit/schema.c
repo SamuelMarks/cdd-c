@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "classes/emit/schema.h"
 #include <errno.h>
@@ -46,7 +47,7 @@ enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
       new_req = NULL;
     } else {
 #endif
-      new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
+      new_req = (char **)C_CDD_REALLOC(sc->required, new_cap * sizeof(char *));
 #ifdef CDD_BUILD_TESTS
     }
 #endif
@@ -80,9 +81,9 @@ void schema_constraints_free(struct SchemaConstraints *sc) {
   if (sc->required) {
     for (i = 0; i < sc->required_count; i++) {
       if (sc->required[i])
-        free(sc->required[i]);
+        C_CDD_FREE(sc->required[i]);
     }
-    free(sc->required);
+    C_CDD_FREE(sc->required);
     sc->required = NULL;
   }
   sc->required_count = 0;
@@ -90,12 +91,12 @@ void schema_constraints_free(struct SchemaConstraints *sc) {
 
   if (sc->additional_properties) {
     if (sc->additional_properties->name)
-      free(sc->additional_properties->name);
+      C_CDD_FREE(sc->additional_properties->name);
     if (sc->additional_properties->type)
-      free(sc->additional_properties->type);
+      C_CDD_FREE(sc->additional_properties->type);
     if (sc->additional_properties->ref)
-      free(sc->additional_properties->ref);
-    free(sc->additional_properties);
+      C_CDD_FREE(sc->additional_properties->ref);
+    C_CDD_FREE(sc->additional_properties);
     sc->additional_properties = NULL;
   }
   sc->has_additional_properties = 0;

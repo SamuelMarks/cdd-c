@@ -15,6 +15,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -40,8 +41,8 @@
 #else
 #include <errno.h>
 #include "c_cdd/log.h"
-#endif
 /* clang-format on */
+#endif
 
 /* --- Graph Data Structures --- */
 
@@ -154,7 +155,7 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
       continue;
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
       size_t len = tokens->tokens[i].length;
-      char *name = malloc(len + 1);
+      char *name = C_CDD_MALLOC(len + 1);
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -189,7 +190,7 @@ static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
   }
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
-  buf = malloc(len + 1);
+  buf = C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -304,7 +305,7 @@ static enum cdd_c_error graph_add_edge(struct DependencyGraph *g,
 
   if (callee->num_callers >= callee->alloc_callers) {
     size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
-    size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
+    size_t *new_arr = C_CDD_REALLOC(callee->callers, new_cap * sizeof(size_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -324,11 +325,11 @@ static void graph_free_contents(struct DependencyGraph *g) {
   if (!g || !g->nodes)
     return;
   for (i = 0; i < g->count; i++) {
-    free(g->nodes[i].name);
-    free(g->nodes[i].callers);
-    free(g->nodes[i].original_return_type);
+    C_CDD_FREE(g->nodes[i].name);
+    C_CDD_FREE(g->nodes[i].callers);
+    C_CDD_FREE(g->nodes[i].original_return_type);
   }
-  free(g->nodes);
+  C_CDD_FREE(g->nodes);
   g->nodes = NULL;
   g->count = 0;
 }
@@ -414,7 +415,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
   }
 
   if (graph.count > 0) {
-    graph.nodes = calloc(graph.count, sizeof(struct FuncNode));
+    graph.nodes = C_CDD_CALLOC(graph.count, sizeof(struct FuncNode));
     if (!graph.nodes) {
       rc = CDD_C_ERROR_MEMORY;
       goto cleanup;
@@ -458,7 +459,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
           name = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
 
         rc = graph_add_node(&graph, f_idx, name);
-        free(name);
+        C_CDD_FREE(name);
         if (rc != 0)
           goto cleanup;
 
@@ -528,7 +529,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
         marked_count++;
 
     if (marked_count > 0) {
-      ref_funcs = calloc(marked_count, sizeof(struct RefactoredFunction));
+      ref_funcs = C_CDD_CALLOC(marked_count, sizeof(struct RefactoredFunction));
       if (!ref_funcs) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -625,8 +626,8 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
                     size_t nc = local_allocs.capacity == 0
                                     ? 4
                                     : local_allocs.capacity * 2;
-                    new_sites = realloc(local_allocs.sites,
-                                        nc * sizeof(struct AllocationSite));
+                    new_sites = C_CDD_REALLOC(
+                        local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
                       return CDD_C_ERROR_MEMORY;
                     }
@@ -642,7 +643,8 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
                 asprintf(&segment, "%s %s", new_sig, new_body);
 #else
-                char *buf = malloc(strlen(new_sig) + strlen(new_body) + 2);
+                char *buf =
+                    C_CDD_MALLOC(strlen(new_sig) + strlen(new_body) + 2);
                 if (buf) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -654,8 +656,8 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
                 }
                 segment = buf;
 #endif
-                free(new_sig);
-                free(new_body);
+                C_CDD_FREE(new_sig);
+                C_CDD_FREE(new_body);
               }
               allocation_site_list_free(&local_allocs);
             }
@@ -673,7 +675,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
           asprintf(&joined, "%s%s", output, segment);
 #else
-          joined = malloc(strlen(output) + strlen(segment) + 1);
+          joined = C_CDD_MALLOC(strlen(output) + strlen(segment) + 1);
           if (joined) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -684,9 +686,9 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #endif
           }
 #endif
-          free(output);
+          C_CDD_FREE(output);
           output = joined;
-          free(segment);
+          C_CDD_FREE(segment);
         }
         f_idx++;
         continue;
@@ -701,7 +703,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
         asprintf(&joined, "%s%s", output, content);
 #else
-        joined = malloc(strlen(output) + strlen(content) + 1);
+        joined = C_CDD_MALLOC(strlen(output) + strlen(content) + 1);
         if (joined) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -712,9 +714,9 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #endif
         }
 #endif
-        free(output);
+        C_CDD_FREE(output);
         output = joined;
-        free(content);
+        C_CDD_FREE(content);
       }
     }
   }
@@ -724,10 +726,10 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 
 cleanup:
   if (ref_funcs)
-    free(ref_funcs);
+    C_CDD_FREE(ref_funcs);
   graph_free_contents(&graph);
   if (output)
-    free(output);
+    C_CDD_FREE(output);
   free_cst_node_list(&cst);
   allocation_site_list_free(&allocs);
   free_token_list(tokens);
@@ -791,7 +793,7 @@ static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
   }
 
   rc = orchestrate_fix(content, &result);
-  free(content);
+  C_CDD_FREE(content);
 
   if (rc != 0) {
     fprintf(stderr, "Refactoring failed for %s (code %d)\n", path, rc);
@@ -822,7 +824,7 @@ static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
     }
   }
 
-  free(result);
+  C_CDD_FREE(result);
   return CDD_C_SUCCESS;
 }
 

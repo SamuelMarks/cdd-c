@@ -3,12 +3,13 @@
  * @brief Implementation of the C tokenizer.
  */
 
-/* clang-format off */
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wc99-extensions"
 #endif
 
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 
 #include <errno.h>
@@ -183,7 +184,8 @@ static enum cdd_c_error token_list_add(struct TokenList *tl,
 
     struct Token *new_arr =
 
-        (struct Token *)realloc(tl->tokens, new_cap * sizeof(struct Token));
+        (struct Token *)C_CDD_REALLOC(tl->tokens,
+                                      new_cap * sizeof(struct Token));
 
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -818,12 +820,12 @@ void free_token_list(struct TokenList *tl) {
 
   if (tl->tokens) {
 
-    free(tl->tokens);
+    C_CDD_FREE(tl->tokens);
 
     tl->tokens = NULL;
   }
 
-  free(tl);
+  C_CDD_FREE(tl);
 }
 
 /**
@@ -910,7 +912,7 @@ enum cdd_c_error tokenize(const az_span source, struct TokenList **const out) {
 
   len = (size_t)az_span_size(source);
 
-  list = (struct TokenList *)calloc(1, sizeof(struct TokenList));
+  list = (struct TokenList *)C_CDD_CALLOC(1, sizeof(struct TokenList));
 
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

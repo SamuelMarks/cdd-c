@@ -1,15 +1,14 @@
 /* clang-format off */
 /* clang-format on */
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * @file log.h
  * @brief Logging utilities.
  */
 #ifndef C_CDD_LOG_H
 #define C_CDD_LOG_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 #ifndef C_CDD_LOG_DEBUG
 #ifdef DEBUG
@@ -31,8 +30,8 @@ void c_cdd_log_debug(const char *fmt, ...);
 #endif /* DEBUG */
 #endif /* !C_CDD_LOG_DEBUG */
 
+#endif /* C_CDD_LOG_H */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* C_CDD_LOG_H */

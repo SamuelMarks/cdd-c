@@ -18,7 +18,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-
 #include <stddef.h>
 #include "cdd_c_error.h"
 /* clang-format on */

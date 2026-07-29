@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -94,9 +95,9 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
               {
                 cdd_cst_builder_t bld;
                 cdd_cst_node_t *temp =
-                    (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                    (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
                 if (temp) {
-                  char *dup_id = (char *)calloc(1, 256);
+                  char *dup_id = (char *)C_CDD_CALLOC(1, 256);
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
                   if (dup_id) {
@@ -106,7 +107,7 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                       size_t new_cap = tree->string_capacity == 0
                                            ? 32
                                            : tree->string_capacity * 2;
-                      char **new_pool = (char **)realloc(
+                      char **new_pool = (char **)C_CDD_REALLOC(
                           tree->string_pool, new_cap * sizeof(char *));
                       if (new_pool) {
                         tree->string_pool = new_pool;
@@ -116,7 +117,7 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                     if (tree->num_strings < tree->string_capacity) {
                       tree->string_pool[tree->num_strings++] = dup_id;
                     } else {
-                      free(dup_id);
+                      C_CDD_FREE(dup_id);
                       dup_id = NULL;
                     }
                   }
@@ -161,17 +162,17 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                     node = parent_ptr;
                   }
                   cdd_cst_builder_free(&bld);
-                  free(temp->children);
-                  free(temp);
+                  C_CDD_FREE(temp->children);
+                  C_CDD_FREE(temp);
                 }
               }
 
               {
                 cdd_cst_builder_t bld;
                 cdd_cst_node_t *temp =
-                    (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                    (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
                 if (temp) {
-                  char *dup_id = (char *)calloc(1, 256);
+                  char *dup_id = (char *)C_CDD_CALLOC(1, 256);
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
                   if (dup_id) {
@@ -182,7 +183,7 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                       size_t new_cap = tree->string_capacity == 0
                                            ? 32
                                            : tree->string_capacity * 2;
-                      char **new_pool = (char **)realloc(
+                      char **new_pool = (char **)C_CDD_REALLOC(
                           tree->string_pool, new_cap * sizeof(char *));
                       if (new_pool) {
                         tree->string_pool = new_pool;
@@ -192,7 +193,7 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                     if (tree->num_strings < tree->string_capacity) {
                       tree->string_pool[tree->num_strings++] = dup_id;
                     } else {
-                      free(dup_id);
+                      C_CDD_FREE(dup_id);
                       dup_id = NULL;
                     }
                   }
@@ -260,8 +261,8 @@ static enum cdd_c_error rewrite_call_sites(cdd_cst_tree_t *tree,
                     }
                   }
                   cdd_cst_builder_free(&bld);
-                  free(temp->children);
-                  free(temp);
+                  C_CDD_FREE(temp->children);
+                  C_CDD_FREE(temp);
                 }
               }
               break;
@@ -375,7 +376,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
         /* Replace entire return type with enum cdd_c_error */
         cdd_cst_node_t *parent_ptr = func;
         cdd_cst_node_t *temp =
-            (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+            (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
         cdd_cst_builder_t bld;
 
         temp->kind = CDD_CST_UNKNOWN;
@@ -402,8 +403,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
           rparen_idx = rparen_idx - ret_type_end + temp->num_children;
         }
         cdd_cst_builder_free(&bld);
-        free(temp->children);
-        free(temp);
+        C_CDD_FREE(temp->children);
+        C_CDD_FREE(temp);
       }
 
       if (!is_strict_void) {
@@ -414,7 +415,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
         if (rparen_parent) {
           cdd_cst_builder_t bld;
           cdd_cst_node_t *temp =
-              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+              (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
           if (temp) {
             temp->kind = CDD_CST_UNKNOWN;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -436,12 +437,12 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                     if (g_err_perc_fail > 0 && --g_err_perc_fail == 0) {
                     } else
 #endif
-                      dup_id = (char *)malloc(t->length + 1);
+                      dup_id = (char *)C_CDD_MALLOC(t->length + 1);
                     if (dup_id) {
                       memcpy(dup_id, t->start, t->length);
                       dup_id[t->length] = '\0';
                       cdd_cst_bld_ident(&bld, dup_id);
-                      free(dup_id);
+                      C_CDD_FREE(dup_id);
                     }
                   } else if (t->kind == CDD_TOKEN_KEYWORD_INT) {
                     cdd_cst_bld_ident(&bld, "int");
@@ -452,12 +453,12 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                     if (g_err_perc_fail > 0 && --g_err_perc_fail == 0) {
                     } else
 #endif
-                      dup_p = (char *)malloc(t->length + 1);
+                      dup_p = (char *)C_CDD_MALLOC(t->length + 1);
                     if (dup_p) {
                       memcpy(dup_p, t->start, t->length);
                       dup_p[t->length] = '\0';
                       cdd_cst_bld_punct(&bld, dup_p);
-                      free(dup_p);
+                      C_CDD_FREE(dup_p);
                     }
                   }
                   if (t->trailing_trivia) {
@@ -488,8 +489,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               }
             }
             cdd_cst_builder_free(&bld);
-            free(temp->children);
-            free(temp);
+            C_CDD_FREE(temp->children);
+            C_CDD_FREE(temp);
           }
         }
       }
@@ -543,8 +544,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
           if (has_alloc && assign_idx == (size_t)-1) {
             rc = CDD_C_ERROR_PARSE;
-            free(stmts_res.nodes);
-            free(res.nodes);
+            C_CDD_FREE(stmts_res.nodes);
+            C_CDD_FREE(res.nodes);
             return rc;
           }
           if (has_alloc && assign_idx != (size_t)-1) {
@@ -553,7 +554,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
             cdd_cst_node_t *cloned =
 
-                (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
 
             if (cloned) {
 
@@ -607,7 +608,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
 #endif
 
-                tmp_name = (char *)malloc(len + 1);
+                tmp_name = (char *)C_CDD_MALLOC(len + 1);
 
 #ifdef CDD_BUILD_TESTS
               }
@@ -616,7 +617,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
               if (!tmp_name) {
 
-                free(cloned);
+                C_CDD_FREE(cloned);
 
                 continue;
               }
@@ -642,7 +643,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (tree->num_strings >= tree->string_capacity) {
                 tree->string_capacity =
                     tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-                tree->string_pool = (char **)realloc(
+                tree->string_pool = (char **)C_CDD_REALLOC(
                     tree->string_pool, tree->string_capacity * sizeof(char *));
               }
               tree->string_pool[tree->num_strings++] = tmp_name;
@@ -687,8 +688,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (bld.error_state == 0) {
                 cdd_cst_insert_node_after(stmt, cloned);
               } else {
-                free(cloned->children);
-                free(cloned);
+                C_CDD_FREE(cloned->children);
+                C_CDD_FREE(cloned);
               }
               cdd_cst_builder_free(&bld);
               allocs_seen++;
@@ -736,9 +737,9 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
         if (allocs_seen > 0) {
           size_t c_i;
           cdd_cst_node_t *decl_node =
-              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+              (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
           cdd_cst_node_t *cleanup_node =
-              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+              (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
 
           if (decl_node && cleanup_node) {
             cdd_cst_builder_t bld_decl;
@@ -826,21 +827,21 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             cdd_cst_builder_free(&bld_cleanup);
           }
           if (decl_node) {
-            free(decl_node->children);
-            free(decl_node);
+            C_CDD_FREE(decl_node->children);
+            C_CDD_FREE(decl_node);
           }
           if (cleanup_node) {
-            free(cleanup_node->children);
-            free(cleanup_node);
+            C_CDD_FREE(cleanup_node->children);
+            C_CDD_FREE(cleanup_node);
           }
         }
 
-        free(stmts_res.nodes);
+        C_CDD_FREE(stmts_res.nodes);
       }
     }
   }
 
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   if (num_modified > 0) {
     (void)rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);

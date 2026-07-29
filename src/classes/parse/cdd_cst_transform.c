@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -46,7 +47,7 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   if (found_cpp)
@@ -197,7 +198,7 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */

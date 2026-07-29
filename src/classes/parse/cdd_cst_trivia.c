@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_trivia.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -95,7 +96,7 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     nl = NULL;
   else
 #endif
-    nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    nl = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
   if (!nl) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -114,9 +115,9 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     ws = NULL;
   else
 #endif
-    ws = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    ws = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
   if (!ws) {
-    free(nl);
+    C_CDD_FREE(nl);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -126,10 +127,10 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     ws_buf = NULL;
   else
 #endif
-    ws_buf = (uint8_t *)malloc(total_spaces);
+    ws_buf = (uint8_t *)C_CDD_MALLOC(total_spaces);
   if (!ws_buf) {
-    free(nl);
-    free(ws);
+    C_CDD_FREE(nl);
+    C_CDD_FREE(ws);
     return CDD_C_ERROR_MEMORY;
   }
 

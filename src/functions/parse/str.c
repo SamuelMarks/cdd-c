@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,11 +21,11 @@
 #endif
 
 #include "functions/parse/str.h"
+/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_strdup_fail = 0;
 #endif
-/* clang-format on */
 
 /**
  * @brief Executes the c cdd strdup operation.
@@ -199,7 +200,7 @@ enum cdd_c_error c_cdd_destringize(const char *quoted, char **out_s) {
     out = NULL;
   } else {
 #endif
-    out = (char *)malloc(len + 1);
+    out = (char *)C_CDD_MALLOC(len + 1);
 #ifdef CDD_BUILD_TESTS
   }
 #endif

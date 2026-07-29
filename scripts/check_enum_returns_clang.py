@@ -354,6 +354,8 @@ def check_file(
                     if (
                         arg == "-c"
                         or arg == os.path.abspath(filename)
+                        or arg == cmd.filename
+                        or arg == os.path.abspath(cmd.filename)
                         or arg == filename
                     ):
                         continue
@@ -365,7 +367,7 @@ def check_file(
         tu = index.parse(filename, args=args_to_use)
     except Exception as e:
         if print_errors:
-            print(f"Error parsing {filename}: {e}", file=sys.stderr)
+            print(f"Error parsing {filename}: {e}\nArgs: {args_to_use}", file=sys.stderr)
         return 1
 
     file_lines = []
@@ -448,8 +450,6 @@ def check_file(
                 if is_logger(cursor.spelling):
                     continue
                 if is_strdup(cursor.spelling):
-                    continue
-                if is_predicate(cursor.spelling):
                     continue
                 if is_string_pooler(cursor.spelling):
                     continue

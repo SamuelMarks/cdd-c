@@ -2,6 +2,7 @@
 extern int g_cdd_cst_alloc_token_fail;
 #endif
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_lexer.h"
 #include <ctype.h>
 #include <errno.h>
@@ -17,10 +18,10 @@ static enum cdd_c_error alloc_trivia(enum cdd_trivia_kind_t kind,
 
 #endif
   cdd_trivia_t *t;
-  t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+  t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail == 1) {
-    free(t);
+    C_CDD_FREE(t);
     t = NULL;
   }
 #endif
@@ -160,10 +161,10 @@ enum cdd_c_error cdd_lexer_tokenize(az_span source,
   if (!out_list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  list = (cdd_token_list_t *)calloc(1, sizeof(cdd_token_list_t));
+  list = (cdd_token_list_t *)C_CDD_CALLOC(1, sizeof(cdd_token_list_t));
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail == 2) {
-    free(list);
+    C_CDD_FREE(list);
     list = NULL;
   }
 #endif
@@ -173,16 +174,17 @@ enum cdd_c_error cdd_lexer_tokenize(az_span source,
   }
 
   list->capacity = 64;
-  list->tokens = (cdd_token_t *)calloc(list->capacity, sizeof(cdd_token_t));
+  list->tokens =
+      (cdd_token_t *)C_CDD_CALLOC(list->capacity, sizeof(cdd_token_t));
 #ifdef CDD_BUILD_TESTS
 
   if (g_cdd_cst_alloc_token_fail == 3) {
-    free(list->tokens);
+    C_CDD_FREE(list->tokens);
     list->tokens = NULL;
   }
 #endif
   if (!list->tokens) {
-    free(list);
+    C_CDD_FREE(list);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -265,8 +267,8 @@ enum cdd_c_error cdd_lexer_tokenize(az_span source,
         new_arr = NULL;
       else
 #endif
-        new_arr =
-            (cdd_token_t *)realloc(list->tokens, new_cap * sizeof(cdd_token_t));
+        new_arr = (cdd_token_t *)C_CDD_REALLOC(list->tokens,
+                                               new_cap * sizeof(cdd_token_t));
       if (!new_arr)
         goto error;
       memset(new_arr + list->capacity, 0,
@@ -530,17 +532,17 @@ void cdd_lexer_free_token_list(cdd_token_list_t *list) {
       cdd_trivia_t *t = list->tokens[i].leading_trivia;
       while (t) {
         cdd_trivia_t *n = t->next;
-        free(t);
+        C_CDD_FREE(t);
         t = n;
       }
       t = list->tokens[i].trailing_trivia;
       while (t) {
         cdd_trivia_t *n = t->next;
-        free(t);
+        C_CDD_FREE(t);
         t = n;
       }
     }
-    free(list->tokens);
+    C_CDD_FREE(list->tokens);
   }
-  free(list);
+  C_CDD_FREE(list);
 }

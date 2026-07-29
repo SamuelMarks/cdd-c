@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_builder.h"
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
@@ -141,7 +142,7 @@ enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
     enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
     if (pool_rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
+      return pool_rc;
     }
   }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
@@ -373,13 +374,7 @@ static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
-  if (!out_str)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_str = NULL;
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
-    return CDD_C_ERROR_MEMORY;
-#endif
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(_MSC_VER)
@@ -387,15 +382,33 @@ static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
 #else
   dup = strdup(str);
 #endif
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0) {
+    C_CDD_FREE(dup);
+    dup = NULL;
+  }
+#endif
   if (!dup)
     return CDD_C_ERROR_MEMORY;
   if (tree->num_strings >= tree->string_capacity) {
-    size_t new_cap =
-        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-    char **new_pool =
-        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+    size_t new_cap = 32;
+    char **new_pool;
+    if (tree->string_capacity != 0) {
+      new_cap = tree->string_capacity * 2;
+    }
+    new_pool =
+        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0) {
+      /* In a real realloc failure, the old pointer is kept.
+         For this test simulation, we just leak the potentially new pool and
+         pretend it failed if it's not the same pointer, or just pretend it
+         failed anyway */
+      new_pool = NULL;
+    }
+#endif
     if (!new_pool) {
-      free(dup);
+      C_CDD_FREE(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -572,6 +585,7 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
 #endif
   cdd_trivia_t *t;
   const char *dup;
+  enum cdd_c_error pool_rc;
   if (!tree || !text || !out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
@@ -580,15 +594,15 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
     t = NULL;
   else
 #endif
-    t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
 
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  enum cdd_c_error pool_rc = pool_string(tree, text, (const char **)&dup);
+  pool_rc = pool_string(tree, text, (const char **)&dup);
   if (pool_rc != CDD_C_SUCCESS) {
-    free(t);
+    C_CDD_FREE(t);
     return pool_rc;
   }
 
@@ -617,10 +631,12 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   CDD_SNPRINTF(buf, sizeof(buf), "/* %s */", text);
 #endif
 
-  create_trivia(builder->tree, buf, &trivia);
-  if (!trivia) {
-    builder->error_state = CDD_C_ERROR_MEMORY;
-    return CDD_C_ERROR_MEMORY;
+  {
+    enum cdd_c_error rc = create_trivia(builder->tree, buf, &trivia);
+    if (rc != CDD_C_SUCCESS) {
+      builder->error_state = rc;
+      return rc;
+    }
   }
 
   if (builder->target_node->num_children > 0) {
@@ -646,14 +662,17 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
    */
   {
     const char *pooled = NULL;
-    enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
-    int rc;
-    if (pool_rc != CDD_C_SUCCESS) {
-      free(trivia);
-      return pool_rc;
+    enum cdd_c_error rc;
+    {
+      enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+      if (pool_rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(trivia);
+        return pool_rc;
+      }
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
-    free(trivia); /* since it became a real token via string pool mapping */
+    C_CDD_FREE(
+        trivia); /* since it became a real token via string pool mapping */
     return rc;
   }
 }
@@ -661,19 +680,15 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
 static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
                                         cdd_token_t **out_tok) {
   size_t i;
-  if (!node || !out_tok)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_token_t *t = NULL;
-      if (get_first_token(node->children[i].val.node, &t) == 0 && t) {
-        *out_tok = t;
+    }
+    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      if (get_first_token(node->children[i].val.node, out_tok) == CDD_C_SUCCESS)
         return CDD_C_SUCCESS;
-      }
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
@@ -682,18 +697,18 @@ static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
 static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
                                        cdd_token_t **out_tok) {
   int i;
-  if (!node || !out_tok)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   for (i = (int)node->num_children - 1; i >= 0; i--) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_token_t *t = NULL;
-      if (get_last_token(node->children[i].val.node, &t) == 0 && t) {
-        *out_tok = t;
-        return CDD_C_SUCCESS;
+    }
+    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      {
+        enum cdd_c_error get_rc =
+            get_last_token(node->children[i].val.node, out_tok);
+        if (get_rc != CDD_C_ERROR_NOT_FOUND)
+          return get_rc;
       }
     }
   }
@@ -706,7 +721,11 @@ enum cdd_c_error cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
   if (!out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
-  get_first_token(node, &t);
+  {
+    enum cdd_c_error rc = get_first_token(node, &t);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+  }
   if (t) {
     *out_trivia = t->leading_trivia;
     t->leading_trivia = NULL;
@@ -720,7 +739,11 @@ enum cdd_c_error cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
   if (!out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
-  get_last_token(node, &t);
+  {
+    enum cdd_c_error rc = get_last_token(node, &t);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+  }
   if (t) {
     *out_trivia = t->trailing_trivia;
     t->trailing_trivia = NULL;
@@ -730,19 +753,35 @@ enum cdd_c_error cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
 
 enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
                                          cdd_cst_node_t *target_node) {
-  cdd_trivia_t *lead;
-  cdd_trivia_t *trail;
+  cdd_trivia_t *lead = NULL;
+  cdd_trivia_t *trail = NULL;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
 
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_cst_extract_leading_trivia(source_node, &lead);
-  cdd_cst_extract_trailing_trivia(source_node, &trail);
+  {
+    enum cdd_c_error rc = cdd_cst_extract_leading_trivia(source_node, &lead);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+  {
+    enum cdd_c_error rc = cdd_cst_extract_trailing_trivia(source_node, &trail);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
 
-  get_first_token(target_node, &t_first);
-  get_last_token(target_node, &t_last);
+  {
+    enum cdd_c_error rc = get_first_token(target_node, &t_first);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+  }
+  {
+    enum cdd_c_error rc = get_last_token(target_node, &t_last);
+    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+      return rc;
+  }
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
@@ -813,10 +852,11 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
       children_wrappers = NULL;
     else
       children_wrappers =
-          (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
+          (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
   }
 #else
-  children_wrappers = (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
+  children_wrappers =
+      (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
 #endif
   if (!children_wrappers) {
     builder->error_state = CDD_C_ERROR_MEMORY;
@@ -831,7 +871,7 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   /* 0 elements to consume, we are just inserting them */
   rc = cdd_cst_splice_children(builder->tree, &parent, index, 0,
                                children_wrappers, count);
-  free(children_wrappers);
+  C_CDD_FREE(children_wrappers);
 
   if (rc != 0) {
     builder->error_state = rc;

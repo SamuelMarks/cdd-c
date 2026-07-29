@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "url_utils.h"
 #include <parson.h>
 #include <stdio.h>
@@ -27,16 +28,16 @@ enum cdd_c_error ApiError_cleanup(struct ApiError *err) {
   if (!err)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (err->type)
-    free(err->type);
+    C_CDD_FREE(err->type);
   if (err->title)
-    free(err->title);
+    C_CDD_FREE(err->title);
   if (err->detail)
-    free(err->detail);
+    C_CDD_FREE(err->detail);
   if (err->instance)
-    free(err->instance);
+    C_CDD_FREE(err->instance);
   if (err->raw_body)
-    free(err->raw_body);
-  free(err);
+    C_CDD_FREE(err->raw_body);
+  C_CDD_FREE(err);
   return CDD_C_SUCCESS;
 }
 
@@ -49,7 +50,7 @@ static enum cdd_c_error ApiError_from_json(const char *json,
   JSON_Object *obj;
   if (!json || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out = calloc(1, sizeof(struct ApiError));
+  *out = C_CDD_CALLOC(1, sizeof(struct ApiError));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   (*out)->raw_body = strdup(json);
@@ -106,7 +107,7 @@ enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
     base_url = default_url;
   }
   if (base_url) {
-    client->base_url = malloc(strlen(base_url) + 1);
+    client->base_url = C_CDD_MALLOC(strlen(base_url) + 1);
     if (!client->base_url)
       return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -233,14 +234,14 @@ enum cdd_c_error api_test_op(struct HttpClient *ctx, const char *qs,
 
 cleanup:
   if (path_str)
-    free(path_str);
+    C_CDD_FREE(path_str);
   if (query_str)
-    free(query_str);
+    C_CDD_FREE(query_str);
   url_query_free(&qp);
   http_request_free(&req);
   if (res) {
     http_response_free(res);
-    free(res);
+    C_CDD_FREE(res);
   }
   return rc;
 }

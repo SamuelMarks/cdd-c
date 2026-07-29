@@ -221,7 +221,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
           emit_csharp_type(f, &base_t, 0);
           fprintf(f, " ");
         }
-        fprintf(f, "%s", node->fields[j].name ? node->fields[j].name : "arg");
+        fprintf(f, "%s", node->fields[j].name);
         if (j < node->fields_count - 1 || node->is_variadic)
           fprintf(f, ", ");
       }

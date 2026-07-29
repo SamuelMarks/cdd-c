@@ -1,6 +1,8 @@
 #ifndef TEST_GNU_STANDARDIZER_INTERNALS_H
 #define TEST_GNU_STANDARDIZER_INTERNALS_H
 
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -8,13 +10,16 @@
 
 int g_force_gnu_alloc_fail = 0;
 int g_force_strdup_fail = 0;
-#define malloc(s) (g_force_gnu_alloc_fail ? NULL : malloc(s))
-#define realloc(p, s) (g_force_gnu_alloc_fail ? NULL : realloc(p, s))
+#undef C_CDD_MALLOC
+#define C_CDD_MALLOC(s) (g_force_gnu_alloc_fail ? NULL : C_CDD_MALLOC(s))
+#undef C_CDD_REALLOC
+#define C_CDD_REALLOC(p, s) (g_force_gnu_alloc_fail ? NULL : C_CDD_REALLOC(p, s))
 #define strdup(s) (g_force_strdup_fail ? NULL : strdup(s))
 
 #define cdd_transform_gnu internal_cdd_transform_gnu
 
 #include "transformers/gnu_standardizer/gnu_standardizer.c"
+/* clang-format on */
 
 extern enum cdd_c_error append_int(char *p, int v, char **out_p);
 extern void parse_hex_128_literal(const char *str, size_t len, uint64_t *high,
@@ -79,9 +84,9 @@ TEST test_gnu_internals(void) {
   {
     cdd_cst_tree_t t;
     memset(&t, 0, sizeof(t));
-    t.base_tokens = calloc(1, sizeof(struct TokenList));
+    t.base_tokens = C_CDD_CALLOC(1, sizeof(struct TokenList));
     t.base_tokens->size = 3;
-    t.base_tokens->tokens = calloc(3, sizeof(cdd_token_t));
+    t.base_tokens->tokens = C_CDD_CALLOC(3, sizeof(cdd_token_t));
     t.base_tokens->tokens[0].kind = CDD_TOKEN_IDENTIFIER;
     t.base_tokens->tokens[0].start = (const uint8_t *)"bar";
     t.base_tokens->tokens[0].length = 3;
@@ -100,25 +105,25 @@ TEST test_gnu_internals(void) {
     memset(&root, 0, sizeof(root));
     root.kind = CDD_CST_IDENTIFIER;
     root.num_children = 1;
-    root.children = calloc(1, sizeof(cdd_cst_child_t));
+    root.children = C_CDD_CALLOC(1, sizeof(cdd_cst_child_t));
     root.children[0].kind = CDD_CST_CHILD_TOKEN;
     root.children[0].val.token = &t.base_tokens->tokens[0];
 
     tramp_visitor(&root, &ctx);
     ASSERT_EQ(1, ctx.is_tramp);
 
-    free(root.children);
-    free(t.base_tokens->tokens);
-    free(t.base_tokens);
+    C_CDD_FREE(root.children);
+    C_CDD_FREE(t.base_tokens->tokens);
+    C_CDD_FREE(t.base_tokens);
   }
 
   /* Test magic_visitor alloc fail */
   {
     cdd_cst_tree_t t;
     memset(&t, 0, sizeof(t));
-    t.base_tokens = calloc(1, sizeof(struct TokenList));
+    t.base_tokens = C_CDD_CALLOC(1, sizeof(struct TokenList));
     t.base_tokens->size = 1;
-    t.base_tokens->tokens = calloc(1, sizeof(cdd_token_t));
+    t.base_tokens->tokens = C_CDD_CALLOC(1, sizeof(cdd_token_t));
     t.base_tokens->tokens[0].kind = CDD_TOKEN_IDENTIFIER;
     t.base_tokens->tokens[0].start = (const uint8_t *)"__func__";
     t.base_tokens->tokens[0].length = 8;
@@ -133,7 +138,7 @@ TEST test_gnu_internals(void) {
     memset(&root, 0, sizeof(root));
     root.kind = CDD_CST_IDENTIFIER;
     root.num_children = 1;
-    root.children = calloc(1, sizeof(cdd_cst_child_t));
+    root.children = C_CDD_CALLOC(1, sizeof(cdd_cst_child_t));
     root.children[0].kind = CDD_CST_CHILD_TOKEN;
     root.children[0].val.token = &t.base_tokens->tokens[0];
 
@@ -141,9 +146,9 @@ TEST test_gnu_internals(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, magic_visitor(&root, &mctx));
     g_force_strdup_fail = 0;
 
-    free(root.children);
-    free(t.base_tokens->tokens);
-    free(t.base_tokens);
+    C_CDD_FREE(root.children);
+    C_CDD_FREE(t.base_tokens->tokens);
+    C_CDD_FREE(t.base_tokens);
   }
 
   /* Test tramp_visitor early return */

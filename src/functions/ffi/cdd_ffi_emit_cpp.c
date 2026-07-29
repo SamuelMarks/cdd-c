@@ -72,6 +72,15 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.hpp", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -183,8 +192,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
               node->name);
 
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname =
-            node->fields[j].name ? node->fields[j].name : "field";
+        const char *fname = node->fields[j].name;
         fprintf(f, "    %s get_%s() const { return inner.%s; }\n",
                 get_cpp_type(node->fields[j].type), fname, fname);
         fprintf(f, "    void set_%s(%s val) { inner.%s = val; }\n", fname,
@@ -203,8 +211,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "inline %s %s(", get_cpp_type(node->return_or_base_type),
               node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "this") == 0)
@@ -225,8 +232,7 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "::%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name =
-            node->fields[j].name ? node->fields[j].name : "arg";
+        const char *arg_name = node->fields[j].name;
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "this") == 0)
@@ -269,9 +275,8 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 enum cdd_c_error
 cdd_ffi_emit_cpp(cdd_ffi_ir_t *ir,
                  const cdd_generate_bindings_config_t *config) {
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   return emit_cpp_hpp(ir, config);
 }

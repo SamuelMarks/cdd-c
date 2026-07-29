@@ -134,7 +134,7 @@ TEST test_load_parameter_array(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -166,7 +166,7 @@ TEST test_load_schema_parsing(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -209,7 +209,7 @@ TEST test_load_schema_external_docs_discriminator_xml(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -231,7 +231,7 @@ TEST test_load_form_content_type(void) {
   ASSERT_STR_EQ("Login", spec.paths[0].operations[0].req_body.ref_name);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -246,7 +246,7 @@ TEST test_request_body_content_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -262,7 +262,7 @@ TEST test_param_content_multiple_entries_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -278,7 +278,7 @@ TEST test_header_content_multiple_entries_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -291,7 +291,7 @@ TEST test_response_description_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -304,7 +304,7 @@ TEST test_operation_responses_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -317,7 +317,7 @@ TEST test_response_code_key_invalid_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -330,7 +330,7 @@ TEST test_response_code_range_valid(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -344,7 +344,7 @@ TEST test_paths_require_leading_slash(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -359,7 +359,7 @@ TEST test_paths_ambiguous_templates_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -372,7 +372,7 @@ TEST test_component_key_regex_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -385,7 +385,7 @@ TEST test_tag_duplicate_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -398,7 +398,7 @@ TEST test_tag_name_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -411,7 +411,7 @@ TEST test_tag_parent_missing_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -425,7 +425,7 @@ TEST test_tag_parent_cycle_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -438,7 +438,7 @@ TEST test_external_docs_url_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -455,7 +455,7 @@ TEST test_operation_id_duplicate_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -474,7 +474,7 @@ TEST test_operation_id_duplicate_in_callback_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -490,7 +490,7 @@ TEST test_parameter_duplicates_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -507,7 +507,7 @@ TEST test_querystring_with_query_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -525,7 +525,7 @@ TEST test_querystring_duplicate_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -542,7 +542,7 @@ TEST test_querystring_path_and_operation_mixed_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -561,7 +561,7 @@ TEST test_querystring_with_query_in_callback_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -576,7 +576,7 @@ TEST test_parameter_missing_name_or_in_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -592,7 +592,7 @@ TEST test_header_style_non_simple_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -610,7 +610,7 @@ TEST test_media_type_encoding_conflict_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -629,7 +629,7 @@ TEST test_encoding_object_conflict_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -653,7 +653,7 @@ TEST test_load_operation_tags(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -681,7 +681,7 @@ TEST test_load_parameter_metadata(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -705,7 +705,7 @@ TEST test_load_allow_empty_value(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -721,7 +721,7 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -745,7 +745,7 @@ TEST test_load_parameter_explode_false(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -771,7 +771,7 @@ TEST test_load_querystring_parameter(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -798,7 +798,7 @@ TEST test_load_querystring_json_inline_promoted(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -826,7 +826,7 @@ TEST test_ignore_reserved_header_parameters(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -852,7 +852,7 @@ TEST test_ignore_content_type_response_header(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -871,7 +871,7 @@ TEST test_param_schema_and_content_conflict(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -888,7 +888,7 @@ TEST test_header_schema_and_content_conflict(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -915,7 +915,7 @@ TEST test_load_parameter_content_any(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -953,7 +953,7 @@ TEST test_load_parameter_content_media_type_encoding(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -981,7 +981,7 @@ TEST test_load_header_content_media_type(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1012,7 +1012,7 @@ TEST test_load_parameter_schema_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1038,7 +1038,7 @@ TEST test_load_header_schema_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1064,7 +1064,7 @@ TEST test_load_path_level_parameters(void) {
   ASSERT_EQ(0, spec.paths[0].operations[0].n_parameters);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1090,7 +1090,7 @@ TEST test_load_server_variables(void) {
   ASSERT_STR_EQ("staging", spec.servers[0].variables[0].enum_values[1]);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1105,7 +1105,7 @@ TEST test_server_variable_default_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1126,7 +1126,7 @@ TEST test_load_openapi_version_and_servers(void) {
   ASSERT_STR_EQ("prod", spec.servers[0].name);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1146,7 +1146,7 @@ TEST test_load_server_duplicate_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1160,7 +1160,7 @@ TEST test_load_missing_openapi_and_swagger_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1197,7 +1197,7 @@ TEST test_load_schema_root_document_with_id(void) {
 
   openapi_spec_free(&spec);
   openapi_doc_registry_free(&registry);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1221,7 +1221,7 @@ TEST test_load_schema_root_boolean(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1235,7 +1235,7 @@ TEST test_load_swagger_root_allowed(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1248,7 +1248,7 @@ TEST test_load_openapi_version_unsupported_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1262,7 +1262,7 @@ TEST test_load_server_url_query_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1298,7 +1298,7 @@ TEST test_load_security_requirements(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1343,7 +1343,7 @@ TEST test_load_security_schemes(void) {
   ASSERT_STR_EQ("mTLS only", mtls->description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1368,7 +1368,7 @@ TEST test_load_security_scheme_deprecated(void) {
   ASSERT_EQ(1, old_key->deprecated);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1404,7 +1404,7 @@ TEST test_load_oauth2_flows(void) {
   ASSERT_STR_EQ("Read access", oauth->flows[0].scopes[0].description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1418,7 +1418,7 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1433,7 +1433,7 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1448,7 +1448,7 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1463,7 +1463,7 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1478,7 +1478,7 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1496,7 +1496,7 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1514,7 +1514,7 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1533,7 +1533,7 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1563,7 +1563,7 @@ TEST test_load_parameter_examples_object(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1590,7 +1590,7 @@ TEST test_load_parameter_examples_media(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1608,7 +1608,7 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1628,7 +1628,7 @@ TEST test_load_header_example_and_examples_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1648,7 +1648,7 @@ TEST test_load_media_example_and_examples_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1665,7 +1665,7 @@ TEST test_load_example_data_value_and_value_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1683,7 +1683,7 @@ TEST test_load_example_serialized_and_external_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -1712,7 +1712,7 @@ TEST test_load_response_examples_media(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1735,7 +1735,7 @@ TEST test_load_component_examples(void) {
   ASSERT_STR_EQ("v", spec.component_examples[0].value.string);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1766,7 +1766,7 @@ TEST test_load_example_component_ref_strict(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1784,7 +1784,7 @@ TEST test_load_request_body_metadata_and_response_description(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -1798,7 +1798,7 @@ TEST test_load_request_body_metadata_and_response_description(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1839,7 +1839,7 @@ TEST test_load_request_body_component_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1879,7 +1879,7 @@ TEST test_load_response_multiple_content(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1901,7 +1901,7 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -1922,7 +1922,7 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1949,7 +1949,7 @@ TEST test_load_media_type_encoding(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -1970,7 +1970,7 @@ TEST test_load_media_type_encoding(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1997,7 +1997,7 @@ TEST test_load_media_type_prefix_item_encoding(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -2021,7 +2021,7 @@ TEST test_load_media_type_prefix_item_encoding(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2054,7 +2054,7 @@ TEST test_load_info_metadata(void) {
   ASSERT(spec.info.license.url == NULL);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2067,7 +2067,7 @@ TEST test_load_info_missing_title_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2080,7 +2080,7 @@ TEST test_load_info_missing_version_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2096,7 +2096,7 @@ TEST test_load_license_identifier_and_url_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -2111,7 +2111,7 @@ TEST test_load_license_missing_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -2133,7 +2133,7 @@ TEST test_load_operation_metadata(void) {
   ASSERT_EQ(1, spec.paths[0].operations[0].deprecated);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2156,7 +2156,7 @@ TEST test_load_response_content_type(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2178,7 +2178,7 @@ TEST test_load_response_content_type_specificity(void) {
   ASSERT_STR_EQ("text/plain",
                 spec.paths[0].operations[0].responses[0].content_type);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2198,7 +2198,7 @@ TEST test_load_response_content_type_params_json(void) {
   ASSERT_STR_EQ("application/json; charset=utf-8",
                 spec.paths[0].operations[0].responses[0].content_type);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2218,7 +2218,7 @@ TEST test_load_inline_response_schema_primitive(void) {
   ASSERT_EQ(0, spec.paths[0].operations[0].responses[0].schema.is_array);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2236,7 +2236,7 @@ TEST test_load_inline_response_schema_array(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -2245,7 +2245,7 @@ TEST test_load_inline_response_schema_array(void) {
                 spec.paths[0].operations[0].responses[0].schema.inline_type);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2274,7 +2274,7 @@ TEST test_load_inline_schema_format_and_content(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2296,7 +2296,7 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -2310,7 +2310,7 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2355,7 +2355,7 @@ TEST test_load_inline_schema_const_examples_annotations(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2382,7 +2382,7 @@ TEST test_load_schema_ref_summary_description(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2409,7 +2409,7 @@ TEST test_load_parameter_schema_format_and_content(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2442,7 +2442,7 @@ TEST test_load_inline_schema_enum_default_nullable(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2469,7 +2469,7 @@ TEST test_load_inline_schema_type_union(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2499,7 +2499,7 @@ TEST test_load_inline_schema_array_items_enum_nullable(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2527,7 +2527,7 @@ TEST test_load_inline_schema_items_type_union(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2563,7 +2563,7 @@ TEST test_load_schema_boolean_and_numeric_enum(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2599,7 +2599,7 @@ TEST test_load_schema_items_examples_and_boolean_items(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2630,7 +2630,7 @@ TEST test_load_inline_schema_example_and_numeric_constraints(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2667,7 +2667,7 @@ TEST test_load_inline_schema_array_constraints_and_items_example(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2702,7 +2702,7 @@ TEST test_load_inline_schema_items_const_default_and_extras(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2751,7 +2751,7 @@ TEST test_load_inline_request_body_object_promoted(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2777,7 +2777,7 @@ TEST test_load_request_body_item_schema_array(void) {
   ASSERT_STR_EQ("string", spec.paths[0].operations[0].req_body.inline_type);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2823,7 +2823,7 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2868,7 +2868,7 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2892,7 +2892,7 @@ TEST test_load_request_body_ref_description_override(void) {
   ASSERT_STR_EQ("Override", spec.paths[0].operations[0].req_body_description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2923,7 +2923,7 @@ TEST test_load_options_trace_verbs(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2948,7 +2948,7 @@ TEST test_load_root_metadata_and_tags(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -2968,7 +2968,7 @@ TEST test_load_root_metadata_and_tags(void) {
   ASSERT_STR_EQ("Tag docs", spec.tags[0].external_docs.description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3013,7 +3013,7 @@ TEST test_self_qualified_component_refs(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3052,7 +3052,7 @@ TEST test_relative_self_component_refs(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3100,7 +3100,7 @@ TEST test_schema_id_ref_resolution(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3147,7 +3147,7 @@ TEST test_schema_anchor_ref_resolution(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3194,7 +3194,7 @@ TEST test_schema_dynamic_ref_resolution(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3251,7 +3251,7 @@ TEST test_external_component_ref_registry_absolute(void) {
   openapi_spec_free(&root_spec);
   openapi_spec_free(&shared_spec);
   openapi_doc_registry_free(&registry);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3306,7 +3306,7 @@ TEST test_external_component_ref_registry_relative(void) {
   openapi_spec_free(&root_spec);
   openapi_spec_free(&shared_spec);
   openapi_doc_registry_free(&registry);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3331,7 +3331,7 @@ TEST test_load_query_verb_and_external_docs(void) {
                 spec.paths[0].operations[0].external_docs.description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3359,7 +3359,7 @@ TEST test_load_path_and_operation_servers(void) {
   ASSERT_STR_EQ("Op", spec.paths[0].operations[0].servers[0].description);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3380,7 +3380,7 @@ TEST test_load_webhooks(void) {
   ASSERT_STR_EQ("onPetEvent", spec.webhooks[0].operations[0].operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3398,7 +3398,7 @@ TEST test_load_path_ref(void) {
   ASSERT_STR_EQ("#/components/pathItems/Foo", spec.paths[0].ref);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3426,7 +3426,7 @@ TEST test_load_component_parameter_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3475,7 +3475,7 @@ TEST test_load_component_response_and_headers(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3500,7 +3500,7 @@ TEST test_load_additional_operations(void) {
                 spec.paths[0].additional_operations[0].operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3540,7 +3540,7 @@ TEST test_load_component_media_type_ref(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -3558,7 +3558,7 @@ TEST test_load_component_media_type_ref(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3580,7 +3580,7 @@ TEST test_load_component_path_items(void) {
                 spec.component_path_items[0].operations[0].operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3623,7 +3623,7 @@ TEST test_load_response_links_and_component_links(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3642,7 +3642,7 @@ TEST test_load_callbacks_and_component_callbacks(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -3660,7 +3660,7 @@ TEST test_load_callbacks_and_component_callbacks(void) {
                 spec.paths[0].operations[0].callbacks[0].paths[0].route);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3703,7 +3703,7 @@ TEST test_load_path_item_ref_resolves_component(void) {
   ASSERT_STR_EQ("listPets", spec.paths[0].operations[0].operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3743,7 +3743,7 @@ TEST test_load_callback_ref_resolves_component(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -3762,7 +3762,7 @@ TEST test_load_callback_ref_resolves_component(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3834,7 +3834,7 @@ TEST test_load_extensions_non_schema(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -3957,7 +3957,7 @@ TEST test_load_extensions_non_schema(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3987,7 +3987,7 @@ TEST test_load_paths_webhooks_components_extensions(void) {
   int rc = load_spec_str(json, &spec);
   if (rc != 0) {
     openapi_spec_free(&spec);
-    g_fail_io_after = -1;
+
     PASS();
   }
   ASSERT_EQ(0, rc);
@@ -4024,7 +4024,7 @@ TEST test_load_paths_webhooks_components_extensions(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4050,7 +4050,7 @@ TEST test_webhook_path_template_not_validated(void) {
   ASSERT_STR_EQ("/events/{eventId}", spec.webhooks[0].route);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4109,7 +4109,7 @@ TEST test_load_component_schema_raw(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4131,7 +4131,7 @@ TEST test_load_schema_external_ref(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref);
   ASSERT(spec.paths[0].operations[0].responses[0].schema.ref_name == NULL);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4152,7 +4152,7 @@ TEST test_load_schema_ref_with_pointer_is_not_component(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref);
   ASSERT(spec.paths[0].operations[0].responses[0].schema.ref_name == NULL);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4175,7 +4175,7 @@ TEST test_load_schema_external_items_ref(void) {
   ASSERT_STR_EQ("https://example.com/schemas/Pet",
                 spec.paths[0].operations[0].responses[0].schema.items_ref);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -4190,7 +4190,7 @@ TEST test_load_path_template_missing_param(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4206,7 +4206,7 @@ TEST test_load_path_template_param_not_in_route(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4222,7 +4222,7 @@ TEST test_load_path_template_param_not_required(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4235,7 +4235,7 @@ TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4255,7 +4255,7 @@ TEST test_param_style_invalid_for_in_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4276,7 +4276,7 @@ TEST test_param_style_deep_object_scalar_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4295,7 +4295,7 @@ TEST test_server_url_variable_missing_definition_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4315,7 +4315,7 @@ TEST test_server_url_variable_duplicate_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4329,7 +4329,7 @@ TEST test_load_server_missing_url_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4344,7 +4344,7 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4359,7 +4359,7 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }
@@ -4375,7 +4375,7 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  g_fail_io_after = -1;
+
   openapi_spec_free(&spec);
   PASS();
 }

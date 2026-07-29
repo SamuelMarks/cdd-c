@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -67,7 +68,7 @@ TEST test_form_generation_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "AuthRequest_url_encode_form"));
@@ -76,10 +77,10 @@ TEST test_form_generation_basic(void) {
   ASSERT(strstr(content, "count"));
   ASSERT(strstr(content, "active"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

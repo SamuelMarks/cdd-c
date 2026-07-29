@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_factory.h"
 #include "c_cdd/safe_crt.h"
 #include "cdd_cst_mutate.h"
@@ -40,11 +41,17 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
-    buf = NULL;
-  else
+  if (g_cdd_cst_alloc_token_fail) {
+    if (--g_cdd_cst_alloc_token_fail == 0) {
+      buf = NULL;
+    } else {
+      buf = (char *)C_CDD_MALLOC(4096);
+    }
+  } else
 #endif
-    buf = (char *)malloc(4096);
+  {
+    buf = (char *)C_CDD_MALLOC(4096);
+  }
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -62,7 +69,7 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
-  free(buf);
+  C_CDD_FREE(buf);
 
   if (rc == CDD_C_SUCCESS) {
     size_t i, j;

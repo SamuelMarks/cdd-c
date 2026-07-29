@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -62,10 +63,10 @@ TEST test_sync_signature_update(void) {
   read_to_file(src_file, "r", &content, &sz);
   ASSERT(strstr(content, "int get_pet(struct HttpClient *ctx, int id, struct "
                          "ApiError **api_error)"));
-  free(content);
+  C_CDD_FREE(content);
   openapi_spec_free(&spec);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -99,10 +100,10 @@ TEST test_sync_url_logic_update(void) {
                 "asprintf(&url, \"%s/pets/%s\", ctx->base_url, path_id)") !=
          NULL);
   ASSERT(strstr(content, "oldpath") == NULL);
-  free(content);
+  C_CDD_FREE(content);
   openapi_spec_free(&spec);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -140,10 +141,10 @@ TEST test_sync_query_update(void) {
   ASSERT(strstr(content, "for(i=0; i < tags_len; ++i)") != NULL);
   ASSERT(strstr(content, "url_query_add(&qp, \"old\", \"val\")") == NULL);
 
-  free(content);
+  C_CDD_FREE(content);
   openapi_spec_free(&spec);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -179,10 +180,10 @@ TEST test_sync_header_update(void) {
          NULL);
   ASSERT(strstr(content, "old_call") == NULL);
 
-  free(content);
+  C_CDD_FREE(content);
   openapi_spec_free(&spec);
   remove(src_file);
-  g_fail_io_after = -1;
+
   PASS();
 }
 #endif

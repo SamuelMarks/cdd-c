@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -38,13 +39,13 @@ TEST test_cdd_cst_query_types(void) {
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, res.size);
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN,
                                   &res); /* the return stmt */
   ASSERT_EQ(0, rc);
   ASSERT(res.size > 0);
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   cdd_cst_tree_free(tree);
 
@@ -78,7 +79,7 @@ TEST test_cdd_cst_query_types(void) {
 
     dummy_unknown2.kind = CDD_CST_UNKNOWN;
     dummy_unknown2.num_children = 2;
-    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children = C_CDD_CALLOC(2, sizeof(*dummy_unknown2.children));
     dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_unknown2.children[0].val.token = &dummy_tok2;
     dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
@@ -86,25 +87,27 @@ TEST test_cdd_cst_query_types(void) {
 
     dummy_call_ident.kind = CDD_CST_CALL_EXPR;
     dummy_call_ident.num_children = 1;
-    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_ident.children));
     dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_call_ident.children[0].val.token = &dummy_tok2;
 
     dummy_call_node.kind = CDD_CST_CALL_EXPR;
     dummy_call_node.num_children = 1;
-    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_node.children));
     dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_call_node.children[0].val.node = &dummy_child3;
 
     dummy_child3.kind = CDD_CST_IDENTIFIER;
     dummy_child3.num_children = 1;
-    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children = C_CDD_CALLOC(1, sizeof(*dummy_child3.children));
     dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_child3.children[0].val.token = &dummy_tok2;
 
     dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
     dummy_root2.num_children = 3;
-    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children = C_CDD_CALLOC(3, sizeof(*dummy_root2.children));
     dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_root2.children[0].val.node = &dummy_unknown2;
     dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
@@ -116,19 +119,18 @@ TEST test_cdd_cst_query_types(void) {
     res2.size = 0;
     res2.capacity = 0;
     cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
-    free(res2.nodes);
+    C_CDD_FREE(res2.nodes);
 
     /* Enomem simulation by making capacity large enough but size nearly there,
      * no we can't easily simulate realloc failure here unless we override.
      * We'll just leave it. */
 
-    free(dummy_root2.children);
-    free(dummy_unknown2.children);
-    free(dummy_call_ident.children);
-    free(dummy_call_node.children);
-    free(dummy_child3.children);
+    C_CDD_FREE(dummy_root2.children);
+    C_CDD_FREE(dummy_unknown2.children);
+    C_CDD_FREE(dummy_call_ident.children);
+    C_CDD_FREE(dummy_call_node.children);
+    C_CDD_FREE(dummy_child3.children);
   }
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -143,12 +145,12 @@ TEST test_cdd_cst_query_calls(void) {
   rc = cdd_cst_find_function_calls_named(tree->root, "printf", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, res.size);
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   rc = cdd_cst_find_function_calls_named(tree->root, "malloc", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, res.size);
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   cdd_cst_tree_free(tree);
 
@@ -182,7 +184,7 @@ TEST test_cdd_cst_query_calls(void) {
 
     dummy_unknown2.kind = CDD_CST_UNKNOWN;
     dummy_unknown2.num_children = 2;
-    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children = C_CDD_CALLOC(2, sizeof(*dummy_unknown2.children));
     dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_unknown2.children[0].val.token = &dummy_tok2;
     dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
@@ -190,25 +192,27 @@ TEST test_cdd_cst_query_calls(void) {
 
     dummy_call_ident.kind = CDD_CST_CALL_EXPR;
     dummy_call_ident.num_children = 1;
-    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_ident.children));
     dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_call_ident.children[0].val.token = &dummy_tok2;
 
     dummy_call_node.kind = CDD_CST_CALL_EXPR;
     dummy_call_node.num_children = 1;
-    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_node.children));
     dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_call_node.children[0].val.node = &dummy_child3;
 
     dummy_child3.kind = CDD_CST_IDENTIFIER;
     dummy_child3.num_children = 1;
-    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children = C_CDD_CALLOC(1, sizeof(*dummy_child3.children));
     dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_child3.children[0].val.token = &dummy_tok2;
 
     dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
     dummy_root2.num_children = 3;
-    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children = C_CDD_CALLOC(3, sizeof(*dummy_root2.children));
     dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_root2.children[0].val.node = &dummy_unknown2;
     dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
@@ -220,19 +224,18 @@ TEST test_cdd_cst_query_calls(void) {
     res2.size = 0;
     res2.capacity = 0;
     cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
-    free(res2.nodes);
+    C_CDD_FREE(res2.nodes);
 
     /* Enomem simulation by making capacity large enough but size nearly there,
      * no we can't easily simulate realloc failure here unless we override.
      * We'll just leave it. */
 
-    free(dummy_root2.children);
-    free(dummy_unknown2.children);
-    free(dummy_call_ident.children);
-    free(dummy_call_node.children);
-    free(dummy_child3.children);
+    C_CDD_FREE(dummy_root2.children);
+    C_CDD_FREE(dummy_unknown2.children);
+    C_CDD_FREE(dummy_call_ident.children);
+    C_CDD_FREE(dummy_call_node.children);
+    C_CDD_FREE(dummy_child3.children);
   }
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -286,7 +289,7 @@ TEST test_cdd_cst_query_extra(void) {
   res.nodes = NULL;
   res.size = 0;
   res.capacity = 0;
-  free(res.nodes);
+  C_CDD_FREE(res.nodes);
 
   {
     cdd_cst_query_result_t res2;
@@ -312,7 +315,7 @@ TEST test_cdd_cst_query_extra(void) {
 
     dummy_unknown2.kind = CDD_CST_UNKNOWN;
     dummy_unknown2.num_children = 2;
-    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children = C_CDD_CALLOC(2, sizeof(*dummy_unknown2.children));
     dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_unknown2.children[0].val.token = &dummy_tok2;
     dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
@@ -320,25 +323,27 @@ TEST test_cdd_cst_query_extra(void) {
 
     dummy_call_ident.kind = CDD_CST_CALL_EXPR;
     dummy_call_ident.num_children = 1;
-    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_ident.children));
     dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_call_ident.children[0].val.token = &dummy_tok2;
 
     dummy_call_node.kind = CDD_CST_CALL_EXPR;
     dummy_call_node.num_children = 1;
-    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children =
+        C_CDD_CALLOC(1, sizeof(*dummy_call_node.children));
     dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_call_node.children[0].val.node = &dummy_child3;
 
     dummy_child3.kind = CDD_CST_IDENTIFIER;
     dummy_child3.num_children = 1;
-    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children = C_CDD_CALLOC(1, sizeof(*dummy_child3.children));
     dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
     dummy_child3.children[0].val.token = &dummy_tok2;
 
     dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
     dummy_root2.num_children = 3;
-    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children = C_CDD_CALLOC(3, sizeof(*dummy_root2.children));
     dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
     dummy_root2.children[0].val.node = &dummy_unknown2;
     dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
@@ -350,19 +355,18 @@ TEST test_cdd_cst_query_extra(void) {
     res2.size = 0;
     res2.capacity = 0;
     cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
-    free(res2.nodes);
+    C_CDD_FREE(res2.nodes);
 
     /* Enomem simulation by making capacity large enough but size nearly there,
      * no we can't easily simulate realloc failure here unless we override.
      * We'll just leave it. */
 
-    free(dummy_root2.children);
-    free(dummy_unknown2.children);
-    free(dummy_call_ident.children);
-    free(dummy_call_node.children);
-    free(dummy_child3.children);
+    C_CDD_FREE(dummy_root2.children);
+    C_CDD_FREE(dummy_unknown2.children);
+    C_CDD_FREE(dummy_call_ident.children);
+    C_CDD_FREE(dummy_call_node.children);
+    C_CDD_FREE(dummy_child3.children);
   }
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -385,7 +389,7 @@ TEST test_query_postorder_fail(void) {
 
   cdd_cst_free_node_only(n1);
   cdd_cst_free_node_only(n2);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -415,14 +419,14 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   tok.start = (const uint8_t *)"bar";
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_NUMBER;
@@ -430,18 +434,45 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_IDENTIFIER;
   tok.start = (const uint8_t *)"foo";
   tok.length = 100;
+  dummy_call.kind = CDD_CST_UNKNOWN;
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
+
+  dummy_call.kind = CDD_CST_CALL_EXPR;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  if (res.size != 0) {
+    printf("FAILING! res.size=%d\n", (int)res.size);
+  }
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+
   tok.length = 3;
+
+  /* length 3, name "foo", but it is a CALL_EXPR so it matches */
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(1, res.size);
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+  dummy_call.kind = CDD_CST_UNKNOWN;
+  /* length 3, name "foo", no LPAREN after */
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+  dummy_call.kind = CDD_CST_CALL_EXPR;
 
   /* CDD_CST_CALL_EXPR with identifier node */
   id_node.kind = CDD_CST_IDENTIFIER;
@@ -456,18 +487,27 @@ TEST test_query_call_expr_coverage(void) {
   children[0].kind = CDD_CST_CHILD_NODE;
   children[0].val.node = &id_node;
 
+  tok.start = (const uint8_t *)"foo";
+  tok.length = 100;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+  tok.length = 3;
+
   tok.start = (const uint8_t *)"qux";
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   tok.start = (const uint8_t *)"bar";
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   tok.kind = CDD_TOKEN_NUMBER;
@@ -475,7 +515,7 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   id_child.kind = CDD_CST_CHILD_NODE;
@@ -483,14 +523,14 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   id_node.num_children = 0;
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
   id_node.kind = CDD_CST_EXPRESSION;
@@ -501,7 +541,7 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   memset(&res, 0, sizeof(res));
 
 #ifdef CDD_BUILD_TESTS
@@ -516,7 +556,7 @@ TEST test_query_call_expr_coverage(void) {
   }
   g_cdd_query_err_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 
   dummy_call.kind = CDD_CST_UNKNOWN;
   dummy_call.num_children = 2;
@@ -525,12 +565,32 @@ TEST test_query_call_expr_coverage(void) {
   children[1].kind = CDD_CST_CHILD_TOKEN;
   children[1].val.token = &tok2;
   tok2.kind = CDD_TOKEN_LPAREN;
+
+  /* Missing lines: hit the unknown flat structure check when next is not LPAREN
+   */
+  tok2.kind = CDD_TOKEN_RPAREN;
+  ASSERT_EQ(0, cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  /* Missing lines: hit the unknown flat structure check when next is NOT a
+   * token */
+  children[1].kind = CDD_CST_CHILD_NODE;
+  ASSERT_EQ(0, cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  if (res.nodes)
+    C_CDD_FREE(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  /* Reset for memory failure check */
+  children[1].kind = CDD_CST_CHILD_TOKEN;
+  tok2.kind = CDD_TOKEN_LPAREN;
   g_cdd_query_err_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 
   dummy_call.kind = CDD_CST_CALL_EXPR;
   g_cdd_query_err_fail = 1;
@@ -538,7 +598,7 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 
   memset(&res, 0, sizeof(res));
   dummy_call.kind = CDD_CST_CALL_EXPR;
@@ -547,7 +607,7 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
   g_cdd_query_realloc_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 
   memset(&res, 0, sizeof(res));
   dummy_call.kind = CDD_CST_CALL_EXPR;
@@ -566,7 +626,7 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_nodes_by_type(&dummy_tu, CDD_CST_CALL_EXPR, &res));
   g_cdd_query_err_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 
   memset(&res, 0, sizeof(res));
   dummy_call.kind = CDD_CST_CALL_EXPR;
@@ -575,9 +635,8 @@ TEST test_query_call_expr_coverage(void) {
             cdd_cst_find_nodes_by_type(&dummy_tu, CDD_CST_CALL_EXPR, &res));
   g_cdd_query_realloc_fail = 0;
   if (res.nodes)
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }

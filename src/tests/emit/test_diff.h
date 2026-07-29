@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -47,7 +48,7 @@ TEST test_patch_list_to_diff_basic(void) {
 
   /* Replace '0' with '1' */
   {
-    char *text = (char *)malloc(2);
+    char *text = (char *)C_CDD_MALLOC(2);
 #if defined(_MSC_VER)
     strcpy_s(text, sizeof(text), "1");
 #else
@@ -83,10 +84,10 @@ TEST test_patch_list_to_diff_basic(void) {
   ASSERT(strstr(diff_str, "-  return 0;\n") != NULL);
   ASSERT(strstr(diff_str, "+  return 1;\n") != NULL);
 
-  free(diff_str);
+  C_CDD_FREE(diff_str);
   patch_list_free(&list);
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -101,10 +102,10 @@ TEST test_patch_list_to_diff_empty(void) {
   ASSERT_EQ(0, patch_list_to_diff(&list, tokens, "empty.c", &diff_str));
   ASSERT_STR_EQ("", diff_str);
 
-  free(diff_str);
+  C_CDD_FREE(diff_str);
   patch_list_free(&list);
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

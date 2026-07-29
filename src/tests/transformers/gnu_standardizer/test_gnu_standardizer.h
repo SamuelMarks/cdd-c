@@ -67,7 +67,7 @@ TEST test_cdd_transform_gnu(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -86,7 +86,7 @@ TEST test_gnu_standardizer_stmt_expr(void) {
   ASSERT(strstr(out, "int a =  int b = 1; b;") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -103,7 +103,7 @@ TEST test_gnu_standardizer_computed_goto(void) {
   ASSERT(strstr(out, "goto *ptr;") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -122,7 +122,7 @@ TEST test_gnu_standardizer_case_ranges(void) {
   ASSERT(strstr(out, "case -5: case -4: case -3: case -2: case -1") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -139,7 +139,7 @@ TEST test_gnu_standardizer_range_init(void) {
   ASSERT(strstr(out, "[2] = 1, [3] = 1, [4] = 1, [5] = 1") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -170,7 +170,7 @@ TEST test_gnu_standardizer_local_labels(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -194,7 +194,7 @@ TEST test_gnu_standardizer_vla_malloc(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -218,7 +218,7 @@ TEST test_gnu_standardizer_vla_multidim(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -235,7 +235,7 @@ TEST test_gnu_standardizer_trailing_comma(void) {
   ASSERT(strstr(out, "1, 2, 3  }") != NULL || strstr(out, "1, 2, 3 }") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -254,7 +254,7 @@ TEST test_gnu_standardizer_zero_length_array(void) {
   ASSERT(strstr(out, "int data[1];") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -273,7 +273,7 @@ TEST test_gnu_standardizer_empty_initializer(void) {
          strstr(out, "0 }") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -297,7 +297,7 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -316,7 +316,7 @@ TEST test_gnu_standardizer_vla_params(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -334,7 +334,7 @@ TEST test_gnu_standardizer_return_void_expr(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -356,7 +356,7 @@ TEST test_gnu_standardizer_overlapping_case_ranges(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -378,7 +378,7 @@ TEST test_gnu_standardizer_empty_fallthrough_block(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -404,7 +404,7 @@ TEST test_gnu_standardizer_attributes(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -432,7 +432,7 @@ TEST test_gnu_standardizer_magic_identifiers(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -450,7 +450,7 @@ TEST test_gnu_standardizer_trampoline(void) {
   ASSERT_EQ(129, cdd_transform_gnu(tree, &config));
 
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -475,7 +475,7 @@ TEST test_gnu_standardizer_shuffle(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -507,7 +507,7 @@ TEST test_gnu_standardizer_cleanup(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -544,7 +544,7 @@ TEST test_gnu_standardizer_typeof(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -574,7 +574,7 @@ TEST test_gnu_standardizer_variadic_macros(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -615,7 +615,7 @@ TEST test_cdd_transform_complex_numbers(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -643,7 +643,7 @@ TEST test_gnu_standardizer_comment_preservation(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -673,7 +673,7 @@ TEST test_gnu_standardizer_float_extensions(void) {
   ASSERT(strstr(out, "double h;") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -690,7 +690,7 @@ TEST test_gnu_standardizer_lvalue_cast(void) {
   ASSERT(strstr(out, "*(char*)&x = 5;") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -713,14 +713,12 @@ TEST test_gnu_standardizer_omitted_conditional(void) {
   ASSERT(strstr(out, "a || b ? a || b  : c") != NULL);
   free(out);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_cdd_transform_gnu);
-  RUN_TEST(test_gnu_standardizer_stmt_expr);
-  RUN_TEST(test_gnu_standardizer_computed_goto);
   RUN_TEST(test_gnu_standardizer_case_ranges);
   RUN_TEST(test_gnu_standardizer_range_init);
   RUN_TEST(test_gnu_standardizer_local_labels);

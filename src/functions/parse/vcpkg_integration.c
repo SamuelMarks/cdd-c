@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)malloc(len);
+  d = (char *)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -74,18 +75,18 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
     return;
 
   if (builder->project_name)
-    free(builder->project_name);
+    C_CDD_FREE(builder->project_name);
   if (builder->version_string)
-    free(builder->version_string);
+    C_CDD_FREE(builder->version_string);
   if (builder->description)
-    free(builder->description);
+    C_CDD_FREE(builder->description);
 
   if (builder->deps) {
     for (i = 0; i < builder->deps_count; i++) {
       if (builder->deps[i].name)
-        free(builder->deps[i].name);
+        C_CDD_FREE(builder->deps[i].name);
     }
-    free(builder->deps);
+    C_CDD_FREE(builder->deps);
   }
 }
 
@@ -108,7 +109,7 @@ enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
   if (builder->deps_count >= builder->deps_capacity) {
     size_t new_cap =
         builder->deps_capacity == 0 ? 4 : builder->deps_capacity * 2;
-    struct VcpkgDependency *new_deps = (struct VcpkgDependency *)realloc(
+    struct VcpkgDependency *new_deps = (struct VcpkgDependency *)C_CDD_REALLOC(
         builder->deps, new_cap * sizeof(struct VcpkgDependency));
     if (!new_deps) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -171,7 +172,7 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                   (const char *)tokens->tokens[end_inc - 1].start +
                   tokens->tokens[end_inc - 1].length;
               size_t inc_len = (size_t)(inc_end - inc_start);
-              char *inc_str = (char *)malloc(inc_len + 1);
+              char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
               if (inc_str) {
                 memcpy(inc_str, inc_start, inc_len);
                 inc_str[inc_len] = '\0';
@@ -183,7 +184,7 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                 if (strstr(inc_str, "zlib.h"))
                   vcpkg_builder_add_dep(builder, "zlib");
 
-                free(inc_str);
+                C_CDD_FREE(inc_str);
               }
             }
           }
@@ -209,7 +210,7 @@ vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   if (!builder || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  json = (char *)malloc(cap);
+  json = (char *)C_CDD_MALLOC(cap);
   if (!json) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

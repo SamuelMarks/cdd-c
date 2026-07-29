@@ -33,7 +33,7 @@ TEST test_audit_stats_init(void) {
   ASSERT_EQ(0, stats.violations.size);
   ASSERT(stats.violations.items == NULL);
   audit_stats_free(&stats);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -61,6 +61,8 @@ TEST test_audit_single_file(void) {
 
   (void)audit_stats_init(&stats);
   rc = audit_project(root, &stats);
+  printf("files scanned: %d\n", stats.files_scanned);
+  fflush(stdout);
 
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, stats.files_scanned);
@@ -81,7 +83,7 @@ TEST test_audit_single_file(void) {
   free(f_unchecked);
   free(root);
   free(sys_tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -102,6 +104,8 @@ TEST test_audit_ignored_files(void) {
 
   (void)audit_stats_init(&stats);
   audit_project(root, &stats);
+  printf("files scanned: %d\n", stats.files_scanned);
+  fflush(stdout);
 
   /* Should ignore .h files */
   ASSERT_EQ(0, stats.files_scanned);
@@ -113,7 +117,7 @@ TEST test_audit_ignored_files(void) {
   free(f_h);
   free(root);
   free(sys_tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -133,6 +137,8 @@ TEST test_audit_return_alloc(void) {
 
   (void)audit_stats_init(&stats);
   audit_project(root, &stats);
+  printf("files scanned: %d\n", stats.files_scanned);
+  fflush(stdout);
 
   ASSERT_EQ(1, stats.files_scanned);
   ASSERT_EQ(1, stats.functions_returning_alloc);
@@ -153,7 +159,7 @@ TEST test_audit_return_alloc(void) {
   free(f_ret);
   free(root);
   free(sys_tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -203,7 +209,7 @@ TEST test_audit_json_output(void) {
 
   free(json);
   audit_stats_free(&stats);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -217,7 +223,6 @@ TEST test_audit_stats_null(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project("dummy", NULL));
   audit_print_json(NULL, &_test_json);
   ASSERT(_test_json == NULL);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -259,6 +264,8 @@ TEST test_audit_edge_cases(void) {
 
   (void)audit_stats_init(&stats);
   audit_project(root, &stats);
+  printf("files scanned: %d\n", stats.files_scanned);
+  fflush(stdout);
 
   /* strndup should be counted in functions_returning_alloc */
   ASSERT(stats.functions_returning_alloc >= 1);
@@ -280,7 +287,7 @@ TEST test_audit_edge_cases(void) {
   free(f_bad_token);
   free(root);
   free(sys_tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -296,7 +303,7 @@ TEST test_audit_extras(void) {
   free(json);
 
   audit_stats_free(&stats);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -353,7 +360,6 @@ TEST test_audit_oom(void) {
     remove("test_audit_dir");
   }
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -385,7 +391,7 @@ TEST test_audit_capacity(void) {
 #endif
 
   audit_stats_free(&stats);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

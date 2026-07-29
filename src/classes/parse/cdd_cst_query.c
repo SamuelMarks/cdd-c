@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_query.h"
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -68,8 +69,8 @@ static enum cdd_c_error append_result(cdd_cst_query_result_t *res,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_node_t **)realloc(res->nodes,
-                                           new_cap * sizeof(cdd_cst_node_t *));
+      new_arr = (cdd_cst_node_t **)C_CDD_REALLOC(
+          res->nodes, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -87,20 +88,21 @@ typedef struct type_query_ctx_t {
   enum cdd_cst_node_kind_t target_kind;
   /** @brief res field */
   cdd_cst_query_result_t *res;
-  int err; /**< err */
+  enum cdd_c_error err; /**< err */
 } type_query_ctx_t;
 
 static enum cdd_c_error type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
-    ctx->err = append_result(ctx->res, node);
+    enum cdd_c_error rc = append_result(ctx->res, node);
 #ifdef CDD_BUILD_TESTS
-
     if (g_cdd_query_err_fail)
-      ctx->err = CDD_C_ERROR_MEMORY;
+      rc = CDD_C_ERROR_MEMORY;
 #endif
-    if (ctx->err != 0)
-      return ctx->err;
+    if (rc != CDD_C_SUCCESS) {
+      ctx->err = rc;
+      return rc;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -124,7 +126,7 @@ cdd_cst_find_nodes_by_type(cdd_cst_node_t *root, enum cdd_cst_node_kind_t kind,
 
   if (ctx.err != 0) {
     if (out_result->nodes)
-      free(out_result->nodes);
+      C_CDD_FREE(out_result->nodes);
     out_result->nodes = NULL;
     out_result->size = 0;
     out_result->capacity = 0;
@@ -243,7 +245,7 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
 
   if (ctx.err != 0) {
     if (out_result->nodes)
-      free(out_result->nodes);
+      C_CDD_FREE(out_result->nodes);
     out_result->nodes = NULL;
     out_result->size = 0;
     out_result->capacity = 0;

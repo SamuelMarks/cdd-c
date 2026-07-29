@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -114,7 +115,7 @@ TEST test_cdd_cst_mutate_replace(void) {
 
     /* Dummy tree for replacement */
     cdd_cst_tree_t *dummy_tree;
-    dummy_tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+    dummy_tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
     dummy_tree->root = grandparent;
 
     /* replace nested_parent with replacement */
@@ -132,11 +133,11 @@ TEST test_cdd_cst_mutate_replace(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ(code, out); /* Same code after replace with clone */
 
-  free(res.nodes);
-  free(out);
+  C_CDD_FREE(res.nodes);
+  C_CDD_FREE(out);
   cdd_cst_tree_free(tree);
   cdd_cst_free_node_only(target);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -280,7 +281,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_free_node_only(parent_node);
   if (valid_child)
     cdd_cst_free_node(valid_child);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -292,7 +292,6 @@ TEST test_mutate_utils(void) {
             find_child_index_mutate(NULL, NULL, &idx));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_first_token_mutate(NULL, &t));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -356,9 +355,10 @@ TEST test_cst_splice_children(void) {
   cdd_cst_tree_free(tree);
 
   /* Test passing NULL for node_ptr on non-root */
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
-  tree->root = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-  cdd_cst_append_child_node(tree->root, calloc(1, sizeof(cdd_cst_node_t)));
+  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+  tree->root = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+  cdd_cst_append_child_node(tree->root,
+                            C_CDD_CALLOC(1, sizeof(cdd_cst_node_t)));
   {
     cdd_cst_node_t *target = tree->root->children[0].val.node;
     cdd_cst_child_t new_children2[1] = {0};
@@ -372,9 +372,10 @@ TEST test_cst_splice_children(void) {
   cdd_cst_tree_free(tree);
 
   /* Actually, test passing a pointer to the node we're replacing */
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
-  tree->root = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-  cdd_cst_append_child_node(tree->root, calloc(1, sizeof(cdd_cst_node_t)));
+  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+  tree->root = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+  cdd_cst_append_child_node(tree->root,
+                            C_CDD_CALLOC(1, sizeof(cdd_cst_node_t)));
   {
     cdd_cst_node_t *target = tree->root->children[0].val.node;
     cdd_cst_node_t *ptr_copy = target;
@@ -387,7 +388,7 @@ TEST test_cst_splice_children(void) {
   }
 
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -398,7 +399,7 @@ extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 TEST test_cdd_cst_splice_oom(void) {
   int i;
   for (i = 0; i < 20; i++) {
-    cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+    cdd_cst_tree_t *tree = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = NULL;
     cdd_cst_node_t *n1 = NULL, *n2 = NULL, *n3 = NULL, *n4 = NULL, *n5 = NULL;
     cdd_token_t t1 = {0}, t2 = {0}, t3 = {0}, t4 = {0}, t5 = {0};
@@ -449,7 +450,7 @@ TEST test_cdd_cst_splice_oom(void) {
     }
     cdd_cst_tree_free(tree);
   }
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -493,7 +494,7 @@ TEST test_cst_find_node_for_token(void) {
 
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(root);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -540,7 +541,6 @@ TEST test_cdd_cst_insert_node_after_success(void) {
   cdd_cst_free_node_only(child1);
   cdd_cst_free_node_only(child2);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -569,7 +569,6 @@ TEST test_cdd_cst_insert_node_before_success(void) {
   cdd_cst_free_node_only(child1);
   cdd_cst_free_node_only(child2);
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -583,7 +582,7 @@ TEST test_cdd_cst_detach_node_success(void) {
   cdd_token_t tok1 = {0}, tok2 = {0};
   cdd_trivia_t triv1 = {0}, triv2 = {0};
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &parent);
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &child1);
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &child2);
@@ -676,8 +675,8 @@ TEST test_cdd_cst_clone_trivia_list_mutate(void) {
   /* Success */
   ASSERT_EQ(0, clone_trivia_list_mutate(&t1, &out));
   if (out) {
-    free(out->next);
-    free(out);
+    C_CDD_FREE(out->next);
+    C_CDD_FREE(out);
     out = NULL;
   }
 
@@ -696,7 +695,42 @@ TEST test_cdd_cst_clone_trivia_list_mutate(void) {
   PASS();
 }
 
+TEST test_cdd_cst_mutate_missing_coverage(void) {
+  cdd_cst_node_t *node = NULL;
+  cdd_cst_node_t *clone = NULL;
+  cdd_cst_tree_t *tree =
+      (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+  cdd_token_t *tok = NULL;
+  size_t idx;
+
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node);
+
+  /* parent != NULL but child == NULL */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            find_child_index_mutate(node, NULL, &idx));
+
+  /* node != NULL but out_token == NULL */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_first_token_mutate(node, NULL));
+
+  /* node with 0 children being cloned */
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_clone_tree(tree, node, &clone));
+  ASSERT(clone != NULL);
+  cdd_cst_free_node(clone);
+
+  /* replace_child_token with new_tok == NULL */
+  tok = (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
+  cdd_cst_append_child_token(node, tok);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_token_child(node, 0, NULL));
+
+  cdd_cst_free_node(node);
+  C_CDD_FREE(tok);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(cdd_cst_mutate_suite) {
+  RUN_TEST(test_cdd_cst_mutate_missing_coverage);
   RUN_TEST(test_cdd_cst_mutate_replace);
   RUN_TEST(test_cdd_cst_mutate_errors);
   RUN_TEST(test_mutate_utils);

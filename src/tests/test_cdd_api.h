@@ -86,6 +86,7 @@ TEST test_cdd_serve_json_rpc(void) {
 
 extern volatile int g_ffi_extractor_alloc_fail;
 extern int g_cdd_ffi_ir_calloc_fail;
+extern int g_cdd_has_lang_fail;
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
@@ -130,6 +131,15 @@ TEST test_cdd_generate_bindings(void) {
   g_cdd_ffi_ir_calloc_fail = 1;
   ASSERT_NEQ(0, cdd_generate_bindings(&config));
   g_cdd_ffi_ir_calloc_fail = 0;
+
+  /* has_lang failure */
+  config.target_langs = "all";
+  config.output_dir = ".";
+  for (i = 0; i < 42; i++) {
+    g_cdd_has_lang_fail = i;
+    cdd_generate_bindings(&config);
+  }
+  g_cdd_has_lang_fail = -1;
 
   /* Test failure branch (rc != 0) for each language */
   config.output_dir = "nonexistent_dir_12345/nonexistent";

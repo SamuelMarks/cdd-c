@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -27,7 +28,8 @@ static void make_simple_token_list(struct TokenList *tl) {
   static const char code[] = "struct MyStruct { }";
   tl->size = 0;
   tl->capacity = 4;
-  tl->tokens = (struct Token *)malloc(sizeof(struct Token) * tl->capacity);
+  tl->tokens =
+      (struct Token *)C_CDD_MALLOC(sizeof(struct Token) * tl->capacity);
   if (!tl->tokens)
     return;
 
@@ -72,13 +74,13 @@ TEST add_node_basic(void) {
   free_cst_node_list(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 TEST parse_tokens_basic(void) {
   struct TokenList *tokens =
-      (struct TokenList *)malloc(sizeof(struct TokenList));
+      (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
   struct CstNodeList cst_nodes = {NULL, 0, 0};
   struct CstNodeList copy_nodes = {NULL, 0, 0};
 
@@ -88,7 +90,7 @@ TEST parse_tokens_basic(void) {
 
   make_simple_token_list(tokens);
   if (!tokens->tokens) {
-    free(tokens);
+    C_CDD_FREE(tokens);
     FAILm("Setup failed");
   }
 
@@ -116,7 +118,7 @@ TEST parse_tokens_basic(void) {
   ASSERT(copy_nodes.nodes == NULL);
 
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -127,7 +129,7 @@ TEST parse_tokens_empty(void) {
   ASSERT_EQ(0, cst_nodes.size);
   ASSERT(cst_nodes.nodes == NULL);
   free_cst_node_list(&cst_nodes);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -136,7 +138,7 @@ TEST parse_tokens_null_args(void) {
   struct CstNodeList cst_nodes = {NULL, 0, 0};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(NULL, &cst_nodes));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(&tokens, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -152,7 +154,7 @@ TEST parse_tokens_forward_declaration(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -168,7 +170,7 @@ TEST parse_tokens_anonymous_struct(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -193,7 +195,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -211,7 +213,7 @@ TEST parse_simple_array_init(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -229,7 +231,7 @@ TEST parse_compound_literal(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -257,7 +259,7 @@ TEST parse_control_block_split(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -276,7 +278,7 @@ TEST parse_nested_compound_literal(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -293,7 +295,7 @@ TEST parse_return_compound(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -344,7 +346,7 @@ TEST parse_c11_generic(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -369,7 +371,7 @@ TEST test_cst_find_first(void) {
             cst_find_first(&list, CST_NODE_STRUCT, NULL));
 
   free_cst_node_list(&list);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -377,7 +379,7 @@ TEST test_cst_parser_extra(void) {
   cdd_cst_tree_t *tree = NULL;
 
   /* Empty tree free */
-  cdd_cst_tree_t *t2 = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_t *t2 = C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   cdd_cst_tree_free(t2);
 
   /* Missing EOF / No tokens */
@@ -429,7 +431,6 @@ TEST test_cst_parser_extra(void) {
     g_cdd_cst_realloc_fail = 0;
   }
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -444,7 +445,7 @@ TEST parse_tokens_oom(void) {
     int rc;
 
     tokenize(az_span_create_from_str(
-                 "int main() { char *p = malloc(10); return 0; }"),
+                 "int main() { char *p = C_CDD_MALLOC(10); return 0; }"),
              &tl);
 
     memset(&cst_nodes, 0, sizeof(cst_nodes));
@@ -464,18 +465,140 @@ TEST parse_tokens_oom(void) {
     free_token_list(tl);
   }
 #endif
-  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_cst_parser_coverage(void) {
+  cdd_cst_tree_t *tree = NULL;
+  extern C_CDD_EXPORT enum cdd_c_error peek(void *s, void **out_tok);
+  extern C_CDD_EXPORT enum cdd_c_error advance(void *s, void **out_tok);
+  int i, rc;
+  void *dummy = NULL;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, peek(NULL, &dummy));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, advance(NULL, &dummy));
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    const char *code =
+        "struct X { int y; };\n"
+        "enum E { A = 1 };\n"
+        "union U { float f; };\n"
+        "void f(int a, ...) { int x; }\n"
+        "#if defined(FOO)\n int x; \n#elif defined(BAR)\n int y; \n#endif\n"
+        "#if 0\n#elif defined FOO\n int z; \n#endif\n"
+        "#if 1\n 1 2 3 4 5 6 7 {} \n#elif 1\n int a; \n#endif\n"
+        "#if 0\n#elif 0\n int b; \n#endif\n"
+        "#if FOO\n#elif BAZ\n int c; \n#endif\n"
+        "#define MACRO 1\n"
+        "#include <stdio.h>\n"
+        "try { throw 1; } catch (...) {}\n"
+        "namespace N { int x; }\n"
+        "using namespace N;\n"
+        "template <typename T, int A, int B, int C, int D, int E, int F, int "
+        "G, int H> class C {};\n"
+        "struct __declspec(dllexport) C2 : public X, private Y {};\n"
+        "void g() noexcept(true) {}\n"
+        "void h() { asm volatile (\"nop\"); }\n"
+        "void i() { _Generic(x, int: 1, default: 0); }\n"
+        "int arr[10];\n";
+    for (i = 1; i < 4000; i++) {
+      g_cdd_cst_alloc_node_fail = i;
+      tree = NULL;
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+      g_cdd_cst_alloc_node_fail = 0;
+      if (tree)
+        cdd_cst_tree_free(tree);
+      if (rc == 0)
+        break;
+    }
+  }
+#endif
   PASS();
 }
 
 TEST test_cst_branches(void) {
   struct CstNode *out_node_ptr = NULL;
   ASSERT_EQ(0, cst_find_first(NULL, 0, &out_node_ptr));
-  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_cst_parser_full_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  int i, rc;
+  const char *code =
+      "#define MACRO 1\n"
+      "struct __declspec(dllexport) C2 : public X, private Y {};\n"
+      "void g() noexcept(true) {}\n"
+      "void h() { asm volatile (\"nop\"); }\n"
+      "void i() { _Generic(x, int: 1, default: 0); }\n"
+      "template <typename T, int A> class C {};\n"
+      "try { throw 1; } catch (...) {}\n";
+  extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+  for (i = 1; i < 4000; i++) {
+    g_cdd_alloc_fail_countdown_countdown = i;
+    tree = NULL;
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    g_cdd_alloc_fail_countdown_countdown = 0;
+    if (tree)
+      cdd_cst_tree_free(tree);
+    if (rc == 0)
+      break;
+  }
+#endif
+  PASS();
+}
+
+TEST test_cst_parser_missing_lines(void) {
+  cdd_cst_tree_t *tree = NULL;
+  int rc;
+
+  /* Line 1052 */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_parse(az_span_create_from_str(""), NULL));
+
+#ifdef CDD_BUILD_TESTS
+  /* Line 1057 - C_CDD_CALLOC for tree fails */
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+    g_cdd_alloc_fail_countdown_countdown = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    g_cdd_alloc_fail_countdown_countdown = 0;
+  }
+
+  /* Specific OOM inside parse_type_specifier and parse_declaration_or_statement
+   */
+  {
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    /* Try to fail on exactly the node allocations that we missed */
+    for (int j = 1; j < 20; j++) {
+      g_cdd_cst_alloc_node_fail = j;
+      cdd_cst_parse(
+          az_span_create_from_str("#define MACRO 1\nstruct X : public Y "
+                                  "{};\nvoid f() noexcept(true) {}\n"),
+          &tree);
+      g_cdd_cst_alloc_node_fail = 0;
+      if (tree)
+        cdd_cst_tree_free(tree);
+    }
+    g_cdd_cst_alloc_node_fail = 0;
+    rc = cdd_cst_parse(az_span_create_from_str("struct X : public Y {};"),
+                       &tree);
+    ASSERT_EQ(0, rc);
+    cdd_cst_tree_free(tree);
+  }
+#endif
   PASS();
 }
 
 SUITE(cst_parser_suite) {
+  RUN_TEST(test_cst_parser_missing_lines);
+  RUN_TEST(test_cst_parser_full_oom);
   RUN_TEST(test_cst_parser_extra);
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
@@ -485,6 +608,8 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_anonymous_struct);
   RUN_TEST(parse_tokens_struct_variable_declaration);
   RUN_TEST(parse_tokens_oom);
+  RUN_TEST(test_cst_parser_coverage);
+  RUN_TEST(test_cst_parser_coverage);
   RUN_TEST(test_cst_branches);
 
   RUN_TEST(parse_simple_array_init);

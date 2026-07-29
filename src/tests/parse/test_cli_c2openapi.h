@@ -1,8 +1,10 @@
 #ifndef TEST_CLI_C2OPENAPI_H
 #define TEST_CLI_C2OPENAPI_H
 
+/* clang-format off */
 #include "routes/parse/cli.h"
 #include <greatest.h>
+/* clang-format on */
 
 TEST test_c2openapi_cli_main_invalid_args(void) {
   char *argv1[] = {"c2openapi"};

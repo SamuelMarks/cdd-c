@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,7 +23,6 @@ char *strdup(const char *s);
 #include <c89stringutils_string_extras.h>
 
 #include "simple_json.h"
-
 /* clang-format on */
 
 /** \brief func */
@@ -39,7 +39,7 @@ static enum cdd_c_error quote_or_null(const char *s, char **s1) {
   {
     const size_t n = strlen(s);
     size_t i;
-    *s1 = malloc((n + 3) * sizeof(char));
+    *s1 = C_CDD_MALLOC((n + 3) * sizeof(char));
     if (*s1 == NULL)
       return CDD_C_ERROR_MEMORY;
     (*s1)[0] = '"';
@@ -131,8 +131,8 @@ enum cdd_c_error HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  free((void *)haz_e->bzr);
-  free(haz_e);
+  C_CDD_FREE((void *)haz_e->bzr);
+  C_CDD_FREE(haz_e);
   return CDD_C_SUCCESS;
 }
 
@@ -143,7 +143,7 @@ enum cdd_c_error HazE_cleanup(struct HazE *haz_e) {
 enum cdd_c_error HazE_default(struct HazE **haz_e) {
   if (haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *haz_e = malloc(sizeof(**haz_e));
+  *haz_e = C_CDD_MALLOC(sizeof(**haz_e));
   if (*haz_e == NULL)
     return CDD_C_ERROR_MEMORY;
   Tank_default(&(*haz_e)->tank);
@@ -162,7 +162,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
     *haz_e_dest = NULL;
     return CDD_C_SUCCESS;
   }
-  *haz_e_dest = malloc(sizeof(**haz_e_dest));
+  *haz_e_dest = C_CDD_MALLOC(sizeof(**haz_e_dest));
   if (*haz_e_dest == NULL)
     return CDD_C_ERROR_MEMORY;
 
@@ -171,7 +171,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
   } else {
     (*haz_e_dest)->bzr = strdup(haz_e_original->bzr);
     if ((*haz_e_dest)->bzr == NULL) {
-      free(*haz_e_dest);
+      C_CDD_FREE(*haz_e_dest);
       *haz_e_dest = NULL;
       return CDD_C_ERROR_MEMORY;
     }
@@ -188,13 +188,13 @@ enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
   if (rc != 0) {
-    free(s);
+    C_CDD_FREE(s);
     return rc;
   }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
     rc = 0;
-  free(s);
+  C_CDD_FREE(s);
   return rc;
 }
 
@@ -217,7 +217,7 @@ enum cdd_c_error HazE_debug(const struct HazE *haz_e, FILE *fh) {
     if (rc != 0)
       return rc;
     rc = fprintf(fh, "  /* const char * */ bzr = %s,\n", quoted);
-    free(quoted);
+    C_CDD_FREE(quoted);
     if (rc < 0)
       return rc;
   }
@@ -293,7 +293,7 @@ enum cdd_c_error HazE_to_json(const struct HazE *haz_e, char **json) {
   }
 
 cleanup:
-  free(tank_str);
+  C_CDD_FREE(tank_str);
   return rc;
 }
 
@@ -318,7 +318,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
   if (rc != 0)
     return rc;
 
-  new_haz = malloc(sizeof(*new_haz));
+  new_haz = C_CDD_MALLOC(sizeof(*new_haz));
   if (new_haz == NULL)
     return CDD_C_ERROR_MEMORY;
 
@@ -326,7 +326,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
   if (bzr_str) {
     new_haz->bzr = strdup(bzr_str);
     if (new_haz->bzr == NULL) {
-      free(new_haz);
+      C_CDD_FREE(new_haz);
       return CDD_C_ERROR_MEMORY;
     }
   } else {
@@ -371,9 +371,9 @@ enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
 enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  free((void *)foo_e->bar);
+  C_CDD_FREE((void *)foo_e->bar);
   (void)HazE_cleanup(foo_e->haz);
-  free(foo_e);
+  C_CDD_FREE(foo_e);
   return CDD_C_SUCCESS;
 }
 
@@ -386,7 +386,7 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  *foo_e = malloc(sizeof(**foo_e));
+  *foo_e = C_CDD_MALLOC(sizeof(**foo_e));
   if (*foo_e == NULL)
     return CDD_C_ERROR_MEMORY;
 
@@ -394,7 +394,7 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
 
   rc = HazE_default(&(*foo_e)->haz);
   if (rc != 0) {
-    free(*foo_e);
+    C_CDD_FREE(*foo_e);
     return CDD_C_ERROR_MEMORY;
   }
   return CDD_C_SUCCESS;
@@ -414,7 +414,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
     return CDD_C_SUCCESS;
   }
 
-  new_foo = malloc(sizeof(*new_foo));
+  new_foo = C_CDD_MALLOC(sizeof(*new_foo));
   if (new_foo == NULL)
     return CDD_C_ERROR_MEMORY;
   memset(new_foo, 0, sizeof(*new_foo));
@@ -422,7 +422,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
   if (foo_e_original->bar != NULL) {
     new_foo->bar = strdup(foo_e_original->bar);
     if (new_foo->bar == NULL) {
-      free(new_foo);
+      C_CDD_FREE(new_foo);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -446,13 +446,13 @@ enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
   if (rc != 0) {
-    free(s);
+    C_CDD_FREE(s);
     return rc;
   }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
     rc = 0;
-  free(s);
+  C_CDD_FREE(s);
   return rc;
 }
 
@@ -476,7 +476,7 @@ enum cdd_c_error FooE_debug(const struct FooE *foo_e, FILE *fh) {
     if (rc != 0)
       return rc;
     rc = fprintf(fh, "  /* const char * */ bar = %s,\n", quoted);
-    free(quoted);
+    C_CDD_FREE(quoted);
     if (rc < 0)
       return rc;
   }
@@ -555,7 +555,7 @@ enum cdd_c_error FooE_to_json(const struct FooE *foo_e, char **const json) {
   }
 
 cleanup:
-  free(haz_e_json);
+  C_CDD_FREE(haz_e_json);
   return rc;
 }
 
@@ -572,7 +572,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (jsonObject == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  new_foo = calloc(1, sizeof(*new_foo));
+  new_foo = C_CDD_CALLOC(1, sizeof(*new_foo));
   if (new_foo == NULL)
     return CDD_C_ERROR_MEMORY;
 
@@ -580,7 +580,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (bar_str) {
     new_foo->bar = strdup(bar_str);
     if (new_foo->bar == NULL) {
-      free(new_foo);
+      C_CDD_FREE(new_foo);
       return CDD_C_ERROR_MEMORY;
     }
   }

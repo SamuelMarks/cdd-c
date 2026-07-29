@@ -17,12 +17,11 @@ extern "C" {
 
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
-
-extern int g_io_calls;
-extern C_CDD_EXPORT int g_fail_io_after;
-extern enum cdd_c_error is_basic_type_keyword_test(enum TokenKind k, int *out_is_basic);
-
 /* clang-format on */
+
+extern C_CDD_EXPORT int g_fail_io_after;
+extern enum cdd_c_error is_basic_type_keyword_test(enum TokenKind k,
+                                                   int *out_is_basic);
 
 /**
  * @brief Tests basic functionality of VLA scanning.
@@ -55,7 +54,7 @@ TEST test_scan_for_vlas_basic(void) {
 
   vla_site_list_free(&list);
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -74,7 +73,7 @@ TEST test_scan_for_vlas_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(tl, NULL));
 
   free_token_list(tl);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -109,13 +108,12 @@ TEST test_scan_for_vlas_oom(void) {
 
   for (i = 0; i < 25; ++i) {
     (void)vla_site_list_init(&list);
-    g_io_calls = 0;
-    g_fail_io_after = i;
+
     res = scan_for_vlas(tokens, &list);
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
-    g_fail_io_after = -1;
+
     vla_site_list_free(&list);
   }
 

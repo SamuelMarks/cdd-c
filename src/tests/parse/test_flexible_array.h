@@ -44,7 +44,7 @@ TEST test_parse_fam_basic(void) {
   ASSERT_EQ(1, f->is_flexible_array);
 
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -70,7 +70,7 @@ TEST test_parse_fam_int(void) {
   ASSERT_EQ(1, f->is_flexible_array);
 
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -94,7 +94,7 @@ TEST test_parse_ptr_not_fam(void) {
   ASSERT_EQ(0, f->is_flexible_array);
 
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -124,7 +124,7 @@ TEST test_parse_fixed_array_not_fam(void) {
   ASSERT_EQ(0, f->is_flexible_array);
 
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -149,7 +149,7 @@ TEST test_parse_fam_mixed_lines(void) {
   ASSERT_STR_EQ("vals", sf.fields[1].name);
 
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

@@ -114,9 +114,8 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   char var_name[256];
   char ret_type_str[256];
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
   schemify_name(lib_name, scheme_lib_name, sizeof(scheme_lib_name));
@@ -131,6 +130,15 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ss", config->output_dir,
                scheme_lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

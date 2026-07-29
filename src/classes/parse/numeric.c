@@ -25,7 +25,7 @@
 #define UINT64_MAX _UI64_MAX
 #else
 /** @brief UINT64_MAX macro */
-#define UINT64_MAX ((uint64_t)-1)
+#define UINT64_MAX ((uint64_t) - 1)
 #endif
 #endif
 
@@ -101,8 +101,8 @@ static enum cdd_c_error parse_binary_str(const char *str, char **endptr,
   uint64_t val = 0;
   const char *p = str;
   while (*p == '0' || *p == '1') {
-    if (val > (UINT64_MAX >> 1)) {
-      val = UINT64_MAX; /* Overflow saturation */
+    if (val > (~((uint64_t)0) >> 1)) {
+      val = ~((uint64_t)0); /* Overflow saturation */
       errno = ERANGE;
     } else {
       val = (val << 1) | (*p - '0');

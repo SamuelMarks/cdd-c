@@ -27,6 +27,15 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.def", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -51,9 +60,8 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
 enum cdd_c_error
 cdd_ffi_emit_kotlin(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   return emit_kotlin_def(ir, config);
 }

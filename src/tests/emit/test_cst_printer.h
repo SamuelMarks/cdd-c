@@ -62,13 +62,11 @@ TEST test_cst_print_exact(void) {
   {
     FILE *readonly_f = tmpfile();
     if (readonly_f) {
-      g_fail_io_after = 0;
-      g_io_calls = 0;
+
       ASSERT_EQ(CDD_C_ERROR_IO, cst_print_tokens_exact(tokens, readonly_f));
 
       /* Reset and test failing on the 2nd IO call to cover the branch */
-      g_fail_io_after = 1;
-      g_io_calls = 0;
+
       ASSERT_EQ(CDD_C_ERROR_IO, cst_print_tokens_exact(tokens, readonly_f));
 
       fclose(readonly_f);
@@ -83,7 +81,7 @@ TEST test_cst_print_exact(void) {
   ASSERT_STR_EQ(src, buffer);
 
   free_token_list(tokens);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

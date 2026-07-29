@@ -81,6 +81,8 @@ find_child_index_mutate(cdd_cst_node_t *parent, cdd_cst_node_t *child,
                         size_t *out_index);
 extern C_CDD_EXPORT enum cdd_c_error
 find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token);
+extern C_CDD_EXPORT enum cdd_c_error
+find_last_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token);
 
 extern enum cdd_c_error clone_trivia_list_mutate(cdd_trivia_t *head,
                                                  cdd_trivia_t **out_trivia);

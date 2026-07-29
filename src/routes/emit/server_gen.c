@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "server_gen.h"
 #include "routes/emit/security.h"
@@ -32,7 +33,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = malloc(512);
+    char *src_dir = C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
@@ -41,11 +42,11 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
     makedirs(src_dir);
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
                  base_name ? base_name : "generated_client");
-    free(src_dir);
+    C_CDD_FREE(src_dir);
     if (dir_name)
-      free(dir_name);
+      C_CDD_FREE(dir_name);
     if (base_name)
-      free(base_name);
+      C_CDD_FREE(base_name);
   }
 #if defined(_MSC_VER)
   if (fopen_s(&fp, path, "w") != 0)

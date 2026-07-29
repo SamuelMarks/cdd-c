@@ -1,6 +1,8 @@
 #ifndef TEST_ORCHESTRATOR_INTERNALS_H
 #define TEST_ORCHESTRATOR_INTERNALS_H
 
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
 #include <greatest.h>
@@ -13,6 +15,7 @@ int g_force_find_allocations_fail = 0;
 static enum cdd_c_error mock_find_allocations(const struct TokenList *tokens,
                                               struct AllocationSiteList *out);
 #include "functions/parse/orchestrator.c"
+/* clang-format on */
 #undef find_allocations
 extern enum cdd_c_error find_allocations(const struct TokenList *tokens,
                                          struct AllocationSiteList *out);
@@ -66,7 +69,7 @@ TEST test_orchestrator_internals(void) {
            my_tl->tokens[0].start, token_eq_str(&my_tl->tokens[0], "void"));
 
     if (type_str)
-      free(type_str);
+      C_CDD_FREE(type_str);
     free_token_list(my_tl);
   }
 

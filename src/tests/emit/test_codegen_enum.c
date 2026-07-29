@@ -1,5 +1,4 @@
 extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_codegen_enum.c
  * @brief Unit tests for Enum code generation module.
@@ -11,6 +10,7 @@ extern C_CDD_EXPORT int g_io_calls;
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -56,7 +56,7 @@ TEST test_enum_to_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, sz, tmp);
 
@@ -68,10 +68,10 @@ TEST test_enum_to_str_basic(void) {
   /* Ensure UNKNOWN sentinel is handled */
   ASSERT(strstr(content, "case Color_UNKNOWN:"));
 
-  free(content);
+  C_CDD_FREE(content);
   enum_members_free(&em);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -93,7 +93,7 @@ TEST test_enum_from_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, sz, tmp);
 
@@ -105,10 +105,10 @@ TEST test_enum_from_str_basic(void) {
   /* Ensure fallback */
   ASSERT(strstr(content, "*val = Color_UNKNOWN;"));
 
-  free(content);
+  C_CDD_FREE(content);
   enum_members_free(&em);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -134,16 +134,16 @@ TEST test_enum_guards(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "#ifdef USE_ENUMS"));
   ASSERT(strstr(content, "#endif /* USE_ENUMS */"));
 
-  free(content);
+  C_CDD_FREE(content);
   enum_members_free(&em);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -172,7 +172,7 @@ TEST test_enum_null_safety(void) {
 
   fclose(f);
   enum_members_free(&em);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,7 +69,7 @@ generate_expected_sig(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)C_CDD_MALLOC(sz + 1);
   if (buf) {
     size_t len;
     fread(buf, 1, sz, tmp);
@@ -112,7 +113,7 @@ generate_expected_query(const struct OpenAPI_Operation *op, char **_out_val) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)C_CDD_MALLOC(sz + 1);
   if (buf) {
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
@@ -132,7 +133,7 @@ generate_expected_query(const struct OpenAPI_Operation *op, char **_out_val) {
 static enum cdd_c_error
 generate_expected_header_line(const struct OpenAPI_Parameter *p,
                               char **_out_val) {
-  char *buf = malloc(512);
+  char *buf = C_CDD_MALLOC(512);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -219,7 +220,7 @@ generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)C_CDD_MALLOC(sz + 1);
   if (buf) {
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
@@ -308,7 +309,7 @@ static enum cdd_c_error extract_current_sig(struct TokenList *tokens,
     char *buf, *p;
     for (k = start; k <= args_end; ++k)
       length += tokens->tokens[k].length;
-    buf = (char *)malloc(length + 1);
+    buf = (char *)C_CDD_MALLOC(length + 1);
     p = buf;
     for (k = start; k <= args_end; ++k) {
       memcpy(p, tokens->tokens[k].start, tokens->tokens[k].length);
@@ -562,8 +563,8 @@ static enum cdd_c_error apply_updates(const char *filename,
             }
           }
         }
-        free(expected_sig);
-        free(actual_sig);
+        C_CDD_FREE(expected_sig);
+        C_CDD_FREE(actual_sig);
 
         /* 2. Sync Query Block (Support for Arrays/Explode) */
         apply_query_sync(op, tokens, node, &patches);
@@ -657,7 +658,7 @@ static enum cdd_c_error apply_updates(const char *filename,
     } else {
       rc = CDD_C_ERROR_IO;
     }
-    free(result);
+    C_CDD_FREE(result);
   }
 
   return rc;
@@ -685,13 +686,13 @@ enum cdd_c_error api_sync_file(const char *filename,
     return rc;
 
   if ((rc = tokenize(az_span_create_from_str(content), &tokens)) != 0) {
-    free(content);
+    C_CDD_FREE(content);
     return rc;
   }
 
   if ((rc = parse_tokens(tokens, &cst)) != 0) {
     free_token_list(tokens);
-    free(content);
+    C_CDD_FREE(content);
     return rc;
   }
 
@@ -699,7 +700,7 @@ enum cdd_c_error api_sync_file(const char *filename,
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
-  free(content);
+  C_CDD_FREE(content);
 
   return rc;
 }

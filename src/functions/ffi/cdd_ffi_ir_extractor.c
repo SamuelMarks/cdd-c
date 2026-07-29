@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/inspector.h"
 #include "../../classes/parse/cdd_cst_parser.h"
@@ -15,31 +16,31 @@
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
 #endif
-/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 #include "c_cdd_export.h"
+/* clang-format on */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 #define CDD_MALLOC(sz)                                                         \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : malloc(sz))
+       : C_CDD_MALLOC(sz))
 #define CDD_CALLOC(n, sz)                                                      \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : calloc(n, sz))
+       : C_CDD_CALLOC(n, sz))
 #define CDD_REALLOC(ptr, sz)                                                   \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : realloc(ptr, sz))
+       : C_CDD_REALLOC(ptr, sz))
 #define CDD_STRDUP(s)                                                          \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
        : strdup(s))
 #else
-#define CDD_MALLOC(sz) malloc(sz)
-#define CDD_CALLOC(n, sz) calloc(n, sz)
-#define CDD_REALLOC(ptr, sz) realloc(ptr, sz)
+#define CDD_MALLOC(sz) C_CDD_MALLOC(sz)
+#define CDD_CALLOC(n, sz) C_CDD_CALLOC(n, sz)
+#define CDD_REALLOC(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #define CDD_STRDUP(s) strdup(s)
 #endif
 
@@ -109,7 +110,7 @@ static enum cdd_c_error parse_template_type(const char *c_type,
   out_type->template_args =
       (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
   if (!out_type->template_args) {
-    free(inner_type_str);
+    C_CDD_FREE(inner_type_str);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -118,7 +119,7 @@ static enum cdd_c_error parse_template_type(const char *c_type,
     rc = map_c_type_to_ffi_kind(inner_type_str,
                                 &out_type->template_args[0].kind);
     if (rc != CDD_C_SUCCESS) {
-      free(inner_type_str);
+      C_CDD_FREE(inner_type_str);
       return rc;
     }
   }
@@ -131,7 +132,7 @@ static enum cdd_c_error parse_template_type(const char *c_type,
     }
   }
 
-  free(inner_type_str);
+  C_CDD_FREE(inner_type_str);
   return CDD_C_SUCCESS;
 }
 
@@ -416,7 +417,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                   }
                 }
                 if (structs_base.nodes)
-                  free(structs_base.nodes);
+                  C_CDD_FREE(structs_base.nodes);
               }
               cdd_cst_tree_free(tree_base);
             }
@@ -864,7 +865,7 @@ static enum cdd_c_error include_visitor(const struct IncludeInfo *info,
       int rc = read_to_file(info->resolved_path, "r", &content, &sz);
       if (rc == 0 && content) {
         ctx->err = extract_exports_recursive(info->resolved_path, content, ctx);
-        free(content);
+        C_CDD_FREE(content);
       }
     }
   }
@@ -956,7 +957,7 @@ static enum cdd_c_error instantiate_templates(cdd_ffi_ir_t *ir) {
 
               node = &ir->nodes[i];
               node->fields[j].type.kind = CDD_FFI_KIND_STRUCT_REF;
-              free(node->fields[j].type.ref_name);
+              C_CDD_FREE(node->fields[j].type.ref_name);
               node->fields[j].type.ref_name = CDD_STRDUP(inst_name);
               break;
             }
@@ -990,7 +991,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   memset(&ctx, 0, sizeof(ctx));
   memset(&pp_ctx, 0, sizeof(pp_ctx));
   if (pp_context_init(&pp_ctx) != 0) {
-    free(ir);
+    C_CDD_FREE(ir);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -1008,15 +1009,15 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   }
 
   for (k = 0; k < ctx.visited_count; k++) {
-    free(ctx.visited[k]);
+    C_CDD_FREE(ctx.visited[k]);
   }
   if (ctx.visited)
-    free(ctx.visited);
+    C_CDD_FREE(ctx.visited);
   pp_context_free(&pp_ctx);
 
   if (rc != 0) {
     cdd_ffi_ir_free(ir);
-    free(ir);
+    C_CDD_FREE(ir);
     return rc;
   }
 

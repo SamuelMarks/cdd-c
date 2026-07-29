@@ -1,11 +1,10 @@
 /* clang-format off */
 /* clang-format on */
-#ifndef CDD_C_ERROR_H
-#define CDD_C_ERROR_H
-
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
+#ifndef CDD_C_ERROR_H
+#define CDD_C_ERROR_H
 
 /**
  * @brief Global error enumeration for cdd-c project.
@@ -21,8 +20,8 @@ enum cdd_c_error {
   CDD_C_ERROR_UNKNOWN = 7
 };
 
+#endif /* CDD_C_ERROR_H */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* CDD_C_ERROR_H */

@@ -91,9 +91,11 @@ extern C_CDD_EXPORT enum cdd_c_error wide_to_ascii(const wchar_t *ws, char *s, s
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifndef _WIN32
 #include <unistd.h>
-#endif
 /* clang-format on */
+#endif
+#endif
 
 /** @brief c_stat definition */
 typedef struct stat c_stat;

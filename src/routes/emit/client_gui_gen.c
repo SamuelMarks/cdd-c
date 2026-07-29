@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "routes/emit/client_gui_gen.h"
 #include <errno.h>
@@ -38,7 +39,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = malloc(512);
+    char *src_dir = C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
@@ -49,11 +50,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                  base_name ? base_name : "generated_client");
     CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
                  base_name ? base_name : "generated_client");
-    free(src_dir);
+    C_CDD_FREE(src_dir);
     if (dir_name)
-      free(dir_name);
+      C_CDD_FREE(dir_name);
     if (base_name)
-      free(base_name);
+      C_CDD_FREE(base_name);
   }
 
 #if defined(_MSC_VER)
@@ -115,7 +116,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "#include \"%s_gui.h\"\n",
             base ? base : config->filename_base);
     if (base)
-      free(base);
+      C_CDD_FREE(base);
   }
   fprintf(fp_c, "#include <stdio.h>\n");
   fprintf(fp_c, "#include <stdlib.h>\n");
@@ -197,7 +198,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
-  fprintf(fp_c, "    free(res.body);\n");
+  fprintf(fp_c, "    C_CDD_FREE(res.body);\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  return rc;\n");
   fprintf(fp_c, "}\n");

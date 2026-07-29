@@ -16,6 +16,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "functions/emit/patcher.h"
 #include "cdd_c_error.h"
 #include "functions/parse/analysis.h"
@@ -51,9 +52,9 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Inject safety specifically for `realloc` patterns.
  *
- * Handles the pattern `p = realloc(p, size)` by rewriting it to:
- * `{ void *tmp = realloc(p, size); if (!tmp) return CDD_C_ERROR_MEMORY; p =
- * tmp; }` preventing memory leaks on failure.
+ * Handles the pattern `p = C_CDD_REALLOC(p, size)` by rewriting it to:
+ * `{ void *tmp = C_CDD_REALLOC(p, size); if (!tmp) return CDD_C_ERROR_MEMORY; p
+ * = tmp; }` preventing memory leaks on failure.
  *
  * @param[in] tokens Token stream.
  * @param[in] site The specific allocation site to process.

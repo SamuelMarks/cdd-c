@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -56,9 +57,9 @@ TEST test_cmake_modifier_basic(void) {
          NULL);
   ASSERT(strstr(diff_str, "+endif()\n") != NULL);
 
-  free(diff_str);
+  C_CDD_FREE(diff_str);
   cmake_modifier_free(&mod);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -89,9 +90,9 @@ TEST test_cmake_modifier_global(void) {
 
   ASSERT(strstr(diff_str, "+    add_compile_options( /W4)\n") != NULL);
 
-  free(diff_str);
+  C_CDD_FREE(diff_str);
   cmake_modifier_free(&mod);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -118,7 +119,7 @@ TEST test_cmake_modifier_errors(void) {
             cmake_modifier_add_link_lib(&mod, NULL));
 
   cmake_modifier_free(&mod);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -180,7 +181,7 @@ TEST test_cmake_parser_oom(void) {
     (void)cmake_modifier_apply_diff(&mod, &diff_str);
     g_cdd_fail_alloc = 0;
     if (diff_str) {
-      free(diff_str);
+      C_CDD_FREE(diff_str);
       diff_str = NULL;
     }
     cmake_modifier_free(&mod);
@@ -196,7 +197,7 @@ TEST test_cmake_parser_oom(void) {
   cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists2.txt", "test");
   cmake_modifier_apply_diff(&mod, &diff_str);
   if (diff_str)
-    free(diff_str);
+    C_CDD_FREE(diff_str);
   cmake_modifier_free(&mod);
 
   /* Test free NULL */
@@ -207,7 +208,7 @@ TEST test_cmake_parser_oom(void) {
       0, cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test"));
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   if (diff_str)
-    free(diff_str);
+    C_CDD_FREE(diff_str);
   cmake_modifier_free(&mod);
 
   remove("test_cmake_dir/CMakeLists2.txt");
@@ -215,7 +216,6 @@ TEST test_cmake_parser_oom(void) {
   remove("test_cmake_dir/CMakeLists.txt");
   remove("test_cmake_dir");
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }

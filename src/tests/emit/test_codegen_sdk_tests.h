@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -67,7 +68,7 @@ TEST test_gen_sdk_test_basic(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   /* Preamble check */
@@ -85,16 +86,16 @@ TEST test_gen_sdk_test_basic(void) {
   /* Runner check */
   ASSERT(strstr(content, "RUN_TEST(test_runOp)"));
 
-  free(content);
+  C_CDD_FREE(content);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 TEST test_gen_sdk_test_nulls(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_sdk_tests_generate(NULL, NULL, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -153,7 +154,7 @@ TEST test_gen_sdk_test_exhaustive(void) {
   ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

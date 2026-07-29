@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/memory.h"
 
 #include "functions/emit/patcher.h"
 #include "functions/parse/cst.h"
@@ -16,6 +17,7 @@
 #include "functions/parse/tokenizer.h"
 #include "functions/emit/weaver_attributes.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 enum cdd_c_error
@@ -33,17 +35,7 @@ weaver_translate_gcc_attributes(struct PatchList *patches,
       /* Extract text from tokens directly */
       size_t len = node->length;
       char *attr_text = NULL;
-#ifdef CDD_BUILD_TESTS
-      {
-        extern C_CDD_EXPORT int g_cdd_fail_alloc;
-        if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-          attr_text = NULL;
-        else
-          attr_text = (char *)malloc(len + 1);
-      }
-#else
-      attr_text = (char *)malloc(len + 1);
-#endif
+      attr_text = (char *)C_CDD_MALLOC(len + 1);
       if (!attr_text) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -83,11 +75,11 @@ weaver_translate_gcc_attributes(struct PatchList *patches,
         printf("weaver_attr patch_list_add rc=%d\n", rc);
         printf("patch_list_add rc=%d\n", rc);
         if (rc != 0) {
-          free(attr_text);
+          C_CDD_FREE(attr_text);
           return rc;
         }
       }
-      free(attr_text);
+      C_CDD_FREE(attr_text);
     }
   }
 

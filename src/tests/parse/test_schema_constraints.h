@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <parson.h>
@@ -176,7 +177,6 @@ TEST test_schema_constraints_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -282,7 +282,6 @@ TEST test_schema_annotations_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -362,7 +361,6 @@ TEST test_schema_allof_merge(void) {
 
   json_value_free(schema_val);
   json_value_free(root_val);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -398,7 +396,7 @@ TEST test_schema_anyof_first_object(void) {
   }
 
   json_value_free(schema_val);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -433,7 +431,7 @@ TEST test_schema_oneof_first_object(void) {
   }
 
   json_value_free(schema_val);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -559,7 +557,6 @@ TEST test_schema_keyword_passthrough(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -637,7 +634,7 @@ TEST test_schema_allof_keyword_merge(void) {
   }
 
   json_value_free(schema_val);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -756,7 +753,7 @@ TEST test_schema_type_union_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -777,12 +774,12 @@ TEST test_schema_constraints_free_branch(void) {
   schema_constraints_add_required(&sc, "req1");
 
   /* Mock additional properties */
-  sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
-  sc.additional_properties->name = malloc(4);
+  sc.additional_properties = C_CDD_CALLOC(1, sizeof(*sc.additional_properties));
+  sc.additional_properties->name = C_CDD_MALLOC(4);
   strcpy(sc.additional_properties->name, "foo");
-  sc.additional_properties->type = malloc(4);
+  sc.additional_properties->type = C_CDD_MALLOC(4);
   strcpy(sc.additional_properties->type, "bar");
-  sc.additional_properties->ref = malloc(4);
+  sc.additional_properties->ref = C_CDD_MALLOC(4);
   strcpy(sc.additional_properties->ref, "baz");
 
   schema_constraints_free(&sc);
@@ -790,7 +787,7 @@ TEST test_schema_constraints_free_branch(void) {
   /* required[i] == NULL */
   schema_constraints_init(&sc);
   schema_constraints_add_required(&sc, "r");
-  free(sc.required[0]);
+  C_CDD_FREE(sc.required[0]);
   sc.required[0] = NULL;
   schema_constraints_free(&sc);
 
@@ -806,7 +803,6 @@ TEST test_schema_constraints_free_branch(void) {
     schema_constraints_free(&sc_oom);
   }
 #endif
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -815,9 +811,8 @@ TEST test_schema_constraints_free_null_fields(void) {
   struct SchemaConstraints sc;
   schema_constraints_init(&sc);
 
-  sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
+  sc.additional_properties = C_CDD_CALLOC(1, sizeof(*sc.additional_properties));
   schema_constraints_free(&sc);
-  g_fail_io_after = -1;
 
   PASS();
 }

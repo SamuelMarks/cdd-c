@@ -38,7 +38,6 @@ TEST test_cdd_cst_escape_basic(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_symbol_escapes(&sym, NULL));
   ASSERT_EQ(0, cdd_cst_symbol_escapes(&sym, &escapes));
   ASSERT_EQ(0, escapes);
-  g_fail_io_after = -1;
 
   PASS();
 }

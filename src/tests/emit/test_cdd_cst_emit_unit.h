@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "classes/parse/cdd_cst_factory.h"
@@ -18,7 +19,7 @@ TEST test_cdd_cst_emit_invalid(void) {
   char *out = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_emit(NULL, &out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_emit(&t, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -26,12 +27,11 @@ TEST test_cdd_cst_emit_empty(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
   /* Valgrind skip removed for coverage */
-  /* empty tree -> empty buf -> malloc(1) */
+  /* empty tree -> empty buf -> C_CDD_MALLOC(1) */
   ASSERT_EQ(0, cdd_cst_emit(&tree, &out));
   ASSERT(out != NULL);
   ASSERT_EQ(0, strlen(out));
-  free(out);
-  g_fail_io_after = -1;
+  C_CDD_FREE(out);
 
   PASS();
 }
@@ -60,13 +60,12 @@ TEST test_cdd_cst_emit_null_children(void) {
   ASSERT_EQ(0, cdd_cst_emit(&tree, &out));
   ASSERT(out != NULL);
   ASSERT_EQ(0, strlen(out));
-  free(out);
+  C_CDD_FREE(out);
 
   /* Test tree with a node returning error (e.g. from trivia or token) */
   { /* Not easy to simulate CDD_C_ERROR_MEMORY without mock, but we can hit EOF
        logic */
   }
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -84,7 +83,7 @@ TEST test_cdd_cst_emit_large_string(void) {
   char *large_str;
   char *out = NULL;
   /* Valgrind skip removed for coverage */
-  large_str = (char *)malloc(5000);
+  large_str = (char *)C_CDD_MALLOC(5000);
   memset(large_str, 'A', 4999);
   large_str[4999] = '\0';
 
@@ -119,9 +118,8 @@ TEST test_cdd_cst_emit_large_string(void) {
   ASSERT(out != NULL);
   ASSERT_EQ(4999 + 9 + 10 + 13, strlen(out));
 
-  free(out);
-  free(large_str);
-  g_fail_io_after = -1;
+  C_CDD_FREE(out);
+  C_CDD_FREE(large_str);
 
   PASS();
 }
@@ -145,7 +143,6 @@ TEST test_cdd_cst_emit_oom(void) {
   child.val.token = &tok;
 
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -173,7 +170,6 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   child.val.token = &tok;
 
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -271,7 +267,6 @@ TEST test_cdd_cst_emit_oom_multi(void) {
   children[1].val.token = &tok2;
 
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -284,7 +279,6 @@ TEST test_cdd_cst_emit_empty_oom(void) {
   g_cdd_fail_alloc = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_cdd_fail_alloc = 0;
-  g_fail_io_after = -1;
 
   PASS();
 }

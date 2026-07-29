@@ -79,9 +79,8 @@ enum cdd_c_error cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
       config->module_name ? config->module_name : "bindings";
   size_t i, j;
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.d", config->output_dir,
@@ -93,6 +92,15 @@ enum cdd_c_error cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.d", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

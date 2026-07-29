@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "functions/parse/refactor.h"
 #include "c_cdd/log.h"
 #include "c_str_span.h"
@@ -22,8 +23,8 @@
 #else
 #include <errno.h>
 #include "c_cdd/log.h"
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Initializes a refactor context.
@@ -47,7 +48,7 @@ void refactor_context_free(struct RefactorContext *ctx) {
   if (!ctx)
     return;
   if (ctx->funcs) {
-    free(ctx->funcs);
+    C_CDD_FREE(ctx->funcs);
     ctx->funcs = NULL;
   }
   ctx->func_count = 0;
@@ -66,7 +67,7 @@ enum cdd_c_error refactor_context_add_function(struct RefactorContext *ctx,
   if (!ctx || !name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  new_alloc = (struct RefactoredFunction *)realloc(
+  new_alloc = (struct RefactoredFunction *)C_CDD_REALLOC(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
   if (!new_alloc) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

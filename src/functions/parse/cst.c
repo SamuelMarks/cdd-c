@@ -18,6 +18,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -87,12 +88,12 @@ enum cdd_c_error cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         new_arr = NULL;
       else
-        new_arr = (struct CstNode *)realloc(list->nodes,
-                                            new_cap * sizeof(struct CstNode));
+        new_arr = (struct CstNode *)C_CDD_REALLOC(
+            list->nodes, new_cap * sizeof(struct CstNode));
     }
 #else
-    new_arr = (struct CstNode *)realloc(list->nodes,
-                                        new_cap * sizeof(struct CstNode));
+    new_arr = (struct CstNode *)C_CDD_REALLOC(list->nodes,
+                                              new_cap * sizeof(struct CstNode));
 #endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -875,7 +876,7 @@ void free_cst_node_list(struct CstNodeList *list) {
   if (!list)
     return;
   if (list->nodes) {
-    free(list->nodes);
+    C_CDD_FREE(list->nodes);
     list->nodes = NULL;
   }
   list->size = 0;

@@ -68,7 +68,7 @@ TEST test_macro_evaluator_basic(void) {
 
   pp_context_free(&ctx);
   remove("test_eval_macros.h");
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -234,7 +234,7 @@ TEST test_pp_define_object_like(void) {
 
   pp_context_free(&ctx);
   remove(fname);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -263,7 +263,7 @@ TEST test_pp_define_function_like(void) {
 
   pp_context_free(&ctx);
   remove(fname);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -295,7 +295,7 @@ TEST test_pp_define_variadic_standard(void) {
 
   pp_context_free(&ctx);
   remove(fname);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -323,7 +323,7 @@ TEST test_pp_define_variadic_empty(void) {
 
   pp_context_free(&ctx);
   remove(fname);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -353,7 +353,7 @@ TEST test_pp_define_variadic_gcc(void) {
 
   pp_context_free(&ctx);
   remove(fname);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

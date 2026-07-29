@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)malloc(len);
+  d = (char *)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -59,21 +60,21 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 
   if (info->source_files) {
     for (i = 0; i < info->source_files_n; i++) {
-      free(info->source_files[i]);
+      C_CDD_FREE(info->source_files[i]);
     }
-    free(info->source_files);
+    C_CDD_FREE(info->source_files);
   }
   if (info->include_dirs) {
     for (i = 0; i < info->include_dirs_n; i++) {
-      free(info->include_dirs[i]);
+      C_CDD_FREE(info->include_dirs[i]);
     }
-    free(info->include_dirs);
+    C_CDD_FREE(info->include_dirs);
   }
   if (info->compile_defs) {
     for (i = 0; i < info->compile_defs_n; i++) {
-      free(info->compile_defs[i]);
+      C_CDD_FREE(info->compile_defs[i]);
     }
-    free(info->compile_defs);
+    C_CDD_FREE(info->compile_defs);
   }
 
   (void)build_info_init(info);
@@ -92,7 +93,7 @@ static enum cdd_c_error add_string_to_array(char ***arr, size_t *n,
     if (strcmp((*arr)[i], str) == 0)
       return CDD_C_SUCCESS;
   }
-  new_arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
+  new_arr = (char **)C_CDD_REALLOC(*arr, (*n + 1) * sizeof(char *));
   if (!new_arr)
     return CDD_C_ERROR_MEMORY;
   *arr = new_arr;
@@ -170,7 +171,7 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
-      free(copy);
+      C_CDD_FREE(copy);
       return rc;
     }
 #if defined(_WIN32)
@@ -180,7 +181,7 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
 #endif
   }
 
-  free(copy);
+  C_CDD_FREE(copy);
   return CDD_C_SUCCESS;
 }
 
@@ -214,7 +215,7 @@ enum cdd_c_error scrape_configure_ac(
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
-      free(copy);
+      C_CDD_FREE(copy);
       return rc;
     }
 #if defined(_WIN32)
@@ -224,7 +225,7 @@ enum cdd_c_error scrape_configure_ac(
 #endif
   }
 
-  free(copy);
+  C_CDD_FREE(copy);
   return CDD_C_SUCCESS;
 }
 
@@ -242,7 +243,7 @@ enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
   if (!info || !project_name || !out_cmake)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  buf = (char *)malloc(cap);
+  buf = (char *)C_CDD_MALLOC(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -54,9 +55,9 @@ TEST test_scrape_makefile_basic(void) {
                 "target_include_directories(my_proj PRIVATE\n  ./include\n)") !=
          NULL);
 
-  free(cmake_str);
+  C_CDD_FREE(cmake_str);
   build_info_free(&info);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -86,7 +87,7 @@ TEST test_scrape_errors(void) {
             build_info_to_cmake(&info, "proj", NULL));
 
   build_info_free(&info);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -109,7 +110,7 @@ TEST test_scrape_configure_ac_basic(void) {
   ASSERT_STR_EQ("TEST", info.compile_defs[0]);
 
   build_info_free(&info);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

@@ -5,12 +5,15 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <ffi/cdd_ffi_ir.h>
+/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
@@ -38,7 +41,7 @@ TEST test_ffi_ir_free_full(void) {
   cdd_ffi_ir_node_t *n;
 
   ir.nodes_count = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
   n = &ir.nodes[0];
 
   n->name = strdup("Node1");
@@ -48,11 +51,11 @@ TEST test_ffi_ir_free_full(void) {
   n->return_or_base_type.ref_name = strdup("RetRef");
   n->return_or_base_type.template_args_count = 1;
   n->return_or_base_type.template_args =
-      (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+      (cdd_ffi_type_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
   n->return_or_base_type.template_args[0].ref_name = strdup("TArg1");
 
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].name = strdup("F1");
   n->fields[0].doc = strdup("FDoc1");
   n->fields[0].array_length_ref = strdup("FLen1");
@@ -60,25 +63,25 @@ TEST test_ffi_ir_free_full(void) {
 
   n->base_classes_count = 1;
   n->base_classes =
-      (cdd_ffi_base_class_t *)calloc(1, sizeof(cdd_ffi_base_class_t));
+      (cdd_ffi_base_class_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_base_class_t));
   n->base_classes[0].name = strdup("Base1");
   n->base_classes[0].access = strdup("public");
 
   n->virtual_methods_count = 1;
-  n->virtual_methods =
-      (cdd_ffi_virtual_method_t *)calloc(1, sizeof(cdd_ffi_virtual_method_t));
+  n->virtual_methods = (cdd_ffi_virtual_method_t *)C_CDD_CALLOC(
+      1, sizeof(cdd_ffi_virtual_method_t));
   n->virtual_methods[0].name = strdup("VMethod1");
   n->virtual_methods[0].return_type.ref_name = strdup("VRet1");
   n->virtual_methods[0].args_count = 1;
   n->virtual_methods[0].args =
-      (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->virtual_methods[0].args[0].name = strdup("VArg1");
   n->virtual_methods[0].args[0].doc = strdup("VArgDoc1");
   n->virtual_methods[0].args[0].type.ref_name = strdup("VArgType1");
 
   n->variants_count = 1;
   n->variants =
-      (cdd_ffi_enum_variant_t *)calloc(1, sizeof(cdd_ffi_enum_variant_t));
+      (cdd_ffi_enum_variant_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_enum_variant_t));
   n->variants[0].name = strdup("Var1");
   n->variants[0].value = strdup("VarVal1");
   n->variants[0].doc = strdup("VarDoc1");
@@ -93,14 +96,14 @@ TEST test_ffi_ir_toposort_complex(void) {
   int rc;
 
   ir.nodes_count = 11;
-  ir.nodes = (cdd_ffi_ir_node_t *)calloc(11, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(11, sizeof(cdd_ffi_ir_node_t));
 
   /* Node 0: struct A, depends on B */
   n = &ir.nodes[0];
   n->name = strdup("A");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("B");
 
   /* Node 1: struct B, depends on C */
@@ -108,7 +111,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->name = strdup("B");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("C");
 
   /* Node 2: struct C, no deps but let's make it have a cycle with D */
@@ -116,7 +119,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->name = strdup("C");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 2;
-  n->fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("D");
   n->fields[1].type.ref_name = strdup("NON_EXISTENT"); /* Missing dep */
 
@@ -125,7 +128,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->name = strdup("D");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("C");
 
   /* Node 4: typedef myA A */
@@ -140,7 +143,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->kind = CDD_FFI_NODE_FUNCTION;
   n->return_or_base_type.ref_name = strdup("A");
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("B");
 
   /* Node 6: union U */
@@ -148,7 +151,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->name = strdup("U");
   n->kind = CDD_FFI_NODE_UNION;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("A");
 
   /* Node 7: Unnamed node to cover NULL name check in find_node_index */
@@ -161,7 +164,7 @@ TEST test_ffi_ir_toposort_complex(void) {
   n->name = strdup("PrimitiveStruct");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = NULL;
 
   /* Node 9: typedef with primitive base type to cover
@@ -218,27 +221,27 @@ TEST test_ffi_ir_free_partial(void) {
   cdd_ffi_ir_node_t *n;
 
   ir.nodes_count = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
   n = &ir.nodes[0];
 
   /* Allocate arrays but leave elements NULL to cover false branches */
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
 
   n->base_classes_count = 1;
   n->base_classes =
-      (cdd_ffi_base_class_t *)calloc(1, sizeof(cdd_ffi_base_class_t));
+      (cdd_ffi_base_class_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_base_class_t));
 
   n->virtual_methods_count = 2;
-  n->virtual_methods =
-      (cdd_ffi_virtual_method_t *)calloc(2, sizeof(cdd_ffi_virtual_method_t));
+  n->virtual_methods = (cdd_ffi_virtual_method_t *)C_CDD_CALLOC(
+      2, sizeof(cdd_ffi_virtual_method_t));
   n->virtual_methods[0].args_count = 1;
   n->virtual_methods[0].args =
-      (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
 
   n->variants_count = 1;
   n->variants =
-      (cdd_ffi_enum_variant_t *)calloc(1, sizeof(cdd_ffi_enum_variant_t));
+      (cdd_ffi_enum_variant_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_enum_variant_t));
 
   cdd_ffi_ir_free(&ir);
   PASS();
@@ -255,13 +258,13 @@ TEST test_ffi_ir_c_toposort_oom(void) {
   int rc;
 
   ir.nodes_count = 2;
-  ir.nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
 
   n = &ir.nodes[0];
   n->name = strdup("A");
   n->kind = CDD_FFI_NODE_STRUCT;
   n->fields_count = 1;
-  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
   n->fields[0].type.ref_name = strdup("B");
 
   n = &ir.nodes[1];

@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +35,7 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
     return;
   if (list->sites) {
-    free(list->sites);
+    C_CDD_FREE(list->sites);
   }
   (void)hoist_site_list_init(list);
 }
@@ -154,7 +155,7 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
             if (list->count >= list->capacity) {
               struct HoistSite *new_sites;
               list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-              new_sites = (struct HoistSite *)realloc(
+              new_sites = (struct HoistSite *)C_CDD_REALLOC(
                   list->sites, list->capacity * sizeof(struct HoistSite));
               if (!new_sites)
                 return CDD_C_ERROR_MEMORY;

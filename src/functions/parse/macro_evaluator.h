@@ -10,6 +10,12 @@ extern "C" {
 #include "cdd_c_error.h"
 #include "preprocessor.h"
 #include <stddef.h>
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef signed __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
 /* clang-format on */
 
 /**
@@ -31,7 +37,7 @@ typedef struct cdd_macro_eval_result_t {
   /** @brief Type of the result */
   cdd_macro_eval_type_t type;
   /** @brief Integer value */
-  long long int_val;
+  int64_t int_val;
   /** @brief Float value */
   double float_val;
   /** @brief String value (dynamically allocated) */

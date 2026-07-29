@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "macro_evaluator.h"
 #include <ctype.h>
 #include <errno.h>
@@ -40,7 +41,7 @@ typedef enum {
 
 typedef struct {
   macro_tok_kind_t kind;
-  long long int_val;
+  int64_t int_val;
   double float_val;
   char *str_val;
 } macro_tok_t;
@@ -54,7 +55,7 @@ typedef struct {
 
 static void free_tok(macro_tok_t *tok) {
   if ((tok->kind == TOK_STR || tok->kind == TOK_IDENT) && tok->str_val) {
-    free(tok->str_val);
+    C_CDD_FREE(tok->str_val);
     tok->str_val = NULL;
   }
 }
@@ -118,7 +119,7 @@ static void next_tok(macro_lexer_t *lex) {
 
       {
         size_t len = lex->pos - start;
-        char *buf = (char *)malloc(len + 1);
+        char *buf = (char *)C_CDD_MALLOC(len + 1);
         if (!buf) {
           lex->cur.kind = TOK_ERROR;
           return;
@@ -136,7 +137,7 @@ static void next_tok(macro_lexer_t *lex) {
           lex->cur.int_val = strtoll(buf, NULL, 0);
 #endif
         }
-        free(buf);
+        C_CDD_FREE(buf);
       }
       return;
     }
@@ -151,7 +152,7 @@ static void next_tok(macro_lexer_t *lex) {
       {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_IDENT;
-        lex->cur.str_val = (char *)malloc(len + 1);
+        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
         if (lex->cur.str_val) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
@@ -172,7 +173,7 @@ static void next_tok(macro_lexer_t *lex) {
       if (lex->pos < lex->len) {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_STR;
-        lex->cur.str_val = (char *)malloc(len + 1);
+        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
         if (lex->cur.str_val) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
@@ -303,7 +304,7 @@ static cdd_macro_eval_result_t make_err(void) {
   return r;
 }
 
-static cdd_macro_eval_result_t make_int(long long v) {
+static cdd_macro_eval_result_t make_int(int64_t v) {
   cdd_macro_eval_result_t r = make_err();
   r.type = MACRO_EVAL_TYPE_INT;
   r.int_val = v;
@@ -677,7 +678,7 @@ enum cdd_c_error cdd_macro_evaluate(struct PreprocessorContext *ctx,
 
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
   if (result && result->str_val) {
-    free(result->str_val);
+    C_CDD_FREE(result->str_val);
     result->str_val = NULL;
   }
 }

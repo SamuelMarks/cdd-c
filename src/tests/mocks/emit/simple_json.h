@@ -26,14 +26,17 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
-/* clang-format off */
 #if defined(_MSC_VER) && _MSC_VER < 1800
+/* clang-format off */
 #include "msvc/stdbool.h"
 #else
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdbool.h>
+#else
+#include "msvc/stdbool.h"
+#endif
 #endif
 #include "cdd_c_error.h"
-/* clang-format on */
 #endif
 #endif
 #else

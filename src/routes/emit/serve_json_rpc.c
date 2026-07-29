@@ -3,8 +3,8 @@
  * @brief Implementation of JSON-RPC server generation.
  */
 
-/* clang-format off */
 #ifndef __wasi__
+/* clang-format off */
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
 #include <parson.h>
@@ -31,7 +31,9 @@
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #endif
 #endif
 #endif
@@ -83,21 +85,21 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
 
   body = strstr(buffer, "\r\n\r\n");
   if (!body) {
-    send_rpc_error(client_fd, -32700, "Parse error");
+    { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32700, "Parse error"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   body += 4;
 
   root_val = json_parse_string(body);
   if (!root_val) {
-    send_rpc_error(client_fd, -32700, "Parse error");
+    { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32700, "Parse error"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   root_obj = json_value_get_object(root_val);
   method = json_object_get_string(root_obj, "method");
   if (!method) {
-    send_rpc_error(client_fd, -32600, "Invalid Request");
+    { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32600, "Invalid Request"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     json_value_free(root_val);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -199,12 +201,12 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
     JSON_Object *arguments = params ? json_object_get_object(params, "arguments") : NULL;
 
     if (!name || !arguments) {
-        send_rpc_error(client_fd, -32602, "Invalid params for tools/call");
+        { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32602, "Invalid params for tools/call"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     } else if (strcmp(name, "to_openapi") == 0) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input || !output) {
-            send_rpc_error(client_fd, -32602, "Invalid arguments for to_openapi");
+            { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32602, "Invalid arguments for to_openapi"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
         } else {
             char *argv[5];
             const char *resp;
@@ -222,7 +224,7 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input) {
-            send_rpc_error(client_fd, -32602, "Invalid arguments for to_docs_json");
+            { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32602, "Invalid arguments for to_docs_json"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
         } else {
             char *argv[10];
             int argc_call = 0;
@@ -245,14 +247,14 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
             send(client_fd, resp, (int)strlen(resp), 0);
         }
     } else {
-        send_rpc_error(client_fd, -32601, "Tool not found");
+        { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32601, "Tool not found"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     }
   } else if (strcmp(method, "to_openapi") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
     const char *output = params ? json_object_get_string(params, "output") : NULL;
     if (!input || !output) {
-       send_rpc_error(client_fd, -32602, "Invalid params");
+       { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32602, "Invalid params"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     } else {
        char *argv[5];
        argv[0] = "to_openapi";
@@ -261,14 +263,14 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
        argv[3] = "-o";
        argv[4] = (char *)output;
        to_openapi_cli_main(5, argv);
-       send_rpc_success(client_fd);
+       { enum cdd_c_error err_rc = send_rpc_success(client_fd); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     }
   } else if (strcmp(method, "to_docs_json") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
     const char *output = params ? json_object_get_string(params, "output") : NULL;
     if (!input) {
-       send_rpc_error(client_fd, -32602, "Invalid params");
+       { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32602, "Invalid params"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     } else {
        char *argv[10];
        int argc = 0;
@@ -286,7 +288,7 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
          argv[argc++] = "--no-wrapping";
        }
        to_docs_json_cli_main(argc, argv);
-       send_rpc_success(client_fd);
+       { enum cdd_c_error err_rc = send_rpc_success(client_fd); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
     }
   } else if (strncmp(method, "from_openapi_", 13) == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -304,7 +306,7 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
     } else if (strcmp(method, "from_openapi_to_server") == 0) {
       argv[argc++] = "to_server";
     } else {
-      send_rpc_error(client_fd, -32601, "Method not found");
+      { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32601, "Method not found"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
       json_value_free(root_val);
       return CDD_C_ERROR_INVALID_ARGUMENT;
     }
@@ -333,9 +335,9 @@ static enum cdd_c_error handle_request(cdd_socket_t client_fd) {
     }
 
     from_openapi_cli_main(argc, argv);
-    send_rpc_success(client_fd);
+    { enum cdd_c_error err_rc = send_rpc_success(client_fd); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
   } else {
-    send_rpc_error(client_fd, -32601, "Method not found");
+    { enum cdd_c_error err_rc = send_rpc_error(client_fd, -32601, "Method not found"); if (err_rc != CDD_C_SUCCESS) { json_value_free(root_val); return err_rc; } }
   }
 
   json_value_free(root_val);
@@ -618,7 +620,15 @@ C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv) {
     if (client_fd == INVALID_SOCKET)
       continue;
 
-    handle_request(client_fd);
+    enum cdd_c_error rc = handle_request(client_fd);
+    if (rc != CDD_C_SUCCESS) {
+#if defined(_WIN32)
+        closesocket(client_fd);
+#else
+        close(client_fd);
+#endif
+        break;
+    }
 
 #if defined(_WIN32)
     closesocket(client_fd);
@@ -648,7 +658,10 @@ C_CDD_EXPORT enum cdd_c_error serve_mcp_stdio_main(int argc, char **argv) {
   (void)argv;
 
   while (fgets(buffer, sizeof(buffer), stdin)) {
-    handle_stdio_request(buffer);
+    enum cdd_c_error hr_rc = handle_stdio_request(buffer);
+    if (hr_rc != CDD_C_SUCCESS) {
+      return hr_rc;
+    }
   }
   return CDD_C_SUCCESS;
 }

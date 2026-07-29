@@ -1,13 +1,12 @@
 #ifndef C_CDD_FORMAT_SPECIFIERS_H
 #define C_CDD_FORMAT_SPECIFIERS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 /* clang-format off */
 #include <stddef.h>
 /* clang-format on */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @file format_specifiers.h
@@ -43,8 +42,8 @@ extern "C" {
 #endif
 #endif
 
+#endif /* C_CDD_FORMAT_SPECIFIERS_H */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* C_CDD_FORMAT_SPECIFIERS_H */

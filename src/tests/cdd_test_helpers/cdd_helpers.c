@@ -1,3 +1,4 @@
+/* clang-format off */
 #include "cdd_c_error.h"
 /**
  * @file cdd_helpers.c
@@ -5,13 +6,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "cdd_helpers.h"
-/* clang-format on */
 #include <errno.h>
+/* clang-format on */
 
 /**
  * @brief Logs a precondition failure to stderr.

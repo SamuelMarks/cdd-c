@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +58,7 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
   }
 
   fprintf(fp, "  if (!json || !out) return CDD_C_ERROR_UNKNOWN;\n");
-  fprintf(fp, "  ret = (struct %s *)calloc(1, sizeof(struct %s));\n",
+  fprintf(fp, "  ret = (struct %s *)C_CDD_CALLOC(1, sizeof(struct %s));\n",
           struct_name, struct_name);
   fprintf(fp, "  if (!ret) return CDD_C_ERROR_UNKNOWN;\n\n");
 
@@ -167,7 +168,7 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  return CDD_C_SUCCESS;\n");
 
   fprintf(fp, "\nerr:\n");
-  fprintf(fp, "  free(ret);\n");
+  fprintf(fp, "  C_CDD_FREE(ret);\n");
   fprintf(fp, "  return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "}\n");
   return CDD_C_SUCCESS;

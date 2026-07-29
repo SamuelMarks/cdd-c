@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -45,7 +46,7 @@ gen_parse_code(const char *name, struct StructFields *sf, char **_out_val) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 
@@ -74,12 +75,12 @@ TEST test_int_min_validation(void) {
   ASSERT(code != NULL);
 
   /* Check basic logic */
-  ASSERT(strstr(code, "if (tmp < 10.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp < 10.000000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -102,12 +103,12 @@ TEST test_int_exclusive_min(void) {
   ASSERT(code != NULL);
 
   /* Check exclusive */
-  ASSERT(strstr(code, "if (tmp <= 5.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp <= 5.000000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -129,12 +130,12 @@ TEST test_double_max_validation(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp > 100.500000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp > 100.500000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -157,12 +158,12 @@ TEST test_double_exclusive_max(void) {
   ASSERT(code != NULL);
 
   /* Check logic */
-  ASSERT(strstr(code, "if (tmp >= 0.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp >= 0.000000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -185,14 +186,14 @@ TEST test_min_and_max(void) {
           _ast_gen_parse_code_4);
   ASSERT(code != NULL);
 
-  ASSERT(strstr(code, "if (tmp < 0.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp < 0.000000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
-  ASSERT(strstr(code, "if (tmp > 120.000000) { free(ret); return "
+  ASSERT(strstr(code, "if (tmp > 120.000000) { C_CDD_FREE(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -221,9 +222,9 @@ TEST test_string_len_validation(void) {
   ASSERT(strstr(code, "if (len > 10) { StrLen_cleanup(ret); return "
                       "CDD_C_ERROR_INVALID_ARGUMENT; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -258,9 +259,9 @@ TEST test_string_simple_pattern_prefix(void) {
 
   ASSERT(strstr(code, "strncmp(ret->p, \"prefix\", 6) != 0"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -295,9 +296,9 @@ TEST test_string_simple_pattern_suffix(void) {
 
   ASSERT(strstr(code, "strcmp(ret->p + len - 6, \"suffix\")"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -332,9 +333,9 @@ TEST test_string_simple_pattern_exact(void) {
 
   ASSERT(strstr(code, "strcmp(ret->p, \"exact\") != 0"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -369,9 +370,9 @@ TEST test_string_simple_pattern_contains(void) {
 
   ASSERT(strstr(code, "strstr(ret->p, \"sub\") == NULL"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

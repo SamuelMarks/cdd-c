@@ -12,6 +12,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -30,8 +31,8 @@
 #else
 #include <errno.h>
 #include "c_cdd/log.h"
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Internal component structure for a parsed signature.
@@ -65,17 +66,17 @@ static enum cdd_c_error parsed_sig_init(struct ParsedSig *sig) {
  */
 static void parsed_sig_free(struct ParsedSig *sig) {
   if (sig->attributes)
-    free(sig->attributes);
+    C_CDD_FREE(sig->attributes);
   if (sig->storage)
-    free(sig->storage);
+    C_CDD_FREE(sig->storage);
   if (sig->ret_type)
-    free(sig->ret_type);
+    C_CDD_FREE(sig->ret_type);
   if (sig->name)
-    free(sig->name);
+    C_CDD_FREE(sig->name);
   if (sig->args)
-    free(sig->args);
+    C_CDD_FREE(sig->args);
   if (sig->k_r_decls)
-    free(sig->k_r_decls);
+    C_CDD_FREE(sig->k_r_decls);
 }
 
 /**
@@ -97,7 +98,7 @@ static enum cdd_c_error join_tokens(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -413,7 +414,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 #else
       size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
                    strlen(sig.args) + strlen(k_r_suffix) + 20;
-      *out_code = malloc(len);
+      *out_code = C_CDD_MALLOC(len);
       if (!*out_code) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -449,7 +450,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 #ifdef HAVE_ASPRINTF
           asprintf(&new_args, "%s, out", sig.args);
 #else
-          new_args = malloc(strlen(sig.args) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.args) + 10);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.args) + 10, "%s, out", sig.args);
@@ -464,7 +465,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 #ifdef HAVE_ASPRINTF
           asprintf(&new_args, "%s *out", sig.ret_type);
 #else
-          new_args = malloc(strlen(sig.ret_type) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.ret_type) + 10);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.ret_type) + 10, "%s *out",
@@ -477,7 +478,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
 #ifdef HAVE_ASPRINTF
           asprintf(&new_args, "%s, %s *out", sig.args, sig.ret_type);
 #else
-          new_args = malloc(strlen(sig.args) + strlen(sig.ret_type) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.args) + strlen(sig.ret_type) + 10);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.args) + strlen(sig.ret_type) + 10,
@@ -508,7 +509,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
         size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
                      strlen(new_args) + strlen(k_r_suffix) +
                      strlen(sig.ret_type) + 20;
-        *out_code = malloc(len);
+        *out_code = C_CDD_MALLOC(len);
         if (sig.k_r_decls) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -530,7 +531,7 @@ enum cdd_c_error rewrite_signature(const struct TokenList *tokens,
         }
       }
 #endif
-      free(new_args);
+      C_CDD_FREE(new_args);
     }
   }
 

@@ -54,7 +54,6 @@ TEST test_trigraph_basic(void) {
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind); /* index 1 is WS */
 
   free_token_list(tl);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -77,7 +76,6 @@ TEST test_splice_basic(void) {
   ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
 
   free_token_list(tl);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -98,7 +96,6 @@ TEST test_trigraph_splice_interaction(void) {
   ASSERT_EQ(TOKEN_KEYWORD_INT, tl->tokens[0].kind);
 
   free_token_list(tl);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -142,7 +139,6 @@ TEST test_splice_does_not_create_trigraph(void) {
   ASSERT_EQ(TOKEN_ASSIGN, tl->tokens[2].kind);
 
   free_token_list(tl);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -178,7 +174,6 @@ TEST test_matches_string_with_splice(void) {
           _ast_token_matches_string_0));
 
   free_token_list(tl);
-  g_fail_io_after = -1;
 
   PASS();
 }

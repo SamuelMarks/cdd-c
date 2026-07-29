@@ -12,7 +12,6 @@
 #include <ctype.h>
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
-
 /* clang-format on */
 
 #define CHECK_IO(x)                                                            \

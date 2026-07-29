@@ -10,8 +10,6 @@
 
 static const char *get_rust_primitive(cdd_ffi_primitive_kind_t kind) {
   switch (kind) {
-  case CDD_FFI_KIND_VOID:
-    return "std::ffi::c_void";
   case CDD_FFI_KIND_BOOL:
     return "bool";
   case CDD_FFI_KIND_INT8:
@@ -92,6 +90,15 @@ static enum cdd_c_error emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   f = fopen(filepath, "w");
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -168,6 +175,15 @@ static enum cdd_c_error emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   f = fopen(filepath, "w");
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -273,6 +289,15 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   f = fopen(filepath, "w");
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 557) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -306,6 +331,15 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
   f = fopen(filepath, "w");
 #endif
 
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 558) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f)
     return CDD_C_ERROR_IO;
 

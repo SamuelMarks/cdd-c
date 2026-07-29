@@ -1,5 +1,6 @@
-#include "cdd_c_error.h"
 /* clang-format off */
+#include "c_cdd/memory.h"
+#include "cdd_c_error.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,27 +28,31 @@ char *strdup(const char *s);
 
 #include "simple_json.h"
 #include "simple_mocks_export.h"
+/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc = 0;
-static void *test_malloc(size_t size) {
+static void *local_test_malloc(size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
   }
   return malloc(size);
 }
-static void *test_calloc(size_t count, size_t size) {
+static void *local_test_calloc(size_t count, size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
   }
   return calloc(count, size);
 }
-static char *test_strdup(const char *s) {
+static char *local_test_strdup(const char *s) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
   }
   return strdup(s);
 }
@@ -60,13 +65,13 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
     int ret;
     va_list ap;
     va_start(ap, fmt);
-    /* Since we only need to test allocation failure, we can just call the real jasprintf.
-       However, jasprintf does the allocation. Wait, if we want jasprintf to fail,
-       jasprintf is an external function.
-       Since jasprintf uses malloc/realloc internally which we haven't overridden
-       (we only #defined malloc locally in this file, which doesn't affect the external jasprintf library),
-       the external jasprintf won't see our fail_alloc counter!
-       So we MUST implement the jasprintf logic here. */
+    /* Since we only need to test allocation failure, we can just call the real
+       jasprintf. However, jasprintf does the allocation. Wait, if we want
+       jasprintf to fail, jasprintf is an external function. Since jasprintf
+       uses malloc/realloc internally which we haven't overridden (we only
+       #defined malloc locally in this file, which doesn't affect the external
+       jasprintf library), the external jasprintf won't see our fail_alloc
+       counter! So we MUST implement the jasprintf logic here. */
     {
       char *new_str;
       int len;
@@ -80,12 +85,20 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
       }
       if (*strp == NULL) {
         new_str = malloc(len + 1);
-        if (!new_str) { va_end(ap); return -1; }
+        if (!new_str) {
+          va_end(ap);
+          return -1;
+        }
         vsnprintf(new_str, len + 1, fmt, ap);
       } else {
         size_t old_len = strlen(*strp);
         new_str = malloc(old_len + len + 1);
-        if (!new_str) { free(*strp); *strp = NULL; va_end(ap); return -1; }
+        if (!new_str) {
+          free(*strp);
+          *strp = NULL;
+          va_end(ap);
+          return -1;
+        }
         strcpy(new_str, *strp);
         vsnprintf(new_str + old_len, len + 1, fmt, ap);
         free(*strp);
@@ -95,20 +108,18 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
     }
     va_end(ap);
     return ret;
-    }
-    #if defined(__clang__)
-    #pragma clang diagnostic pop
-    #endif
+  }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 }
-#define malloc test_malloc
-#define calloc test_calloc
+#define malloc local_test_malloc
+#define calloc local_test_calloc
 #undef strdup
-#define strdup test_strdup
+#define strdup local_test_strdup
 #undef c89stringutils_jasprintf
 #define c89stringutils_jasprintf test_jasprintf
 #endif
-
-/* clang-format on */
 
 static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {

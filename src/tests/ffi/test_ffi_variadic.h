@@ -1,4 +1,3 @@
-/* clang-format off */
 #ifndef TEST_FFI_VARIADIC_H
 #define TEST_FFI_VARIADIC_H
 
@@ -6,13 +5,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "greatest.h"
 #include "cdd_c_error.h"
 #include "../../../include/ffi/cdd_ffi_variadic.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-
 /* clang-format on */
 
 static int dummy_variadic_func_call_count = 0;

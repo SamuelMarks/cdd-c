@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -33,11 +34,11 @@ enum cdd_c_error c_mapping_init(struct OpenApiTypeMapping *out) {
 void c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
     if (out->oa_type)
-      free(out->oa_type);
+      C_CDD_FREE(out->oa_type);
     if (out->oa_format)
-      free(out->oa_format);
+      C_CDD_FREE(out->oa_format);
     if (out->ref_name)
-      free(out->ref_name);
+      C_CDD_FREE(out->ref_name);
     memset(out, 0, sizeof(*out));
   }
 }
@@ -56,7 +57,7 @@ static enum cdd_c_error set_primitive(struct OpenApiTypeMapping *out,
   if (fmt) {
     c_cdd_strdup(fmt, &out->oa_format);
     if (!out->oa_format) {
-      free(out->oa_type);
+      C_CDD_FREE(out->oa_type);
       out->oa_type = NULL;
       return CDD_C_ERROR_MEMORY;
     }
@@ -229,7 +230,7 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
 
         rc = set_ref(out, start);
       }
-      free(clean);
+      C_CDD_FREE(clean);
     } else {
       /* Fallback: Unknown type (defaults to string usually in schemas?) */
       /* Keep generic T as object for templates */
@@ -270,9 +271,9 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
     (void)inner_ref;
     (void)inner_type;
     if (inner_ref)
-      free(inner_ref);
+      C_CDD_FREE(inner_ref);
     if (inner_type)
-      free(inner_type);
+      C_CDD_FREE(inner_type);
   }
 
   return CDD_C_SUCCESS;

@@ -1,8 +1,9 @@
 #ifndef CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 #define CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 
-/* clang-format off */
 /* #include "cdd_cst.h" */
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "greatest.h"
 #include <errno.h>
@@ -157,9 +158,11 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
       "void * my_void_ptr_func() { return NULL; }\n"
       "void trailing_call() { my_void_ptr_func }\n"
       "void skip_ident_2() { int x; void x; }\n"
-      "void alloc_complex() { struct X { int *p; } x; x.p = malloc(10); }\n"
-      "void alloc_complex2() { int *arr[10]; arr[0] = calloc(1, 10); }\n"
-      "void alloc_complex3() { struct X { int *p; } *x; x->p = realloc(NULL, "
+      "void alloc_complex() { struct X { int *p; } x; x.p = C_CDD_MALLOC(10); "
+      "}\n"
+      "void alloc_complex2() { int *arr[10]; arr[0] = C_CDD_CALLOC(1, 10); }\n"
+      "void alloc_complex3() { struct X { int *p; } *x; x->p = "
+      "C_CDD_REALLOC(NULL, "
       "10); }\n"
       "void alloc_strdup() { char *s = strdup(\"test\"); }\n";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
@@ -172,7 +175,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
   cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -187,8 +190,8 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   cdd_cst_node_t *unknown_node = NULL;
   cdd_token_t *rbrace_tok = NULL;
   cdd_cst_child_t *c = NULL;
-  const char *code =
-      "void foo() { void *p = malloc(1); void *p2 = malloc(1); return; }";
+  const char *code = "void foo() { void *p = C_CDD_MALLOC(1); void *p2 = "
+                     "C_CDD_MALLOC(1); return; }";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   g_err_perc_fail = 1;
@@ -199,14 +202,15 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(
-        az_span_create_from_str("CDD_VOID edge_void() { malloc(1); }"), &t);
+        az_span_create_from_str("CDD_VOID edge_void() { C_CDD_MALLOC(1); }"),
+        &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(az_span_create_from_str(
-                      "int /* comment */ edge_void2() { malloc(1); }"),
+                      "int /* comment */ edge_void2() { C_CDD_MALLOC(1); }"),
                   &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
@@ -214,23 +218,25 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(
-        az_span_create_from_str("void edge_void3() { malloc(1); malloc(1); }"),
+        az_span_create_from_str(
+            "void edge_void3() { C_CDD_MALLOC(1); C_CDD_MALLOC(1); }"),
         &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
-        az_span_create_from_str("void edge_void4() { if (1) malloc(1); }"), &t);
+    cdd_cst_parse(az_span_create_from_str(
+                      "void edge_void4() { if (1) C_CDD_MALLOC(1); }"),
+                  &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
-        az_span_create_from_str("void edge_void5() { if (1) { malloc(1); } }"),
-        &t);
+    cdd_cst_parse(az_span_create_from_str(
+                      "void edge_void5() { if (1) { C_CDD_MALLOC(1); } }"),
+                  &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
@@ -242,9 +248,9 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
 
   /* Mock an unknown block node manually to hit the unknown branch logic */
-  unknown_node = calloc(1, sizeof(cdd_cst_node_t));
-  rbrace_tok = calloc(1, sizeof(cdd_token_t));
-  c = calloc(1, sizeof(cdd_cst_child_t));
+  unknown_node = C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+  rbrace_tok = C_CDD_CALLOC(1, sizeof(cdd_token_t));
+  c = C_CDD_CALLOC(1, sizeof(cdd_cst_child_t));
   rbrace_tok_to_free = rbrace_tok;
 
   unknown_node->kind = CDD_CST_UNKNOWN;
@@ -267,7 +273,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   cdd_cst_tree_free(tree);
   if (rbrace_tok_to_free)
-    free(rbrace_tok_to_free);
+    C_CDD_FREE(rbrace_tok_to_free);
   tree = NULL;
 
   g_err_perc_fail = 3; /* For return builder mock */
@@ -284,7 +290,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   g_err_perc_fail = 0;
 #endif
-  g_fail_io_after = -1;
+
   PASS();
 }
 

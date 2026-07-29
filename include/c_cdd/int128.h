@@ -9,11 +9,6 @@
 #ifndef C_CDD_INT128_H
 #define C_CDD_INT128_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-/* clang-format off */
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
@@ -24,9 +19,17 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #else
+#if !defined(_MSC_VER) || _MSC_VER >= 1600
+/* clang-format off */
 #include <stdint.h>
-#endif
+#else
+#include "msvc/stdint.h"
 /* clang-format on */
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+#endif
 
 /**
  * @brief 128-bit unsigned integer structure.
@@ -81,8 +84,8 @@ static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
   (is_signed ? *(cdd_int128_t *)0                                              \
              : *(cdd_int128_t *)0) /* Stub implementation */
 
+#endif /* C_CDD_INT128_H */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* C_CDD_INT128_H */

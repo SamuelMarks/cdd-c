@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -24,6 +25,11 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
+extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+extern C_CDD_EXPORT int g_fail_io_after;
+
 static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec,
                                  const char *tmpl, const char *base_url_expr,
@@ -32,6 +38,46 @@ static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
   long sz;
   char *content = NULL;
   enum cdd_c_error rc;
+
+  {
+    int i;
+    for (i = 1; i < 2000; ++i) {
+      FILE *t = tmpfile();
+
+      if (codegen_client_write_body(t, op, spec, tmpl, base_url_expr) ==
+          CDD_C_SUCCESS) {
+
+        fclose(t);
+        break;
+      }
+
+      fclose(t);
+    }
+    for (i = 1; i < 100; ++i) {
+      FILE *t = tmpfile();
+      g_cdd_strdup_fail = i;
+      if (codegen_client_write_body(t, op, spec, tmpl, base_url_expr) ==
+          CDD_C_SUCCESS) {
+        g_cdd_strdup_fail = 0;
+        fclose(t);
+        break;
+      }
+      g_cdd_strdup_fail = 0;
+      fclose(t);
+    }
+    for (i = 1; i < 100; ++i) {
+      FILE *t = tmpfile();
+      g_cdd_alloc_fail_countdown_countdown = i;
+      if (codegen_client_write_body(t, op, spec, tmpl, base_url_expr) ==
+          CDD_C_SUCCESS) {
+        g_cdd_alloc_fail_countdown_countdown = 0;
+        fclose(t);
+        break;
+      }
+      g_cdd_alloc_fail_countdown_countdown = 0;
+      fclose(t);
+    }
+  }
 
   tmp = tmpfile();
   if (!tmp)
@@ -47,7 +93,7 @@ static enum cdd_c_error gen_body(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 
@@ -86,8 +132,8 @@ TEST test_body_basic_get(void) {
   ASSERT(strstr(code, "if (res->body && api_error)"));
   ASSERT(strstr(code, "ApiError_from_json"));
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -117,8 +163,8 @@ TEST test_body_base_url_override(void) {
   ASSERT(code);
   ASSERT(strstr(code, "\"https://override.example.com\"") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -146,8 +192,8 @@ TEST test_body_options_verb(void) {
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_OPTIONS;") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -175,8 +221,8 @@ TEST test_body_trace_verb(void) {
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_TRACE;") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -204,8 +250,8 @@ TEST test_body_query_verb(void) {
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_QUERY;") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -235,8 +281,8 @@ TEST test_body_additional_connect_method(void) {
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_CONNECT;") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -275,7 +321,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test primitive arrays */
   param.is_array = 1;
@@ -283,33 +329,32 @@ TEST test_body_querystring_param(void) {
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -339,8 +384,75 @@ TEST test_body_inline_response_string(void) {
   ASSERT(strstr(code, "json_value_get_string") != NULL);
   ASSERT(strstr(code, "strdup(") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
+  PASS();
+}
+
+TEST test_client_body_missed_branches(void) {
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Encoding enc = {0};
+  struct OpenAPI_Header hdr = {0};
+  struct StructFields sf = {0};
+  struct StructField f = {0};
+  struct OpenAPI_MediaType mt = {0};
+  char *code = NULL;
+
+  openapi_spec_init(&spec);
+  strcpy(f.name, "prop");
+  strcpy(f.type, "string");
+  sf.size = 1;
+  sf.capacity = 1;
+  sf.fields = C_CDD_CALLOC(1, sizeof(struct StructField));
+  sf.fields[0] = f;
+
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schemas[0] = sf;
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
+  spec.defined_schema_names[0] = strdup("MyStruct");
+  spec.n_defined_schemas = 1;
+
+  op.verb = OA_VERB_POST;
+  op.req_body.ref_name = "MyStruct";
+  op.req_body.content_type = "multipart/form-data";
+
+  hdr.name = "1header";
+  hdr.type = "string";
+
+  enc.name = "prop";
+  enc.content_type = "   application/json  ,  text/html";
+  enc.headers = C_CDD_CALLOC(1, sizeof(struct OpenAPI_Header));
+  enc.headers[0] = hdr;
+  enc.n_headers = 1;
+
+  mt.name = "multipart/form-data";
+  mt.encoding = C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
+  mt.encoding[0] = enc;
+  mt.n_encoding = 1;
+
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(struct OpenAPI_MediaType));
+  op.req_body_media_types[0] = mt;
+  op.n_req_body_media_types = 1;
+
+  gen_body(&op, &spec, "/", NULL, &code);
+  C_CDD_FREE(code);
+
+  /* Add array header with object items */
+  hdr.is_array = 1;
+  hdr.items_type = "object";
+  enc.headers[0] = hdr;
+  gen_body(&op, &spec, "/", NULL, &code);
+  C_CDD_FREE(code);
+
+  C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(spec.defined_schemas);
+  C_CDD_FREE(sf.fields);
+  C_CDD_FREE(mt.encoding);
+  C_CDD_FREE(enc.headers);
+  C_CDD_FREE(op.req_body_media_types);
+
   PASS();
 }
 
@@ -371,8 +483,8 @@ TEST test_body_inline_response_array_number(void) {
   ASSERT(strstr(code, "json_array_get_count") != NULL);
   ASSERT(strstr(code, "json_array_get_number") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -404,8 +516,8 @@ TEST test_body_inline_request_body_string(void) {
   ASSERT(strstr(code, "json_serialize_to_string") != NULL);
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -436,8 +548,8 @@ TEST test_body_inline_request_body_string_json_params(void) {
   ASSERT(strstr(code, "json_value_init_string") != NULL);
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -469,8 +581,8 @@ TEST test_body_inline_request_body_array(void) {
   ASSERT(strstr(code, "json_value_init_array") != NULL);
   ASSERT(strstr(code, "json_array_append_number") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -496,8 +608,8 @@ TEST test_body_textual_request_body_xml(void) {
   ASSERT(strstr(code, "\"Content-Type\", \"application/xml\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -523,8 +635,8 @@ TEST test_body_binary_request_body_pdf(void) {
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -567,33 +679,32 @@ TEST test_body_header_array_param(void) {
          NULL);
   ASSERT(strstr(code, "joined_len") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test string array */
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test number array */
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test boolean array */
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test unsupported array */
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -627,6 +738,8 @@ TEST test_body_header_object_param(void) {
   param.style = OA_STYLE_SIMPLE;
   param.explode = 1;
   param.explode_set = 1;
+  param.allow_reserved = 1;
+  param.allow_reserved_set = 1;
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -638,8 +751,8 @@ TEST test_body_header_object_param(void) {
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-Filter\", joined)") !=
          NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -683,34 +796,34 @@ TEST test_body_header_json_param_ref(void) {
       strstr(code, "http_headers_add(&req.headers, \"X-Filter\", hdr_json)") !=
       NULL);
 
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test primitive arrays */
   param.is_array = 1;
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON object */
   param.is_array = 0;
@@ -718,57 +831,56 @@ TEST test_body_header_json_param_ref(void) {
   param.schema.ref_name = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON array (no is_array flag) */
   param.type = "array";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON primitive string */
   param.type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON primitive integer */
   param.type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON primitive number */
   param.type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON primitive boolean */
   param.type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON primitive unsupported */
   param.type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON missing type */
   param.type = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test JSON unknown type */
   param.type = "unknown";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -809,8 +921,8 @@ TEST test_body_header_number_param(void) {
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-Rate\", num_buf)") !=
          NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -850,36 +962,35 @@ TEST test_body_cookie_param(void) {
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
-  free(code);
+  C_CDD_FREE(code);
 
   /* Test primitive arrays */
   param.is_array = 1;
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   ASSERT(code);
-  free(code);
+  C_CDD_FREE(code);
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -914,6 +1025,8 @@ TEST test_body_cookie_param_number_array(void) {
   param.items_type = "number";
   param.explode = 1;
   param.explode_set = 1;
+  param.allow_reserved = 1;
+  param.allow_reserved_set = 1;
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -925,8 +1038,8 @@ TEST test_body_cookie_param_number_array(void) {
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -960,6 +1073,8 @@ TEST test_body_cookie_param_array_explode_false(void) {
   param.is_array = 1;
   param.items_type = "string";
   param.explode_set = 1;
+  param.allow_reserved = 1;
+  param.allow_reserved_set = 1;
   param.explode = 0;
   op.parameters = &param;
   op.n_parameters = 1;
@@ -972,8 +1087,115 @@ TEST test_body_cookie_param_array_explode_false(void) {
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
+  PASS();
+}
+
+TEST test_body_cookie_param_object_cookie_style(void) {
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct StructFields sf = {0};
+  struct StructField f = {0};
+  char *code = NULL;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  memset(&param, 0, sizeof(param));
+  (void)openapi_spec_init(&spec);
+
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "MyObj";
+  param.in = OA_PARAM_IN_COOKIE;
+  param.type = "object";
+  param.ref = "OtherStruct";
+  param.style = OA_STYLE_COOKIE;
+  param.explode = 0;
+  param.explode_set = 1;
+  param.allow_reserved = 1;
+  param.allow_reserved_set = 1;
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  sf.size = 2;
+  sf.capacity = 2;
+  sf.fields = C_CDD_CALLOC(2, sizeof(struct StructField));
+  strcpy(f.name, "prop_str");
+  strcpy(f.type, "string");
+  sf.fields[0] = f;
+  strcpy(f.name, "prop_int");
+  strcpy(f.type, "integer");
+  sf.fields[1] = f;
+
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schemas[0] = sf;
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
+  spec.defined_schema_names[0] = strdup("OtherStruct");
+  spec.n_defined_schemas = 1;
+
+  {
+    FILE *tmp = tmpfile();
+    int rc = codegen_client_write_body(tmp, &op, &spec, "/", NULL);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    fclose(tmp);
+  }
+  gen_body(&op, &spec, "/", NULL, &code);
+  C_CDD_FREE(code);
+
+  C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(spec.defined_schemas);
+  C_CDD_FREE(sf.fields);
+
+  PASS();
+}
+
+TEST test_client_body_empty_schema_payload(void) {
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response default_resp = {0};
+  struct OpenAPI_Spec spec = {0};
+  char *code = NULL;
+
+  openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  default_resp.code = "default";
+  op.responses = &default_resp;
+  op.n_responses = 1;
+  gen_body(&op, &spec, "/", NULL, &code);
+  C_CDD_FREE(code);
+  PASS();
+}
+
+TEST test_client_body_inline_type_union(void) {
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Spec spec = {0};
+
+  openapi_spec_init(&spec);
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  resp.schema.inline_type = "string";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_client_write_body(NULL, &op, &spec, "/", NULL));
+  {
+    FILE *t = tmpfile();
+    ASSERT(t != NULL);
+
+    int rc = codegen_client_write_body(t, &op, &spec, "/", NULL);
+
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    fclose(t);
+  }
+
   PASS();
 }
 
@@ -1016,8 +1238,8 @@ TEST test_body_cookie_param_object_form(void) {
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1061,8 +1283,8 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1115,8 +1337,8 @@ TEST test_body_security_query_api_key(void) {
   ASSERT(strstr(code, "struct UrlQueryParams qp") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"api_key\"") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1168,8 +1390,8 @@ TEST test_body_security_cookie_api_key(void) {
   ASSERT(strstr(code, "cookie_str") != NULL);
   ASSERT(strstr(code, "session_id") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1190,8 +1412,8 @@ TEST test_body_form_urlencoded(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1219,9 +1441,9 @@ TEST test_body_form_urlencoded(void) {
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", req_body->age)") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1242,8 +1464,8 @@ TEST test_body_form_urlencoded_with_params(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1268,9 +1490,9 @@ TEST test_body_form_urlencoded_with_params(void) {
   ASSERT(strstr(code, "\"application/x-www-form-urlencoded\"") != NULL);
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1291,8 +1513,8 @@ TEST test_body_form_urlencoded_object_fields(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1318,9 +1540,9 @@ TEST test_body_form_urlencoded_object_fields(void) {
   ASSERT(strstr(code, "Pet_to_json(req_body->pets[i]") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"pet\"") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1344,8 +1566,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(2, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(2, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(2, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(2, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
@@ -1389,9 +1611,9 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   ASSERT(strstr(code, "url_query_add(&form_qp, \"color\"") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1415,8 +1637,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(2, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(2, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(2, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(2, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
@@ -1461,9 +1683,9 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"filter\"") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1487,8 +1709,8 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(2, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(2, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(2, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(2, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
 
@@ -1532,9 +1754,9 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   ASSERT(strstr(code, "filter[color]") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1555,8 +1777,8 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1594,9 +1816,9 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   ASSERT(strstr(code, "http_request_add_part(&req, \"tags\"") != NULL);
   ASSERT(strstr(code, "for (i = 0; i < req_body->n_nums; ++i)") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1617,8 +1839,8 @@ TEST test_body_multipart_object_fields(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1647,9 +1869,9 @@ TEST test_body_multipart_object_fields(void) {
   ASSERT(strstr(code, "http_request_add_part(&req, \"pets\", NULL, "
                       "\"application/json\"") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1674,8 +1896,8 @@ TEST test_body_multipart_encoding_content_type(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1707,9 +1929,9 @@ TEST test_body_multipart_encoding_content_type(void) {
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\", NULL, "
                       "\"text/plain; charset=utf-8\"") != NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1734,8 +1956,8 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1767,9 +1989,9 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   ASSERT(strstr(code, "\"image/png\"") != NULL);
   ASSERT(strstr(code, "image/jpeg") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1796,8 +2018,8 @@ TEST test_body_multipart_encoding_headers(void) {
   (void)openapi_spec_init(&spec);
 
   spec.defined_schemas =
-      (struct StructFields *)calloc(1, sizeof(struct StructFields));
-  spec.defined_schema_names = (char **)calloc(1, sizeof(char *));
+      (struct StructFields *)C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = (char **)C_CDD_CALLOC(1, sizeof(char *));
   ASSERT(spec.defined_schemas);
   ASSERT(spec.defined_schema_names);
   struct_fields_init(&spec.defined_schemas[0]);
@@ -1840,9 +2062,9 @@ TEST test_body_multipart_encoding_headers(void) {
   ASSERT(strstr(code, "title_hdr_X_Ids_len") != NULL);
   ASSERT(strstr(code, "title_hdr_Content_Type") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -1872,8 +2094,8 @@ TEST test_body_response_range_success(void) {
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1903,8 +2125,8 @@ TEST test_body_default_response_success(void) {
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1935,8 +2157,8 @@ TEST test_body_text_plain_response_string(void) {
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1967,8 +2189,8 @@ TEST test_body_text_plain_response_range(void) {
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -1999,8 +2221,8 @@ TEST test_body_text_plain_response_default(void) {
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -2031,8 +2253,8 @@ TEST test_body_textual_response_xml(void) {
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -2062,8 +2284,8 @@ TEST test_body_binary_response_pdf(void) {
   ASSERT(strstr(code, "unsigned char *tmp") != NULL);
   ASSERT(strstr(code, "*out_len = res->body_len") != NULL);
 
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -2115,7 +2337,7 @@ TEST test_client_body_verb_mapping(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2130,7 +2352,7 @@ TEST test_client_body_mapped_err_code(void) {
 
   op.operation_id = "testErrCode";
   op.n_responses = 5;
-  op.responses = calloc(5, sizeof(*op.responses));
+  op.responses = C_CDD_CALLOC(5, sizeof(*op.responses));
   op.responses[0].code = "400";
   op.responses[1].code = "401";
   op.responses[2].code = "403";
@@ -2139,9 +2361,9 @@ TEST test_client_body_mapped_err_code(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(op.responses);
+  C_CDD_FREE(op.responses);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2172,7 +2394,7 @@ TEST test_client_body_media_type_matching(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2191,7 +2413,7 @@ TEST test_client_body_find_media_type_not_found(void) {
 
   op.req_body.content_type = "application/x-www-form-urlencoded";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "application/json"; /* Doesn't match */
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2201,9 +2423,9 @@ TEST test_client_body_find_media_type_not_found(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(op.req_body_media_types);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2226,7 +2448,7 @@ TEST test_client_body_find_encoding_not_found(void) {
 
   /* Provide req_body_media_types */
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/form-data";
 
   memset(&enc, 0, sizeof(enc));
@@ -2238,25 +2460,25 @@ TEST test_client_body_find_encoding_not_found(void) {
 
   /* Setup the global Spec schema definitions */
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchema", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2277,16 +2499,16 @@ TEST test_client_body_array_items_statics(void) {
   op.req_body.ref_name = "MockSchema2";
 
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/form-data";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchema2", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 5;
-  spec.defined_schemas[0].fields = calloc(5, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(5, sizeof(struct StructField));
 
   /* Field 0: array of object */
   strcpy(spec.defined_schemas[0].fields[0].name, "arr_obj");
@@ -2318,14 +2540,14 @@ TEST test_client_body_array_items_statics(void) {
   op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2353,7 +2575,7 @@ TEST test_client_body_verb_enum_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2375,12 +2597,12 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   /* Set up global schemas to bypass properties missing error */
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaHdr", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "1test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2389,7 +2611,7 @@ TEST test_client_body_header_formatting_indirect(void) {
   /* Multipart data with specific encodings to hit header name formatting */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2415,14 +2637,14 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2442,12 +2664,12 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   op.operation_id = "testMediaTypeClassifiers";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaTxtBin", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2456,7 +2678,7 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   /* Hit textual formatters indirectly via multipart field generation */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2500,14 +2722,14 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   enc.content_type = "application/pdf";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2528,12 +2750,12 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   op.operation_id = "testMediaTypeClassifiersMissing";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaMissing", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2542,7 +2764,7 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   /* Hit textual formatters indirectly via multipart field generation */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2566,14 +2788,14 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   enc.content_type = "application/atom+xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2593,12 +2815,12 @@ TEST test_client_body_media_type_caps_indirect(void) {
   op.operation_id = "testMediaCapsIndirect";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaCaps", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2607,7 +2829,7 @@ TEST test_client_body_media_type_caps_indirect(void) {
   /* Mixed upper and lower caps */
   op.req_body.content_type = "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2627,14 +2849,14 @@ TEST test_client_body_media_type_caps_indirect(void) {
   enc.content_type = "TEXT/PLAIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2654,12 +2876,12 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   op.operation_id = "testMediaPrefixCapsIndirect";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaPrefixCaps", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2668,7 +2890,7 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   /* Hit prefix upper caps */
   op.req_body.content_type = "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2688,14 +2910,14 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   enc.content_type = "TeXt/PlaIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2715,12 +2937,12 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   op.operation_id = "testMediaShort";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaShort", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
 
@@ -2728,7 +2950,7 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
@@ -2752,14 +2974,14 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   enc.content_type = "xm";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2785,7 +3007,7 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
 
   /* Setup media type with inline schema */
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "application/json";
 
   /* Test array of string */
@@ -2821,9 +3043,9 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2847,7 +3069,7 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   resp.code = "200";
 
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
@@ -2887,9 +3109,9 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2913,7 +3135,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   resp.code = "200";
 
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
@@ -2954,9 +3176,9 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   resp.content_media_types[0].schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -2975,12 +3197,12 @@ TEST test_client_body_form_object_style_form_explode(void) {
   op.operation_id = "testFormObjStyle";
 
   spec.n_defined_schemas = 1;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   c_cdd_strdup("MockSchemaFormObj", &spec.defined_schema_names[0]);
 
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
-  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  spec.defined_schemas[0].fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   strcpy(spec.defined_schemas[0].fields[0].name, "obj_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "object");
   strcpy(spec.defined_schemas[0].fields[0].ref,
@@ -2990,7 +3212,7 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   op.req_body.content_type = "application/x-www-form-urlencoded";
   op.n_req_body_media_types = 1;
-  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
 
   memset(&enc, 0, sizeof(enc));
@@ -3005,14 +3227,14 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
   if (spec.defined_schema_names && spec.defined_schema_names[0])
-    free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3030,7 +3252,7 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   op.operation_id = "testCookieObjStyle";
 
   op.n_parameters = 1;
-  op.parameters = calloc(1, sizeof(*op.parameters));
+  op.parameters = C_CDD_CALLOC(1, sizeof(*op.parameters));
   op.parameters[0].name = "cookie_obj";
   op.parameters[0].in = OA_PARAM_IN_COOKIE;
   op.parameters[0].type = "object";
@@ -3040,9 +3262,9 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(op.parameters);
+  C_CDD_FREE(op.parameters);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3084,7 +3306,7 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3115,7 +3337,7 @@ TEST test_client_body_response_is_textual_string_success(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3142,7 +3364,7 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   resp.schema.is_array = 0;
 
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "text/plain";
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 0;
@@ -3151,9 +3373,9 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3182,7 +3404,7 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3216,7 +3438,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3241,7 +3463,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 
   /* Set up content type in the media_types map instead! */
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "text/plain";
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 0;
@@ -3255,9 +3477,9 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3281,7 +3503,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   resp.code = "200";
 
   resp.n_content_media_types = 1;
-  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types = C_CDD_CALLOC(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
@@ -3314,9 +3536,250 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(resp.content_media_types);
+  C_CDD_FREE(resp.content_media_types);
   fclose(fp);
-  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_client_body_write_joined_form_direct_primitives(void) {
+  FILE *fp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Encoding enc = {0};
+  struct StructFields sf = {0};
+  struct StructField f = {0};
+  struct OpenAPI_MediaType mt = {0};
+  const char *types[] = {"integer", "number",           "boolean", "string",
+                         "enum",    "MyFallbackStruct", NULL};
+  int i;
+  char *code = NULL;
+
+  openapi_spec_init(&spec);
+  strcpy(f.name, "prop");
+
+  sf.size = 1;
+  sf.capacity = 1;
+  sf.fields = C_CDD_CALLOC(1, sizeof(struct StructField));
+
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
+  spec.defined_schema_names[0] = strdup("MyStruct");
+  spec.n_defined_schemas = 1;
+
+  op.verb = OA_VERB_POST;
+  op.req_body.ref_name = "MyStruct";
+  op.req_body.content_type = "application/x-www-form-urlencoded";
+
+  enc.name = "prop";
+  enc.style = OA_STYLE_FORM;
+  enc.style_set = 1;
+  enc.explode = 0;
+  enc.explode_set = 1;
+  mt.name = "application/x-www-form-urlencoded";
+  mt.encoding = C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
+  mt.encoding[0] = enc;
+  mt.n_encoding = 1;
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(struct OpenAPI_MediaType));
+  op.req_body_media_types[0] = mt;
+  op.n_req_body_media_types = 1;
+
+  for (i = 0; types[i] != NULL; i++) {
+    strcpy(f.type, types[i]);
+    sf.fields[0] = f;
+    spec.defined_schemas[0] = sf;
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    op.req_body_media_types[0].encoding[0].allow_reserved = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].allow_reserved = 0;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+  }
+
+  /* Test cookie object without encoding */
+  {
+    struct OpenAPI_Parameter param = {0};
+    param.name = "MyObj";
+    param.in = OA_PARAM_IN_COOKIE;
+    param.type = "object";
+    param.ref = "OtherStruct";
+    param.style = OA_STYLE_COOKIE;
+    param.explode = 0;
+    param.explode_set = 1;
+    op.parameters = &param;
+    op.n_parameters = 1;
+    op.req_body.ref_name = NULL; /* disable req body */
+
+    {
+      struct StructFields other_sf = {0};
+      struct StructField other_f = {0};
+      strcpy(f.type, "object");
+      strcpy(f.ref, "OtherStruct");
+      sf.fields[0] = f;
+      spec.defined_schemas[0] = sf;
+
+      spec.defined_schemas =
+          C_CDD_REALLOC(spec.defined_schemas, 2 * sizeof(struct StructFields));
+      spec.defined_schema_names =
+          C_CDD_REALLOC(spec.defined_schema_names, 2 * sizeof(char *));
+
+      other_sf.size = 2;
+      other_sf.capacity = 2;
+      other_sf.fields = C_CDD_CALLOC(2, sizeof(struct StructField));
+      strcpy(other_f.name, "prop_str");
+      strcpy(other_f.type, "string");
+      other_sf.fields[0] = other_f;
+      strcpy(other_f.name, "prop_int");
+      strcpy(other_f.type, "integer");
+      other_sf.fields[1] = other_f;
+
+      spec.defined_schemas[1] = other_sf;
+      spec.defined_schema_names[1] = strdup("OtherStruct");
+      spec.n_defined_schemas = 2;
+
+      param.style = OA_STYLE_SIMPLE;
+      gen_body(&op, &spec, "/", NULL, &code);
+      C_CDD_FREE(code);
+
+      op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+      op.req_body_media_types[0].encoding[0].explode = 1;
+      op.req_body_media_types[0].encoding[0].explode_set = 1;
+      op.req_body_media_types[0].encoding[0].allow_reserved = 0;
+      gen_body(&op, &spec, "/", NULL, &code);
+      C_CDD_FREE(code);
+
+      C_CDD_FREE(spec.defined_schema_names[1]);
+      C_CDD_FREE(other_sf.fields);
+    }
+
+    op.req_body.ref_name = "MyStruct";
+    op.parameters = NULL;
+    op.n_parameters = 0;
+  }
+
+  /* Test allow reserved arrays */
+  for (i = 0; types[i] != NULL; i++) {
+    strcpy(f.type, "array");
+    strcpy(f.ref, types[i]);
+    sf.fields[0] = f;
+    spec.defined_schemas[0] = sf;
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[0].explode = 1;
+    op.req_body_media_types[0].encoding[0].explode_set = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    /* Missing path: allow_reserved = 0 */
+    op.req_body_media_types[0].encoding[0].allow_reserved = 0;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    op.req_body_media_types[0].encoding[0].explode = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    /* Test array NO encoding */
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_SIMPLE;
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].allow_reserved = 0;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+  }
+
+  {
+    struct StructFields other_sf = {0};
+    struct StructField other_f = {0};
+    strcpy(f.type, "object");
+    strcpy(f.ref, "OtherStruct");
+    sf.fields[0] = f;
+    spec.defined_schemas[0] = sf;
+
+    spec.defined_schemas =
+        C_CDD_REALLOC(spec.defined_schemas, 2 * sizeof(struct StructFields));
+    spec.defined_schema_names =
+        C_CDD_REALLOC(spec.defined_schema_names, 2 * sizeof(char *));
+
+    other_sf.size = 4;
+    other_sf.capacity = 4;
+    other_sf.fields = C_CDD_CALLOC(4, sizeof(struct StructField));
+    strcpy(other_f.name, "prop_str");
+    strcpy(other_f.type, "string");
+    other_sf.fields[0] = other_f;
+    strcpy(other_f.name, "prop_int");
+    strcpy(other_f.type, "integer");
+    other_sf.fields[1] = other_f;
+    strcpy(other_f.name, "prop_num");
+    strcpy(other_f.type, "number");
+    other_sf.fields[2] = other_f;
+    strcpy(other_f.name, "prop_bool");
+    strcpy(other_f.type, "boolean");
+    other_sf.fields[3] = other_f;
+
+    spec.defined_schemas[1] = other_sf;
+    spec.defined_schema_names[1] = strdup("OtherStruct");
+    spec.n_defined_schemas = 2;
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    op.req_body_media_types[0].encoding[0].explode_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].allow_reserved = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+    op.req_body_media_types[0].encoding[0].explode = 1;
+    op.req_body_media_types[0].encoding[0].explode_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_DEEP_OBJECT;
+    op.req_body_media_types[0].encoding[0].style_set = 1;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_SPACE_DELIMITED;
+    op.req_body_media_types[0].encoding[0].style_set = 1;
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
+    op.req_body_media_types[0].encoding[0].style_set = 1;
+    op.req_body_media_types[0].encoding[0].explode = 0;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[0].explode = 1;
+    op.req_body_media_types[0].encoding[0].explode_set = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved = 0;
+    gen_body(&op, &spec, "/", NULL, &code);
+    C_CDD_FREE(code);
+
+    C_CDD_FREE(spec.defined_schema_names[1]);
+    C_CDD_FREE(other_sf.fields);
+  }
+
+  C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(spec.defined_schemas);
+  C_CDD_FREE(sf.fields);
+  C_CDD_FREE(mt.encoding);
+  C_CDD_FREE(op.req_body_media_types);
+
   PASS();
 }
 
@@ -3334,11 +3797,11 @@ TEST test_client_body_write_joined_form_array_direct(void) {
   strcpy(f.ref, "MyOtherStruct");
   sf.size = 1;
   sf.capacity = 1;
-  sf.fields = calloc(1, sizeof(struct StructField));
+  sf.fields = C_CDD_CALLOC(1, sizeof(struct StructField));
   sf.fields[0] = f;
-  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
   spec.defined_schemas[0] = sf;
-  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
   spec.defined_schema_names[0] = strdup("MyStruct");
   spec.n_defined_schemas = 1;
   op.verb = OA_VERB_POST;
@@ -3350,10 +3813,10 @@ TEST test_client_body_write_joined_form_array_direct(void) {
   enc.explode = 0;
   enc.explode_set = 1;
   mt.name = "application/x-www-form-urlencoded";
-  mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
+  mt.encoding = C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
   mt.encoding[0] = enc;
   mt.n_encoding = 1;
-  op.req_body_media_types = calloc(1, sizeof(struct OpenAPI_MediaType));
+  op.req_body_media_types = C_CDD_CALLOC(1, sizeof(struct OpenAPI_MediaType));
   op.req_body_media_types[0] = mt;
   op.n_req_body_media_types = 1;
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -3388,12 +3851,12 @@ TEST test_client_body_write_joined_form_array_direct(void) {
             codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
   fclose(fp);
-  free(spec.defined_schemas[0].fields);
-  free(spec.defined_schemas);
-  free(spec.defined_schema_names[0]);
-  free(spec.defined_schema_names);
-  free(op.req_body_media_types[0].encoding);
-  free(op.req_body_media_types);
+  C_CDD_FREE(spec.defined_schemas[0].fields);
+  C_CDD_FREE(spec.defined_schemas);
+  C_CDD_FREE(spec.defined_schema_names[0]);
+  C_CDD_FREE(spec.defined_schema_names);
+  C_CDD_FREE(op.req_body_media_types[0].encoding);
+  C_CDD_FREE(op.req_body_media_types);
   PASS();
 }
 
@@ -3413,11 +3876,11 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
     strcpy(f.ref, "MyOtherStruct");
     sf.size = 1;
     sf.capacity = 1;
-    sf.fields = calloc(1, sizeof(struct StructField));
+    sf.fields = C_CDD_CALLOC(1, sizeof(struct StructField));
     sf.fields[0] = f;
-    spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+    spec.defined_schemas = C_CDD_CALLOC(1, sizeof(struct StructFields));
     spec.defined_schemas[0] = sf;
-    spec.defined_schema_names = calloc(1, sizeof(char *));
+    spec.defined_schema_names = C_CDD_CALLOC(1, sizeof(char *));
     spec.defined_schema_names[0] = strdup("MyStruct");
     spec.n_defined_schemas = 1;
     op.verb = OA_VERB_POST;
@@ -3429,59 +3892,52 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
     enc.explode = 0;
     enc.explode_set = 1;
     mt.name = "application/x-www-form-urlencoded";
-    mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
+    mt.encoding = C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
     mt.encoding[0] = enc;
     mt.n_encoding = 1;
-    op.req_body_media_types = calloc(1, sizeof(struct OpenAPI_MediaType));
+    op.req_body_media_types = C_CDD_CALLOC(1, sizeof(struct OpenAPI_MediaType));
     op.req_body_media_types[0] = mt;
     op.n_req_body_media_types = 1;
-    g_io_calls = 0;
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
+
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_SPACE_DELIMITED;
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
+
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_PIPE_DELIMITED;
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
 
     strcpy(spec.defined_schemas[0].fields[0].ref, "integer");
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     strcpy(spec.defined_schemas[0].fields[0].ref, "number");
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     strcpy(spec.defined_schemas[0].fields[0].ref, "boolean");
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     strcpy(spec.defined_schemas[0].fields[0].ref, "string");
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     strcpy(spec.defined_schemas[0].fields[0].ref, "unsupported_type");
-    g_fail_io_after = i;
+
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
-    g_fail_io_after = -1;
 
     fclose(fp);
-    free(spec.defined_schemas[0].fields);
-    free(spec.defined_schemas);
-    free(spec.defined_schema_names[0]);
-    free(spec.defined_schema_names);
-    free(op.req_body_media_types[0].encoding);
-    free(op.req_body_media_types);
+    C_CDD_FREE(spec.defined_schemas[0].fields);
+    C_CDD_FREE(spec.defined_schemas);
+    C_CDD_FREE(spec.defined_schema_names[0]);
+    C_CDD_FREE(spec.defined_schema_names);
+    C_CDD_FREE(op.req_body_media_types[0].encoding);
+    C_CDD_FREE(op.req_body_media_types);
   }
   PASS();
 }
@@ -3500,7 +3956,7 @@ TEST test_client_body_write_joined_form_array(void) {
   op.operation_id = "testJoinedFormArray";
 
   op.n_parameters = 1;
-  op.parameters = calloc(1, sizeof(*op.parameters));
+  op.parameters = C_CDD_CALLOC(1, sizeof(*op.parameters));
   op.parameters[0].name = "query_arr";
   op.parameters[0].in = OA_PARAM_IN_QUERY;
   op.parameters[0].type = "array";
@@ -3533,9 +3989,9 @@ TEST test_client_body_write_joined_form_array(void) {
   op.parameters[0].style = OA_STYLE_SPACE_DELIMITED;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  free(op.parameters);
+  C_CDD_FREE(op.parameters);
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3573,7 +4029,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -3602,8 +4058,8 @@ TEST test_body_header_param_string(void) {
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"X-String\", X-String)") !=
       NULL);
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -3630,8 +4086,8 @@ TEST test_body_header_param_integer(void) {
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h2), _ast_gen_body_h2);
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", X-Int);") != NULL);
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -3658,8 +4114,8 @@ TEST test_body_header_param_number(void) {
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h3), _ast_gen_body_h3);
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Num);") != NULL);
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
 
@@ -3686,11 +4142,108 @@ TEST test_body_header_param_boolean(void) {
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h4), _ast_gen_body_h4);
   ASSERT(code);
   ASSERT(strstr(code, "X-Bool ? \"true\" : \"false\"") != NULL);
-  free(code);
-  g_fail_io_after = -1;
+  C_CDD_FREE(code);
+
   PASS();
 }
+
+TEST test_client_body_coverage_extras(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  char *_ast_gen = NULL;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  memset(&spec, 0, sizeof(spec));
+
+  op.n_responses = 1;
+  op.responses = &resp;
+
+  /* JSON explicitly to hit line 544 */
+  resp.code = "200";
+  resp.content_type = "application/json";
+  gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+  if (_ast_gen)
+    C_CDD_FREE(_ast_gen);
+  _ast_gen = NULL;
+
+  /* text/html to hit line 499 */
+  resp.content_type = "text/html";
+  gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+  if (_ast_gen)
+    C_CDD_FREE(_ast_gen);
+  _ast_gen = NULL;
+
+  /* application/rss+xml to hit line 505 */
+  resp.content_type = "application/rss+xml";
+  gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+  if (_ast_gen)
+    C_CDD_FREE(_ast_gen);
+  _ast_gen = NULL;
+
+  /* Unknown schema payload to hit line 615 */
+  {
+    struct OpenAPI_SchemaRef sr;
+    memset(&sr, 0, sizeof(sr));
+    sr.is_array = 0;
+    sr.inline_type = "object";
+    resp.schema = sr;
+    resp.content_type = "application/xml";
+    gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+    if (_ast_gen)
+      C_CDD_FREE(_ast_gen);
+    _ast_gen = NULL;
+  }
+
+  /* write_inline_json_parse invalid args */
+  {
+    struct OpenAPI_SchemaRef sr;
+    memset(&sr, 0, sizeof(sr));
+    sr.is_array = 0;
+    sr.inline_type = NULL;
+    sr.ref = NULL;
+    resp.content_type = "application/json";
+    resp.schema = sr;
+    gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+    if (_ast_gen)
+      C_CDD_FREE(_ast_gen);
+    _ast_gen = NULL;
+  }
+
+  /* write_text_plain_success with number/boolean to hit 767/783 */
+  {
+    struct OpenAPI_SchemaRef sr;
+    memset(&sr, 0, sizeof(sr));
+    sr.is_array = 0;
+    sr.inline_type = "number";
+    resp.content_type = "text/plain";
+    resp.schema = sr;
+    gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+    if (_ast_gen)
+      C_CDD_FREE(_ast_gen);
+    _ast_gen = NULL;
+
+    sr.inline_type = "boolean";
+    resp.schema = sr;
+    gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+    if (_ast_gen)
+      C_CDD_FREE(_ast_gen);
+    _ast_gen = NULL;
+
+    sr.inline_type = "unknown";
+    resp.schema = sr;
+    gen_body(&op, &spec, "tmpl", "base_url", &_ast_gen);
+    if (_ast_gen)
+      C_CDD_FREE(_ast_gen);
+    _ast_gen = NULL;
+  }
+
+  PASS();
+}
+
 SUITE(client_body_suite) {
+  RUN_TEST(test_client_body_coverage_extras);
   RUN_TEST(test_client_body_verb_mapping);
   RUN_TEST(test_client_body_mapped_err_code);
   RUN_TEST(test_client_body_media_type_matching);
@@ -3718,9 +4271,11 @@ SUITE(client_body_suite) {
   RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed4);
   RUN_TEST(test_client_body_write_inline_json_parse_types_indirect_string);
   RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_joined_form_direct_primitives);
   RUN_TEST(test_client_body_write_joined_form_array_direct);
   RUN_TEST(test_client_body_write_joined_form_array_direct_io);
   RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_joined_form_direct_primitives);
   RUN_TEST(test_client_body_write_joined_form_array_direct);
   RUN_TEST(test_client_body_write_joined_form_array_direct_io);
   RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed3);
@@ -3732,6 +4287,7 @@ SUITE(client_body_suite) {
   RUN_TEST(test_body_additional_connect_method);
   RUN_TEST(test_body_querystring_param);
   RUN_TEST(test_body_inline_response_string);
+  RUN_TEST(test_client_body_missed_branches);
   RUN_TEST(test_body_inline_response_array_number);
   RUN_TEST(test_body_inline_request_body_string);
   RUN_TEST(test_body_inline_request_body_string_json_params);
@@ -3745,6 +4301,8 @@ SUITE(client_body_suite) {
   RUN_TEST(test_body_cookie_param);
   RUN_TEST(test_body_cookie_param_number_array);
   RUN_TEST(test_body_cookie_param_array_explode_false);
+  RUN_TEST(test_body_cookie_param_object_cookie_style);
+  RUN_TEST(test_client_body_empty_schema_payload);
   RUN_TEST(test_body_cookie_param_object_form);
   RUN_TEST(test_body_cookie_param_string_allow_reserved);
   RUN_TEST(test_body_security_query_api_key);

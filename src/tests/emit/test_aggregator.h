@@ -15,6 +15,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -29,7 +30,7 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));
   /* Allocate something to test ownership transfer */
   if (id) {
-    op->operation_id = (char *)malloc(strlen(id) + 1);
+    op->operation_id = (char *)C_CDD_MALLOC(strlen(id) + 1);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strcpy_s(op->operation_id, strlen(id) + 1, id);
@@ -69,7 +70,7 @@ TEST test_aggregator_add_new(void) {
   ASSERT_EQ(NULL, op.operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -101,7 +102,7 @@ TEST test_aggregator_merge_paths(void) {
   ASSERT_STR_EQ("createUser", spec.paths[0].operations[1].operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -125,7 +126,7 @@ TEST test_aggregator_distinct_paths(void) {
   ASSERT_STR_EQ("/b", spec.paths[1].route);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -154,7 +155,7 @@ TEST test_aggregator_add_additional_operation(void) {
   ASSERT_STR_EQ("COPY", spec.paths[0].additional_operations[0].method);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -180,7 +181,7 @@ TEST test_aggregator_add_webhook(void) {
   ASSERT_EQ(NULL, op.operation_id);
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -203,9 +204,9 @@ TEST test_aggregator_bad_args(void) {
 
   /* Since calls failed, ownership RETAINED by op. We must free it manually
    * here. */
-  free(op.operation_id);
+  C_CDD_FREE(op.operation_id);
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

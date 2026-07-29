@@ -1,3 +1,6 @@
+/* clang-format off */
+#include "c_cdd/memory.h"
+/* clang-format on */
 /* To be appended to src/classes/parse/cdd_c_ir.c */
 
 enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
@@ -45,7 +48,7 @@ enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
         rc = sql_parse_table(&sublist, &table, &err);
         if (rc == 0 && table) {
           cdd_c_ir_add_table(out_ir, table);
-          free(table);
+          C_CDD_FREE(table);
         }
         in_table = 0;
       } else if (in_select) {
@@ -54,7 +57,7 @@ enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
         if (rc == 0 && proj) {
           cdd_c_ir_add_projection(out_ir, proj);
           /* cdd_c_query_projection_free(proj); */
-          free(proj);
+          C_CDD_FREE(proj);
         }
         in_select = 0;
       }
@@ -71,7 +74,7 @@ enum cdd_c_error parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
     if (rc == 0 && proj) {
       cdd_c_ir_add_projection(out_ir, proj);
       /* cdd_c_query_projection_free(proj); */
-      free(proj);
+      C_CDD_FREE(proj);
     }
   }
 

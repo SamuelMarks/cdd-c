@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "cdd_ffi_emit_napi.h"
 #include <stdio.h>
@@ -24,6 +25,15 @@ emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s_napi.c", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -117,7 +127,7 @@ emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
             f,
             "  napi_resolve_deferred(env, worker_data->deferred, result);\n");
         fprintf(f, "  napi_delete_async_work(env, worker_data->work);\n");
-        fprintf(f, "  free(worker_data);\n");
+        fprintf(f, "  C_CDD_FREE(worker_data);\n");
         fprintf(f, "}\n\n");
       }
 
@@ -131,7 +141,7 @@ emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "  napi_value resource_name;\n");
         fprintf(
             f,
-            "  %s_worker_data* worker_data = (%s_worker_data*)calloc(1, "
+            "  %s_worker_data* worker_data = (%s_worker_data*)C_CDD_CALLOC(1, "
             "sizeof(%s_worker_data));\n"
             "  if (!worker_data) {\n"
             "    napi_throw_error(env, NULL, \"Memory allocation failed\");\n"
@@ -167,7 +177,7 @@ emit_napi_c(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "  /* Mapping argument %" CDD_PRIz ": %s */\n", j,
-                node->fields[j].name ? node->fields[j].name : "arg");
+                node->fields[j].name);
         /* In a full implementation we'd check type.kind and map to
          * napi_get_value_int32 etc */
         /* For now we stub the argument parsing to satisfy C89 and allow
@@ -273,6 +283,15 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/binding.gyp",
                config->output_dir);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 556) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -295,9 +314,8 @@ enum cdd_c_error
 cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
                   const cdd_generate_bindings_config_t *config) {
   int rc;
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   rc = emit_napi_c(ir, config);
   if (rc != 0)

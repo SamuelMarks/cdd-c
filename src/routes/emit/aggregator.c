@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +54,7 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_count = *n_paths + 1;
-  new_arr = (struct OpenAPI_Path *)realloc(
+  new_arr = (struct OpenAPI_Path *)C_CDD_REALLOC(
       *paths, new_count * sizeof(struct OpenAPI_Path));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -87,7 +88,7 @@ static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_count = *count + 1;
-  new_ops = (struct OpenAPI_Operation *)realloc(
+  new_ops = (struct OpenAPI_Operation *)C_CDD_REALLOC(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

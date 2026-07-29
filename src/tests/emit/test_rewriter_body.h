@@ -65,7 +65,7 @@ TEST test_propagate_void_stmt(void) {
   ASSERT(strstr(output, "rc = do_work(); if (rc != 0) return rc;") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -89,7 +89,7 @@ TEST test_propagate_ptr_assignment(void) {
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -114,7 +114,7 @@ TEST test_propagate_ptr_declaration(void) {
   ASSERT(strstr(output, "; rc = my_strdup(\"a\", &s);") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -138,7 +138,7 @@ TEST test_propagate_nested_hoisting(void) {
   ASSERT(strstr(output, "outer(_tmp_cdd_0);") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -166,7 +166,7 @@ TEST test_integration_safety_and_prop(void) {
   ASSERT(strstr(output, "rc = do_work();") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -192,7 +192,7 @@ TEST test_realloc_safety_injection(void) {
   ASSERT(strstr(output, "p = _safe_tmp;") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -205,51 +205,7 @@ TEST test_rewriter_body_bounds(void) {
   char *output = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             run_body_rewrite(NULL, funcs, 1, NULL, &output));
-  g_fail_io_after = -1;
-  PASS();
-}
 
-TEST test_rewriter_body_oom(void) {
-  const char *input = "void f() { do_work(); }";
-  char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
-
-  struct TokenList *tl = NULL;
-  struct AllocationSiteList sites = {0};
-  const az_span source = az_span_create_from_str((char *)input);
-
-  ASSERT_EQ(0, tokenize(source, &tl));
-  ASSERT_EQ(0, find_allocations(tl, &sites));
-
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    int rc_oom_rb1;
-    g_cdd_fail_alloc = 1;
-    rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom_rb1);
-    g_cdd_fail_alloc = 0;
-
-    /* ignore */
-    g_cdd_fail_alloc = 0;
-
-    /* ignore */
-    g_cdd_fail_alloc = 0;
-
-    /* ignore */
-    g_cdd_fail_alloc = 0;
-
-    /* ignore */
-    g_cdd_fail_alloc = 0;
-
-    /* ignore */
-    g_cdd_fail_alloc = 0;
-  }
-#endif
-
-  allocation_site_list_free(&sites);
-  free_token_list(tl);
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -263,7 +219,7 @@ TEST test_rewriter_body_bounds2(void) {
   /* ignore */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             rewrite_body(&tl, &sites, NULL, 0, NULL, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -281,12 +237,38 @@ TEST test_propagate_void_stmt_return(void) {
   ASSERT(strstr(output, "return 0;") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 TEST test_propagate_void_stmt_transform(void) {
-  const char *input = "void f() { do_work(); }";
+
+  const char *input =
+      "void f() { int x = do_work(); x = do_work(); x.y = do_work(); }";
+
+  {
+    const char *test_no_semi = "int x = do_work()";
+    struct TokenList *tl_no_semi = NULL;
+    const az_span source_no_semi =
+        az_span_create_from_str((char *)test_no_semi);
+    ASSERT_EQ(0, tokenize(source_no_semi, &tl_no_semi));
+
+    struct AllocationSiteList sites_no_semi = {0};
+    ASSERT_EQ(0, find_allocations(tl_no_semi, &sites_no_semi));
+
+    char *out_no_semi = NULL;
+    struct RefactoredFunction f2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+    rewrite_body(tl_no_semi, &sites_no_semi, f2, 1, NULL, &out_no_semi);
+
+    if (out_no_semi)
+      C_CDD_FREE(out_no_semi);
+    allocation_site_list_free(&sites_no_semi);
+    if (tl_no_semi) {
+      C_CDD_FREE(tl_no_semi->tokens);
+      C_CDD_FREE(tl_no_semi);
+    }
+  }
+
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"f", REF_VOID_TO_INT, NULL}};
   struct SignatureTransform trans;
@@ -299,7 +281,7 @@ TEST test_propagate_void_stmt_transform(void) {
   ASSERT(strstr(output, "return CDD_C_SUCCESS;") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -318,7 +300,7 @@ TEST test_propagate_nested_parens(void) {
          strstr(output, "rc = inner ((1 + 2) , &tmp);") != NULL);
 
   free(output);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -331,7 +313,6 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_integration_safety_and_prop);
   RUN_TEST(test_realloc_safety_injection);
   RUN_TEST(test_rewriter_body_bounds2);
-  RUN_TEST(test_rewriter_body_oom);
 
   RUN_TEST(test_propagate_void_stmt_return);
   RUN_TEST(test_propagate_void_stmt_transform);

@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
@@ -37,8 +38,8 @@ enum cdd_c_error allocation_site_list_init(struct AllocationSiteList *list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 8;
-  list->sites = (struct AllocationSite *)malloc(list->capacity *
-                                                sizeof(struct AllocationSite));
+  list->sites = (struct AllocationSite *)C_CDD_MALLOC(
+      list->capacity * sizeof(struct AllocationSite));
   if (!list->sites) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -56,9 +57,9 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
   if (list->sites) {
     for (i = 0; i < list->size; ++i) {
       if (list->sites[i].var_name)
-        free(list->sites[i].var_name);
+        C_CDD_FREE(list->sites[i].var_name);
     }
-    free(list->sites);
+    C_CDD_FREE(list->sites);
     list->sites = NULL;
   }
   list->size = 0;
@@ -79,7 +80,7 @@ enum cdd_c_error allocation_site_list_add(struct AllocationSiteList *list,
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
+    struct AllocationSite *new_sites = (struct AllocationSite *)C_CDD_REALLOC(
         list->sites, new_cap * sizeof(struct AllocationSite));
     if (!new_sites) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -132,10 +133,10 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         name = NULL;
       else
-        name = (char *)malloc(tok->length + 1);
+        name = (char *)C_CDD_MALLOC(tok->length + 1);
     }
 #else
-    name = (char *)malloc(tok->length + 1);
+    name = (char *)C_CDD_MALLOC(tok->length + 1);
 #endif
     if (!name) {
       *_out_val = NULL;
@@ -370,7 +371,7 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
             is_checked(tokens, i, var_name, spec, &used_before, &checked);
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
-            free(var_name);
+            C_CDD_FREE(var_name);
             if (rc != 0)
               return rc;
           } else {

@@ -14,6 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -55,7 +56,7 @@ static enum cdd_c_error Node_cleanup(struct Node *const obj) {
     Node_cleanup(obj->next);
     obj->next = NULL;
   }
-  free(obj);
+  C_CDD_FREE(obj);
   return CDD_C_SUCCESS;
 }
 
@@ -68,7 +69,7 @@ static enum cdd_c_error Node_deepcopy(const struct Node *src,
     return 0;
   }
 
-  *dest = (struct Node *)malloc(sizeof(**dest));
+  *dest = (struct Node *)C_CDD_MALLOC(sizeof(**dest));
   if (*dest == NULL)
     return CDD_C_ERROR_MEMORY;
   memset(*dest, 0, sizeof(**dest));
@@ -99,8 +100,8 @@ static enum cdd_c_error Node_eq(const struct Node *a, const struct Node *b) {
 /* --- Tests --- */
 
 TEST test_recursive_cleanup(void) {
-  struct Node *head = (struct Node *)malloc(sizeof(struct Node));
-  struct Node *next = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *head = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
+  struct Node *next = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
   ASSERT(head && next);
 
   head->value = 1;
@@ -110,13 +111,13 @@ TEST test_recursive_cleanup(void) {
 
   /* Should recursively free 'next' without crashing */
   Node_cleanup(head);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 TEST test_recursive_deepcopy(void) {
-  struct Node *head = (struct Node *)malloc(sizeof(struct Node));
-  struct Node *next = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *head = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
+  struct Node *next = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
   (void)rc;
@@ -138,13 +139,13 @@ TEST test_recursive_deepcopy(void) {
 
   Node_cleanup(head);
   Node_cleanup(copy);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
 TEST test_recursive_eq(void) {
-  struct Node *n1 = (struct Node *)malloc(sizeof(struct Node));
-  struct Node *n2 = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *n1 = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
+  struct Node *n2 = (struct Node *)C_CDD_MALLOC(sizeof(struct Node));
   struct Node n1_next, n2_next;
 
   n1->value = 1;
@@ -162,9 +163,9 @@ TEST test_recursive_eq(void) {
   n2_next.value = 3;
   ASSERT(!Node_eq(n1, n2));
 
-  free(n1);
-  free(n2);
-  g_fail_io_after = -1;
+  C_CDD_FREE(n1);
+  C_CDD_FREE(n2);
+
   PASS();
 }
 
@@ -192,7 +193,7 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 
   FooE_cleanup(foo0);
   FooE_cleanup(foo1);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -220,7 +221,7 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
 
   HazE_cleanup(h0);
   HazE_cleanup(h1);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -248,9 +249,9 @@ TEST test_FooE_json_roundtrip(void) {
     ASSERT(FooE_eq(foo_in, foo_out) == 0);
     FooE_cleanup(foo_out);
   }
-  free(json_out);
+  C_CDD_FREE(json_out);
   FooE_cleanup(foo_in);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -276,9 +277,9 @@ TEST test_HazE_json_roundtrip(void) {
     ASSERT(HazE_eq(haz_in, haz_out) == 0);
     HazE_cleanup(haz_out);
   }
-  free(json_out);
+  C_CDD_FREE(json_out);
   HazE_cleanup(haz_in);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -304,7 +305,7 @@ TEST test_json_parsing_errors(void) {
   ASSERT_EQ(0,
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f));
   FooE_cleanup(f);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -335,7 +336,6 @@ TEST test_json_parsing_corner_cases(void) {
   ASSERT(f != NULL);
   ASSERT(f->bar == NULL);
   FooE_cleanup(f);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -356,13 +356,13 @@ TEST test_null_args_and_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_to_json(haz_e_ptr, NULL));
   ASSERT_EQ(0, HazE_to_json(NULL, &str));
   ASSERT_STR_EQ("null", str);
-  free(str);
+  C_CDD_FREE(str);
   str = NULL;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_to_json(foo_e_ptr, NULL));
   ASSERT_EQ(0, FooE_to_json(NULL, &str));
   ASSERT_STR_EQ("null", str);
-  free(str);
+  C_CDD_FREE(str);
   str = NULL;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("{}", NULL));
@@ -375,7 +375,7 @@ TEST test_null_args_and_errors(void) {
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_deepcopy(foo_e_ptr, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_deepcopy(haz_e_ptr, NULL));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -394,7 +394,7 @@ TEST test_debug_and_display(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -432,7 +432,6 @@ TEST test_display_fail(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -455,12 +454,12 @@ TEST test_eq_null_cases(void) {
   ASSERT(HazE_eq(h1, NULL) != 0);
   ASSERT(HazE_eq(NULL, h1) != 0);
 
-  free((void *)f1->bar);
+  C_CDD_FREE((void *)f1->bar);
   f1->bar = NULL;
   f2->bar = strdup("not null");
   ASSERT(FooE_eq(f1, f2) != 0);
 
-  free((void *)f2->bar);
+  C_CDD_FREE((void *)f2->bar);
   f2->bar = NULL;
   ASSERT(FooE_eq(f1, f2) == 0); /* Both bars are null */
 
@@ -468,7 +467,7 @@ TEST test_eq_null_cases(void) {
   FooE_cleanup(f2);
   HazE_cleanup(h1);
   HazE_cleanup(h2);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -481,19 +480,19 @@ TEST test_Tank_to_str_from_str(void) {
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
-  free(str);
+  C_CDD_FREE(str);
   str = NULL;
 
   rc = Tank_to_str(Tank_SMALL, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("SMALL", str);
-  free(str);
+  C_CDD_FREE(str);
   str = NULL;
 
   rc = Tank_to_str((enum Tank) - 42, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("UNKNOWN", str);
-  free(str);
+  C_CDD_FREE(str);
   str = NULL;
 
   rc = Tank_from_str("BIG", &val);
@@ -517,7 +516,6 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(Tank_UNKNOWN, val);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_from_str("BIG", NULL));
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -525,7 +523,7 @@ TEST test_Tank_to_str_from_str(void) {
 TEST test_cleanup_null(void) {
   FooE_cleanup(NULL);
   HazE_cleanup(NULL);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -549,7 +547,7 @@ TEST test_to_json_with_null_fields(void) {
     ASSERT_STR_EQ("BIG", json_object_get_string(obj, "tank"));
     json_value_free(val);
   }
-  free(json_out);
+  C_CDD_FREE(json_out);
   json_out = NULL;
 
   rc = FooE_to_json(&foo, &json_out);
@@ -569,9 +567,8 @@ TEST test_to_json_with_null_fields(void) {
     }
     json_value_free(val);
   }
-  free(json_out);
+  C_CDD_FREE(json_out);
   json_out = NULL;
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -611,7 +608,6 @@ TEST test_debug_fail(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -648,7 +644,6 @@ TEST test_json_parsing_wrong_types(void) {
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": 123}", &f));
   ASSERT(f->haz == NULL);
   FooE_cleanup(f);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -677,7 +672,6 @@ TEST test_deepcopy_null_fields(void) {
   ASSERT(foo_out->can == 42);
   ASSERT(foo_out->haz == NULL);
   FooE_cleanup(foo_out);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -712,7 +706,6 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT(f != NULL);
   ASSERT(f->can == 0);
   FooE_cleanup(f);
-  g_fail_io_after = -1;
 
   PASS();
 }
@@ -731,7 +724,7 @@ TEST test_debug_with_null_nested(void) {
   ASSERT_EQ(0, rc);
 
   FooE_cleanup(f);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -746,7 +739,7 @@ TEST test_debug_with_empty_strings(void) {
   ASSERT_EQ(0, FooE_debug(&foo, tmp));
 
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -762,7 +755,7 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
     ASSERT(haz_out != NULL);
     HazE_cleanup(haz_out);
   }
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -772,24 +765,24 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   HazE_default(&h2);
 
   /* Test bzr member inequality */
-  free((void *)h1->bzr);
+  C_CDD_FREE((void *)h1->bzr);
   h1->bzr = strdup("abc");
-  free((void *)h2->bzr);
+  C_CDD_FREE((void *)h2->bzr);
   h2->bzr = strdup("def");
   ASSERT(HazE_eq(h1, h2) != 0);
 
   /* Test one-sided null bzr */
-  free((void *)h1->bzr);
+  C_CDD_FREE((void *)h1->bzr);
   h1->bzr = NULL;
   ASSERT(HazE_eq(h1, h2) != 0);
 
-  free((void *)h2->bzr);
+  C_CDD_FREE((void *)h2->bzr);
   h2->bzr = strdup("abc");
   ASSERT(HazE_eq(h2, h1) != 0);
 
   HazE_cleanup(h1);
   HazE_cleanup(h2);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -812,7 +805,7 @@ TEST test_simple_json_more_eq_cases(void) {
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -831,7 +824,7 @@ TEST test_FooE_eq_nested_diff(void) {
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

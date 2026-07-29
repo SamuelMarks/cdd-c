@@ -9,6 +9,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc;
 /* Helper macro for I/O checking */
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-static enum cdd_c_error test_cdd_check_io_helper2(int rc) {
+static int test_cdd_check_io_helper2(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;
@@ -310,7 +311,7 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
       full_path = NULL;
     else
 #endif
-      full_path = malloc(len);
+      full_path = C_CDD_MALLOC(len);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -358,7 +359,7 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
 
   if (!fp) {
     rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
-    free(full_path);
+    C_CDD_FREE(full_path);
     return rc;
   }
 
@@ -377,15 +378,15 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
     char *src_dir = NULL;
     char *src_cmake = NULL;
     if (output_path) {
-      src_dir = malloc(strlen(output_path) + 5);
+      src_dir = C_CDD_MALLOC(strlen(output_path) + 5);
       sprintf(src_dir, "%s/src", output_path);
       makedirs(src_dir);
-      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
+      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     } else {
       src_dir = strdup("src");
       makedirs(src_dir);
-      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
+      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     }
 
@@ -410,12 +411,12 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
     } else {
       rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     }
-    free(src_dir);
-    free(src_cmake);
+    C_CDD_FREE(src_dir);
+    C_CDD_FREE(src_cmake);
   }
   fp = NULL;
 
-  free(full_path);
+  C_CDD_FREE(full_path);
   return rc;
 }
 

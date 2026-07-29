@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -42,7 +43,7 @@ static enum cdd_c_error generate_eq_code(const char *struct_name,
   rewind(tmp);
 
   if (sz > 0) {
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)C_CDD_CALLOC(1, sz + 1);
     fread(content, 1, sz, tmp);
   } else {
     content = strdup("");
@@ -86,9 +87,9 @@ TEST test_eq_primitive(void) {
   ASSERT(strstr(
       code, "if (a->dval != b->dval) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -114,9 +115,9 @@ TEST test_eq_string(void) {
   ASSERT(strstr(code, "if (a->s != b->s && (!a->s || !b->s || strcmp(a->s, "
                       "b->s) != 0)) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -141,9 +142,9 @@ TEST test_eq_recursive_object(void) {
                       "b->child, &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
                       "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -174,9 +175,9 @@ TEST test_eq_array_primitive(void) {
       code,
       "if (a->nums[i] != b->nums[i]) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -201,9 +202,9 @@ TEST test_eq_array_string(void) {
   /* Check strcmp access on arrays */
   ASSERT(strstr(code, "strcmp(a->strs[i], b->strs[i])"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -231,9 +232,9 @@ TEST test_eq_array_object(void) {
                 "b->items[i], &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
                 "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

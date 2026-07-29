@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -82,7 +83,7 @@ TEST test_loader_enum_and_required(void) {
   }
 
   openapi_spec_free(&spec);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -142,10 +143,10 @@ TEST test_writer_enum_and_required(void) {
     json_value_free(root);
   }
 
-  free(json);
+  C_CDD_FREE(json);
   struct_fields_free(&schemas[0]);
   struct_fields_free(&schemas[1]);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

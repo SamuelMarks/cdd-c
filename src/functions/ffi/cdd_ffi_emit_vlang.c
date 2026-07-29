@@ -73,9 +73,8 @@ cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
   const char *module_name;
   size_t i, j;
 
-  if (!ir || !config || !config->output_dir) {
+  if (!ir)
     return CDD_C_ERROR_UNKNOWN;
-  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
   module_name = config->module_name ? config->module_name : "bindings";
@@ -90,6 +89,15 @@ cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.v", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 555) {
+      if (f) {
+        fclose(f);
+        f = NULL;
+      }
+    }
+  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

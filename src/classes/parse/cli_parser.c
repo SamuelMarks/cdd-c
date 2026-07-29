@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -22,7 +23,7 @@ static enum cdd_c_error cdd_strndup2(const char *s, size_t n, char **_out_val) {
   size_t len = 0;
   while (len < n && s[len] != '\0')
     len++;
-  result = malloc(len + 1);
+  result = C_CDD_MALLOC(len + 1);
   if (!result) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -55,17 +56,17 @@ void cli_command_free(struct CliCommand *cmd) {
   if (!cmd)
     return;
   if (cmd->name)
-    free(cmd->name);
+    C_CDD_FREE(cmd->name);
   if (cmd->options) {
     for (i = 0; i < cmd->n_options; ++i) {
       if (cmd->options[i].long_flag)
-        free(cmd->options[i].long_flag);
+        C_CDD_FREE(cmd->options[i].long_flag);
       if (cmd->options[i].description)
-        free(cmd->options[i].description);
+        C_CDD_FREE(cmd->options[i].description);
       if (cmd->options[i].mapped_struct_field)
-        free(cmd->options[i].mapped_struct_field);
+        C_CDD_FREE(cmd->options[i].mapped_struct_field);
     }
-    free(cmd->options);
+    C_CDD_FREE(cmd->options);
   }
   cmd->name = NULL;
   cmd->options = NULL;
@@ -78,8 +79,8 @@ void cli_command_free(struct CliCommand *cmd) {
 static enum cdd_c_error add_option(struct CliCommand *cmd,
                                    struct CliOption **_out_val) {
   struct CliOption *opt;
-  cmd->options =
-      realloc(cmd->options, (cmd->n_options + 1) * sizeof(struct CliOption));
+  cmd->options = C_CDD_REALLOC(cmd->options,
+                               (cmd->n_options + 1) * sizeof(struct CliOption));
   opt = &cmd->options[cmd->n_options++];
   memset(opt, 0, sizeof(*opt));
   {

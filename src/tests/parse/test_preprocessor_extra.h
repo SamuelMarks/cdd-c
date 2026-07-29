@@ -29,6 +29,6 @@ TEST test_preprocessor_abort(void) {
   cfs_remove("sys_include/stdio.h");
   cfs_remove("sys_include/stdlib.h");
   cfs_remove("sys_include");
-  g_fail_io_after = -1;
+
   PASS();
 }

@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,8 +29,8 @@
 #endif
 #else
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \
@@ -89,7 +90,7 @@ static enum cdd_c_error write_test_enum(FILE *f, const char *const enum_name,
                 "  rc = %s_to_str(%s_%s, &str);\n"
                 "  ASSERT_EQ(0, rc);\n"
                 "  ASSERT_STR_EQ(\"%s\", str);\n"
-                "  free(str);\n\n",
+                "  C_CDD_FREE(str);\n\n",
                 enum_name, enum_name, c_val, val) < 0)
       return CDD_C_ERROR_IO;
   }
@@ -176,7 +177,7 @@ static enum cdd_c_error write_test_struct(FILE *f,
               "\n"
               "  ASSERT(%s_eq(obj_in, obj_out));\n"
               "\n"
-              "  free(json_str);\n"
+              "  C_CDD_FREE(json_str);\n"
               "  %s_cleanup(obj_in);\n"
               "  %s_cleanup(obj_out);\n"
               "\n"
@@ -252,11 +253,11 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
       if (rc != 0) {
         fprintf(stderr, "Failed to create output directory: %s (rc %d)\n",
                 output_dir, rc);
-        free(output_dir);
+        C_CDD_FREE(output_dir);
         json_value_free(root_val);
         return rc;
       }
-      free(output_dir);
+      C_CDD_FREE(output_dir);
     }
 
     /* Output file */
@@ -293,7 +294,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
           return rc;
         }
         to_c_ident(sanitized, sizeof(sanitized), base);
-        free(base);
+        C_CDD_FREE(base);
       }
 
       fprintf(f,
@@ -329,7 +330,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
               if (strcmp(output_dir, ".") != 0) {
                 if (asprintf(&path_to_check, "%s%s%s", output_dir, PATH_SEP,
                              include_name) == -1) {
-                  free(include_name);
+                  C_CDD_FREE(include_name);
                   continue;
                 }
               } else {
@@ -339,11 +340,11 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
               if (path_to_check && access(path_to_check, F_OK) == 0) {
                 fprintf(f, "#include \"%s\"\n", include_name);
               }
-              free(path_to_check);
-              free(include_name);
+              C_CDD_FREE(path_to_check);
+              C_CDD_FREE(include_name);
             }
           }
-          free(output_dir);
+          C_CDD_FREE(output_dir);
         }
       }
       fprintf(f, "\n");
@@ -460,10 +461,10 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
         return rc;
 
       if (asprintf(&p, "%s%s%s", output_dir, PATH_SEP, "test_main.c") == -1) {
-        free(output_dir);
+        C_CDD_FREE(output_dir);
         return CDD_C_ERROR_MEMORY;
       }
-      free(output_dir);
+      C_CDD_FREE(output_dir);
 
       {
         FILE *f0;
@@ -472,7 +473,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
         errno_t err = fopen_s(&f0, p, "w");
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
-          free(p);
+          C_CDD_FREE(p);
           return CDD_C_ERROR_UNKNOWN;
         }
 #else
@@ -483,7 +484,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
 #endif
         if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);
-          free(p);
+          C_CDD_FREE(p);
           return CDD_C_ERROR_UNKNOWN;
         }
 #endif
@@ -505,7 +506,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
                     "  GREATEST_MAIN_END();\n"
                     "}\n",
                     base);
-            free(base);
+            C_CDD_FREE(base);
           } else {
             fprintf(stderr, "Failed to determine basename for %s\n",
                     output_file);
@@ -514,7 +515,7 @@ enum cdd_c_error jsonschema2tests_main(int argc, char **argv) {
         fclose(f0);
         printf("Test runner generated and written to:\t%s\n", p);
       }
-      free(p);
+      C_CDD_FREE(p);
     }
 
     printf("Tests generated and written to:\t\t\t%s\n", output_file);

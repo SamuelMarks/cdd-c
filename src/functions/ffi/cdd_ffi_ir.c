@@ -1,5 +1,6 @@
-#include "cdd_c_error.h"
 /* clang-format off */
+#include "c_cdd/memory.h"
+#include "cdd_c_error.h"
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -68,11 +69,7 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
            case, but we'll sort it anyway if we find it. */
         size_t dep_idx = find_node_index(ctx->ir, type->ref_name);
         if (dep_idx != (size_t)-1) {
-          {
-            enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
-          }
+          toposort_dfs(ctx, dep_idx);
         }
       }
     }
@@ -84,11 +81,7 @@ static enum cdd_c_error toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
       size_t dep_idx =
           find_node_index(ctx->ir, node->return_or_base_type.ref_name);
       if (dep_idx != (size_t)-1) {
-        {
-          enum cdd_c_error rc = toposort_dfs(ctx, dep_idx);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
-        }
+        toposort_dfs(ctx, dep_idx);
       }
     }
   }
@@ -121,7 +114,7 @@ enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
     ctx.visited = NULL;
   else
 #endif
-    ctx.visited = (int *)calloc(ir->nodes_count, sizeof(int));
+    ctx.visited = (int *)C_CDD_CALLOC(ir->nodes_count, sizeof(int));
   if (!ctx.visited) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -131,39 +124,32 @@ enum cdd_c_error cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {
     ctx.sorted_nodes = NULL;
   else
 #endif
-    ctx.sorted_nodes = (cdd_ffi_ir_node_t *)malloc(ir->nodes_count *
-                                                   sizeof(cdd_ffi_ir_node_t));
+    ctx.sorted_nodes = (cdd_ffi_ir_node_t *)C_CDD_MALLOC(
+        ir->nodes_count * sizeof(cdd_ffi_ir_node_t));
   if (!ctx.sorted_nodes) {
-    free(ctx.visited);
+    C_CDD_FREE(ctx.visited);
     return CDD_C_ERROR_MEMORY;
   }
   ctx.sorted_count = 0;
 
   for (i = 0; i < ir->nodes_count; i++) {
     if (ctx.visited[i] == 0) {
-      {
-        enum cdd_c_error rc = toposort_dfs(&ctx, i);
-        if (rc != CDD_C_SUCCESS) {
-          free(ctx.visited);
-          free(ctx.sorted_nodes);
-          return rc;
-        }
-      }
+      toposort_dfs(&ctx, i);
     }
   }
 
   /* Replace original nodes array with the sorted one */
-  free(ir->nodes);
+  C_CDD_FREE(ir->nodes);
   ir->nodes = ctx.sorted_nodes;
   ir->nodes_capacity = ir->nodes_count;
 
-  free(ctx.visited);
+  C_CDD_FREE(ctx.visited);
   return CDD_C_SUCCESS;
 }
 
 static void free_type_recursive(cdd_ffi_type_t *type) {
   if (type->ref_name) {
-    free(type->ref_name);
+    C_CDD_FREE(type->ref_name);
     type->ref_name = NULL;
   }
   if (type->template_args) {
@@ -171,7 +157,7 @@ static void free_type_recursive(cdd_ffi_type_t *type) {
     for (i = 0; i < type->template_args_count; i++) {
       free_type_recursive(&type->template_args[i]);
     }
-    free(type->template_args);
+    C_CDD_FREE(type->template_args);
     type->template_args = NULL;
   }
 }
@@ -190,13 +176,13 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
 
     if (node->name) {
-      free(node->name);
+      C_CDD_FREE(node->name);
     }
     if (node->doc) {
-      free(node->doc);
+      C_CDD_FREE(node->doc);
     }
     if (node->evaluated_value) {
-      free(node->evaluated_value);
+      C_CDD_FREE(node->evaluated_value);
     }
     free_type_recursive(&node->return_or_base_type);
 
@@ -204,30 +190,30 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     if (node->fields) {
       for (j = 0; j < node->fields_count; j++) {
         if (node->fields[j].name) {
-          free(node->fields[j].name);
+          C_CDD_FREE(node->fields[j].name);
         }
         if (node->fields[j].doc) {
-          free(node->fields[j].doc);
+          C_CDD_FREE(node->fields[j].doc);
         }
         if (node->fields[j].array_length_ref) {
-          free(node->fields[j].array_length_ref);
+          C_CDD_FREE(node->fields[j].array_length_ref);
         }
         free_type_recursive(&node->fields[j].type);
       }
-      free(node->fields);
+      C_CDD_FREE(node->fields);
     }
 
     /* Free base classes */
     if (node->base_classes) {
       for (j = 0; j < node->base_classes_count; j++) {
         if (node->base_classes[j].name) {
-          free(node->base_classes[j].name);
+          C_CDD_FREE(node->base_classes[j].name);
         }
         if (node->base_classes[j].access) {
-          free(node->base_classes[j].access);
+          C_CDD_FREE(node->base_classes[j].access);
         }
       }
-      free(node->base_classes);
+      C_CDD_FREE(node->base_classes);
     }
 
     /* Free virtual methods */
@@ -235,44 +221,44 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
       for (j = 0; j < node->virtual_methods_count; j++) {
         size_t a;
         if (node->virtual_methods[j].name) {
-          free(node->virtual_methods[j].name);
+          C_CDD_FREE(node->virtual_methods[j].name);
         }
         free_type_recursive(&node->virtual_methods[j].return_type);
         if (node->virtual_methods[j].args) {
           for (a = 0; a < node->virtual_methods[j].args_count; a++) {
             if (node->virtual_methods[j].args[a].name) {
-              free(node->virtual_methods[j].args[a].name);
+              C_CDD_FREE(node->virtual_methods[j].args[a].name);
             }
             if (node->virtual_methods[j].args[a].doc) {
-              free(node->virtual_methods[j].args[a].doc);
+              C_CDD_FREE(node->virtual_methods[j].args[a].doc);
             }
             free_type_recursive(&node->virtual_methods[j].args[a].type);
           }
-          free(node->virtual_methods[j].args);
+          C_CDD_FREE(node->virtual_methods[j].args);
         }
       }
-      free(node->virtual_methods);
+      C_CDD_FREE(node->virtual_methods);
     }
 
     /* Free variants */
     if (node->variants) {
       for (j = 0; j < node->variants_count; j++) {
         if (node->variants[j].name) {
-          free(node->variants[j].name);
+          C_CDD_FREE(node->variants[j].name);
         }
         if (node->variants[j].value) {
-          free(node->variants[j].value);
+          C_CDD_FREE(node->variants[j].value);
         }
         if (node->variants[j].doc) {
-          free(node->variants[j].doc);
+          C_CDD_FREE(node->variants[j].doc);
         }
       }
-      free(node->variants);
+      C_CDD_FREE(node->variants);
     }
   }
 
   if (ir->nodes) {
-    free(ir->nodes);
+    C_CDD_FREE(ir->nodes);
   }
 
   ir->nodes = NULL;

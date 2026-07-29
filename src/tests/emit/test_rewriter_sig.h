@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -38,12 +39,12 @@ static enum cdd_c_error test_rewrite(const char *input, const char *expected) {
   if (output == NULL || strcmp(output, expected) != 0) {
     fprintf(stderr, "\nExpected: '%s'\nGot:      '%s'\n", expected,
             output ? output : "(null)");
-    free(output);
+    C_CDD_FREE(output);
     free_token_list(tl);
     return 1; /* Fail */
   }
 
-  free(output);
+  C_CDD_FREE(output);
   free_token_list(tl);
   return 0; /* Success */
 }
@@ -58,7 +59,7 @@ static int test_rewrite_error(const char *input) {
 
   rc = rewrite_signature(tl, &output);
   if (output)
-    free(output);
+    C_CDD_FREE(output);
   free_token_list(tl);
   return rc;
 }
@@ -79,7 +80,6 @@ TEST test_rewrite_failures(void) {
   /* Force mismatch */
   ASSERT_EQ(1, test_rewrite("void f()", "int nope()"));
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -93,7 +93,7 @@ TEST test_rewrite_void_ret(void) {
   ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
   /* Space padding checks */
   ASSERT_EQ(0, test_rewrite("void  f ( void )", "int f ( void )"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -109,7 +109,7 @@ TEST test_rewrite_ptr_ret(void) {
   ASSERT_EQ(0, test_rewrite("void *f()", "int f(void * *out)"));
   /* preserving internal spaces */
   ASSERT_EQ(0, test_rewrite("char * f()", "int f(char * *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -120,7 +120,7 @@ TEST test_rewrite_ptr_ret(void) {
 TEST test_rewrite_struct_ret(void) {
   /* struct S f() -> int f(struct S *out) */
   ASSERT_EQ(0, test_rewrite("struct S f()", "int f(struct S *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -142,7 +142,6 @@ TEST test_rewrite_storage_class(void) {
   /* __inline void h() -> __inline int h() */
   ASSERT_EQ(0, test_rewrite("__inline void h()", "__inline int h()"));
 
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,7 +156,7 @@ TEST test_rewrite_c23_attributes(void) {
   /* [[maybe_unused]] int * f() -> [[maybe_unused]] int f(int * *out) */
   ASSERT_EQ(0, test_rewrite("[[maybe_unused]] int * f()",
                             "[[maybe_unused]] int f(int * *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -172,7 +171,7 @@ TEST test_rewrite_array_args(void) {
   /* int * sort(int a[10]) -> int sort(int a[10], int * *out) */
   ASSERT_EQ(0, test_rewrite("int * sort(int a[10])",
                             "int sort(int a[10], int * *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -188,7 +187,7 @@ TEST test_rewrite_function_pointer_args(void) {
   /* Complex nested parens in args */
   ASSERT_EQ(
       0, test_rewrite("void f(int (*g)(char *))", "int f(int (*g)(char *))"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -200,7 +199,7 @@ TEST test_rewrite_complex_type(void) {
   /* unsigned long long f() -> int f(unsigned long long *out) */
   ASSERT_EQ(0, test_rewrite("unsigned long long f()",
                             "int f(unsigned long long *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -211,7 +210,7 @@ TEST test_rewrite_complex_type(void) {
 TEST test_rewrite_with_const(void) {
   /* const char *f() -> int f(const char * *out) */
   ASSERT_EQ(0, test_rewrite("const char *f()", "int f(const char * *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -226,7 +225,7 @@ TEST test_rewrite_invalid_input(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rewrite_signature(&tmpl, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, test_rewrite_error("void f("));
   ASSERT_EQ(0, test_rewrite("my_func(int x)", "int my_func(int x, int *out)"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -237,7 +236,7 @@ TEST test_rewrite_invalid_input(void) {
 TEST test_rewrite_no_parens(void) {
   /* "int x;" is not a function */
   ASSERT_NEQ(0, test_rewrite("int x;", ""));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -250,7 +249,7 @@ TEST test_rewrite_no_parens(void) {
 TEST test_rewrite_kr_void_ret(void) {
   /* void f(a) int a; -> int f(a) int a; */
   ASSERT_EQ(0, test_rewrite("void f(a) int a;", "int f(a) int a;"));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -272,7 +271,7 @@ TEST test_rewrite_kr_ptr_ret(void) {
   const char *expected = "int f(a, out) int a; char * *out;";
   /* input has a space before int a; */
   ASSERT_EQ(0, test_rewrite("char *f(a) int a;", expected));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -287,7 +286,7 @@ TEST test_rewrite_kr_complex(void) {
   const char *expected = "int f(x, y, out) int x; double y; struct S * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -303,7 +302,7 @@ TEST test_rewrite_kr_empty_args(void) {
   const char *expected = "int f(out) int x; char * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -328,7 +327,7 @@ TEST test_rewrite_oom(void) {
     if (rc == CDD_C_SUCCESS)
       break;
   }
-  g_fail_io_after = -1;
+
   PASS();
 }
 

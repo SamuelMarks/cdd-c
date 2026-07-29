@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -70,7 +71,7 @@ static enum cdd_c_error split_lines(const char *str, size_t len,
     return;
   }
 
-  *out_lines = (struct DiffLine *)malloc(count * sizeof(struct DiffLine));
+  *out_lines = (struct DiffLine *)C_CDD_MALLOC(count * sizeof(struct DiffLine));
   if (!*out_lines) {
     *out_count = 0;
     return;
@@ -104,7 +105,7 @@ generate_block_new_text(const struct Block *b, struct PatchList *list,
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
 
   size_t est_cap = (size_t)(block_end_ptr - block_start_ptr) + 1024;
-  char *res = (char *)malloc(est_cap);
+  char *res = (char *)C_CDD_MALLOC(est_cap);
   size_t res_len = 0;
   const char *cursor = block_start_ptr;
   size_t p;
@@ -130,7 +131,7 @@ generate_block_new_text(const struct Block *b, struct PatchList *list,
       size_t unchanged_len = (size_t)(patch_start_ptr - cursor);
       if (res_len + unchanged_len + strlen(patch->text) + 256 > est_cap) {
         est_cap *= 2;
-        res = (char *)realloc(res, est_cap);
+        res = (char *)C_CDD_REALLOC(res, est_cap);
       }
       memcpy(res + res_len, cursor, unchanged_len);
       res_len += unchanged_len;
@@ -140,7 +141,7 @@ generate_block_new_text(const struct Block *b, struct PatchList *list,
       size_t ptext_len = strlen(patch->text);
       if (res_len + ptext_len + 256 > est_cap) {
         est_cap = res_len + ptext_len + 1024;
-        res = (char *)realloc(res, est_cap);
+        res = (char *)C_CDD_REALLOC(res, est_cap);
       }
       memcpy(res + res_len, patch->text, ptext_len);
       res_len += ptext_len;
@@ -152,7 +153,7 @@ generate_block_new_text(const struct Block *b, struct PatchList *list,
   if (block_end_ptr > cursor) {
     size_t rem = (size_t)(block_end_ptr - cursor);
     if (res_len + rem + 1 > est_cap) {
-      res = (char *)realloc(res, res_len + rem + 1);
+      res = (char *)C_CDD_REALLOC(res, res_len + rem + 1);
     }
     memcpy(res + res_len, cursor, rem);
     res_len += rem;
@@ -172,7 +173,7 @@ static enum cdd_c_error append_to_diff(char **diff_str, size_t *diff_len,
   int printed;
   if (!*diff_str) {
     *diff_cap = 1024;
-    *diff_str = (char *)malloc(*diff_cap);
+    *diff_str = (char *)C_CDD_MALLOC(*diff_cap);
     if (!*diff_str)
       return CDD_C_ERROR_MEMORY;
     (*diff_str)[0] = '\0';
@@ -190,7 +191,7 @@ static enum cdd_c_error append_to_diff(char **diff_str, size_t *diff_len,
   if (printed > 0) {
     if (*diff_len + printed + 1 > *diff_cap) {
       *diff_cap = *diff_len + printed + 1024;
-      *diff_str = (char *)realloc(*diff_str, *diff_cap);
+      *diff_str = (char *)C_CDD_REALLOC(*diff_str, *diff_cap);
     }
     va_start(args, format);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -227,7 +228,7 @@ enum cdd_c_error patch_list_to_diff(struct PatchList *list,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size == 0) {
-    *out_diff = (char *)malloc(1);
+    *out_diff = (char *)C_CDD_MALLOC(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
     return CDD_C_SUCCESS;
@@ -242,7 +243,7 @@ enum cdd_c_error patch_list_to_diff(struct PatchList *list,
                         (const uint8_t *)orig_src);
     (void)split_lines(orig_src, orig_len, &old_lines, &old_line_count);
   } else {
-    *out_diff = (char *)malloc(1);
+    *out_diff = (char *)C_CDD_MALLOC(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
     return CDD_C_SUCCESS;
@@ -271,8 +272,8 @@ enum cdd_c_error patch_list_to_diff(struct PatchList *list,
     } else {
       if (block_count >= block_cap) {
         block_cap = block_cap == 0 ? 4 : block_cap * 2;
-        blocks =
-            (struct Block *)realloc(blocks, block_cap * sizeof(struct Block));
+        blocks = (struct Block *)C_CDD_REALLOC(
+            blocks, block_cap * sizeof(struct Block));
       }
       blocks[block_count].patch_start_idx = p;
       blocks[block_count].patch_end_idx = p + 1;
@@ -364,15 +365,15 @@ enum cdd_c_error patch_list_to_diff(struct PatchList *list,
     current_line_delta +=
         new_line_count - (b->old_end_line - b->old_start_line + 1);
 
-    free(new_text);
+    C_CDD_FREE(new_text);
     if (new_lines)
-      free(new_lines);
+      C_CDD_FREE(new_lines);
 }
 
 if (blocks)
-  free(blocks);
+  C_CDD_FREE(blocks);
 if (old_lines)
-  free(old_lines);
+  C_CDD_FREE(old_lines);
 
   *out_diff = diff_str;
   return 0;

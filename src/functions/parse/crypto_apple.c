@@ -24,6 +24,30 @@
  */
 enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
                                unsigned char *out_digest) {
+#ifdef CDD_BUILD_TESTS
+  extern int g_crypto_fail_sha256;
+  extern int g_crypto_fail_mdctx_new;
+  extern int g_crypto_fail_digestinit;
+  extern int g_crypto_fail_digestupdate;
+  extern int g_crypto_fail_digestfinal;
+  extern int g_crypto_fail_digestfinal_len;
+
+  if (g_crypto_fail_sha256)
+    return CDD_C_ERROR_IO;
+  /* OpenSSL / wincrypt tests have more fine-grained fail flags, but we map them
+   * to the same errors here so the tests pass across backends. */
+  if (g_crypto_fail_mdctx_new)
+    return CDD_C_ERROR_MEMORY;
+  if (g_crypto_fail_digestinit)
+    return CDD_C_ERROR_IO;
+  if (g_crypto_fail_digestupdate)
+    return CDD_C_ERROR_IO;
+  if (g_crypto_fail_digestfinal)
+    return CDD_C_ERROR_IO;
+  if (g_crypto_fail_digestfinal_len)
+    return CDD_C_ERROR_IO;
+#endif
+
   if ((!data && data_len > 0) || !out_digest)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   CC_SHA256(data, (CC_LONG)data_len, out_digest);
@@ -38,6 +62,16 @@ enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
 enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
                                     const void *data, size_t data_len,
                                     unsigned char *out_mac) {
+#ifdef CDD_BUILD_TESTS
+  extern int g_crypto_fail_hmac;
+  extern int g_crypto_fail_hmac_len;
+
+  if (g_crypto_fail_hmac)
+    return CDD_C_ERROR_IO;
+  if (g_crypto_fail_hmac_len)
+    return CDD_C_ERROR_IO;
+#endif
+
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (key_len == 0) {

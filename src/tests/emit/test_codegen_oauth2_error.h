@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -64,7 +65,7 @@ TEST test_oauth2_error_generation(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "enum OAuth2ErrorErrorType"));
@@ -73,10 +74,10 @@ TEST test_oauth2_error_generation(void) {
   ASSERT(strstr(content, "OAuth2Error_ERROR_INVALID_GRANT"));
   ASSERT(strstr(content, "ret->error_description = val;"));
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 
@@ -110,7 +111,7 @@ TEST test_oauth2_error_generation_non_string(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "enum OAuth2ErrorNonStringErrorType"));
@@ -119,10 +120,10 @@ TEST test_oauth2_error_generation_non_string(void) {
   ASSERT(strstr(content, "ret->error = val;") == NULL);
   ASSERT(strstr(content, "ret->error_description = val;") == NULL);
 
-  free(content);
+  C_CDD_FREE(content);
   struct_fields_free(&sf);
   fclose(tmp);
-  g_fail_io_after = -1;
+
   PASS();
 }
 

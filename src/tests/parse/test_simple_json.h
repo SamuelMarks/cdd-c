@@ -1,3 +1,5 @@
+/* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_c_error.h"
 /**
  * @file test_simple_json.h
@@ -11,12 +13,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* clang-format off */
 #include <greatest.h>
 
 #include "../mocks/emit/simple.h"
 #include "../mocks/emit/simple_json.h"
-/* clang-format on */
 
 /**
  * @brief Tests basic null handling of cleanup.
@@ -93,6 +93,7 @@ TEST test_foo_e_json(void) {
 #error "CDD_BUILD_TESTS is NOT defined!"
 #endif
 #include "simple_mocks_export.h"
+/* clang-format on */
 extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
 #endif
 

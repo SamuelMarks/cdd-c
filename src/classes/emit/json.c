@@ -10,6 +10,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,38 +22,11 @@
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
 #include <stdarg.h>
-
 /* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_fail_io_after = -1;
-C_CDD_EXPORT int g_io_calls = 0;
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  int ret;
-  va_list args;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  ret = vfprintf(stream, format, args);
-  va_end(args);
-  return ret;
-}
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK test_cdd_fprintf_hook
-#else
-/** @brief FPRINTF_HOOK macro */
-#define FPRINTF_HOOK fprintf
 #endif
 
 /* Terser error checking */
@@ -89,26 +63,25 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "enum cdd_c_error %s_to_json(const struct %s *obj, "
-                        "char **const json) {\n",
-                        struct_name, struct_name));
+  CHECK_IO(fprintf(fp,
+                   "enum cdd_c_error %s_to_json(const struct %s *obj, "
+                   "char **const json) {\n",
+                   struct_name, struct_name));
 
   /* Variables decl */
-  CHECK_IO(FPRINTF_HOOK(fp, "  int need_comma = 0;\n"));
+  CHECK_IO(fprintf(fp, "  int need_comma = 0;\n"));
   if (rc_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
+    CHECK_IO(fprintf(fp, "  int rc;\n"));
   if (iter_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  size_t i;\n"));
+    CHECK_IO(fprintf(fp, "  size_t i;\n"));
 
   /* Initial Safety Checks */
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (obj == NULL || json == NULL) return "
-                            "CDD_C_ERROR_INVALID_ARGUMENT;\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  c89stringutils_jasprintf(json, \"{\");\n"));
-  CHECK_IO(
-      FPRINTF_HOOK(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n\n"));
+  CHECK_IO(fprintf(fp, "  if (obj == NULL || json == NULL) return "
+                       "CDD_C_ERROR_INVALID_ARGUMENT;\n"));
+  CHECK_IO(fprintf(fp, "  c89stringutils_jasprintf(json, \"{\");\n"));
+  CHECK_IO(fprintf(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
@@ -118,119 +91,114 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
     if (sf->fields[i].write_only)
       continue;
 
-    CHECK_IO(FPRINTF_HOOK(
+    CHECK_IO(fprintf(
         fp, "  if (need_comma) { c89stringutils_jasprintf(json, \",\"); if "
             "(*json==NULL) return CDD_C_ERROR_MEMORY; }\n"));
 
     if (strcmp(t, "integer") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": %%d\", obj->%s);\n",
-                            n, n));
+      CHECK_IO(fprintf(fp,
+                       "  c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%d\", obj->%s);\n",
+                       n, n));
     } else if (strcmp(t, "number") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": %%f\", obj->%s);\n",
-                            n, n));
+      CHECK_IO(fprintf(fp,
+                       "  c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%f\", obj->%s);\n",
+                       n, n));
     } else if (strcmp(t, "boolean") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": %%s\", obj->%s ? "
-                            "\"true\" : \"false\");\n",
-                            n, n));
+      CHECK_IO(fprintf(fp,
+                       "  c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": %%s\", obj->%s ? "
+                       "\"true\" : \"false\");\n",
+                       n, n));
     } else if (strcmp(t, "string") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "  if (obj->%s) c89stringutils_jasprintf(json, \"\\\"%s\\\": "
-          "\\\"%%s\\\"\", obj->%s);\n",
-          n, n, n));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  else c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": null\");\n",
-                            n));
+      CHECK_IO(
+          fprintf(fp,
+                  "  if (obj->%s) c89stringutils_jasprintf(json, \"\\\"%s\\\": "
+                  "\\\"%%s\\\"\", obj->%s);\n",
+                  n, n, n));
+      CHECK_IO(fprintf(fp,
+                       "  else c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": null\");\n",
+                       n));
     } else if (strcmp(t, "object") == 0) {
       /* Recursive call */
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (obj->%s) {\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    char *s = NULL;\n"));
+      CHECK_IO(fprintf(fp, "  if (obj->%s) {\n", n));
+      CHECK_IO(fprintf(fp, "    char *s = NULL;\n"));
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(
-            FPRINTF_HOOK(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n));
+        CHECK_IO(fprintf(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n));
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (rc) { free(s); return rc; }\n"));
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(fp, "    if (rc) { C_CDD_FREE(s); return rc; }\n"));
+      CHECK_IO(fprintf(
           fp, "    c89stringutils_jasprintf(json, \"\\\"%s\\\": %%s\", s);\n",
           n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    free(s);\n"));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  } else c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": null\");\n",
-                            n));
+      CHECK_IO(fprintf(fp, "    C_CDD_FREE(s);\n"));
+      CHECK_IO(fprintf(fp,
+                       "  } else c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": null\");\n",
+                       n));
     } else if (strcmp(t, "enum") == 0) {
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if "
-                              "(rc) { free(s); return rc; }\n",
-                              tn, n));
+        CHECK_IO(fprintf(fp,
+                         "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if "
+                         "(rc) { C_CDD_FREE(s); return rc; }\n",
+                         tn, n));
       }
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "    c89stringutils_jasprintf(json, "
-                            "\"\\\"%s\\\": \\\"%%s\\\"\", s); free(s); }\n",
-                            n));
+      CHECK_IO(fprintf(fp,
+                       "    c89stringutils_jasprintf(json, "
+                       "\"\\\"%s\\\": \\\"%%s\\\"\", s); C_CDD_FREE(s); }\n",
+                       n));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp, "  c89stringutils_jasprintf(json, \"\\\"%s\\\": [\");\n", n));
-      CHECK_IO(
-          FPRINTF_HOOK(fp, "  if (*json==NULL) return CDD_C_ERROR_MEMORY;\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  for (i=0; i < obj->n_%s; ++i) {\n", n));
+      CHECK_IO(fprintf(fp, "  if (*json==NULL) return CDD_C_ERROR_MEMORY;\n"));
+      CHECK_IO(fprintf(fp, "  for (i=0; i < obj->n_%s; ++i) {\n", n));
       /* Loop Body handling type */
       if (strcmp(r, "integer") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
+        CHECK_IO(fprintf(
             fp, "    c89stringutils_jasprintf(json, \"%%d\", obj->%s[i]);\n",
             n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "    c89stringutils_jasprintf(json, "
-                              "\"\\\"%%s\\\"\", obj->%s[i]);\n",
-                              n));
+        CHECK_IO(fprintf(fp,
+                         "    c89stringutils_jasprintf(json, "
+                         "\"\\\"%%s\\\"\", obj->%s[i]);\n",
+                         n));
       } else { /* Object array */
         {
           char *tn = NULL;
           get_type_from_ref(r, &tn);
-          CHECK_IO(
-              FPRINTF_HOOK(fp,
+          CHECK_IO(fprintf(fp,
                            "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
-                           "if (rc) { free(s); return rc; }\n",
+                           "if (rc) { C_CDD_FREE(s); return rc; }\n",
                            tn, n));
         }
-        CHECK_IO(FPRINTF_HOOK(fp, "      c89stringutils_jasprintf(json, "
-                                  "\"%%s\", s); free(s); }\n"));
+        CHECK_IO(fprintf(fp, "      c89stringutils_jasprintf(json, "
+                             "\"%%s\", s); C_CDD_FREE(s); }\n"));
       }
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "    if (*json==NULL) return CDD_C_ERROR_MEMORY;\n"));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "    if (i+1 < obj->n_%s) "
-                            "c89stringutils_jasprintf(json, \",\");\n",
-                            n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  c89stringutils_jasprintf(json, \"]\");\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (*json==NULL) return CDD_C_ERROR_MEMORY;\n"));
+      CHECK_IO(fprintf(fp,
+                       "    if (i+1 < obj->n_%s) "
+                       "c89stringutils_jasprintf(json, \",\");\n",
+                       n));
+      CHECK_IO(fprintf(fp, "  }\n"));
+      CHECK_IO(fprintf(fp, "  c89stringutils_jasprintf(json, \"]\");\n"));
     }
 
-    CHECK_IO(
-        FPRINTF_HOOK(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n"));
-    CHECK_IO(FPRINTF_HOOK(fp, "  need_comma = 1;\n"));
+    CHECK_IO(fprintf(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n"));
+    CHECK_IO(fprintf(fp, "  need_comma = 1;\n"));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  c89stringutils_jasprintf(json, \"}\");\n"));
-  CHECK_IO(
-      FPRINTF_HOOK(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  return CDD_C_SUCCESS;\n}\n"));
+  CHECK_IO(fprintf(fp, "  c89stringutils_jasprintf(json, \"}\");\n"));
+  CHECK_IO(fprintf(fp, "  if (*json == NULL) return CDD_C_ERROR_MEMORY;\n"));
+  CHECK_IO(fprintf(fp, "  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return CDD_C_SUCCESS;
 }
@@ -245,9 +213,9 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(
+  CHECK_IO(fprintf(
       fp,
       "enum cdd_c_error %s_from_json(const char *json_str, struct %s **const "
       "out) {\n"
@@ -261,7 +229,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
       struct_name, struct_name, struct_name));
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return CDD_C_SUCCESS;
 }
@@ -277,53 +245,57 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(
+  CHECK_IO(fprintf(
       fp,
       "enum cdd_c_error %s_array_from_json(const char *json_str, struct %s "
-      "***out, size_t "
-      "*out_len) {\n"
+      "***out, size_t *out_len) {\n"
       "  JSON_Value *val = json_parse_string(json_str);\n"
       "  JSON_Array *arr = NULL;\n"
       "  size_t i, count;\n"
       "  struct %s **tmp = NULL;\n"
-      "  int rc = 0;\n"
-      "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-      "  arr = json_value_get_array(val);\n"
-      "  if (!arr) { json_value_free(val); return "
-      "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
-      "  count = json_array_get_count(arr);\n"
-      "  if (count == 0) {\n"
-      "    *out = NULL;\n"
-      "    *out_len = 0;\n"
-      "    json_value_free(val);\n"
-      "    return CDD_C_SUCCESS;\n"
-      "  }\n"
-      "  tmp = (struct %s **)calloc(count, sizeof(struct %s *));\n"
+      "  int rc = 0;\n",
+      struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(fp, "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+                       "  arr = json_value_get_array(val);\n"
+                       "  if (!arr) { json_value_free(val); return "
+                       "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
+                       "  count = json_array_get_count(arr);\n"
+                       "  if (count == 0) {\n"
+                       "    *out = NULL;\n"
+                       "    *out_len = 0;\n"
+                       "    json_value_free(val);\n"
+                       "    return CDD_C_SUCCESS;\n"
+                       "  }\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "  tmp = (struct %s **)C_CDD_CALLOC(count, sizeof(struct %s *));\n"
       "  if (!tmp) { json_value_free(val); return CDD_C_ERROR_MEMORY; }\n"
       "  for (i = 0; i < count; ++i) {\n"
       "    rc = %s_from_jsonObject(json_array_get_object(arr, i), &tmp[i]);\n"
       "    if (rc != 0) break;\n"
-      "  }\n"
-      "  if (rc == 0) {\n"
-      "    *out = tmp;\n"
-      "    *out_len = count;\n"
-      "  } else {\n"
-      "    size_t k;\n"
-      "    for (k = 0; k < i; ++k) {\n"
-      "      if (tmp[k]) { %s_cleanup(tmp[k]); free(tmp[k]); }\n"
-      "    }\n"
-      "    free(tmp);\n"
-      "  }\n"
-      "  json_value_free(val);\n"
-      "  return rc;\n"
-      "}\n",
-      struct_name, struct_name, struct_name, struct_name, struct_name,
-      struct_name, struct_name));
+      "  }\n",
+      struct_name, struct_name, struct_name));
+  CHECK_IO(
+      fprintf(fp,
+              "  if (rc == 0) {\n"
+              "    *out = tmp;\n"
+              "    *out_len = count;\n"
+              "  } else {\n"
+              "    size_t k;\n"
+              "    for (k = 0; k < i; ++k) {\n"
+              "      if (tmp[k]) { %s_cleanup(tmp[k]); C_CDD_FREE(tmp[k]); }\n"
+              "    }\n"
+              "    C_CDD_FREE(tmp);\n"
+              "  }\n"
+              "  json_value_free(val);\n"
+              "  return rc;\n"
+              "}\n",
+              struct_name));
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#endif /* %s */\n", config->guard_macro));
 
   return CDD_C_SUCCESS;
 }
@@ -365,29 +337,29 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(
+  CHECK_IO(fprintf(
       fp,
       "enum cdd_c_error %s_from_jsonObject(const JSON_Object *jsonObject, "
       "struct %s **const out) {\n",
       struct_name, struct_name));
 
   if (rc_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
+    CHECK_IO(fprintf(fp, "  int rc;\n"));
   if (iter_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  size_t i;\n  const JSON_Array *arr;\n"));
+    CHECK_IO(fprintf(fp, "  size_t i;\n  const JSON_Array *arr;\n"));
   if (tmp_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  double tmp;\n"));
+    CHECK_IO(fprintf(fp, "  double tmp;\n"));
   if (len_needed)
-    CHECK_IO(FPRINTF_HOOK(fp, "  size_t len;\n"));
+    CHECK_IO(fprintf(fp, "  size_t len;\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  struct %s *ret = calloc(1, sizeof(*ret));\n",
-                        struct_name));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!ret) return CDD_C_ERROR_MEMORY;\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (!jsonObject || !out) { free(ret); return "
-                            "CDD_C_ERROR_INVALID_ARGUMENT; "
-                            "}\n\n"));
+  CHECK_IO(fprintf(fp, "  struct %s *ret = C_CDD_CALLOC(1, sizeof(*ret));\n",
+                   struct_name));
+  CHECK_IO(fprintf(fp, "  if (!ret) return CDD_C_ERROR_MEMORY;\n"));
+  CHECK_IO(fprintf(fp, "  if (!jsonObject || !out) { C_CDD_FREE(ret); return "
+                       "CDD_C_ERROR_INVALID_ARGUMENT; "
+                       "}\n\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
@@ -399,92 +371,92 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
       continue;
 
     if (strcmp(t, "integer") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp, "  ret->%s = (int)json_object_get_number(jsonObject, \"%s\");\n",
           n, n));
       if (f->has_min || f->has_max || f->exclusive_min || f->exclusive_max) {
-        CHECK_IO(FPRINTF_HOOK(fp, "  tmp = (double)ret->%s;\n", n));
+        CHECK_IO(fprintf(fp, "  tmp = (double)ret->%s;\n", n));
         if (f->has_min) {
           if (f->exclusive_min)
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp <= %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->min_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp <= %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->min_val));
           else
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp < %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->min_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp < %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->min_val));
         }
         if (f->has_max) {
           if (f->exclusive_max)
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp >= %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->max_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp >= %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->max_val));
           else
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp > %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->max_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp > %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->max_val));
         }
       }
     } else if (strcmp(t, "number") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp, "  ret->%s = json_object_get_number(jsonObject, \"%s\");\n", n,
           n));
       if (f->has_min || f->has_max || f->exclusive_min || f->exclusive_max) {
-        CHECK_IO(FPRINTF_HOOK(fp, "  tmp = ret->%s;\n", n));
+        CHECK_IO(fprintf(fp, "  tmp = ret->%s;\n", n));
         if (f->has_min) {
           if (f->exclusive_min)
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp <= %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->min_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp <= %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->min_val));
           else
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp < %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->min_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp < %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->min_val));
         }
         if (f->has_max) {
           if (f->exclusive_max)
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp >= %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->max_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp >= %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->max_val));
           else
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "  if (tmp > %f) { free(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  f->max_val));
+            CHECK_IO(fprintf(fp,
+                             "  if (tmp > %f) { C_CDD_FREE(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             f->max_val));
         }
       }
     } else if (strcmp(t, "boolean") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp, "  ret->%s = json_object_get_boolean(jsonObject, \"%s\");\n", n,
           n));
     } else if (strcmp(t, "string") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp,
           "  { const char *s = json_object_get_string(jsonObject, \"%s\");\n",
           n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (s) {\n"));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "      ret->%s = strdup(s);\n"
-                            "      if (!ret->%s) { %s_cleanup(ret); return "
-                            "CDD_C_ERROR_MEMORY; }\n",
-                            n, n, struct_name));
+      CHECK_IO(fprintf(fp, "    if (s) {\n"));
+      CHECK_IO(fprintf(fp,
+                       "      ret->%s = strdup(s);\n"
+                       "      if (!ret->%s) { %s_cleanup(ret); return "
+                       "CDD_C_ERROR_MEMORY; }\n",
+                       n, n, struct_name));
       if (f->has_min_len || f->has_max_len || f->pattern[0]) {
-        CHECK_IO(FPRINTF_HOOK(fp, "      len = strlen(ret->%s);\n", n));
+        CHECK_IO(fprintf(fp, "      len = strlen(ret->%s);\n", n));
         if (f->has_min_len)
-          CHECK_IO(FPRINTF_HOOK(
+          CHECK_IO(fprintf(
               fp,
               "      if (len < %" CDD_SIZE_T_FMT
               ") { %s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
               (size_t)f->min_len, struct_name));
         if (f->has_max_len)
-          CHECK_IO(FPRINTF_HOOK(
+          CHECK_IO(fprintf(
               fp,
               "      if (len > %" CDD_SIZE_T_FMT
               ") { %s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
@@ -526,13 +498,13 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 #endif
 #endif
             pat[pl] = 0;
-            CHECK_IO(FPRINTF_HOOK(
+            CHECK_IO(fprintf(
                 fp,
                 "      if (strcmp(ret->%s, \"%s\") != 0) { "
                 "%s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
                 n, pat, struct_name));
           } else if (strncmp(f->pattern, "^", 1) == 0) { /* prefix */
-            CHECK_IO(FPRINTF_HOOK(
+            CHECK_IO(fprintf(
                 fp,
                 "      if (strncmp(ret->%s, \"%s\", %" CDD_SIZE_T_FMT
                 ") != 0) { "
@@ -573,15 +545,14 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 #endif
 #endif
             pat[pl] = 0;
-            CHECK_IO(FPRINTF_HOOK(fp,
-                                  "      if (len < %" CDD_SIZE_T_FMT
-                                  " || strcmp(ret->%s + len - %" CDD_SIZE_T_FMT
-                                  ", "
-                                  "\"%s\") != 0) { %s_cleanup(ret); return "
-                                  "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  (size_t)pl, n, (size_t)pl, pat, struct_name));
+            CHECK_IO(fprintf(fp,
+                             "      if (len < %" CDD_SIZE_T_FMT
+                             " || strcmp(ret->%s + len - %" CDD_SIZE_T_FMT ", "
+                             "\"%s\") != 0) { %s_cleanup(ret); return "
+                             "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+                             (size_t)pl, n, (size_t)pl, pat, struct_name));
           } else { /* contains */
-            CHECK_IO(FPRINTF_HOOK(
+            CHECK_IO(fprintf(
                 fp,
                 "      if (strstr(ret->%s, \"%s\") == NULL) { "
                 "%s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
@@ -589,90 +560,90 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           }
         }
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+      CHECK_IO(fprintf(fp, "    }\n  }\n"));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "  { JSON_Object *sub = "
-                            "json_object_get_object(jsonObject, \"%s\");\n",
-                            n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (sub) {\n"));
+      CHECK_IO(fprintf(fp,
+                       "  { JSON_Object *sub = "
+                       "json_object_get_object(jsonObject, \"%s\");\n",
+                       n));
+      CHECK_IO(fprintf(fp, "    if (sub) {\n"));
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n", tn, n));
+        CHECK_IO(fprintf(fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n",
+                         tn, n));
       }
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      if (rc) { %s_cleanup(ret); return rc; }\n", struct_name));
-      CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+      CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
+                       struct_name));
+      CHECK_IO(fprintf(fp, "    }\n  }\n"));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp,
           "  { const char *s = json_object_get_string(jsonObject, \"%s\");\n",
           n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (s) {\n"));
+      CHECK_IO(fprintf(fp, "    if (s) {\n"));
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(
-            FPRINTF_HOOK(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n));
+        CHECK_IO(fprintf(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n));
       }
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      if (rc) { %s_cleanup(ret); return rc; }\n", struct_name));
-      CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+      CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
+                       struct_name));
+      CHECK_IO(fprintf(fp, "    }\n  }\n"));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
+      CHECK_IO(fprintf(
           fp, "  arr = json_object_get_array(jsonObject, \"%s\");\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (arr) {\n"));
-      CHECK_IO(
-          FPRINTF_HOOK(fp, "    ret->n_%s = json_array_get_count(arr);\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (ret->n_%s > 0) {\n", n));
+      CHECK_IO(fprintf(fp, "  if (arr) {\n"));
+      CHECK_IO(fprintf(fp, "    ret->n_%s = json_array_get_count(arr);\n", n));
+      CHECK_IO(fprintf(fp, "    if (ret->n_%s > 0) {\n", n));
       if (strcmp(r, "integer") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "      ret->%s = malloc(ret->n_%s * sizeof(int));\n", n, n));
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "      for(i=0; i<ret->n_%s; ++i) ret->%s[i] = "
-                              "(int)json_array_get_number(arr, i);\n",
-                              n, n));
+        CHECK_IO(fprintf(
+            fp, "      ret->%s = C_CDD_MALLOC(ret->n_%s * sizeof(int));\n", n,
+            n));
+        CHECK_IO(fprintf(fp,
+                         "      for(i=0; i<ret->n_%s; ++i) ret->%s[i] = "
+                         "(int)json_array_get_number(arr, i);\n",
+                         n, n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "      ret->%s = calloc(ret->n_%s, sizeof(char*));\n", n, n));
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "      for(i=0; i<ret->n_%s; ++i) ret->%s[i] = "
-                              "strdup(json_array_get_string(arr, i));\n",
-                              n, n));
+        CHECK_IO(fprintf(
+            fp, "      ret->%s = C_CDD_CALLOC(ret->n_%s, sizeof(char*));\n", n,
+            n));
+        CHECK_IO(fprintf(fp,
+                         "      for(i=0; i<ret->n_%s; ++i) ret->%s[i] = "
+                         "strdup(json_array_get_string(arr, i));\n",
+                         n, n));
       } else {
         /* Object array */
         {
           char *tn = NULL;
           get_type_from_ref(r, &tn);
-          CHECK_IO(FPRINTF_HOOK(
-              fp, "      ret->%s = calloc(ret->n_%s, sizeof(struct %s*));\n", n,
-              n, tn));
+          CHECK_IO(fprintf(
+              fp,
+              "      ret->%s = C_CDD_CALLOC(ret->n_%s, sizeof(struct %s*));\n",
+              n, n, tn));
         }
-        CHECK_IO(FPRINTF_HOOK(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
+        CHECK_IO(fprintf(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
         {
           char *tn = NULL;
           get_type_from_ref(r, &tn);
-          CHECK_IO(FPRINTF_HOOK(
+          CHECK_IO(fprintf(
               fp,
               "        rc = %s_from_jsonObject(json_array_get_object(arr, i), "
               "&ret->%s[i]);\n",
               tn, n));
         }
-        CHECK_IO(
-            FPRINTF_HOOK(fp, "        if(rc) { %s_cleanup(ret); return rc; }\n",
+        CHECK_IO(fprintf(fp, "        if(rc) { %s_cleanup(ret); return rc; }\n",
                          struct_name));
-        CHECK_IO(FPRINTF_HOOK(fp, "      }\n"));
+        CHECK_IO(fprintf(fp, "      }\n"));
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
+      CHECK_IO(fprintf(fp, "    }\n  }\n"));
     }
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
+  CHECK_IO(fprintf(fp, "  *out = ret;\n  return CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return CDD_C_SUCCESS;
 }

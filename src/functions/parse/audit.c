@@ -7,6 +7,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
@@ -19,7 +20,6 @@
 #include <string.h>
 #include "c_cdd/log.h"
 #include "c_cdd_export.h"
-
 /* clang-format on */
 
 C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
@@ -57,11 +57,11 @@ void audit_stats_free(struct AuditStats *stats) {
     return;
   if (stats->violations.items) {
     for (i = 0; i < stats->violations.size; i++) {
-      free(stats->violations.items[i].file_path);
-      free(stats->violations.items[i].variable_name);
-      free(stats->violations.items[i].allocator_name);
+      C_CDD_FREE(stats->violations.items[i].file_path);
+      C_CDD_FREE(stats->violations.items[i].variable_name);
+      C_CDD_FREE(stats->violations.items[i].allocator_name);
     }
-    free(stats->violations.items);
+    C_CDD_FREE(stats->violations.items);
     stats->violations.items = NULL;
   }
   stats->violations.size = 0;
@@ -86,11 +86,11 @@ static enum cdd_c_error add_violation(struct AuditStats *stats,
       if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
         new_items = NULL;
       else
-        new_items = (struct AuditViolation *)realloc(
+        new_items = (struct AuditViolation *)C_CDD_REALLOC(
             list->items, new_cap * sizeof(struct AuditViolation));
     }
 #else
-    new_items = (struct AuditViolation *)realloc(
+    new_items = (struct AuditViolation *)C_CDD_REALLOC(
         list->items, new_cap * sizeof(struct AuditViolation));
 #endif
     if (!new_items) {
@@ -146,9 +146,9 @@ static enum cdd_c_error add_violation(struct AuditStats *stats,
       (allocator && !list->items[list->size].allocator_name)) {
     /* Handle partial alloc failure */
     printf("PARTIAL ALLOC FAILURE\n");
-    free(list->items[list->size].file_path);
-    free(list->items[list->size].variable_name);
-    free(list->items[list->size].allocator_name);
+    C_CDD_FREE(list->items[list->size].file_path);
+    C_CDD_FREE(list->items[list->size].variable_name);
+    C_CDD_FREE(list->items[list->size].allocator_name);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -267,7 +267,7 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
   /* Tokenize */
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
     free_token_list(tokens);
-    free(content);
+    C_CDD_FREE(content);
     return CDD_C_SUCCESS; /* Tokenization fail - skip */
   }
 
@@ -305,7 +305,7 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
   }
 
   free_token_list(tokens);
-  free(content);
+  C_CDD_FREE(content);
 
   return CDD_C_SUCCESS;
 }

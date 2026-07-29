@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
 #include <errno.h>
@@ -28,7 +29,7 @@ enum cdd_c_error cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
     n = NULL;
   else
 #endif
-    n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+    n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (!n) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -52,8 +53,8 @@ static enum cdd_c_error track_synthesized(cdd_cst_tree_t *tree,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_token_t **)realloc(tree->synthesized_tokens,
-                                        new_cap * sizeof(cdd_token_t *));
+      new_arr = (cdd_token_t **)C_CDD_REALLOC(tree->synthesized_tokens,
+                                              new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -77,7 +78,7 @@ enum cdd_c_error cdd_cst_create_token_len(cdd_cst_tree_t *tree,
     tok = NULL;
   } else {
 #endif
-    tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+    tok = (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
 #ifdef CDD_BUILD_TESTS
   }
 #endif
@@ -90,9 +91,12 @@ enum cdd_c_error cdd_cst_create_token_len(cdd_cst_tree_t *tree,
   tok->start = (const uint8_t *)text;
   tok->length = length;
 
-  if (track_synthesized(tree, tok) != 0) {
-    free(tok);
-    return CDD_C_ERROR_MEMORY;
+  {
+    enum cdd_c_error rc = track_synthesized(tree, tok);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(tok);
+      return rc;
+    }
   }
   *out_token = tok;
   return CDD_C_SUCCESS;
@@ -123,8 +127,8 @@ enum cdd_c_error cdd_cst_append_child_node(cdd_cst_node_t *parent,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+          parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -157,8 +161,8 @@ enum cdd_c_error cdd_cst_append_child_token(cdd_cst_node_t *parent,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_child_t *)realloc(parent->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+          parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -181,8 +185,8 @@ void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)
     return;
   if (node->children)
-    free(node->children);
-  free(node);
+    C_CDD_FREE(node->children);
+  C_CDD_FREE(node);
 }
 
 void cdd_cst_free_node(cdd_cst_node_t *node) {

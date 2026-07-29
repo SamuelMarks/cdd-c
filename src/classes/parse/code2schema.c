@@ -33,6 +33,7 @@ extern int g_cdd_cst_alloc_token_fail;
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 /** @brief MAX_LINE_LENGTH definition */
@@ -99,8 +100,6 @@ enum cdd_c_error str_starts_with(const char *str, const char *prefix,
 static enum cdd_c_error key_in_list(const char *key, const char **list,
                                     size_t count) {
   size_t i;
-  if (!key || !list)
-    return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i) {
     if (list[i] && strcmp(list[i], key) == 0)
       return CDD_C_ERROR_UNKNOWN;
@@ -306,10 +305,6 @@ static enum cdd_c_error clone_json_value(const JSON_Value *val,
   char *serialized;
   JSON_Value *copy;
 
-  if (!val) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
   serialized = json_serialize_to_string((JSON_Value *)val);
   if (!serialized) {
     *_out_val = NULL;
@@ -338,11 +333,11 @@ void free_string_array_code2schema(char **arr, size_t n) {
     return;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
-      free(arr[i]);
+      C_CDD_FREE(arr[i]);
       arr[i] = NULL;
     }
   }
-  free(arr);
+  C_CDD_FREE(arr);
 }
 
 /**
@@ -370,13 +365,7 @@ enum cdd_c_error copy_string_array_code2schema(char ***dst, size_t *dst_count,
   *dst_count = 0;
   if (!src || src_count == 0)
     return CDD_C_SUCCESS;
-#ifdef CDD_BUILD_TESTS
-
-  if (g_cdd_cst_alloc_token_fail == 1)
-    out = NULL;
-  else
-#endif
-    out = (char **)calloc(src_count, sizeof(char *));
+  out = (char **)C_CDD_CALLOC(src_count, sizeof(char *));
   if (!out) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -620,7 +609,7 @@ enum cdd_c_error parse_type_union_array_code2schema(const JSON_Array *arr,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  types = (char **)calloc(count, sizeof(char *));
+  types = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!types) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -646,7 +635,7 @@ enum cdd_c_error parse_type_union_array_code2schema(const JSON_Array *arr,
   }
 
   if (n == 0) {
-    free(types);
+    C_CDD_FREE(types);
     return CDD_C_SUCCESS;
   }
 
@@ -870,8 +859,6 @@ static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
 
   if (out_json)
     *out_json = NULL;
-  if (!obj || !out_json)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   extras_val = json_value_init_object();
   if (!extras_val) {
@@ -891,6 +878,7 @@ static enum cdd_c_error collect_schema_extras(const JSON_Object *obj,
     val = json_object_get_value(obj, key);
     clone_json_value(val, &copy);
     if (!copy) {
+      printf("HIT clone_json_value failure!\n");
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
     }
@@ -942,10 +930,6 @@ static enum cdd_c_error merge_schema_extras_object(JSON_Object *target,
   if (!extras_val)
     return CDD_C_SUCCESS;
   extras_obj = json_value_get_object(extras_val);
-  if (!extras_obj) {
-    json_value_free(extras_val);
-    return CDD_C_SUCCESS;
-  }
 
   count = json_object_get_count(extras_obj);
   for (i = 0; i < count; ++i) {
@@ -953,11 +937,12 @@ static enum cdd_c_error merge_schema_extras_object(JSON_Object *target,
     const JSON_Value *val;
     JSON_Value *copy;
 
-    if (!key || json_object_has_value(target, key))
+    if (json_object_has_value(target, key))
       continue;
     val = json_object_get_value(extras_obj, key);
     clone_json_value(val, &copy);
     if (!copy) {
+      printf("HIT clone_json_value failure!\n");
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
     }
@@ -1207,8 +1192,6 @@ static enum cdd_c_error merge_schema_extras_strings(char **dest_json,
     const char *key = json_object_get_name(src_obj, i);
     const JSON_Value *val;
     JSON_Value *copy;
-    if (!key)
-      continue;
     if (json_object_has_value(dest_obj, key))
       json_object_remove(dest_obj, key);
     val = json_object_get_value(src_obj, key);
@@ -1241,7 +1224,7 @@ static enum cdd_c_error merge_schema_extras_strings(char **dest_json,
       json_value_free(src_val);
       return CDD_C_ERROR_MEMORY;
     }
-    free(*dest_json);
+    C_CDD_FREE(*dest_json);
     *dest_json = dup;
   }
 
@@ -1463,8 +1446,6 @@ static const char *k_items_skip_keys[] = {"type", "$ref"};
  * @brief Checks if an OpenAPI type is a primitive type.
  */
 static enum cdd_c_error openapi_type_is_primitive(const char *type) {
-  if (!type)
-    return CDD_C_SUCCESS;
   return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
          strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -1614,9 +1595,6 @@ enum cdd_c_error parse_struct_member_line(const char *line,
   /* Extact Name */
   {
     char *n = last_space + 1;
-    if (last_space[0] == '*') {
-      n = last_space; /* Treat * as part of name logic temporarility? No. */
-    }
     /* "int *p" -> last_space=' '. n="*p" */
 
     /* Re-evaluate split logic carefully */
@@ -3369,7 +3347,7 @@ static enum cdd_c_error collect_string_array(const JSON_Array *arr, char ***out,
   count = json_array_get_count(arr);
   if (count == 0)
     return CDD_C_SUCCESS;
-  vals = (char **)calloc(count, sizeof(char *));
+  vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -3592,7 +3570,7 @@ static enum cdd_c_error collect_property_names(const JSON_Object *schema_obj,
   count = json_object_get_count(props);
   if (count == 0)
     return CDD_C_SUCCESS;
-  vals = (char **)calloc(count, sizeof(char *));
+  vals = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!vals) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -3806,7 +3784,7 @@ enum cdd_c_error sanitize_identifier(const char *in, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
-  out = (char *)calloc(len + 1, sizeof(char));
+  out = (char *)C_CDD_CALLOC(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -3821,7 +3799,7 @@ enum cdd_c_error sanitize_identifier(const char *in, char **_out_val) {
     }
   }
   if (!out[0]) {
-    free(out);
+    C_CDD_FREE(out);
     {
       c_cdd_strdup("Variant", _out_val);
       return CDD_C_SUCCESS;
@@ -3861,7 +3839,7 @@ enum cdd_c_error make_unique_variant_name(const struct StructFields *dest,
   }
   CDD_SNPRINTF(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
                (size_t)(index + 1));
-  free(sanitized);
+  C_CDD_FREE(sanitized);
   c_cdd_strdup(buf, &out);
   if (!out) {
     *_out_val = NULL;
@@ -3875,7 +3853,7 @@ enum cdd_c_error make_unique_variant_name(const struct StructFields *dest,
       return CDD_C_SUCCESS;
     }
   }
-  free(out);
+  C_CDD_FREE(out);
   CDD_SNPRINTF(buf, sizeof(buf), "Variant_%" CDD_SIZE_T_FMT "",
                (size_t)(index + 1));
   {
@@ -3929,12 +3907,12 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
     JSON_Value *copy = NULL;
     clone_json_value(schema_val, &copy);
     if (!copy) {
-      free(name);
+      C_CDD_FREE(name);
       return CDD_C_ERROR_MEMORY;
     }
     if (json_object_set_value(root, name, copy) != JSONSuccess) {
       json_value_free(copy);
-      free(name);
+      C_CDD_FREE(name);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -5172,8 +5150,8 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
     }
   }
 
-  dest->union_variants =
-      (struct UnionVariantMeta *)calloc(count, sizeof(struct UnionVariantMeta));
+  dest->union_variants = (struct UnionVariantMeta *)C_CDD_CALLOC(
+      count, sizeof(struct UnionVariantMeta));
   if (!dest->union_variants) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -5230,7 +5208,7 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
         rc = register_inline_schema_c2s(root, schema_name, variant_name, NULL,
                                         sub_val, &inline_ref_name);
         if (rc != 0) {
-          free(variant_name);
+          C_CDD_FREE(variant_name);
           return rc;
         }
         ref = inline_ref_name;
@@ -5256,8 +5234,8 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
                 item_type_arr, &items_type_union, &n_items_type_union,
                 &item_type, NULL);
             if (rc != 0) {
-              free(variant_name);
-              free(inline_ref_name);
+              C_CDD_FREE(variant_name);
+              C_CDD_FREE(inline_ref_name);
               return rc;
             }
           } else if (json_object_get_object(items, "properties")) {
@@ -5270,8 +5248,8 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
                 register_inline_schema_c2s(root, schema_name, variant_name,
                                            "Item", items_val, &inline_item_ref);
             if (rc != 0) {
-              free(variant_name);
-              free(inline_ref_name);
+              C_CDD_FREE(variant_name);
+              C_CDD_FREE(inline_ref_name);
               free_string_array_code2schema(items_type_union,
                                             n_items_type_union);
               return rc;
@@ -5315,9 +5293,9 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
                               ? (item_ref ? item_ref : item_type)
                               : NULL,
                           NULL, NULL) != 0) {
-      free(variant_name);
-      free(inline_ref_name);
-      free(inline_item_ref);
+      C_CDD_FREE(variant_name);
+      C_CDD_FREE(inline_ref_name);
+      C_CDD_FREE(inline_item_ref);
       free_string_array_code2schema(items_type_union, n_items_type_union);
       return CDD_C_ERROR_MEMORY;
     }
@@ -5331,7 +5309,7 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
       n_items_type_union = 0;
     }
 
-    free(variant_name);
+    C_CDD_FREE(variant_name);
 
     if (jtype == UNION_JSON_OBJECT && resolved) {
       const JSON_Array *required = json_object_get_array(resolved, "required");
@@ -5353,8 +5331,8 @@ enum cdd_c_error apply_union_to_struct_fields_ex(
       meta->disc_value = disc_val;
     }
 
-    free(inline_ref_name);
-    free(inline_item_ref);
+    C_CDD_FREE(inline_ref_name);
+    C_CDD_FREE(inline_item_ref);
     free_string_array_code2schema(items_type_union, n_items_type_union);
   }
 

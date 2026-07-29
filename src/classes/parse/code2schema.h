@@ -14,13 +14,13 @@
 #include <c_cdd_export.h>
 #include "functions/emit/codegen.h"
 #include "parson.h"
+/* clang-format on */
 #ifndef CODE2SCHEMA_H
 #define CODE2SCHEMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
@@ -49,8 +49,6 @@ typedef unsigned char bool;
 #endif
 #else
 #endif /* __STDC_VERSION__ >= 199901L */
-
-/* clang-format on */
 
 /**
  * @brief CLI entry point for code2schema command.
