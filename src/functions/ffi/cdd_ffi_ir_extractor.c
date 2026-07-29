@@ -881,11 +881,12 @@ static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
         if (rc == CDD_C_SUCCESS && content) {
           cdd_c_error_t ext_rc =
               extract_exports_recursive(info->resolved_path, content, ctx);
-          free(content);
           if (ext_rc != CDD_C_SUCCESS) {
+            free(content);
             ctx->err = ext_rc;
             return ext_rc;
           }
+          free(content);
         }
       }
     }
@@ -1021,8 +1022,26 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   ctx.pp_ctx = &pp_ctx;
 
   rc = extract_exports_recursive(filename, content, &ctx);
-  if (rc == CDD_C_SUCCESS && ctx.err != CDD_C_SUCCESS) {
-    rc = ctx.err;
+  if (rc != CDD_C_SUCCESS) {
+    for (k = 0; k < ctx.visited_count; k++) {
+      free(ctx.visited[k]);
+    }
+    if (ctx.visited)
+      free(ctx.visited);
+    pp_context_free(&pp_ctx);
+    cdd_ffi_ir_free(ir);
+    return rc;
+  }
+  if (ctx.err != CDD_C_SUCCESS) {
+    cdd_c_error_t local_err = ctx.err;
+    for (k = 0; k < ctx.visited_count; k++) {
+      free(ctx.visited[k]);
+    }
+    if (ctx.visited)
+      free(ctx.visited);
+    pp_context_free(&pp_ctx);
+    cdd_ffi_ir_free(ir);
+    return local_err;
   }
 
   if (rc == CDD_C_SUCCESS) {

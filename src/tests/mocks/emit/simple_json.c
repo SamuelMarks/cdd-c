@@ -327,8 +327,8 @@ cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
       goto cleanup;
   }
   {
-    cdd_c_error_t tank_rc = Tank_to_str(haz_e->tank, &tank_str);
-    if (tank_rc != CDD_C_SUCCESS) {
+    rc = Tank_to_str(haz_e->tank, &tank_str);
+    if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
   }
@@ -614,7 +614,10 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *const jsonObject,
   if (haz_obj != NULL) {
     rc = HazE_from_jsonObject(haz_obj, &new_foo->haz);
     if (rc != 0) {
-      FooE_cleanup(new_foo);
+      cdd_c_error_t cleanup_rc = FooE_cleanup(new_foo);
+      if (cleanup_rc != CDD_C_SUCCESS) {
+        return cleanup_rc;
+      }
       return rc;
     }
   }

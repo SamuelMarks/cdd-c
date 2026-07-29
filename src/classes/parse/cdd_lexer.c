@@ -256,11 +256,13 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       }
       {
         cdd_trivia_t *t = NULL;
-        alloc_trivia(is_block ? TRIVIA_BLOCK_COMMENT : TRIVIA_LINE_COMMENT,
-                     base + start, pos - start, &t);
-        if (!t)
+        rc = alloc_trivia(is_block ? TRIVIA_BLOCK_COMMENT : TRIVIA_LINE_COMMENT,
+                          base + start, pos - start, &t);
+        if (rc != CDD_C_SUCCESS || !t)
           goto error;
-        append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
+        rc = append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
+        if (rc != CDD_C_SUCCESS)
+          goto error;
       }
       continue;
     }
@@ -536,7 +538,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 
 error:
   cdd_lexer_free_token_list(list);
-  return CDD_C_ERROR_MEMORY;
+  return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
 }
 
 void cdd_lexer_free_token_list(cdd_token_list_t *list) {

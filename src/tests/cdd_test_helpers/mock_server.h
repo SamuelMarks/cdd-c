@@ -53,7 +53,8 @@ mock_server_init(MockServerPtr *out);
  *
  * @param[in] server The server handle.
  */
-extern CDD_TEST_HELPERS_EXPORT void mock_server_destroy(MockServerPtr server);
+extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+mock_server_destroy(MockServerPtr server);
 
 /**
  * @brief Start the server thread listening on loopback.

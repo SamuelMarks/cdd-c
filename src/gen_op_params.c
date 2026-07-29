@@ -220,11 +220,9 @@ cdd_c_error_t api_test_op(struct HttpClient *ctx, int limit,
   if (!handled) {
     rc = CDD_C_ERROR_IO;
     if (res->body && api_error) {
-      cdd_c_error_t api_rc =
-          ApiError_from_json((const char *)res->body, api_error);
-      if (api_rc != CDD_C_SUCCESS) {
-        C_CDD_LOG_DEBUG("Failed to parse ApiError: %d\n", api_rc);
-        rc = api_rc;
+      rc = ApiError_from_json((const char *)res->body, api_error);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_LOG_DEBUG("Failed to parse ApiError: %d\n", rc);
         goto cleanup;
       }
     }

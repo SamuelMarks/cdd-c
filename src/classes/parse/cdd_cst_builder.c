@@ -89,11 +89,21 @@ cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
 }
 
 cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
-  return cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, " ");
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, " ");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
-  return cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, "\n");
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, "\n");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
@@ -113,11 +123,21 @@ cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
 }
 
 cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
-  return cdd_cst_bld_token(builder, CDD_TOKEN_IDENTIFIER, text);
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_IDENTIFIER, text);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
-  return cdd_cst_bld_token(builder, CDD_TOKEN_STRING, text);
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, text);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
@@ -140,7 +160,12 @@ cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
       return pool_rc;
     }
   }
-  return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
@@ -181,7 +206,12 @@ cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
     else if (strcmp(text, "!=") == 0)
       kind = CDD_TOKEN_NEQ;
   }
-  return cdd_cst_bld_token(builder, kind, text);
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(builder, kind, text);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
@@ -215,6 +245,8 @@ cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
           return pool_rc;
         }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     } else {
       char buf[256];
@@ -230,12 +262,15 @@ cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
           return pool_rc;
         }
         rc = cdd_cst_bld_string(builder, pooled);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
   }
-  if (rc == CDD_C_SUCCESS)
-    rc = cdd_cst_bld_newline(builder);
-  return rc;
+  rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
@@ -258,7 +293,9 @@ cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
@@ -281,7 +318,9 @@ cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
@@ -295,7 +334,9 @@ cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
@@ -309,7 +350,9 @@ cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
@@ -347,7 +390,9 @@ cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_endif(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
@@ -369,7 +414,9 @@ cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_endif(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
@@ -383,9 +430,10 @@ cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  if (rc == CDD_C_SUCCESS)
-    builder->indent_level++;
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  builder->indent_level++;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
@@ -405,7 +453,9 @@ cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
     return rc;
 
   rc = cdd_cst_bld_newline(builder);
-  return rc;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
@@ -561,24 +611,40 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
           snippet_buf[snippet_len] = '\0';
           rc = cdd_cst_bld_snippet(builder, snippet_buf);
           snippet_len = 0;
-          if (rc != CDD_C_SUCCESS)
-            break;
+          if (rc != CDD_C_SUCCESS) {
+            va_end(args);
+            builder->error_state = rc;
+            return rc;
+          }
         }
 
         if (*p == 's') {
           const char *s = va_arg(args, const char *);
           rc = cdd_cst_bld_snippet(builder, s);
+          if (rc != CDD_C_SUCCESS) {
+            va_end(args);
+            builder->error_state = rc;
+            return rc;
+          }
         } else if (*p == 'd') {
           int d = va_arg(args, int);
           rc = cdd_cst_bld_int(builder, d);
+          if (rc != CDD_C_SUCCESS) {
+            va_end(args);
+            builder->error_state = rc;
+            return rc;
+          }
         } else if (*p == 'n') {
           cdd_cst_node_t *node = va_arg(args, cdd_cst_node_t *);
           if (node) {
             rc = cdd_cst_append_child_node(builder->target_node, node);
+            if (rc != CDD_C_SUCCESS) {
+              va_end(args);
+              builder->error_state = rc;
+              return rc;
+            }
           }
         }
-        if (rc != CDD_C_SUCCESS)
-          break;
       }
     } else {
       if (snippet_len < sizeof(snippet_buf) - 1) {
@@ -590,12 +656,15 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
   if (rc == CDD_C_SUCCESS && snippet_len > 0) {
     snippet_buf[snippet_len] = '\0';
     rc = cdd_cst_bld_snippet(builder, snippet_buf);
+    if (rc != CDD_C_SUCCESS) {
+      va_end(args);
+      builder->error_state = rc;
+      return rc;
+    }
   }
 
   va_end(args);
-  if (rc != CDD_C_SUCCESS)
-    builder->error_state = rc;
-  return rc;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
@@ -603,7 +672,12 @@ cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
   /* Line comments aren't standard C89 but commonly accepted or we can just
      inject a block comment. The prompt specified strictly C89, so we will
      actually map line comments to block comments! */
-  return cdd_cst_bld_block_comment(builder, text);
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_comment(builder, text);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    return CDD_C_SUCCESS;
+  }
 }
 
 static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
@@ -660,7 +734,11 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   CDD_SNPRINTF(buf, sizeof(buf), "/* %s */", text);
 #endif
 
-  create_trivia(builder->tree, buf, &trivia);
+  rc = create_trivia(builder->tree, buf, &trivia);
+  if (rc != CDD_C_SUCCESS) {
+    builder->error_state = rc;
+    return rc;
+  }
   if (!trivia) {
     builder->error_state = CDD_C_ERROR_MEMORY;
     return CDD_C_ERROR_MEMORY;
@@ -696,9 +774,11 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
       return pool_rc;
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
-    free(trivia); /* since it became a real token via string pool mapping */
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      free(trivia);
       return rc;
+    }
+    free(trivia); /* since it became a real token via string pool mapping */
     return CDD_C_SUCCESS;
   }
 }
@@ -715,8 +795,8 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
-      if (get_first_token(node->children[i].val.node, &t) == CDD_C_SUCCESS &&
-          t) {
+      cdd_c_error_t rc = get_first_token(node->children[i].val.node, &t);
+      if (rc == CDD_C_SUCCESS && t) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -737,8 +817,12 @@ static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
       return CDD_C_SUCCESS;
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
-      if (get_last_token(node->children[i].val.node, &t) == CDD_C_SUCCESS &&
-          t) {
+      cdd_c_error_t rc = get_last_token(node->children[i].val.node, &t);
+      if (rc != CDD_C_SUCCESS) {
+        if (rc != CDD_C_ERROR_NOT_FOUND) {
+          return rc;
+        }
+      } else if (t) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -787,15 +871,23 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   cdd_trivia_t *trail;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
+  cdd_c_error_t rc;
 
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = cdd_cst_extract_leading_trivia(source_node, &lead);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cst_extract_trailing_trivia(source_node, &trail);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  cdd_cst_extract_leading_trivia(source_node, &lead);
-  cdd_cst_extract_trailing_trivia(source_node, &trail);
-
-  get_first_token(target_node, &t_first);
-  get_last_token(target_node, &t_last);
+  rc = get_first_token(target_node, &t_first);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
+  rc = get_last_token(target_node, &t_last);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    return rc;
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
@@ -834,7 +926,9 @@ cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
     return (cdd_c_error_t)builder->error_state;
 
   /* transfer_trivia unbinds trivia from target and moves to replacement */
-  cdd_cst_transfer_trivia(target_node, replacement_node);
+  rc = cdd_cst_transfer_trivia(target_node, replacement_node);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* utilize underlying replace mechanism which handles parent array swapping */
   rc = cdd_cst_replace_node(builder->tree, target_node, replacement_node);

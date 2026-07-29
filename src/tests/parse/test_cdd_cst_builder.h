@@ -1012,10 +1012,10 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
     empty_b.tree = NULL;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
-    if (rc != CDD_C_ERROR_MEMORY) {
+    if (rc != CDD_C_ERROR_INVALID_ARGUMENT) {
       printf("RC is %d at %d\n", rc, __LINE__);
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
     empty_b.tree = empty_tree;
     empty_b.error_state = 0;
 

@@ -240,9 +240,9 @@ cdd_c_error_t mock_server_init(MockServerPtr *out) {
   return CDD_C_SUCCESS;
 }
 
-void mock_server_destroy(MockServerPtr server) {
+cdd_c_error_t mock_server_destroy(MockServerPtr server) {
   if (!server)
-    return;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Stop thread if running */
   if (server->running) {
@@ -277,12 +277,7 @@ void mock_server_destroy(MockServerPtr server) {
     free(server->captured_request);
 
   free(server);
-  {
-    cdd_c_error_t rc = platform_cleanup();
-    if (rc != CDD_C_SUCCESS) {
-      /* ignore */
-    }
-  }
+  return platform_cleanup();
 }
 
 cdd_c_error_t mock_server_start(MockServerPtr server) {

@@ -156,7 +156,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
 static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                                  cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
 
   cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
@@ -190,9 +190,14 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (child) {
-        if (append_child_node(b, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(b, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(b);
+          *out_node = NULL;
+          return app_rc;
         }
       } else if (s->err) {
         break;
@@ -311,10 +316,15 @@ static cdd_c_error_t parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t
           t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
         cdd_cst_node_t *child = NULL; parse_preproc_conditional(s, node, &child);
         if (child) {
-          if (append_child_node(node, child) != CDD_C_SUCCESS) {
-            free_node(child);
-            s->err = CDD_C_ERROR_MEMORY;
-          }
+          app_rc = append_child_node(node, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = app_rc;
+          free_node(node);
+          *out_node = NULL;
+          return app_rc;
+        }
         }
       } else {
         rc = append_child_token(node, advance(s));
@@ -323,9 +333,14 @@ static cdd_c_error_t parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t
     } else {
       cdd_cst_node_t *child = NULL; parse_declaration_or_statement(s, node, &child);
       if (child) {
-        if (append_child_node(node, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(node, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(node);
+          *out_node = NULL;
+          return app_rc;
         }
       } else if (s->err) {
         break;
@@ -359,7 +374,7 @@ static cdd_c_error_t get_class_name(cdd_cst_node_t *node,
 static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
                                                     cdd_cst_node_t *parent,
                                                     cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc, class_rc;
 
   cdd_cst_node_t *n;
   cdd_token_t *t = NULL;
@@ -443,9 +458,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           if (rc != CDD_C_SUCCESS)
             return rc;
           if (child) {
-            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+            app_rc = append_child_node(n, child);
+
+            if (app_rc != CDD_C_SUCCESS) {
               free_node(child);
-              s->err = CDD_C_ERROR_MEMORY;
+              s->err = app_rc;
+              free_node(n);
+              *out_node = NULL;
+              return app_rc;
             }
           }
         }
@@ -599,9 +619,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
                 if (rc != CDD_C_SUCCESS)
                   return rc;
               }
-              if (append_child_node(param_list, param) != CDD_C_SUCCESS) {
+              app_rc = append_child_node(param_list, param);
+
+              if (app_rc != CDD_C_SUCCESS) {
                 free_node(param);
-                s->err = CDD_C_ERROR_MEMORY;
+                s->err = app_rc;
+                free_node(param_list);
+                *out_node = NULL;
+                return app_rc;
               }
             }
           } else {
@@ -613,9 +638,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               return rc;
           }
         }
-        if (append_child_node(n, param_list) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(n, param_list);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(param_list);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(n);
+          *out_node = NULL;
+          return app_rc;
         }
       }
     }
@@ -627,9 +657,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (child) {
-        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(n, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(n);
+          *out_node = NULL;
+          return app_rc;
         }
       }
     }
@@ -673,9 +708,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (child) {
-        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(n, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(n);
+          *out_node = NULL;
+          return app_rc;
         }
       }
     }
@@ -744,9 +784,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (child) {
-        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(n, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(n);
+          *out_node = NULL;
+          return app_rc;
         }
       }
     }
@@ -796,15 +841,25 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           if (rc != CDD_C_SUCCESS)
             return rc;
           if (child) {
-            if (append_child_node(catch_node, child) != CDD_C_SUCCESS) {
+            app_rc = append_child_node(catch_node, child);
+
+            if (app_rc != CDD_C_SUCCESS) {
               free_node(child);
-              s->err = CDD_C_ERROR_MEMORY;
+              s->err = app_rc;
+              free_node(catch_node);
+              *out_node = NULL;
+              return app_rc;
             }
           }
         }
-        if (append_child_node(n, catch_node) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(n, catch_node);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(catch_node);
-          s->err = CDD_C_ERROR_MEMORY;
+          s->err = app_rc;
+          free_node(n);
+          *out_node = NULL;
+          return app_rc;
         }
       } else {
         break;
@@ -879,9 +934,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
         if (rc != CDD_C_SUCCESS)
           return rc;
         if (child) {
-          if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          app_rc = append_child_node(n, child);
+
+          if (app_rc != CDD_C_SUCCESS) {
             free_node(child);
-            s->err = CDD_C_ERROR_MEMORY;
+            s->err = app_rc;
+            free_node(n);
+            *out_node = NULL;
+            return app_rc;
           }
         }
       } else if (nxt->kind == CDD_TOKEN_COLON) {
@@ -946,9 +1006,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
                 if (rc != CDD_C_SUCCESS)
                   return rc;
               }
-              if (append_child_node(base_list, base_spec) != CDD_C_SUCCESS) {
+              app_rc = append_child_node(base_list, base_spec);
+
+              if (app_rc != CDD_C_SUCCESS) {
                 free_node(base_spec);
-                s->err = CDD_C_ERROR_MEMORY;
+                s->err = app_rc;
+                free_node(base_list);
+                *out_node = NULL;
+                return app_rc;
               }
             }
 
@@ -966,9 +1031,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               break;
             }
           }
-          if (append_child_node(n, base_list) != CDD_C_SUCCESS) {
+          app_rc = append_child_node(n, base_list);
+
+          if (app_rc != CDD_C_SUCCESS) {
             free_node(base_list);
-            s->err = CDD_C_ERROR_MEMORY;
+            s->err = app_rc;
+            free_node(n);
+            *out_node = NULL;
+            return app_rc;
           }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
@@ -1104,25 +1174,30 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       node_kind = CDD_CST_DESTRUCTOR;
     } else if (is_operator) {
       node_kind = CDD_CST_OPERATOR_OVERLOAD;
-    } else if (get_class_name(parent, &class_name_tok) == CDD_C_SUCCESS &&
-               class_name_tok) {
-      size_t paren_idx = 0;
-      for (i = s->pos; i < s->list->size; i++) {
-        if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
-          paren_idx = i;
-          break;
-        }
-        if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
-            s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
-          break;
+    } else {
+      class_rc = get_class_name(parent, &class_name_tok);
+      if (class_rc != CDD_C_SUCCESS) {
+        return class_rc;
       }
-      if (paren_idx > s->pos &&
-          s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
-        cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
-        if (name_tok->length == class_name_tok->length &&
-            memcmp(name_tok->start, class_name_tok->start, name_tok->length) ==
-                0) {
-          node_kind = CDD_CST_CONSTRUCTOR;
+      if (class_name_tok) {
+        size_t paren_idx = 0;
+        for (i = s->pos; i < s->list->size; i++) {
+          if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
+            paren_idx = i;
+            break;
+          }
+          if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
+              s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
+            break;
+        }
+        if (paren_idx > s->pos &&
+            s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
+          cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
+          if (name_tok->length == class_name_tok->length &&
+              memcmp(name_tok->start, class_name_tok->start,
+                     name_tok->length) == 0) {
+            node_kind = CDD_CST_CONSTRUCTOR;
+          }
         }
       }
     }
@@ -1179,9 +1254,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
                   break;
               }
             }
-            if (append_child_node(n, noexcept_node) != CDD_C_SUCCESS) {
+            app_rc = append_child_node(n, noexcept_node);
+
+            if (app_rc != CDD_C_SUCCESS) {
               free_node(noexcept_node);
-              s->err = CDD_C_ERROR_MEMORY;
+              s->err = app_rc;
+              free_node(n);
+              *out_node = NULL;
+              return app_rc;
             }
             continue;
           }
@@ -1193,9 +1273,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           if (rc != CDD_C_SUCCESS)
             return rc;
           if (child) {
-            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+            app_rc = append_child_node(n, child);
+
+            if (app_rc != CDD_C_SUCCESS) {
               free_node(child);
-              s->err = CDD_C_ERROR_MEMORY;
+              s->err = app_rc;
+              free_node(n);
+              *out_node = NULL;
+              return app_rc;
             }
           }
           break;
@@ -1264,7 +1349,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 }
 
 cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
 
   parser_state_t state = {0};
   cdd_cst_tree_t *tree;
@@ -1316,9 +1401,12 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (child) {
-        if (append_child_node(tree->root, child) != CDD_C_SUCCESS) {
+        app_rc = append_child_node(tree->root, child);
+
+        if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          state.err = CDD_C_ERROR_MEMORY;
+          state.err = app_rc;
+          return app_rc;
         }
       } else {
         if (state.err)

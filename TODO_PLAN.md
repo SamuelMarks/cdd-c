@@ -1,9 +1,42 @@
 ## `src/classes/parse/cdd_cst_builder.c`
+- [x] `cdd_cst_bld_block_close`
+  - Line 407: Error variable 'rc' not immediately checked
 - [x] `cdd_cst_bld_block_comment`
-  - Line 723: Error variable 'pool_rc' not immediately checked
-  - Line 729: Error variable 'rc' not immediately checked
+  - Line 663: Enum return value discarded or not assigned
+  - Line 698: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_block_open`
+  - Line 385: Error variable 'rc' not returned
+- [x] `cdd_cst_bld_else`
+  - Line 297: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_endif`
+  - Line 311: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_extern_c_close`
+  - Line 371: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_extern_c_open`
+  - Line 349: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_ifdef`
+  - Line 283: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_ifndef`
+  - Line 260: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_bld_include`
+  - Line 217: Error variable 'rc' not immediately checked
+  - Line 232: Error variable 'rc' not immediately checked
+  - Line 237: Error variable 'rc' mutated before return
+  - Line 237: Error variable 'rc' not returned
+- [x] `cdd_cst_quote`
+  - Line 562: Error variable 'rc' not returned
+  - Line 570: Error variable 'rc' not immediately checked
+  - Line 573: Error variable 'rc' not immediately checked
+  - Line 592: Error variable 'rc' not immediately checked
+- [x] `cdd_cst_replace_node_preserve_trivia`
+  - Line 837: Enum return value discarded or not assigned
+- [x] `cdd_cst_transfer_trivia`
+  - Line 794: Enum return value discarded or not assigned
+  - Line 795: Enum return value discarded or not assigned
+  - Line 797: Enum return value discarded or not assigned
+  - Line 798: Enum return value discarded or not assigned
 - [x] `get_last_token`
-  - Line 771: Enum return value discarded or not assigned in inline condition
+  - Line 740: Enum return value discarded or not assigned in inline condition
 
 ## `src/classes/parse/cdd_cst_parser.c`
 - [x] `cdd_cst_parse`
@@ -12,17 +45,17 @@
   - Line 193: Enum return value discarded or not assigned in inline condition
 - [x] `parse_declaration_or_statement`
   - Line 446: Enum return value discarded or not assigned in inline condition
-  - Line 603: Enum return value discarded or not assigned in inline condition
-  - Line 617: Enum return value discarded or not assigned in inline condition
-  - Line 631: Enum return value discarded or not assigned in inline condition
-  - Line 677: Enum return value discarded or not assigned in inline condition
-  - Line 748: Enum return value discarded or not assigned in inline condition
-  - Line 800: Enum return value discarded or not assigned in inline condition
-  - Line 806: Enum return value discarded or not assigned in inline condition
-  - Line 883: Enum return value discarded or not assigned in inline condition
-  - Line 950: Enum return value discarded or not assigned in inline condition
-  - Line 970: Enum return value discarded or not assigned in inline condition
-  - Line 1108: Enum return value discarded or not assigned in inline condition
+  - Line 602: Enum return value discarded or not assigned in inline condition
+  - Line 616: Enum return value discarded or not assigned in inline condition
+  - Line 630: Enum return value discarded or not assigned in inline condition
+  - Line 676: Enum return value discarded or not assigned in inline condition
+  - Line 747: Enum return value discarded or not assigned in inline condition
+  - Line 799: Enum return value discarded or not assigned in inline condition
+  - Line 805: Enum return value discarded or not assigned in inline condition
+  - Line 882: Enum return value discarded or not assigned in inline condition
+  - Line 949: Enum return value discarded or not assigned in inline condition
+  - Line 969: Enum return value discarded or not assigned in inline condition
+  - Line 1107: Enum return value discarded or not assigned in inline condition
   - Line 1182: Enum return value discarded or not assigned in inline condition
   - Line 1196: Enum return value discarded or not assigned in inline condition
 
@@ -33,17 +66,11 @@
 
 ## `src/classes/parse/cdd_cst_type_eval.c`
 - [x] `cdd_cst_eval_alignof`
-  - Line 201: Error variable 'rc' mutated before return
-  - Line 201: Error variable 'rc' mutated before return
-  - Line 201: Error variable 'rc' not returned
-  - Line 204: Error variable 'rc' not immediately checked
-  - Line 206: Error variable 'rc' not immediately checked
+  - Line 211: Error variable 'rc' not immediately checked
+  - Line 213: Error variable 'rc' not immediately checked
 - [x] `cdd_cst_eval_sizeof`
-  - Line 169: Error variable 'rc' mutated before return
-  - Line 169: Error variable 'rc' mutated before return
-  - Line 169: Error variable 'rc' not returned
-  - Line 172: Error variable 'rc' not immediately checked
-  - Line 174: Error variable 'rc' not immediately checked
+  - Line 176: Error variable 'rc' not immediately checked
+  - Line 178: Error variable 'rc' not immediately checked
 
 ## `src/classes/parse/cdd_lexer.c`
 - [x] `cdd_lexer_tokenize`

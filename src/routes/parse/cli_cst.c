@@ -178,7 +178,7 @@ cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
         cdd_c_error_t p_rc =
             process_file(argv[i], transform_fn, &config, is_audit, is_dry_run);
         if (p_rc != CDD_C_SUCCESS) {
-          rc = p_rc;
+          return p_rc;
         }
       }
     }
