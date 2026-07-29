@@ -2,7 +2,6 @@
 #define TEST_FFI_EXTRACTOR_H
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "../cdd_test_helpers/cdd_helpers.h"
 #include "../../functions/ffi/cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/cdd_cst_parser.h"
@@ -116,7 +115,7 @@ TEST test_ffi_ir_extract_exports_basic(void) {
   }
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -172,7 +171,7 @@ TEST test_ffi_ir_extract_macros(void) {
   }
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -217,7 +216,7 @@ TEST test_ffi_ir_extract_templates(void) {
   }
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -260,7 +259,7 @@ TEST test_ffi_ir_extract_includes(void) {
   }
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   remove(filename_main);
   remove(filename_inc);
   PASS();
@@ -272,13 +271,13 @@ TEST test_ffi_ir_extract_stl_types(void) {
 
   ir.nodes_count = 1;
   ir.nodes_capacity = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
   node = &ir.nodes[0];
 
   node->name = strdup("MyStl");
   node->kind = CDD_FFI_NODE_STRUCT;
   node->fields_count = 4;
-  node->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(4, sizeof(cdd_ffi_field_t));
+  node->fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
 
   /* Map and parse std::vector<int> manually simulating the extractor */
   node->fields[0].name = strdup("v");
@@ -286,7 +285,7 @@ TEST test_ffi_ir_extract_stl_types(void) {
   node->fields[0].type.ref_name = strdup("std::vector");
   node->fields[0].type.template_args_count = 1;
   node->fields[0].type.template_args =
-      (cdd_ffi_type_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+      (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
   node->fields[0].type.template_args[0].kind = CDD_FFI_KIND_INT32;
 
   /* std::string */
@@ -299,7 +298,7 @@ TEST test_ffi_ir_extract_stl_types(void) {
   node->fields[2].type.ref_name = strdup("std::shared_ptr");
   node->fields[2].type.template_args_count = 1;
   node->fields[2].type.template_args =
-      (cdd_ffi_type_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+      (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
   node->fields[2].type.template_args[0].kind = CDD_FFI_KIND_STRUCT_REF;
   node->fields[2].type.template_args[0].ref_name = strdup("MyClass");
 
@@ -309,7 +308,7 @@ TEST test_ffi_ir_extract_stl_types(void) {
   node->fields[3].type.ref_name = strdup("std::unique_ptr");
   node->fields[3].type.template_args_count = 1;
   node->fields[3].type.template_args =
-      (cdd_ffi_type_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
+      (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
   node->fields[3].type.template_args[0].kind = CDD_FFI_KIND_STRUCT_REF;
   node->fields[3].type.template_args[0].ref_name = strdup("MyClass");
 
@@ -342,7 +341,7 @@ TEST test_ffi_ir_extract_exports_oom(void) {
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
       cdd_ffi_ir_free(ir);
-    C_CDD_FREE(ir);
+    free(ir);
   }
 #endif
   PASS();
@@ -353,12 +352,12 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
 
   ir.nodes_count = 1;
   ir.nodes_capacity = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
   ir.nodes[0].name = strdup("Derived");
   ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
   ir.nodes[0].base_classes_count = 1;
   ir.nodes[0].base_classes =
-      (cdd_ffi_base_class_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_base_class_t));
+      (cdd_ffi_base_class_t *)calloc(1, sizeof(cdd_ffi_base_class_t));
   ir.nodes[0].base_classes[0].name = strdup("Base");
   ir.nodes[0].base_classes[0].is_virtual = 1;
 
@@ -396,7 +395,7 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
 #endif
 
           ir.nodes_capacity += 2;
-          ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_REALLOC(
+          ir.nodes = (cdd_ffi_ir_node_t *)realloc(
               ir.nodes, ir.nodes_capacity * sizeof(cdd_ffi_ir_node_t));
 
           upcast_node = &ir.nodes[ir.nodes_count++];
@@ -408,7 +407,7 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
               strdup(ir.nodes[k].base_classes[b].name);
           upcast_node->fields_count = 1;
           upcast_node->fields =
-              (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+              (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
           upcast_node->fields[0].name = strdup("ptr");
           upcast_node->fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
           upcast_node->fields[0].type.ref_name = strdup(ir.nodes[k].name);
@@ -422,7 +421,7 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
               strdup(ir.nodes[k].name);
           downcast_node->fields_count = 1;
           downcast_node->fields =
-              (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+              (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
           downcast_node->fields[0].name = strdup("ptr");
           downcast_node->fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
           downcast_node->fields[0].type.ref_name =
@@ -450,12 +449,12 @@ TEST test_ffi_ir_extract_trampoline(void) {
 
   ir.nodes_count = 1;
   ir.nodes_capacity = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
   ir.nodes[0].name = strdup("DirectorBase");
   ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
   ir.nodes[0].virtual_methods_count = 2;
-  ir.nodes[0].virtual_methods = (cdd_ffi_virtual_method_t *)C_CDD_CALLOC(
-      2, sizeof(cdd_ffi_virtual_method_t));
+  ir.nodes[0].virtual_methods =
+      (cdd_ffi_virtual_method_t *)calloc(2, sizeof(cdd_ffi_virtual_method_t));
   ir.nodes[0].virtual_methods[0].name = strdup("onEvent");
   ir.nodes[0].virtual_methods[1].name = strdup("onError");
 
@@ -480,14 +479,14 @@ TEST test_ffi_ir_extract_trampoline(void) {
 #endif
 
         ir.nodes_capacity += 1;
-        ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_REALLOC(
+        ir.nodes = (cdd_ffi_ir_node_t *)realloc(
             ir.nodes, ir.nodes_capacity * sizeof(cdd_ffi_ir_node_t));
         trampoline_node = &ir.nodes[ir.nodes_count++];
         memset(trampoline_node, 0, sizeof(cdd_ffi_ir_node_t));
         trampoline_node->name = strdup(tramp_name);
         trampoline_node->kind = CDD_FFI_NODE_STRUCT;
         trampoline_node->fields_count = ir.nodes[k].virtual_methods_count + 3;
-        trampoline_node->fields = (cdd_ffi_field_t *)C_CDD_CALLOC(
+        trampoline_node->fields = (cdd_ffi_field_t *)calloc(
             trampoline_node->fields_count, sizeof(cdd_ffi_field_t));
         if (trampoline_node->fields) {
           trampoline_node->fields[0].name = strdup("target_lang_ctx");
@@ -539,13 +538,12 @@ TEST test_ffi_ir_free_robustness(void) {
   cdd_ffi_ir_t ir = {0};
   ir.nodes_count = 1;
   ir.nodes_capacity = 1;
-  ir.nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
 
   ir.nodes[0].name = strdup("Test");
   ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
   ir.nodes[0].fields_count = 1;
-  ir.nodes[0].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  ir.nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   ir.nodes[0].fields[0].name = strdup("field1");
   ir.nodes[0].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   /* intentionally leaving type.ref_name NULL to test robustness */
@@ -561,20 +559,20 @@ TEST test_ffi_ir_toposort_oom(void) {
 }
 
 TEST test_ffi_ir_toposort_basic(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
 
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 3;
   ir->nodes_count = 3;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(3, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(3, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   /* Node 0: struct A, depends on B */
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   nodes[0].fields[0].type.ref_name = strdup("B");
@@ -587,7 +585,7 @@ TEST test_ffi_ir_toposort_basic(void) {
   nodes[2].kind = CDD_FFI_NODE_FUNCTION;
   nodes[2].name = strdup("my_func");
   nodes[2].fields_count = 1;
-  nodes[2].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[2].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[2].fields[0].name = strdup("a");
   nodes[2].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   nodes[2].fields[0].type.ref_name = strdup("A");
@@ -611,7 +609,7 @@ TEST test_ffi_ir_toposort_basic(void) {
   }
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
@@ -643,13 +641,13 @@ TEST test_ffi_ir_extract_array_out(void) {
   ASSERT_STR_EQ("len", ir->nodes[0].fields[0].array_length_ref);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   remove("test_array.c");
   PASS();
 }
 
 TEST test_ffi_ir_emit_python(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_python_out";
@@ -666,14 +664,14 @@ TEST test_ffi_ir_emit_python(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   /* Node 0: struct A */
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -695,12 +693,12 @@ TEST test_ffi_ir_emit_python(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_rust(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_rust_out";
@@ -717,14 +715,14 @@ TEST test_ffi_ir_emit_rust(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   /* Node 0: struct A */
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -746,12 +744,12 @@ TEST test_ffi_ir_emit_rust(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_csharp(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_csharp_out";
@@ -768,14 +766,14 @@ TEST test_ffi_ir_emit_csharp(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   /* Node 0: struct A */
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -797,12 +795,12 @@ TEST test_ffi_ir_emit_csharp(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_typescript(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_typescript_out";
@@ -818,13 +816,13 @@ TEST test_ffi_ir_emit_typescript(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -844,12 +842,12 @@ TEST test_ffi_ir_emit_typescript(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_napi(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_napi_out";
@@ -866,13 +864,13 @@ TEST test_ffi_ir_emit_napi(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -892,12 +890,12 @@ TEST test_ffi_ir_emit_napi(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_java(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_java_out";
@@ -913,18 +911,18 @@ TEST test_ffi_ir_emit_java(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
   nodes[0].base_classes_count = 2;
   nodes[0].base_classes =
-      (cdd_ffi_base_class_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_base_class_t));
+      (cdd_ffi_base_class_t *)calloc(2, sizeof(cdd_ffi_base_class_t));
   nodes[0].base_classes[0].name = strdup("Base1");
   nodes[0].base_classes[1].name = strdup("Base2");
 
@@ -944,12 +942,12 @@ TEST test_ffi_ir_emit_java(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_cpp(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_cpp_out";
@@ -965,13 +963,13 @@ TEST test_ffi_ir_emit_cpp(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -991,12 +989,12 @@ TEST test_ffi_ir_emit_cpp(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_go(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_go_out";
@@ -1012,13 +1010,13 @@ TEST test_ffi_ir_emit_go(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1038,12 +1036,12 @@ TEST test_ffi_ir_emit_go(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_swift(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_swift_out";
@@ -1059,13 +1057,13 @@ TEST test_ffi_ir_emit_swift(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1085,12 +1083,12 @@ TEST test_ffi_ir_emit_swift(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_dart(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_dart_out";
@@ -1106,13 +1104,13 @@ TEST test_ffi_ir_emit_dart(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1132,12 +1130,12 @@ TEST test_ffi_ir_emit_dart(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_ruby(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_ruby_out";
@@ -1153,13 +1151,13 @@ TEST test_ffi_ir_emit_ruby(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1179,12 +1177,12 @@ TEST test_ffi_ir_emit_ruby(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_kotlin(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_kotlin_out";
@@ -1200,13 +1198,13 @@ TEST test_ffi_ir_emit_kotlin(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1226,12 +1224,12 @@ TEST test_ffi_ir_emit_kotlin(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_php(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_php_out";
@@ -1247,13 +1245,13 @@ TEST test_ffi_ir_emit_php(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1273,12 +1271,12 @@ TEST test_ffi_ir_emit_php(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_lua(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_lua_out";
@@ -1294,13 +1292,13 @@ TEST test_ffi_ir_emit_lua(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1320,12 +1318,12 @@ TEST test_ffi_ir_emit_lua(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_zig(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_zig_out";
@@ -1341,13 +1339,13 @@ TEST test_ffi_ir_emit_zig(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1367,12 +1365,12 @@ TEST test_ffi_ir_emit_zig(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_odin(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_odin_out";
@@ -1388,13 +1386,13 @@ TEST test_ffi_ir_emit_odin(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1402,7 +1400,7 @@ TEST test_ffi_ir_emit_odin(void) {
   nodes[1].name = strdup("my_func");
   nodes[1].return_or_base_type.kind = CDD_FFI_KIND_VOID;
   nodes[1].fields_count = 1;
-  nodes[1].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[1].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[1].fields[0].name = strdup("context");
   nodes[1].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1418,12 +1416,12 @@ TEST test_ffi_ir_emit_odin(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_julia(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_julia_out";
@@ -1439,13 +1437,13 @@ TEST test_ffi_ir_emit_julia(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1465,12 +1463,12 @@ TEST test_ffi_ir_emit_julia(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_r(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_r_out";
@@ -1486,13 +1484,13 @@ TEST test_ffi_ir_emit_r(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1512,12 +1510,12 @@ TEST test_ffi_ir_emit_r(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_matlab(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_matlab_out";
@@ -1533,13 +1531,13 @@ TEST test_ffi_ir_emit_matlab(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1559,12 +1557,12 @@ TEST test_ffi_ir_emit_matlab(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_haskell(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_haskell_out";
@@ -1580,13 +1578,13 @@ TEST test_ffi_ir_emit_haskell(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1606,12 +1604,12 @@ TEST test_ffi_ir_emit_haskell(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
 TEST test_ffi_ir_emit_ocaml(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_ffi_ir_node_t *nodes;
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_ocaml_out";
@@ -1627,13 +1625,13 @@ TEST test_ffi_ir_emit_ocaml(void) {
   ASSERT_EQ(1, ir != NULL);
   ir->nodes_capacity = 2;
   ir->nodes_count = 2;
-  nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_ir_node_t));
+  nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
   ir->nodes = nodes;
 
   nodes[0].kind = CDD_FFI_NODE_STRUCT;
   nodes[0].name = strdup("A");
   nodes[0].fields_count = 1;
-  nodes[0].fields = (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  nodes[0].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   nodes[0].fields[0].name = strdup("b");
   nodes[0].fields[0].type.kind = CDD_FFI_KIND_INT32;
 
@@ -1653,7 +1651,7 @@ TEST test_ffi_ir_emit_ocaml(void) {
     fclose(f);
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }
 
@@ -1672,22 +1670,22 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
             cdd_ffi_mangle_cpp_name("MyNS", "MyClass", "myMethod", &mangled));
   ASSERT(mangled != NULL);
   ASSERT_STR_EQ("MyNS_MyClass_myMethod", mangled);
-  C_CDD_FREE(mangled);
+  free(mangled);
 
   ASSERT_EQ(0, cdd_ffi_mangle_cpp_name(NULL, "MyClass", "myMethod", &mangled));
   ASSERT(mangled != NULL);
   ASSERT_STR_EQ("MyClass_myMethod", mangled);
-  C_CDD_FREE(mangled);
+  free(mangled);
 
   ASSERT_EQ(0, cdd_ffi_mangle_cpp_name("MyNS", NULL, "myMethod", &mangled));
   ASSERT(mangled != NULL);
   ASSERT_STR_EQ("MyNS_myMethod", mangled);
-  C_CDD_FREE(mangled);
+  free(mangled);
 
   ASSERT_EQ(0, cdd_ffi_mangle_cpp_name(NULL, NULL, "myMethod", &mangled));
   ASSERT(mangled != NULL);
   ASSERT_STR_EQ("myMethod", mangled);
-  C_CDD_FREE(mangled);
+  free(mangled);
 
   PASS();
 }
@@ -1698,7 +1696,7 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
 #endif /* TEST_FFI_EXTRACTOR_H */
 
 TEST test_ffi_emit_java_fopen_fail(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
   cdd_generate_bindings_config_t config = {0};
   config.target_langs = "java";
   config.output_dir =
@@ -1709,6 +1707,6 @@ TEST test_ffi_emit_java_fopen_fail(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_java(ir, &config));
 
   cdd_ffi_ir_free(ir);
-  C_CDD_FREE(ir);
+  free(ir);
   PASS();
 }

@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,9 +39,9 @@
 /**
  * @brief Generate signature string.
  */
-static enum cdd_c_error
-generate_expected_sig(const struct OpenAPI_Operation *op,
-                      const struct ApiSyncConfig *cfg, char **_out_val) {
+static cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
+                                           const struct ApiSyncConfig *cfg,
+                                           char **_out_val) {
   FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
@@ -69,7 +68,7 @@ generate_expected_sig(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)C_CDD_MALLOC(sz + 1);
+  buf = (char *)malloc(sz + 1);
   if (buf) {
     size_t len;
     fread(buf, 1, sz, tmp);
@@ -90,8 +89,8 @@ generate_expected_sig(const struct OpenAPI_Operation *op,
 /**
  * @brief Generate Query parameters block.
  */
-static enum cdd_c_error
-generate_expected_query(const struct OpenAPI_Operation *op, char **_out_val) {
+static cdd_c_error_t generate_expected_query(const struct OpenAPI_Operation *op,
+                                             char **_out_val) {
   FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
@@ -113,7 +112,7 @@ generate_expected_query(const struct OpenAPI_Operation *op, char **_out_val) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)C_CDD_MALLOC(sz + 1);
+  buf = (char *)malloc(sz + 1);
   if (buf) {
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
@@ -130,10 +129,10 @@ generate_expected_query(const struct OpenAPI_Operation *op, char **_out_val) {
  * Since we don't have access to codegen_client_body static functions, iterate
  * here.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 generate_expected_header_line(const struct OpenAPI_Parameter *p,
                               char **_out_val) {
-  char *buf = C_CDD_MALLOC(512);
+  char *buf = malloc(512);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -191,9 +190,10 @@ generate_expected_header_line(const struct OpenAPI_Parameter *p,
 /**
  * @brief Generate URL builder.
  */
-static enum cdd_c_error
-generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
-                      const struct ApiSyncConfig *cfg, char **_out_val) {
+static cdd_c_error_t generate_expected_url(const char *path,
+                                           const struct OpenAPI_Operation *op,
+                                           const struct ApiSyncConfig *cfg,
+                                           char **_out_val) {
   FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
@@ -220,7 +220,7 @@ generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)C_CDD_MALLOC(sz + 1);
+  buf = (char *)malloc(sz + 1);
   if (buf) {
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
@@ -237,10 +237,10 @@ generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
 /**
  * @brief Retrieves the function node.
  */
-static enum cdd_c_error find_function_node(struct CstNodeList *cst,
-                                           struct TokenList *tokens,
-                                           const char *func_name,
-                                           struct CstNode **_out_val) {
+static cdd_c_error_t find_function_node(struct CstNodeList *cst,
+                                        struct TokenList *tokens,
+                                        const char *func_name,
+                                        struct CstNode **_out_val) {
   int _ast_token_matches_string_0 = 0;
   size_t i;
   for (i = 0; i < cst->size; ++i) {
@@ -276,10 +276,9 @@ static enum cdd_c_error find_function_node(struct CstNodeList *cst,
 /**
  * @brief Extracts current sig.
  */
-static enum cdd_c_error extract_current_sig(struct TokenList *tokens,
-                                            struct CstNode *node,
-                                            size_t *out_end_idx,
-                                            char **_out_val) {
+static cdd_c_error_t extract_current_sig(struct TokenList *tokens,
+                                         struct CstNode *node,
+                                         size_t *out_end_idx, char **_out_val) {
   size_t i;
   size_t start = node->start_token;
   size_t args_end = 0;
@@ -309,7 +308,7 @@ static enum cdd_c_error extract_current_sig(struct TokenList *tokens,
     char *buf, *p;
     for (k = start; k <= args_end; ++k)
       length += tokens->tokens[k].length;
-    buf = (char *)C_CDD_MALLOC(length + 1);
+    buf = (char *)malloc(length + 1);
     p = buf;
     for (k = start; k <= args_end; ++k) {
       memcpy(p, tokens->tokens[k].start, tokens->tokens[k].length);
@@ -334,10 +333,10 @@ static enum cdd_c_error extract_current_sig(struct TokenList *tokens,
 /**
  * @brief Applies query sync.
  */
-static enum cdd_c_error apply_query_sync(const struct OpenAPI_Operation *op,
-                                         struct TokenList *tokens,
-                                         struct CstNode *node,
-                                         struct PatchList *patches) {
+static cdd_c_error_t apply_query_sync(const struct OpenAPI_Operation *op,
+                                      struct TokenList *tokens,
+                                      struct CstNode *node,
+                                      struct PatchList *patches) {
   int _ast_token_matches_string_1 = 0;
   int _ast_token_matches_string_2 = 0;
   char *_ast_generate_expected_query_3 = NULL;
@@ -415,10 +414,10 @@ static enum cdd_c_error apply_query_sync(const struct OpenAPI_Operation *op,
 /**
  * @brief Applies header sync.
  */
-static enum cdd_c_error apply_header_sync(const struct OpenAPI_Operation *op,
-                                          struct TokenList *tokens,
-                                          struct CstNode *node,
-                                          struct PatchList *patches) {
+static cdd_c_error_t apply_header_sync(const struct OpenAPI_Operation *op,
+                                       struct TokenList *tokens,
+                                       struct CstNode *node,
+                                       struct PatchList *patches) {
   int _ast_token_matches_string_4 = 0;
   char *_ast_generate_expected_header_line_5 = NULL;
   size_t i, k;
@@ -502,11 +501,11 @@ static enum cdd_c_error apply_header_sync(const struct OpenAPI_Operation *op,
 /**
  * @brief Applies updates.
  */
-static enum cdd_c_error apply_updates(const char *filename,
-                                      struct TokenList *tokens,
-                                      struct CstNodeList *cst,
-                                      const struct OpenAPI_Spec *spec,
-                                      const struct ApiSyncConfig *cfg) {
+static cdd_c_error_t apply_updates(const char *filename,
+                                   struct TokenList *tokens,
+                                   struct CstNodeList *cst,
+                                   const struct OpenAPI_Spec *spec,
+                                   const struct ApiSyncConfig *cfg) {
   struct CstNode *_ast_find_function_node_6;
   char *_ast_generate_expected_sig_7 = NULL;
   char *_ast_extract_current_sig_8 = NULL;
@@ -563,8 +562,8 @@ static enum cdd_c_error apply_updates(const char *filename,
             }
           }
         }
-        C_CDD_FREE(expected_sig);
-        C_CDD_FREE(actual_sig);
+        free(expected_sig);
+        free(actual_sig);
 
         /* 2. Sync Query Block (Support for Arrays/Explode) */
         apply_query_sync(op, tokens, node, &patches);
@@ -658,7 +657,7 @@ static enum cdd_c_error apply_updates(const char *filename,
     } else {
       rc = CDD_C_ERROR_IO;
     }
-    C_CDD_FREE(result);
+    free(result);
   }
 
   return rc;
@@ -667,9 +666,9 @@ static enum cdd_c_error apply_updates(const char *filename,
 /**
  * @brief Executes the api sync file operation.
  */
-enum cdd_c_error api_sync_file(const char *filename,
-                               const struct OpenAPI_Spec *spec,
-                               const struct ApiSyncConfig *config) {
+cdd_c_error_t api_sync_file(const char *filename,
+                            const struct OpenAPI_Spec *spec,
+                            const struct ApiSyncConfig *config) {
   char *content = NULL;
   size_t sz = 0;
   struct TokenList *tokens = NULL;
@@ -686,13 +685,13 @@ enum cdd_c_error api_sync_file(const char *filename,
     return rc;
 
   if ((rc = tokenize(az_span_create_from_str(content), &tokens)) != 0) {
-    C_CDD_FREE(content);
+    free(content);
     return rc;
   }
 
   if ((rc = parse_tokens(tokens, &cst)) != 0) {
     free_token_list(tokens);
-    C_CDD_FREE(content);
+    free(content);
     return rc;
   }
 
@@ -700,7 +699,7 @@ enum cdd_c_error api_sync_file(const char *filename,
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
-  C_CDD_FREE(content);
+  free(content);
 
   return rc;
 }

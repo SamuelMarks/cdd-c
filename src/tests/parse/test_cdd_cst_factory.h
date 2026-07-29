@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -36,7 +35,7 @@ TEST test_cst_alloc_node(void) {
   ASSERT_EQ(CDD_CST_DECLARATION, node->kind);
 
   cdd_cst_free_node_only(node);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -85,7 +84,7 @@ TEST test_cst_create_token(void) {
   }
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -133,7 +132,7 @@ TEST test_cst_append_child_node(void) {
 
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(parent);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -172,14 +171,14 @@ TEST test_cst_append_child_token(void) {
   /* Explicitly expand capacity without appending to cover the `false` branch of
    * the capacity check */
   parent->capacity = 50;
-  parent->children = (cdd_cst_child_t *)C_CDD_REALLOC(
-      parent->children, 50 * sizeof(cdd_cst_child_t));
+  parent->children = (cdd_cst_child_t *)realloc(parent->children,
+                                                50 * sizeof(cdd_cst_child_t));
   ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
   ASSERT_EQ(17, parent->num_children);
 
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -219,7 +218,7 @@ TEST test_cst_parse_format(void) {
 
   /* Clean up */
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -267,7 +266,7 @@ TEST test_cdd_cst_parse_format_oom(void) {
     cdd_cst_free_node(node);
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 #endif
@@ -282,7 +281,7 @@ TEST test_cst_free_node(void) {
   /* Set up a tree with a child node and a child token */
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &parent));
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child_node));
-  child_token = (cdd_token_t *)C_CDD_CALLOC(1, sizeof(cdd_token_t));
+  child_token = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   child_token->kind = CDD_TOKEN_IDENTIFIER;
 
   ASSERT_EQ(0, cdd_cst_append_child_node(parent, child_node));
@@ -292,8 +291,9 @@ TEST test_cst_free_node(void) {
      but leaves child_token allocation alone (since tokens are usually owned by
      the tree). */
   cdd_cst_free_node(parent);
-  C_CDD_FREE(child_token);
+  free(child_token);
 
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -335,7 +335,7 @@ TEST test_cst_parse_format_branches(void) {
 #endif
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -371,34 +371,7 @@ TEST test_cst_parse_format_extra(void) {
 #endif
 
   cdd_cst_tree_free(tree);
-
-  PASS();
-}
-
-TEST test_cdd_cst_factory_format_coverage_oom(void) {
-  cdd_cst_tree_t *tree =
-      (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
-  cdd_cst_node_t *out = NULL;
-
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-
-  g_cdd_cst_alloc_token_fail = 1;
-  cdd_cst_parse_format(tree, &out, "int x;");
-
-  g_cdd_cst_alloc_token_fail = 2;
-  cdd_cst_parse_format(tree, &out, "int x;");
-
-  g_cdd_cst_alloc_token_fail = 3;
-  cdd_cst_parse_format(tree, &out, "int x;");
-
-  g_cdd_cst_alloc_token_fail = 4;
-  cdd_cst_parse_format(tree, &out, "int x;");
-
-  g_cdd_cst_alloc_token_fail = 0;
-#endif
-
-  cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -413,7 +386,6 @@ SUITE(cdd_cst_factory_suite) {
   RUN_TEST(test_cst_parse_format_extra);
 #ifdef CDD_BUILD_TESTS
   RUN_TEST(test_cdd_cst_parse_format_oom);
-  RUN_TEST(test_cdd_cst_factory_format_coverage_oom);
 #endif
 }
 

@@ -14,7 +14,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <mocks/emit/simple_json.h>
 
@@ -35,7 +34,7 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
-  C_CDD_FREE(str);
+  free(str);
 
   rc = Tank_from_str("SMALL", &tank_val);
   ASSERT_EQ(0, rc);
@@ -44,6 +43,7 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   rc = Tank_from_str("INVALID", &tank_val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(Tank_UNKNOWN, tank_val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -75,7 +75,8 @@ TEST test_HazE_to_json_and_from_json(void) {
   ASSERT(HazE_eq(&haz, haz_out) == 0);
 
   HazE_cleanup(haz_out);
-  C_CDD_FREE(json_str);
+  free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -108,7 +109,8 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   ASSERT(FooE_eq(&foo, foo_out) == 0);
 
   FooE_cleanup(foo_out);
-  C_CDD_FREE(json_str);
+  free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -146,7 +148,8 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   ASSERT(FooE_eq(&foo_in, foo_out) == 0);
 
   FooE_cleanup(foo_out);
-  C_CDD_FREE(json_str);
+  free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }

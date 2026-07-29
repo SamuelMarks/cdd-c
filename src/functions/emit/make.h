@@ -50,7 +50,7 @@ struct MakeConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen make generate.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_make_generate(FILE *fp, const struct MakeConfig *config);
 
 #ifdef __cplusplus

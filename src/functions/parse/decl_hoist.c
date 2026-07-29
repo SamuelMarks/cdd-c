@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +17,7 @@
  * @brief Initializes a hoist site list.
  *
  */
-enum cdd_c_error hoist_site_list_init(struct HoistSiteList *list) {
+cdd_c_error_t hoist_site_list_init(struct HoistSiteList *list) {
   if (list) {
     list->sites = NULL;
     list->count = 0;
@@ -35,7 +34,7 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
     return;
   if (list->sites) {
-    C_CDD_FREE(list->sites);
+    free(list->sites);
   }
   (void)hoist_site_list_init(list);
 }
@@ -44,8 +43,8 @@ void hoist_site_list_free(struct HoistSiteList *list) {
  * @brief Checks if a token kind is a basic type keyword.
  *
  */
-static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
-                                              int *out_is_basic) {
+static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
+                                           int *out_is_basic) {
   if (!out_is_basic)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_basic = 0;
@@ -73,8 +72,8 @@ static enum cdd_c_error is_basic_type_keyword(enum TokenKind k,
  * statements within the same block (not strictly conforming to C89/C90).
  *
  */
-enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
-                                             struct HoistSiteList *list) {
+cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
+                                          struct HoistSiteList *list) {
   size_t i = 0;
   size_t current_block_start = 0;
   int has_seen_statement_in_block = 0;
@@ -155,7 +154,7 @@ enum cdd_c_error scan_for_mixed_declarations(const struct TokenList *tokens,
             if (list->count >= list->capacity) {
               struct HoistSite *new_sites;
               list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-              new_sites = (struct HoistSite *)C_CDD_REALLOC(
+              new_sites = (struct HoistSite *)realloc(
                   list->sites, list->capacity * sizeof(struct HoistSite));
               if (!new_sites)
                 return CDD_C_ERROR_MEMORY;

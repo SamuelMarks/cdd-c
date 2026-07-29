@@ -81,7 +81,7 @@ struct OpenAPI_KV {
  *                           values (except form delimiters).
  * allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n, const char *delim,
                      int allow_reserved, char **_out_val);
 
@@ -94,8 +94,7 @@ openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n, const char *delim,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error url_encode(const char *str,
-                                                char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t url_encode(const char *str, char **_out_val);
 
 /**
  * @brief Percent-encode a string while allowing reserved characters.
@@ -106,8 +105,8 @@ extern C_CDD_EXPORT enum cdd_c_error url_encode(const char *str,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error url_encode_allow_reserved(const char *str,
-                                                               char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t url_encode_allow_reserved(const char *str,
+                                                            char **_out_val);
 
 /**
  * @brief Percent-encode a string for application/x-www-form-urlencoded.
@@ -117,8 +116,8 @@ extern C_CDD_EXPORT enum cdd_c_error url_encode_allow_reserved(const char *str,
  *
  * error/allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error url_encode_form(const char *str,
-                                                     char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t url_encode_form(const char *str,
+                                                  char **_out_val);
 
 /**
  * @brief Percent-encode a string for application/x-www-form-urlencoded while
@@ -134,14 +133,14 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the url encode form allow reserved
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     url_encode_form_allow_reserved(const char *str, char **_out_val);
 
 /**
  * @brief Initialize a query parameters container.
  *
  */
-extern C_CDD_EXPORT enum cdd_c_error url_query_init(struct UrlQueryParams *qp);
+extern C_CDD_EXPORT cdd_c_error_t url_query_init(struct UrlQueryParams *qp);
 
 /**
  * @brief Free resources associated with a query parameters container.
@@ -154,8 +153,9 @@ extern C_CDD_EXPORT void url_query_free(struct UrlQueryParams *qp);
  * @brief Add a key-value pair to the query container.
  *
  */
-extern C_CDD_EXPORT enum cdd_c_error
-url_query_add(struct UrlQueryParams *qp, const char *key, const char *value);
+extern C_CDD_EXPORT cdd_c_error_t url_query_add(struct UrlQueryParams *qp,
+                                                const char *key,
+                                                const char *value);
 
 /**
  * @brief Add a key-value pair where the value is already percent-encoded.
@@ -165,9 +165,8 @@ url_query_add(struct UrlQueryParams *qp, const char *key, const char *value);
  * delimiters (e.g. comma for form-style explode=false).
  *
  */
-extern C_CDD_EXPORT enum cdd_c_error
-url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
-                      const char *value);
+extern C_CDD_EXPORT cdd_c_error_t url_query_add_encoded(
+    struct UrlQueryParams *qp, const char *key, const char *value);
 
 /**
  * @brief Build the final query string starting with '?'.
@@ -178,7 +177,7 @@ url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
  *
  *                     If count is 0, allocates an empty string "".
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 url_query_build(const struct UrlQueryParams *qp, char **out_str);
 
 /**
@@ -188,7 +187,7 @@ url_query_build(const struct UrlQueryParams *qp, char **out_str);
  *
  *                     If count is 0, allocates an empty string "".
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 url_query_build_form(const struct UrlQueryParams *qp, char **out_str);
 
 #ifdef __cplusplus

@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include <ctype.h>
 #include <errno.h>
@@ -55,7 +54,7 @@
 /**
  * @brief Retrieves the server variable.
  */
-enum cdd_c_error
+cdd_c_error_t
 find_server_variable(const struct OpenAPI_Server *srv, const char *name,
                      const struct OpenAPI_ServerVariable **_out_val) {
   size_t i;
@@ -79,8 +78,8 @@ find_server_variable(const struct OpenAPI_Server *srv, const char *name,
 /**
  * @brief Executes the render server url default operation.
  */
-enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
-                                           char **_out_val) {
+cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
+                                        char **_out_val) {
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_0;
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_1;
   const char *url;
@@ -110,7 +109,7 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
         *_out_val = NULL;
         return CDD_C_SUCCESS;
       }
-      name = (char *)C_CDD_MALLOC(name_len + 1);
+      name = (char *)malloc(name_len + 1);
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -119,7 +118,7 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
       name[name_len] = '\0';
       var = (find_server_variable(srv, name, &_ast_find_server_variable_0),
              _ast_find_server_variable_0);
-      C_CDD_FREE(name);
+      free(name);
       if (!var || !var->default_value) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -132,7 +131,7 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
     i++;
   }
 
-  out = (char *)C_CDD_MALLOC(out_len + 1);
+  out = (char *)malloc(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -148,7 +147,7 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
         char *name;
         const struct OpenAPI_ServerVariable *var;
         if (!end) {
-          C_CDD_FREE(out);
+          free(out);
           {
             *_out_val = NULL;
             return CDD_C_SUCCESS;
@@ -156,15 +155,15 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
         }
         name_len = (size_t)(end - (url + i + 1));
         if (name_len == 0) {
-          C_CDD_FREE(out);
+          free(out);
           {
             *_out_val = NULL;
             return CDD_C_SUCCESS;
           }
         }
-        name = (char *)C_CDD_MALLOC(name_len + 1);
+        name = (char *)malloc(name_len + 1);
         if (!name) {
-          C_CDD_FREE(out);
+          free(out);
           {
             *_out_val = NULL;
             return CDD_C_SUCCESS;
@@ -174,9 +173,9 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
         name[name_len] = '\0';
         var = (find_server_variable(srv, name, &_ast_find_server_variable_1),
                _ast_find_server_variable_1);
-        C_CDD_FREE(name);
+        free(name);
         if (!var || !var->default_value) {
-          C_CDD_FREE(out);
+          free(out);
           {
             *_out_val = NULL;
             return CDD_C_SUCCESS;
@@ -201,7 +200,7 @@ enum cdd_c_error render_server_url_default(const struct OpenAPI_Server *srv,
 /**
  * @brief Executes the escape c string literal operation.
  */
-enum cdd_c_error escape_c_string_literal(const char *s, char **_out_val) {
+cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
   size_t i;
   size_t out_len = 0;
   char *out;
@@ -228,7 +227,7 @@ enum cdd_c_error escape_c_string_literal(const char *s, char **_out_val) {
       break;
     }
   }
-  out = (char *)C_CDD_MALLOC(out_len + 1);
+  out = (char *)malloc(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -270,9 +269,9 @@ enum cdd_c_error escape_c_string_literal(const char *s, char **_out_val) {
 /**
  * @brief Executes the select operation server operation.
  */
-enum cdd_c_error select_operation_server(const struct OpenAPI_Path *path,
-                                         const struct OpenAPI_Operation *op,
-                                         struct OpenAPI_Server **_out_val) {
+cdd_c_error_t select_operation_server(const struct OpenAPI_Path *path,
+                                      const struct OpenAPI_Operation *op,
+                                      struct OpenAPI_Server **_out_val) {
   if (op && op->servers && op->n_servers > 0) {
     *_out_val = &op->servers[0];
     return CDD_C_SUCCESS;
@@ -290,7 +289,7 @@ enum cdd_c_error select_operation_server(const struct OpenAPI_Path *path,
 /**
  * @brief Executes the build base url literal operation.
  */
-enum cdd_c_error build_base_url_literal(const char *url, char **_out_val) {
+cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
   char *_ast_escape_c_string_literal_2 = NULL;
   char *escaped = NULL;
   char *literal = NULL;
@@ -308,9 +307,9 @@ enum cdd_c_error build_base_url_literal(const char *url, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(escaped) + 3;
-  literal = (char *)C_CDD_MALLOC(len);
+  literal = (char *)malloc(len);
   if (!literal) {
-    C_CDD_FREE(escaped);
+    free(escaped);
     {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
@@ -322,7 +321,7 @@ enum cdd_c_error build_base_url_literal(const char *url, char **_out_val) {
 #else
   sprintf(literal, "\"%s\"", escaped);
 #endif
-  C_CDD_FREE(escaped);
+  free(escaped);
   {
     *_out_val = literal;
     return CDD_C_SUCCESS;
@@ -335,12 +334,12 @@ enum cdd_c_error build_base_url_literal(const char *url, char **_out_val) {
 /**
  * @brief Generates guard.
  */
-enum cdd_c_error generate_guard(const char *base, char **_out_val) {
+cdd_c_error_t generate_guard(const char *base, char **_out_val) {
   char *g;
   size_t len = strlen(base);
   size_t i;
 
-  g = C_CDD_MALLOC(len + 3); /* + _H + null */
+  g = malloc(len + 3); /* + _H + null */
   if (!g) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -368,10 +367,10 @@ enum cdd_c_error generate_guard(const char *base, char **_out_val) {
 /**
  * @brief Executes the derive model header operation.
  */
-enum cdd_c_error derive_model_header(const char *base, char **_out_val) {
+cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
-  m = C_CDD_MALLOC(len + 1);
+  m = malloc(len + 1);
   if (!m) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -398,7 +397,7 @@ enum cdd_c_error derive_model_header(const char *base, char **_out_val) {
  * @brief Executes the sanitize tag operation.
  *
  */
-enum cdd_c_error sanitize_tag(const char *tag, char **_out_val) {
+cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
   char *s;
   size_t i;
   if (!tag) {
@@ -429,8 +428,8 @@ enum cdd_c_error sanitize_tag(const char *tag, char **_out_val) {
 /**
  * @brief Executes the param keys match operation.
  */
-enum cdd_c_error param_keys_match(const struct OpenAPI_Parameter *a,
-                                  const struct OpenAPI_Parameter *b) {
+cdd_c_error_t param_keys_match(const struct OpenAPI_Parameter *a,
+                               const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
     return CDD_C_SUCCESS;
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
@@ -439,9 +438,10 @@ enum cdd_c_error param_keys_match(const struct OpenAPI_Parameter *a,
 /**
  * @brief Executes the build effective parameters operation.
  */
-enum cdd_c_error build_effective_parameters(
-    const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
-    struct OpenAPI_Parameter **out_params, size_t *out_count) {
+cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
+                                         const struct OpenAPI_Operation *op,
+                                         struct OpenAPI_Parameter **out_params,
+                                         size_t *out_count) {
   size_t cap = 0;
   size_t count = 0;
   struct OpenAPI_Parameter *params = NULL;
@@ -460,7 +460,7 @@ enum cdd_c_error build_effective_parameters(
   if (cap == 0)
     return CDD_C_SUCCESS;
 
-  params = (struct OpenAPI_Parameter *)C_CDD_CALLOC(cap, sizeof(*params));
+  params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
   if (!params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -686,8 +686,8 @@ enum cdd_c_error build_effective_parameters(
 /**
  * @brief Generates C code for write header preamble.
  */
-enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
-                                       const char *model_decl) {
+cdd_c_error_t write_header_preamble(FILE *fp, const char *guard,
+                                    const char *model_decl) {
   CHECK_IO(fprintf(fp, "#ifndef %s\n", guard));
   CHECK_IO(fprintf(fp, "#define %s\n\n", guard));
 
@@ -717,7 +717,7 @@ enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
                    "/**\n"
                    " * @brief Auto-generated code from OpenAPI specification\n"
                    " */\n"
-                   "enum cdd_c_error ApiError_cleanup(struct ApiError *err);\n"
+                   "cdd_c_error_t ApiError_cleanup(struct ApiError *err);\n"
                    "\n"));
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -911,7 +911,7 @@ enum cdd_c_error write_header_preamble(FILE *fp, const char *guard,
 /**
  * @brief Generates C code for write source preamble.
  */
-enum cdd_c_error write_source_preamble(FILE *fp, const char *header_name) {
+cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <string.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
@@ -1131,8 +1131,8 @@ enum cdd_c_error write_source_preamble(FILE *fp, const char *header_name) {
 /**
  * @brief Generates C code for write lifecycle funcs.
  */
-enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
-                                       const struct OpenAPI_Spec *spec) {
+cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
+                                    const struct OpenAPI_Spec *spec) {
   char *_ast_render_server_url_default_3 = NULL;
   char *_ast_escape_c_string_literal_4 = NULL;
   char *default_url = NULL;
@@ -1158,15 +1158,14 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                       " * @param[in] base_url The API base URL (or NULL to use"
                       " the default server URL).\n"
                       " * @return 0 on success.\n */\n"));
-  CHECK_IO(
-      fprintf(h,
-              "enum cdd_c_error %sinit(struct HttpClient *client, const char "
-              "*base_url);\n\n",
-              prefix));
+  CHECK_IO(fprintf(h,
+                   "cdd_c_error_t %sinit(struct HttpClient *client, const char "
+                   "*base_url);\n\n",
+                   prefix));
 
   CHECK_IO(fprintf(h, "/**\n * @brief Cleanup the API Client.\n */\n"));
-  CHECK_IO(fprintf(
-      h, "enum cdd_c_error %scleanup(struct HttpClient *client);\n\n", prefix));
+  CHECK_IO(fprintf(h, "cdd_c_error_t %scleanup(struct HttpClient *client);\n\n",
+                   prefix));
 
   /* Source */
 
@@ -1175,14 +1174,14 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "/**\n"
                    " * @brief Auto-generated code from OpenAPI specification\n"
                    " */\n"
-                   "enum cdd_c_error ApiError_cleanup(struct ApiError *err) {\n"
+                   "cdd_c_error_t ApiError_cleanup(struct ApiError *err) {\n"
                    "  if (!err) return CDD_C_SUCCESS;\n"
-                   "  if(err->type) C_CDD_FREE(err->type);\n"
-                   "  if(err->title) C_CDD_FREE(err->title);\n"
-                   "  if(err->detail) C_CDD_FREE(err->detail);\n"
-                   "  if(err->instance) C_CDD_FREE(err->instance);\n"
-                   "  if(err->raw_body) C_CDD_FREE(err->raw_body);\n"
-                   "  C_CDD_FREE(err);\n"
+                   "  if(err->type) free(err->type);\n"
+                   "  if(err->title) free(err->title);\n"
+                   "  if(err->detail) free(err->detail);\n"
+                   "  if(err->instance) free(err->instance);\n"
+                   "  if(err->raw_body) free(err->raw_body);\n"
+                   "  free(err);\n"
                    "}\n\n"));
 
   /* Helper to parse ApiError (Internal).
@@ -1191,13 +1190,13 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "/**\n"
                    " * @brief Auto-generated code from OpenAPI specification\n"
                    " */\n"
-                   "static enum cdd_c_error ApiError_from_json(const char "
+                   "static cdd_c_error_t ApiError_from_json(const char "
                    "*json, struct ApiError "
                    "**out) {\n"
                    "  JSON_Value *root;\n"
                    "  JSON_Object *obj;\n"
                    "  if(!json || !out) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
-                   "  *out = C_CDD_CALLOC(1, sizeof(struct ApiError));\n"
+                   "  *out = calloc(1, sizeof(struct ApiError));\n"
                    "  if(!*out) return CDD_C_ERROR_MEMORY;\n"
                    "  (*out)->raw_body = strdup(json);\n"
                    "  root = json_parse_string(json);\n"));
@@ -1209,9 +1208,8 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "  if(obj) {\n"
          "    if(json_object_has_value(obj, \"type\")) { (*out)->type = "
          "strdup(json_object_get_string(obj, \"type\")); if(!(*out)->type) { "
-         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"));
-  CHECK_IO(fprintf(
-      c, "    if(json_object_has_value(obj, \"title\")) { (*out)->title = "
+         "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
+         "    if(json_object_has_value(obj, \"title\")) { (*out)->title = "
          "strdup(json_object_get_string(obj, \"title\")); if(!(*out)->title) { "
          "json_value_free(root); return CDD_C_ERROR_MEMORY; } }\n"
          "    if(json_object_has_value(obj, \"detail\")) { (*out)->detail = "
@@ -1230,11 +1228,10 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
       "  return CDD_C_SUCCESS;\n"
       "}\n\n"));
 
-  CHECK_IO(
-      fprintf(c,
-              "enum cdd_c_error %sinit(struct HttpClient *client, const char "
-              "*base_url) {\n",
-              prefix));
+  CHECK_IO(fprintf(c,
+                   "cdd_c_error_t %sinit(struct HttpClient *client, const char "
+                   "*base_url) {\n",
+                   prefix));
   CHECK_IO(fprintf(c, "  int rc;\n"));
   if (default_url_literal) {
     CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
@@ -1250,8 +1247,8 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
     CHECK_IO(fprintf(c, "  }\n"));
   }
   CHECK_IO(fprintf(c, "  if (base_url) {\n"));
-  CHECK_IO(fprintf(
-      c, "    client->base_url = C_CDD_MALLOC(strlen(base_url) + 1);\n"));
+  CHECK_IO(
+      fprintf(c, "    client->base_url = malloc(strlen(base_url) + 1);\n"));
   CHECK_IO(fprintf(
       c,
       "    if (!client->base_url) return CDD_C_ERROR_MEMORY; /* ENOMEM */\n"));
@@ -1283,8 +1280,8 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 
   CHECK_IO(fprintf(c, "  return rc;\n}\n\n"));
 
-  CHECK_IO(fprintf(
-      c, "enum cdd_c_error %scleanup(struct HttpClient *client) {\n", prefix));
+  CHECK_IO(fprintf(c, "cdd_c_error_t %scleanup(struct HttpClient *client) {\n",
+                   prefix));
   CHECK_IO(fprintf(c, "  if (!client) return CDD_C_SUCCESS;\n"));
 
   CHECK_IO(fprintf(c, "#ifdef USE_WININET\n"));
@@ -1300,9 +1297,9 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  http_client_free(client);\n}\n\n"));
 
   if (default_url)
-    C_CDD_FREE(default_url);
+    free(default_url);
   if (default_url_escaped)
-    C_CDD_FREE(default_url_escaped);
+    free(default_url_escaped);
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -1495,7 +1492,7 @@ enum cdd_c_error write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 /**
  * @brief Executes the verb to string operation.
  */
-enum cdd_c_error verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
+cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
     *_out_val = (char *)"GET";
@@ -1543,8 +1540,8 @@ enum cdd_c_error verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
 /**
  * @brief Generates C code for write docblock.
  */
-enum cdd_c_error write_docblock(FILE *fp, const struct OpenAPI_Path *path,
-                                const struct OpenAPI_Operation *op) {
+cdd_c_error_t write_docblock(FILE *fp, const struct OpenAPI_Path *path,
+                             const struct OpenAPI_Operation *op) {
   const char *_ast_verb_to_string_5 = NULL;
   size_t i;
   CHECK_IO(fprintf(fp, "/**\n"));
@@ -1832,12 +1829,12 @@ enum cdd_c_error write_docblock(FILE *fp, const struct OpenAPI_Path *path,
  * @brief Executes the emit operation operation.
  */
 
-enum cdd_c_error emit_operation(FILE *hfile, FILE *cfile,
-                                const struct OpenAPI_Path *path,
-                                const struct OpenAPI_Operation *op,
-                                const struct OpenAPI_Spec *spec,
-                                const struct OpenApiClientConfig *config,
-                                const char *prefix) {
+cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
+                             const struct OpenAPI_Path *path,
+                             const struct OpenAPI_Operation *op,
+                             const struct OpenAPI_Spec *spec,
+                             const struct OpenApiClientConfig *config,
+                             const char *prefix) {
   char *_ast_sanitize_tag_6 = NULL;
   struct OpenAPI_Server *_ast_select_operation_server_7;
   char *_ast_render_server_url_default_8 = NULL;
@@ -1885,8 +1882,8 @@ enum cdd_c_error emit_operation(FILE *hfile, FILE *cfile,
 
   if (config->namespace_prefix && sanitized_group) {
     /* Name: Namespace_Tag */
-    full_group = C_CDD_MALLOC(strlen(config->namespace_prefix) +
-                              strlen(sanitized_group) + 2);
+    full_group =
+        malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -1990,15 +1987,15 @@ enum cdd_c_error emit_operation(FILE *hfile, FILE *cfile,
 
 cleanup:
   if (sanitized_group)
-    C_CDD_FREE(sanitized_group);
+    free(sanitized_group);
   if (full_group)
-    C_CDD_FREE(full_group);
+    free(full_group);
   if (effective_params)
-    C_CDD_FREE(effective_params);
+    free(effective_params);
   if (override_url)
-    C_CDD_FREE(override_url);
+    free(override_url);
   if (base_url_expr)
-    C_CDD_FREE(base_url_expr);
+    free(base_url_expr);
 
 #undef CHECK_IO_CLEANUP
 
@@ -2008,7 +2005,7 @@ cleanup:
 /**
  * @brief Executes the openapi client generate operation.
  */
-enum cdd_c_error
+cdd_c_error_t
 openapi_client_generate(const struct OpenAPI_Spec *spec,
                         const struct OpenApiClientConfig *config) {
   char *_ast_generate_guard_10 = NULL;
@@ -2031,19 +2028,19 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   get_basename(config->filename_base, &base_name);
 
   {
-    char *src_dir = C_CDD_MALLOC(512);
+    char *src_dir = malloc(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
     actual_base =
-        C_CDD_MALLOC(strlen(src_dir) +
-                     strlen(base_name ? base_name : "generated_client") + 2);
+        malloc(strlen(src_dir) +
+               strlen(base_name ? base_name : "generated_client") + 2);
     if (actual_base) {
       sprintf(actual_base, "%s/%s", src_dir,
               base_name ? base_name : "generated_client");
     }
-    C_CDD_FREE(src_dir);
+    free(src_dir);
   }
 
   if (!actual_base) {
@@ -2053,10 +2050,10 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* Prepare filenames */
-  h_name = C_CDD_MALLOC(strlen(actual_base) + 3);   /* .h */
-  c_name = C_CDD_MALLOC(strlen(actual_base) + 3);   /* .c */
-  mh_name = C_CDD_MALLOC(strlen(actual_base) + 10); /* _models.h */
-  mc_name = C_CDD_MALLOC(strlen(actual_base) + 10); /* _models.c */
+  h_name = malloc(strlen(actual_base) + 3);   /* .h */
+  c_name = malloc(strlen(actual_base) + 3);   /* .c */
+  mh_name = malloc(strlen(actual_base) + 10); /* _models.h */
+  mc_name = malloc(strlen(actual_base) + 10); /* _models.c */
   if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -2127,7 +2124,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  model_guard = C_CDD_MALLOC(strlen(guard) + 8);
+  model_guard = malloc(strlen(guard) + 8);
   if (!model_guard) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -2194,7 +2191,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     print_rc =
         fprintf(mcfile, "#include \"%s\"\n", mh_base ? mh_base : mh_name);
     if (mh_base)
-      C_CDD_FREE(mh_base);
+      free(mh_base);
     if (print_rc < 0) {
       rc = 0;
       {
@@ -2399,7 +2396,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     get_basename(h_name, &base);
     rc = write_source_preamble(cfile, base ? base : h_name);
     if (base)
-      C_CDD_FREE(base);
+      free(base);
     if (rc != 0) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2441,69 +2438,69 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(hfile, "\n/* MCP Client (From) API */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_list_tools(void* params, "
+              "extern cdd_c_error_t %smcp_client_list_tools(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_call_tool(void* params, "
+              "extern cdd_c_error_t %smcp_client_call_tool(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_ping(void* params, int "
+              "extern cdd_c_error_t %smcp_client_ping(void* params, int "
               "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_initialize(void* params, "
+              "extern cdd_c_error_t %smcp_client_initialize(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_list_resources(void* "
+              "extern cdd_c_error_t %smcp_client_list_resources(void* "
               "params, int "
               "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_read_resource(void* "
+              "extern cdd_c_error_t %smcp_client_read_resource(void* "
               "params, int "
               "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_list_prompts(void* params, "
+              "extern cdd_c_error_t %smcp_client_list_prompts(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_get_prompt(void* params, "
+              "extern cdd_c_error_t %smcp_client_get_prompt(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_complete(void* params, int "
+              "extern cdd_c_error_t %smcp_client_complete(void* params, int "
               "req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_subscribe(void* params, "
+              "extern cdd_c_error_t %smcp_client_subscribe(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_unsubscribe(void* params, "
+              "extern cdd_c_error_t %smcp_client_unsubscribe(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_set_level(void* params, "
+              "extern cdd_c_error_t %smcp_client_set_level(void* params, "
               "int req_id, char** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_client_create_message(void* "
+              "extern cdd_c_error_t %smcp_client_create_message(void* "
               "params, int "
               "req_id, char** out);\n",
               prefix) < 0)
@@ -2513,21 +2510,20 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(hfile, "/**\n * @brief Native MCP Tool Adapter\n * Retrieves all "
                      "operations exposed as MCP Tools.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile, "extern enum cdd_c_error %smcp_get_tools(void** out);\n",
+  if (fprintf(hfile, "extern cdd_c_error_t %smcp_get_tools(void** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief Native MCP Resource Adapter\n * Retrieves "
                      "all read-only documentation resources.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
-  if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_get_resources(void** out);\n",
+  if (fprintf(hfile, "extern cdd_c_error_t %smcp_get_resources(void** out);\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "/**\n * @brief LLM Execution Router\n * Executes a tool "
                      "by name with JSON arguments.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_execute_tool(const char* name, "
+              "extern cdd_c_error_t %smcp_execute_tool(const char* name, "
               "const char* json_args, char** out_result);\n\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2535,8 +2531,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "\n/* Native MCP Adapters Implementation */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
-  if (fprintf(cfile, "enum cdd_c_error %smcp_get_tools(void** out) {\n",
-              prefix) < 0)
+  if (fprintf(cfile, "cdd_c_error_t %smcp_get_tools(void** out) {\n", prefix) <
+      0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2600,7 +2596,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "  *out = root_val;\n  return CDD_C_SUCCESS;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
 
-  if (fprintf(cfile, "enum cdd_c_error %smcp_get_resources(void** out) {\n",
+  if (fprintf(cfile, "cdd_c_error_t %smcp_get_resources(void** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
@@ -2650,13 +2646,13 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "specific resource by URI.\n */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile,
-              "extern enum cdd_c_error %smcp_read_resource(const char* uri, "
+              "extern cdd_c_error_t %smcp_read_resource(const char* uri, "
               "void** out);\n\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_read_resource(const char* uri, void** "
+              "cdd_c_error_t %smcp_read_resource(const char* uri, void** "
               "out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2706,7 +2702,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     rc = CDD_C_ERROR_MEMORY;
 
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_execute_tool(const char* name, const "
+              "cdd_c_error_t %smcp_execute_tool(const char* name, const "
               "char* json_args, "
               "char** out_result) {\n  (void)json_args;\n  if (out_result) "
               "*out_result = NULL;\n",
@@ -2725,8 +2721,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           rc = CDD_C_ERROR_MEMORY;
         if (fprintf(
                 cfile,
-                "    if (out_result) {\n      *out_result = "
-                "C_CDD_MALLOC(128);\n     "
+                "    if (out_result) {\n      *out_result = malloc(128);\n     "
                 " strcpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
                 "   }\n    return CDD_C_SUCCESS;\n  }\n") < 0)
           rc = CDD_C_ERROR_MEMORY;
@@ -2739,7 +2734,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "\n/* MCP Client (From) Implementation */\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_list_tools(void* params, "
+              "cdd_c_error_t %smcp_client_list_tools(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2766,7 +2761,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_call_tool(void* params, "
+              "cdd_c_error_t %smcp_client_call_tool(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2793,7 +2788,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_ping(void* params, "
+              "cdd_c_error_t %smcp_client_ping(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2818,7 +2813,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_initialize(void* params, "
+              "cdd_c_error_t %smcp_client_initialize(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2845,7 +2840,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_list_resources(void* params, "
+              "cdd_c_error_t %smcp_client_list_resources(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2870,7 +2865,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_read_resource(void* params, "
+              "cdd_c_error_t %smcp_client_read_resource(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2895,7 +2890,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_list_prompts(void* params, "
+              "cdd_c_error_t %smcp_client_list_prompts(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2920,7 +2915,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_get_prompt(void* params, "
+              "cdd_c_error_t %smcp_client_get_prompt(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2947,7 +2942,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_complete(void* params, "
+              "cdd_c_error_t %smcp_client_complete(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2972,7 +2967,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_subscribe(void* params, "
+              "cdd_c_error_t %smcp_client_subscribe(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -2997,7 +2992,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_unsubscribe(void* params, "
+              "cdd_c_error_t %smcp_client_unsubscribe(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -3022,7 +3017,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_set_level(void* params, "
+              "cdd_c_error_t %smcp_client_set_level(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -3047,7 +3042,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(cfile,
-              "enum cdd_c_error %smcp_client_create_message(void* params, "
+              "cdd_c_error_t %smcp_client_create_message(void* params, "
               "int req_id, char** out) {\n",
               prefix) < 0)
     rc = CDD_C_ERROR_MEMORY;
@@ -3098,609 +3093,1160 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                  dir_name ? dir_name : ".");
     uh = fopen(hpath, "w");
     if (uh) {
-      fputs("/**\n * @file url.h\n * @brief Utilities for URL encoding and "
-            "Query String construction.\n *\n * Provides functionality to:\n * "
-            "- Percent-encode strings according to RFC 3986 (safe for Path and "
-            "Query).\n * - Manage a collection of Query Parameters.\n * - "
-            "Serialize parameters into a valid query string (e.g., "
-            "\"?key=val&k2=v2\").\n *\n * @author Samuel Marks\n */\n\n#ifndef "
-            "C_CDD_URL_UTILS_H\n#defin",
-            uh);
-      fputs("e C_CDD_URL_UTILS_H\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif "
-            "/* __cplusplus */\n\n/* clang-"
-            "format off */\n\n#include "
-            "<stddef.h>\n/* clang-"
-            "format on */\n\n/**\n * @brief Represents a "
-            "single key-value query parameter.\n */\nstruct UrlQueryParam {\n  "
-            "char *key;            /**< The parameter key (unencoded) */\n  "
-            "char *value;          /**< The parameter value (raw or "
-            "pre-encoded) */\n  int value_",
-            uh);
-      fputs("is_encoded; /**< 1 if value is already percent-encoded "
-            "*/\n};\n\n/**\n * @brief Container for a list of query "
-            "parameters.\n */\nstruct UrlQueryParams {\n  struct UrlQueryParam "
-            "*params; /**< Dynamic array of parameters */\n  size_t count;     "
-            "            /**< Number of items used */\n  size_t capacity;      "
-            "        /**< Current allocated capacity */\n};\n\n/**\n * @brief "
-            "Supported value types for o",
-            uh);
-      fputs("bject-style query parameters.\n */\nenum OpenAPI_KVType {\n  "
-            "OA_KV_STRING = 0, /**< String value */\n  OA_KV_INTEGER,    /**< "
-            "Integer value */\n  OA_KV_NUMBER,     /**< Floating-point value "
-            "*/\n  OA_KV_BOOLEAN     /**< Boolean value (0/1) */\n};\n\n/**\n "
-            "* @brief Strongly typed key/value pair for object-style query "
-            "parameters.\n *\n * Used when serializing `style=form` (object) "
-            "and `style=deepObje",
-            uh);
-      fputs("ct`.\n */\nstruct OpenAPI_KV {\n  const char *key;          /**< "
-            "Parameter key */\n  enum OpenAPI_KVType type; /**< Value type "
-            "*/\n  /** @brief union data */\n  union {\n    const char *s; "
-            "/**< String value */\n    int i;         /**< Integer value */\n  "
-            "  double n;      /**< Number value */\n    int b;         /**< "
-            "Boolean value (0/1) */\n    /** @brief KV value */\n  } "
-            "value;\n};\n\n/**\n * @par",
-            uh);
-      fputs("am[out] _out_val Pointer to store the result\n * @brief Join "
-            "object-style key/value pairs into a form-encoded value string.\n "
-            "*\n * Produces a single string suitable for use as the value of a "
-            "form-style\n * parameter when explode=false (or "
-            "space/pipe-delimited object styles).\n * Keys and values are "
-            "percent-encoded using form rules; the delimiter is\n * inserted "
-            "as-is between tokens.\n *\n * @para",
-            uh);
-      fputs("m[in] kvs The key/value array.\n * @param[in] n Number of entries "
-            "in kvs.\n * @param[in] delim Delimiter string to insert between "
-            "tokens (e.g., \",\",\n *                  \"%20\", \"%7C\").\n * "
-            "@param[in] allow_reserved If non-zero, preserve reserved "
-            "characters in\n *                           values (except form "
-            "delimiters).\n * @return Newly allocated string containing the "
-            "joined value, or NULL",
-            uh);
-      fputs(" on\n * allocation failure.\n */\nextern  enum cdd_c_error "
-            "openapi_kv_join_form(const struct OpenAPI_KV *kvs,\n              "
-            "                               size_t n, const char *delim,\n     "
-            "                                        int allow_reserved,\n     "
-            "                                        char "
-            "**_out_val);\n\n/**\n * @param[out] _out_val Pointer to store the "
-            "result\n * @brief Percent-encode",
-            uh);
-      fputs(" a string for use in a URL.\n *\n * Conforms to RFC 3986. Encodes "
-            "all characters except:\n * ALPHA, DIGIT, \"-\", \".\", \"_\", "
-            "\"~\".\n * Spaces are encoded as \"%20\".\n *\n * @param[in] str "
-            "The null-terminated string to encode.\n * @return A newly "
-            "allocated string containing the encoded result, or NULL on\n * "
-            "error/allocation failure.\n */\nextern  enum cdd_c_error "
-            "url_encode(const char *str, c",
-            uh);
-      fputs("har **_out_val);\n\n/**\n * @param[out] _out_val Pointer to store "
-            "the result\n * @brief Percent-encode a string while allowing "
-            "reserved characters.\n *\n * Encodes all characters except RFC "
-            "3986 unreserved and reserved sets.\n * Preserves existing "
-            "percent-encoded triples (\"%HH\") verbatim.\n * Spaces are "
-            "encoded as \"%20\".\n *\n * @param[in] str The null-terminated "
-            "string to encode.\n * @return ",
-            uh);
-      fputs("A newly allocated string containing the encoded result, or NULL "
-            "on\n * error/allocation failure.\n */\nextern  enum cdd_c_error "
-            "url_encode_allow_reserved(const char *str,\n                      "
-            "                            char **_out_val);\n\n/**\n * "
-            "@param[out] _out_val Pointer to store the result\n * @brief "
-            "Percent-encode a string for application/x-www-form-urlencoded.\n "
-            "*\n * Encodes all charac",
-            uh);
-      fputs("ters except: ALPHA, DIGIT, \"-\", \".\", \"_\", \"*\".\n * Spaces "
-            "are encoded as \"+\".\n *\n * @param[in] str The null-terminated "
-            "string to encode.\n * @return A newly allocated string containing "
-            "the encoded result, or NULL on\n * error/allocation failure.\n "
-            "*/\nextern  enum cdd_c_error url_encode_form(const char *str, "
-            "char **_out_val);\n\n/**\n * @param[out] _out_val Pointer to "
-            "store the result",
-            uh);
-      fputs("\n * @brief Percent-encode a string for "
-            "application/x-www-form-urlencoded while\n * allowing reserved "
-            "characters (except delimiters).\n *\n * Preserves RFC3986 "
-            "reserved characters except for '&', '=' and '+', which are\n * "
-            "always encoded to avoid breaking form key/value delimiters. "
-            "Spaces are\n * encoded as \"+\" and existing percent-encoded "
-            "triples are preserved.\n *\n * @param[in] str The null-t",
-            uh);
-      fputs("erminated string to encode.\n * @return A newly allocated string "
-            "containing the encoded result, or NULL on\n * error/allocation "
-            "failure.\n */\nextern  /**\n                     * @brief "
-            "Executes the url encode form allow reserved\n                     "
-            "* operation.\n                     */\n    int\n    "
-            "url_encode_form_allow_reserved(const char *str, char "
-            "**_out_val);\n\n/**\n * @brief Initialize a",
-            uh);
-      fputs(" query parameters container.\n *\n * @param[out] qp The structure "
-            "to initialize.\n * @return 0 on success, EINVAL if qp is NULL.\n "
-            "*/\nextern  enum cdd_c_error url_query_init(struct UrlQueryParams "
-            "*qp);\n\n/**\n * @brief Free resources associated with a query "
-            "parameters container.\n * Frees all key/value strings and the "
-            "internal array.\n *\n * @param[in] qp The structure to free. Safe "
-            "to pass NULL",
-            uh);
-      fputs(".\n */\nextern  void url_query_free(struct UrlQueryParams "
-            "*qp);\n\n/**\n * @brief Add a key-value pair to the query "
-            "container.\n *\n * @param[in] qp The container.\n * @param[in] "
-            "key The parameter key (will be copied).\n * @param[in] value The "
-            "parameter value (will be copied).\n * @return 0 on success, "
-            "ENOMEM on allocation failure, EINVAL on invalid args.\n "
-            "*/\nextern  enum cdd_c_error url_query_a",
-            uh);
-      fputs("dd(struct UrlQueryParams *qp,\n                                   "
-            "   const char *key, const char *value);\n\n/**\n * @brief Add a "
-            "key-value pair where the value is already percent-encoded.\n *\n "
-            "* The value will be copied as-is and will not be encoded again "
-            "during\n * url_query_build(). Use this for OpenAPI styles that "
-            "require reserved\n * delimiters (e.g. comma for form-style "
-            "explode=false).\n *",
-            uh);
-      fputs("\n * @param[in] qp The container.\n * @param[in] key The "
-            "parameter key (will be copied and encoded on build).\n * "
-            "@param[in] value The parameter value (already encoded, will be "
-            "copied).\n * @return 0 on success, ENOMEM on allocation failure, "
-            "EINVAL on invalid args.\n */\nextern  enum cdd_c_error "
-            "url_query_add_encoded(struct UrlQueryParams *qp,\n                "
-            "                              const c",
-            uh);
-      fputs("har *key,\n                                              const "
-            "char *value);\n\n/**\n * @brief Build the final query string "
-            "starting with '?'.\n *\n * Iterates through parameters, "
-            "URL-encodes keys and values, and joins them\n * with '&'.\n * "
-            "Example output: \"?q=hello%20world&page=1\"\n *\n * @param[in] qp "
-            "The container describing the parameters.\n * @param[out] out_str "
-            "Pointer to a char* where th",
-            uh);
-      fputs("e result will be allocated.\n *                     If count is "
-            "0, allocates an empty string \"\".\n * @return 0 on success, "
-            "ENOMEM on allocation failure.\n */\nextern  enum cdd_c_error "
-            "url_query_build(const struct UrlQueryParams *qp,\n                "
-            "                        char **out_str);\n\n/**\n * @brief Build "
-            "a application/x-www-form-urlencoded body string.\n *\n * Uses "
-            "form encoding (space ",
-            uh);
-      fputs("-> \"+\") and does not prefix with '?'.\n *\n * @param[in] qp The "
-            "container describing the parameters.\n * @param[out] out_str "
-            "Pointer to a char* where the result will be allocated.\n *        "
-            "             If count is 0, allocates an empty string \"\".\n * "
-            "@return 0 on success, ENOMEM on allocation failure.\n */\nextern  "
-            "enum cdd_c_error url_query_build_form(const struct UrlQueryParams "
-            "*qp,\n     ",
-            uh);
-      fputs("                                        char "
-            "**out_str);\n\n#ifdef __cplusplus\n}\n#endif /* __cplusplus "
-            "*/\n\n#endif /* C_CDD_URL_UTILS_H */\n\n",
-            uh);
-
+      fprintf(
+          uh, "%s",
+          "/**\n"
+          " * @file url.h\n"
+          " * @brief Utilities for URL encoding and Query String "
+          "construction.\n"
+          " *\n"
+          " * Provides functionality to:\n"
+          " * - Percent-encode strings according to RFC 3986 (safe for Path "
+          "and Query).\n"
+          " * - Manage a collection of Query Parameters.\n"
+          " * - Serialize parameters into a valid query string (e.g., "
+          "\"?key=val&k2=v2\").\n"
+          " *\n"
+          " * @author Samuel Marks\n"
+          " */\n"
+          "\n"
+          "#ifndef C_CDD_URL_UTILS_H\n"
+          "#define C_CDD_URL_UTILS_H\n"
+          "\n"
+          "#ifdef __cplusplus\n"
+          "extern \"C\" {\n"
+          "#endif /* __cplusplus */\n"
+          "\n"
+          "/* clang-format off */\n"
+          "\n"
+          "#include <stddef.h>\n"
+          "/* clang-format on */\n"
+          "\n"
+          "/**\n"
+          " * @brief Represents a single key-value query parameter.\n"
+          " */\n"
+          "struct UrlQueryParam {\n"
+          "  char *key;            /**< The parameter key (unencoded) */\n"
+          "  char *value;          /**< The parameter value (raw or "
+          "pre-encoded) */\n"
+          "  int value_is_encoded; /**< 1 if value is already percent-encoded "
+          "*/\n"
+          "};\n"
+          "\n"
+          "/**\n"
+          " * @brief Container for a list of query parameters.\n"
+          " */\n"
+          "struct UrlQueryParams {\n"
+          "  struct UrlQueryParam *params; /**< Dynamic array of parameters "
+          "*/\n"
+          "  size_t count;                 /**< Number of items used */\n"
+          "  size_t capacity;              /**< Current allocated capacity */\n"
+          "};\n"
+          "\n"
+          "/**\n"
+          " * @brief Supported value types for object-style query parameters.\n"
+          " */\n"
+          "enum OpenAPI_KVType {\n"
+          "  OA_KV_STRING = 0, /**< String value */\n"
+          "  OA_KV_INTEGER,    /**< Integer value */\n"
+          "  OA_KV_NUMBER,     /**< Floating-point value */\n"
+          "  OA_KV_BOOLEAN     /**< Boolean value (0/1) */\n"
+          "};\n"
+          "\n"
+          "/**\n"
+          " * @brief Strongly typed key/value pair for object-style query "
+          "parameters.\n"
+          " *\n"
+          " * Used when serializing `style=form` (object) and "
+          "`style=deepObject`.\n"
+          " */\n"
+          "struct OpenAPI_KV {\n"
+          "  const char *key;          /**< Parameter key */\n"
+          "  enum OpenAPI_KVType type; /**< Value type */\n"
+          "  /** @brief union data */\n"
+          "  union {\n"
+          "    const char *s; /**< String value */\n"
+          "    int i;         /**< Integer value */\n"
+          "    double n;      /**< Number value */\n"
+          "    int b;         /**< Boolean value (0/1) */\n"
+          "    /** @brief KV value */\n"
+          "  } value;\n"
+          "};\n"
+          "\n"
+          "/**\n"
+          " * @param[out] _out_val Pointer to store the result\n"
+          " * @brief Join object-style key/value pairs into a form-encoded "
+          "value string.\n"
+          " *\n"
+          " * Produces a single string suitable for use as the value of a "
+          "form-style\n"
+          " * parameter when explode=false (or space/pipe-delimited object "
+          "styles).\n"
+          " * Keys and values are percent-encoded using form rules; the "
+          "delimiter is\n"
+          " * inserted as-is between tokens.\n"
+          " *\n"
+          " * @param[in] kvs The key/value array.\n"
+          " * @param[in] n Number of entries in kvs.\n"
+          " * @param[in] delim Delimiter string to insert between tokens "
+          "(e.g., \",\",\n"
+          " *                  \"%20\", \"%7C\").\n"
+          " * @param[in] allow_reserved If non-zero, preserve reserved "
+          "characters in\n"
+          " *                           values (except form delimiters).\n"
+          " * @return Newly allocated string containing the joined value, or "
+          "NULL on\n"
+          " * allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t openapi_kv_join_form(const struct "
+          "OpenAPI_KV *kvs,\n"
+          "                                             size_t n, const char "
+          "*delim,\n"
+          "                                             int allow_reserved,\n"
+          "                                             char **_out_val);\n"
+          "\n"
+          "/**\n"
+          " * @param[out] _out_val Pointer to store the result\n"
+          " * @brief Percent-encode a string for use in a URL.\n"
+          " *\n"
+          " * Conforms to RFC 3986. Encodes all characters except:\n"
+          " * ALPHA, DIGIT, \"-\", \".\", \"_\", \"~\".\n"
+          " * Spaces are encoded as \"%20\".\n"
+          " *\n"
+          " * @param[in] str The null-terminated string to encode.\n"
+          " * @return A newly allocated string containing the encoded result, "
+          "or NULL on\n"
+          " * error/allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_encode(const char *str, char "
+          "**_out_val);\n"
+          "\n"
+          "/**\n"
+          " * @param[out] _out_val Pointer to store the result\n"
+          " * @brief Percent-encode a string while allowing reserved "
+          "characters.\n"
+          " *\n"
+          " * Encodes all characters except RFC 3986 unreserved and reserved "
+          "sets.\n"
+          " * Preserves existing percent-encoded triples (\"%HH\") verbatim.\n"
+          " * Spaces are encoded as \"%20\".\n"
+          " *\n"
+          " * @param[in] str The null-terminated string to encode.\n"
+          " * @return A newly allocated string containing the encoded result, "
+          "or NULL on\n"
+          " * error/allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_encode_allow_reserved(const char "
+          "*str,\n"
+          "                                                  char "
+          "**_out_val);\n"
+          "\n"
+          "/**\n"
+          " * @param[out] _out_val Pointer to store the result\n"
+          " * @brief Percent-encode a string for "
+          "application/x-www-form-urlencoded.\n"
+          " *\n"
+          " * Encodes all characters except: ALPHA, DIGIT, \"-\", \".\", "
+          "\"_\", \"*\".\n"
+          " * Spaces are encoded as \"+\".\n"
+          " *\n"
+          " * @param[in] str The null-terminated string to encode.\n"
+          " * @return A newly allocated string containing the encoded result, "
+          "or NULL on\n"
+          " * error/allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_encode_form(const char *str, char "
+          "**_out_val);\n"
+          "\n"
+          "/**\n"
+          " * @param[out] _out_val Pointer to store the result\n"
+          " * @brief Percent-encode a string for "
+          "application/x-www-form-urlencoded while\n"
+          " * allowing reserved characters (except delimiters).\n"
+          " *\n"
+          " * Preserves RFC3986 reserved characters except for '&', '=' and "
+          "'+', which are\n"
+          " * always encoded to avoid breaking form key/value delimiters. "
+          "Spaces are\n"
+          " * encoded as \"+\" and existing percent-encoded triples are "
+          "preserved.\n"
+          " *\n"
+          " * @param[in] str The null-terminated string to encode.\n"
+          " * @return A newly allocated string containing the encoded result, "
+          "or NULL on\n"
+          " * error/allocation failure.\n"
+          " */\n"
+          "extern  /**\n"
+          "                     * @brief Executes the url encode form allow "
+          "reserved\n"
+          "                     * operation.\n"
+          "                     */\n"
+          "    int\n"
+          "    url_encode_form_allow_reserved(const char *str, char "
+          "**_out_val);\n"
+          "\n"
+          "/**\n"
+          " * @brief Initialize a query parameters container.\n"
+          " *\n"
+          " * @param[out] qp The structure to initialize.\n"
+          " * @return 0 on success, EINVAL if qp is NULL.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_query_init(struct UrlQueryParams "
+          "*qp);\n"
+          "\n"
+          "/**\n"
+          " * @brief Free resources associated with a query parameters "
+          "container.\n"
+          " * Frees all key/value strings and the internal array.\n"
+          " *\n"
+          " * @param[in] qp The structure to free. Safe to pass NULL.\n"
+          " */\n"
+          "extern  void url_query_free(struct UrlQueryParams *qp);\n"
+          "\n"
+          "/**\n"
+          " * @brief Add a key-value pair to the query container.\n"
+          " *\n"
+          " * @param[in] qp The container.\n"
+          " * @param[in] key The parameter key (will be copied).\n"
+          " * @param[in] value The parameter value (will be copied).\n"
+          " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
+          "invalid args.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_query_add(struct UrlQueryParams *qp,\n"
+          "                                      const char *key, const char "
+          "*value);\n"
+          "\n"
+          "/**\n"
+          " * @brief Add a key-value pair where the value is already "
+          "percent-encoded.\n"
+          " *\n"
+          " * The value will be copied as-is and will not be encoded again "
+          "during\n"
+          " * url_query_build(). Use this for OpenAPI styles that require "
+          "reserved\n"
+          " * delimiters (e.g. comma for form-style explode=false).\n"
+          " *\n"
+          " * @param[in] qp The container.\n"
+          " * @param[in] key The parameter key (will be copied and encoded on "
+          "build).\n"
+          " * @param[in] value The parameter value (already encoded, will be "
+          "copied).\n"
+          " * @return 0 on success, ENOMEM on allocation failure, EINVAL on "
+          "invalid args.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_query_add_encoded(struct "
+          "UrlQueryParams *qp,\n"
+          "                                              const char *key,\n"
+          "                                              const char *value);\n"
+          "\n"
+          "/**\n"
+          " * @brief Build the final query string starting with '?'.\n"
+          " *\n"
+          " * Iterates through parameters, URL-encodes keys and values, and "
+          "joins them\n"
+          " * with '&'.\n"
+          " * Example output: \"?q=hello%20world&page=1\"\n"
+          " *\n"
+          " * @param[in] qp The container describing the parameters.\n"
+          " * @param[out] out_str Pointer to a char* where the result will be "
+          "allocated.\n"
+          " *                     If count is 0, allocates an empty string "
+          "\"\".\n"
+          " * @return 0 on success, ENOMEM on allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_query_build(const struct "
+          "UrlQueryParams *qp,\n"
+          "                                        char **out_str);\n"
+          "\n"
+          "/**\n"
+          " * @brief Build a application/x-www-form-urlencoded body string.\n"
+          " *\n"
+          " * Uses form encoding (space -> \"+\") and does not prefix with "
+          "'?'.\n"
+          " *\n"
+          " * @param[in] qp The container describing the parameters.\n"
+          " * @param[out] out_str Pointer to a char* where the result will be "
+          "allocated.\n"
+          " *                     If count is 0, allocates an empty string "
+          "\"\".\n"
+          " * @return 0 on success, ENOMEM on allocation failure.\n"
+          " */\n"
+          "extern  cdd_c_error_t url_query_build_form(const struct "
+          "UrlQueryParams *qp,\n"
+          "                                             char **out_str);\n"
+          "\n"
+          "#ifdef __cplusplus\n"
+          "}\n"
+          "#endif /* __cplusplus */\n"
+          "\n"
+          "#endif /* C_CDD_URL_UTILS_H */\n"
+          "\n");
       fclose(uh);
     }
     uc = fopen(cpath, "w");
     if (uc) {
-      fputs("/**\n * @file url.c\n * @brief Implementation of RFC 3986 URL "
-            "encoding and Query serialization.\n *\n * @author Samuel Marks\n "
-            "*/\n\n/* clang-"
-            "format off */\n#include <ctype.h>\n#include "
-            "<errno.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include "
-            "<string.h>\n\n#include \"functions/parse/str.h\" /* For "
-            "c_cdd_strdup helpers */\n#include \"c_cdd/log.h\"\n#include "
-            "\"url_utils.h\"\n/* clang-"
-            "format on *",
-            uc);
-      fputs("/\n\n/* Standard definitions for C89 compatibility */\n#if "
-            "defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n#define "
-            "sprintf_s_chk(buf, size, fmt, arg) sprintf_s(buf, size, fmt, "
-            "arg)\n#else\n/* Naive fallback for non-MSVC C89 */\n/** @brief "
-            "sprintf_s_chk macro */\n#define sprintf_s_chk(buf, size, fmt, "
-            "arg) sprintf(buf, fmt, arg)\n#endif\n\n/**\n * @brief Check if a "
-            "character is unreserved per RFC 3",
-            uc);
-      fputs("986 Section 2.3.\n *\n * Unreserved characters: ALPHA, DIGIT, "
-            "\"-\", \".\", \"_\", \"~\".\n */\nstatic int\n    "
-            "is_unreserved(unsigned char c) {\n  if (isalnum(c))\n    return "
-            "CDD_C_ERROR_UNKNOWN;\n  if (c == '-' || c == '.' || c == '_' || c "
-            "== '~')\n    return CDD_C_ERROR_UNKNOWN;\n  return "
-            "CDD_C_SUCCESS;\n}\n\n/**\n * @brief Check if a character is "
-            "reserved per RFC 3986 Section 2.2.\n */\nstatic",
-            uc);
-      fputs(" int\n    is_reserved(unsigned char c) {\n  switch (c) {\n  case "
-            "':':\n  case '/':\n  case '?':\n  case '#':\n  case '[':\n  case "
-            "']':\n  case '@':\n  case '!':\n  case '$':\n  case '&':\n  case "
-            "'\\'':\n  case '(':\n  case ')':\n  case '*':\n  case '+':\n  "
-            "case ',':\n  case ';':\n  case '=':\n    return "
-            "CDD_C_ERROR_UNKNOWN;\n  default:\n    return CDD_C_SUCCESS;\n  "
-            "}\n}\n\nstatic int\n    is_hex(u",
-            uc);
-      fputs("nsigned char c) {\n  return isxdigit(c) ? 1 : 0;\n}\n\nstatic "
-            "int\n    is_pct_encoded(const char *p) {\n  if (!p)\n    return "
-            "CDD_C_SUCCESS;\n  return (p[0] == '%' && is_hex((unsigned "
-            "char)p[1]) &&\n          is_hex((unsigned "
-            "char)p[2]));\n}\n\n/**\n * @brief Convert a nibble to hexagonal "
-            "character.\n */\nstatic enum cdd_c_error\n    to_hex(char code, "
-            "char *_out_val) {\n  static const char hex[] =",
-            uc);
-      fputs(" \"0123456789ABCDEF\";\n  {\n    *_out_val = hex[code & 15];\n    "
-            "return CDD_C_SUCCESS;\n  }\n}\n\nstatic int\n    "
-            "is_unreserved_form(unsigned char c) {\n  if (isalnum(c))\n    "
-            "return CDD_C_ERROR_UNKNOWN;\n  if (c == '-' || c == '.' || c == "
-            "'_' || c == '*')\n    return CDD_C_ERROR_UNKNOWN;\n  return "
-            "CDD_C_SUCCESS;\n}\n\n/**\n * @brief Executes the url encode "
-            "operation.\n */\nenum cdd_c_error url_e",
-            uc);
-      fputs("ncode(const char *str, char **_out_val) {\n  char "
-            "_ast_to_hex_0;\n  char _ast_to_hex_1;\n  const char *p;\n  char "
-            "*enc = NULL;\n  char *e;\n  size_t needed_len = 0;\n\n  if (!str) "
-            "{\n    *_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  /* "
-            "Pass 1: Calculate required length */\n  for (p = str; *p; p++) "
-            "{\n    if (is_unreserved((unsigned char)*p)) {\n      "
-            "needed_len++;\n    } else {\n      nee",
-            uc);
-      fputs("ded_len += 3; /* %HH */\n    }\n  }\n\n  /* Alloc */\n  enc = "
-            "(char *)C_CDD_MALLOC(needed_len + 1);\n  if (!enc) {\n    "
-            "*_out_val = "
-            "NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  /* Pass 2: Encode */\n "
-            " e = enc;\n  for (p = str; *p; p++) {\n    unsigned char c = "
-            "(unsigned char)*p;\n    if (is_unreserved(c)) {\n      *e++ = "
-            "*p;\n    } else {\n      *e++ = '%';\n      *e++ = (to_hex(c >> "
-            "4, &_ast_to_hex_0), _",
-            uc);
-      fputs("ast_to_hex_0);\n      *e++ = (to_hex(c & 15, &_ast_to_hex_1), "
-            "_ast_to_hex_1);\n    }\n  }\n  *e = '\\0';\n\n  {\n    *_out_val "
-            "= enc;\n    return CDD_C_SUCCESS;\n  }\n}\n\n/**\n * @brief "
-            "Executes the url encode allow reserved operation.\n */\nenum "
-            "cdd_c_error url_encode_allow_reserved(const char *str, char "
-            "**_out_val) {\n  char _ast_to_hex_2;\n  char _ast_to_hex_3;\n  "
-            "const char *p;\n  char *enc =",
-            uc);
-      fputs(" NULL;\n  char *e;\n  size_t needed_len = 0;\n\n  if (!str) {\n   "
-            " *_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  /* Pass "
-            "1: Calculate required length */\n  for (p = str; *p; p++) {\n    "
-            "if (*p == '%' && is_pct_encoded(p)) {\n      needed_len += 3;\n   "
-            "   p += 2;\n      continue;\n    }\n    if "
-            "(is_unreserved((unsigned char)*p) || is_reserved((unsigned "
-            "char)*p)) {\n      needed_len++;\n   ",
-            uc);
-      fputs(" } else {\n      needed_len += 3; /* %HH */\n    }\n  }\n\n  enc "
-            "= (char *)C_CDD_MALLOC(needed_len + 1);\n  if (!enc) {\n    "
-            "*_out_val = "
-            "NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  e = enc;\n  for (p = "
-            "str; *p; p++) {\n    unsigned char c = (unsigned char)*p;\n    if "
-            "(*p == '%' && is_pct_encoded(p)) {\n      *e++ = *p++;\n      "
-            "*e++ = *p++;\n      *e++ = *p;\n      continue;\n    }\n    if "
-            "(is_unreserved",
-            uc);
-      fputs("(c) || is_reserved(c)) {\n      *e++ = *p;\n    } else {\n      "
-            "*e++ = '%';\n      *e++ = (to_hex(c >> 4, &_ast_to_hex_2), "
-            "_ast_to_hex_2);\n      *e++ = (to_hex(c & 15, &_ast_to_hex_3), "
-            "_ast_to_hex_3);\n    }\n  }\n  *e = '\\0';\n  {\n    *_out_val = "
-            "enc;\n    return CDD_C_SUCCESS;\n  }\n}\n\n/**\n * @brief "
-            "Executes the url encode form operation.\n */\nenum cdd_c_error "
-            "url_encode_form(const char *",
-            uc);
-      fputs("str, char **_out_val) {\n  char _ast_to_hex_4;\n  char "
-            "_ast_to_hex_5;\n  const char *p;\n  char *enc = NULL;\n  char "
-            "*e;\n  size_t needed_len = 0;\n\n  if (!str) {\n    *_out_val = "
-            "NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  for (p = str; *p; p++) "
-            "{\n    unsigned char c = (unsigned char)*p;\n    if (c == ' ') "
-            "{\n      needed_len++;\n    } else if (is_unreserved_form(c)) {\n "
-            "     needed_len++;\n    ",
-            uc);
-      fputs("} else {\n      needed_len += 3;\n    }\n  }\n\n  enc = (char "
-            "*)C_CDD_MALLOC(needed_len + 1);\n  if (!enc) {\n    *_out_val = "
-            "NULL;\n "
-            "   return CDD_C_SUCCESS;\n  }\n\n  e = enc;\n  for (p = str; *p; "
-            "p++) {\n    unsigned char c = (unsigned char)*p;\n    if (c == ' "
-            "') {\n      *e++ = '+';\n    } else if (is_unreserved_form(c)) "
-            "{\n      *e++ = *p;\n    } else {\n      *e++ = '%';\n      *e++ "
-            "= (to_hex(c >>",
-            uc);
-      fputs(" 4, &_ast_to_hex_4), _ast_to_hex_4);\n      *e++ = (to_hex(c & "
-            "15, &_ast_to_hex_5), _ast_to_hex_5);\n    }\n  }\n  *e = '\\0';\n "
-            " {\n    *_out_val = enc;\n    return CDD_C_SUCCESS;\n  "
-            "}\n}\n\n/**\n * @brief Executes the url encode form allow "
-            "reserved operation.\n */\nenum cdd_c_error "
-            "url_encode_form_allow_reserved(const char *str, char **_out_val) "
-            "{\n  char _ast_to_hex_6;\n  char _ast_to_hex_7;\n ",
-            uc);
-      fputs(" char _ast_to_hex_8;\n  char _ast_to_hex_9;\n  const char *p;\n  "
-            "char *enc = NULL;\n  char *e;\n  size_t needed_len = 0;\n\n  if "
-            "(!str) {\n    *_out_val = NULL;\n    return CDD_C_SUCCESS;\n  "
-            "}\n\n  for (p = str; *p; p++) {\n    unsigned char c = (unsigned "
-            "char)*p;\n    if (c == ' ') {\n      needed_len++;\n    } else if "
-            "(is_pct_encoded(p)) {\n      needed_len += 3;\n      p += 2;\n    "
-            "} else if (i",
-            uc);
-      fputs(
-          "s_unreserved_form(c) || is_reserved(c)) {\n      if (c == '&' || c "
-          "== '=' || c == '+') {\n        needed_len += 3;\n      } else {\n   "
-          "     needed_len++;\n      }\n    } else {\n      needed_len += 3;\n "
-          "   }\n  }\n\n  enc = (char *)C_CDD_MALLOC(needed_len + 1);\n  if "
-          "(!enc) "
-          "{\n    *_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n\n  e = "
-          "enc;\n  for (p = str; *p; p++) {\n    unsigned char c = (unsigned",
-          uc);
-      fputs(" char)*p;\n    if (c == ' ') {\n      *e++ = '+';\n    } else if "
-            "(is_pct_encoded(p)) {\n      *e++ = *p++;\n      *e++ = *p++;\n   "
-            "   *e++ = *p;\n    } else if (is_unreserved_form(c) || "
-            "is_reserved(c)) {\n      if (c == '&' || c == '=' || c == '+') "
-            "{\n        *e++ = '%';\n        *e++ = (to_hex(c >> 4, "
-            "&_ast_to_hex_6), _ast_to_hex_6);\n        *e++ = (to_hex(c & 15, "
-            "&_ast_to_hex_7), _ast_to_hex_7)",
-            uc);
-      fputs(";\n      } else {\n        *e++ = *p;\n      }\n    } else {\n    "
-            "  *e++ = '%';\n      *e++ = (to_hex(c >> 4, &_ast_to_hex_8), "
-            "_ast_to_hex_8);\n      *e++ = (to_hex(c & 15, &_ast_to_hex_9), "
-            "_ast_to_hex_9);\n    }\n  }\n  *e = '\\0';\n  {\n    *_out_val = "
-            "enc;\n    return CDD_C_SUCCESS;\n  }\n}\n\n/**\n * @brief "
-            "Executes the url query init operation.\n */\nenum cdd_c_error "
-            "url_query_init(struct Url",
-            uc);
-      fputs("QueryParams *qp) {\n  if (!qp)\n    return "
-            "CDD_C_ERROR_INVALID_ARGUMENT;\n  qp->params = NULL;\n  qp->count "
-            "= 0;\n  qp->capacity = 0;\n  return CDD_C_SUCCESS;\n}\n\n/**\n * "
-            "@brief Executes the url query free operation.\n */\nvoid "
-            "url_query_free(struct UrlQueryParams *qp) {\n  size_t i;\n  if "
-            "(!qp)\n    return;\n  if (qp->params) {\n    for (i = 0; i < "
-            "qp->count; ++i) {\n      if (qp->params[i].key",
-            uc);
-      fputs(")\n        C_CDD_FREE(qp->params[i].key);\n      if "
-            "(qp->params[i].value)\n        C_CDD_FREE(qp->params[i].value);\n "
-            "   "
-            "}\n    C_CDD_FREE(qp->params);\n    qp->params = NULL;\n  }\n  "
-            "qp->count = 0;\n  qp->capacity = 0;\n}\n\n/**\n * @brief Executes "
-            "the url query add operation.\n */\nenum cdd_c_error "
-            "url_query_add(struct UrlQueryParams *qp, const char *key,\n       "
-            "           const char *value) {\n  char *_ast_strd",
-            uc);
-      fputs("up_0 = NULL;\n  char *_ast_strdup_1 = NULL;\n  if (!qp || !key || "
-            "!value)\n    return CDD_C_ERROR_INVALID_ARGUMENT;\n\n  if "
-            "(qp->count >= qp->capacity) {\n    size_t new_cap = (qp->capacity "
-            "== 0) ? 4 : qp->capacity * 2;\n    struct UrlQueryParam *new_arr "
-            "= (struct UrlQueryParam *)C_CDD_REALLOC(\n        qp->params, "
-            "new_cap * "
-            "sizeof(struct UrlQueryParam));\n    if (!new_arr) {\n      "
-            "C_CDD_LOG_DEBUG(\"EN",
-            uc);
-      fputs("OMEM: OOM\\n\");\n      return CDD_C_ERROR_MEMORY;\n    }\n    "
-            "qp->params = new_arr;\n    qp->capacity = new_cap;\n  }\n\n  "
-            "qp->params[qp->count].key =\n      (c_cdd_strdup(key, "
-            "&_ast_strdup_0), _ast_strdup_0);\n  if "
-            "(!qp->params[qp->count].key)\n    return CDD_C_ERROR_MEMORY;\n\n  "
-            "qp->params[qp->count].value =\n      (c_cdd_strdup(value, "
-            "&_ast_strdup_1), _ast_strdup_1);\n  if (!qp->params[qp->cou",
-            uc);
-      fputs(
-          "nt].value) {\n    C_CDD_FREE(qp->params[qp->count].key);\n    "
-          "return "
-          "CDD_C_ERROR_MEMORY;\n  }\n  qp->params[qp->count].value_is_encoded "
-          "= 0;\n\n  qp->count++;\n  return CDD_C_SUCCESS;\n}\n\n/**\n * "
-          "@brief Executes the url query add encoded operation.\n */\nenum "
-          "cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp, const "
-          "char *key,\n                          const char *value) {\n  char "
-          "*_ast_strd",
-          uc);
-      fputs("up_2 = NULL;\n  char *_ast_strdup_3 = NULL;\n  if (!qp || !key || "
-            "!value)\n    return CDD_C_ERROR_INVALID_ARGUMENT;\n\n  if "
-            "(qp->count >= qp->capacity) {\n    size_t new_cap = (qp->capacity "
-            "== 0) ? 4 : qp->capacity * 2;\n    struct UrlQueryParam *new_arr "
-            "= (struct UrlQueryParam *)C_CDD_REALLOC(\n        qp->params, "
-            "new_cap * "
-            "sizeof(struct UrlQueryParam));\n    if (!new_arr) {\n      "
-            "C_CDD_LOG_DEBUG(\"EN",
-            uc);
-      fputs("OMEM: OOM\\n\");\n      return CDD_C_ERROR_MEMORY;\n    }\n    "
-            "qp->params = new_arr;\n    qp->capacity = new_cap;\n  }\n\n  "
-            "qp->params[qp->count].key =\n      (c_cdd_strdup(key, "
-            "&_ast_strdup_2), _ast_strdup_2);\n  if "
-            "(!qp->params[qp->count].key)\n    return CDD_C_ERROR_MEMORY;\n\n  "
-            "qp->params[qp->count].value =\n      (c_cdd_strdup(value, "
-            "&_ast_strdup_3), _ast_strdup_3);\n  if (!qp->params[qp->cou",
-            uc);
-      fputs("nt].value) {\n    C_CDD_FREE(qp->params[qp->count].key);\n    "
-            "return "
-            "CDD_C_ERROR_MEMORY;\n  }\n  "
-            "qp->params[qp->count].value_is_encoded = 1;\n\n  qp->count++;\n  "
-            "return CDD_C_SUCCESS;\n}\n\n/**\n * @brief Executes the url query "
-            "build operation.\n */\nenum cdd_c_error url_query_build(const "
-            "struct UrlQueryParams *qp, char **out_str) {\n  char "
-            "*_ast_url_encode_10 = NULL;\n  char *_ast_url_encode_11 = NULL;",
-            uc);
-      fputs("\n  char *_ast_url_encode_12 = NULL;\n  char *_ast_url_encode_13 "
-            "= NULL;\n  char *_ast_strdup_4 = NULL;\n  char *_ast_strdup_5 = "
-            "NULL;\n  char *_ast_strdup_6 = NULL;\n  size_t i;\n  size_t "
-            "total_len = 0;\n  char *buf = NULL;\n  char *ptr = NULL;\n\n  if "
-            "(!qp || !out_str)\n    return CDD_C_ERROR_INVALID_ARGUMENT;\n\n  "
-            "if (qp->count == 0) {\n    *out_str = (c_cdd_strdup(\"\", "
-            "&_ast_strdup_4), _ast_s",
-            uc);
-      fputs("trdup_4);\n    return *out_str ? 0 : ENOMEM;\n  }\n\n  /* 1. "
-            "Calculate Total Length */\n  /* Format: "
-            "?key=encoded_val&key2=encoded_val2 */\n  /* Overhead: '?' (1) + "
-            "('=' + '&') * count */\n  /* Actually separators are N-1 '&', 1 "
-            "'?', N '='. So roughly N + N + 1. */\n\n  total_len = 1; /* '?' "
-            "*/\n\n  for (i = 0; i < qp->count; ++i) {\n    char *e_key = "
-            "(url_encode(qp->params[i].key, &_ast_url_encod",
-            uc);
-      fputs("e_10),\n                   _ast_url_encode_10);\n    char *e_val "
-            "= NULL;\n    const char *raw_val = qp->params[i].value;\n\n    if "
-            "(qp->params[i].value_is_encoded) {\n      e_val =\n          "
-            "(c_cdd_strdup(raw_val ? raw_val : \"\", &_ast_strdup_5), "
-            "_ast_strdup_5);\n    } else {\n      e_val = (url_encode(raw_val, "
-            "&_ast_url_encode_11), _ast_url_encode_11);\n    }\n\n    if "
-            "(!e_key || !e_val) {\n   ",
-            uc);
-      fputs(
-          "   if (e_key)\n        C_CDD_FREE(e_key);\n      if (e_val)\n       "
-          " "
-          "C_CDD_FREE(e_val);\n      return CDD_C_ERROR_MEMORY;\n    }\n\n    "
-          "total_len += strlen(e_key) + 1; /* key= */\n    total_len += "
-          "strlen(e_val);\n    if (i < qp->count - 1)\n      total_len += 1; "
-          "/* & */\n\n    C_CDD_FREE(e_key);\n    C_CDD_FREE(e_val);\n  }\n\n  "
-          "/* 2. "
-          "Allocate */\n  buf = (char *)C_CDD_MALLOC(total_len + 1);\n  if "
-          "(!buf) "
-          "{\n    C_CDD_LOG_DEBUG",
-          uc);
-      fputs(
-          "(\"ENOMEM: OOM\\n\");\n    return CDD_C_ERROR_MEMORY;\n  }\n\n  /* "
-          "3. Build */\n  ptr = buf;\n  *ptr++ = '?';\n\n  for (i = 0; i < "
-          "qp->count; ++i) {\n    char *e_key = (url_encode(qp->params[i].key, "
-          "&_ast_url_encode_12),\n                   _ast_url_encode_12);\n    "
-          "size_t kl, vl;\n    char *e_val = NULL;\n    const char *raw_val = "
-          "qp->params[i].value;\n\n    if (qp->params[i].value_is_encoded) {",
-          uc);
-      fputs("\n      e_val =\n          (c_cdd_strdup(raw_val ? raw_val : "
-            "\"\", &_ast_strdup_6), _ast_strdup_6);\n    } else {\n      e_val "
-            "= (url_encode(raw_val, &_ast_url_encode_13), "
-            "_ast_url_encode_13);\n    }\n\n    /* e_key/e_val guaranteed "
-            "non-null here as checks passed in pass 1 */\n    /* Copy Key */\n "
-            "   kl = strlen(e_key);\n    memcpy(ptr, e_key, kl);\n    ptr += "
-            "kl;\n\n    /* Copy Eq */\n    *ptr++ ",
-            uc);
-      fputs("= '=';\n\n    /* Copy Value */\n    {\n      vl = "
-            "strlen(e_val);\n      memcpy(ptr, e_val, vl);\n      ptr += vl;\n "
-            "   }\n\n    /* Copy Sep */\n    if (i < qp->count - 1) {\n      "
-            "*ptr++ = '&';\n    }\n\n    C_CDD_FREE(e_key);\n    "
-            "C_CDD_FREE(e_val);\n  }\n "
-            " *ptr = '\\0';\n\n  *out_str = buf;\n  return "
-            "CDD_C_SUCCESS;\n}\n\n/**\n * @brief Executes the url query build "
-            "form operation.\n */\nenum cdd_c_error url_",
-            uc);
-      fputs("query_build_form(const struct UrlQueryParams *qp, char **out_str) "
-            "{\n  char *_ast_url_encode_form_14 = NULL;\n  char "
-            "*_ast_url_encode_form_15 = NULL;\n  char *_ast_url_encode_form_16 "
-            "= NULL;\n  char *_ast_url_encode_form_17 = NULL;\n  char "
-            "*_ast_strdup_7 = NULL;\n  char *_ast_strdup_8 = NULL;\n  size_t "
-            "i;\n  size_t total_len = 0;\n  char *buf;\n  char *ptr;\n\n  if "
-            "(!qp || !out_str)\n    return CD",
-            uc);
-      fputs("D_C_ERROR_INVALID_ARGUMENT;\n\n  if (qp->count == 0) {\n    "
-            "*out_str = (char *)C_CDD_CALLOC(1, 1);\n    if (!*out_str)\n      "
-            "return CDD_C_ERROR_MEMORY;\n    return CDD_C_SUCCESS;\n  }\n\n  "
-            "for (i = 0; i < qp->count; ++i) {\n    char *e_key = "
-            "(url_encode_form(qp->params[i].key, &_ast_url_encode_form_14),\n  "
-            "                 _ast_url_encode_form_14);\n    char *e_val;\n    "
-            "size_t kl, vl;\n    if (!e_key)",
-            uc);
-      fputs(
-          " {\n      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n      return "
-          "CDD_C_ERROR_MEMORY;\n    }\n    if (qp->params[i].value_is_encoded) "
-          "{\n      e_val =\n          (c_cdd_strdup(qp->params[i].value, "
-          "&_ast_strdup_7), _ast_strdup_7);\n    } else {\n      e_val = "
-          "(url_encode_form(qp->params[i].value, &_ast_url_encode_form_15),\n  "
-          "             _ast_url_encode_form_15);\n    }\n    if (!e_val) {\n  "
-          "    C_CDD_FREE(e",
-          uc);
-      fputs("_key);\n      return CDD_C_ERROR_MEMORY;\n    }\n    kl = "
-            "strlen(e_key);\n    vl = strlen(e_val);\n    total_len += kl + 1 "
-            "+ vl;\n    if (i + 1 < qp->count)\n      total_len += 1;\n    "
-            "C_CDD_FREE(e_key);\n    C_CDD_FREE(e_val);\n  }\n\n  buf = (char "
-            "*)C_CDD_MALLOC(total_len + 1);\n  if (!buf) {\n    "
-            "C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n    return "
-            "CDD_C_ERROR_MEMORY;\n  }\n  ptr = buf;\n\n  for (i = 0; i < "
-            "qp->coun",
-            uc);
-      fputs(
-          "t; ++i) {\n    char *e_key = (url_encode_form(qp->params[i].key, "
-          "&_ast_url_encode_form_16),\n                   "
-          "_ast_url_encode_form_16);\n    char *e_val;\n    size_t kl, vl;\n   "
-          " if (!e_key) {\n      C_CDD_FREE(buf);\n      return "
-          "CDD_C_ERROR_MEMORY;\n    }\n    if (qp->params[i].value_is_encoded) "
-          "{\n      e_val =\n          (c_cdd_strdup(qp->params[i].value, "
-          "&_ast_strdup_8), _ast_strdup_8);\n    } el",
-          uc);
-      fputs("se {\n      e_val = (url_encode_form(qp->params[i].value, "
-            "&_ast_url_encode_form_17),\n               "
-            "_ast_url_encode_form_17);\n    }\n    if (!e_val) {\n      "
-            "C_CDD_FREE(e_key);\n      C_CDD_FREE(buf);\n      return "
-            "CDD_C_ERROR_MEMORY;\n  "
-            "  }\n    kl = strlen(e_key);\n    vl = strlen(e_val);\n    "
-            "memcpy(ptr, e_key, kl);\n    ptr += kl;\n    *ptr++ = '=';\n    "
-            "memcpy(ptr, e_val, vl);\n    ptr += vl;\n    if (",
-            uc);
-      fputs("i + 1 < qp->count)\n      *ptr++ = '&';\n    C_CDD_FREE(e_key);\n "
-            "   "
-            "C_CDD_FREE(e_val);\n  }\n  *ptr = '\\0';\n  *out_str = buf;\n  "
-            "return "
-            "CDD_C_SUCCESS;\n}\n\nstatic enum cdd_c_error\n    append_str(char "
-            "**buf, size_t *len, size_t *cap, const char *s) {\n  size_t "
-            "slen;\n  size_t need;\n  char *tmp;\n\n  if (!buf || !len || !cap "
-            "|| !s)\n    return CDD_C_ERROR_INVALID_ARGUMENT;\n\n  slen = "
-            "strlen(s);\n  need =",
-            uc);
-      fputs(" *len + slen + 1;\n  if (need > *cap) {\n    size_t new_cap = "
-            "(*cap == 0) ? 64 : *cap * 2;\n    while (new_cap < need)\n      "
-            "new_cap *= 2;\n    tmp = (char *)C_CDD_REALLOC(*buf, new_cap);\n  "
-            "  if "
-            "(!tmp) {\n      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n      "
-            "return CDD_C_ERROR_MEMORY;\n    }\n    *buf = tmp;\n    *cap = "
-            "new_cap;\n  }\n  memcpy(*buf + *len, s, slen);\n  *len += slen;\n "
-            " (*buf)[*len] = '\\0",
-            uc);
-      fputs("';\n  return CDD_C_SUCCESS;\n}\n\nstatic enum cdd_c_error\n    "
-            "kv_value_to_string(const struct OpenAPI_KV *kv, char *buf, size_t "
-            "buf_len,\n                       const char **_out_val) {\n  if "
-            "(!kv) {\n    *_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n  "
-            "switch (kv->type) {\n  case OA_KV_STRING: {\n    *_out_val = "
-            "kv->value.s ? kv->value.s : NULL;\n    return CDD_C_SUCCESS;\n  "
-            "}\n  case OA_KV_",
-            uc);
-      fputs("INTEGER:\n    if (!buf || buf_len == 0) {\n      *_out_val = "
-            "NULL;\n      return CDD_C_SUCCESS;\n    }\n    sprintf_s_chk(buf, "
-            "buf_len, \"%d\", kv->value.i);\n    {\n      *_out_val = buf;\n   "
-            "   return CDD_C_SUCCESS;\n    }\n  case OA_KV_NUMBER:\n    if "
-            "(!buf || buf_len == 0) {\n      *_out_val = NULL;\n      return "
-            "CDD_C_SUCCESS;\n    }\n    sprintf_s_chk(buf, buf_len, \"%g\", "
-            "kv->value.n);\n   ",
-            uc);
-      fputs(" {\n      *_out_val = buf;\n      return CDD_C_SUCCESS;\n    }\n  "
-            "case OA_KV_BOOLEAN: {\n    *_out_val = kv->value.b ? \"true\" : "
-            "\"false\";\n    return CDD_C_SUCCESS;\n  }\n  default: {\n    "
-            "*_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n  "
-            "}\n}\n\n/**\n * @brief Executes the openapi kv join form "
-            "operation.\n */\nenum cdd_c_error openapi_kv_join_form(const "
-            "struct OpenAPI_KV *kvs, size_t n,\n  ",
-            uc);
-      fputs("                       const char *delim, int allow_reserved,\n   "
-            "                      char **_out_val) {\n  const char "
-            "*_ast_kv_value_to_string_18 = NULL;\n  size_t i;\n  char *buf = "
-            "NULL;\n  size_t len = 0;\n  size_t cap = 0;\n  char "
-            "num_buf[64];\n  char *enc_key = NULL;\n  char *enc_val = NULL;\n  "
-            "int (*enc_fn)(const char *, char **) =\n      allow_reserved ? "
-            "url_encode_form_allow_reserved : u",
-            uc);
-      fputs("rl_encode_form;\n\n  if (!delim)\n    delim = \",\";\n\n  if "
-            "(!kvs || n == 0) {\n    buf = (char *)C_CDD_CALLOC(1, 1);\n    "
-            "{\n      "
-            "*_out_val = buf;\n      return CDD_C_SUCCESS;\n    }\n  }\n\n  "
-            "for (i = 0; i < n; ++i) {\n    const char *raw_val;\n    if "
-            "(!kvs[i].key)\n      continue;\n    raw_val = "
-            "(kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf),\n          "
-            "                        &_ast_kv_value",
-            uc);
-      fputs(
-          "_to_string_18),\n               _ast_kv_value_to_string_18);\n    "
-          "if (!raw_val)\n      continue;\n    enc_fn(kvs[i].key, &enc_key);\n "
-          "   if (!enc_key)\n      goto oom;\n    enc_fn(raw_val, &enc_val);\n "
-          "   if (!enc_val)\n      goto oom;\n    if (len > 0) {\n      if "
-          "(append_str(&buf, &len, &cap, delim) != 0)\n        goto oom;\n    "
-          "}\n    if (append_str(&buf, &len, &cap, enc_key) != 0)\n      goto ",
-          uc);
-      fputs("oom;\n    if (append_str(&buf, &len, &cap, delim) != 0)\n      "
-            "goto oom;\n    if (append_str(&buf, &len, &cap, enc_val) != 0)\n  "
-            "    goto oom;\n    C_CDD_FREE(enc_key);\n    "
-            "C_CDD_FREE(enc_val);\n    "
-            "enc_key = NULL;\n    enc_val = NULL;\n  }\n\n  if (!buf) {\n    "
-            "buf = (char *)C_CDD_CALLOC(1, 1);\n  }\n  {\n    *_out_val = "
-            "buf;\n    "
-            "return CDD_C_SUCCESS;\n  }\n\noom:\n  if (enc_key)\n    "
-            "C_CDD_FREE(enc_key);\n  if (enc_v",
-            uc);
-      fputs("al)\n    C_CDD_FREE(enc_val);\n  if (buf)\n    C_CDD_FREE(buf);\n "
-            " {\n    "
-            "*_out_val = NULL;\n    return CDD_C_SUCCESS;\n  }\n}\n\n",
-            uc);
+      fprintf(
+          uc, "%s",
+          "/**\n"
+          " * @file url.c\n"
+          " * @brief Implementation of RFC 3986 URL encoding and Query "
+          "serialization.\n"
+          " *\n"
+          " * @author Samuel Marks\n"
+          " */\n"
+          "\n"
+          "/* clang-format off */\n"
+          "#include <ctype.h>\n"
+          "#include <errno.h>\n"
+          "#include <stdio.h>\n"
+          "#include <stdlib.h>\n"
+          "#include <string.h>\n"
+          "\n"
+          "#include \"functions/parse/str.h\" /* For c_cdd_strdup helpers */\n"
 
+          "#include \"c_cdd/log.h\"\n#include \"url_utils.h\"\n"
+          "/* clang-format on */\n"
+          "\n"
+          "/* Standard definitions for C89 compatibility */\n"
+          "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n"
+          "#define sprintf_s_chk(buf, size, fmt, arg) sprintf_s(buf, size, "
+          "fmt, arg)\n"
+          "#else\n"
+          "/* Naive fallback for non-MSVC C89 */\n"
+          "/** @brief sprintf_s_chk macro */\n"
+          "#define sprintf_s_chk(buf, size, fmt, arg) sprintf(buf, fmt, arg)\n"
+          "#endif\n"
+          "\n"
+          "/**\n"
+          " * @brief Check if a character is unreserved per RFC 3986 Section "
+          "2.3.\n"
+          " *\n"
+          " * Unreserved characters: ALPHA, DIGIT, \"-\", \".\", \"_\", "
+          "\"~\".\n"
+          " */\n"
+          "static int\n"
+          "    is_unreserved(unsigned char c) {\n"
+          "  if (isalnum(c))\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  if (c == '-' || c == '.' || c == '_' || c == '~')\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Check if a character is reserved per RFC 3986 Section "
+          "2.2.\n"
+          " */\n"
+          "static int\n"
+          "    is_reserved(unsigned char c) {\n"
+          "  switch (c) {\n"
+          "  case ':':\n"
+          "  case '/':\n"
+          "  case '?':\n"
+          "  case '#':\n"
+          "  case '[':\n"
+          "  case ']':\n"
+          "  case '@':\n"
+          "  case '!':\n"
+          "  case '$':\n"
+          "  case '&':\n"
+          "  case '\\'':\n"
+          "  case '(':\n"
+          "  case ')':\n"
+          "  case '*':\n"
+          "  case '+':\n"
+          "  case ',':\n"
+          "  case ';':\n"
+          "  case '=':\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  default:\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "static int\n"
+          "    is_hex(unsigned char c) {\n"
+          "  return isxdigit(c) ? 1 : 0;\n"
+          "}\n"
+          "\n"
+          "static int\n"
+          "    is_pct_encoded(const char *p) {\n"
+          "  if (!p)\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  return (p[0] == '%' && is_hex((unsigned char)p[1]) &&\n"
+          "          is_hex((unsigned char)p[2]));\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Convert a nibble to hexagonal character.\n"
+          " */\n"
+          "static cdd_c_error_t\n"
+          "    to_hex(char code, char *_out_val) {\n"
+          "  static const char hex[] = \"0123456789ABCDEF\";\n"
+          "  {\n"
+          "    *_out_val = hex[code & 15];\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "static int\n"
+          "    is_unreserved_form(unsigned char c) {\n"
+          "  if (isalnum(c))\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  if (c == '-' || c == '.' || c == '_' || c == '*')\n"
+          "    return CDD_C_ERROR_UNKNOWN;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url encode operation.\n"
+          " */\n"
+          "cdd_c_error_t url_encode(const char *str, char **_out_val) {\n"
+          "  char _ast_to_hex_0;\n"
+          "  char _ast_to_hex_1;\n"
+          "  const char *p;\n"
+          "  char *enc = NULL;\n"
+          "  char *e;\n"
+          "  size_t needed_len = 0;\n"
+          "\n"
+          "  if (!str) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  /* Pass 1: Calculate required length */\n"
+          "  for (p = str; *p; p++) {\n"
+          "    if (is_unreserved((unsigned char)*p)) {\n"
+          "      needed_len++;\n"
+          "    } else {\n"
+          "      needed_len += 3; /* %HH */\n"
+          "    }\n"
+          "  }\n"
+          "\n"
+          "  /* Alloc */\n"
+          "  enc = (char *)malloc(needed_len + 1);\n"
+          "  if (!enc) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  /* Pass 2: Encode */\n"
+          "  e = enc;\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (is_unreserved(c)) {\n"
+          "      *e++ = *p;\n"
+          "    } else {\n"
+          "      *e++ = '%';\n"
+          "      *e++ = (to_hex(c >> 4, &_ast_to_hex_0), _ast_to_hex_0);\n"
+          "      *e++ = (to_hex(c & 15, &_ast_to_hex_1), _ast_to_hex_1);\n"
+          "    }\n"
+          "  }\n"
+          "  *e = '\\0';\n"
+          "\n"
+          "  {\n"
+          "    *_out_val = enc;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url encode allow reserved operation.\n"
+          " */\n"
+          "cdd_c_error_t url_encode_allow_reserved(const char *str, char "
+          "**_out_val) {\n"
+          "  char _ast_to_hex_2;\n"
+          "  char _ast_to_hex_3;\n"
+          "  const char *p;\n"
+          "  char *enc = NULL;\n"
+          "  char *e;\n"
+          "  size_t needed_len = 0;\n"
+          "\n"
+          "  if (!str) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  /* Pass 1: Calculate required length */\n"
+          "  for (p = str; *p; p++) {\n"
+          "    if (*p == '%' && is_pct_encoded(p)) {\n"
+          "      needed_len += 3;\n"
+          "      p += 2;\n"
+          "      continue;\n"
+          "    }\n"
+          "    if (is_unreserved((unsigned char)*p) || is_reserved((unsigned "
+          "char)*p)) {\n"
+          "      needed_len++;\n"
+          "    } else {\n"
+          "      needed_len += 3; /* %HH */\n"
+          "    }\n"
+          "  }\n"
+          "\n"
+          "  enc = (char *)malloc(needed_len + 1);\n"
+          "  if (!enc) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  e = enc;\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (*p == '%' && is_pct_encoded(p)) {\n"
+          "      *e++ = *p++;\n"
+          "      *e++ = *p++;\n"
+          "      *e++ = *p;\n"
+          "      continue;\n"
+          "    }\n"
+          "    if (is_unreserved(c) || is_reserved(c)) {\n"
+          "      *e++ = *p;\n"
+          "    } else {\n"
+          "      *e++ = '%';\n"
+          "      *e++ = (to_hex(c >> 4, &_ast_to_hex_2), _ast_to_hex_2);\n"
+          "      *e++ = (to_hex(c & 15, &_ast_to_hex_3), _ast_to_hex_3);\n"
+          "    }\n"
+          "  }\n"
+          "  *e = '\\0';\n"
+          "  {\n"
+          "    *_out_val = enc;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url encode form operation.\n"
+          " */\n"
+          "cdd_c_error_t url_encode_form(const char *str, char **_out_val) "
+          "{\n"
+          "  char _ast_to_hex_4;\n"
+          "  char _ast_to_hex_5;\n"
+          "  const char *p;\n"
+          "  char *enc = NULL;\n"
+          "  char *e;\n"
+          "  size_t needed_len = 0;\n"
+          "\n"
+          "  if (!str) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (c == ' ') {\n"
+          "      needed_len++;\n"
+          "    } else if (is_unreserved_form(c)) {\n"
+          "      needed_len++;\n"
+          "    } else {\n"
+          "      needed_len += 3;\n"
+          "    }\n"
+          "  }\n"
+          "\n"
+          "  enc = (char *)malloc(needed_len + 1);\n"
+          "  if (!enc) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  e = enc;\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (c == ' ') {\n"
+          "      *e++ = '+';\n"
+          "    } else if (is_unreserved_form(c)) {\n"
+          "      *e++ = *p;\n"
+          "    } else {\n"
+          "      *e++ = '%';\n"
+          "      *e++ = (to_hex(c >> 4, &_ast_to_hex_4), _ast_to_hex_4);\n"
+          "      *e++ = (to_hex(c & 15, &_ast_to_hex_5), _ast_to_hex_5);\n"
+          "    }\n"
+          "  }\n"
+          "  *e = '\\0';\n"
+          "  {\n"
+          "    *_out_val = enc;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url encode form allow reserved operation.\n"
+          " */\n"
+          "cdd_c_error_t url_encode_form_allow_reserved(const char *str, "
+          "char "
+          "**_out_val) {\n"
+          "  char _ast_to_hex_6;\n"
+          "  char _ast_to_hex_7;\n"
+          "  char _ast_to_hex_8;\n"
+          "  char _ast_to_hex_9;\n"
+          "  const char *p;\n"
+          "  char *enc = NULL;\n"
+          "  char *e;\n"
+          "  size_t needed_len = 0;\n"
+          "\n"
+          "  if (!str) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (c == ' ') {\n"
+          "      needed_len++;\n"
+          "    } else if (is_pct_encoded(p)) {\n"
+          "      needed_len += 3;\n"
+          "      p += 2;\n"
+          "    } else if (is_unreserved_form(c) || is_reserved(c)) {\n"
+          "      if (c == '&' || c == '=' || c == '+') {\n"
+          "        needed_len += 3;\n"
+          "      } else {\n"
+          "        needed_len++;\n"
+          "      }\n"
+          "    } else {\n"
+          "      needed_len += 3;\n"
+          "    }\n"
+          "  }\n"
+          "\n"
+          "  enc = (char *)malloc(needed_len + 1);\n"
+          "  if (!enc) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  e = enc;\n"
+          "  for (p = str; *p; p++) {\n"
+          "    unsigned char c = (unsigned char)*p;\n"
+          "    if (c == ' ') {\n"
+          "      *e++ = '+';\n"
+          "    } else if (is_pct_encoded(p)) {\n"
+          "      *e++ = *p++;\n"
+          "      *e++ = *p++;\n"
+          "      *e++ = *p;\n"
+          "    } else if (is_unreserved_form(c) || is_reserved(c)) {\n"
+          "      if (c == '&' || c == '=' || c == '+') {\n"
+          "        *e++ = '%';\n"
+          "        *e++ = (to_hex(c >> 4, &_ast_to_hex_6), _ast_to_hex_6);\n"
+          "        *e++ = (to_hex(c & 15, &_ast_to_hex_7), _ast_to_hex_7);\n"
+          "      } else {\n"
+          "        *e++ = *p;\n"
+          "      }\n"
+          "    } else {\n"
+          "      *e++ = '%';\n"
+          "      *e++ = (to_hex(c >> 4, &_ast_to_hex_8), _ast_to_hex_8);\n"
+          "      *e++ = (to_hex(c & 15, &_ast_to_hex_9), _ast_to_hex_9);\n"
+          "    }\n"
+          "  }\n"
+          "  *e = '\\0';\n"
+          "  {\n"
+          "    *_out_val = enc;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query init operation.\n"
+          " */\n"
+          "cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {\n"
+          "  if (!qp)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "  qp->params = NULL;\n"
+          "  qp->count = 0;\n"
+          "  qp->capacity = 0;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query free operation.\n"
+          " */\n"
+          "void url_query_free(struct UrlQueryParams *qp) {\n"
+          "  size_t i;\n"
+          "  if (!qp)\n"
+          "    return;\n"
+          "  if (qp->params) {\n"
+          "    for (i = 0; i < qp->count; ++i) {\n"
+          "      if (qp->params[i].key)\n"
+          "        free(qp->params[i].key);\n"
+          "      if (qp->params[i].value)\n"
+          "        free(qp->params[i].value);\n"
+          "    }\n"
+          "    free(qp->params);\n"
+          "    qp->params = NULL;\n"
+          "  }\n"
+          "  qp->count = 0;\n"
+          "  qp->capacity = 0;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query add operation.\n"
+          " */\n"
+          "cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const "
+          "char *key,\n"
+          "                  const char *value) {\n"
+          "  char *_ast_strdup_0 = NULL;\n"
+          "  char *_ast_strdup_1 = NULL;\n"
+          "  if (!qp || !key || !value)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "\n"
+          "  if (qp->count >= qp->capacity) {\n"
+          "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
+          "    struct UrlQueryParam *new_arr = (struct UrlQueryParam "
+          "*)realloc(\n"
+          "        qp->params, new_cap * sizeof(struct UrlQueryParam));\n"
+          "    if (!new_arr) {\n"
+          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    qp->params = new_arr;\n"
+          "    qp->capacity = new_cap;\n"
+          "  }\n"
+          "\n"
+          "  qp->params[qp->count].key =\n"
+          "      (c_cdd_strdup(key, &_ast_strdup_0), _ast_strdup_0);\n"
+          "  if (!qp->params[qp->count].key)\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "\n"
+          "  qp->params[qp->count].value =\n"
+          "      (c_cdd_strdup(value, &_ast_strdup_1), _ast_strdup_1);\n"
+          "  if (!qp->params[qp->count].value) {\n"
+          "    free(qp->params[qp->count].key);\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "  }\n"
+          "  qp->params[qp->count].value_is_encoded = 0;\n"
+          "\n"
+          "  qp->count++;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query add encoded operation.\n"
+          " */\n"
+          "cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, "
+          "const char "
+          "*key,\n"
+          "                          const char *value) {\n"
+          "  char *_ast_strdup_2 = NULL;\n"
+          "  char *_ast_strdup_3 = NULL;\n"
+          "  if (!qp || !key || !value)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "\n"
+          "  if (qp->count >= qp->capacity) {\n"
+          "    size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;\n"
+          "    struct UrlQueryParam *new_arr = (struct UrlQueryParam "
+          "*)realloc(\n"
+          "        qp->params, new_cap * sizeof(struct UrlQueryParam));\n"
+          "    if (!new_arr) {\n"
+          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    qp->params = new_arr;\n"
+          "    qp->capacity = new_cap;\n"
+          "  }\n"
+          "\n"
+          "  qp->params[qp->count].key =\n"
+          "      (c_cdd_strdup(key, &_ast_strdup_2), _ast_strdup_2);\n"
+          "  if (!qp->params[qp->count].key)\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "\n"
+          "  qp->params[qp->count].value =\n"
+          "      (c_cdd_strdup(value, &_ast_strdup_3), _ast_strdup_3);\n"
+          "  if (!qp->params[qp->count].value) {\n"
+          "    free(qp->params[qp->count].key);\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "  }\n"
+          "  qp->params[qp->count].value_is_encoded = 1;\n"
+          "\n"
+          "  qp->count++;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query build operation.\n"
+          " */\n"
+          "cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, "
+          "char "
+          "**out_str) {\n"
+          "  char *_ast_url_encode_10 = NULL;\n"
+          "  char *_ast_url_encode_11 = NULL;\n"
+          "  char *_ast_url_encode_12 = NULL;\n"
+          "  char *_ast_url_encode_13 = NULL;\n"
+          "  char *_ast_strdup_4 = NULL;\n"
+          "  char *_ast_strdup_5 = NULL;\n"
+          "  char *_ast_strdup_6 = NULL;\n"
+          "  size_t i;\n"
+          "  size_t total_len = 0;\n"
+          "  char *buf = NULL;\n"
+          "  char *ptr = NULL;\n"
+          "\n"
+          "  if (!qp || !out_str)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "\n"
+          "  if (qp->count == 0) {\n"
+          "    *out_str = (c_cdd_strdup(\"\", &_ast_strdup_4), "
+          "_ast_strdup_4);\n"
+          "    return *out_str ? 0 : ENOMEM;\n"
+          "  }\n"
+          "\n"
+          "  /* 1. Calculate Total Length */\n"
+          "  /* Format: ?key=encoded_val&key2=encoded_val2 */\n"
+          "  /* Overhead: '?' (1) + ('=' + '&') * count */\n"
+          "  /* Actually separators are N-1 '&', 1 '?', N '='. So roughly N + "
+          "N + 1. */\n"
+          "\n"
+          "  total_len = 1; /* '?' */\n"
+          "\n"
+          "  for (i = 0; i < qp->count; ++i) {\n"
+          "    char *e_key = (url_encode(qp->params[i].key, "
+          "&_ast_url_encode_10),\n"
+          "                   _ast_url_encode_10);\n"
+          "    char *e_val = NULL;\n"
+          "    const char *raw_val = qp->params[i].value;\n"
+          "\n"
+          "    if (qp->params[i].value_is_encoded) {\n"
+          "      e_val =\n"
+          "          (c_cdd_strdup(raw_val ? raw_val : \"\", &_ast_strdup_5), "
+          "_ast_strdup_5);\n"
+          "    } else {\n"
+          "      e_val = (url_encode(raw_val, &_ast_url_encode_11), "
+          "_ast_url_encode_11);\n"
+          "    }\n"
+          "\n"
+          "    if (!e_key || !e_val) {\n"
+          "      if (e_key)\n"
+          "        free(e_key);\n"
+          "      if (e_val)\n"
+          "        free(e_val);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "\n"
+          "    total_len += strlen(e_key) + 1; /* key= */\n"
+          "    total_len += strlen(e_val);\n"
+          "    if (i < qp->count - 1)\n"
+          "      total_len += 1; /* & */\n"
+          "\n"
+          "    free(e_key);\n"
+          "    free(e_val);\n"
+          "  }\n"
+          "\n"
+          "  /* 2. Allocate */\n"
+          "  buf = (char *)malloc(total_len + 1);\n"
+          "  if (!buf) {\n"
+          "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "  }\n"
+          "\n"
+          "  /* 3. Build */\n"
+          "  ptr = buf;\n"
+          "  *ptr++ = '?';\n"
+          "\n"
+          "  for (i = 0; i < qp->count; ++i) {\n"
+          "    char *e_key = (url_encode(qp->params[i].key, "
+          "&_ast_url_encode_12),\n"
+          "                   _ast_url_encode_12);\n"
+          "    size_t kl, vl;\n"
+          "    char *e_val = NULL;\n"
+          "    const char *raw_val = qp->params[i].value;\n"
+          "\n"
+          "    if (qp->params[i].value_is_encoded) {\n"
+          "      e_val =\n"
+          "          (c_cdd_strdup(raw_val ? raw_val : \"\", &_ast_strdup_6), "
+          "_ast_strdup_6);\n"
+          "    } else {\n"
+          "      e_val = (url_encode(raw_val, &_ast_url_encode_13), "
+          "_ast_url_encode_13);\n"
+          "    }\n"
+          "\n"
+          "    /* e_key/e_val guaranteed non-null here as checks passed in "
+          "pass 1 */\n"
+          "    /* Copy Key */\n"
+          "    kl = strlen(e_key);\n"
+          "    memcpy(ptr, e_key, kl);\n"
+          "    ptr += kl;\n"
+          "\n"
+          "    /* Copy Eq */\n"
+          "    *ptr++ = '=';\n"
+          "\n"
+          "    /* Copy Value */\n"
+          "    {\n"
+          "      vl = strlen(e_val);\n"
+          "      memcpy(ptr, e_val, vl);\n"
+          "      ptr += vl;\n"
+          "    }\n"
+          "\n"
+          "    /* Copy Sep */\n"
+          "    if (i < qp->count - 1) {\n"
+          "      *ptr++ = '&';\n"
+          "    }\n"
+          "\n"
+          "    free(e_key);\n"
+          "    free(e_val);\n"
+          "  }\n"
+          "  *ptr = '\\0';\n"
+          "\n"
+          "  *out_str = buf;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the url query build form operation.\n"
+          " */\n"
+          "cdd_c_error_t url_query_build_form(const struct UrlQueryParams "
+          "*qp, char "
+          "**out_str) {\n"
+          "  char *_ast_url_encode_form_14 = NULL;\n"
+          "  char *_ast_url_encode_form_15 = NULL;\n"
+          "  char *_ast_url_encode_form_16 = NULL;\n"
+          "  char *_ast_url_encode_form_17 = NULL;\n"
+          "  char *_ast_strdup_7 = NULL;\n"
+          "  char *_ast_strdup_8 = NULL;\n"
+          "  size_t i;\n"
+          "  size_t total_len = 0;\n"
+          "  char *buf;\n"
+          "  char *ptr;\n"
+          "\n"
+          "  if (!qp || !out_str)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "\n"
+          "  if (qp->count == 0) {\n"
+          "    *out_str = (char *)calloc(1, 1);\n"
+          "    if (!*out_str)\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "  for (i = 0; i < qp->count; ++i) {\n"
+          "    char *e_key = (url_encode_form(qp->params[i].key, "
+          "&_ast_url_encode_form_14),\n"
+          "                   _ast_url_encode_form_14);\n"
+          "    char *e_val;\n"
+          "    size_t kl, vl;\n"
+          "    if (!e_key) {\n"
+          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    if (qp->params[i].value_is_encoded) {\n"
+          "      e_val =\n"
+          "          (c_cdd_strdup(qp->params[i].value, &_ast_strdup_7), "
+          "_ast_strdup_7);\n"
+          "    } else {\n"
+          "      e_val = (url_encode_form(qp->params[i].value, "
+          "&_ast_url_encode_form_15),\n"
+          "               _ast_url_encode_form_15);\n"
+          "    }\n"
+          "    if (!e_val) {\n"
+          "      free(e_key);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    kl = strlen(e_key);\n"
+          "    vl = strlen(e_val);\n"
+          "    total_len += kl + 1 + vl;\n"
+          "    if (i + 1 < qp->count)\n"
+          "      total_len += 1;\n"
+          "    free(e_key);\n"
+          "    free(e_val);\n"
+          "  }\n"
+          "\n"
+          "  buf = (char *)malloc(total_len + 1);\n"
+          "  if (!buf) {\n"
+          "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "    return CDD_C_ERROR_MEMORY;\n"
+          "  }\n"
+          "  ptr = buf;\n"
+          "\n"
+          "  for (i = 0; i < qp->count; ++i) {\n"
+          "    char *e_key = (url_encode_form(qp->params[i].key, "
+          "&_ast_url_encode_form_16),\n"
+          "                   _ast_url_encode_form_16);\n"
+          "    char *e_val;\n"
+          "    size_t kl, vl;\n"
+          "    if (!e_key) {\n"
+          "      free(buf);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    if (qp->params[i].value_is_encoded) {\n"
+          "      e_val =\n"
+          "          (c_cdd_strdup(qp->params[i].value, &_ast_strdup_8), "
+          "_ast_strdup_8);\n"
+          "    } else {\n"
+          "      e_val = (url_encode_form(qp->params[i].value, "
+          "&_ast_url_encode_form_17),\n"
+          "               _ast_url_encode_form_17);\n"
+          "    }\n"
+          "    if (!e_val) {\n"
+          "      free(e_key);\n"
+          "      free(buf);\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    kl = strlen(e_key);\n"
+          "    vl = strlen(e_val);\n"
+          "    memcpy(ptr, e_key, kl);\n"
+          "    ptr += kl;\n"
+          "    *ptr++ = '=';\n"
+          "    memcpy(ptr, e_val, vl);\n"
+          "    ptr += vl;\n"
+          "    if (i + 1 < qp->count)\n"
+          "      *ptr++ = '&';\n"
+          "    free(e_key);\n"
+          "    free(e_val);\n"
+          "  }\n"
+          "  *ptr = '\\0';\n"
+          "  *out_str = buf;\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "static cdd_c_error_t\n"
+          "    append_str(char **buf, size_t *len, size_t *cap, const char *s) "
+          "{\n"
+          "  size_t slen;\n"
+          "  size_t need;\n"
+          "  char *tmp;\n"
+          "\n"
+          "  if (!buf || !len || !cap || !s)\n"
+          "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
+          "\n"
+          "  slen = strlen(s);\n"
+          "  need = *len + slen + 1;\n"
+          "  if (need > *cap) {\n"
+          "    size_t new_cap = (*cap == 0) ? 64 : *cap * 2;\n"
+          "    while (new_cap < need)\n"
+          "      new_cap *= 2;\n"
+          "    tmp = (char *)realloc(*buf, new_cap);\n"
+          "    if (!tmp) {\n"
+          "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
+          "      return CDD_C_ERROR_MEMORY;\n"
+          "    }\n"
+          "    *buf = tmp;\n"
+          "    *cap = new_cap;\n"
+          "  }\n"
+          "  memcpy(*buf + *len, s, slen);\n"
+          "  *len += slen;\n"
+          "  (*buf)[*len] = '\\0';\n"
+          "  return CDD_C_SUCCESS;\n"
+          "}\n"
+          "\n"
+          "static cdd_c_error_t\n"
+          "    kv_value_to_string(const struct OpenAPI_KV *kv, char *buf, "
+          "size_t buf_len,\n"
+          "                       const char **_out_val) {\n"
+          "  if (!kv) {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "  switch (kv->type) {\n"
+          "  case OA_KV_STRING: {\n"
+          "    *_out_val = kv->value.s ? kv->value.s : NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "  case OA_KV_INTEGER:\n"
+          "    if (!buf || buf_len == 0) {\n"
+          "      *_out_val = NULL;\n"
+          "      return CDD_C_SUCCESS;\n"
+          "    }\n"
+          "    sprintf_s_chk(buf, buf_len, \"%d\", kv->value.i);\n"
+          "    {\n"
+          "      *_out_val = buf;\n"
+          "      return CDD_C_SUCCESS;\n"
+          "    }\n"
+          "  case OA_KV_NUMBER:\n"
+          "    if (!buf || buf_len == 0) {\n"
+          "      *_out_val = NULL;\n"
+          "      return CDD_C_SUCCESS;\n"
+          "    }\n"
+          "    sprintf_s_chk(buf, buf_len, \"%g\", kv->value.n);\n"
+          "    {\n"
+          "      *_out_val = buf;\n"
+          "      return CDD_C_SUCCESS;\n"
+          "    }\n"
+          "  case OA_KV_BOOLEAN: {\n"
+          "    *_out_val = kv->value.b ? \"true\" : \"false\";\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "  default: {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "  }\n"
+          "}\n"
+          "\n"
+          "/**\n"
+          " * @brief Executes the openapi kv join form operation.\n"
+          " */\n"
+          "cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, "
+          "size_t n,\n"
+          "                         const char *delim, int allow_reserved,\n"
+          "                         char **_out_val) {\n"
+          "  const char *_ast_kv_value_to_string_18 = NULL;\n"
+          "  size_t i;\n"
+          "  char *buf = NULL;\n"
+          "  size_t len = 0;\n"
+          "  size_t cap = 0;\n"
+          "  char num_buf[64];\n"
+          "  char *enc_key = NULL;\n"
+          "  char *enc_val = NULL;\n"
+          "  int (*enc_fn)(const char *, char **) =\n"
+          "      allow_reserved ? url_encode_form_allow_reserved : "
+          "url_encode_form;\n"
+          "\n"
+          "  if (!delim)\n"
+          "    delim = \",\";\n"
+          "\n"
+          "  if (!kvs || n == 0) {\n"
+          "    buf = (char *)calloc(1, 1);\n"
+          "    {\n"
+          "      *_out_val = buf;\n"
+          "      return CDD_C_SUCCESS;\n"
+          "    }\n"
+          "  }\n"
+          "\n"
+          "  for (i = 0; i < n; ++i) {\n"
+          "    const char *raw_val;\n"
+          "    if (!kvs[i].key)\n"
+          "      continue;\n"
+          "    raw_val = (kv_value_to_string(&kvs[i], num_buf, "
+          "sizeof(num_buf),\n"
+          "                                  &_ast_kv_value_to_string_18),\n"
+          "               _ast_kv_value_to_string_18);\n"
+          "    if (!raw_val)\n"
+          "      continue;\n"
+          "    enc_fn(kvs[i].key, &enc_key);\n"
+          "    if (!enc_key)\n"
+          "      goto oom;\n"
+          "    enc_fn(raw_val, &enc_val);\n"
+          "    if (!enc_val)\n"
+          "      goto oom;\n"
+          "    if (len > 0) {\n"
+          "      if (append_str(&buf, &len, &cap, delim) != 0)\n"
+          "        goto oom;\n"
+          "    }\n"
+          "    if (append_str(&buf, &len, &cap, enc_key) != 0)\n"
+          "      goto oom;\n"
+          "    if (append_str(&buf, &len, &cap, delim) != 0)\n"
+          "      goto oom;\n"
+          "    if (append_str(&buf, &len, &cap, enc_val) != 0)\n"
+          "      goto oom;\n"
+          "    free(enc_key);\n"
+          "    free(enc_val);\n"
+          "    enc_key = NULL;\n"
+          "    enc_val = NULL;\n"
+          "  }\n"
+          "\n"
+          "  if (!buf) {\n"
+          "    buf = (char *)calloc(1, 1);\n"
+          "  }\n"
+          "  {\n"
+          "    *_out_val = buf;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "\n"
+          "oom:\n"
+          "  if (enc_key)\n"
+          "    free(enc_key);\n"
+          "  if (enc_val)\n"
+          "    free(enc_val);\n"
+          "  if (buf)\n"
+          "    free(buf);\n"
+          "  {\n"
+          "    *_out_val = NULL;\n"
+          "    return CDD_C_SUCCESS;\n"
+          "  }\n"
+          "}\n"
+          "\n");
       fclose(uc);
     }
   }
@@ -3773,7 +4319,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                     "strlen(\"%s\");\n",
                     body_str, body_str);
             fprintf(tfp,
-                    "    hdrs = C_CDD_MALLOC(sizeof(struct "
+                    "    hdrs = malloc(sizeof(struct "
                     "HttpHeader) * 4);\n"
                     "    hdrs[0].key = \"Content-Type\";\n"
                     "    hdrs[0].value = \"%s\";\n"
@@ -3790,7 +4336,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                         : "application/json");
           } else {
             fprintf(tfp,
-                    "    hdrs = C_CDD_MALLOC(sizeof(struct "
+                    "    hdrs = malloc(sizeof(struct "
                     "HttpHeader) * 3);\n    hdrs[0].key = \"api_key\";\n    "
                     "hdrs[0].value = \"special-key\";\n    hdrs[1].key = "
                     "\"Authorization\";\n"
@@ -3883,9 +4429,9 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                     op->responses[0].schema.ref_name);
             fprintf(tfp, "        if (res->body && res->status_code >= 200 && "
                          "res->status_code < 300) {\n");
-            fprintf(tfp, "            char *body_str = "
-                         "C_CDD_MALLOC(res->body_len + 1);\n"
-                         "            int rc;\n");
+            fprintf(tfp,
+                    "            char *body_str = malloc(res->body_len + 1);\n"
+                    "            int rc;\n");
             fprintf(
                 tfp,
                 "            memcpy(body_str, res->body, res->body_len);\n");
@@ -3896,7 +4442,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                     op->responses[0].schema.ref_name);
             fprintf(tfp, "            if (rc != 0) { fprintf(stderr, \"Parse "
                          "failed\\n\");  }\n");
-            fprintf(tfp, "            C_CDD_FREE(body_str);\n");
+            fprintf(tfp, "            free(body_str);\n");
             fprintf(tfp, "        }\n");
           }
           fprintf(
@@ -3934,25 +4480,25 @@ cleanup:
   if (mcfile)
     fclose(mcfile);
   if (h_name)
-    C_CDD_FREE(h_name);
+    free(h_name);
   if (c_name)
-    C_CDD_FREE(c_name);
+    free(c_name);
   if (mh_name)
-    C_CDD_FREE(mh_name);
+    free(mh_name);
   if (mc_name)
-    C_CDD_FREE(mc_name);
+    free(mc_name);
   if (guard)
-    C_CDD_FREE(guard);
+    free(guard);
   if (model_h)
-    C_CDD_FREE(model_h);
+    free(model_h);
   if (model_guard)
-    C_CDD_FREE(model_guard);
+    free(model_guard);
   if (dir_name)
-    C_CDD_FREE(dir_name);
+    free(dir_name);
   if (base_name)
-    C_CDD_FREE(base_name);
+    free(base_name);
   if (actual_base)
-    C_CDD_FREE(actual_base);
+    free(actual_base);
 
   return rc;
 }

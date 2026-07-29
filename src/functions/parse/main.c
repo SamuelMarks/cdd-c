@@ -9,7 +9,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +37,7 @@
 #include <parson.h>
 /* clang-format on */
 
-static enum cdd_c_error print_version(void) {
+static cdd_c_error_t print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
 
@@ -91,7 +90,7 @@ static enum cdd_c_error print_version(void) {
  * @param[in] rc The return code from the executed command
  * @param[in] command_name The name of the command that failed
  */
-static enum cdd_c_error print_error(int rc, const char *command_name) {
+static cdd_c_error_t print_error(int rc, const char *command_name) {
   if (rc == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
@@ -109,7 +108,7 @@ static enum cdd_c_error print_error(int rc, const char *command_name) {
  * @param[in] argv Argument values containing the directory path
  * @return EXIT_SUCCESS or the error code from audit_project
  */
-static enum cdd_c_error handle_audit(int argc, char **argv) {
+static cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
@@ -126,7 +125,7 @@ static enum cdd_c_error handle_audit(int argc, char **argv) {
  *
  * @param[in] prog_name The program executable name (usually argv[0])
  */
-static enum cdd_c_error print_help(const char *prog_name) {
+static cdd_c_error_t print_help(const char *prog_name) {
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", prog_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
@@ -184,7 +183,7 @@ static enum cdd_c_error print_help(const char *prog_name) {
  * @param[in] argv Argument values for the command execution
  * @return EXIT_SUCCESS if code generation completes without error
  */
-enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
+cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
   const char *out_dir = NULL;
@@ -194,7 +193,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
   struct OpenAPI_Spec spec = {0};
 
   struct OpenApiClientConfig config = {0};
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   JSON_Value *root;
 
   input_file = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
@@ -283,7 +282,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
     }
 
     if (out_dir) {
-      char *path = C_CDD_MALLOC(strlen(out_dir) + 32);
+      char *path = malloc(strlen(out_dir) + 32);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       sprintf_s(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
@@ -308,7 +307,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
     /* Always generate ORM models for to_sdk and to_server */
 
     if (out_dir) {
-      C_CDD_FREE((void *)config.filename_base);
+      free((void *)config.filename_base);
     }
     openapi_spec_free(&spec);
   }
@@ -328,7 +327,7 @@ enum cdd_c_error from_openapi_cli_main(int argc, char **argv) {
  * options
  * @return EXIT_SUCCESS if parsing and serialization succeed
  */
-enum cdd_c_error to_openapi_cli_main(int argc, char **argv) {
+cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   const char *input_dir =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
   const char *out_file =
@@ -404,67 +403,108 @@ enum cdd_c_error to_openapi_cli_main(int argc, char **argv) {
  * @param[in] argv Passed straight from application main.
  * @return Returns an exit code (0 for success, non-zero for failure).
  */
-enum cdd_c_error cdd_main(int argc, char **argv);
+cdd_c_error_t cdd_main(int argc, char **argv);
 /**
  * @brief Main entry point dispatcher execution logic.
  *
  * Implements the command routing and prints help or error outputs as needed.
  */
-enum cdd_c_error cdd_main(int argc, char **argv) {
-  int rc = 0;
+cdd_c_error_t cdd_main(int argc, char **argv) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   const char *cmd;
 
   if (argc < 2) {
-    print_help(argc > 0 ? argv[0] : "cdd-c");
+    rc = print_help(argc > 0 ? argv[0] : "cdd-c");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cmd = argv[1];
 
   if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
-    print_version();
-    return CDD_C_SUCCESS;
+    rc = print_version();
+    return rc;
   }
 
   if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
-    print_help(argv[0]);
-    return CDD_C_SUCCESS;
+    rc = print_help(argv[0]);
+    return rc;
   }
 
   if (strcmp(cmd, "audit") == 0) {
     if (argc < 3)
       return CDD_C_ERROR_UNKNOWN;
     rc = handle_audit(argc - 2, argv + 2);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "c2openapi") == 0) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "transformer") == 0) {
     rc = cli_cst_transformer_main(argc - 2, argv + 2);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "standardize-gnu") == 0) {
     rc = cli_standardize_gnu_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
       return CDD_C_ERROR_UNKNOWN;
     rc = code2schema_main(argc - 2, argv + 2);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "from_openapi") == 0) {
     rc = from_openapi_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "to_openapi") == 0) {
     rc = to_openapi_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "to_docs_json") == 0) {
     rc = to_docs_json_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "bind") == 0) {
     rc = generate_bindings_cli_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "generate_build_system") == 0) {
     rc = generate_build_system_main(argc - 2, argv + 2);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "schema2code") == 0) {
     rc = schema2code_main(argc - 2, argv + 2);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "serve_json_rpc") == 0) {
     rc = serve_json_rpc_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "mcp") == 0) {
     /* Expose Generator via MCP stdio */
     /* Register Tools: cdd_generate (Code Scaffold), cdd_inspect (Schema
      * Inspection), cdd_sync (Bidirectional Sync) */
     printf("Starting MCP server for cdd generator via stdio...\n");
     rc = serve_mcp_stdio_main(argc - 1, argv + 1);
+    if (rc != CDD_C_SUCCESS)
+      goto handle_err;
+    return CDD_C_SUCCESS;
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {
@@ -475,8 +515,13 @@ enum cdd_c_error cdd_main(int argc, char **argv) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  if (rc != 0) {
-    print_error(rc, cmd);
+handle_err:
+  if (rc != CDD_C_SUCCESS) {
+    {
+      cdd_c_error_t print_rc = print_error(rc, cmd);
+      if (print_rc != CDD_C_SUCCESS)
+        return print_rc;
+    }
     return rc;
   }
 

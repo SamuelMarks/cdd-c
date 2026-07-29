@@ -328,7 +328,7 @@ struct TokenList {
 extern C_CDD_EXPORT /**
                      * @brief Executes the tokenize operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     tokenize(az_span source, struct TokenList **out);
 
 /**
@@ -361,7 +361,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the token matches string operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     token_matches_string(const struct Token *tok,
 
                          const char *match, int *_out_val);
@@ -384,7 +384,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the token find next operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     token_find_next(const struct TokenList *list,
 
                     size_t start_idx, size_t end_idx,
@@ -403,7 +403,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Executes the identify keyword or id operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     identify_keyword_or_id(const uint8_t *start,
 
                            size_t len, enum TokenKind *_out_val);

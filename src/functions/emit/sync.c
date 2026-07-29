@@ -9,7 +9,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +28,7 @@
 /**
  * @brief Executes the sync code main operation.
  */
-enum cdd_c_error sync_code_main(int argc, char **argv) {
+cdd_c_error_t sync_code_main(int argc, char **argv) {
   const char *header_filename;
   const char *impl_filename;
   struct TypeDefList types;
@@ -78,7 +77,12 @@ enum cdd_c_error sync_code_main(int argc, char **argv) {
 #endif
   if (!out) {
     type_def_list_free(&types);
-
+    if (errno == ENOENT)
+      return CDD_C_ERROR_NOT_FOUND;
+    if (errno == ENOMEM)
+      return CDD_C_ERROR_MEMORY;
+    if (errno == EINVAL)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     return CDD_C_ERROR_IO;
   }
 
@@ -95,14 +99,14 @@ enum cdd_c_error sync_code_main(int argc, char **argv) {
       extern int g_cdd_fprintf_fail;
       if (g_cdd_fprintf_fail == 8002) {
         if (base)
-          C_CDD_FREE(base);
+          free(base);
         base = NULL;
       }
     }
 #endif
     if (base) {
       fprintf(out, "#include \"%s\"\n\n", base);
-      C_CDD_FREE(base);
+      free(base);
     }
   }
 
@@ -140,8 +144,8 @@ enum cdd_c_error sync_code_main(int argc, char **argv) {
 /**
  * @brief Executes the patch header from source operation.
  */
-enum cdd_c_error patch_header_from_source(const char *header_path,
-                                          const char *refactored_source) {
+cdd_c_error_t patch_header_from_source(const char *header_path,
+                                       const char *refactored_source) {
   struct FuncSigList sigs;
   struct PatchList patches;
   struct TokenList *hdr_tokens = NULL;
@@ -153,6 +157,8 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
 
   /* Init structures */
   rc = func_sig_list_init(&sigs);
+  if (rc != 0)
+    return rc;
   rc = patch_list_init(&patches);
   if (rc != 0) {
     func_sig_list_free(&sigs);
@@ -160,11 +166,17 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
   }
 
   /* 1. Extract signatures from implementation source code */
-  c_inspector_extract_signatures(refactored_source, &sigs);
+  if ((rc = c_inspector_extract_signatures(refactored_source, &sigs)) != 0) {
+    goto cleanup;
+  }
 
   /* 2. Read and Tokenize Header */
-  read_to_file(header_path, "r", &hdr_content, &hdr_sz);
-  tokenize(az_span_create_from_str(hdr_content), &hdr_tokens);
+  if ((rc = read_to_file(header_path, "r", &hdr_content, &hdr_sz)) != 0) {
+    goto cleanup;
+  }
+  if ((rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens)) != 0) {
+    goto cleanup;
+  }
 
   /* 3. Match signatures and build patches */
   /* Naive matching: Find IDENTIFIER "name" followed by LPAREN in header,
@@ -180,6 +192,9 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
 
         /* Look ahead for LPAREN */
         size_t next = k + 1;
+        while (next < hdr_tokens->size &&
+               hdr_tokens->tokens[next].kind == TOKEN_WHITESPACE)
+          next++;
 
         if (next < hdr_tokens->size &&
             hdr_tokens->tokens[next].kind == TOKEN_LPAREN) {
@@ -227,7 +242,9 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
   }
 
   /* 4. Apply Patches */
-  patch_list_apply(&patches, hdr_tokens, &new_header);
+  if ((rc = patch_list_apply(&patches, hdr_tokens, &new_header)) != 0) {
+    goto cleanup;
+  }
 
   /* 5. Write Patch */
   if (new_header) {
@@ -242,6 +259,7 @@ enum cdd_c_error patch_header_from_source(const char *header_path,
       fputs(new_header, fp);
       fclose(fp);
     } else {
+      rc = CDD_C_ERROR_SYSTEM ? errno : EIO;
     }
   }
 
@@ -250,8 +268,8 @@ cleanup:
   patch_list_free(&patches);
   free_token_list(hdr_tokens);
   if (hdr_content)
-    C_CDD_FREE(hdr_content);
+    free(hdr_content);
   if (new_header)
-    C_CDD_FREE(new_header);
+    free(new_header);
   return rc;
 }

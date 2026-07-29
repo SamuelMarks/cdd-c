@@ -51,6 +51,7 @@ TEST test_cdd_cst_cfg_basic(void) {
 
   cdd_cst_cfg_free(cfg);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -119,7 +120,7 @@ TEST test_cdd_cst_cfg_oom(void) {
   }
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_cdd_cst_cfg_errors(void) {
@@ -130,6 +131,7 @@ TEST test_cdd_cst_cfg_errors(void) {
 
   /* Freeing NULL */
   cdd_cst_cfg_free(NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -167,6 +169,7 @@ TEST test_cdd_cst_cfg_empty(void) {
 
   cdd_cst_cfg_free(cfg);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -204,6 +207,7 @@ TEST test_cdd_cst_cfg_no_return(void) {
 
   cdd_cst_cfg_free(cfg);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -273,7 +277,7 @@ TEST test_cdd_cst_cfg_extra(void) {
   }
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

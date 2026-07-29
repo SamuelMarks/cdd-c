@@ -316,6 +316,7 @@ TEST test_cdd_transform_safe_crt(void) {
   ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
   cdd_cst_tree_free(tree12);
 
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -465,7 +466,7 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -598,7 +599,7 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   cdd_cst_tree_free(tree12);
 
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 

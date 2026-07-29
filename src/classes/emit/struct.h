@@ -147,8 +147,7 @@ struct CodegenStructConfig {
  * @param[out] sf Pointer to container.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-struct_fields_init(struct StructFields *sf);
+extern C_CDD_EXPORT cdd_c_error_t struct_fields_init(struct StructFields *sf);
 
 /**
  * @brief Free memory within a StructFields container.
@@ -168,10 +167,9 @@ extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
  * @param[in] bit_width Bit-field width literal (nullable, e.g. "3").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-struct_fields_add(struct StructFields *sf, const char *name, const char *type,
-                  const char *ref, const char *default_val,
-                  const char *bit_width);
+extern C_CDD_EXPORT cdd_c_error_t struct_fields_add(
+    struct StructFields *sf, const char *name, const char *type,
+    const char *ref, const char *default_val, const char *bit_width);
 
 /**
  * @param[out] _out_val Pointer to store the result
@@ -181,7 +179,7 @@ struct_fields_add(struct StructFields *sf, const char *name, const char *type,
  * @param[in] name Field name to find.
  * @return Pointer to the field if found, NULL otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 struct_fields_get(const struct StructFields *sf, const char *name,
                   struct StructField **_out_val);
 
@@ -200,7 +198,7 @@ struct_fields_get(const struct StructFields *sf, const char *name,
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct cleanup func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_cleanup_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -218,7 +216,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct deepcopy func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                                const struct StructFields *sf,
                                const struct CodegenStructConfig *config);
@@ -236,7 +234,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct eq func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_eq_func(FILE *fp, const char *struct_name,
                          const struct StructFields *sf,
                          const struct CodegenStructConfig *config);
@@ -256,7 +254,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct default func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_default_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -274,7 +272,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct debug func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_debug_func(FILE *fp, const char *struct_name,
                             const struct StructFields *sf,
                             const struct CodegenStructConfig *config);
@@ -292,7 +290,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct display func.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_struct_display_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config);
@@ -307,7 +305,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Retrieves the type from ref.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     get_type_from_ref(const char *ref, char **_out_val);
 
 #ifdef __cplusplus

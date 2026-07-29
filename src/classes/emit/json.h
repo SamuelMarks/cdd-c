@@ -52,10 +52,9 @@ struct CodegenJsonConfig {
  * @param[in] config Optional config.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_to_json_func(FILE *fp, const char *struct_name,
-                          const struct StructFields *sf,
-                          const struct CodegenJsonConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_to_json_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenJsonConfig *config);
 
 /**
  * @brief Generate `_from_json` implementation (Wrapper).
@@ -69,9 +68,8 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_from_json_func(FILE *fp, const char *struct_name,
-                            const struct CodegenJsonConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_from_json_func(
+    FILE *fp, const char *struct_name, const struct CodegenJsonConfig *config);
 
 /**
  * @brief Generate `_from_jsonObject` implementation (Core Logic).
@@ -88,17 +86,15 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
  * @param[in] config Optional config.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
-                                  const struct StructFields *sf,
-                                  const struct CodegenJsonConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_from_jsonObject_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenJsonConfig *config);
 
 /**
  * @brief write_struct_from_json_standalone_func
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
-                                       const struct StructFields *sf);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_from_json_standalone_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf);
 
 /**
  * @brief Generates C code for write struct array from json func.
@@ -107,9 +103,8 @@ write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
  * @param config The code generation configuration.
  * @return 0 on success, or an error code.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_array_from_json_func(FILE *fp, const char *struct_name,
-                                  const struct CodegenJsonConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_array_from_json_func(
+    FILE *fp, const char *struct_name, const struct CodegenJsonConfig *config);
 
 #ifdef __cplusplus
 }

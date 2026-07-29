@@ -3,7 +3,6 @@
  * @brief Implementation of CLI CST parsing.
  */
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "routes/parse/cli_cst.h"
 #include "c_cdd/log.h"
 #include "c_str_span.h"
@@ -16,10 +15,10 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
-static enum cdd_c_error
+static cdd_c_error_t
 process_file(const char *filepath,
-             enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
-                                              const cdd_transform_config_t *),
+             cdd_c_error_t (*transform_fn)(cdd_cst_tree_t *,
+                                           const cdd_transform_config_t *),
              const cdd_transform_config_t *config, int is_audit,
              int is_dry_run) {
   FILE *f;
@@ -27,7 +26,7 @@ process_file(const char *filepath,
   char *str;
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
-  int rc;
+  cdd_c_error_t rc;
   FILE *out_f;
 
   f = fopen(filepath, "rb");
@@ -39,7 +38,7 @@ process_file(const char *filepath,
   fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  str = (char *)C_CDD_MALLOC((size_t)fsize + 1);
+  str = (char *)malloc((size_t)fsize + 1);
   if (!str) {
     fclose(f);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -50,25 +49,25 @@ process_file(const char *filepath,
   fclose(f);
 
   rc = cdd_cst_parse(az_span_create_from_str(str), &tree);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error parsing %s\n", filepath);
-    C_CDD_FREE(str);
+    free(str);
     return rc;
   }
 
   rc = transform_fn(tree, config);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error transforming %s\n", filepath);
     cdd_cst_tree_free(tree);
-    C_CDD_FREE(str);
+    free(str);
     return rc;
   }
 
   rc = cdd_cst_emit(tree, &out);
   cdd_cst_tree_free(tree);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error emitting %s\n", filepath);
-    C_CDD_FREE(str);
+    free(str);
     return rc;
   }
 
@@ -76,50 +75,50 @@ process_file(const char *filepath,
     if (strcmp(str, out) != 0) {
       /* File needs fixing */
       fprintf(stdout, "%s needs formatting/fixes.\n", filepath);
-      rc = 1;
+      rc = CDD_C_ERROR_UNKNOWN;
     } else {
-      rc = 0;
+      rc = CDD_C_SUCCESS;
     }
   } else {
     /* is_fix */
     if (strcmp(str, out) != 0) {
       if (is_dry_run) {
         fprintf(stdout, "Would fix %s (dry run).\n", filepath);
-        rc = 0;
+        rc = CDD_C_SUCCESS;
       } else {
         out_f = fopen(filepath, "wb");
         if (!out_f) {
           fprintf(stderr, "Error opening %s for writing\n", filepath);
-          C_CDD_FREE(str);
-          C_CDD_FREE(out);
+          free(str);
+          free(out);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         fwrite(out, 1, strlen(out), out_f);
         fclose(out_f);
         fprintf(stdout, "Fixed %s\n", filepath);
-        rc = 0;
+        rc = CDD_C_SUCCESS;
       }
     } else {
-      rc = 0;
+      rc = CDD_C_SUCCESS;
     }
   }
 
-  C_CDD_FREE(str);
-  C_CDD_FREE(out);
+  free(str);
+  free(out);
   return rc;
 }
 
 /** @brief cli_cst_transformer_main */
-enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
+cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
   int i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   int is_audit = 0;
   int is_fix = 0;
   int is_dry_run = 0;
   const char *toolname = NULL;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
-  enum cdd_c_error (*transform_fn)(cdd_cst_tree_t *,
-                                   const cdd_transform_config_t *) = NULL;
+  cdd_c_error_t (*transform_fn)(cdd_cst_tree_t *,
+                                const cdd_transform_config_t *) = NULL;
 
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
@@ -177,7 +176,7 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
 
       if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=
           0) {
-        rc = 1;
+        rc = CDD_C_ERROR_UNKNOWN;
       }
     }
   }
@@ -186,9 +185,9 @@ enum cdd_c_error cli_cst_transformer_main(int argc, char **argv) {
 }
 
 /** @brief cli_standardize_gnu_main */
-enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv) {
+cdd_c_error_t cli_standardize_gnu_main(int argc, char **argv) {
   int i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   int is_audit = 0;
   int is_fix = 0;
   int is_dry_run = 0;
@@ -236,7 +235,7 @@ enum cdd_c_error cli_standardize_gnu_main(int argc, char **argv) {
 
       if (process_file(argv[i], cdd_transform_gnu, &config, is_audit,
                        is_dry_run) != 0) {
-        rc = 1;
+        rc = CDD_C_ERROR_UNKNOWN;
       }
     }
   }

@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -18,9 +17,9 @@ extern "C" {
 /* clang-format on */
 
 /* Helper to generate code and return as string buffer */
-static enum cdd_c_error generate_eq_code(const char *struct_name,
-                                         struct StructFields *sf,
-                                         char **_out_val) {
+static cdd_c_error_t generate_eq_code(const char *struct_name,
+                                      struct StructFields *sf,
+                                      char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -43,7 +42,7 @@ static enum cdd_c_error generate_eq_code(const char *struct_name,
   rewind(tmp);
 
   if (sz > 0) {
-    content = (char *)C_CDD_CALLOC(1, sz + 1);
+    content = (char *)calloc(1, sz + 1);
     fread(content, 1, sz, tmp);
   } else {
     content = strdup("");
@@ -74,7 +73,7 @@ TEST test_eq_primitive(void) {
   ASSERT(code != NULL);
 
   /* Check signature */
-  ASSERT(strstr(code, "enum cdd_c_error Prim_eq(const struct Prim *a, const "
+  ASSERT(strstr(code, "cdd_c_error_t Prim_eq(const struct Prim *a, const "
                       "struct Prim *b, int *out_eq)"));
   /* Check trivial */
   ASSERT(strstr(code, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
@@ -87,9 +86,9 @@ TEST test_eq_primitive(void) {
   ASSERT(strstr(
       code, "if (a->dval != b->dval) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -115,9 +114,9 @@ TEST test_eq_string(void) {
   ASSERT(strstr(code, "if (a->s != b->s && (!a->s || !b->s || strcmp(a->s, "
                       "b->s) != 0)) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,13 +137,13 @@ TEST test_eq_recursive_object(void) {
   ASSERT(code != NULL);
 
   /* Should call Child_eq recursively */
-  ASSERT(strstr(code, "{ int _t = 0; enum cdd_c_error _rc = Child_eq(a->child, "
+  ASSERT(strstr(code, "{ int _t = 0; cdd_c_error_t _rc = Child_eq(a->child, "
                       "b->child, &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
                       "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -175,9 +174,9 @@ TEST test_eq_array_primitive(void) {
       code,
       "if (a->nums[i] != b->nums[i]) { *out_eq = 0; return CDD_C_SUCCESS; }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -202,9 +201,9 @@ TEST test_eq_array_string(void) {
   /* Check strcmp access on arrays */
   ASSERT(strstr(code, "strcmp(a->strs[i], b->strs[i])"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -228,13 +227,13 @@ TEST test_eq_array_object(void) {
   ASSERT(strstr(code, "for (i = 0; i < a->n_items; ++i)"));
   /* Check recursive array access: Item_eq(a->items[i], b->items[i]) */
   ASSERT(strstr(code,
-                "{ int _t = 0; enum cdd_c_error _rc = Item_eq(a->items[i], "
+                "{ int _t = 0; cdd_c_error_t _rc = Item_eq(a->items[i], "
                 "b->items[i], &_t); if (_rc != CDD_C_SUCCESS) return _rc; "
                 "if (!_t) { *out_eq = 0; return CDD_C_SUCCESS; } }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

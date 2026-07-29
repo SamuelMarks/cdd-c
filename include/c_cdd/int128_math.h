@@ -6,13 +6,14 @@
 #ifndef C_CDD_INT128_MATH_H
 #define C_CDD_INT128_MATH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "int128.h"
 #include <stddef.h>
 /* clang-format on */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * @brief Adds two 128-bit unsigned integers.
@@ -532,8 +533,8 @@ static int cdd_int128_to_double(cdd_int128_t val, double *out) {
   return 0;
 }
 
-#endif /* C_CDD_INT128_MATH_H */
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* C_CDD_INT128_MATH_H */

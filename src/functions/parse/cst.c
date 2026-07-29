@@ -18,7 +18,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -31,8 +30,8 @@
 /**
  * @brief Helper to skip whitespace tokens.
  */
-static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t i,
-                                size_t limit, size_t *_out_val) {
+static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t i,
+                             size_t limit, size_t *_out_val) {
   while (i < limit && tokens->tokens[i].kind == TOKEN_WHITESPACE)
     i++;
   {
@@ -44,8 +43,8 @@ static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t i,
 /**
  * @brief Helper to skip whitespace tokens backwards.
  */
-static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
-                                     size_t *_out_val) {
+static cdd_c_error_t skip_ws_back(const struct TokenList *tokens, size_t i,
+                                  size_t *_out_val) {
   if (i == 0) {
     /* If index 0 is valid and not whitespace, return it. If whitespace,
        we can't go back further, but logic checking kind will see whitespace. */
@@ -73,9 +72,9 @@ static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
 /**
  * @brief Executes the cst list add operation.
  */
-enum cdd_c_error cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
-                              const uint8_t *start, size_t length,
-                              size_t start_tok, size_t end_tok) {
+cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
+                           const uint8_t *start, size_t length,
+                           size_t start_tok, size_t end_tok) {
   struct CstNode *new_arr;
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -88,12 +87,12 @@ enum cdd_c_error cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         new_arr = NULL;
       else
-        new_arr = (struct CstNode *)C_CDD_REALLOC(
-            list->nodes, new_cap * sizeof(struct CstNode));
+        new_arr = (struct CstNode *)realloc(list->nodes,
+                                            new_cap * sizeof(struct CstNode));
     }
 #else
-    new_arr = (struct CstNode *)C_CDD_REALLOC(list->nodes,
-                                              new_cap * sizeof(struct CstNode));
+    new_arr = (struct CstNode *)realloc(list->nodes,
+                                        new_cap * sizeof(struct CstNode));
 #endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -114,8 +113,7 @@ enum cdd_c_error cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
 }
 
 /* Helper: is this token a valid start of a function return type? */
-static enum cdd_c_error is_type_start(const struct Token *tok,
-                                      int *out_is_type) {
+static cdd_c_error_t is_type_start(const struct Token *tok, int *out_is_type) {
   *out_is_type = 0;
 
   if (tok->kind == TOKEN_IDENTIFIER) {
@@ -154,10 +152,10 @@ static enum cdd_c_error is_type_start(const struct Token *tok,
 /**
  * @brief Heuristic to detect function definitions.
  */
-static enum cdd_c_error
-match_function_definition(const struct TokenList *tokens, size_t start_idx,
-                          size_t limit, size_t *end_idx_out,
-                          int *out_is_match) {
+static cdd_c_error_t match_function_definition(const struct TokenList *tokens,
+                                               size_t start_idx, size_t limit,
+                                               size_t *end_idx_out,
+                                               int *out_is_match) {
   size_t _ast_skip_ws_0 = 0;
   size_t k = start_idx;
   int paren_depth;
@@ -241,9 +239,9 @@ match_function_definition(const struct TokenList *tokens, size_t start_idx,
 /**
  * @brief Consume a balanced parenthesized block `( ... )`.
  */
-static enum cdd_c_error consume_balanced_parens(const struct TokenList *tokens,
-                                                size_t start, size_t limit,
-                                                size_t *_out_val) {
+static cdd_c_error_t consume_balanced_parens(const struct TokenList *tokens,
+                                             size_t start, size_t limit,
+                                             size_t *_out_val) {
   size_t i = start;
   int depth = 0;
 
@@ -275,9 +273,9 @@ static enum cdd_c_error consume_balanced_parens(const struct TokenList *tokens,
 /**
  * @brief Consume a C23 attribute block `[[ ... ]]`.
  */
-static enum cdd_c_error consume_attributes(const struct TokenList *tokens,
-                                           size_t start, size_t limit,
-                                           size_t *_out_val) {
+static cdd_c_error_t consume_attributes(const struct TokenList *tokens,
+                                        size_t start, size_t limit,
+                                        size_t *_out_val) {
   size_t i = start + 2;
   int depth = 2;
 
@@ -303,9 +301,9 @@ static enum cdd_c_error consume_attributes(const struct TokenList *tokens,
 /**
  * @brief Consume a static assertion declaration.
  */
-static enum cdd_c_error consume_static_assert(const struct TokenList *tokens,
-                                              size_t start, size_t limit,
-                                              size_t *_out_val) {
+static cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
+                                           size_t start, size_t limit,
+                                           size_t *_out_val) {
   size_t _ast_skip_ws_1 = 0;
   size_t _ast_skip_ws_2 = 0;
   size_t i = start + 1;
@@ -353,9 +351,9 @@ static enum cdd_c_error consume_static_assert(const struct TokenList *tokens,
 /**
  * @brief Consume a _Generic selection `_Generic ( ... )`.
  */
-static enum cdd_c_error
-consume_generic_selection(const struct TokenList *tokens, size_t start,
-                          size_t limit, size_t *_out_val) {
+static cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
+                                               size_t start, size_t limit,
+                                               size_t *_out_val) {
   size_t _ast_skip_ws_3 = 0;
   size_t _ast_consume_balanced_parens_4 = 0;
   /* _Generic ( assignment-expression , generic-assoc-list ) */
@@ -383,9 +381,8 @@ consume_generic_selection(const struct TokenList *tokens, size_t start,
  * @brief Identify if the LBRACE at `brace_idx` signifies an expression/init
  * list.
  */
-static enum cdd_c_error is_expression_brace(const struct TokenList *tokens,
-                                            size_t brace_idx,
-                                            int *out_is_expr) {
+static cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
+                                         size_t brace_idx, int *out_is_expr) {
   size_t _ast_skip_ws_back_5 = 0;
   size_t _ast_skip_ws_back_6 = 0;
   size_t prev;
@@ -443,9 +440,9 @@ static enum cdd_c_error is_expression_brace(const struct TokenList *tokens,
 /**
  * @brief Consume a brace-enclosed block, respecting nesting.
  */
-static enum cdd_c_error consume_balanced_braces(const struct TokenList *tokens,
-                                                size_t start, size_t limit,
-                                                size_t *_out_val) {
+static cdd_c_error_t consume_balanced_braces(const struct TokenList *tokens,
+                                             size_t start, size_t limit,
+                                             size_t *_out_val) {
   size_t i = start;
   int depth = 0;
 
@@ -477,9 +474,9 @@ static enum cdd_c_error consume_balanced_braces(const struct TokenList *tokens,
 /**
  * @brief Recursive Parser core logic.
  */
-static enum cdd_c_error parse_recursive(const struct TokenList *tokens,
-                                        size_t start, size_t end,
-                                        struct CstNodeList *out) {
+static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
+                                     size_t start, size_t end,
+                                     struct CstNodeList *out) {
   size_t _ast_consume_attributes_7 = 0;
   size_t _ast_consume_static_assert_8 = 0;
   int _ast_token_matches_string_9 = 0;
@@ -856,8 +853,8 @@ static enum cdd_c_error parse_recursive(const struct TokenList *tokens,
 /**
  * @brief Parses tokens from the given input.
  */
-enum cdd_c_error parse_tokens(const struct TokenList *tokens,
-                              struct CstNodeList *out) {
+cdd_c_error_t parse_tokens(const struct TokenList *tokens,
+                           struct CstNodeList *out) {
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -876,7 +873,7 @@ void free_cst_node_list(struct CstNodeList *list) {
   if (!list)
     return;
   if (list->nodes) {
-    C_CDD_FREE(list->nodes);
+    free(list->nodes);
     list->nodes = NULL;
   }
   list->size = 0;
@@ -886,9 +883,9 @@ void free_cst_node_list(struct CstNodeList *list) {
 /**
  * @brief Executes the cst find first operation.
  */
-enum cdd_c_error cst_find_first(struct CstNodeList *list,
-                                const enum CstNodeKind kind,
-                                struct CstNode **out_node) {
+cdd_c_error_t cst_find_first(struct CstNodeList *list,
+                             const enum CstNodeKind kind,
+                             struct CstNode **out_node) {
   size_t i;
   if (!out_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;

@@ -1,5 +1,5 @@
 extern C_CDD_EXPORT int g_fail_io_after;
-
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_arrays_object.c
  * @brief Unit tests for Object Arrays generation and parsing.
@@ -11,7 +11,6 @@ extern C_CDD_EXPORT int g_fail_io_after;
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,12 +53,12 @@ TEST test_generated_obj_array_logic(void) {
   output_len = ftell(tmp);
   rewind(tmp);
 
-  output_buf = C_CDD_MALLOC(output_len + 1); if (!output_buf) return CDD_C_ERROR_MEMORY;
+  output_buf = malloc(output_len + 1); if (!output_buf) return CDD_C_ERROR_MEMORY;
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
   /* Verify malloc logic for array of pointers */
-  /* Expect: ret->items = C_CDD_MALLOC(ret->n_items * sizeof(struct Item*)); */
+  /* Expect: ret->items = malloc(ret->n_items * sizeof(struct Item*)); */
   ASSERT(strstr(output_buf, "sizeof(struct Item*)"));
 
   /* Verify loop for object parsing */
@@ -70,10 +69,10 @@ TEST test_generated_obj_array_logic(void) {
   /* Verify cleanup on error */
   ASSERT(strstr(output_buf, "Container_cleanup(ret);"));
 
-  C_CDD_FREE(output_buf);
+  free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -116,7 +115,7 @@ TEST test_code2schema_obj_array_detection(void) {
   fseek(f, 0, SEEK_END);
   len = ftell(f);
   rewind(f);
-  json_content = (char *)C_CDD_MALLOC(len + 1);
+  json_content = (char *)malloc(len + 1);
   if (!json_content)
     return CDD_C_ERROR_MEMORY;
   fread(json_content, 1, len, f);
@@ -131,10 +130,10 @@ TEST test_code2schema_obj_array_detection(void) {
   /* Verify n_items is NOT in the properties list explicitly */
   ASSERT(strstr(json_content, "\"n_items\"") == NULL);
 
-  C_CDD_FREE(json_content);
+  free(json_content);
   remove("test_obj_array.h");
   remove(json_out_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,7 +156,7 @@ TEST test_cleanup_generation(void) {
   output_len = ftell(tmp);
   rewind(tmp);
 
-  output_buf = C_CDD_MALLOC(output_len + 1);
+  output_buf = malloc(output_len + 1);
   if (!output_buf)
     return CDD_C_ERROR_MEMORY;
   fread(output_buf, 1, output_len, tmp);
@@ -168,10 +167,10 @@ TEST test_cleanup_generation(void) {
   /* Check item cleanup */
   ASSERT(strstr(output_buf, "Item_cleanup(obj->items[i]);"));
 
-  C_CDD_FREE(output_buf);
+  free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,7 +180,7 @@ SUITE(arrays_object_suite) {
   RUN_TEST(test_cleanup_generation);
 }
 
-enum cdd_c_error main(int argc, char **argv) {
+cdd_c_error_t main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(arrays_object_suite);
   GREATEST_MAIN_END();

@@ -16,7 +16,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "functions/emit/patcher.h"
 #include "cdd_c_error.h"
 #include "functions/parse/analysis.h"
@@ -44,7 +43,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the strategy inject safety checks
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     strategy_inject_safety_checks(const struct TokenList *tokens,
                                   const struct AllocationSiteList *allocs,
                                   struct PatchList *patches);
@@ -52,9 +51,9 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Inject safety specifically for `realloc` patterns.
  *
- * Handles the pattern `p = C_CDD_REALLOC(p, size)` by rewriting it to:
- * `{ void *tmp = C_CDD_REALLOC(p, size); if (!tmp) return CDD_C_ERROR_MEMORY; p
- * = tmp; }` preventing memory leaks on failure.
+ * Handles the pattern `p = realloc(p, size)` by rewriting it to:
+ * `{ void *tmp = realloc(p, size); if (!tmp) return CDD_C_ERROR_MEMORY; p =
+ * tmp; }` preventing memory leaks on failure.
  *
  * @param[in] tokens Token stream.
  * @param[in] site The specific allocation site to process.
@@ -62,10 +61,9 @@ extern C_CDD_EXPORT /**
  * @param[in,out] patches Patch list.
  * @return 0 on success (or if pattern doesn't match), ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-strategy_rewrite_realloc(const struct TokenList *tokens,
-                         const struct AllocationSite *site, size_t semi_idx,
-                         struct PatchList *patches);
+extern C_CDD_EXPORT cdd_c_error_t strategy_rewrite_realloc(
+    const struct TokenList *tokens, const struct AllocationSite *site,
+    size_t semi_idx, struct PatchList *patches);
 
 #ifdef __cplusplus
 }

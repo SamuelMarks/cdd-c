@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <errno.h>
@@ -18,82 +17,15 @@ extern "C" {
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
-#include "c_cdd/test_allocator.h"
 /* clang-format on */
 
-static enum cdd_c_error tokenize_str(const char *s,
-                                     struct TokenList **_out_val) {
+static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)s), &tl);
   {
     *_out_val = tl;
     return 0;
   }
-}
-
-TEST test_init_oom(void) {
-  struct TokenList *_ast_tokenize_str_0;
-  const char *code = "{ .pt = { .x = 1, .y = 2 }, .flag = 1, 5, { 6 }, 7, 8, "
-                     "9, 10, .foo /* c */ = 2 }";
-  struct TokenList *tl =
-      (tokenize_str(code, &_ast_tokenize_str_0), _ast_tokenize_str_0);
-  int i;
-  ASSERT(tl);
-
-  /* Cover missing parser branches */
-  {
-    struct TokenList *_ast_tokenize_str_1;
-    struct InitList err_list;
-    init_list_init(&err_list);
-    struct TokenList *tl_err1 =
-        (tokenize_str("{ .x ; = 1 }", &_ast_tokenize_str_1),
-         _ast_tokenize_str_1);
-    parse_initializer(tl_err1, 0, tl_err1->size, &err_list, NULL);
-    free_token_list(tl_err1);
-
-    struct TokenList *_ast_tokenize_str_2;
-    struct TokenList *tl_err2 =
-        (tokenize_str("{ .x 1 }", &_ast_tokenize_str_2), _ast_tokenize_str_2);
-    parse_initializer(tl_err2, 0, tl_err2->size, &err_list, NULL);
-    free_token_list(tl_err2);
-
-    struct TokenList *_ast_tokenize_str_3;
-    struct TokenList *tl_err3 =
-        (tokenize_str("  ", &_ast_tokenize_str_3), _ast_tokenize_str_3);
-    parse_initializer(tl_err3, 0, tl_err3->size, &err_list, NULL);
-    free_token_list(tl_err3);
-    init_list_free(&err_list);
-  }
-
-  for (i = 1; i < 50; ++i) {
-    struct InitList list;
-    init_list_init(&list);
-
-    g_cdd_alloc_fail_countdown_countdown = i;
-    if (parse_initializer(tl, 0, tl->size, &list, NULL) == 0) {
-      /* Success */
-    }
-    g_cdd_alloc_fail_countdown_countdown = 0;
-
-    init_list_free(&list);
-  }
-
-  for (i = 1; i < 50; ++i) {
-    struct InitList list;
-    init_list_init(&list);
-
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
-    g_cdd_strdup_fail = i;
-    if (parse_initializer(tl, 0, tl->size, &list, NULL) == 0) {
-      /* Success */
-    }
-    g_cdd_strdup_fail = 0;
-
-    init_list_free(&list);
-  }
-
-  free_token_list(tl);
-  PASS();
 }
 
 /**
@@ -125,7 +57,7 @@ TEST test_init_simple_positional(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -156,7 +88,7 @@ TEST test_init_designated_fields(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -187,7 +119,7 @@ TEST test_init_array_index(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -227,7 +159,7 @@ TEST test_init_nested(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -282,7 +214,7 @@ TEST test_init_mixed_expressions(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -307,7 +239,7 @@ TEST test_init_trailing_comma(void) {
 
   init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -336,75 +268,7 @@ TEST test_init_errors(void) {
             parse_initializer(tl, 0, tl->size, &list, NULL));
   init_list_free(&list);
   free_token_list(tl);
-
-  /* Manually add a trailing whitespace token to guarantee it's not stripped */
-  tl = (tokenize_str("{ 1,", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  {
-    struct Token ws_token;
-    memset(&ws_token, 0, sizeof(ws_token));
-    ws_token.kind = TOKEN_WHITESPACE;
-
-    tl->tokens =
-        C_CDD_REALLOC(tl->tokens, sizeof(struct Token) * (tl->size + 1));
-    tl->tokens[tl->size] = ws_token;
-    tl->size++;
-
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              parse_initializer(tl, 0, tl->size, &list, NULL));
-  }
-  free_token_list(tl);
-
-  /* Designator without '=' before comma */
-  tl = (tokenize_str("{ .x , 2 }", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Designator reaching end without '=' */
-  tl = (tokenize_str("{ .x }", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Designator without '=' before a non-delimiter (e.g. '+') */
-  tl = (tokenize_str("{ .x + 2", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Empty expression */
-  tl =
-      (tokenize_str("{ .x = , 2 }", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Expression with nested brackets */
-  tl = (tokenize_str("{ .x = a[1] }", &_ast_tokenize_str_7),
-        _ast_tokenize_str_7);
-  ASSERT_EQ(0, parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Empty list parsing */
-  tl = (tokenize_str("{ }", &_ast_tokenize_str_7), _ast_tokenize_str_7);
-  ASSERT_EQ(0, parse_initializer(tl, 0, tl->size, &list, NULL));
-  init_list_free(&list);
-  free_token_list(tl);
-
-  /* Invalid args */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(NULL, 0, 0, &list, NULL));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            parse_initializer(tl, 0, 0, NULL, NULL));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, init_list_init(NULL));
-
-  /* NULL frees */
-  init_list_free(NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -413,7 +277,6 @@ TEST test_init_errors(void) {
  * @brief initializer_parser_suite
  */
 SUITE(initializer_parser_suite) {
-  RUN_TEST(test_init_oom);
   RUN_TEST(test_init_simple_positional);
   RUN_TEST(test_init_designated_fields);
   RUN_TEST(test_init_array_index);

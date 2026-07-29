@@ -18,9 +18,8 @@ extern "C" {
  * @param out_env The populated scope environment.
  * @return 0 on success.
  */
-C_CDD_EXPORT enum cdd_c_error
-cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
-                            cdd_cst_scope_env_t **out_env);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_build_semantic_info(
+    cdd_cst_tree_t *tree, cdd_cst_scope_env_t **out_env);
 
 #ifdef __cplusplus
 }

@@ -35,6 +35,7 @@ TEST test_cdd_cst_eval_primitive_type_basic(void) {
   /* unknown type */
   rc = cdd_cst_eval_primitive_type("unknown_type", CDD_CST_ABI_LP64, &info);
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -69,7 +70,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
 
   cdd_cst_tree_free(tree);
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -195,7 +196,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
 
   cdd_cst_tree_free(tree);
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -286,6 +287,7 @@ TEST test_cdd_cst_eval_primitive_extra(void) {
             cdd_cst_eval_primitive_type(NULL, CDD_CST_ABI_LP64, &info));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -375,7 +377,7 @@ TEST test_type_eval_branches(void) {
 
   cdd_cst_free_node_only(dummy_child);
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -29,13 +28,12 @@ TEST test_server_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
-  spec.paths =
-      (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
+  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
   spec.paths[0].route = "/test/route";
 
   spec.paths[0].n_operations = 9;
-  spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
-      9, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations =
+      (struct OpenAPI_Operation *)calloc(9, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
   spec.paths[0].operations[0].operation_id = "doGet";
@@ -67,8 +65,7 @@ TEST test_server_gen_basic(void) {
 
   spec.paths[0].operations[1].n_req_body_media_types = 1;
   spec.paths[0].operations[1].req_body_media_types =
-      (struct OpenAPI_MediaType *)C_CDD_CALLOC(
-          1, sizeof(struct OpenAPI_MediaType));
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
   spec.paths[0].operations[1].req_body_media_types[0].name =
       "application/x-www-form-urlencoded";
 
@@ -99,9 +96,10 @@ TEST test_server_gen_basic(void) {
   }
 
   remove("src/test_server_server.c");
-  C_CDD_FREE(spec.paths[0].operations[1].req_body_media_types);
-  C_CDD_FREE(spec.paths[0].operations);
-  C_CDD_FREE(spec.paths);
+  free(spec.paths[0].operations[1].req_body_media_types);
+  free(spec.paths[0].operations);
+  free(spec.paths);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -121,6 +119,7 @@ TEST test_server_gen_fail_open(void) {
 
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }

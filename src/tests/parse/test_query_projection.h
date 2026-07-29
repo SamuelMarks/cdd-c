@@ -21,7 +21,7 @@ TEST test_query_projection_init(void) {
   ASSERT_EQ(0, cdd_c_query_projection_init(&proj));
   ASSERT_EQ(0, proj.n_fields);
   ASSERT_EQ(NULL, proj.fields);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -43,7 +43,7 @@ TEST test_query_projection_add_field(void) {
   ASSERT_EQ(SQL_TYPE_INT, proj.fields[0].type);
 
   ASSERT_EQ(0, cdd_c_query_projection_free(&proj));
-
+  g_fail_io_after = -1;
   PASS();
 }
 

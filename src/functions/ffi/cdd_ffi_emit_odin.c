@@ -57,7 +57,7 @@ static const char *get_odin_type(cdd_ffi_type_t type) {
   }
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -74,15 +74,6 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.odin", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -109,7 +100,8 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "// %s\n", node->doc);
       fprintf(f, "%s :: struct #c {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         const char *otype = get_odin_type(node->fields[j].type);
         fprintf(f, "    %s: %s,\n", fname, otype);
       }
@@ -155,7 +147,8 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "    // %s\n", node->doc);
       fprintf(f, "    %s :: proc(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "context") == 0)
           arg_name = "ctx";
         if (strcmp(arg_name, "in") == 0)
@@ -178,11 +171,11 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_odin(cdd_ffi_ir_t *ir,
-                  const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+cdd_c_error_t cdd_ffi_emit_odin(cdd_ffi_ir_t *ir,
+                                const cdd_generate_bindings_config_t *config) {
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_odin_file(ir, config);
 }

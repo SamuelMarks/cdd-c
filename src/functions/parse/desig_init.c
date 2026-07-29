@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -20,8 +19,7 @@
  * @brief Duplicates a string up to a specified number of characters.
  *
  */
-static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
-                                      char **_out_val) {
+static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = NULL;
 #ifdef CDD_BUILD_TESTS
   {
@@ -29,10 +27,10 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
-      d = (char *)C_CDD_MALLOC(n + 1);
+      d = (char *)malloc(n + 1);
   }
 #else
-  d = (char *)C_CDD_MALLOC(n + 1);
+  d = (char *)malloc(n + 1);
 #endif
   if (!d) {
     *_out_val = NULL;
@@ -50,7 +48,7 @@ static enum cdd_c_error c_cdd_strndup(const char *s, size_t n,
  * @brief Initializes a designated initializer list.
  *
  */
-enum cdd_c_error desig_init_list_init(struct DesigInitList *list) {
+cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->sites = NULL;
@@ -70,11 +68,11 @@ void desig_init_list_free(struct DesigInitList *list) {
   if (list->sites) {
     for (i = 0; i < list->count; i++) {
       if (list->sites[i].field_name)
-        C_CDD_FREE(list->sites[i].field_name);
+        free(list->sites[i].field_name);
       if (list->sites[i].value_expr)
-        C_CDD_FREE(list->sites[i].value_expr);
+        free(list->sites[i].value_expr);
     }
-    C_CDD_FREE(list->sites);
+    free(list->sites);
   }
   (void)desig_init_list_init(list);
 }
@@ -83,9 +81,8 @@ void desig_init_list_free(struct DesigInitList *list) {
  * @brief Executes the scan for designated initializers operation.
  *
  */
-enum cdd_c_error
-scan_for_designated_initializers(const struct TokenList *tokens,
-                                 struct DesigInitList *list) {
+cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
+                                               struct DesigInitList *list) {
   size_t i = 0;
   size_t *brace_stack = NULL;
   size_t brace_depth = 0;
@@ -106,12 +103,11 @@ scan_for_designated_initializers(const struct TokenList *tokens,
           if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
             new_stack = NULL;
           else
-            new_stack = (size_t *)C_CDD_REALLOC(brace_stack,
-                                                brace_cap * sizeof(size_t));
+            new_stack =
+                (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
         }
 #else
-        new_stack =
-            (size_t *)C_CDD_REALLOC(brace_stack, brace_cap * sizeof(size_t));
+        new_stack = (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
 #endif
         if (!new_stack) {
           res = ENOMEM;
@@ -186,11 +182,11 @@ scan_for_designated_initializers(const struct TokenList *tokens,
               if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
                 list->sites = NULL;
               else
-                list->sites = (struct DesigInitSite *)C_CDD_REALLOC(
+                list->sites = (struct DesigInitSite *)realloc(
                     list->sites, list->capacity * sizeof(struct DesigInitSite));
             }
 #else
-            list->sites = (struct DesigInitSite *)C_CDD_REALLOC(
+            list->sites = (struct DesigInitSite *)realloc(
                 list->sites, list->capacity * sizeof(struct DesigInitSite));
 #endif
             if (!list->sites) {
@@ -244,6 +240,6 @@ scan_for_designated_initializers(const struct TokenList *tokens,
 
 cleanup:
   if (brace_stack)
-    C_CDD_FREE(brace_stack);
+    free(brace_stack);
   return res;
 }

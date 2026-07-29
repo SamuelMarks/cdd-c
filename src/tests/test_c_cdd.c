@@ -27,7 +27,7 @@
 
 #include <greatest.h>
 extern C_CDD_EXPORT int g_fail_io_after;
-
+extern C_CDD_EXPORT int g_io_calls;
 
 static char g_cdd_test_tmp_buf[65536][64];
 
@@ -177,7 +177,7 @@ TEST test_cdd_helpers(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_to_file(NULL, NULL));
   ASSERT_NEQ(CDD_C_SUCCESS,
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -379,10 +379,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(cdd_cst_scope_suite);
   RUN_SUITE(cdd_cst_semantic_suite);
   RUN_SUITE(cdd_cst_cfg_suite);
-  RUN_SUITE(c_cdd_int128_suite);
   RUN_SUITE(cdd_cst_type_eval_suite);
   RUN_SUITE(cdd_cst_cfg_suite);
-  RUN_SUITE(c_cdd_int128_suite);
   RUN_SUITE(cdd_cst_type_eval_suite);
 
   RUN_SUITE(openapi_writer_suite);

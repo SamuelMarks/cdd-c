@@ -23,7 +23,7 @@
 
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
-static enum cdd_c_error check_io_helper(int rc) {
+static cdd_c_error_t check_io_helper(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;
@@ -56,8 +56,8 @@ static enum cdd_c_error check_io_helper(int rc) {
  * @param[in] config Build configuration.
  * @return 0 on success, EIO/EINVAL on failure.
  */
-static enum cdd_c_error
-generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
+static cdd_c_error_t generate_cmake(FILE *fp,
+                                    const struct CodegenBuildConfig *config) {
   size_t i;
 
   if (!config->project_name || !config->target_name) {
@@ -138,9 +138,8 @@ generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
 /**
  * @brief Generates C code for codegen build generate.
  */
-enum cdd_c_error
-codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
-                       const struct CodegenBuildConfig *config) {
+cdd_c_error_t codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
+                                     const struct CodegenBuildConfig *config) {
   if (!fp || !config)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

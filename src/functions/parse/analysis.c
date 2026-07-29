@@ -5,7 +5,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
@@ -33,13 +32,13 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
 /**
  * @brief Executes the allocation site list init operation.
  */
-enum cdd_c_error allocation_site_list_init(struct AllocationSiteList *list) {
+cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 8;
-  list->sites = (struct AllocationSite *)C_CDD_MALLOC(
-      list->capacity * sizeof(struct AllocationSite));
+  list->sites = (struct AllocationSite *)malloc(list->capacity *
+                                                sizeof(struct AllocationSite));
   if (!list->sites) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -57,9 +56,9 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
   if (list->sites) {
     for (i = 0; i < list->size; ++i) {
       if (list->sites[i].var_name)
-        C_CDD_FREE(list->sites[i].var_name);
+        free(list->sites[i].var_name);
     }
-    C_CDD_FREE(list->sites);
+    free(list->sites);
     list->sites = NULL;
   }
   list->size = 0;
@@ -69,18 +68,17 @@ void allocation_site_list_free(struct AllocationSiteList *list) {
 /**
  * @brief Executes the allocation site list add operation.
  */
-enum cdd_c_error allocation_site_list_add(struct AllocationSiteList *list,
-                                          size_t index, const char *var_name,
-                                          int checked, int used_before,
-                                          int is_ret,
-                                          const struct AllocatorSpec *spec) {
+cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
+                                       size_t index, const char *var_name,
+                                       int checked, int used_before, int is_ret,
+                                       const struct AllocatorSpec *spec) {
   char *_ast_strdup_0 = NULL;
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct AllocationSite *new_sites = (struct AllocationSite *)C_CDD_REALLOC(
+    struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
         list->sites, new_cap * sizeof(struct AllocationSite));
     if (!new_sites) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -112,8 +110,8 @@ enum cdd_c_error allocation_site_list_add(struct AllocationSiteList *list,
 /**
  * @brief Retrieves the assigned var.
  */
-static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
-                                         size_t assign_idx, char **_out_val) {
+static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
+                                      size_t assign_idx, char **_out_val) {
   size_t i = assign_idx;
   if (assign_idx == 0) {
     *_out_val = NULL;
@@ -133,10 +131,10 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         name = NULL;
       else
-        name = (char *)C_CDD_MALLOC(tok->length + 1);
+        name = (char *)malloc(tok->length + 1);
     }
 #else
-    name = (char *)C_CDD_MALLOC(tok->length + 1);
+    name = (char *)malloc(tok->length + 1);
 #endif
     if (!name) {
       *_out_val = NULL;
@@ -158,8 +156,8 @@ static enum cdd_c_error get_assigned_var(const struct TokenList *tokens,
 /**
  * @brief Checks if inside condition.
  */
-static enum cdd_c_error is_inside_condition(const struct TokenList *tokens,
-                                            size_t idx, int *out_is_inside) {
+static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
+                                         size_t idx, int *out_is_inside) {
   size_t i = idx;
   int paren_depth = 0;
   if (!out_is_inside)
@@ -201,8 +199,8 @@ static enum cdd_c_error is_inside_condition(const struct TokenList *tokens,
 /**
  * @brief Checks if dereference use.
  */
-static enum cdd_c_error is_dereference_use(const struct TokenList *tokens,
-                                           size_t i, int *out_is_deref) {
+static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
+                                        size_t i, int *out_is_deref) {
   if (!out_is_deref)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_deref = 0;
@@ -233,10 +231,9 @@ static enum cdd_c_error is_dereference_use(const struct TokenList *tokens,
 /**
  * @brief Checks if checked.
  */
-enum cdd_c_error is_checked(const struct TokenList *tokens, size_t alloc_idx,
-                            const char *var_name,
-                            const struct AllocatorSpec *spec,
-                            int *used_before_check, int *out_is_checked) {
+cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
+                         const char *var_name, const struct AllocatorSpec *spec,
+                         int *used_before_check, int *out_is_checked) {
   int _ast_token_matches_string_0 = 0;
   size_t i = alloc_idx;
   if (!out_is_checked)
@@ -296,8 +293,8 @@ enum cdd_c_error is_checked(const struct TokenList *tokens, size_t alloc_idx,
 /**
  * @brief Retrieves the allocations.
  */
-enum cdd_c_error find_allocations(const struct TokenList *tokens,
-                                  struct AllocationSiteList *out) {
+cdd_c_error_t find_allocations(const struct TokenList *tokens,
+                               struct AllocationSiteList *out) {
   int _ast_token_matches_string_1 = 0;
   char *_ast_get_assigned_var_2 = NULL;
   size_t i;
@@ -371,7 +368,7 @@ enum cdd_c_error find_allocations(const struct TokenList *tokens,
             is_checked(tokens, i, var_name, spec, &used_before, &checked);
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
-            C_CDD_FREE(var_name);
+            free(var_name);
             if (rc != 0)
               return rc;
           } else {

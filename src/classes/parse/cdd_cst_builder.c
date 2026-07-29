@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_builder.h"
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
@@ -12,14 +11,14 @@
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
-static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
-                                    const char **out_str);
-static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
-                                       cdd_token_t **out_tok);
+static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
+                                 const char **out_str);
+static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
+                                    cdd_token_t **out_tok);
 
-enum cdd_c_error cdd_cst_builder_init(cdd_cst_builder_t *builder,
-                                      cdd_cst_tree_t *tree,
-                                      cdd_cst_node_t *target_node) {
+cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
+                                   cdd_cst_tree_t *tree,
+                                   cdd_cst_node_t *target_node) {
   if (!builder || !tree || !target_node) {
 
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -31,7 +30,7 @@ enum cdd_c_error cdd_cst_builder_init(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_builder_free(cdd_cst_builder_t *builder) {
+cdd_c_error_t cdd_cst_builder_free(cdd_cst_builder_t *builder) {
   if (!builder) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -40,8 +39,8 @@ enum cdd_c_error cdd_cst_builder_free(cdd_cst_builder_t *builder) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
-                                           int *out_has_error) {
+cdd_c_error_t cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
+                                        int *out_has_error) {
   if (out_has_error)
     *out_has_error = 1;
   if (!builder) {
@@ -52,27 +51,26 @@ enum cdd_c_error cdd_cst_builder_has_error(const cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
-                                                  cdd_cst_node_t *node) {
+cdd_c_error_t cdd_cst_builder_set_insert_point(cdd_cst_builder_t *builder,
+                                               cdd_cst_node_t *node) {
   if (!builder || !node) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (builder->error_state != 0) {
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   }
   builder->target_node = node;
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_bld_token(cdd_cst_builder_t *builder,
-                                   enum cdd_token_kind_t kind,
-                                   const char *text) {
+cdd_c_error_t cdd_cst_bld_token(cdd_cst_builder_t *builder,
+                                enum cdd_token_kind_t kind, const char *text) {
   cdd_token_t *tok;
-  int rc;
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   if (cdd_cst_create_token(builder->tree, kind, text, &tok) != 0)
     tok = NULL;
@@ -82,7 +80,7 @@ enum cdd_c_error cdd_cst_bld_token(cdd_cst_builder_t *builder,
   }
 
   rc = cdd_cst_append_child_token(builder->target_node, tok);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
     return rc;
   }
@@ -90,48 +88,45 @@ enum cdd_c_error cdd_cst_bld_token(cdd_cst_builder_t *builder,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_bld_space(cdd_cst_builder_t *builder) {
+cdd_c_error_t cdd_cst_bld_space(cdd_cst_builder_t *builder) {
   return cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, " ");
 }
 
-enum cdd_c_error cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
+cdd_c_error_t cdd_cst_bld_newline(cdd_cst_builder_t *builder) {
   return cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, "\n");
 }
 
-enum cdd_c_error cdd_cst_bld_indent(cdd_cst_builder_t *builder,
-                                    int depth_level) {
+cdd_c_error_t cdd_cst_bld_indent(cdd_cst_builder_t *builder, int depth_level) {
   int i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   for (i = 0; i < depth_level * 2; i++) {
     rc = cdd_cst_bld_space(builder);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_bld_ident(cdd_cst_builder_t *builder,
-                                   const char *text) {
+cdd_c_error_t cdd_cst_bld_ident(cdd_cst_builder_t *builder, const char *text) {
   return cdd_cst_bld_token(builder, CDD_TOKEN_IDENTIFIER, text);
 }
 
-enum cdd_c_error cdd_cst_bld_string(cdd_cst_builder_t *builder,
-                                    const char *text) {
+cdd_c_error_t cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
   return cdd_cst_bld_token(builder, CDD_TOKEN_STRING, text);
 }
 
-enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
+cdd_c_error_t cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   char buf[32];
   const char *pooled;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "%d", value);
@@ -139,7 +134,7 @@ enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   CDD_SNPRINTF(buf, sizeof(buf), "%d", value);
 #endif
   {
-    enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+    cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
     if (pool_rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return pool_rc;
@@ -148,8 +143,7 @@ enum cdd_c_error cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
 }
 
-enum cdd_c_error cdd_cst_bld_punct(cdd_cst_builder_t *builder,
-                                   const char *text) {
+cdd_c_error_t cdd_cst_bld_punct(cdd_cst_builder_t *builder, const char *text) {
   enum cdd_token_kind_t kind = CDD_TOKEN_OTHER;
   if (text) {
     if (strcmp(text, "{") == 0)
@@ -190,18 +184,22 @@ enum cdd_c_error cdd_cst_bld_punct(cdd_cst_builder_t *builder,
   return cdd_cst_bld_token(builder, kind, text);
 }
 
-enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
-                                     const char *path, int is_system) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
+                                  int is_system) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_INCLUDE, "#include");
-  if (rc == 0)
-    rc = cdd_cst_bld_space(builder);
-  if (rc == 0) {
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  {
     if (is_system) {
       char buf[256];
 #if defined(_MSC_VER) && _MSC_VER >= 1400
@@ -211,7 +209,7 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
 #endif
       {
         const char *pooled = NULL;
-        enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+        cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return pool_rc;
@@ -227,7 +225,7 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
 #endif
       {
         const char *pooled = NULL;
-        enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
+        cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
           return pool_rc;
         }
@@ -235,146 +233,194 @@ enum cdd_c_error cdd_cst_bld_include(cdd_cst_builder_t *builder,
       }
     }
   }
-  if (rc == 0)
+  if (rc == CDD_C_SUCCESS)
     rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
-                                    const char *macro_name) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
+                                 const char *macro_name) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_IFNDEF, "#ifndef");
-  if (rc == 0)
-    rc = cdd_cst_bld_space(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_ident(builder, macro_name);
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_ident(builder, macro_name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
-                                   const char *macro_name) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
+                                const char *macro_name) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_IFDEF, "#ifdef");
-  if (rc == 0)
-    rc = cdd_cst_bld_space(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_ident(builder, macro_name);
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_ident(builder, macro_name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_else(cdd_cst_builder_t *builder) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_else(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_ELSE, "#else");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_endif(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   rc = cdd_cst_bld_token(builder, CDD_TOKEN_PREPROC_ENDIF, "#endif");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_extern_c_open(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   rc = cdd_cst_bld_ifdef(builder, "__cplusplus");
-  if (rc == 0)
-    rc = cdd_cst_bld_ident(builder, "extern");
-  if (rc == 0)
-    rc = cdd_cst_bld_space(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_string(builder, "\"C\"");
-  if (rc == 0)
-    rc = cdd_cst_bld_space(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_punct(builder, "{");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_endif(builder);
-  return rc;
-}
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-enum cdd_c_error cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
-  int rc;
-  if (!builder)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (builder->error_state != 0)
-    return builder->error_state;
-  rc = cdd_cst_bld_ifdef(builder, "__cplusplus");
-  if (rc == 0)
-    rc = cdd_cst_bld_punct(builder, "}");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
-  if (rc == 0)
-    rc = cdd_cst_bld_endif(builder);
-  return rc;
-}
+  rc = cdd_cst_bld_ident(builder, "extern");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-enum cdd_c_error cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
-  int rc;
-  if (!builder)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (builder->error_state != 0)
-    return builder->error_state;
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_string(builder, "\"C\"");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_space(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
   rc = cdd_cst_bld_punct(builder, "{");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
-  if (rc == 0)
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_endif(builder);
+  return rc;
+}
+
+cdd_c_error_t cdd_cst_bld_extern_c_close(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
+  if (!builder)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (builder->error_state != 0)
+    return (cdd_c_error_t)builder->error_state;
+  rc = cdd_cst_bld_ifdef(builder, "__cplusplus");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_punct(builder, "}");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_endif(builder);
+  return rc;
+}
+
+cdd_c_error_t cdd_cst_bld_block_open(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
+  if (!builder)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (builder->error_state != 0)
+    return (cdd_c_error_t)builder->error_state;
+  rc = cdd_cst_bld_punct(builder, "{");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
+  if (rc == CDD_C_SUCCESS)
     builder->indent_level++;
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
-  int rc;
+cdd_c_error_t cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
+  cdd_c_error_t rc;
   if (!builder)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   if (builder->indent_level > 0)
     builder->indent_level--;
   rc = cdd_cst_bld_indent(builder, builder->indent_level);
-  if (rc == 0)
-    rc = cdd_cst_bld_punct(builder, "}");
-  if (rc == 0)
-    rc = cdd_cst_bld_newline(builder);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_punct(builder, "}");
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = cdd_cst_bld_newline(builder);
   return rc;
 }
 
-static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
-                                    const char **out_str) {
+static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
+                                 const char **out_str) {
   char *dup;
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
+  if (!out_str)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_str = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(_MSC_VER)
@@ -382,33 +428,15 @@ static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
 #else
   dup = strdup(str);
 #endif
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0) {
-    C_CDD_FREE(dup);
-    dup = NULL;
-  }
-#endif
   if (!dup)
     return CDD_C_ERROR_MEMORY;
   if (tree->num_strings >= tree->string_capacity) {
-    size_t new_cap = 32;
-    char **new_pool;
-    if (tree->string_capacity != 0) {
-      new_cap = tree->string_capacity * 2;
-    }
-    new_pool =
-        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0) {
-      /* In a real realloc failure, the old pointer is kept.
-         For this test simulation, we just leak the potentially new pool and
-         pretend it failed if it's not the same pointer, or just pretend it
-         failed anyway */
-      new_pool = NULL;
-    }
-#endif
+    size_t new_cap =
+        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+    char **new_pool =
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      C_CDD_FREE(dup);
+      free(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -419,21 +447,21 @@ static enum cdd_c_error pool_string(cdd_cst_tree_t *tree, const char *str,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
-                                     const char *snippet) {
+cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
+                                  const char *snippet) {
   cdd_token_list_t *list = NULL;
   az_span span;
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!builder || !snippet)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   span = az_span_create_from_str((char *)snippet);
   rc = cdd_lexer_tokenize(span, &list);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
     return rc;
   }
@@ -450,14 +478,14 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
         continue;
       }
       {
-        enum cdd_c_error pool_rc = pool_string(builder->tree, tok_buf, &pooled);
+        cdd_c_error_t pool_rc = pool_string(builder->tree, tok_buf, &pooled);
         if (pool_rc != CDD_C_SUCCESS) {
           rc = CDD_C_ERROR_MEMORY;
           break;
         }
       }
       rc = cdd_cst_bld_token(builder, t->kind, pooled);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         break;
       {
         cdd_token_t *last = NULL;
@@ -502,23 +530,23 @@ enum cdd_c_error cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
   }
 
   cdd_lexer_free_token_list(list);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     builder->error_state = rc;
   return rc;
 }
 
-enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
-                               const char *format_string, ...) {
+cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
+                            const char *format_string, ...) {
   va_list args;
   const char *p;
   char snippet_buf[2048] = {0};
   size_t snippet_len = 0;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!builder || !format_string)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   va_start(args, format_string);
   for (p = format_string; *p; p++) {
@@ -533,7 +561,7 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
           snippet_buf[snippet_len] = '\0';
           rc = cdd_cst_bld_snippet(builder, snippet_buf);
           snippet_len = 0;
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             break;
         }
 
@@ -549,7 +577,7 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
             rc = cdd_cst_append_child_node(builder->target_node, node);
           }
         }
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           break;
       }
     } else {
@@ -559,33 +587,33 @@ enum cdd_c_error cdd_cst_quote(cdd_cst_builder_t *builder,
     }
   }
 
-  if (rc == 0 && snippet_len > 0) {
+  if (rc == CDD_C_SUCCESS && snippet_len > 0) {
     snippet_buf[snippet_len] = '\0';
     rc = cdd_cst_bld_snippet(builder, snippet_buf);
   }
 
   va_end(args);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     builder->error_state = rc;
   return rc;
 }
 
-enum cdd_c_error cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
-                                          const char *text) {
+cdd_c_error_t cdd_cst_bld_line_comment(cdd_cst_builder_t *builder,
+                                       const char *text) {
   /* Line comments aren't standard C89 but commonly accepted or we can just
      inject a block comment. The prompt specified strictly C89, so we will
      actually map line comments to block comments! */
   return cdd_cst_bld_block_comment(builder, text);
 }
 
-static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
-                                      cdd_trivia_t **out_trivia) {
+static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
+                                   cdd_trivia_t **out_trivia) {
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
   cdd_trivia_t *t;
   const char *dup;
-  enum cdd_c_error pool_rc;
+  cdd_c_error_t pool_rc;
   if (!tree || !text || !out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
@@ -594,7 +622,7 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
     t = NULL;
   else
 #endif
-    t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
+    t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
 
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -602,7 +630,7 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
   }
   pool_rc = pool_string(tree, text, (const char **)&dup);
   if (pool_rc != CDD_C_SUCCESS) {
-    C_CDD_FREE(t);
+    free(t);
     return pool_rc;
   }
 
@@ -614,8 +642,8 @@ static enum cdd_c_error create_trivia(cdd_cst_tree_t *tree, const char *text,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
-                                           const char *text) {
+cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
+                                        const char *text) {
   char buf[1024];
   cdd_trivia_t *trivia = NULL;
   cdd_token_t *target_tok = NULL;
@@ -623,7 +651,7 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   if (!builder || !text)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "/* %s */", text);
@@ -631,12 +659,10 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
   CDD_SNPRINTF(buf, sizeof(buf), "/* %s */", text);
 #endif
 
-  {
-    enum cdd_c_error rc = create_trivia(builder->tree, buf, &trivia);
-    if (rc != CDD_C_SUCCESS) {
-      builder->error_state = rc;
-      return rc;
-    }
+  create_trivia(builder->tree, buf, &trivia);
+  if (!trivia) {
+    builder->error_state = CDD_C_ERROR_MEMORY;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (builder->target_node->num_children > 0) {
@@ -662,70 +688,70 @@ enum cdd_c_error cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
    */
   {
     const char *pooled = NULL;
-    enum cdd_c_error rc;
-    {
-      enum cdd_c_error pool_rc = pool_string(builder->tree, buf, &pooled);
-      if (pool_rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(trivia);
-        return pool_rc;
-      }
+    cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
+    cdd_c_error_t rc;
+    if (pool_rc != CDD_C_SUCCESS) {
+      free(trivia);
+      return pool_rc;
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
-    C_CDD_FREE(
-        trivia); /* since it became a real token via string pool mapping */
+    free(trivia); /* since it became a real token via string pool mapping */
     return rc;
   }
 }
 
-static enum cdd_c_error get_first_token(cdd_cst_node_t *node,
-                                        cdd_token_t **out_tok) {
+static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
+                                     cdd_token_t **out_tok) {
   size_t i;
+  if (!node || !out_tok)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    }
-    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      if (get_first_token(node->children[i].val.node, out_tok) == CDD_C_SUCCESS)
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_token_t *t = NULL;
+      if (get_first_token(node->children[i].val.node, &t) == 0 && t) {
+        *out_tok = t;
         return CDD_C_SUCCESS;
-    }
-  }
-  return CDD_C_ERROR_NOT_FOUND;
-}
-
-static enum cdd_c_error get_last_token(cdd_cst_node_t *node,
-                                       cdd_token_t **out_tok) {
-  int i;
-  *out_tok = NULL;
-  for (i = (int)node->num_children - 1; i >= 0; i--) {
-    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
-      *out_tok = node->children[i].val.token;
-      return CDD_C_SUCCESS;
-    }
-    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      {
-        enum cdd_c_error get_rc =
-            get_last_token(node->children[i].val.node, out_tok);
-        if (get_rc != CDD_C_ERROR_NOT_FOUND)
-          return get_rc;
       }
     }
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-enum cdd_c_error cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
-                                                cdd_trivia_t **out_trivia) {
+static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
+                                    cdd_token_t **out_tok) {
+  int i;
+  if (!node || !out_tok)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_tok = NULL;
+  for (i = (int)node->num_children - 1; i >= 0; i--) {
+    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+      *out_tok = node->children[i].val.token;
+      return CDD_C_SUCCESS;
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_token_t *t = NULL;
+      if (get_last_token(node->children[i].val.node, &t) == 0 && t) {
+        *out_tok = t;
+        return CDD_C_SUCCESS;
+      }
+    }
+  }
+  return CDD_C_ERROR_NOT_FOUND;
+}
+
+cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
+                                             cdd_trivia_t **out_trivia) {
   cdd_token_t *t = NULL;
+  cdd_c_error_t rc;
   if (!out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
-  {
-    enum cdd_c_error rc = get_first_token(node, &t);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-      return rc;
-  }
+  rc = get_first_token(node, &t);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (t) {
     *out_trivia = t->leading_trivia;
     t->leading_trivia = NULL;
@@ -733,17 +759,16 @@ enum cdd_c_error cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
-                                                 cdd_trivia_t **out_trivia) {
+cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
+                                              cdd_trivia_t **out_trivia) {
   cdd_token_t *t = NULL;
+  cdd_c_error_t rc;
   if (!out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
-  {
-    enum cdd_c_error rc = get_last_token(node, &t);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-      return rc;
-  }
+  rc = get_last_token(node, &t);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (t) {
     *out_trivia = t->trailing_trivia;
     t->trailing_trivia = NULL;
@@ -751,37 +776,21 @@ enum cdd_c_error cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
-                                         cdd_cst_node_t *target_node) {
-  cdd_trivia_t *lead = NULL;
-  cdd_trivia_t *trail = NULL;
+cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
+                                      cdd_cst_node_t *target_node) {
+  cdd_trivia_t *lead;
+  cdd_trivia_t *trail;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
 
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    enum cdd_c_error rc = cdd_cst_extract_leading_trivia(source_node, &lead);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
-  {
-    enum cdd_c_error rc = cdd_cst_extract_trailing_trivia(source_node, &trail);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
+  cdd_cst_extract_leading_trivia(source_node, &lead);
+  cdd_cst_extract_trailing_trivia(source_node, &trail);
 
-  {
-    enum cdd_c_error rc = get_first_token(target_node, &t_first);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-      return rc;
-  }
-  {
-    enum cdd_c_error rc = get_last_token(target_node, &t_last);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-      return rc;
-  }
+  get_first_token(target_node, &t_first);
+  get_last_token(target_node, &t_last);
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
@@ -809,39 +818,38 @@ enum cdd_c_error cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
                                      cdd_cst_node_t *target_node,
                                      cdd_cst_node_t *replacement_node) {
-  int rc;
+  cdd_c_error_t rc;
   if (!builder || !target_node || !replacement_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
 
   /* transfer_trivia unbinds trivia from target and moves to replacement */
   cdd_cst_transfer_trivia(target_node, replacement_node);
 
   /* utilize underlying replace mechanism which handles parent array swapping */
   rc = cdd_cst_replace_node(builder->tree, target_node, replacement_node);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
   }
   return rc;
 }
 
-enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
-                                      cdd_cst_node_t *parent, size_t index,
-                                      cdd_cst_node_t **new_nodes,
-                                      size_t count) {
+cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
+                                   cdd_cst_node_t *parent, size_t index,
+                                   cdd_cst_node_t **new_nodes, size_t count) {
   cdd_cst_child_t *children_wrappers;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!builder || !parent || (!new_nodes && count > 0))
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
-    return builder->error_state;
+    return (cdd_c_error_t)builder->error_state;
   if (count == 0)
     return CDD_C_SUCCESS;
 
@@ -852,11 +860,10 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
       children_wrappers = NULL;
     else
       children_wrappers =
-          (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
+          (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
   }
 #else
-  children_wrappers =
-      (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
+  children_wrappers = (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
 #endif
   if (!children_wrappers) {
     builder->error_state = CDD_C_ERROR_MEMORY;
@@ -871,9 +878,9 @@ enum cdd_c_error cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   /* 0 elements to consume, we are just inserting them */
   rc = cdd_cst_splice_children(builder->tree, &parent, index, 0,
                                children_wrappers, count);
-  C_CDD_FREE(children_wrappers);
+  free(children_wrappers);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;
   }
   return rc;

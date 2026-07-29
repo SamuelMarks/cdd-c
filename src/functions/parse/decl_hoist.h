@@ -53,7 +53,7 @@ struct HoistSiteList {
 /**
  * @brief Initialize a hoist site list.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 hoist_site_list_init(struct HoistSiteList *list);
 
 /**
@@ -72,7 +72,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the scan for mixed declarations
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     scan_for_mixed_declarations(const struct TokenList *tokens,
                                 struct HoistSiteList *list);
 

@@ -12,9 +12,8 @@ extern "C" {
 #include "cdd_c_error.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT enum cdd_c_error serve_json_rpc_main(int argc, char **argv);
-extern C_CDD_EXPORT enum cdd_c_error serve_mcp_stdio_main(int argc,
-                                                          char **argv);
+extern C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

@@ -22,9 +22,8 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
-static enum cdd_c_error token_to_cstr(char *buf, size_t buf_len,
-                                      const struct Token *tok,
-                                      char **_out_val) {
+static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
+                                   const struct Token *tok, char **_out_val) {
   size_t copy_len;
   if (buf_len == 0) {
     *_out_val = NULL;
@@ -101,7 +100,7 @@ TEST tokenize_all_tokens(void) {
   ASSERT_GT(brace, 0);
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,7 +137,7 @@ TEST tokenize_c23_digit_separators(void) {
                             _ast_token_to_cstr_2));
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -175,6 +174,7 @@ TEST test_tokenizer_error_handling(void) {
             identify_keyword_or_id(NULL, 5, NULL));
   ASSERT_EQ(0, identify_keyword_or_id(NULL, 5, &kind));
   ASSERT_EQ(TOKEN_IDENTIFIER, kind);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -215,7 +215,7 @@ TEST tokenize_digit_separator_edge_case(void) {
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl->tokens[1].kind);
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

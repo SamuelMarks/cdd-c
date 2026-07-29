@@ -386,8 +386,7 @@ struct DocMetadata {
  * @param[out] meta The structure to initialize.
  * @return 0 on success, EINVAL if meta is NULL.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-doc_metadata_init(struct DocMetadata *meta);
+extern C_CDD_EXPORT cdd_c_error_t doc_metadata_init(struct DocMetadata *meta);
 
 /**
  * @brief Free resources within a DocMetadata structure.
@@ -407,8 +406,8 @@ extern C_CDD_EXPORT void doc_metadata_free(struct DocMetadata *meta);
  * @param[out] out The destination structure (must be initialized).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad input.
  */
-extern C_CDD_EXPORT enum cdd_c_error doc_parse_block(const char *comment,
-                                                     struct DocMetadata *out);
+extern C_CDD_EXPORT cdd_c_error_t doc_parse_block(const char *comment,
+                                                  struct DocMetadata *out);
 
 #ifdef __cplusplus
 }

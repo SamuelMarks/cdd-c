@@ -1,5 +1,5 @@
 extern C_CDD_EXPORT int g_fail_io_after;
-
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_arrays_primitive.c
  * @brief Unit tests for primitive array generation and parsing.
@@ -12,7 +12,6 @@ extern C_CDD_EXPORT int g_fail_io_after;
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,23 +70,23 @@ TEST test_generated_copy_logic(void) {
   output_len = ftell(tmp);
   rewind(tmp);
 
-  output_buf = C_CDD_MALLOC(output_len + 1); if (!output_buf) return CDD_C_ERROR_MEMORY;
+  output_buf = malloc(output_len + 1); if (!output_buf) return CDD_C_ERROR_MEMORY;
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
   /* Verify malloc logic for int array */
   ASSERT(strstr(output_buf,
-                "ret->int_arr = C_CDD_MALLOC(ret->n_int_arr * sizeof(int));"));
+                "ret->int_arr = malloc(ret->n_int_arr * sizeof(int));"));
 
   /* Verify loop for strings */
   ASSERT(strstr(output_buf,
-                "ret->str_arr = C_CDD_MALLOC(ret->n_str_arr * sizeof(char*));"));
+                "ret->str_arr = malloc(ret->n_str_arr * sizeof(char*));"));
   ASSERT(strstr(output_buf, "strdup(s)"));
 
-  C_CDD_FREE(output_buf);
+  free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -143,7 +142,7 @@ TEST test_code2schema_array_detection(void) {
   fseek(f, 0, SEEK_END);
   len = ftell(f);
   rewind(f);
-  json_content = (char *)C_CDD_MALLOC(len + 1);
+  json_content = (char *)malloc(len + 1);
   if (!json_content)
     return CDD_C_ERROR_MEMORY;
   fread(json_content, 1, len, f);
@@ -184,10 +183,10 @@ TEST test_code2schema_array_detection(void) {
   */
   ASSERT(strstr(json_content, "\"n_nums\"") == NULL);
 
-  C_CDD_FREE(json_content);
+  free(json_content);
   remove("test_array.h");
   remove(json_out_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -196,7 +195,7 @@ SUITE(arrays_primitive_suite) {
   RUN_TEST(test_code2schema_array_detection);
 }
 
-enum cdd_c_error main(int argc, char **argv) {
+cdd_c_error_t main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(arrays_primitive_suite);
   GREATEST_MAIN_END();

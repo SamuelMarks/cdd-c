@@ -1,13 +1,14 @@
 #ifndef C_CDD_SAFE_CRT_H
 #define C_CDD_SAFE_CRT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include <stdio.h>
 #include <string.h>
 /* clang-format on */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * @file safe_crt.h
@@ -37,8 +38,8 @@ extern "C" {
 #define CDD_STRCPY(dest, dest_sz, src) strcpy(dest, src)
 #endif
 
-#endif /* C_CDD_SAFE_CRT_H */
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* C_CDD_SAFE_CRT_H */

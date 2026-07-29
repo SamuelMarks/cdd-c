@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -35,7 +34,7 @@ TEST test_safe_crt_strcpy(void) {
   struct SafeCrtPatchList patches;
   int rc;
 
-  nodes = C_CDD_CALLOC(1, sizeof(struct CstNodeList));
+  nodes = calloc(1, sizeof(struct CstNodeList));
 
   az_span span = az_span_create((uint8_t *)src, strlen(src));
   rc = tokenize(span, &tokens);
@@ -58,9 +57,9 @@ TEST test_safe_crt_strcpy(void) {
 
   safe_crt_patch_list_free(&patches);
   free_cst_node_list(nodes);
-  C_CDD_FREE(nodes);
+  free(nodes);
   free_token_list(tokens);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -71,9 +71,8 @@ static void capitalize_first(char *str) {
   }
 }
 
-enum cdd_c_error
-cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
-                  const cdd_generate_bindings_config_t *config) {
+cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
+                                const cdd_generate_bindings_config_t *config) {
   FILE *h_file = NULL;
   FILE *m_file = NULL;
   char h_filepath[1024];
@@ -83,8 +82,9 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       config->module_name ? config->module_name : "Bindings";
   size_t i, j;
 
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(h_filepath, sizeof(h_filepath), "%s\\%s.h", config->output_dir,
@@ -106,15 +106,6 @@ cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   if (!h_file)
     return CDD_C_ERROR_UNKNOWN;
   m_file = fopen(m_filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 556) {
-      if (m_file) {
-        fclose(m_file);
-        m_file = NULL;
-      }
-    }
-  }
   if (!m_file) {
     fclose(h_file);
     return CDD_C_ERROR_UNKNOWN;

@@ -55,7 +55,7 @@ struct AuditStats {
  * @brief Initialize audit statistics to zero.
  * @param[out] stats Pointer to structure.
  */
-extern C_CDD_EXPORT enum cdd_c_error audit_stats_init(struct AuditStats *stats);
+extern C_CDD_EXPORT cdd_c_error_t audit_stats_init(struct AuditStats *stats);
 
 /**
  * @brief Cleanup audit statistics structure.
@@ -73,8 +73,8 @@ extern C_CDD_EXPORT void audit_stats_free(struct AuditStats *stats);
  * @param[out] stats The statistics structure to update.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error audit_project(const char *root_path,
-                                                   struct AuditStats *stats);
+extern C_CDD_EXPORT cdd_c_error_t audit_project(const char *root_path,
+                                                struct AuditStats *stats);
 
 /**
  * @brief Generate a JSON report string from audit stats.
@@ -84,7 +84,7 @@ extern C_CDD_EXPORT enum cdd_c_error audit_project(const char *root_path,
  * @param[out] out_json Pointer to store the result
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 audit_print_json(const struct AuditStats *stats, char **out_json);
 
 #ifdef __cplusplus

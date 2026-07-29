@@ -11,16 +11,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_fail_alloc;
+/* clang-format on */
 
 /**
  * @brief Tests basic functionality of designated initializer scanning.
@@ -52,6 +51,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
   desig_init_list_free(&list);
   free_token_list(tokens);
 
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -69,7 +69,7 @@ TEST test_scan_for_designated_initializers_errors(void) {
 
   desig_init_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -235,13 +235,12 @@ TEST test_desig_init_list_free_nulls(void) {
   (void)desig_init_list_init(&list);
   list.count = 2;
   list.capacity = 2;
-  list.sites =
-      (struct DesigInitSite *)C_CDD_CALLOC(2, sizeof(struct DesigInitSite));
+  list.sites = (struct DesigInitSite *)calloc(2, sizeof(struct DesigInitSite));
 
   /* leave sites[0] fields NULL */
-  list.sites[1].field_name = (char *)C_CDD_MALLOC(2);
+  list.sites[1].field_name = (char *)malloc(2);
   strcpy(list.sites[1].field_name, "a");
-  list.sites[1].value_expr = (char *)C_CDD_MALLOC(2);
+  list.sites[1].value_expr = (char *)malloc(2);
   strcpy(list.sites[1].value_expr, "1");
 
   desig_init_list_free(&list);

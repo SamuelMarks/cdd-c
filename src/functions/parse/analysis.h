@@ -91,7 +91,7 @@ struct AllocationSiteList {
  * @param[out] list The list to initialize.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 allocation_site_list_init(struct AllocationSiteList *list);
 
 /**
@@ -116,10 +116,9 @@ allocation_site_list_free(struct AllocationSiteList *list);
  * @param[in] spec The allocator specification.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-allocation_site_list_add(struct AllocationSiteList *list, size_t index,
-                         const char *var_name, int checked, int used_before,
-                         int is_ret, const struct AllocatorSpec *spec);
+extern C_CDD_EXPORT cdd_c_error_t allocation_site_list_add(
+    struct AllocationSiteList *list, size_t index, const char *var_name,
+    int checked, int used_before, int is_ret, const struct AllocatorSpec *spec);
 
 /**
  * @brief Scan a token stream for memory safety patterns.
@@ -136,7 +135,7 @@ allocation_site_list_add(struct AllocationSiteList *list, size_t index,
 extern C_CDD_EXPORT /**
                      * @brief Retrieves the allocations.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     find_allocations(const struct TokenList *tokens,
                      struct AllocationSiteList *out);
 
@@ -158,7 +157,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Checks if checked.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     is_checked(const struct TokenList *tokens, size_t alloc_idx,
                const char *var_name, const struct AllocatorSpec *spec,
                int *used_before_check, int *out_is_checked);

@@ -47,7 +47,7 @@ struct OpenApiTypeMapping {
  * @brief Initialize a mapping result structure.
  * @param[out] out The structure to zero.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 c_mapping_init(struct OpenApiTypeMapping *out);
 
 /**
@@ -79,7 +79,7 @@ extern C_CDD_EXPORT void c_mapping_free(struct OpenApiTypeMapping *out);
  * @param[out] out The result structure.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 c_mapping_map_type(const char *c_type_in, const char *decl_name,
                    struct OpenApiTypeMapping *out);
 

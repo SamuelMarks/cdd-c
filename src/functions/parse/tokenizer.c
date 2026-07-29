@@ -3,13 +3,12 @@
  * @brief Implementation of the C tokenizer.
  */
 
+/* clang-format off */
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wc99-extensions"
 #endif
 
-/* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 
 #include <errno.h>
@@ -32,7 +31,7 @@
  * @return The replacement char or 0 if not a trigraph.
  */
 
-static enum cdd_c_error get_trigraph_map(int c3) {
+static cdd_c_error_t get_trigraph_map(int c3) {
 
   switch (c3) {
 
@@ -91,10 +90,9 @@ static enum cdd_c_error get_trigraph_map(int c3) {
  * @return The logical character (int), or EOF (-1) if end of buffer.
  */
 
-static enum cdd_c_error peek_logical(const uint8_t *base, size_t len,
-                                     size_t pos,
+static cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
 
-                                     size_t *out_consumed) {
+                                  size_t *out_consumed) {
 
   size_t current = pos;
 
@@ -168,11 +166,10 @@ static enum cdd_c_error peek_logical(const uint8_t *base, size_t len,
 /**
  * @brief Executes the token list add operation.
  */
-static enum cdd_c_error token_list_add(struct TokenList *tl,
-                                       const enum TokenKind kind,
+static cdd_c_error_t token_list_add(struct TokenList *tl,
+                                    const enum TokenKind kind,
 
-                                       const uint8_t *start,
-                                       const size_t length) {
+                                    const uint8_t *start, const size_t length) {
 
   if (!tl)
 
@@ -184,8 +181,7 @@ static enum cdd_c_error token_list_add(struct TokenList *tl,
 
     struct Token *new_arr =
 
-        (struct Token *)C_CDD_REALLOC(tl->tokens,
-                                      new_cap * sizeof(struct Token));
+        (struct Token *)realloc(tl->tokens, new_cap * sizeof(struct Token));
 
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -211,8 +207,8 @@ static enum cdd_c_error token_list_add(struct TokenList *tl,
 /**
  * @brief Executes the span equals str operation.
  */
-static enum cdd_c_error span_equals_str(const az_span span, const char *str,
-                                        int *_out_val) {
+static cdd_c_error_t span_equals_str(const az_span span, const char *str,
+                                     int *_out_val) {
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
@@ -229,8 +225,8 @@ static enum cdd_c_error span_equals_str(const az_span span, const char *str,
 /**
  * @brief Executes the identify keyword or id operation.
  */
-enum cdd_c_error identify_keyword_or_id(const uint8_t *start, size_t len,
-                                        enum TokenKind *_out_val) {
+cdd_c_error_t identify_keyword_or_id(const uint8_t *start, size_t len,
+                                     enum TokenKind *_out_val) {
   int _ast_attr = 0;
   int _ast_declspec = 0;
   int _ast_span_equals_str_0 = 0;
@@ -781,9 +777,9 @@ enum cdd_c_error identify_keyword_or_id(const uint8_t *start, size_t len,
 /**
  * @brief Executes the token find next operation.
  */
-enum cdd_c_error token_find_next(const struct TokenList *list, size_t start_idx,
-                                 size_t end_idx, const enum TokenKind kind,
-                                 size_t *_out_val) {
+cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
+                              size_t end_idx, const enum TokenKind kind,
+                              size_t *_out_val) {
   size_t i, limit;
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -820,19 +816,19 @@ void free_token_list(struct TokenList *tl) {
 
   if (tl->tokens) {
 
-    C_CDD_FREE(tl->tokens);
+    free(tl->tokens);
 
     tl->tokens = NULL;
   }
 
-  C_CDD_FREE(tl);
+  free(tl);
 }
 
 /**
  * @brief Executes the token matches string operation.
  */
-enum cdd_c_error token_matches_string(const struct Token *tok,
-                                      const char *match, int *_out_val) {
+cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
+                                   int *_out_val) {
   size_t m_len;
   size_t i_tok = 0, i_match = 0;
   const uint8_t *t;
@@ -889,7 +885,7 @@ enum cdd_c_error token_matches_string(const struct Token *tok,
 /**
  * @brief Executes the tokenize operation.
  */
-enum cdd_c_error tokenize(const az_span source, struct TokenList **const out) {
+cdd_c_error_t tokenize(const az_span source, struct TokenList **const out) {
   enum TokenKind _ast_identify_keyword_or_id_57;
   int _ast_token_matches_string_58 = 0;
   int _ast_token_matches_string_59 = 0;
@@ -912,7 +908,7 @@ enum cdd_c_error tokenize(const az_span source, struct TokenList **const out) {
 
   len = (size_t)az_span_size(source);
 
-  list = (struct TokenList *)C_CDD_CALLOC(1, sizeof(struct TokenList));
+  list = (struct TokenList *)calloc(1, sizeof(struct TokenList));
 
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

@@ -52,7 +52,7 @@ struct DesigInitList {
 /**
  * @brief Initialize a list of designated initializers.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 desig_init_list_init(struct DesigInitList *list);
 
 /**
@@ -67,9 +67,8 @@ extern C_CDD_EXPORT void desig_init_list_free(struct DesigInitList *list);
  * @param[out] list The initialized list to populate.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-scan_for_designated_initializers(const struct TokenList *tokens,
-                                 struct DesigInitList *list);
+extern C_CDD_EXPORT cdd_c_error_t scan_for_designated_initializers(
+    const struct TokenList *tokens, struct DesigInitList *list);
 
 #ifdef __cplusplus
 }

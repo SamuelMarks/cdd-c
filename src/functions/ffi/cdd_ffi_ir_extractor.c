@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/inspector.h"
 #include "../../classes/parse/cdd_cst_parser.h"
@@ -16,37 +15,37 @@
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
 #endif
+/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 #include "c_cdd_export.h"
-/* clang-format on */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 #define CDD_MALLOC(sz)                                                         \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : C_CDD_MALLOC(sz))
+       : malloc(sz))
 #define CDD_CALLOC(n, sz)                                                      \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : C_CDD_CALLOC(n, sz))
+       : calloc(n, sz))
 #define CDD_REALLOC(ptr, sz)                                                   \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
-       : C_CDD_REALLOC(ptr, sz))
+       : realloc(ptr, sz))
 #define CDD_STRDUP(s)                                                          \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
        ? NULL                                                                  \
        : strdup(s))
 #else
-#define CDD_MALLOC(sz) C_CDD_MALLOC(sz)
-#define CDD_CALLOC(n, sz) C_CDD_CALLOC(n, sz)
-#define CDD_REALLOC(ptr, sz) C_CDD_REALLOC(ptr, sz)
+#define CDD_MALLOC(sz) malloc(sz)
+#define CDD_CALLOC(n, sz) calloc(n, sz)
+#define CDD_REALLOC(ptr, sz) realloc(ptr, sz)
 #define CDD_STRDUP(s) strdup(s)
 #endif
 
-static enum cdd_c_error ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
-                                    const char *name,
-                                    cdd_ffi_ir_node_t **out_node) {
+static cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
+                                 const char *name,
+                                 cdd_ffi_ir_node_t **out_node) {
   cdd_ffi_ir_node_t *node;
 
   if (ir->nodes_count >= ir->nodes_capacity) {
@@ -72,11 +71,11 @@ static enum cdd_c_error ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
-map_c_type_to_ffi_kind(const char *c_type, cdd_ffi_primitive_kind_t *out_kind);
+static cdd_c_error_t map_c_type_to_ffi_kind(const char *c_type,
+                                            cdd_ffi_primitive_kind_t *out_kind);
 
-static enum cdd_c_error parse_template_type(const char *c_type,
-                                            cdd_ffi_type_t *out_type) {
+static cdd_c_error_t parse_template_type(const char *c_type,
+                                         cdd_ffi_type_t *out_type) {
   const char *lt = strchr(c_type, '<');
   const char *gt = strrchr(c_type, '>');
   size_t base_len;
@@ -110,16 +109,16 @@ static enum cdd_c_error parse_template_type(const char *c_type,
   out_type->template_args =
       (cdd_ffi_type_t *)CDD_CALLOC(1, sizeof(cdd_ffi_type_t));
   if (!out_type->template_args) {
-    C_CDD_FREE(inner_type_str);
+    free(inner_type_str);
     return CDD_C_ERROR_MEMORY;
   }
 
   {
-    enum cdd_c_error rc;
+    cdd_c_error_t rc;
     rc = map_c_type_to_ffi_kind(inner_type_str,
                                 &out_type->template_args[0].kind);
     if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(inner_type_str);
+      free(inner_type_str);
       return rc;
     }
   }
@@ -132,11 +131,11 @@ static enum cdd_c_error parse_template_type(const char *c_type,
     }
   }
 
-  C_CDD_FREE(inner_type_str);
+  free(inner_type_str);
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 map_c_type_to_ffi_kind(const char *c_type, cdd_ffi_primitive_kind_t *out_kind) {
   if (!out_kind)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -224,10 +223,10 @@ map_c_type_to_ffi_kind(const char *c_type, cdd_ffi_primitive_kind_t *out_kind) {
   return CDD_C_SUCCESS;
 }
 
-C_CDD_EXPORT enum cdd_c_error cdd_ffi_mangle_cpp_name(const char *ns_name,
-                                                      const char *class_name,
-                                                      const char *method_name,
-                                                      char **out_mangled) {
+C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
+                                                   const char *class_name,
+                                                   const char *method_name,
+                                                   char **out_mangled) {
   size_t len = 0;
   char *mangled = NULL;
 
@@ -271,7 +270,7 @@ C_CDD_EXPORT enum cdd_c_error cdd_ffi_mangle_cpp_name(const char *ns_name,
   return 0;
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
@@ -283,15 +282,15 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
   (void)config;
 
   rc = type_def_list_init(&types);
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     /* Extract Types */
     rc = c_inspector_scan_file_types(filename, &types);
-    if (rc == 0) {
+    if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < types.size; i++) {
         cdd_ffi_ir_node_t *node = NULL;
         if (types.items[i].kind == KIND_ENUM) {
           rc = ir_add_node(ir, CDD_FFI_NODE_ENUM, types.items[i].name, &node);
-          if (rc == 0 && types.items[i].details.enum_members &&
+          if (rc == CDD_C_SUCCESS && types.items[i].details.enum_members &&
               types.items[i].details.enum_members->size > 0) {
             size_t j;
             struct EnumMembers *em = types.items[i].details.enum_members;
@@ -312,11 +311,11 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
               }
             }
           }
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             break;
         } else if (types.items[i].kind == KIND_STRUCT) {
           rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, types.items[i].name, &node);
-          if (rc == 0) {
+          if (rc == CDD_C_SUCCESS) {
             /* Add parsing for base classes from CST */
             cdd_cst_tree_t *tree_base = NULL;
             cdd_cst_query_result_t structs_base = {0};
@@ -417,12 +416,12 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                   }
                 }
                 if (structs_base.nodes)
-                  C_CDD_FREE(structs_base.nodes);
+                  free(structs_base.nodes);
               }
               cdd_cst_tree_free(tree_base);
             }
           }
-          if (rc == 0 && types.items[i].details.struct_fields &&
+          if (rc == CDD_C_SUCCESS && types.items[i].details.struct_fields &&
               types.items[i].details.struct_fields->size > 0) {
             size_t j;
             struct StructFields *sf = types.items[i].details.struct_fields;
@@ -443,7 +442,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
               target_c_type = sf->fields[j].ref[0] != '\0' ? sf->fields[j].ref
                                                            : sf->fields[j].type;
               {
-                enum cdd_c_error m_rc;
+                cdd_c_error_t m_rc;
                 m_rc = map_c_type_to_ffi_kind(target_c_type,
                                               &node->fields[j].type.kind);
                 if (m_rc != CDD_C_SUCCESS) {
@@ -470,7 +469,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
               }
             }
           }
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             break;
         }
       }
@@ -478,17 +477,17 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     type_def_list_free(&types);
   }
 
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     rc = func_sig_list_init(&sigs);
-    if (rc == 0) {
+    if (rc == CDD_C_SUCCESS) {
       /* Extract Functions */
       rc = c_inspector_extract_signatures(content, &sigs);
-      if (rc == 0) {
+      if (rc == CDD_C_SUCCESS) {
         for (i = 0; i < sigs.size; i++) {
           cdd_ffi_ir_node_t *node = NULL;
           rc =
               ir_add_node(ir, CDD_FFI_NODE_FUNCTION, sigs.items[i].name, &node);
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             break;
           if (node) {
             /* Since inspector currently only extracts 'sig' and 'name', we just
@@ -611,7 +610,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     }
   }
 
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     /* Extract Macros as Constants */
     struct PreprocessorContext pp_ctx;
     if (pp_context_init(&pp_ctx) == 0) {
@@ -624,7 +623,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             cdd_ffi_ir_node_t *node = NULL;
             rc = ir_add_node(ir, CDD_FFI_NODE_MACRO, pp_ctx.macros[j].name,
                              &node);
-            if (rc == 0 && node) {
+            if (rc == CDD_C_SUCCESS && node) {
               cdd_macro_eval_result_t eval_res;
               node->variants_count = 1;
               node->variants = (cdd_ffi_enum_variant_t *)CDD_CALLOC(
@@ -669,7 +668,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     }
   }
 
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     /* Inject casting helpers for multiple inheritance */
     size_t orig_count = ir->nodes_count;
     size_t k;
@@ -707,7 +706,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
 #endif
 
           rc = ir_add_node(ir, CDD_FFI_NODE_FUNCTION, up_name, &upcast_node);
-          if (rc == 0 && upcast_node) {
+          if (rc == CDD_C_SUCCESS && upcast_node) {
             upcast_node->return_or_base_type.kind = CDD_FFI_KIND_STRUCT_REF;
             upcast_node->return_or_base_type.ref_name =
                 CDD_STRDUP(ir->nodes[k].base_classes[b].name);
@@ -724,7 +723,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
 
           rc =
               ir_add_node(ir, CDD_FFI_NODE_FUNCTION, down_name, &downcast_node);
-          if (rc == 0 && downcast_node) {
+          if (rc == CDD_C_SUCCESS && downcast_node) {
             downcast_node->return_or_base_type.kind = CDD_FFI_KIND_STRUCT_REF;
             downcast_node->return_or_base_type.ref_name =
                 CDD_STRDUP(ir->nodes[k].name);
@@ -756,7 +755,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
 #endif
 
         rc = ir_add_node(ir, CDD_FFI_NODE_STRUCT, tramp_name, &trampoline_node);
-        if (rc == 0 && trampoline_node) {
+        if (rc == CDD_C_SUCCESS && trampoline_node) {
           /* Add fields for target_lang_ctx, AddRef, Release, and one per
            * virtual method */
           trampoline_node->fields_count =
@@ -804,18 +803,23 @@ struct IncludeMergeCtx {
   struct PreprocessorContext *pp_ctx;
 };
 
-static enum cdd_c_error is_visited(struct IncludeMergeCtx *ctx,
-                                   const char *path) {
+static cdd_c_error_t is_visited(struct IncludeMergeCtx *ctx, const char *path,
+                                int *out_visited) {
   size_t k;
+  if (!out_visited)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_visited = 0;
   for (k = 0; k < ctx->visited_count; k++) {
-    if (strcmp(ctx->visited[k], path) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (strcmp(ctx->visited[k], path) == 0) {
+      *out_visited = 1;
+      break;
+    }
   }
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error add_visited(struct IncludeMergeCtx *ctx,
-                                    const char *path) {
+static cdd_c_error_t add_visited(struct IncludeMergeCtx *ctx,
+                                 const char *path) {
   if (ctx->visited_count >= ctx->visited_capacity) {
     size_t new_cap =
         ctx->visited_capacity == 0 ? 16 : ctx->visited_capacity * 2;
@@ -830,21 +834,27 @@ static enum cdd_c_error add_visited(struct IncludeMergeCtx *ctx,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error include_visitor(const struct IncludeInfo *info,
-                                        void *user_data);
+static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
+                                     void *user_data);
 
-static enum cdd_c_error extract_exports_recursive(const char *filename,
-                                                  const char *content,
-                                                  struct IncludeMergeCtx *ctx) {
-  int rc;
-  if (is_visited(ctx, filename))
-    return CDD_C_SUCCESS;
+static cdd_c_error_t extract_exports_recursive(const char *filename,
+                                               const char *content,
+                                               struct IncludeMergeCtx *ctx) {
+  cdd_c_error_t rc;
+  {
+    int visited = 0;
+    rc = is_visited(ctx, filename, &visited);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (visited)
+      return CDD_C_SUCCESS;
+  }
   rc = add_visited(ctx, filename);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = extract_single_file_exports(ctx->ir, filename, content, ctx->config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (ctx->config && ctx->config->recursive_includes) {
@@ -853,26 +863,33 @@ static enum cdd_c_error extract_exports_recursive(const char *filename,
   return rc;
 }
 
-static enum cdd_c_error include_visitor(const struct IncludeInfo *info,
-                                        void *user_data) {
+static cdd_c_error_t include_visitor(const struct IncludeInfo *info,
+                                     void *user_data) {
   struct IncludeMergeCtx *ctx = (struct IncludeMergeCtx *)user_data;
   if (ctx->err != 0)
     return ctx->err;
   if (info->kind == PP_DIR_INCLUDE && info->resolved_path) {
-    if (!is_visited(ctx, info->resolved_path)) {
-      char *content = NULL;
-      size_t sz = 0;
-      int rc = read_to_file(info->resolved_path, "r", &content, &sz);
-      if (rc == 0 && content) {
-        ctx->err = extract_exports_recursive(info->resolved_path, content, ctx);
-        C_CDD_FREE(content);
+    {
+      int visited = 0;
+      cdd_c_error_t rc = is_visited(ctx, info->resolved_path, &visited);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (!visited) {
+        char *content = NULL;
+        size_t sz = 0;
+        rc = read_to_file(info->resolved_path, "r", &content, &sz);
+        if (rc == CDD_C_SUCCESS && content) {
+          ctx->err =
+              extract_exports_recursive(info->resolved_path, content, ctx);
+          free(content);
+        }
       }
     }
   }
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error instantiate_templates(cdd_ffi_ir_t *ir) {
+static cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
   size_t i, j;
   size_t initial_count = ir->nodes_count;
   for (i = 0; i < initial_count; i++) {
@@ -957,7 +974,7 @@ static enum cdd_c_error instantiate_templates(cdd_ffi_ir_t *ir) {
 
               node = &ir->nodes[i];
               node->fields[j].type.kind = CDD_FFI_KIND_STRUCT_REF;
-              C_CDD_FREE(node->fields[j].type.ref_name);
+              free(node->fields[j].type.ref_name);
               node->fields[j].type.ref_name = CDD_STRDUP(inst_name);
               break;
             }
@@ -969,7 +986,7 @@ static enum cdd_c_error instantiate_templates(cdd_ffi_ir_t *ir) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_ir_extract_exports(const char *filename, const char *content,
                            const cdd_generate_bindings_config_t *config,
                            cdd_ffi_ir_t **out_ir) {
@@ -977,7 +994,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   struct IncludeMergeCtx ctx;
   struct PreprocessorContext pp_ctx;
   size_t k;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!filename || !content || !out_ir) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -991,7 +1008,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   memset(&ctx, 0, sizeof(ctx));
   memset(&pp_ctx, 0, sizeof(pp_ctx));
   if (pp_context_init(&pp_ctx) != 0) {
-    C_CDD_FREE(ir);
+    free(ir);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -1000,24 +1017,26 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   ctx.pp_ctx = &pp_ctx;
 
   rc = extract_exports_recursive(filename, content, &ctx);
-  if (rc == 0 && ctx.err != 0) {
+  if (rc == CDD_C_SUCCESS && ctx.err != CDD_C_SUCCESS) {
     rc = ctx.err;
   }
 
-  if (rc == 0) {
-    rc = instantiate_templates(ir);
+  if (rc == CDD_C_SUCCESS) {
+    cdd_c_error_t tmpl_rc = instantiate_templates(ir);
+    if (tmpl_rc != CDD_C_SUCCESS)
+      rc = tmpl_rc;
   }
 
   for (k = 0; k < ctx.visited_count; k++) {
-    C_CDD_FREE(ctx.visited[k]);
+    free(ctx.visited[k]);
   }
   if (ctx.visited)
-    C_CDD_FREE(ctx.visited);
+    free(ctx.visited);
   pp_context_free(&pp_ctx);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     cdd_ffi_ir_free(ir);
-    C_CDD_FREE(ir);
+    free(ir);
     return rc;
   }
 

@@ -20,8 +20,7 @@ extern "C" {
  *                Caller must free it.
  * @return 0 on success.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree,
-                                           char **out_str);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str);
 
 #ifdef __cplusplus
 }

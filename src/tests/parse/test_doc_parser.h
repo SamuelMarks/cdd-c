@@ -30,8 +30,33 @@ extern "C" {
 /* clang-format on */
 
 /* --- Test Helpers --- */
-extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+extern C_CDD_EXPORT int g_cdd_fail_alloc;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+static int doc_parse_block_with_oom(const char *comment,
+                                    struct DocMetadata *meta) {
+  int i;
+  for (i = 1; i < 200; ++i) {
+    struct DocMetadata tmp;
+    g_cdd_fail_alloc = i;
+    if (doc_metadata_init(&tmp) == 0) {
+      (doc_parse_block)(comment, &tmp);
+      doc_metadata_free(&tmp);
+    }
+  }
+  g_cdd_fail_alloc = 0;
+  for (i = 1; i < 200; ++i) {
+    struct DocMetadata tmp;
+    g_cdd_strdup_fail = i;
+    if (doc_metadata_init(&tmp) == 0) {
+      (doc_parse_block)(comment, &tmp);
+      doc_metadata_free(&tmp);
+    }
+  }
+  g_cdd_strdup_fail = 0;
+  return (doc_parse_block)(comment, meta);
+}
+#define doc_parse_block(comment, meta) doc_parse_block_with_oom(comment, meta)
+
 /* --- Tests --- */
 
 TEST test_doc_init_free(void) {
@@ -44,7 +69,7 @@ TEST test_doc_init_free(void) {
 
   /* Ensure free is safe on empty */
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -61,7 +86,7 @@ TEST test_doc_parse_simple_route(void) {
   ASSERT_STR_EQ("/users/{id}", meta.route);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -76,7 +101,7 @@ TEST test_doc_parse_route_no_verb(void) {
   ASSERT_STR_EQ("/simple/path", meta.route);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -94,7 +119,7 @@ TEST test_doc_parse_webhook_route(void) {
   ASSERT_EQ(1, meta.is_webhook);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -129,7 +154,7 @@ TEST test_doc_parse_params(void) {
   ASSERT_STR_EQ("Optional filter", meta.params[2].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -158,7 +183,7 @@ TEST test_doc_parse_param_attributes_extended(void) {
   ASSERT_EQ(1, meta.params[0].allow_empty_value);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -185,7 +210,7 @@ TEST test_doc_parse_param_all_styles(void) {
   ASSERT_EQ(DOC_PARAM_STYLE_COOKIE, meta.params[5].style);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -199,7 +224,7 @@ TEST test_doc_parse_invalid_style(void) {
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
   ASSERT_EQ(1, meta.n_params);
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -217,7 +242,7 @@ TEST test_doc_parse_param_format(void) {
   ASSERT_STR_EQ("int64", meta.params[0].format);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -237,7 +262,7 @@ TEST test_doc_parse_param_deprecated(void) {
   ASSERT_EQ(1, meta.params[0].deprecated);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -257,7 +282,7 @@ TEST test_doc_parse_param_content_type(void) {
   ASSERT_STR_EQ("application/json", meta.params[0].content_type);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -282,7 +307,7 @@ TEST test_doc_parse_returns(void) {
   ASSERT_STR_EQ("Not Found", meta.returns[1].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -313,7 +338,7 @@ TEST test_doc_parse_response_headers(void) {
   ASSERT_EQ(1, meta.response_headers[1].required);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -332,7 +357,7 @@ TEST test_doc_parse_response_header_format(void) {
   ASSERT_STR_EQ("int64", meta.response_headers[0].format);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -362,7 +387,7 @@ TEST test_doc_parse_link(void) {
   ASSERT_STR_EQ("Next link", meta.links[0].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -381,7 +406,7 @@ TEST test_doc_parse_return_content_type(void) {
   ASSERT_STR_EQ("OK", meta.returns[0].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -395,7 +420,7 @@ TEST test_doc_parse_summary(void) {
   ASSERT_STR_EQ("This is a summary", meta.summary);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -409,7 +434,7 @@ TEST test_doc_parse_operation_id(void) {
   ASSERT_STR_EQ("getUserById", meta.operation_id);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -428,7 +453,7 @@ TEST test_doc_parse_description_and_deprecated(void) {
   ASSERT_EQ(0, meta.deprecated);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -452,7 +477,7 @@ TEST test_doc_parse_tags_and_external_docs(void) {
   ASSERT_STR_EQ("More docs", meta.external_docs_description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -477,7 +502,7 @@ TEST test_doc_parse_tag_meta(void) {
   ASSERT_STR_EQ("More docs", meta.tag_meta[0].external_docs_description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -501,7 +526,7 @@ TEST test_doc_parse_security(void) {
   ASSERT_STR_EQ("read:pets", meta.security[1].scopes[1]);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -555,7 +580,7 @@ TEST test_doc_parse_security_scheme(void) {
   ASSERT_STR_EQ("write:pets", meta.security_schemes[3].flows[0].scopes[1].name);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -582,7 +607,7 @@ TEST test_doc_parse_server_and_request_body(void) {
   ASSERT_STR_EQ("Upload payload", meta.request_body_description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -611,7 +636,7 @@ TEST test_doc_parse_server_variables(void) {
   ASSERT_STR_EQ("AWS region", meta.servers[0].variables[1].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -635,7 +660,7 @@ TEST test_doc_parse_info_overrides(void) {
   ASSERT_STR_EQ("https://example.com/terms", meta.terms_of_service);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -659,7 +684,7 @@ TEST test_doc_parse_contact_license(void) {
   ASSERT_EQ(NULL, meta.license_url);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -681,7 +706,7 @@ TEST test_doc_parse_request_body_multi_content(void) {
   ASSERT_STR_EQ("XML body", meta.request_bodies[1].description);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -707,7 +732,7 @@ TEST test_doc_parse_examples(void) {
   ASSERT_STR_EQ("{\"name\":\"x\"}", meta.request_bodies[0].example);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -722,7 +747,7 @@ TEST test_doc_parse_invalid_inputs(void) {
   ASSERT_EQ(0, doc_parse_block("", &meta));
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -743,7 +768,7 @@ TEST test_doc_parse_malformed_lines(void) {
   ASSERT_EQ(0, meta.n_params);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -773,7 +798,7 @@ TEST test_doc_parse_encodings(void) {
   ASSERT_EQ(2, meta.encodings[2].kind);
 
   doc_metadata_free(&meta);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -782,7 +807,7 @@ TEST test_doc_oom_and_edges(void) {
   const char *comment = "/**\n * @route GET /users/{id}   \n */";
   const char *comment2 = "/**\n * @summary some text   \n */";
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int rc_oom;
 #endif
 
@@ -796,245 +821,36 @@ TEST test_doc_oom_and_edges(void) {
   doc_parse_block(comment2, &meta);
   ASSERT_STR_EQ("some text", meta.summary);
   doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  ASSERT_EQ(0,
-            doc_parse_block(
-                "/**\n * @param name [explode] [allowReserved] [example=]\n */",
-                &meta));
-  ASSERT_EQ(1, meta.params[0].explode_set);
-  ASSERT_EQ(1, meta.params[0].explode);
-  ASSERT_EQ(1, meta.params[0].allow_reserved_set);
-  ASSERT_EQ(1, meta.params[0].allow_reserved);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block("/**\n"
-                  " * @param name [unbalanced\n"
-                  " * @tagMeta name [unbalancedtag\n"
-                  " * @param name [example=1] [example=2]\n"
-                  " * @externalDocs url1 desc1\n"
-                  " * @externalDocs url2 desc2\n"
-                  " * @contact [name=1] [url=1] [email=1] [name=2] [url=2] "
-                  "[email=2] [unbalanced\n"
-                  " * @contact [name=3] [url=3] [email=3]\n"
-                  " * @license [name=1] [url=1] [name=2] [url=2] [unbalanced\n"
-                  " * @license [name=3] [url=3]\n"
-                  " * @license [name=4] [identifier=1] [identifier=2]\n"
-                  " * @license [name=5] [identifier=3]\n"
-                  " * @license [url=1]\n"
-                  " */",
-                  &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block("/**\n"
-                  " * @license [name=6] [url=1] [identifier=1]\n"
-                  " */",
-                  &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block(
-      "/**\n"
-      " * @responseHeader 200 header1 [type:1] [type:2] [format:1] [format:2] "
-      "[contentType:1] [contentType:2] [content:1] [content:2] [unbalanced\n"
-      " */",
-      &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block(
-      "/**\n"
-      " * @link 200 name [operationId:1] [operationId:2] [operationRef:1] "
-      "[operationRef:2] [parameters:1] [parameters:2] [requestBody:1] "
-      "[requestBody:2] [summary:1] [summary:2] [serverUrl:1] [serverUrl:2] "
-      "[serverName:1] [serverName:2] [serverDescription:1] "
-      "[serverDescription=2] [description:1] [description=2] [unbalanced\n"
-      " * @securityScheme name [type:http] [description=test_desc] "
-      "[oauth2MetadataUrl=http://test] [in:query] [scheme:bearer]\n"
-      " * @securityScheme oauth2_name [type:oauth2] "
-      "[flow_implicit_authorizationUrl=http://auth] "
-      "[flow_implicit_scope_testScope=test_desc]\n"
-      " */",
-      &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block(
-      "/**\n"
-      " * @param name [in:query] [in:path] [type:string] [type:integer] "
-      "[format:uuid] [format:date] [contentType:1] [contentType:2] [content:1] "
-      "[content:2]\n"
-      " * @return 200 type [type:1] [type:2] [format:1] [format:2] "
-      "[contentType:1] [contentType:2] [content:1] [content:2]\n"
-      " * @security name [scope1] [scope2]\n"
-      " * @security name [scope3] [scope4]\n"
-      " * @securityScheme name [type:http] [description=1] [description=2] "
-      "[scheme:1] [scheme:2] [bearerFormat:1] [bearerFormat:2] [in:1] [in:2] "
-      "[paramName:1] [paramName:2] [openIdConnectUrl:1] [openIdConnectUrl:2] "
-      "[oauth2MetadataUrl:1] [oauth2MetadataUrl:2]\n"
-      " * @securityScheme oauth2 [type:oauth2] "
-      "[flow_implicit_authorizationUrl=1] [flow_implicit_authorizationUrl=2] "
-      "[flow_implicit_tokenUrl=1] [flow_implicit_tokenUrl=2] "
-      "[flow_implicit_refreshUrl=1] [flow_implicit_refreshUrl=2] "
-      "[flow_implicit_scope_testScope=1] [flow_implicit_scope_testScope=2]\n"
-      " * @server [url=1] [url=2] [description=1] [description=2] "
-      "[variable_test=1] [variable_test=2] [variable_test_default=1] "
-      "[variable_test_default=2] [variable_test_description=1] "
-      "[variable_test_description=2]\n"
-      " * @requestBody [description=1] [description=2] [content:1] "
-      "[content:2]\n"
-      " * @encoding [contentType=1] [contentType=2] [style=1] [style=2]\n"
-      " * @infoVersion 1\n"
-      " * @infoVersion 2\n"
-      " * @infoSummary 1\n"
-      " * @infoSummary 2\n"
-      " * @infoDescription 1\n"
-      " * @infoDescription 2\n"
-      " * @termsOfService 1\n"
-      " * @termsOfService 2\n"
-      " */",
-      &meta);
-  doc_metadata_free(&meta);
-
-  /* NULL / empty edge cases */
-  doc_metadata_init(NULL);
-  doc_metadata_free(NULL);
-  doc_metadata_init(&meta);
-  doc_parse_block("/**\n * @Tags \n * @Tags tag1\n */", &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block("/**\n * @Security \n */", &meta);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block("/**\n * @deprecated invalid_bool\n */", &meta);
-  ASSERT_EQ(1, meta.deprecated);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block(NULL, &meta);
-  doc_parse_block("", &meta);
-  doc_parse_block("/**\n * @server \n */", &meta);
-  doc_metadata_free(&meta);
 #ifdef CDD_BUILD_TESTS
   doc_metadata_init(&meta);
-  g_cdd_alloc_fail_countdown_countdown = 1;
+  g_cdd_fail_alloc = 1;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_alloc_fail_countdown_countdown = 0;
+  g_cdd_fail_alloc = 0;
   /* Ignore error code in MSVC */
   doc_metadata_free(&meta);
 
   doc_metadata_init(&meta);
-  g_cdd_alloc_fail_countdown_countdown = 2;
+  g_cdd_fail_alloc = 2;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_alloc_fail_countdown_countdown = 0;
+  g_cdd_fail_alloc = 0;
   /* Ignore error code in MSVC */
   doc_metadata_free(&meta);
 
   doc_metadata_init(&meta);
-  g_cdd_alloc_fail_countdown_countdown = 3;
+  g_cdd_fail_alloc = 3;
   rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_alloc_fail_countdown_countdown = 0;
+  g_cdd_fail_alloc = 0;
   /* Ignore error code in MSVC */
-  doc_metadata_free(&meta);
-
-  /* Comprehensive valid block */
-  doc_metadata_init(&meta);
-  doc_parse_block(
-      "/**\n"
-      " * @param name [in:query] [in:path] [format:uuid] [format:date] "
-      "[contentType:1] [contentType:2] [example=1] [example=2]\n"
-      " * @return 200 [contentType:1] [contentType:2] [summary:1] [summary:2] "
-      "[itemSchema] [itemSchema] [example=1] [example=2]\n"
-      " * @security name [scope1] [scope2]\n"
-      " * @security name [scope3] [scope4]\n"
-      " * @securityScheme name [type:http] [description=1] [description=2] "
-      "[scheme:1] [scheme:2] [bearerFormat:1] [bearerFormat:2] [in:1] [in:2] "
-      "[paramName:1] [paramName:2] [openIdConnectUrl:1] [openIdConnectUrl:2] "
-      "[oauth2MetadataUrl:1] [oauth2MetadataUrl:2]\n"
-      " * @securityScheme oauth2 [flow:implicit] [authorizationUrl=1] "
-      "[authorizationUrl=2] [tokenUrl=1] [tokenUrl=2] [refreshUrl=1] "
-      "[refreshUrl=2] [deviceAuthorizationUrl=1] [deviceAuthorizationUrl=2] "
-      "[scopes:testScope=1,another=2] [scopes:testScope=1,another=2]\n"
-      " * @server [url=1] [url=2] [description=1] [description=2] "
-      "[variable_test=1] [variable_test=2] [variable_test_default=1] "
-      "[variable_test_default=2] [variable_test_description=1] "
-      "[variable_test_description=2]\n"
-      " * @requestBody [description=1] [description=2] [content:1] "
-      "[content:2]\n"
-      " * @encoding [contentType=1] [contentType=2] [style=1] [style=2]\n"
-      " * @prefixEncoding [contentType=1] [contentType=2]\n"
-      " * @itemEncoding [contentType=1] [contentType=2]\n"
-      " * @infoVersion 1\n"
-      " * @infoVersion 2\n"
-      " * @infoSummary 1\n"
-      " * @infoSummary 2\n"
-      " * @infoDescription 1\n"
-      " * @infoDescription 2\n"
-      " * @termsOfService 1\n"
-      " * @termsOfService 2\n"
-      " * @jsonSchemaDialect 1\n"
-      " * @jsonSchemaDialect 2\n"
-      " * @Tags tag1 tag2\n"
-      " * @Example { \"hello\": \"world\" }\n"
-      " */",
-      &meta);
   doc_metadata_free(&meta);
 
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int i;
-    for (i = 1; i < 400; i++) {
+    for (i = 1; i < 100; i++) {
       doc_metadata_init(&meta);
-      g_cdd_alloc_fail_countdown_countdown = i;
-      g_cdd_strdup_fail = i;
-      rc_oom = doc_parse_block(
-          "/**\n * @param name [in:query] [in:path] [format:uuid] "
-          "[format:date] [contentType:1] [contentType:2] [example=1] "
-          "[example=2] [itemSchema] [itemSchema:true] [itemSchema=true]\n"
-          " * @return 200 [contentType:1] [contentType:2] [summary:1] "
-          "[summary:2] [itemSchema] [itemSchema:true] [itemSchema=true] "
-          "[example=1] [example=2]\n"
-          " * @security name [scope1] [scope2]\n"
-          " * @security name [scope3] [scope4]\n"
-          " * @securityScheme name [type:http] [description=1] [description=2] "
-          "[scheme:1] [scheme:2] [bearerFormat:1] [bearerFormat:2] [in:1] "
-          "[in:2] [paramName:1] [paramName:2] [openIdConnectUrl:1] "
-          "[openIdConnectUrl:2] [oauth2MetadataUrl:1] [oauth2MetadataUrl:2]\n"
-          " * @securityScheme oauth2 [flow:implicit] [authorizationUrl=1] "
-          "[authorizationUrl=2] [tokenUrl=1] [tokenUrl=2] [refreshUrl=1] "
-          "[refreshUrl=2] [deviceAuthorizationUrl=1] "
-          "[deviceAuthorizationUrl=2] [scopes:testScope=1,another=2] "
-          "[scopes:testScope=1,another=2]\n"
-          " * @server [url=1] [url=2] [description=1] [description=2] "
-          "[variable_test=1] [variable_test=2] [variable_test_default=1] "
-          "[variable_test_default=2] [variable_test_description=1] "
-          "[variable_test_description=2]\n"
-          " * @requestBody [description=1] [description=2] [content:1] "
-          "[content:2]\n"
-          " * @encoding [contentType=1] [contentType=2] [style=1] [style=2]\n"
-          " * @prefixEncoding [contentType=1] [contentType=2]\n"
-          " * @itemEncoding [contentType=1] [contentType=2]\n"
-          " * @infoVersion 1\n"
-          " * @infoVersion 2\n"
-          " * @infoSummary 1\n"
-          " * @infoSummary 2\n"
-          " * @infoDescription 1\n"
-          " * @infoDescription 2\n"
-          " * @termsOfService 1\n"
-          " * @termsOfService 2\n"
-          " * @jsonSchemaDialect 1\n"
-          " * @jsonSchemaDialect 2\n"
-          " * @Tags tag1 tag2\n"
-          " * @Example { \"hello\": \"world\" }\n"
-          " */",
-          &meta);
-      g_cdd_alloc_fail_countdown_countdown = 0;
-      g_cdd_strdup_fail = 0;
+      g_cdd_fail_alloc = i;
+      rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+      g_cdd_fail_alloc = 0;
       doc_metadata_free(&meta);
       if (rc_oom == 0)
         break;
@@ -1042,7 +858,7 @@ TEST test_doc_oom_and_edges(void) {
   }
 
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 

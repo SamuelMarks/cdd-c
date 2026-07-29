@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 /* clang-format on */
-enum cdd_c_error main(void) {
+cdd_c_error_t main(void) {
   FILE *f;
   int res;
   f = fopen("test.txt", "w");

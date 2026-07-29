@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -50,9 +49,9 @@ TEST test_cdd_cst_roundtrip_basic(void) {
 
   ASSERT_STR_EQ(code, out);
 
-  C_CDD_FREE(out);
+  free(out);
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -76,9 +75,9 @@ TEST test_cdd_cst_roundtrip_macros(void) {
 
   ASSERT_STR_EQ(code, out);
 
-  C_CDD_FREE(out);
+  free(out);
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -121,9 +120,9 @@ TEST test_cdd_cst_asm_statement(void) {
 
   ASSERT_STR_EQ(code, out);
 
-  C_CDD_FREE(out);
+  free(out);
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -147,6 +146,7 @@ TEST test_cdd_cst_cpp_class(void) {
   ASSERT_EQ(CDD_CST_CHILD_NODE, tree->root->children[0].kind);
   ASSERT_EQ(CDD_CST_CLASS_DECLARATION, tree->root->children[0].val.node->kind);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -199,6 +199,7 @@ TEST test_cdd_cst_cpp_methods(void) {
   }
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -268,6 +269,7 @@ TEST test_cdd_cst_cpp_exceptions(void) {
   }
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -308,7 +310,7 @@ TEST test_cdd_cst_cpp_namespace(void) {
     ASSERT_EQ(0, cdd_cst_emit(tree, &out));
     ASSERT(out != NULL);
     ASSERT_STR_EQ(code, out);
-    C_CDD_FREE(out);
+    free(out);
   }
 
   cdd_cst_tree_free(tree);
@@ -347,7 +349,7 @@ TEST test_cdd_cst_cpp_template(void) {
     ASSERT_EQ(0, cdd_cst_emit(tree, &out));
     ASSERT(out != NULL);
     ASSERT_STR_EQ(code, out);
-    C_CDD_FREE(out);
+    free(out);
   }
 
   cdd_cst_tree_free(tree);
@@ -407,7 +409,7 @@ TEST test_cdd_cst_cpp_inheritance(void) {
     ASSERT_EQ(0, cdd_cst_emit(tree, &out));
     ASSERT(out != NULL);
     ASSERT_STR_EQ(code, out);
-    C_CDD_FREE(out);
+    free(out);
   }
 
   cdd_cst_tree_free(tree);

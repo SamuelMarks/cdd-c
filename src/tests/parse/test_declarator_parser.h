@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+extern int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
 extern int g_cdd_strdup_fail;
 #ifdef __cplusplus
@@ -21,15 +21,12 @@ extern int g_cdd_strdup_fail;
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/tokenizer.h"
+
+extern cdd_c_error_t add_type_node(struct DeclInfo *info, struct DeclType **current_tail, struct DeclType *node);
+
+
+extern cdd_c_error_t is_grouping_paren(const struct TokenList *tokens, size_t paren_idx, size_t limit, int *out_is_grouping);
 /* clang-format on */
-
-extern enum cdd_c_error add_type_node(struct DeclInfo *info,
-                                      struct DeclType **current_tail,
-                                      struct DeclType *node);
-
-extern enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
-                                          size_t paren_idx, size_t limit,
-                                          int *out_is_grouping);
 
 /**
  * @brief Executes the setup tokens operation.
@@ -56,7 +53,7 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
   }
   va_end(args);
   ASSERT_EQ(NULL, curr);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -81,7 +78,7 @@ TEST test_parse_basic_int(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -103,7 +100,7 @@ TEST test_parse_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -133,7 +130,7 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -154,7 +151,7 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -175,7 +172,7 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -197,7 +194,7 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -219,7 +216,7 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -241,7 +238,7 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -257,7 +254,7 @@ TEST test_parse_func_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -274,7 +271,7 @@ TEST test_parse_func_array(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -290,7 +287,7 @@ TEST test_abstract_func_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -306,7 +303,7 @@ TEST test_abstract_array(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -320,7 +317,7 @@ TEST test_parse_decl_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, decl_info_init(NULL));
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -339,10 +336,11 @@ TEST test_parse_declarator_oom(void) {
   int i, rc;
 
   for (i = 0; i < 20; ++i) {
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     rc = parse_declaration(tl, 0, tl->size, &info);
-
+    g_fail_io_after = -1;
     g_cdd_strdup_fail = -1;
 
     if (rc == 0) {

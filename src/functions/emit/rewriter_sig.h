@@ -48,7 +48,7 @@ extern "C" {
  * be stored.
  * @return 0 on success, ENOMEM/EINVAL on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 rewrite_signature(const struct TokenList *tokens, char **out_code);
 
 #ifdef __cplusplus

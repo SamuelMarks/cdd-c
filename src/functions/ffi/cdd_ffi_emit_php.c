@@ -73,7 +73,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
   out[j] = '\0';
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -93,15 +93,6 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.php", config->output_dir,
                class_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -123,7 +114,8 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       fprintf(f, "            struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = get_cdef_type(node->fields[j].type);
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "                struct %s %s;\n", ftype, fname);
@@ -137,7 +129,7 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
               node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s %s", get_cdef_type(node->fields[j].type),
-                node->fields[j].name);
+                node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
@@ -157,7 +149,8 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "    /**\n     * %s\n     */\n", node->doc);
       fprintf(f, "    public function %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         /* avoid php keywords */
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
@@ -169,7 +162,8 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       fprintf(f, "        return $this->ffi->%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         fprintf(f, "$%s", arg_name);
@@ -186,11 +180,11 @@ emit_php_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_php(cdd_ffi_ir_t *ir,
-                 const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+cdd_c_error_t cdd_ffi_emit_php(cdd_ffi_ir_t *ir,
+                               const cdd_generate_bindings_config_t *config) {
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_php_file(ir, config);
 }

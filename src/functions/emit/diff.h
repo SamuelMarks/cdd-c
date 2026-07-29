@@ -31,7 +31,7 @@ extern "C" {
  * @param[out] out_diff Pointer to a char* where the diff string will be stored.
  * @return 0 on success, ENOMEM or EINVAL on error.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
                    const char *filename, char **out_diff);
 

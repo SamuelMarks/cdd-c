@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
+
 /* clang-format on */
 
 #define CHECK_IO(x)                                                            \
@@ -21,9 +22,9 @@
     (void)0
 
 /* --- Helper to write a test for a single operation --- */
-static enum cdd_c_error
-write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
-                     const struct SdkTestsConfig *config) {
+static cdd_c_error_t write_test_operation(FILE *fp,
+                                          const struct OpenAPI_Operation *op,
+                                          const struct SdkTestsConfig *config) {
   size_t i;
   CHECK_IO(fprintf(fp, "\nTEST test_%s(void) {\n", op->operation_id));
   CHECK_IO(fprintf(fp, "  struct HttpClient client;\n"));
@@ -135,9 +136,9 @@ write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
   return 0;
 }
 
-enum cdd_c_error
-codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
-                           const struct SdkTestsConfig *config) {
+cdd_c_error_t codegen_sdk_tests_generate(FILE *fp,
+                                         const struct OpenAPI_Spec *spec,
+                                         const struct SdkTestsConfig *config) {
   size_t i, j;
 
   if (!fp || !spec || !config || !config->client_header ||

@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_parser.h"
 #include "cdd_lexer.h"
 #include <errno.h>
@@ -8,9 +7,9 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-static enum cdd_c_error alloc_node(enum cdd_cst_node_kind_t kind,
-                                   cdd_cst_node_t *parent,
-                                   cdd_cst_node_t **out_node) {
+static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
+                                cdd_cst_node_t *parent,
+                                cdd_cst_node_t **out_node) {
   cdd_cst_node_t *n;
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_node_fail;
@@ -18,7 +17,7 @@ static enum cdd_c_error alloc_node(enum cdd_cst_node_kind_t kind,
     n = NULL;
   else
 #endif
-    n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+    n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
   if (n) {
     n->kind = kind;
     n->parent = parent;
@@ -27,8 +26,8 @@ static enum cdd_c_error alloc_node(enum cdd_cst_node_kind_t kind,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error append_child_token(cdd_cst_node_t *node,
-                                           cdd_token_t *tok) {
+static cdd_c_error_t append_child_token(cdd_cst_node_t *node,
+                                        cdd_token_t *tok) {
   if (node->num_children >= node->capacity) {
     size_t new_cap = node->capacity == 0 ? 8 : node->capacity * 2;
     cdd_cst_child_t *new_arr;
@@ -38,8 +37,8 @@ static enum cdd_c_error append_child_token(cdd_cst_node_t *node,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
-          node->children, new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)realloc(node->children,
+                                           new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -53,8 +52,8 @@ static enum cdd_c_error append_child_token(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error append_child_node(cdd_cst_node_t *node,
-                                          cdd_cst_node_t *child) {
+static cdd_c_error_t append_child_node(cdd_cst_node_t *node,
+                                       cdd_cst_node_t *child) {
   if (node->num_children >= node->capacity) {
     size_t new_cap = node->capacity == 0 ? 8 : node->capacity * 2;
     cdd_cst_child_t *new_arr;
@@ -64,8 +63,8 @@ static enum cdd_c_error append_child_node(cdd_cst_node_t *node,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
-          node->children, new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)realloc(node->children,
+                                           new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -90,8 +89,8 @@ static void free_node(cdd_cst_node_t *node) {
     }
   }
   if (node->children)
-    C_CDD_FREE(node->children);
-  C_CDD_FREE(node);
+    free(node->children);
+  free(node);
 }
 
 typedef struct cdd_macro_def_t {
@@ -115,8 +114,8 @@ typedef struct parser_state_t {
   cdd_macro_env_t macros; /**< local macro evaluation environment */
 } parser_state_t;
 
-C_CDD_EXPORT enum cdd_c_error peek(parser_state_t *s, cdd_token_t **out_tok);
-C_CDD_EXPORT enum cdd_c_error peek(parser_state_t *s, cdd_token_t **out_tok) {
+C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
+C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   if (!s || !out_tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
@@ -127,9 +126,8 @@ C_CDD_EXPORT enum cdd_c_error peek(parser_state_t *s, cdd_token_t **out_tok) {
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-C_CDD_EXPORT enum cdd_c_error advance(parser_state_t *s, cdd_token_t **out_tok);
-C_CDD_EXPORT enum cdd_c_error advance(parser_state_t *s,
-                                      cdd_token_t **out_tok) {
+C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
+C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   if (!s || !out_tok)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
@@ -140,55 +138,38 @@ C_CDD_EXPORT enum cdd_c_error advance(parser_state_t *s,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
-                                    cdd_cst_node_t **out_node);
-static enum cdd_c_error
-parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
-                               cdd_cst_node_t **out_node);
+static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
+                                 cdd_cst_node_t **out_node);
+static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
+                                                    cdd_cst_node_t *parent,
+                                                    cdd_cst_node_t **out_node);
 
-static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
-                                    cdd_cst_node_t **out_node) {
+static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
+                                 cdd_cst_node_t **out_node) {
   cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
-  {
-    enum cdd_c_error _rc = alloc_node(CDD_CST_BLOCK, parent, &b);
-    if (_rc != CDD_C_SUCCESS) {
-      s->err = _rc;
-      return _rc;
-    }
+  alloc_node(CDD_CST_BLOCK, parent, &b);
+  if (!b) {
+    s->err = CDD_C_ERROR_MEMORY;
+    *out_node = NULL;
+    return CDD_C_ERROR_MEMORY;
   }
 
-  {
-    enum cdd_c_error _rc = advance(s, &t);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  } /* { */
-  if (t) {
-    enum cdd_c_error _rc = append_child_token(b, t);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  advance(s, &t); /* { */
+  if (t)
+    append_child_token(b, t);
 
   while (s->pos < s->list->size) {
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    peek(s, &t);
     if (!t || t->kind == CDD_TOKEN_RBRACE)
       break;
     {
       cdd_cst_node_t *child = NULL;
-      {
-        enum cdd_c_error _rc = parse_declaration_or_statement(s, b, &child);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      parse_declaration_or_statement(s, b, &child);
       if (child) {
-        {
-          enum cdd_c_error _rc = append_child_node(b, child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(b, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       } else if (s->err) {
         break;
@@ -196,23 +177,15 @@ static enum cdd_c_error parse_block(parser_state_t *s, cdd_cst_node_t *parent,
     }
   }
 
-  {
-    enum cdd_c_error _rc = advance(s, &t);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  } /* } */
-  if (t) {
-    enum cdd_c_error _rc = append_child_token(b, t);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  advance(s, &t); /* } */
+  if (t)
+    append_child_token(b, t);
   *out_node = b;
   return CDD_C_SUCCESS;
 }
 
-#if 0
-static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
-                                          size_t end_pos, int *out_val) {
+static cdd_c_error_t eval_preproc_expr(parser_state_t *s, size_t start_pos,
+                                       size_t end_pos, int *out_val) {
   /* Simple placeholder for now: evaluate defined(X), 1, or 0.
    * A full boolean expression parser requires an expression grammar tree.
    * For the immediate milestone, we implement symbol lookup and literal int
@@ -283,10 +256,8 @@ static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
   return CDD_C_SUCCESS;
 }
 
-#endif
-
 #if 0
-static enum cdd_c_error parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
+static cdd_c_error_t parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
   cdd_cst_node_t *node = NULL; alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &node);
   if (!node) {
     s->err = CDD_C_ERROR_MEMORY;
@@ -307,7 +278,10 @@ static enum cdd_c_error parse_preproc_conditional(parser_state_t *s, cdd_cst_nod
           t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
         cdd_cst_node_t *child = NULL; parse_preproc_conditional(s, node, &child);
         if (child) {
-          { enum cdd_c_error _rc = append_child_node(node, child); if (_rc != CDD_C_SUCCESS) return _rc; }
+          if (append_child_node(node, child) != CDD_C_SUCCESS) {
+            free_node(child);
+            s->err = CDD_C_ERROR_MEMORY;
+          }
         }
       } else {
         append_child_token(node, advance(s));
@@ -315,7 +289,10 @@ static enum cdd_c_error parse_preproc_conditional(parser_state_t *s, cdd_cst_nod
     } else {
       cdd_cst_node_t *child = NULL; parse_declaration_or_statement(s, node, &child);
       if (child) {
-        { enum cdd_c_error _rc = append_child_node(node, child); if (_rc != CDD_C_SUCCESS) return _rc; }
+        if (append_child_node(node, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
+        }
       } else if (s->err) {
         break;
       }
@@ -325,11 +302,8 @@ static enum cdd_c_error parse_preproc_conditional(parser_state_t *s, cdd_cst_nod
 }
 #endif
 
-static enum cdd_c_error get_class_name(cdd_cst_node_t *node,
-                                       cdd_token_t **out_tok, int *found) {
-  if (!found)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  *found = 0;
+static cdd_c_error_t get_class_name(cdd_cst_node_t *node,
+                                    cdd_token_t **out_tok) {
   while (node) {
     if (node->kind == CDD_CST_CLASS_DECLARATION) {
       size_t i;
@@ -337,8 +311,7 @@ static enum cdd_c_error get_class_name(cdd_cst_node_t *node,
         if (node->children[i].kind == CDD_CST_CHILD_TOKEN &&
             node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
           *out_tok = node->children[i].val.token;
-          *found = 1;
-          return CDD_C_SUCCESS;
+          return CDD_C_ERROR_UNKNOWN;
         }
       }
     }
@@ -347,22 +320,16 @@ static enum cdd_c_error get_class_name(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
-parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
-                               cdd_cst_node_t **out_node) {
+static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
+                                                    cdd_cst_node_t *parent,
+                                                    cdd_cst_node_t **out_node) {
   cdd_cst_node_t *n;
   cdd_token_t *t = NULL;
-  {
-    enum cdd_c_error _rc = peek(s, &t);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
-#if 0
+  peek(s, &t);
   if (!t) {
     *out_node = NULL;
     return CDD_C_ERROR_MEMORY;
   }
-#endif
 
   /* Note: cdd_token.h does not currently map #if specifically to its own token;
    * they come through as identifiers `# if` or `#if`. For now, we process
@@ -375,13 +342,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     size_t expr_start = s->pos + 1;
     size_t expr_end = expr_start;
 
-    {
-      enum cdd_c_error _rc = advance(s, &p);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &p);
 
-#if 0
     if (is_if_elif) {
       /* advance to end of logical line for the expression evaluation */
       while (expr_end < s->list->size &&
@@ -401,42 +363,21 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       }
     }
 
-#endif
-    {
-      enum cdd_c_error _rc =
-          alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = append_child_token(n, p);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    append_child_token(n, p);
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      {
-        enum cdd_c_error _rc = peek(s, &nxt);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-#if 0
+      peek(s, &nxt);
       if (!nxt)
         break;
-#endif
       if (nxt->kind == CDD_TOKEN_PREPROC_ENDIF) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
         break;
       }
       if (nxt->kind == CDD_TOKEN_PREPROC_ELIF ||
@@ -446,30 +387,17 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         {
           cdd_cst_node_t *child = NULL;
-          {
-            enum cdd_c_error _rc = parse_block(s, n, &child);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          parse_block(s, n, &child);
           if (child) {
-            {
-              enum cdd_c_error _rc = append_child_node(n, child);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
+            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
             }
           }
         }
       } else {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
       }
     }
     *out_node = n;
@@ -478,38 +406,20 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
 
   if (t->kind >= CDD_TOKEN_PREPROC_INCLUDE &&
       t->kind <= CDD_TOKEN_PREPROC_PRAGMA) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_PREPROC_DIRECTIVE, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
-    }
+    alloc_node(CDD_CST_PREPROC_DIRECTIVE, parent, &n);
     if (n) {
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      append_child_token(n, t);
 
       if (t->kind == CDD_TOKEN_PREPROC_DEFINE) {
         cdd_token_t *macro_name_tok = NULL;
-        {
-          enum cdd_c_error _rc = peek(s, &macro_name_tok);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        peek(s, &macro_name_tok);
         if (macro_name_tok && macro_name_tok->kind == CDD_TOKEN_IDENTIFIER) {
           /* Add to local environment */
           if (s->macros.count >= s->macros.capacity) {
             size_t new_cap =
                 s->macros.capacity == 0 ? 16 : s->macros.capacity * 2;
-            cdd_macro_def_t *new_arr = (cdd_macro_def_t *)C_CDD_REALLOC(
+            cdd_macro_def_t *new_arr = (cdd_macro_def_t *)realloc(
                 s->macros.defs, new_cap * sizeof(cdd_macro_def_t));
             if (new_arr) {
               s->macros.defs = new_arr;
@@ -518,7 +428,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
               /* Temporarily just capture name, we'll parse the rest as child
                * tokens */
               s->macros.defs[s->macros.count].name =
-                  (char *)C_CDD_MALLOC(macro_name_tok->length + 1);
+                  (char *)malloc(macro_name_tok->length + 1);
               if (s->macros.defs[s->macros.count].name) {
                 memcpy(s->macros.defs[s->macros.count].name,
                        macro_name_tok->start, macro_name_tok->length);
@@ -541,84 +451,35 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_TEMPLATE) {
-    {
-      enum cdd_c_error _rc =
-          alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = advance(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    } /* template */
-    {
-      enum cdd_c_error _rc = append_child_token(n, t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &t); /* template */
+    append_child_token(n, t);
 
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LT) {
       cdd_cst_node_t *param_list;
-      {
-        enum cdd_c_error _rc =
-            alloc_node(CDD_CST_TEMPLATE_PARAMETER_LIST, n, &param_list);
-        if (_rc != CDD_C_SUCCESS) {
-          s->err = _rc;
-          return _rc;
-        }
-      }
+      alloc_node(CDD_CST_TEMPLATE_PARAMETER_LIST, n, &param_list);
       if (param_list) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        } /* < */
-        {
-          enum cdd_c_error _rc = append_child_token(param_list, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t); /* < */
+        append_child_token(param_list, t);
 
         while (s->pos < s->list->size) {
-          {
-            enum cdd_c_error _rc = peek(s, &t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          peek(s, &t);
           if (!t)
             break;
           if (t->kind == CDD_TOKEN_GT) {
-            {
-              enum cdd_c_error _rc = advance(s, &t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
-            {
-              enum cdd_c_error _rc = append_child_token(param_list, t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            advance(s, &t);
+            append_child_token(param_list, t);
             break;
           }
           if (t->kind == CDD_TOKEN_COMMA) {
-            {
-              enum cdd_c_error _rc = advance(s, &t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
-            {
-              enum cdd_c_error _rc = append_child_token(param_list, t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            advance(s, &t);
+            append_child_token(param_list, t);
             continue;
           }
 
@@ -627,66 +488,29 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
               t->kind == CDD_TOKEN_KEYWORD_TYPENAME ||
               t->kind == CDD_TOKEN_IDENTIFIER) {
             cdd_cst_node_t *param;
-            {
-              enum cdd_c_error _rc =
-                  alloc_node(CDD_CST_TEMPLATE_PARAMETER, param_list, &param);
-              if (_rc != CDD_C_SUCCESS) {
-                s->err = _rc;
-                return _rc;
-              }
-            }
+            alloc_node(CDD_CST_TEMPLATE_PARAMETER, param_list, &param);
             if (param) {
-              {
-                enum cdd_c_error _rc = advance(s, &t);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
-              {
-                enum cdd_c_error _rc = append_child_token(param, t);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
+              advance(s, &t);
+              append_child_token(param, t);
 
-              {
-                enum cdd_c_error _rc = peek(s, &t);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
+              peek(s, &t);
               if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
-                {
-                  enum cdd_c_error _rc = advance(s, &t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
-                {
-                  enum cdd_c_error _rc = append_child_token(param, t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                advance(s, &t);
+                append_child_token(param, t);
               }
-              {
-                enum cdd_c_error _rc = append_child_node(param_list, param);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
+              if (append_child_node(param_list, param) != CDD_C_SUCCESS) {
+                free_node(param);
+                s->err = CDD_C_ERROR_MEMORY;
               }
             }
           } else {
-            {
-              enum cdd_c_error _rc = advance(s, &t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
-            {
-              enum cdd_c_error _rc = append_child_token(param_list, t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            advance(s, &t);
+            append_child_token(param_list, t);
           }
         }
-        {
-          enum cdd_c_error _rc = append_child_node(n, param_list);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(n, param_list) != CDD_C_SUCCESS) {
+          free_node(param_list);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       }
     }
@@ -694,16 +518,11 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     /* Now parse the class or function it decorates */
     {
       cdd_cst_node_t *child = NULL;
-      {
-        enum cdd_c_error _rc = parse_declaration_or_statement(s, n, &child);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      parse_declaration_or_statement(s, n, &child);
       if (child) {
-        {
-          enum cdd_c_error _rc = append_child_node(n, child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       }
     }
@@ -713,58 +532,27 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_NAMESPACE) {
-    {
-      enum cdd_c_error _rc =
-          alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = advance(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    } /* namespace */
-    {
-      enum cdd_c_error _rc = append_child_token(n, t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &t); /* namespace */
+    append_child_token(n, t);
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      append_child_token(n, t);
     }
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
-      {
-        enum cdd_c_error _rc = parse_block(s, n, &child);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      parse_block(s, n, &child);
       if (child) {
-        {
-          enum cdd_c_error _rc = append_child_node(n, child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       }
     }
@@ -773,88 +561,47 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_USING) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      {
-        enum cdd_c_error _rc = peek(s, &nxt);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-#if 0
+      peek(s, &nxt);
       if (!nxt)
         break;
-#endif
       if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
         break;
       }
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      append_child_token(n, t);
     }
     *out_node = n;
     return CDD_C_SUCCESS;
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_TRY) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = advance(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    } /* try */
-    {
-      enum cdd_c_error _rc = append_child_token(n, t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &t); /* try */
+    append_child_token(n, t);
 
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
-      {
-        enum cdd_c_error _rc = parse_block(s, n, &child);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      parse_block(s, n, &child);
       if (child) {
-        {
-          enum cdd_c_error _rc = append_child_node(n, child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(n, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       }
     }
@@ -862,79 +609,39 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
     while (s->pos < s->list->size) {
       cdd_cst_node_t *catch_node = NULL;
 
-      {
-        enum cdd_c_error _rc = peek(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      peek(s, &t);
       if (!t || t->kind != CDD_TOKEN_KEYWORD_CATCH)
         break;
 
-      {
-        enum cdd_c_error _rc = alloc_node(CDD_CST_CATCH_BLOCK, n, &catch_node);
-        if (_rc != CDD_C_SUCCESS) {
-          s->err = _rc;
-          return _rc;
-        }
-      }
+      alloc_node(CDD_CST_CATCH_BLOCK, n, &catch_node);
       if (catch_node) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        } /* catch */
-        {
-          enum cdd_c_error _rc = append_child_token(catch_node, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t); /* catch */
+        append_child_token(catch_node, t);
 
-        {
-          enum cdd_c_error _rc = peek(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        peek(s, &t);
         if (t && t->kind == CDD_TOKEN_LPAREN) {
           while (s->pos < s->list->size) {
-            {
-              enum cdd_c_error _rc = advance(s, &t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
-            {
-              enum cdd_c_error _rc = append_child_token(catch_node, t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            advance(s, &t);
+            append_child_token(catch_node, t);
             if (t->kind == CDD_TOKEN_RPAREN)
               break;
           }
         }
 
-        {
-          enum cdd_c_error _rc = peek(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        peek(s, &t);
         if (t && t->kind == CDD_TOKEN_LBRACE) {
           cdd_cst_node_t *child = NULL;
-          {
-            enum cdd_c_error _rc = parse_block(s, catch_node, &child);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          parse_block(s, catch_node, &child);
           if (child) {
-            {
-              enum cdd_c_error _rc = append_child_node(catch_node, child);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
+            if (append_child_node(catch_node, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
             }
           }
         }
-        {
-          enum cdd_c_error _rc = append_child_node(n, catch_node);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(n, catch_node) != CDD_C_SUCCESS) {
+          free_node(catch_node);
+          s->err = CDD_C_ERROR_MEMORY;
         }
       } else {
         break;
@@ -946,242 +653,113 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_THROW) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = advance(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    } /* throw */
-    {
-      enum cdd_c_error _rc = append_child_token(n, t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &t); /* throw */
+    append_child_token(n, t);
 
     while (s->pos < s->list->size) {
-      {
-        enum cdd_c_error _rc = peek(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      peek(s, &t);
       if (!t)
         break;
       if (t->kind == CDD_TOKEN_SEMICOLON) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
         break;
       }
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      append_child_token(n, t);
     }
     *out_node = n;
     return CDD_C_SUCCESS;
   }
 
   if (t->kind == CDD_TOKEN_KEYWORD_CLASS) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      {
-        enum cdd_c_error _rc = peek(s, &nxt);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-#if 0
+      peek(s, &nxt);
       if (!nxt)
         break;
-#endif
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         cdd_cst_node_t *child = NULL;
-        {
-          enum cdd_c_error _rc = parse_block(s, n, &child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        parse_block(s, n, &child);
         if (child) {
-          {
-            enum cdd_c_error _rc = append_child_node(n, child);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
+          if (append_child_node(n, child) != CDD_C_SUCCESS) {
+            free_node(child);
+            s->err = CDD_C_ERROR_MEMORY;
           }
         }
       } else if (nxt->kind == CDD_TOKEN_COLON) {
         cdd_cst_node_t *base_list;
-        {
-          enum cdd_c_error _rc =
-              alloc_node(CDD_CST_BASE_CLASS_LIST, n, &base_list);
-          if (_rc != CDD_C_SUCCESS) {
-            s->err = _rc;
-            return _rc;
-          }
-        }
+        alloc_node(CDD_CST_BASE_CLASS_LIST, n, &base_list);
         if (base_list) {
-          {
-            enum cdd_c_error _rc = advance(s, &t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          } /* ':' */
-          {
-            enum cdd_c_error _rc = append_child_token(base_list, t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          advance(s, &t); /* ':' */
+          append_child_token(base_list, t);
 
           while (s->pos < s->list->size) {
             cdd_cst_node_t *base_spec;
-            {
-              enum cdd_c_error _rc = alloc_node(CDD_CST_BASE_CLASS_SPECIFIER,
-                                                base_list, &base_spec);
-              if (_rc != CDD_C_SUCCESS) {
-                s->err = _rc;
-                return _rc;
-              }
-            }
+            alloc_node(CDD_CST_BASE_CLASS_SPECIFIER, base_list, &base_spec);
             if (base_spec) {
               /* parse access modifier or virtual */
-              {
-                enum cdd_c_error _rc = peek(s, &nxt);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
+              peek(s, &nxt);
               if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
                           nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
                           nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
                           nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-                {
-                  enum cdd_c_error _rc = advance(s, &t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
-                {
-                  enum cdd_c_error _rc = append_child_token(base_spec, t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                advance(s, &t);
+                append_child_token(base_spec, t);
                 /* might have virtual and access modifier in either order */
-                {
-                  enum cdd_c_error _rc = peek(s, &nxt);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                peek(s, &nxt);
                 if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
                             nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
                             nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
                             nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-                  {
-                    enum cdd_c_error _rc = advance(s, &t);
-                    if (_rc != CDD_C_SUCCESS)
-                      return _rc;
-                  }
-                  {
-                    enum cdd_c_error _rc = append_child_token(base_spec, t);
-                    if (_rc != CDD_C_SUCCESS)
-                      return _rc;
-                  }
+                  advance(s, &t);
+                  append_child_token(base_spec, t);
                 }
               }
               /* base class name */
-              {
-                enum cdd_c_error _rc = peek(s, &nxt);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
+              peek(s, &nxt);
               if (nxt && nxt->kind == CDD_TOKEN_IDENTIFIER) {
-                {
-                  enum cdd_c_error _rc = advance(s, &t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
-                {
-                  enum cdd_c_error _rc = append_child_token(base_spec, t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                advance(s, &t);
+                append_child_token(base_spec, t);
               }
-              {
-                enum cdd_c_error _rc = append_child_node(base_list, base_spec);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
+              if (append_child_node(base_list, base_spec) != CDD_C_SUCCESS) {
+                free_node(base_spec);
+                s->err = CDD_C_ERROR_MEMORY;
               }
             }
 
-            {
-              enum cdd_c_error _rc = peek(s, &nxt);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            peek(s, &nxt);
             if (nxt && nxt->kind == CDD_TOKEN_COMMA) {
-              {
-                enum cdd_c_error _rc = advance(s, &t);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
-              {
-                enum cdd_c_error _rc = append_child_token(base_list, t);
-                if (_rc != CDD_C_SUCCESS)
-                  return _rc;
-              }
+              advance(s, &t);
+              append_child_token(base_list, t);
             } else {
               break;
             }
           }
-          {
-            enum cdd_c_error _rc = append_child_node(n, base_list);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
+          if (append_child_node(n, base_list) != CDD_C_SUCCESS) {
+            free_node(base_list);
+            s->err = CDD_C_ERROR_MEMORY;
           }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
         break;
       } else {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
       }
     }
     *out_node = n;
@@ -1191,39 +769,18 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
       t->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
       t->kind == CDD_TOKEN_KEYWORD_PROTECTED) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
-    {
-      enum cdd_c_error _rc = advance(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
-    {
-      enum cdd_c_error _rc = append_child_token(n, t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
-    {
-      enum cdd_c_error _rc = peek(s, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    advance(s, &t);
+    append_child_token(n, t);
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_OTHER && t->length == 1 && *t->start == ':') {
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      append_child_token(n, t);
     }
     *out_node = n;
     return CDD_C_SUCCESS;
@@ -1232,45 +789,25 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   if (t->kind == CDD_TOKEN_IDENTIFIER &&
       ((t->length == 7 && memcmp(t->start, "__asm__", 7) == 0) ||
        (t->length == 3 && memcmp(t->start, "asm", 3) == 0))) {
-    {
-      enum cdd_c_error _rc = alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
-      if (_rc != CDD_C_SUCCESS) {
-        s->err = _rc;
-        return _rc;
-      }
+    alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
+    if (!n) {
+      s->err = CDD_C_ERROR_MEMORY;
+      *out_node = NULL;
+      return CDD_C_ERROR_MEMORY;
     }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      {
-        enum cdd_c_error _rc = peek(s, &nxt);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      peek(s, &nxt);
       if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
         break;
       }
       if (nxt->kind == CDD_TOKEN_RBRACE)
         break;
-      {
-        enum cdd_c_error _rc = advance(s, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      if (t) {
-        enum cdd_c_error _rc = append_child_token(n, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(s, &t);
+      if (t)
+        append_child_token(n, t);
     }
     *out_node = n;
     return CDD_C_SUCCESS;
@@ -1316,108 +853,65 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
       node_kind = CDD_CST_DESTRUCTOR;
     } else if (is_operator) {
       node_kind = CDD_CST_OPERATOR_OVERLOAD;
-    } else {
-      int _found = 0;
-      enum cdd_c_error _rc = get_class_name(parent, &class_name_tok, &_found);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-      if (_found) {
-        size_t paren_idx = 0;
-        for (i = s->pos; i < s->list->size; i++) {
-          if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
-            paren_idx = i;
-            break;
-          }
-          if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
-              s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
-            break;
+    } else if (get_class_name(parent, &class_name_tok)) {
+      size_t paren_idx = 0;
+      for (i = s->pos; i < s->list->size; i++) {
+        if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
+          paren_idx = i;
+          break;
         }
-        if (paren_idx > s->pos &&
-            s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
-          cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
-          if (name_tok->length == class_name_tok->length &&
-              memcmp(name_tok->start, class_name_tok->start,
-                     name_tok->length) == 0) {
-            node_kind = CDD_CST_CONSTRUCTOR;
-          }
+        if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
+            s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
+          break;
+      }
+      if (paren_idx > s->pos &&
+          s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
+        if (name_tok->length == class_name_tok->length &&
+            memcmp(name_tok->start, class_name_tok->start, name_tok->length) ==
+                0) {
+          node_kind = CDD_CST_CONSTRUCTOR;
         }
       }
     }
 
     if (is_func || node_kind != CDD_CST_UNKNOWN) {
-      {
-        enum cdd_c_error _rc = alloc_node(node_kind, parent, &n);
-        if (_rc != CDD_C_SUCCESS) {
-          s->err = _rc;
-          return _rc;
-        }
+      alloc_node(node_kind, parent, &n);
+      if (!n) {
+        s->err = CDD_C_ERROR_MEMORY;
+        *out_node = NULL;
+        return CDD_C_ERROR_MEMORY;
       }
       while (s->pos < s->list->size) {
         cdd_token_t *nxt = NULL;
-        {
-          enum cdd_c_error _rc = peek(s, &nxt);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        peek(s, &nxt);
 
         if (nxt->kind == CDD_TOKEN_KEYWORD_NOEXCEPT) {
           cdd_cst_node_t *noexcept_node = NULL;
-          {
-            enum cdd_c_error _rc =
-                alloc_node(CDD_CST_NOEXCEPT_SPECIFIER, n, &noexcept_node);
-            if (_rc != CDD_C_SUCCESS) {
-              s->err = _rc;
-              return _rc;
-            }
-          }
+          alloc_node(CDD_CST_NOEXCEPT_SPECIFIER, n, &noexcept_node);
           if (noexcept_node) {
-            {
-              enum cdd_c_error _rc = advance(s, &t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
-            {
-              enum cdd_c_error _rc = append_child_token(noexcept_node, t);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            advance(s, &t);
+            append_child_token(noexcept_node, t);
 
-            {
-              enum cdd_c_error _rc = peek(s, &nxt);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
-            }
+            peek(s, &nxt);
             if (nxt && nxt->kind == CDD_TOKEN_LPAREN) {
               int noexcept_paren = 0;
               while (s->pos < s->list->size) {
-                {
-                  enum cdd_c_error _rc = peek(s, &nxt);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                peek(s, &nxt);
                 if (nxt->kind == CDD_TOKEN_LPAREN)
                   noexcept_paren++;
                 else if (nxt->kind == CDD_TOKEN_RPAREN)
                   noexcept_paren--;
 
-                {
-                  enum cdd_c_error _rc = advance(s, &t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
-                {
-                  enum cdd_c_error _rc = append_child_token(noexcept_node, t);
-                  if (_rc != CDD_C_SUCCESS)
-                    return _rc;
-                }
+                advance(s, &t);
+                append_child_token(noexcept_node, t);
                 if (noexcept_paren == 0)
                   break;
               }
             }
-            {
-              enum cdd_c_error _rc = append_child_node(n, noexcept_node);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
+            if (append_child_node(n, noexcept_node) != CDD_C_SUCCESS) {
+              free_node(noexcept_node);
+              s->err = CDD_C_ERROR_MEMORY;
             }
             continue;
           }
@@ -1425,63 +919,37 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
 
         if (nxt->kind == CDD_TOKEN_LBRACE) {
           cdd_cst_node_t *child = NULL;
-          {
-            enum cdd_c_error _rc = parse_block(s, n, &child);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          parse_block(s, n, &child);
           if (child) {
-            {
-              enum cdd_c_error _rc = append_child_node(n, child);
-              if (_rc != CDD_C_SUCCESS)
-                return _rc;
+            if (append_child_node(n, child) != CDD_C_SUCCESS) {
+              free_node(child);
+              s->err = CDD_C_ERROR_MEMORY;
             }
           }
           break;
         }
         if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
-          {
-            enum cdd_c_error _rc = advance(s, &t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
-          {
-            enum cdd_c_error _rc = append_child_token(n, t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          advance(s, &t);
+          append_child_token(n, t);
           break;
         }
-        {
-          enum cdd_c_error _rc = advance(s, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        {
-          enum cdd_c_error _rc = append_child_token(n, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(s, &t);
+        append_child_token(n, t);
       }
       *out_node = n;
       return CDD_C_SUCCESS;
     } else {
-      {
-        enum cdd_c_error _rc = alloc_node(CDD_CST_UNKNOWN, parent, &n);
-        if (_rc != CDD_C_SUCCESS) {
-          s->err = _rc;
-          return _rc;
-        }
+      alloc_node(CDD_CST_UNKNOWN, parent, &n);
+      if (!n) {
+        s->err = CDD_C_ERROR_MEMORY;
+        *out_node = NULL;
+        return CDD_C_ERROR_MEMORY;
       }
       {
         int paren_depth = 0;
         while (s->pos < s->list->size) {
           cdd_token_t *nxt = NULL;
-          {
-            enum cdd_c_error _rc = peek(s, &nxt);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          peek(s, &nxt);
           if (nxt->kind == CDD_TOKEN_LPAREN) {
             paren_depth++;
           } else if (nxt->kind == CDD_TOKEN_RPAREN) {
@@ -1495,16 +963,8 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
             }
             break;
           }
-          {
-            enum cdd_c_error _rc = advance(s, &t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
-          {
-            enum cdd_c_error _rc = append_child_token(n, t);
-            if (_rc != CDD_C_SUCCESS)
-              return _rc;
-          }
+          advance(s, &t);
+          append_child_token(n, t);
           if (nxt->kind == CDD_TOKEN_SEMICOLON && paren_depth <= 0)
             break;
         }
@@ -1515,7 +975,7 @@ parse_declaration_or_statement(parser_state_t *s, cdd_cst_node_t *parent,
   }
 }
 
-enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
+cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   parser_state_t state = {0};
   cdd_cst_tree_t *tree;
   int rc;
@@ -1523,7 +983,7 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   if (!out_tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   if (!tree) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -1531,7 +991,7 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   rc = cdd_lexer_tokenize(source, &tree->base_tokens);
   if (rc != 0) {
-    C_CDD_FREE(tree);
+    free(tree);
     return rc;
   }
 
@@ -1547,52 +1007,27 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   while (state.pos < state.list->size) {
     cdd_token_t *t = NULL;
-    {
-      enum cdd_c_error _rc = peek(&state, &t);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    peek(&state, &t);
     if (t->kind == CDD_TOKEN_EOF) {
-      {
-        enum cdd_c_error _rc = advance(&state, &t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
-      {
-        enum cdd_c_error _rc = append_child_token(tree->root, t);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      advance(&state, &t);
+      append_child_token(tree->root, t);
       break;
     }
     {
       cdd_cst_node_t *child = NULL;
-      {
-        enum cdd_c_error _rc =
-            parse_declaration_or_statement(&state, tree->root, &child);
-        if (_rc != CDD_C_SUCCESS)
-          return _rc;
-      }
+      parse_declaration_or_statement(&state, tree->root, &child);
       if (child) {
-        {
-          enum cdd_c_error _rc = append_child_node(tree->root, child);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
+        if (append_child_node(tree->root, child) != CDD_C_SUCCESS) {
+          free_node(child);
+          state.err = CDD_C_ERROR_MEMORY;
         }
       } else {
         if (state.err)
           break;
         /* Fallback */
-        {
-          enum cdd_c_error _rc = advance(&state, &t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
-        if (t) {
-          enum cdd_c_error _rc = append_child_token(tree->root, t);
-          if (_rc != CDD_C_SUCCESS)
-            return _rc;
-        }
+        advance(&state, &t);
+        if (t)
+          append_child_token(tree->root, t);
       }
     }
   }
@@ -1601,11 +1036,11 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
     if (state.macros.defs) {
       size_t k;
       for (k = 0; k < state.macros.count; k++) {
-        C_CDD_FREE(state.macros.defs[k].name);
+        free(state.macros.defs[k].name);
         if (state.macros.defs[k].value)
-          C_CDD_FREE(state.macros.defs[k].value);
+          free(state.macros.defs[k].value);
       }
-      C_CDD_FREE(state.macros.defs);
+      free(state.macros.defs);
     }
     cdd_cst_tree_free(tree);
     return state.err;
@@ -1614,11 +1049,11 @@ enum cdd_c_error cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   if (state.macros.defs) {
     size_t k;
     for (k = 0; k < state.macros.count; k++) {
-      C_CDD_FREE(state.macros.defs[k].name);
+      free(state.macros.defs[k].name);
       if (state.macros.defs[k].value)
-        C_CDD_FREE(state.macros.defs[k].value);
+        free(state.macros.defs[k].value);
     }
-    C_CDD_FREE(state.macros.defs);
+    free(state.macros.defs);
   }
 
   *out_tree = tree;
@@ -1640,25 +1075,25 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
         cdd_trivia_t *t = tree->synthesized_tokens[i]->leading_trivia;
         while (t) {
           cdd_trivia_t *n = t->next;
-          C_CDD_FREE(t);
+          free(t);
           t = n;
         }
         t = tree->synthesized_tokens[i]->trailing_trivia;
         while (t) {
           cdd_trivia_t *n = t->next;
-          C_CDD_FREE(t);
+          free(t);
           t = n;
         }
-        C_CDD_FREE(tree->synthesized_tokens[i]);
+        free(tree->synthesized_tokens[i]);
       }
     }
-    C_CDD_FREE(tree->synthesized_tokens);
+    free(tree->synthesized_tokens);
   }
   if (tree->string_pool) {
     for (i = 0; i < tree->num_strings; i++) {
-      C_CDD_FREE(tree->string_pool[i]);
+      free(tree->string_pool[i]);
     }
-    C_CDD_FREE(tree->string_pool);
+    free(tree->string_pool);
   }
-  C_CDD_FREE(tree);
+  free(tree);
 }

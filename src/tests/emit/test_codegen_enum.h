@@ -9,7 +9,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "classes/emit/enum.h"
 #include <greatest.h>
@@ -79,13 +78,14 @@ TEST test_enum_generation(void) {
     ASSERT_EQ(0, enum_members_add(&em, "OOM"));
   }
 
+  printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
   ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
 
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "int MyEnum_to_str"));
@@ -96,23 +96,29 @@ TEST test_enum_generation(void) {
   {
     FILE *readonly_f = tmpfile();
     if (readonly_f) {
-
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       {
         int _rc = write_enum_to_str_func(readonly_f, "MyEnum", &em, &config);
         printf("write_enum_to_str_func RC WAS %d\\n", _rc);
         ASSERT_EQ(CDD_C_ERROR_IO, _rc);
       }
-
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(CDD_C_ERROR_IO,
                 write_enum_from_str_func(readonly_f, "MyEnum", &em, &config));
       fclose(readonly_f);
     }
   }
 
-  C_CDD_FREE(content);
+  free(content);
   enum_members_free(&em);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -152,6 +158,7 @@ TEST test_enum_generation_oom(void) {
   {
     FILE *tmp = tmpfile();
     struct CodegenEnumConfig config = {"MY_GUARD"};
+    printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
     ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
     ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
     fclose(tmp);
@@ -159,7 +166,7 @@ TEST test_enum_generation_oom(void) {
 
   enum_members_free(&em);
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -176,23 +183,31 @@ TEST test_enum_exhaustive_io(void) {
 
   for (i = 0; i < 1000; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_enum_to_str_func(tmp, "MyEnum", &em, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 1000; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_enum_from_str_func(tmp, "MyEnum", &em, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
@@ -200,29 +215,38 @@ TEST test_enum_exhaustive_io(void) {
 
   for (i = 0; i < 1000; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_enum_to_str_func(tmp, "MyEnum", &em, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 1000; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_enum_from_str_func(tmp, "MyEnum", &em, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
+  g_fail_io_after = -1;
   enum_members_free(&em);
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 SUITE(codegen_enum_suite) {

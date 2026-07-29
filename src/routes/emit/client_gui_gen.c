@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "routes/emit/client_gui_gen.h"
 #include <errno.h>
@@ -26,7 +25,7 @@
  * @brief Generates client GUI bindings based on OpenAPI specs.
  *
  */
-enum cdd_c_error
+cdd_c_error_t
 openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config) {
   char path_h[1024];
@@ -39,7 +38,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = C_CDD_MALLOC(512);
+    char *src_dir = malloc(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
@@ -50,11 +49,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                  base_name ? base_name : "generated_client");
     CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
                  base_name ? base_name : "generated_client");
-    C_CDD_FREE(src_dir);
+    free(src_dir);
     if (dir_name)
-      C_CDD_FREE(dir_name);
+      free(dir_name);
     if (base_name)
-      C_CDD_FREE(base_name);
+      free(base_name);
   }
 
 #if defined(_MSC_VER)
@@ -95,14 +94,14 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_h, "struct OAuth2TokenResponse;\n");
   fprintf(
       fp_h,
-      "enum cdd_c_error cmp_oauth2_view_render(const char* token_endpoint);\n");
-  fprintf(fp_h, "enum cdd_c_error execute_password_grant(const char* "
+      "cdd_c_error_t cmp_oauth2_view_render(const char* token_endpoint);\n");
+  fprintf(fp_h, "cdd_c_error_t execute_password_grant(const char* "
                 "token_endpoint, const "
                 "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token);\n\n");
-  fprintf(fp_h, "enum cdd_c_error cmp_ui_builder_begin_column(void);\n");
-  fprintf(fp_h, "enum cdd_c_error m3_text_field_init(const char* label);\n");
-  fprintf(fp_h, "enum cdd_c_error m3_button_init(const char* label);\n");
+  fprintf(fp_h, "cdd_c_error_t cmp_ui_builder_begin_column(void);\n");
+  fprintf(fp_h, "cdd_c_error_t m3_text_field_init(const char* label);\n");
+  fprintf(fp_h, "cdd_c_error_t m3_button_init(const char* label);\n");
   fprintf(fp_h, "#ifdef __cplusplus\n");
   fprintf(fp_h, "}\n");
   fprintf(fp_h, "#endif /* __cplusplus */\n\n");
@@ -116,7 +115,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "#include \"%s_gui.h\"\n",
             base ? base : config->filename_base);
     if (base)
-      C_CDD_FREE(base);
+      free(base);
   }
   fprintf(fp_c, "#include <stdio.h>\n");
   fprintf(fp_c, "#include <stdlib.h>\n");
@@ -127,20 +126,20 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp_c,
       "#include <c_abstract_http/http_types.h>\n#include <cdd_c_error.h>\n ");
-  fprintf(fp_c, "extern enum cdd_c_error cdd_c_parse_oauth2_token(const char "
+  fprintf(fp_c, "extern cdd_c_error_t cdd_c_parse_oauth2_token(const char "
                 "*json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 
   fprintf(fp_c,
           "/* GUI Stub implementations (for standalone compilation) */\n");
-  fprintf(fp_c, "enum cdd_c_error cmp_ui_builder_begin_column(void) { return "
+  fprintf(fp_c, "cdd_c_error_t cmp_ui_builder_begin_column(void) { return "
                 "CDD_C_SUCCESS; }\n");
-  fprintf(fp_c, "enum cdd_c_error m3_text_field_init(const char* label) { "
+  fprintf(fp_c, "cdd_c_error_t m3_text_field_init(const char* label) { "
                 "(void)label; return CDD_C_SUCCESS; }\n");
-  fprintf(fp_c, "enum cdd_c_error m3_button_init(const char* label) { "
+  fprintf(fp_c, "cdd_c_error_t m3_button_init(const char* label) { "
                 "(void)label; return CDD_C_SUCCESS; }\n\n");
 
-  fprintf(fp_c, "enum cdd_c_error cmp_oauth2_view_render(const char* "
+  fprintf(fp_c, "cdd_c_error_t cmp_oauth2_view_render(const char* "
                 "token_endpoint) {\n");
   fprintf(fp_c, "  if (!token_endpoint) {\n");
   if (spec->n_servers > 0 && spec->servers[0].url) {
@@ -152,7 +151,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   }
   fprintf(fp_c, "  }\n");
 
-  fprintf(fp_c, "  { enum cdd_c_error rc = cmp_ui_builder_begin_column(); "
+  fprintf(fp_c, "  { cdd_c_error_t rc = cmp_ui_builder_begin_column(); "
                 "if(rc != CDD_C_SUCCESS) return rc; }\n");
   fprintf(fp_c, "  m3_text_field_init(\"Username\");\n");
   fprintf(fp_c, "  m3_text_field_init(\"Password\");\n");
@@ -160,7 +159,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  return CDD_C_SUCCESS;\n");
   fprintf(fp_c, "}\n\n");
 
-  fprintf(fp_c, "enum cdd_c_error execute_password_grant(const char* "
+  fprintf(fp_c, "cdd_c_error_t execute_password_grant(const char* "
                 "token_endpoint, const "
                 "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token) {\n");
@@ -168,7 +167,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                 "OpenAPI password flow */\n");
   fprintf(fp_c, "  struct HttpRequest req;\n");
   fprintf(fp_c, "  struct HttpResponse res;\n");
-  fprintf(fp_c, "  enum cdd_c_error rc = CDD_C_SUCCESS;\n");
+  fprintf(fp_c, "  cdd_c_error_t rc = CDD_C_SUCCESS;\n");
   fprintf(fp_c, "  char payload[512];\n");
   fprintf(fp_c, "  memset(&req, 0, sizeof(req));\n");
   fprintf(fp_c, "  memset(&res, 0, sizeof(res));\n");
@@ -198,7 +197,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
-  fprintf(fp_c, "    C_CDD_FREE(res.body);\n");
+  fprintf(fp_c, "    free(res.body);\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  return rc;\n");
   fprintf(fp_c, "}\n");

@@ -32,7 +32,7 @@ extern "C" {
 C_CDD_EXPORT /**
               * @brief Executes the cst print tokens exact operation.
               */
-    enum cdd_c_error
+    cdd_c_error_t
     cst_print_tokens_exact(const struct TokenList *tokens, FILE *out);
 
 #ifdef __cplusplus

@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <greatest.h>
@@ -45,6 +44,7 @@ TEST test_refactor_context_lifecycle(void) {
 
   refactor_context_free(&ctx);
   refactor_context_free(NULL); /* Safe */
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -58,7 +58,7 @@ TEST test_apply_refactoring_to_string_basic(void) {
   struct RefactorContext ctx;
   int rc;
   const char *src = ""
-                    "void my_func() { char * p = (char *)C_CDD_MALLOC(1); }";
+                    "void my_func() { char * p = (char *)malloc(1); }";
   char *out = NULL;
 
   refactor_context_init(&ctx);
@@ -68,9 +68,9 @@ TEST test_apply_refactoring_to_string_basic(void) {
   ASSERT_EQ(0, rc);
   ASSERT(out != NULL);
 
-  C_CDD_FREE(out);
+  free(out);
   refactor_context_free(&ctx);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -97,7 +97,7 @@ TEST test_apply_refactoring_to_string_errors(void) {
      can pass a malformed AST? No, this function tokenizes it itself. */
 
   refactor_context_free(&ctx);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

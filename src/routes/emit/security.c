@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +14,7 @@
 #include "routes/emit/security.h"
 /* clang-format on */
 
-static enum cdd_c_error uri_has_scheme_prefix(const char *uri, size_t len) {
+static cdd_c_error_t uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
     return CDD_C_SUCCESS;
@@ -33,9 +32,9 @@ static enum cdd_c_error uri_has_scheme_prefix(const char *uri, size_t len) {
  * @brief Compares the base part of a reference URI with a self URI to
  * determine if they match.
  */
-static enum cdd_c_error ref_base_matches_self_uri(const char *self_uri,
-                                                  const char *ref,
-                                                  size_t base_len) {
+static cdd_c_error_t ref_base_matches_self_uri(const char *self_uri,
+                                               const char *ref,
+                                               size_t base_len) {
   const char *self_hash;
   const char *self_base;
   size_t self_len;
@@ -75,9 +74,9 @@ static enum cdd_c_error ref_base_matches_self_uri(const char *self_uri,
  * @brief Checks if a requested security scheme reference matches a given
  * scheme name, resolving relative refs.
  */
-static enum cdd_c_error
-scheme_ref_matches_name(const char *req_scheme, const char *scheme_name,
-                        const struct OpenAPI_Spec *spec) {
+static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
+                                             const char *scheme_name,
+                                             const struct OpenAPI_Spec *spec) {
   const char *prefix = "#/components/securitySchemes/";
   size_t prefix_len = strlen(prefix);
   const char *hash;
@@ -104,7 +103,7 @@ scheme_ref_matches_name(const char *req_scheme, const char *scheme_name,
  * @brief Evaluates whether a specific security scheme name exists within
  * an array of requirement sets.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
                         size_t n_sets, const char *scheme_name,
                         const struct OpenAPI_Spec *spec) {
@@ -126,7 +125,7 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
  * @brief Determines the active security requirements for an operation,
  * falling back to global spec requirements.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 resolve_active_security(const struct OpenAPI_Operation *op,
                         const struct OpenAPI_Spec *spec,
                         const struct OpenAPI_SecurityRequirementSet **out_sets,
@@ -165,7 +164,7 @@ resolve_active_security(const struct OpenAPI_Operation *op,
  * @brief Evaluates whether a given security scheme is currently active
  * within a set of requirements.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
                  const struct OpenAPI_SecurityRequirementSet *sets,
                  size_t n_sets, int security_set,
@@ -181,7 +180,7 @@ scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
  * @brief Determines if the active security schemes for a given operation
  * require parameters in the URL query string.
  */
-enum cdd_c_error
+cdd_c_error_t
 codegen_security_requires_query(const struct OpenAPI_Operation *op,
                                 const struct OpenAPI_Spec *spec) {
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
@@ -211,7 +210,7 @@ codegen_security_requires_query(const struct OpenAPI_Operation *op,
  * @brief Determines if the active security schemes for a given operation
  * require parameters via HTTP cookies.
  */
-enum cdd_c_error
+cdd_c_error_t
 codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec) {
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
@@ -241,9 +240,9 @@ codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
  * @brief Generates C code to apply active security schemes (e.g., injecting
  * headers or tokens) to an outgoing request.
  */
-enum cdd_c_error
-codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
-                             const struct OpenAPI_Spec *spec) {
+cdd_c_error_t codegen_security_write_apply(FILE *fp,
+                                           const struct OpenAPI_Operation *op,
+                                           const struct OpenAPI_Spec *spec) {
   size_t i;
   int has_security = 0;
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
@@ -335,10 +334,9 @@ codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
         fprintf(fp, "      size_t val_len = strlen(cookie_val);\n");
         fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
                     "(cookie_len ? 2 : 0);\n");
-        fprintf(
-            fp,
-            "      char *tmp = (char *)C_CDD_REALLOC(cookie_str, cookie_len + "
-            "extra + 1);\n");
+        fprintf(fp,
+                "      char *tmp = (char *)realloc(cookie_str, cookie_len + "
+                "extra + 1);\n");
         fprintf(fp,
                 "      if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n");
         fprintf(fp, "      cookie_str = tmp;\n");
@@ -371,7 +369,7 @@ codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
 /**
  * @brief Emit server middleware hooks
  */
-enum cdd_c_error
+cdd_c_error_t
 codegen_security_write_server_apply(FILE *fp,
                                     const struct OpenAPI_Operation *op,
                                     const struct OpenAPI_Spec *spec) {
@@ -428,59 +426,55 @@ codegen_security_write_server_apply(FILE *fp,
 }
 
 #ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT enum cdd_c_error uri_has_scheme_prefix_test(const char *uri,
-                                                         size_t len);
-C_CDD_EXPORT enum cdd_c_error
-ref_base_matches_self_uri_test(const char *self_uri, const char *ref,
-                               size_t base_len);
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
+                                                      size_t len);
+C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(const char *self_uri,
+                                                          const char *ref,
+                                                          size_t base_len);
+C_CDD_EXPORT cdd_c_error_t
 scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
                              const struct OpenAPI_Spec *spec);
-C_CDD_EXPORT enum cdd_c_error
-scheme_in_security_sets_test(const struct OpenAPI_SecurityRequirementSet *sets,
-                             size_t n_sets, const char *scheme_name,
-                             const struct OpenAPI_Spec *spec);
-C_CDD_EXPORT enum cdd_c_error resolve_active_security_test(
+C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    const char *scheme_name, const struct OpenAPI_Spec *spec);
+C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
     int *out_set_flag);
-C_CDD_EXPORT enum cdd_c_error
-scheme_is_active_test(const struct OpenAPI_SecurityScheme *sch,
-                      const struct OpenAPI_SecurityRequirementSet *sets,
-                      size_t n_sets, int security_set,
-                      const struct OpenAPI_Spec *spec);
+C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
+    const struct OpenAPI_SecurityScheme *sch,
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    int security_set, const struct OpenAPI_Spec *spec);
 
-C_CDD_EXPORT enum cdd_c_error uri_has_scheme_prefix_test(const char *uri,
-                                                         size_t len) {
+C_CDD_EXPORT cdd_c_error_t uri_has_scheme_prefix_test(const char *uri,
+                                                      size_t len) {
   return uri_has_scheme_prefix(uri, len);
 }
-C_CDD_EXPORT enum cdd_c_error
-ref_base_matches_self_uri_test(const char *self_uri, const char *ref,
-                               size_t base_len) {
+C_CDD_EXPORT cdd_c_error_t ref_base_matches_self_uri_test(const char *self_uri,
+                                                          const char *ref,
+                                                          size_t base_len) {
   return ref_base_matches_self_uri(self_uri, ref, base_len);
 }
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 scheme_ref_matches_name_test(const char *req_scheme, const char *scheme_name,
                              const struct OpenAPI_Spec *spec) {
   return scheme_ref_matches_name(req_scheme, scheme_name, spec);
 }
-C_CDD_EXPORT enum cdd_c_error
-scheme_in_security_sets_test(const struct OpenAPI_SecurityRequirementSet *sets,
-                             size_t n_sets, const char *scheme_name,
-                             const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t scheme_in_security_sets_test(
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    const char *scheme_name, const struct OpenAPI_Spec *spec) {
   return scheme_in_security_sets(sets, n_sets, scheme_name, spec);
 }
-C_CDD_EXPORT enum cdd_c_error resolve_active_security_test(
+C_CDD_EXPORT cdd_c_error_t resolve_active_security_test(
     const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
     const struct OpenAPI_SecurityRequirementSet **out_sets, size_t *out_count,
     int *out_set_flag) {
   return resolve_active_security(op, spec, out_sets, out_count, out_set_flag);
 }
-C_CDD_EXPORT enum cdd_c_error
-scheme_is_active_test(const struct OpenAPI_SecurityScheme *sch,
-                      const struct OpenAPI_SecurityRequirementSet *sets,
-                      size_t n_sets, int security_set,
-                      const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t scheme_is_active_test(
+    const struct OpenAPI_SecurityScheme *sch,
+    const struct OpenAPI_SecurityRequirementSet *sets, size_t n_sets,
+    int security_set, const struct OpenAPI_Spec *spec) {
   return scheme_is_active(sch, sets, n_sets, security_set, spec);
 }
 #endif

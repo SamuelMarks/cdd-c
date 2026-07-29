@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,16 +20,16 @@
 #endif
 
 #include "functions/parse/str.h"
-/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_strdup_fail = 0;
 #endif
+/* clang-format on */
 
 /**
  * @brief Executes the c cdd strdup operation.
  */
-enum cdd_c_error c_cdd_strdup(const char *s, char **out_s) {
+cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
@@ -56,8 +55,8 @@ enum cdd_c_error c_cdd_strdup(const char *s, char **out_s) {
 /**
  * @brief Executes the c cdd str starts with operation.
  */
-enum cdd_c_error c_cdd_str_starts_with(const char *str, const char *prefix,
-                                       int *out_b) {
+cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
+                                    int *out_b) {
   size_t i;
   if (str == NULL || prefix == NULL) {
     *out_b = false;
@@ -76,7 +75,7 @@ enum cdd_c_error c_cdd_str_starts_with(const char *str, const char *prefix,
 /**
  * @brief Executes the c cdd str equal operation.
  */
-enum cdd_c_error c_cdd_str_equal(const char *a, const char *b, int *out_b) {
+cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
     return CDD_C_SUCCESS;
@@ -92,7 +91,7 @@ enum cdd_c_error c_cdd_str_equal(const char *a, const char *b, int *out_b) {
 /**
  * @brief Executes the c cdd str iequal operation.
  */
-enum cdd_c_error c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
+cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
     return CDD_C_SUCCESS;
@@ -116,8 +115,8 @@ enum cdd_c_error c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 /**
  * @brief Executes the c cdd str after last operation.
  */
-enum cdd_c_error c_cdd_str_after_last(const char *str, const int delimiter,
-                                      const char **out_s) {
+cdd_c_error_t c_cdd_str_after_last(const char *str, const int delimiter,
+                                   const char **out_s) {
   const char *last_occurrence;
   if (str == NULL) {
     *out_s = "";
@@ -131,8 +130,7 @@ enum cdd_c_error c_cdd_str_after_last(const char *str, const int delimiter,
 /**
  * @brief Executes the c cdd ref is type operation.
  */
-enum cdd_c_error c_cdd_ref_is_type(const char *ref, const char *type,
-                                   int *out_b) {
+cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
   const char *extracted = NULL;
   if (ref == NULL || type == NULL) {
     *out_b = false;
@@ -168,7 +166,7 @@ void c_cdd_str_trim_trailing_whitespace(char *str) {
 C_CDD_EXPORT int g_str_unquote_malloc_fail = 0;
 #endif
 
-enum cdd_c_error c_cdd_destringize(const char *quoted, char **out_s) {
+cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
   size_t len, i, j;
   char *out;
   const char *inner;
@@ -200,7 +198,7 @@ enum cdd_c_error c_cdd_destringize(const char *quoted, char **out_s) {
     out = NULL;
   } else {
 #endif
-    out = (char *)C_CDD_MALLOC(len + 1);
+    out = (char *)malloc(len + 1);
 #ifdef CDD_BUILD_TESTS
   }
 #endif
@@ -237,7 +235,7 @@ enum cdd_c_error c_cdd_destringize(const char *quoted, char **out_s) {
  * @brief Executes the c cdd stricmp operation.
  *
  */
-enum cdd_c_error c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
+cdd_c_error_t c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;
   if (!out_diff)
     return 22; /* EINVAL */

@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -80,6 +79,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(2, config.indent_width); /* default if no space counts added */
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -101,7 +101,7 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
   ASSERT_EQ(1, config.use_tabs);
 
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -125,7 +125,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT(t != NULL);
   ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
   ASSERT_EQ(NULL, t->next);
-  C_CDD_FREE(t);
+  free(t);
   t = NULL;
 
   rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
@@ -136,9 +136,9 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(TRIVIA_WHITESPACE, t->next->kind);
   ASSERT_EQ(8, t->next->length);
 
-  C_CDD_FREE((void *)t->next->start);
-  C_CDD_FREE(t->next);
-  C_CDD_FREE(t);
+  free((void *)t->next->start);
+  free(t->next);
+  free(t);
 
   rc = cdd_cst_generate_indent_trivia(NULL, &config_tabs, 2, &t);
   ASSERT_EQ(0, rc);
@@ -149,9 +149,10 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(2, t->next->length);
   ASSERT_EQ('\t', t->next->start[0]);
 
-  C_CDD_FREE((void *)t->next->start);
-  C_CDD_FREE(t->next);
-  C_CDD_FREE(t);
+  free((void *)t->next->start);
+  free(t->next);
+  free(t);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -188,6 +189,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
   g_cdd_cst_alloc_token_fail = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -203,7 +205,7 @@ TEST test_trivia_branches(void) {
   tree.base_tokens = &lst;
   lst.size = 1;
   lst.capacity = 1;
-  lst.tokens = C_CDD_CALLOC(1, sizeof(cdd_token_t));
+  lst.tokens = calloc(1, sizeof(cdd_token_t));
 
   t1.kind = TRIVIA_WHITESPACE; /* Not newline */
 
@@ -221,8 +223,8 @@ TEST test_trivia_branches(void) {
 
   cdd_cst_detect_format_config(&tree, &config);
 
-  C_CDD_FREE(lst.tokens);
-
+  free(lst.tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

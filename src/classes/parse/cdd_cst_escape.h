@@ -19,8 +19,8 @@ extern "C" {
  * @param env The populated semantic scope environment.
  * @return 0 on success.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
-                                                      cdd_cst_scope_env_t *env);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
+                                                   cdd_cst_scope_env_t *env);
 
 /**
  * @brief Checks if a specific symbol escapes its local scope.
@@ -28,8 +28,8 @@ C_CDD_EXPORT enum cdd_c_error cdd_cst_analyze_escapes(cdd_cst_tree_t *tree,
  * @param out_escapes Populated with 1 if it escapes, 0 otherwise.
  * @return 0 on success.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_cst_symbol_escapes(cdd_cst_symbol_t *symbol,
-                                                     int *out_escapes);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_symbol_escapes(cdd_cst_symbol_t *symbol,
+                                                  int *out_escapes);
 
 #ifdef __cplusplus
 }

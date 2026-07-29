@@ -11,8 +11,8 @@ extern "C" {
 #include <greatest.h>
 #if !defined(_WIN32)
 #include <dlfcn.h>
-/* clang-format on */
 #endif
+/* clang-format on */
 
 TEST test_db_loader_basic(void) {
   int avail;
@@ -23,6 +23,7 @@ TEST test_db_loader_basic(void) {
   ASSERT_EQ(22, check_libpq_available(NULL));
   ASSERT_EQ(22, check_sqlite3_available(NULL));
   ASSERT_EQ(22, check_mysql_available(NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -40,7 +41,7 @@ TEST test_db_loader_success(void) {
   ASSERT_EQ(1, avail);
   g_cdd_mock_dlopen_success = 0;
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 

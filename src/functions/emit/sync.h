@@ -27,7 +27,7 @@ extern "C" {
  * source path.
  * @return 0 on success, non-zero (errno/EXIT_FAILURE) on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error sync_code_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t sync_code_main(int argc, char **argv);
 
 /**
  * @brief Patch a header file to match refactored function signatures from the
@@ -40,9 +40,8 @@ extern C_CDD_EXPORT enum cdd_c_error sync_code_main(int argc, char **argv);
  * @param[in] refactored_source The full content of the refactored .c file.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-patch_header_from_source(const char *header_path,
-                         const char *refactored_source);
+extern C_CDD_EXPORT cdd_c_error_t patch_header_from_source(
+    const char *header_path, const char *refactored_source);
 
 #ifdef __cplusplus
 }

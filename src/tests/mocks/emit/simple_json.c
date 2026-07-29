@@ -1,6 +1,5 @@
-/* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_c_error.h"
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,31 +27,27 @@ char *strdup(const char *s);
 
 #include "simple_json.h"
 #include "simple_mocks_export.h"
-/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc = 0;
-static void *local_test_malloc(size_t size) {
+static void *test_malloc(size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0)
-      return NULL;
+    if (g_simple_json_fail_alloc == 0) return NULL;
   }
   return malloc(size);
 }
-static void *local_test_calloc(size_t count, size_t size) {
+static void *test_calloc(size_t count, size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0)
-      return NULL;
+    if (g_simple_json_fail_alloc == 0) return NULL;
   }
   return calloc(count, size);
 }
-static char *local_test_strdup(const char *s) {
+static char *test_strdup(const char *s) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0)
-      return NULL;
+    if (g_simple_json_fail_alloc == 0) return NULL;
   }
   return strdup(s);
 }
@@ -65,13 +60,13 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
     int ret;
     va_list ap;
     va_start(ap, fmt);
-    /* Since we only need to test allocation failure, we can just call the real
-       jasprintf. However, jasprintf does the allocation. Wait, if we want
-       jasprintf to fail, jasprintf is an external function. Since jasprintf
-       uses malloc/realloc internally which we haven't overridden (we only
-       #defined malloc locally in this file, which doesn't affect the external
-       jasprintf library), the external jasprintf won't see our fail_alloc
-       counter! So we MUST implement the jasprintf logic here. */
+    /* Since we only need to test allocation failure, we can just call the real jasprintf.
+       However, jasprintf does the allocation. Wait, if we want jasprintf to fail,
+       jasprintf is an external function.
+       Since jasprintf uses malloc/realloc internally which we haven't overridden
+       (we only #defined malloc locally in this file, which doesn't affect the external jasprintf library),
+       the external jasprintf won't see our fail_alloc counter!
+       So we MUST implement the jasprintf logic here. */
     {
       char *new_str;
       int len;
@@ -85,20 +80,12 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
       }
       if (*strp == NULL) {
         new_str = malloc(len + 1);
-        if (!new_str) {
-          va_end(ap);
-          return -1;
-        }
+        if (!new_str) { va_end(ap); return -1; }
         vsnprintf(new_str, len + 1, fmt, ap);
       } else {
         size_t old_len = strlen(*strp);
         new_str = malloc(old_len + len + 1);
-        if (!new_str) {
-          free(*strp);
-          *strp = NULL;
-          va_end(ap);
-          return -1;
-        }
+        if (!new_str) { free(*strp); *strp = NULL; va_end(ap); return -1; }
         strcpy(new_str, *strp);
         vsnprintf(new_str + old_len, len + 1, fmt, ap);
         free(*strp);
@@ -108,20 +95,22 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
     }
     va_end(ap);
     return ret;
-  }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
+    }
+    #if defined(__clang__)
+    #pragma clang diagnostic pop
+    #endif
 }
-#define malloc local_test_malloc
-#define calloc local_test_calloc
+#define malloc test_malloc
+#define calloc test_calloc
 #undef strdup
-#define strdup local_test_strdup
+#define strdup test_strdup
 #undef c89stringutils_jasprintf
 #define c89stringutils_jasprintf test_jasprintf
 #endif
 
-static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
+/* clang-format on */
+
+static cdd_c_error_t quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
     if (*s1 == NULL)
@@ -143,20 +132,20 @@ static enum cdd_c_error quote_or_null(const char *const s, char **s1) {
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error c_str_eq(const char *const s0, const char *const s1) {
+static cdd_c_error_t c_str_eq(const char *const s0, const char *const s1) {
   return ((s0 == NULL && s1 == NULL) ||
           (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
              ? 0
              : 1;
 }
 
-enum cdd_c_error Tank_default(enum Tank *out) {
+cdd_c_error_t Tank_default(enum Tank *out) {
   if (out)
     *out = Tank_BIG;
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
+cdd_c_error_t Tank_to_str(const enum Tank tank, char **const str) {
   if (str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (tank) {
@@ -182,7 +171,7 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
+cdd_c_error_t Tank_from_str(const char *str, enum Tank *val) {
   if (val == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   else if (str == NULL)
@@ -198,7 +187,7 @@ enum cdd_c_error Tank_from_str(const char *str, enum Tank *val) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error HazE_cleanup(struct HazE *const haz_e) {
+cdd_c_error_t HazE_cleanup(struct HazE *const haz_e) {
   if (haz_e == NULL)
     return CDD_C_SUCCESS;
 
@@ -207,7 +196,7 @@ enum cdd_c_error HazE_cleanup(struct HazE *const haz_e) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error HazE_default(struct HazE **haz_e) {
+cdd_c_error_t HazE_default(struct HazE **haz_e) {
   if (haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *haz_e = malloc(sizeof(**haz_e));
@@ -218,8 +207,8 @@ enum cdd_c_error HazE_default(struct HazE **haz_e) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error HazE_deepcopy(const struct HazE *const haz_e_original,
-                               struct HazE **haz_e_dest) {
+cdd_c_error_t HazE_deepcopy(const struct HazE *const haz_e_original,
+                            struct HazE **haz_e_dest) {
   if (haz_e_dest == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (haz_e_original == NULL) {
@@ -244,7 +233,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *const haz_e_original,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error HazE_display(const struct HazE *const haz_e, FILE *fh) {
+cdd_c_error_t HazE_display(const struct HazE *const haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
   if (rc != 0) {
@@ -262,7 +251,7 @@ enum cdd_c_error HazE_display(const struct HazE *const haz_e, FILE *fh) {
   return rc;
 }
 
-enum cdd_c_error HazE_debug(const struct HazE *const haz_e, FILE *fh) {
+cdd_c_error_t HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   int rc;
   if (haz_e == NULL) {
     rc = fputs("<null HazE>\n", fh);
@@ -288,8 +277,8 @@ enum cdd_c_error HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-enum cdd_c_error HazE_eq(const struct HazE *const haz_e0,
-                         const struct HazE *const haz_e1) {
+cdd_c_error_t HazE_eq(const struct HazE *const haz_e0,
+                      const struct HazE *const haz_e1) {
   if (haz_e0 == NULL || haz_e1 == NULL)
     return haz_e0 == haz_e1 ? 0 : 1;
 
@@ -299,7 +288,7 @@ enum cdd_c_error HazE_eq(const struct HazE *const haz_e0,
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
 
-enum cdd_c_error HazE_to_json(const struct HazE *const haz_e, char **json) {
+cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
   int need_comma = 0;
@@ -347,8 +336,8 @@ cleanup:
   return rc;
 }
 
-enum cdd_c_error HazE_from_jsonObject(const JSON_Object *const jsonObject,
-                                      struct HazE **haz_e) {
+cdd_c_error_t HazE_from_jsonObject(const JSON_Object *const jsonObject,
+                                   struct HazE **haz_e) {
   const char *bzr_str = NULL;
   const char *tank_str;
   int rc = 0;
@@ -385,7 +374,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *const jsonObject,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error HazE_from_json(const char *const json, struct HazE **haz_e) {
+cdd_c_error_t HazE_from_json(const char *const json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;
@@ -407,7 +396,7 @@ enum cdd_c_error HazE_from_json(const char *const json, struct HazE **haz_e) {
   return rc;
 }
 
-enum cdd_c_error FooE_cleanup(struct FooE *const foo_e) {
+cdd_c_error_t FooE_cleanup(struct FooE *const foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
   free((void *)foo_e->bar);
@@ -416,7 +405,7 @@ enum cdd_c_error FooE_cleanup(struct FooE *const foo_e) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error FooE_default(struct FooE **foo_e) {
+cdd_c_error_t FooE_default(struct FooE **foo_e) {
   int rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -435,8 +424,8 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error FooE_deepcopy(const struct FooE *const foo_e_original,
-                               struct FooE **foo_e_dest) {
+cdd_c_error_t FooE_deepcopy(const struct FooE *const foo_e_original,
+                            struct FooE **foo_e_dest) {
   struct FooE *new_foo;
   if (foo_e_dest == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -469,7 +458,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *const foo_e_original,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
+cdd_c_error_t FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
   if (rc != 0) {
@@ -487,7 +476,7 @@ enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   return rc;
 }
 
-enum cdd_c_error FooE_debug(const struct FooE *const foo_e, FILE *fh) {
+cdd_c_error_t FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   int rc;
   if (foo_e == NULL) {
     rc = fputs("<null FooE>\n", fh);
@@ -519,8 +508,8 @@ enum cdd_c_error FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-enum cdd_c_error FooE_eq(const struct FooE *const foo_e0,
-                         const struct FooE *const foo_e1) {
+cdd_c_error_t FooE_eq(const struct FooE *const foo_e0,
+                      const struct FooE *const foo_e1) {
   if (foo_e0 == NULL || foo_e1 == NULL)
     return foo_e0 == foo_e1 ? 0 : 1;
 
@@ -531,8 +520,7 @@ enum cdd_c_error FooE_eq(const struct FooE *const foo_e0,
              : 1;
 }
 
-enum cdd_c_error FooE_to_json(const struct FooE *const foo_e,
-                              char **const json) {
+cdd_c_error_t FooE_to_json(const struct FooE *const foo_e, char **const json) {
   char *haz_e_json = NULL;
   int rc = 0;
 
@@ -577,8 +565,8 @@ cleanup:
   return rc;
 }
 
-enum cdd_c_error FooE_from_jsonObject(const JSON_Object *const jsonObject,
-                                      struct FooE **const foo_e) {
+cdd_c_error_t FooE_from_jsonObject(const JSON_Object *const jsonObject,
+                                   struct FooE **const foo_e) {
   int rc = 0;
   const char *bar_str = NULL;
   const JSON_Object *haz_obj = NULL;
@@ -615,8 +603,8 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *const jsonObject,
   return rc;
 }
 
-enum cdd_c_error FooE_from_json(const char *const json,
-                                struct FooE **const foo_e) {
+cdd_c_error_t FooE_from_json(const char *const json,
+                             struct FooE **const foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;

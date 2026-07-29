@@ -102,8 +102,8 @@ static unsigned char *get_hook_HMAC(const EVP_MD *evp_md, const void *key,
 /**
  * @brief Executes the crypto sha256 operation.
  */
-enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
-                               unsigned char *out_digest) {
+cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
+                            unsigned char *out_digest) {
   EVP_MD_CTX *mdctx;
   const EVP_MD *md;
   unsigned int len = 0;
@@ -149,9 +149,9 @@ cleanup:
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
-                                    const void *data, size_t data_len,
-                                    unsigned char *out_mac) {
+cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
+                                 const void *data, size_t data_len,
+                                 unsigned char *out_mac) {
   unsigned int len = 0;
 
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac) {

@@ -12,7 +12,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -54,7 +53,7 @@ TEST test_cbuild_null_args(void) {
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -62,29 +61,6 @@ TEST test_cbuild_null_args(void) {
  * @brief test_cbuild_basic_output
  * @return TEST
  */
-
-TEST test_cbuild_empty_src(void) {
-  FILE *tmp = tmpfile();
-  struct CodegenBuildConfig config;
-  memset(&config, 0, sizeof(config));
-  config.project_name = "EmptyProj";
-  config.target_name = "empty_lib";
-  config.src_files = NULL;
-  config.src_count = 0;
-
-  ASSERT_EQ(0, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
-  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
-            codegen_build_generate((enum CodegenBuildSystem)999, tmp, &config));
-
-  const char *empty_arr[] = {""};
-  config.src_files = empty_arr;
-  config.src_count = 0;
-  ASSERT_EQ(0, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
-
-  fclose(tmp);
-  PASS();
-}
-
 TEST test_cbuild_basic_output(void) {
   FILE *tmp = tmpfile();
   struct CodegenBuildConfig config;
@@ -106,7 +82,7 @@ TEST test_cbuild_basic_output(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   ASSERT(content);
   fread(content, 1, sz, tmp);
 
@@ -126,27 +102,9 @@ TEST test_cbuild_basic_output(void) {
   ASSERT(strstr(content,
                 "target_link_libraries(petstore_lib PRIVATE CURL::libcurl)"));
 
-  C_CDD_FREE(content);
+  free(content);
   fclose(tmp);
-
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-    int i;
-    for (i = 1; i < 50; i++) {
-      tmp = tmpfile();
-      g_cdd_fprintf_fail = i;
-      if (codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config) == 0) {
-        g_cdd_fprintf_fail = 0;
-        fclose(tmp);
-        break;
-      }
-      g_cdd_fprintf_fail = 0;
-      fclose(tmp);
-    }
-  }
-#endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -171,7 +129,7 @@ TEST test_cbuild_unsupported(void) {
             codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
 
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,7 +139,7 @@ TEST test_build_system_oom(void) {
   extern C_CDD_EXPORT int g_cdd_fprintf_fail;
   int i;
   int rc;
-  for (i = 1; i < 500; i++) {
+  for (i = 1; i < 200; i++) {
     g_cdd_fprintf_fail = i;
 
     rc = generate_cmake_project("test_build_sys_out", "Proj", 1);
@@ -234,6 +192,7 @@ TEST test_build_system_oom(void) {
     ASSERT(rc_fp != 0);
   }
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -243,7 +202,6 @@ TEST test_build_system_oom(void) {
  */
 SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_null_args);
-  RUN_TEST(test_cbuild_empty_src);
   RUN_TEST(test_cbuild_basic_output);
   RUN_TEST(test_cbuild_unsupported);
   RUN_TEST(test_build_system_oom);

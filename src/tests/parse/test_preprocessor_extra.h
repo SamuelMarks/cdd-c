@@ -2,8 +2,7 @@
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 /* clang-format on */
-static enum cdd_c_error abort_cb(const struct IncludeInfo *info,
-                                 void *user_data) {
+static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
   return 1; /* Abort on first */
@@ -29,6 +28,6 @@ TEST test_preprocessor_abort(void) {
   cfs_remove("sys_include/stdio.h");
   cfs_remove("sys_include/stdlib.h");
   cfs_remove("sys_include");
-
+  g_fail_io_after = -1;
   PASS();
 }

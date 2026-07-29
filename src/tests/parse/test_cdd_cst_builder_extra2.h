@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 /* clang-format on */
 TEST test_cdd_cst_builder_all_errors(void) {
@@ -65,7 +64,7 @@ TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t valid_b;
-  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   cdd_cst_builder_init(&valid_b, tree, root);
 
@@ -90,6 +89,7 @@ TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_bld_punct(&valid_b, ":");
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }

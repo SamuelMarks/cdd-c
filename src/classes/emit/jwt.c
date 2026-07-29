@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +14,8 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-enum cdd_c_error write_struct_from_jwt_func(FILE *fp, const char *struct_name,
-                                            const struct StructFields *sf) {
+cdd_c_error_t write_struct_from_jwt_func(FILE *fp, const char *struct_name,
+                                         const struct StructFields *sf) {
   if (!fp || !struct_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -81,7 +80,7 @@ enum cdd_c_error write_struct_from_jwt_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  if (in_len > 0 && in[in_len - 1] == '=') pad++;\n");
   fprintf(fp, "  if (in_len > 1 && in[in_len - 2] == '=') pad++;\n");
   fprintf(fp, "  max_out_len = (in_len * 3) / 4 - pad;\n");
-  fprintf(fp, "  res = (unsigned char *)C_CDD_MALLOC(max_out_len + 1);\n");
+  fprintf(fp, "  res = (unsigned char *)malloc(max_out_len + 1);\n");
   fprintf(fp, "  if (!res) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  for (i = 0, j = 0; i < in_len;) {\n");
   fprintf(fp, "    unsigned int n = 0;\n");
@@ -90,9 +89,8 @@ enum cdd_c_error write_struct_from_jwt_func(FILE *fp, const char *struct_name,
   fprintf(fp,
           "      unsigned char c = (i < in_len) ? (unsigned char)in[i] : 0;\n");
   fprintf(fp, "      unsigned int b = (c == '=') ? 0 : b64url_dec[c];\n");
-  fprintf(
-      fp,
-      "      if (b == 255) { C_CDD_FREE(res); return CDD_C_ERROR_UNKNOWN; }\n");
+  fprintf(fp,
+          "      if (b == 255) { free(res); return CDD_C_ERROR_UNKNOWN; }\n");
   fprintf(fp, "      n = (n << 6) | b;\n");
   fprintf(fp, "    }\n");
   fprintf(fp, "    if (j < max_out_len) res[j++] = (unsigned char)((n >> 16) & "
@@ -131,7 +129,7 @@ enum cdd_c_error write_struct_from_jwt_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  }\n");
   fprintf(fp, "  rc = %s_from_json((const char *)payload_json, out);\n",
           struct_name);
-  fprintf(fp, "  C_CDD_FREE(payload_json);\n");
+  fprintf(fp, "  free(payload_json);\n");
   fprintf(fp, "  return rc;\n");
   fprintf(fp, "}\n");
   return CDD_C_SUCCESS;

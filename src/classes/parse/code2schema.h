@@ -14,13 +14,13 @@
 #include <c_cdd_export.h>
 #include "functions/emit/codegen.h"
 #include "parson.h"
-/* clang-format on */
 #ifndef CODE2SCHEMA_H
 #define CODE2SCHEMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
@@ -50,6 +50,8 @@ typedef unsigned char bool;
 #else
 #endif /* __STDC_VERSION__ >= 199901L */
 
+/* clang-format on */
+
 /**
  * @brief CLI entry point for code2schema command.
  *
@@ -58,7 +60,7 @@ typedef unsigned char bool;
  * @return 0 on success, EXIT_FAILURE on error.
  */
 
-extern C_CDD_EXPORT enum cdd_c_error code2schema_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t code2schema_main(int argc, char **argv);
 
 /**
  * @brief Parse a line of C code declaring a struct member.
@@ -72,7 +74,7 @@ extern C_CDD_EXPORT enum cdd_c_error code2schema_main(int argc, char **argv);
 extern C_CDD_EXPORT /**
                      * @brief Parses struct member line from the given input.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     parse_struct_member_line(const char *line,
 
                              struct StructFields *sf);
@@ -89,7 +91,7 @@ extern C_CDD_EXPORT /**
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write struct to json schema.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
 
     write_struct_to_json_schema(JSON_Object *schemas_obj,
                                 const char *struct_name,
@@ -105,8 +107,9 @@ extern C_CDD_EXPORT /**
  * @return 1 if matches, 0 otherwise.
  */
 
-extern C_CDD_EXPORT enum cdd_c_error
-str_starts_with(const char *str, const char *prefix, int *_out_val);
+extern C_CDD_EXPORT cdd_c_error_t str_starts_with(const char *str,
+                                                  const char *prefix,
+                                                  int *_out_val);
 
 /**
  * @brief Trim trailing whitespace and semicolons from a string in place.
@@ -114,7 +117,7 @@ str_starts_with(const char *str, const char *prefix, int *_out_val);
  * @param[in,out] str The string to trim.
  */
 
-extern C_CDD_EXPORT enum cdd_c_error trim_trailing(char *str);
+extern C_CDD_EXPORT cdd_c_error_t trim_trailing(char *str);
 
 /**
  * @brief Convert a JSON array of strings to an EnumMembers container.
@@ -124,7 +127,7 @@ extern C_CDD_EXPORT enum cdd_c_error trim_trailing(char *str);
  * @return 0 on success, non-zero on failure.
  */
 
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 json_array_to_enum_members(const JSON_Array *enum_arr,
 
                            struct EnumMembers *em);
@@ -144,7 +147,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the json object to struct fields
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
 
     json_object_to_struct_fields(const JSON_Object *schema_obj,
 
@@ -166,7 +169,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the json object to struct fields ex
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     json_object_to_struct_fields_ex(const JSON_Object *schema_obj,
                                     struct StructFields *fields,
                                     const JSON_Object *schemas_obj_root,
@@ -189,40 +192,36 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the json object to struct fields ex
                      * codegen operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     json_object_to_struct_fields_ex_codegen(const JSON_Object *schema_obj,
                                             struct StructFields *fields,
                                             JSON_Object *schemas_obj_root,
                                             const char *schema_name);
 
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 merge_struct_field(struct StructField *dest, const struct StructField *src);
-extern C_CDD_EXPORT enum cdd_c_error
-discriminator_value_for_variant(const JSON_Object *disc_obj,
-                                const char *schema_name, const char *ref,
-                                char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error sanitize_identifier(const char *in,
-                                                         char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t discriminator_value_for_variant(
+    const JSON_Object *disc_obj, const char *schema_name, const char *ref,
+    char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t sanitize_identifier(const char *in,
+                                                      char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t
 make_unique_variant_name(const struct StructFields *dest, const char *base,
                          size_t index, char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 make_inline_schema_name(const char *schema_name, const char *variant_name,
                         const char *suffix, char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
-register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
-                           const char *variant_name, const char *suffix,
-                           const JSON_Value *schema_val, char **out_name);
+extern C_CDD_EXPORT cdd_c_error_t register_inline_schema_c2s(
+    JSON_Object *root, const char *schema_name, const char *variant_name,
+    const char *suffix, const JSON_Value *schema_val, char **out_name);
 
-extern C_CDD_EXPORT enum cdd_c_error
-parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
-                                   size_t *out_count, const char **out_primary,
-                                   int *out_nullable);
+extern C_CDD_EXPORT cdd_c_error_t parse_type_union_array_code2schema(
+    const JSON_Array *arr, char ***out_union, size_t *out_count,
+    const char **out_primary, int *out_nullable);
 
 extern C_CDD_EXPORT void free_string_array_code2schema(char **arr, size_t n);
-extern C_CDD_EXPORT enum cdd_c_error
-copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
-                              size_t src_count);
+extern C_CDD_EXPORT cdd_c_error_t copy_string_array_code2schema(
+    char ***dst, size_t *dst_count, char **src, size_t src_count);
 
 #ifdef __cplusplus
 }

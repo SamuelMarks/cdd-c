@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -72,15 +71,15 @@ TEST test_gen_client_basic(void) {
 
   read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -112,11 +111,11 @@ TEST test_gen_client_operation_server_override(void) {
 
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "\"https://op.example.com/api\"") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -146,11 +145,11 @@ TEST test_gen_client_text_plain_request_body(void) {
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "\"Content-Type\", \"text/plain\"") != NULL);
   ASSERT(strstr(content, "req.body_len = strlen(req_body)") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -180,11 +179,11 @@ TEST test_gen_client_octet_stream_request_body(void) {
   ASSERT(strstr(content, "\"Content-Type\", \"application/octet-stream\"") !=
          NULL);
   ASSERT(strstr(content, "req.body_len = body_len") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -212,11 +211,11 @@ TEST test_gen_client_octet_stream_response_body(void) {
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "unsigned char *tmp =") != NULL);
   ASSERT(strstr(content, "memcpy(tmp, res->body, res->body_len)") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -257,11 +256,11 @@ TEST test_gen_client_default_base_url_from_server(void) {
                 "const char *default_url = \"https://api.example.com/v1\";") !=
          NULL);
   ASSERT(strstr(content, "if (!base_url || base_url[0] == '\\0')") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -288,11 +287,11 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "const char *default_url = \"/\";") != NULL);
   ASSERT(strstr(content, "if (!base_url || base_url[0] == '\\0')") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -338,15 +337,15 @@ TEST test_gen_client_additional_operation(void) {
 
   read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_custom_connect(") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   read_to_file(c_file, "r", &content, &sz);
   ASSERT(strstr(content, "req.method = HTTP_CONNECT;") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove(c_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -380,13 +379,13 @@ TEST test_gen_client_op_params_only(void) {
   read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, int limit") !=
          NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_op_params.c");
   remove("build/test_out/src/gen_op_params_models.h");
   remove("build/test_out/src/gen_op_params_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -419,13 +418,13 @@ TEST test_gen_client_querystring_param(void) {
 
   read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "[in:querystring] Parameter.") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_querystring_param.c");
   remove("build/test_out/src/gen_querystring_param_models.h");
   remove("build/test_out/src/gen_querystring_param_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -462,13 +461,13 @@ TEST test_gen_client_path_level_params(void) {
       strstr(content,
              "int api_test_op(struct HttpClient *ctx, const char *x_trace") !=
       NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_path_params.c");
   remove("build/test_out/src/gen_path_params_models.h");
   remove("build/test_out/src/gen_path_params_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -510,13 +509,13 @@ TEST test_gen_client_path_param_override(void) {
 
   read_to_file(h_file, "r", &content, &sz);
   ASSERT(strstr(content, "const char *id") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_path_override.c");
   remove("build/test_out/src/gen_path_override_models.h");
   remove("build/test_out/src/gen_path_override_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -550,13 +549,13 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   /* Should be Foo_Pet_api_test_op */
   /* Namespace "Foo", Tag "Pet" (capitalized), Prefix "api_" */
   ASSERT(strstr(content, "int Foo_Pet_api_test_op(") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_group_ns_test.c");
   remove("build/test_out/src/gen_group_ns_test_models.h");
   remove("build/test_out/src/gen_group_ns_test_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -585,13 +584,13 @@ TEST test_gen_client_namespace_only(void) {
   read_to_file(h_file, "r", &content, &sz);
   /* Should be Bar_api_test_op */
   ASSERT(strstr(content, "int Bar_api_test_op(") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove(h_file);
   remove("build/test_out/src/gen_ns_only_test.c");
   remove("build/test_out/src/gen_ns_only_test_models.h");
   remove("build/test_out/src/gen_ns_only_test_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -611,6 +610,7 @@ TEST test_gen_client_error_nulls(void) {
   config.filename_base = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_client_generate(&spec, &config));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -624,7 +624,7 @@ TEST test_gen_client_file_error(void) {
   config.filename_base = "/this_dir_does_not_exist/file";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -645,28 +645,28 @@ TEST test_gen_client_defaults(void) {
   ASSERT(strstr(content, "GEN_DEF_H") != NULL);
   /* Derived model header name should be present in the header file */
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   /* Check source for header inclusion */
   read_to_file("build/test_out/src/gen_def.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def.h\"") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   /* Check models header */
   read_to_file("build/test_out/src/gen_def_models.h", "r", &content, &sz);
   ASSERT(strstr(content, "GEN_DEF_H_MODELS") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   /* Check models source */
   read_to_file("build/test_out/src/gen_def_models.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
-  C_CDD_FREE(content);
+  free(content);
 
   remove("build/test_out/src/gen_def.h");
   remove("build/test_out/src/gen_def.c");
   remove("build/test_out/src/gen_def_models.h");
   remove("build/test_out/src/gen_def_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -705,12 +705,12 @@ TEST test_gen_transport_selection(void) {
   ASSERT(strstr(content, "http_curl_context_free") != NULL);
   ASSERT(strstr(content, "http_apple_context_free") != NULL);
 
-  C_CDD_FREE(content);
+  free(content);
   remove("build/test_out/src/gen_transport.h");
   remove("build/test_out/src/gen_transport.c");
   remove("build/test_out/src/gen_transport_models.h");
   remove("build/test_out/src/gen_transport_models.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -728,7 +728,7 @@ TEST test_client_gen_find_server_variable(void) {
 
   srv.n_variables = 1;
   srv.variables =
-      (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(1, sizeof(*srv.variables));
+      (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
   srv.variables[0].name = "test";
 
   ASSERT_EQ(0, find_server_variable(&srv, "test", &out));
@@ -747,8 +747,8 @@ TEST test_client_gen_find_server_variable(void) {
 
   /* Test docblock fail on CDD_C_ERROR_MEMORY using mocking if needed but
    * probably skip for now */
-  C_CDD_FREE(srv.variables);
-
+  free(srv.variables);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -764,14 +764,14 @@ TEST test_client_gen_render_server_url_default(void) {
   srv.url = "http://test";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://test", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   /* With variables */
   srv.url = "http://{domain}:{port}/v1";
   srv.n_variables = 2;
   srv.variables =
-      (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(2, sizeof(*srv.variables));
+      (struct OpenAPI_ServerVariable *)calloc(2, sizeof(*srv.variables));
   srv.variables[0].name = "domain";
   srv.variables[0].default_value = "localhost";
   srv.variables[1].name = "port";
@@ -779,7 +779,7 @@ TEST test_client_gen_render_server_url_default(void) {
 
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://localhost:8080/v1", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   /* Unmatched variable */
@@ -799,11 +799,11 @@ TEST test_client_gen_render_server_url_default(void) {
 
   /* Valid var but missing default */
   if (srv.variables)
-    C_CDD_FREE(srv.variables);
+    free(srv.variables);
   srv.url = "http://{noval}/test";
   srv.n_variables = 1;
   srv.variables =
-      (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(1, sizeof(*srv.variables));
+      (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
   srv.variables[0].name = "noval";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
@@ -818,8 +818,8 @@ TEST test_client_gen_render_server_url_default(void) {
 
   /* Test docblock fail on CDD_C_ERROR_MEMORY using mocking if needed but
    * probably skip for now */
-  C_CDD_FREE(srv.variables);
-
+  free(srv.variables);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -832,13 +832,14 @@ TEST test_client_gen_escape_c_string_literal(void) {
 
   ASSERT_EQ(0, escape_c_string_literal("hello", &out));
   ASSERT_STR_EQ("hello", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   ASSERT_EQ(0, escape_c_string_literal("hello \"world\"\n\r\t", &out));
   ASSERT_STR_EQ("hello \\\"world\\\"\\n\\r\\t", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -855,21 +856,20 @@ TEST test_client_gen_select_operation_server(void) {
   ASSERT(out == NULL);
 
   op.n_servers = 1;
-  op.servers = (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*op.servers));
+  op.servers = (struct OpenAPI_Server *)calloc(1, sizeof(*op.servers));
   ASSERT_EQ(0, select_operation_server(&path, &op, &out));
   ASSERT(out == &op.servers[0]);
 
   op.n_servers = 0;
   path.n_servers = 1;
-  path.servers =
-      (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*path.servers));
+  path.servers = (struct OpenAPI_Server *)calloc(1, sizeof(*path.servers));
   ASSERT_EQ(0, select_operation_server(&path, &op, &out));
   ASSERT(out == &path.servers[0]);
 
-  C_CDD_FREE(op.servers[0].variables);
-  C_CDD_FREE(op.servers);
-  C_CDD_FREE(path.servers);
-
+  free(op.servers[0].variables);
+  free(op.servers);
+  free(path.servers);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -881,7 +881,8 @@ TEST test_client_gen_build_base_url_literal(void) {
 
   ASSERT_EQ(0, build_base_url_literal("http://test.com", &out));
   ASSERT_STR_EQ("\"http://test.com\"", out);
-  C_CDD_FREE(out);
+  free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -891,7 +892,8 @@ TEST test_client_gen_generate_guard(void) {
 
   ASSERT_EQ(0, generate_guard("my-test.h", &out));
   ASSERT_STR_EQ("MY_TEST_H_H", out);
-  C_CDD_FREE(out);
+  free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -901,7 +903,8 @@ TEST test_client_gen_derive_model_header(void) {
 
   ASSERT_EQ(0, derive_model_header("test", &out));
   ASSERT_STR_EQ("test_models.h", out);
-  C_CDD_FREE(out);
+  free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -914,7 +917,8 @@ TEST test_client_gen_sanitize_tag(void) {
 
   ASSERT_EQ(0, sanitize_tag("my-tag! test", &out));
   ASSERT_STR_EQ("My_tag__test", out);
-  C_CDD_FREE(out);
+  free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -940,6 +944,7 @@ TEST test_client_gen_param_keys_match(void) {
 
   b.in = OA_PARAM_IN_HEADER;
   ASSERT_EQ(1, param_keys_match(&a, &b));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -964,20 +969,19 @@ TEST test_client_gen_build_effective_parameters(void) {
   /* Path params */
   path.n_parameters = 1;
   path.parameters =
-      (struct OpenAPI_Parameter *)C_CDD_CALLOC(1, sizeof(*path.parameters));
+      (struct OpenAPI_Parameter *)calloc(1, sizeof(*path.parameters));
   path.parameters[0].name = "p1";
   path.parameters[0].in = OA_PARAM_IN_PATH;
 
   ASSERT_EQ(0, build_effective_parameters(&path, NULL, &out, &count));
   ASSERT_EQ(1, count);
   ASSERT_STR_EQ("p1", out[0].name);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   /* Op params overrides */
   op.n_parameters = 2;
-  op.parameters =
-      (struct OpenAPI_Parameter *)C_CDD_CALLOC(2, sizeof(*op.parameters));
+  op.parameters = (struct OpenAPI_Parameter *)calloc(2, sizeof(*op.parameters));
   op.parameters[0].name = "p1";
   op.parameters[0].in = OA_PARAM_IN_PATH;
   op.parameters[0].description = "overridden";
@@ -988,12 +992,12 @@ TEST test_client_gen_build_effective_parameters(void) {
   ASSERT_EQ(2, count);
   ASSERT_STR_EQ("p1", out[0].name);
   ASSERT_STR_EQ("p2", out[1].name);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
-  C_CDD_FREE(path.parameters);
-  C_CDD_FREE(op.parameters);
-
+  free(path.parameters);
+  free(op.parameters);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1029,6 +1033,7 @@ TEST test_client_gen_verb_to_string(void) {
 
   ASSERT_EQ(0, verb_to_string(OA_VERB_UNKNOWN, &out));
   ASSERT_STR_EQ("UNKNOWN", out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1054,23 +1059,21 @@ TEST test_client_gen_write_docblock(void) {
   path.route = "/test";
   op.verb = OA_VERB_POST;
   op.external_docs.url = "http://doc";
-  op.callbacks = (struct OpenAPI_Callback *)C_CDD_CALLOC(
-      1, sizeof(struct OpenAPI_Callback));
+  op.callbacks =
+      (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
   op.n_responses = 1;
-  op.responses =
-      (struct OpenAPI_Response *)C_CDD_CALLOC(1, sizeof(*op.responses));
+  op.responses = (struct OpenAPI_Response *)calloc(1, sizeof(*op.responses));
   op.responses[0].links =
-      (struct OpenAPI_Link *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Link));
-  op.security = (struct OpenAPI_SecurityRequirementSet *)C_CDD_CALLOC(
+      (struct OpenAPI_Link *)calloc(1, sizeof(struct OpenAPI_Link));
+  op.security = (struct OpenAPI_SecurityRequirementSet *)calloc(
       1, sizeof(struct OpenAPI_SecurityRequirementSet));
   op.n_servers = 1;
-  op.servers = (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*op.servers));
-  op.servers[0].variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
+  op.servers = (struct OpenAPI_Server *)calloc(1, sizeof(*op.servers));
+  op.servers[0].variables = (struct OpenAPI_ServerVariable *)calloc(
       1, sizeof(struct OpenAPI_ServerVariable));
 
   op.n_parameters = 1;
-  op.parameters =
-      (struct OpenAPI_Parameter *)C_CDD_CALLOC(1, sizeof(*op.parameters));
+  op.parameters = (struct OpenAPI_Parameter *)calloc(1, sizeof(*op.parameters));
   op.parameters[0].name = "p";
   op.parameters[0].description = "desc p";
   op.parameters[0].allow_empty_value = 1;
@@ -1078,7 +1081,7 @@ TEST test_client_gen_write_docblock(void) {
   op.deprecated = 1;
 
   op.n_parameters = 3;
-  op.parameters = (struct OpenAPI_Parameter *)C_CDD_REALLOC(
+  op.parameters = (struct OpenAPI_Parameter *)realloc(
       op.parameters, 3 * sizeof(*op.parameters));
   memset(&op.parameters[1], 0, sizeof(*op.parameters));
   op.parameters[1].name = "cookiep";
@@ -1090,15 +1093,16 @@ TEST test_client_gen_write_docblock(void) {
   /* we will just execute all branches */
   ASSERT_EQ(0, write_docblock(fp, &path, &op));
 
-  C_CDD_FREE(op.callbacks);
-  C_CDD_FREE(op.responses[0].links);
-  C_CDD_FREE(op.security);
-  C_CDD_FREE(op.responses);
-  C_CDD_FREE(op.servers[0].variables);
-  C_CDD_FREE(op.servers);
-  C_CDD_FREE(op.parameters);
+  free(op.callbacks);
+  free(op.responses[0].links);
+  free(op.security);
+  free(op.responses);
+  free(op.servers[0].variables);
+  free(op.servers);
+  free(op.parameters);
   fclose(fp);
   remove("test_docblock.txt");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1128,7 +1132,7 @@ TEST test_client_gen_write_preambles(void) {
   fclose(fp2);
   remove("test9.h");
   remove("test10.c");
-
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1148,7 +1152,7 @@ TEST test_client_gen_emit_operation(void) {
 
   /* Force build_effective_parameters to fail */
   /* Wait, missing args handled at top covers this */
-
+  g_fail_io_after = -1;
   PASS();
 }
 

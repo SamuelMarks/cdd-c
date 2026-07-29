@@ -78,7 +78,7 @@ static void emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
   fprintf(f, "%s", get_csharp_primitive(type->kind));
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_csharp_bindings(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {
   FILE *f;
@@ -221,7 +221,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
           emit_csharp_type(f, &base_t, 0);
           fprintf(f, " ");
         }
-        fprintf(f, "%s", node->fields[j].name);
+        fprintf(f, "%s", node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1 || node->is_variadic)
           fprintf(f, ", ");
       }
@@ -238,7 +238,7 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_csharp_tests(cdd_ffi_ir_t *ir,
                   const cdd_generate_bindings_config_t *config) {
   FILE *f;
@@ -293,8 +293,7 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
-emit_csproj(const cdd_generate_bindings_config_t *config) {
+static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   FILE *f;
   char filepath[1024];
   extern volatile int g_fail_io_after;
@@ -338,7 +337,7 @@ emit_csproj(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_emit_csharp(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
   int rc;

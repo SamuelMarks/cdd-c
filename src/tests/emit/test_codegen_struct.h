@@ -16,7 +16,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -51,19 +50,19 @@ TEST test_cleanup_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "enum cdd_c_error User_cleanup(struct User *obj)"));
+  ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
   ASSERT(strstr(content, "if (!obj) return;"));
-  ASSERT(strstr(content, "if (obj->name) C_CDD_FREE((void*)obj->name);"));
-  ASSERT(strstr(content, "C_CDD_FREE(obj);"));
+  ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
+  ASSERT(strstr(content, "free(obj);"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -85,20 +84,20 @@ TEST test_default_generation(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "*out = C_CDD_CALLOC(1, sizeof(**out));"));
+  ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
   /* Check literals injected */
   ASSERT(strstr(content, "(*out)->id = 0;"));
   /* Check string duplication */
   ASSERT(strstr(content, "strdup(\"test\");"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -120,7 +119,7 @@ TEST test_deepcopy_generation(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
@@ -131,11 +130,11 @@ TEST test_deepcopy_generation(void) {
   ASSERT(strstr(content, "(*dest)->name = strdup(src->name);"));
 #endif
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,18 +156,18 @@ TEST test_eq_generation(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
   ASSERT(strstr(content, "a->id != b->id"));
   ASSERT(strstr(content, "strcmp(a->name, b->name)"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -192,17 +191,17 @@ TEST test_guards_injection(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "#ifdef MY_GUARD"));
   ASSERT(strstr(content, "#endif /* MY_GUARD */"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -223,7 +222,7 @@ TEST test_null_args(void) {
             write_struct_debug_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_display_func(NULL, "U", NULL, NULL));
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -258,7 +257,7 @@ TEST test_struct_debug_func(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "TestStruct_debug"));
@@ -268,11 +267,11 @@ TEST test_struct_debug_func(void) {
   ASSERT(strstr(content, "obj->items[i]"));
   ASSERT(strstr(content, "(unknown)"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -316,7 +315,7 @@ TEST test_struct_invalid_args(void) {
 
   struct_fields_free(NULL);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_struct_fields_add_bitwidth(void) {
@@ -336,7 +335,7 @@ TEST test_struct_fields_add_bitwidth(void) {
 
   struct_fields_free(NULL);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -359,31 +358,37 @@ TEST test_struct_io_errors(void) {
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
 
   if (readonly_f) {
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     {
       int _rc = write_struct_cleanup_func(readonly_f, "Test", &sf, &config);
       printf("write_struct_cleanup_func RC %d\\n", _rc);
       ASSERT_EQ(CDD_C_ERROR_IO, _rc);
     }
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     {
       int _rc = write_struct_default_func(readonly_f, "Test", &sf, &config);
       printf("write_struct_default_func RC %d\\n", _rc);
       ASSERT_EQ(CDD_C_ERROR_IO, _rc);
     }
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO,
               write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO,
               write_struct_eq_func(readonly_f, "Test", &sf, &config));
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO,
               write_struct_debug_func(readonly_f, "Test", &sf, &config));
     fclose(readonly_f);
   }
   struct_fields_free(NULL);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -432,87 +437,97 @@ TEST test_struct_exhaustive_io(void) {
 
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)C_CDD_MALLOC(5);
+  sf.union_discriminator = (char *)malloc(5);
   strcpy(sf.union_discriminator, "type");
   sf.n_union_variants = 1;
-  sf.union_variants = (struct UnionVariantMeta *)C_CDD_CALLOC(
-      1, sizeof(struct UnionVariantMeta));
+  sf.union_variants =
+      (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
   sf.union_variants[0].n_property_names = 1;
-  sf.union_variants[0].property_names =
-      (char **)C_CDD_CALLOC(1, sizeof(char *));
-  sf.union_variants[0].property_names[0] = (char *)C_CDD_MALLOC(2);
+  sf.union_variants[0].property_names = (char **)calloc(1, sizeof(char *));
+  sf.union_variants[0].property_names[0] = (char *)malloc(2);
   strcpy(sf.union_variants[0].property_names[0], "a");
   sf.union_variants[0].n_required_props = 1;
-  sf.union_variants[0].required_props =
-      (char **)C_CDD_CALLOC(1, sizeof(char *));
-  sf.union_variants[0].required_props[0] = (char *)C_CDD_MALLOC(2);
+  sf.union_variants[0].required_props = (char **)calloc(1, sizeof(char *));
+  sf.union_variants[0].required_props[0] = (char *)malloc(2);
   strcpy(sf.union_variants[0].required_props[0], "a");
-  sf.union_variants[0].disc_value = (char *)C_CDD_MALLOC(5);
+  sf.union_variants[0].disc_value = (char *)malloc(5);
   strcpy(sf.union_variants[0].disc_value, "val1");
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_display_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_default_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_eq_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_debug_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
@@ -520,7 +535,8 @@ TEST test_struct_exhaustive_io(void) {
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_default_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
@@ -528,7 +544,8 @@ TEST test_struct_exhaustive_io(void) {
   }
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
@@ -536,7 +553,8 @@ TEST test_struct_exhaustive_io(void) {
   }
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_eq_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
@@ -544,7 +562,8 @@ TEST test_struct_exhaustive_io(void) {
   }
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_debug_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
@@ -552,30 +571,35 @@ TEST test_struct_exhaustive_io(void) {
   }
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_display_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
   for (i = 0; i < 600; ++i) {
     FILE *tmp = tmpfile();
-
+    g_fail_io_after = i;
+    g_io_calls = 0;
     rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
     fclose(tmp);
     if (rc == 0)
       break;
-
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
+  g_fail_io_after = -1;
   struct_fields_free(NULL);
   struct_fields_free(&sf);
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -623,11 +647,11 @@ TEST test_struct_fields_init_oom(void) {
   /* Free string array null */
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)C_CDD_MALLOC(5);
+  sf.union_discriminator = (char *)malloc(5);
   strcpy(sf.union_discriminator, "type");
   sf.n_union_variants = 1;
-  sf.union_variants = (struct UnionVariantMeta *)C_CDD_CALLOC(
-      1, sizeof(struct UnionVariantMeta));
+  sf.union_variants =
+      (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
   /* We leave required_props and property_names NULL */
 
   /* Force capacity expansion */
@@ -642,7 +666,7 @@ TEST test_struct_fields_init_oom(void) {
 
   struct_fields_free(NULL);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

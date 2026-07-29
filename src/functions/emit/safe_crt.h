@@ -70,7 +70,7 @@ C_CDD_EXPORT /**
 C_CDD_EXPORT /**
               * @brief Executes the cst generate safe crt patches operation.
               */
-    enum cdd_c_error
+    cdd_c_error_t
     cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                                   const struct TokenList *tokens,
                                   struct SafeCrtPatchList *out_patches);

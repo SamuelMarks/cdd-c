@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -24,8 +23,7 @@
 /**
  * @brief Checks if reserved header name.
  */
-enum cdd_c_error is_reserved_header_name(const char *name,
-                                         int *out_is_reserved) {
+cdd_c_error_t is_reserved_header_name(const char *name, int *out_is_reserved) {
   int _ast_iequal_0 = false;
   int _ast_iequal_1 = false;
   int _ast_iequal_2 = false;
@@ -54,8 +52,7 @@ enum cdd_c_error is_reserved_header_name(const char *name,
 /**
  * @brief Parses example any from the given input.
  */
-enum cdd_c_error parse_example_any(const char *example,
-                                   struct OpenAPI_Any *out) {
+cdd_c_error_t parse_example_any(const char *example, struct OpenAPI_Any *out) {
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
@@ -123,8 +120,8 @@ enum cdd_c_error parse_example_any(const char *example,
 /**
  * @brief Executes the any from json value operation.
  */
-enum cdd_c_error any_from_json_value(const JSON_Value *val,
-                                     struct OpenAPI_Any *out) {
+cdd_c_error_t any_from_json_value(const JSON_Value *val,
+                                  struct OpenAPI_Any *out) {
   char *_ast_strdup_6 = NULL;
   char *_ast_strdup_7 = NULL;
   JSON_Value_Type t;
@@ -175,9 +172,9 @@ enum cdd_c_error any_from_json_value(const JSON_Value *val,
 /**
  * @brief Parses link params json from the given input.
  */
-enum cdd_c_error parse_link_params_json(const char *json,
-                                        struct OpenAPI_LinkParam **out,
-                                        size_t *out_count) {
+cdd_c_error_t parse_link_params_json(const char *json,
+                                     struct OpenAPI_LinkParam **out,
+                                     size_t *out_count) {
   char *_ast_strdup_8 = NULL;
   JSON_Value *val;
   JSON_Object *obj;
@@ -206,8 +203,8 @@ enum cdd_c_error parse_link_params_json(const char *json,
     return CDD_C_SUCCESS;
   }
 
-  *out = (struct OpenAPI_LinkParam *)C_CDD_CALLOC(
-      count, sizeof(struct OpenAPI_LinkParam));
+  *out = (struct OpenAPI_LinkParam *)calloc(count,
+                                            sizeof(struct OpenAPI_LinkParam));
   if (!*out) {
     json_value_free(val);
     return CDD_C_ERROR_MEMORY;
@@ -239,13 +236,13 @@ cleanup:
     for (j = 0; j < count; ++j) {
       struct OpenAPI_LinkParam *lp = &(*out)[j];
       if (lp->name)
-        C_CDD_FREE(lp->name);
+        free(lp->name);
       if (lp->value.type == OA_ANY_STRING && lp->value.string)
-        C_CDD_FREE(lp->value.string);
+        free(lp->value.string);
       if (lp->value.type == OA_ANY_JSON && lp->value.json)
-        C_CDD_FREE(lp->value.json);
+        free(lp->value.json);
     }
-    C_CDD_FREE(*out);
+    free(*out);
   }
   *out = NULL;
   *out_count = 0;
@@ -255,8 +252,8 @@ cleanup:
 /**
  * @brief Creates a deep copy of any value local.
  */
-static enum cdd_c_error copy_any_value_local(struct OpenAPI_Any *dst,
-                                             const struct OpenAPI_Any *src) {
+static cdd_c_error_t copy_any_value_local(struct OpenAPI_Any *dst,
+                                          const struct OpenAPI_Any *src) {
   char *_ast_strdup_9 = NULL;
   char *_ast_strdup_10 = NULL;
   if (!dst || !src)
@@ -292,18 +289,18 @@ static void free_any_value_local(struct OpenAPI_Any *val) {
   if (!val)
     return;
   if (val->type == OA_ANY_STRING && val->string)
-    C_CDD_FREE(val->string);
+    free(val->string);
   if (val->type == OA_ANY_JSON && val->json)
-    C_CDD_FREE(val->json);
+    free(val->json);
   memset(val, 0, sizeof(*val));
 }
 
 /**
  * @brief Retrieves the doc param.
  */
-static enum cdd_c_error find_doc_param(const struct DocMetadata *doc,
-                                       const char *name,
-                                       struct DocParam **_out_val) {
+static cdd_c_error_t find_doc_param(const struct DocMetadata *doc,
+                                    const char *name,
+                                    struct DocParam **_out_val) {
   size_t i;
   if (!doc || !name) {
     *_out_val = NULL;
@@ -326,7 +323,7 @@ static enum cdd_c_error find_doc_param(const struct DocMetadata *doc,
 /**
  * @brief Checks if path param.
  */
-static enum cdd_c_error is_path_param(const char *route, const char *name) {
+static cdd_c_error_t is_path_param(const char *route, const char *name) {
   char tmpl[128];
   if (!route || !name)
     return CDD_C_SUCCESS;
@@ -349,19 +346,19 @@ void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
     if (var->name)
-      C_CDD_FREE(var->name);
+      free(var->name);
     if (var->default_value)
-      C_CDD_FREE(var->default_value);
+      free(var->default_value);
     if (var->description)
-      C_CDD_FREE(var->description);
+      free(var->description);
     if (var->enum_values) {
       for (e = 0; e < var->n_enum_values; ++e) {
-        C_CDD_FREE(var->enum_values[e]);
+        free(var->enum_values[e]);
       }
-      C_CDD_FREE(var->enum_values);
+      free(var->enum_values);
     }
   }
-  C_CDD_FREE(srv->variables);
+  free(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
 }
@@ -369,8 +366,8 @@ void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
 /**
  * @brief Creates a deep copy of doc server variables.
  */
-enum cdd_c_error copy_doc_server_variables_op(struct OpenAPI_Server *dst,
-                                              const struct DocServer *src) {
+cdd_c_error_t copy_doc_server_variables_op(struct OpenAPI_Server *dst,
+                                           const struct DocServer *src) {
   char *_ast_strdup_11 = NULL;
   char *_ast_strdup_12 = NULL;
   char *_ast_strdup_13 = NULL;
@@ -379,7 +376,7 @@ enum cdd_c_error copy_doc_server_variables_op(struct OpenAPI_Server *dst,
   if (!dst || !src || src->n_variables == 0)
     return CDD_C_SUCCESS;
 
-  dst->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
+  dst->variables = (struct OpenAPI_ServerVariable *)calloc(
       src->n_variables, sizeof(struct OpenAPI_ServerVariable));
   if (!dst->variables) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -418,8 +415,7 @@ enum cdd_c_error copy_doc_server_variables_op(struct OpenAPI_Server *dst,
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
-      dv->enum_values =
-          (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
+      dv->enum_values = (char **)calloc(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
         free_openapi_server_variables_op(dst);
         return CDD_C_ERROR_MEMORY;
@@ -448,9 +444,9 @@ enum cdd_c_error copy_doc_server_variables_op(struct OpenAPI_Server *dst,
 /**
  * @brief Retrieves the response by code.
  */
-enum cdd_c_error find_response_by_code(struct OpenAPI_Operation *op,
-                                       const char *code,
-                                       struct OpenAPI_Response **_out_val) {
+cdd_c_error_t find_response_by_code(struct OpenAPI_Operation *op,
+                                    const char *code,
+                                    struct OpenAPI_Response **_out_val) {
   int _ast_iequal_15 = false;
   size_t i;
   if (!op || !code) {
@@ -476,9 +472,9 @@ enum cdd_c_error find_response_by_code(struct OpenAPI_Operation *op,
 /**
  * @brief Retrieves the media type.
  */
-enum cdd_c_error find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
-                                    const char *name,
-                                    struct OpenAPI_MediaType **_out_val) {
+cdd_c_error_t find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
+                                 const char *name,
+                                 struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -499,8 +495,8 @@ enum cdd_c_error find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
 /**
  * @brief Applies example to media type.
  */
-enum cdd_c_error apply_example_to_media_type(struct OpenAPI_MediaType *mt,
-                                             const char *example) {
+cdd_c_error_t apply_example_to_media_type(struct OpenAPI_MediaType *mt,
+                                          const char *example) {
   if (!mt || !example || mt->example_set)
     return CDD_C_SUCCESS;
   if (parse_example_any(example, &mt->example) != 0)
@@ -512,9 +508,9 @@ enum cdd_c_error apply_example_to_media_type(struct OpenAPI_MediaType *mt,
 /**
  * @brief Applies example to response.
  */
-enum cdd_c_error apply_example_to_response(struct OpenAPI_Response *resp,
-                                           const char *example,
-                                           const char *content_type) {
+cdd_c_error_t apply_example_to_response(struct OpenAPI_Response *resp,
+                                        const char *example,
+                                        const char *content_type) {
   struct OpenAPI_MediaType *_ast_find_media_type_0;
   size_t i;
   struct OpenAPI_Any parsed = {0};
@@ -566,9 +562,9 @@ enum cdd_c_error apply_example_to_response(struct OpenAPI_Response *resp,
 /**
  * @brief Executes the ensure response for code operation.
  */
-enum cdd_c_error ensure_response_for_code(struct OpenAPI_Operation *op,
-                                          const char *code,
-                                          struct OpenAPI_Response **_out_val) {
+cdd_c_error_t ensure_response_for_code(struct OpenAPI_Operation *op,
+                                       const char *code,
+                                       struct OpenAPI_Response **_out_val) {
   struct OpenAPI_Response *_ast_find_response_by_code_1;
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
@@ -587,7 +583,7 @@ enum cdd_c_error ensure_response_for_code(struct OpenAPI_Operation *op,
     return CDD_C_SUCCESS;
   }
 
-  new_resps = (struct OpenAPI_Response *)C_CDD_REALLOC(
+  new_resps = (struct OpenAPI_Response *)realloc(
       op->responses, (op->n_responses + 1) * sizeof(struct OpenAPI_Response));
   if (!new_resps) {
     *_out_val = NULL;
@@ -621,8 +617,8 @@ enum cdd_c_error ensure_response_for_code(struct OpenAPI_Operation *op,
 /**
  * @brief Adds or sets header to response.
  */
-enum cdd_c_error add_header_to_response(struct OpenAPI_Response *resp,
-                                        const struct DocResponseHeader *dh) {
+cdd_c_error_t add_header_to_response(struct OpenAPI_Response *resp,
+                                     const struct DocResponseHeader *dh) {
   int _ast_iequal_19 = false;
   char *_ast_strdup_20 = NULL;
   char *_ast_strdup_21 = NULL;
@@ -680,7 +676,7 @@ enum cdd_c_error add_header_to_response(struct OpenAPI_Response *resp,
             return CDD_C_ERROR_MEMORY;
         }
         if (hdr->schema.format)
-          C_CDD_FREE(hdr->schema.format);
+          free(hdr->schema.format);
         hdr->schema.format =
             (c_cdd_strdup(dh->format, &_ast_strdup_24), _ast_strdup_24);
         if (!hdr->schema.format)
@@ -699,7 +695,7 @@ enum cdd_c_error add_header_to_response(struct OpenAPI_Response *resp,
     }
   }
 
-  new_headers = (struct OpenAPI_Header *)C_CDD_REALLOC(
+  new_headers = (struct OpenAPI_Header *)realloc(
       resp->headers, (resp->n_headers + 1) * sizeof(struct OpenAPI_Header));
   if (!new_headers) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -762,8 +758,8 @@ enum cdd_c_error add_header_to_response(struct OpenAPI_Response *resp,
 /**
  * @brief Adds or sets link to response.
  */
-enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
-                                      const struct DocLink *dl) {
+cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
+                                   const struct DocLink *dl) {
   char *_ast_strdup_31 = NULL;
   char *_ast_strdup_32 = NULL;
   char *_ast_strdup_33 = NULL;
@@ -789,7 +785,7 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
     }
   }
 
-  new_links = (struct OpenAPI_Link *)C_CDD_REALLOC(
+  new_links = (struct OpenAPI_Link *)realloc(
       resp->links, (resp->n_links + 1) * sizeof(struct OpenAPI_Link));
   if (!new_links) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -848,8 +844,7 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
     link->request_body_set = 1;
   }
   if (dl->server_url) {
-    link->server =
-        (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(*link->server));
+    link->server = (struct OpenAPI_Server *)calloc(1, sizeof(*link->server));
     if (!link->server) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
       return CDD_C_ERROR_MEMORY;
@@ -858,7 +853,7 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
     link->server->url =
         (c_cdd_strdup(dl->server_url, &_ast_strdup_36), _ast_strdup_36);
     if (!link->server->url) {
-      C_CDD_FREE(link->server);
+      free(link->server);
       link->server = NULL;
       link->server_set = 0;
       return CDD_C_ERROR_MEMORY;
@@ -867,8 +862,8 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
       link->server->name =
           (c_cdd_strdup(dl->server_name, &_ast_strdup_37), _ast_strdup_37);
       if (!link->server->name) {
-        C_CDD_FREE(link->server->url);
-        C_CDD_FREE(link->server);
+        free(link->server->url);
+        free(link->server);
         link->server = NULL;
         link->server_set = 0;
         return CDD_C_ERROR_MEMORY;
@@ -880,9 +875,9 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
            _ast_strdup_38);
       if (!link->server->description) {
         if (link->server->name)
-          C_CDD_FREE(link->server->name);
-        C_CDD_FREE(link->server->url);
-        C_CDD_FREE(link->server);
+          free(link->server->name);
+        free(link->server->url);
+        free(link->server);
         link->server = NULL;
         link->server_set = 0;
         return CDD_C_ERROR_MEMORY;
@@ -896,12 +891,12 @@ enum cdd_c_error add_link_to_response(struct OpenAPI_Response *resp,
 /**
  * @brief Adds or sets param to op.
  */
-enum cdd_c_error add_param_to_op(struct OpenAPI_Operation *op,
-                                 struct OpenAPI_Parameter *p) {
+cdd_c_error_t add_param_to_op(struct OpenAPI_Operation *op,
+                              struct OpenAPI_Parameter *p) {
   struct OpenAPI_Parameter *new_arr;
   size_t new_count = op->n_parameters + 1;
 
-  new_arr = (struct OpenAPI_Parameter *)C_CDD_REALLOC(
+  new_arr = (struct OpenAPI_Parameter *)realloc(
       op->parameters, new_count * sizeof(struct OpenAPI_Parameter));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -917,8 +912,7 @@ enum cdd_c_error add_param_to_op(struct OpenAPI_Operation *op,
 /**
  * @brief Executes the schema ref has data basic operation.
  */
-enum cdd_c_error
-schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
+cdd_c_error_t schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return CDD_C_SUCCESS;
   return (ref->ref_name && *ref->ref_name) || (ref->ref && *ref->ref) ||
@@ -928,8 +922,8 @@ schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
 /**
  * @brief Creates a deep copy of schema ref basic.
  */
-enum cdd_c_error copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
-                                       const struct OpenAPI_SchemaRef *src) {
+cdd_c_error_t copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
+                                    const struct OpenAPI_SchemaRef *src) {
   char *_ast_strdup_39 = NULL;
   char *_ast_strdup_40 = NULL;
   char *_ast_strdup_41 = NULL;
@@ -994,8 +988,8 @@ enum cdd_c_error copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
 /**
  * @brief Executes the response has media type operation.
  */
-enum cdd_c_error response_has_media_type(const struct OpenAPI_Response *resp,
-                                         const char *name, int *out_has) {
+cdd_c_error_t response_has_media_type(const struct OpenAPI_Response *resp,
+                                      const char *name, int *out_has) {
   size_t i;
   if (!resp || !name || !out_has) {
     if (out_has)
@@ -1024,7 +1018,7 @@ enum cdd_c_error response_has_media_type(const struct OpenAPI_Response *resp,
 /**
  * @brief Executes the init media type from response operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 init_media_type_from_response(struct OpenAPI_MediaType *mt, const char *name,
                               const struct OpenAPI_Response *resp,
                               int is_item_schema) {
@@ -1054,9 +1048,9 @@ init_media_type_from_response(struct OpenAPI_MediaType *mt, const char *name,
 /**
  * @brief Adds or sets response media type.
  */
-static enum cdd_c_error add_response_media_type(struct OpenAPI_Response *resp,
-                                                const char *name,
-                                                int is_item_schema) {
+static cdd_c_error_t add_response_media_type(struct OpenAPI_Response *resp,
+                                             const char *name,
+                                             int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
   int _has_mt = 0;
@@ -1066,7 +1060,7 @@ static enum cdd_c_error add_response_media_type(struct OpenAPI_Response *resp,
 
   if (!resp->content_media_types) {
     size_t base = resp->content_type ? 1 : 0;
-    resp->content_media_types = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+    resp->content_media_types = (struct OpenAPI_MediaType *)calloc(
         base + 1, sizeof(struct OpenAPI_MediaType));
     if (!resp->content_media_types) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1087,7 +1081,7 @@ static enum cdd_c_error add_response_media_type(struct OpenAPI_Response *resp,
     return CDD_C_SUCCESS;
 
   new_count = resp->n_content_media_types + 1;
-  new_mts = (struct OpenAPI_MediaType *)C_CDD_REALLOC(
+  new_mts = (struct OpenAPI_MediaType *)realloc(
       resp->content_media_types, new_count * sizeof(struct OpenAPI_MediaType));
   if (!new_mts) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1105,7 +1099,7 @@ static enum cdd_c_error add_response_media_type(struct OpenAPI_Response *resp,
 /**
  * @brief Executes the request body has media type operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 request_body_has_media_type(const struct OpenAPI_Operation *op,
                             const char *name) {
   size_t i;
@@ -1126,7 +1120,7 @@ request_body_has_media_type(const struct OpenAPI_Operation *op,
 /**
  * @brief Executes the init media type from request body operation.
  */
-static enum cdd_c_error init_media_type_from_request_body(
+static cdd_c_error_t init_media_type_from_request_body(
     struct OpenAPI_MediaType *mt, const char *name,
     const struct OpenAPI_Operation *op, int is_item_schema) {
   char *_ast_strdup_46 = NULL;
@@ -1155,9 +1149,9 @@ static enum cdd_c_error init_media_type_from_request_body(
 /**
  * @brief Adds or sets request body media type.
  */
-static enum cdd_c_error
-add_request_body_media_type(struct OpenAPI_Operation *op, const char *name,
-                            int is_item_schema) {
+static cdd_c_error_t add_request_body_media_type(struct OpenAPI_Operation *op,
+                                                 const char *name,
+                                                 int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
 
@@ -1166,7 +1160,7 @@ add_request_body_media_type(struct OpenAPI_Operation *op, const char *name,
 
   if (!op->req_body_media_types) {
     size_t base = op->req_body.content_type ? 1 : 0;
-    op->req_body_media_types = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+    op->req_body_media_types = (struct OpenAPI_MediaType *)calloc(
         base + 1, sizeof(struct OpenAPI_MediaType));
     if (!op->req_body_media_types) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1186,7 +1180,7 @@ add_request_body_media_type(struct OpenAPI_Operation *op, const char *name,
     return CDD_C_SUCCESS;
 
   new_count = op->n_req_body_media_types + 1;
-  new_mts = (struct OpenAPI_MediaType *)C_CDD_REALLOC(
+  new_mts = (struct OpenAPI_MediaType *)realloc(
       op->req_body_media_types, new_count * sizeof(struct OpenAPI_MediaType));
   if (!new_mts) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1204,7 +1198,7 @@ add_request_body_media_type(struct OpenAPI_Operation *op, const char *name,
 /**
  * @brief Adds or sets querystring schema from type map.
  */
-static enum cdd_c_error set_querystring_schema_from_type_map(
+static cdd_c_error_t set_querystring_schema_from_type_map(
     struct OpenAPI_Parameter *param,
     const struct OpenApiTypeMapping *type_map) {
   char *_ast_strdup_47 = NULL;
@@ -1252,7 +1246,7 @@ static enum cdd_c_error set_querystring_schema_from_type_map(
 /**
  * @brief Executes the oa type is primitive operation.
  */
-static enum cdd_c_error oa_type_is_primitive(const char *type) {
+static cdd_c_error_t oa_type_is_primitive(const char *type) {
   if (!type)
     return CDD_C_SUCCESS;
   return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
@@ -1265,7 +1259,7 @@ static enum cdd_c_error oa_type_is_primitive(const char *type) {
 /**
  * @brief Applies format to schema ref.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
                            const struct OpenApiTypeMapping *map,
                            const char *override_format) {
@@ -1294,7 +1288,7 @@ apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
       }
     }
     if (schema->items_format)
-      C_CDD_FREE(schema->items_format);
+      free(schema->items_format);
     schema->items_format = (c_cdd_strdup(fmt, &_ast_strdup_53), _ast_strdup_53);
     if (!schema->items_format) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1310,7 +1304,7 @@ apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
       }
     }
     if (schema->format)
-      C_CDD_FREE(schema->format);
+      free(schema->format);
     schema->format = (c_cdd_strdup(fmt, &_ast_strdup_55), _ast_strdup_55);
     if (!schema->format) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1329,8 +1323,8 @@ apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
 /**
  * @brief Checks if struct pointer.
  */
-enum cdd_c_error is_struct_pointer(const char *type, int *is_double_ptr,
-                                   int *out_is_struct_ptr) {
+cdd_c_error_t is_struct_pointer(const char *type, int *is_double_ptr,
+                                int *out_is_struct_ptr) {
   const char *p;
   if (out_is_struct_ptr)
     *out_is_struct_ptr = 0;
@@ -1359,8 +1353,8 @@ enum cdd_c_error is_struct_pointer(const char *type, int *is_double_ptr,
 /**
  * @brief Executes the doc style to openapi operation.
  */
-enum cdd_c_error doc_style_to_openapi(enum DocParamStyle style,
-                                      enum OpenAPI_Style *_out_val) {
+cdd_c_error_t doc_style_to_openapi(enum DocParamStyle style,
+                                   enum OpenAPI_Style *_out_val) {
   switch (style) {
   case DOC_PARAM_STYLE_FORM: {
     *_out_val = OA_STYLE_FORM;
@@ -1407,8 +1401,8 @@ enum cdd_c_error doc_style_to_openapi(enum DocParamStyle style,
 /**
  * @brief Executes the c2openapi build operation operation.
  */
-enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
-                                           struct OpenAPI_Operation *out_op) {
+cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
+                                        struct OpenAPI_Operation *out_op) {
   struct DocParam *_ast_find_doc_param_2;
   enum OpenAPI_Style _ast_doc_style_to_openapi_3;
   struct OpenAPI_MediaType *_ast_find_media_type_4;
@@ -1607,7 +1601,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
   }
   if (doc && doc->n_tags > 0) {
     size_t t;
-    out_op->tags = (char **)C_CDD_CALLOC(doc->n_tags, sizeof(char *));
+    out_op->tags = (char **)calloc(doc->n_tags, sizeof(char *));
     if (!out_op->tags) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
       return CDD_C_ERROR_MEMORY;
@@ -1624,7 +1618,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
   if (doc && doc->n_security > 0) {
     size_t s;
-    out_op->security = (struct OpenAPI_SecurityRequirementSet *)C_CDD_CALLOC(
+    out_op->security = (struct OpenAPI_SecurityRequirementSet *)calloc(
         doc->n_security, sizeof(struct OpenAPI_SecurityRequirementSet));
     if (!out_op->security) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1635,7 +1629,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
     for (s = 0; s < doc->n_security; ++s) {
       struct OpenAPI_SecurityRequirementSet *set = &out_op->security[s];
       const struct DocSecurityRequirement *src = &doc->security[s];
-      set->requirements = (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
+      set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
           1, sizeof(struct OpenAPI_SecurityRequirement));
       if (!set->requirements) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1650,7 +1644,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (src->n_scopes > 0) {
         size_t k;
         set->requirements[0].scopes =
-            (char **)C_CDD_CALLOC(src->n_scopes, sizeof(char *));
+            (char **)calloc(src->n_scopes, sizeof(char *));
         if (!set->requirements[0].scopes)
           return CDD_C_ERROR_MEMORY;
         set->requirements[0].n_scopes = src->n_scopes;
@@ -1668,7 +1662,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
   if (doc && doc->n_servers > 0) {
     size_t s;
-    out_op->servers = (struct OpenAPI_Server *)C_CDD_CALLOC(
+    out_op->servers = (struct OpenAPI_Server *)calloc(
         doc->n_servers, sizeof(struct OpenAPI_Server));
     if (!out_op->servers) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -1775,10 +1769,9 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
          We store it to populate a "200 OK" response later. */
       struct OpenAPI_Response *r;
       size_t r_idx = out_op->n_responses; /* Add new response */
-      struct OpenAPI_Response *new_resps =
-          (struct OpenAPI_Response *)C_CDD_REALLOC(
-              out_op->responses,
-              (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
+      struct OpenAPI_Response *new_resps = (struct OpenAPI_Response *)realloc(
+          out_op->responses,
+          (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
       if (!new_resps) {
         c_mapping_free(&type_map);
         return CDD_C_ERROR_MEMORY;
@@ -1875,9 +1868,9 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
     }
     if (curr_param.in == OA_PARAM_IN_HEADER && _is_reserved) {
       if (curr_param.name)
-        C_CDD_FREE(curr_param.name);
+        free(curr_param.name);
       if (curr_param.description)
-        C_CDD_FREE(curr_param.description);
+        free(curr_param.description);
       c_mapping_free(&type_map);
       continue;
     }
@@ -1940,7 +1933,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
     if (dp) {
       if (dp->content_type) {
         if (curr_param.content_type)
-          C_CDD_FREE(curr_param.content_type);
+          free(curr_param.content_type);
         curr_param.content_type =
             (c_cdd_strdup(dp->content_type, &_ast_strdup_87), _ast_strdup_87);
         if (!curr_param.content_type) {
@@ -2012,7 +2005,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
             rb->content_type ? rb->content_type : "application/json";
         if (rb_idx == 0) {
           if (out_op->req_body.content_type)
-            C_CDD_FREE(out_op->req_body.content_type);
+            free(out_op->req_body.content_type);
           out_op->req_body.content_type =
               (c_cdd_strdup(rb_content_type, &_ast_strdup_88), _ast_strdup_88);
           if (!out_op->req_body.content_type)
@@ -2062,15 +2055,15 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
               enc.allow_reserved_set = d_enc->allow_reserved_set;
 
               if (d_enc->kind == 0) {
-                struct OpenAPI_Encoding *new_encs = C_CDD_REALLOC(
-                    mt->encoding,
-                    (mt->n_encoding + 1) * sizeof(struct OpenAPI_Encoding));
+                struct OpenAPI_Encoding *new_encs =
+                    realloc(mt->encoding, (mt->n_encoding + 1) *
+                                              sizeof(struct OpenAPI_Encoding));
                 if (new_encs) {
                   mt->encoding = new_encs;
                   mt->encoding[mt->n_encoding++] = enc;
                 }
               } else if (d_enc->kind == 1) {
-                struct OpenAPI_Encoding *new_encs = C_CDD_REALLOC(
+                struct OpenAPI_Encoding *new_encs = realloc(
                     mt->prefix_encoding, (mt->n_prefix_encoding + 1) *
                                              sizeof(struct OpenAPI_Encoding));
                 if (new_encs) {
@@ -2080,7 +2073,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
               } else if (d_enc->kind == 2) {
                 if (!mt->item_encoding) {
                   mt->item_encoding =
-                      C_CDD_CALLOC(1, sizeof(struct OpenAPI_Encoding));
+                      calloc(1, sizeof(struct OpenAPI_Encoding));
                 }
                 if (mt->item_encoding) {
                   *mt->item_encoding = enc;
@@ -2106,7 +2099,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
     }
     if (doc->request_body_content_type && doc->n_request_bodies == 0) {
       if (out_op->req_body.content_type)
-        C_CDD_FREE(out_op->req_body.content_type);
+        free(out_op->req_body.content_type);
       out_op->req_body.content_type =
           (c_cdd_strdup(doc->request_body_content_type, &_ast_strdup_92),
            _ast_strdup_92);
@@ -2168,10 +2161,9 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
       }
       if (!exists) {
         /* Add new response (likely error code) */
-        struct OpenAPI_Response *new_resps =
-            (struct OpenAPI_Response *)C_CDD_REALLOC(
-                out_op->responses,
-                (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
+        struct OpenAPI_Response *new_resps = (struct OpenAPI_Response *)realloc(
+            out_op->responses,
+            (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
         struct OpenAPI_Response *r;
         if (!new_resps) {
           C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -2283,9 +2275,8 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
   }
 
   if (out_op->n_responses == 0) {
-    struct OpenAPI_Response *new_resps =
-        (struct OpenAPI_Response *)C_CDD_REALLOC(
-            out_op->responses, sizeof(struct OpenAPI_Response));
+    struct OpenAPI_Response *new_resps = (struct OpenAPI_Response *)realloc(
+        out_op->responses, sizeof(struct OpenAPI_Response));
     struct OpenAPI_Response *r;
     if (!new_resps) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\\n");
@@ -2328,7 +2319,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
       token = strtok_r(NULL, "_", &ctx_ptr);
 #endif /* resource or next */
       if (token) {
-        out_op->tags = (char **)C_CDD_MALLOC(sizeof(char *));
+        out_op->tags = (char **)malloc(sizeof(char *));
         if (out_op->tags) {
           out_op->tags[0] =
               (c_cdd_strdup(token, &_ast_strdup_107), _ast_strdup_107);
@@ -2340,7 +2331,7 @@ enum cdd_c_error c2openapi_build_operation(const struct OpBuilderContext *ctx,
           }
         }
       }
-      C_CDD_FREE(dup_name);
+      free(dup_name);
     }
   }
 

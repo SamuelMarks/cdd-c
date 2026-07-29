@@ -9,7 +9,6 @@
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
-#include "c_cdd/memory.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -19,11 +18,10 @@
 /**
  * @brief Executes the weaver wrap ifdef operation.
  */
-enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
-                                   const struct TokenList *tokens,
-                                   size_t start_idx, size_t end_idx,
-                                   const char *condition,
-                                   const char *false_code) {
+cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
+                                const struct TokenList *tokens,
+                                size_t start_idx, size_t end_idx,
+                                const char *condition, const char *false_code) {
   char *ifdef_str;
   char *endif_str;
   int res;
@@ -39,7 +37,17 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
 ` */
   ifdef_len = strlen("#ifdef ") + strlen(condition) + 20;
 
-  ifdef_str = (char *)C_CDD_MALLOC(ifdef_len);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      ifdef_str = NULL;
+    else
+      ifdef_str = (char *)malloc(ifdef_len);
+  }
+#else
+  ifdef_str = (char *)malloc(ifdef_len);
+#endif
 
   if (!ifdef_str) {
     return CDD_C_ERROR_MEMORY;
@@ -51,8 +59,10 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
 #endif
 
   res = patch_list_add(patches, start_idx, start_idx, ifdef_str);
-  if (res != 0)
+  if (res != 0) {
+    /* patch_list_add frees on failure */
     return res;
+  }
 
   /* Construct `#else
 <false_code>
@@ -63,7 +73,17 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
     endif_len =
         strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 20;
 
-    endif_str = (char *)C_CDD_MALLOC(endif_len);
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        endif_str = NULL;
+      else
+        endif_str = (char *)malloc(endif_len);
+    }
+#else
+    endif_str = (char *)malloc(endif_len);
+#endif
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
@@ -76,7 +96,17 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
   } else {
     endif_len = strlen("#endif\\n") + 20;
 
-    endif_str = (char *)C_CDD_MALLOC(endif_len);
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        endif_str = NULL;
+      else
+        endif_str = (char *)malloc(endif_len);
+    }
+#else
+    endif_str = (char *)malloc(endif_len);
+#endif
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
@@ -89,8 +119,10 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
   }
 
   res = patch_list_add(patches, end_idx, end_idx, endif_str);
-  if (res != 0)
+  if (res != 0) {
+    /* patch_list_add frees on failure */
     return res;
+  }
 
   return CDD_C_SUCCESS;
 }
@@ -98,10 +130,10 @@ enum cdd_c_error weaver_wrap_ifdef(struct PatchList *patches,
 /**
  * @brief Executes the weaver inject msvc headers operation.
  */
-enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
-                                            const struct TokenList *tokens,
-                                            int include_windows_h,
-                                            int include_winsock2_h) {
+cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
+                                         const struct TokenList *tokens,
+                                         int include_windows_h,
+                                         int include_winsock2_h) {
   size_t i;
   size_t last_include_idx = 0;
   int found_include = 0;
@@ -121,8 +153,9 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
   for (i = 0; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_HASH) {
       size_t j = i + 1;
-      while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
+      while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE) {
         j++;
+      }
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_include = 0;
         token_matches_string(&tokens->tokens[j], "include", &is_include);
@@ -155,13 +188,24 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
       }
       j++;
     }
-    if (j == tokens->size)
+    if (j == tokens->size) {
       insert_idx = tokens->size;
+    }
   }
 
   len = 256;
 
-  str = (char *)C_CDD_MALLOC(len);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      str = NULL;
+    else
+      str = (char *)malloc(len);
+  }
+#else
+  str = (char *)malloc(len);
+#endif
 
   if (!str) {
     return CDD_C_ERROR_MEMORY;
@@ -194,7 +238,10 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
     strcat(str, "#include <winsock2.h>\\n");
   }
   if (include_windows_h) {
-
+    if (!include_winsock2_h) {
+      strcat(str, "#ifndef WIN32_LEAN_AND_MEAN\n#define "
+                  "WIN32_LEAN_AND_MEAN\n#endif \\n ");
+    }
     strcat(str, "#ifndef NOMINMAX\n#define NOMINMAX\n#endif \\n ");
     strcat(str, "\\n");
   }
@@ -208,12 +255,11 @@ enum cdd_c_error weaver_inject_msvc_headers(struct PatchList *patches,
 /**
  * @brief Executes the weaver vla to alloca operation.
  */
-enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
-                                      const struct TokenList *tokens,
-                                      size_t start_idx, size_t end_idx,
-                                      const char *type_str,
-                                      const char *var_name,
-                                      const char *size_expr, int interactive) {
+cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
+                                   const struct TokenList *tokens,
+                                   size_t start_idx, size_t end_idx,
+                                   const char *type_str, const char *var_name,
+                                   const char *size_expr, int interactive) {
   char *str;
   size_t len;
   int res;
@@ -223,6 +269,23 @@ enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
+  if (interactive) {
+    char user_input[16];
+    printf("\nInteractive Review:\\n");
+    printf("Detected VLA: `%s %s[%s];`\\n", type_str, var_name, size_expr);
+    printf("Transform to: `%s *%s = (%s *)_alloca((%s) * sizeof(%s));`\\n",
+           type_str, var_name, type_str, size_expr, type_str);
+    printf("Apply this transformation? [Y/n] ");
+    fflush(stdout);
+
+    if (fgets(user_input, sizeof(user_input), stdin)) {
+      if (user_input[0] == 'n' || user_input[0] == 'N') {
+        printf("Skipped.\\n");
+        return CDD_C_SUCCESS;
+      }
+    }
+  }
+
   /* Calculate length:
    * type_str + " *" + var_name + " = (" + type_str + " *)_alloca((" +
    * size_expr + ") * sizeof(" + type_str + "));" + null terminator
@@ -230,7 +293,17 @@ enum cdd_c_error weaver_vla_to_alloca(struct PatchList *patches,
   len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
         strlen(size_expr) + 11 + strlen(type_str) + 4 + 100;
 
-  str = (char *)C_CDD_MALLOC(len);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      str = NULL;
+    else
+      str = (char *)malloc(len);
+  }
+#else
+  str = (char *)malloc(len);
+#endif
 
   if (!str) {
     return CDD_C_ERROR_MEMORY;

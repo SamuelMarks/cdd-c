@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -47,9 +46,9 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
-        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      C_CDD_FREE(dup);
+      free(dup);
       return NULL;
     }
     tree->string_pool = new_pool;
@@ -64,7 +63,7 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   char *dup;
   if (!tree || !str)
     return NULL;
-  dup = (char *)C_CDD_MALLOC(len + 1);
+  dup = (char *)malloc(len + 1);
   if (!dup)
     return NULL;
   memcpy(dup, str, len);
@@ -73,9 +72,9 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
-        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      C_CDD_FREE(dup);
+      free(dup);
       return NULL;
     }
     tree->string_pool = new_pool;
@@ -84,7 +83,7 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   tree->string_pool[tree->num_strings++] = dup;
   return dup;
 }
-static enum cdd_c_error append_int(char *p, int v, char **out_p) {
+static cdd_c_error_t append_int(char *p, int v, char **out_p) {
   char temp[32];
   int i = 0, j;
   unsigned int u;
@@ -129,7 +128,7 @@ static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
     }
     low_part = low * 10;
     high_part = high * 10 + (low_part < low ? 1 : 0) +
-                (low / (uint64_t)1844674407370955161u); /* Roughly */
+                (low / 1844674407370955161ULL); /* Roughly */
     /* Accurate 128-bit multiply by 10 */
     {
       uint64_t al = low & 0xFFFFFFFF;
@@ -182,7 +181,7 @@ struct magic_ctx {
   size_t func_len;
 };
 
-static enum cdd_c_error magic_visitor(cdd_cst_node_t *node, void *user_data) {
+static cdd_c_error_t magic_visitor(cdd_cst_node_t *node, void *user_data) {
   struct magic_ctx *ctx = (struct magic_ctx *)user_data;
   size_t i;
   for (i = 0; i < node->num_children; i++) {
@@ -194,7 +193,7 @@ static enum cdd_c_error magic_visitor(cdd_cst_node_t *node, void *user_data) {
             (tok->length == 19 &&
              memcmp(tok->start, "__PRETTY_FUNCTION__", 19) == 0) ||
             (tok->length == 8 && memcmp(tok->start, "__func__", 8) == 0)) {
-          char *buf = (char *)C_CDD_MALLOC(ctx->func_len + 3);
+          char *buf = (char *)malloc(ctx->func_len + 3);
           if (buf) {
             const char *pooled;
             cdd_token_t *new_tok = NULL;
@@ -205,12 +204,12 @@ static enum cdd_c_error magic_visitor(cdd_cst_node_t *node, void *user_data) {
 
             pooled = pool_string_safe(ctx->tree, buf);
             if (!pooled) {
-              C_CDD_FREE(buf);
+              free(buf);
               return CDD_C_ERROR_MEMORY;
             }
             cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, pooled,
                                      ctx->func_len + 2, &new_tok);
-            C_CDD_FREE(buf);
+            free(buf);
             buf = NULL;
             if (new_tok) {
               new_tok->leading_trivia = tok->leading_trivia;
@@ -239,7 +238,7 @@ struct tramp_ctx {
   cdd_cst_node_t *func_node;
 };
 
-static enum cdd_c_error tramp_visitor(cdd_cst_node_t *node, void *user_data) {
+static cdd_c_error_t tramp_visitor(cdd_cst_node_t *node, void *user_data) {
   struct tramp_ctx *ctx = (struct tramp_ctx *)user_data;
   size_t i;
   if (ctx->is_tramp)
@@ -274,7 +273,7 @@ static enum cdd_c_error tramp_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error asm_visitor(cdd_cst_node_t *node, void *user_data) {
+static cdd_c_error_t asm_visitor(cdd_cst_node_t *node, void *user_data) {
   size_t i;
   (void)user_data;
   if (node->kind == CDD_CST_ASM_STATEMENT) {
@@ -365,10 +364,10 @@ static const char *cdd_infer_type(cdd_token_t *tokens, size_t num_tokens) {
   return "int";
 }
 
-enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
-                                   const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
+                                const cdd_transform_config_t *config) {
   size_t i;
-  enum cdd_c_error rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};
   (void)config;
 
@@ -431,7 +430,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
            * trampolines.
            */
           if (res.nodes)
-            C_CDD_FREE(res.nodes);
+            free(res.nodes);
           return 129; /* ENOTSUP isn't defined everywhere in old MSVC */
         }
 
@@ -442,7 +441,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
       */      }
     }
     if (res.nodes) {
-      C_CDD_FREE(res.nodes);
+      free(res.nodes);
     }
   }
 
@@ -451,7 +450,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
     if (tok->kind == CDD_TOKEN_PREPROC_DEFINE) {
       const char *p = (const char *)tok->start;
       size_t len = tok->length;
-      char *buf = (char *)C_CDD_MALLOC(len + 1);
+      char *buf = (char *)malloc(len + 1);
       if (buf) {
         memcpy(buf, p, len);
         buf[len] = '\0';
@@ -484,11 +483,11 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   if (start_id < ellipsis) {
                     var_len = ellipsis - start_id;
-                    var_name = (char *)C_CDD_MALLOC(var_len + 1);
+                    var_name = (char *)malloc(var_len + 1);
                     memcpy(var_name, start_id, var_len);
                     var_name[var_len] = '\0';
                   } else {
-                    var_name = (char *)C_CDD_MALLOC(12);
+                    var_name = (char *)malloc(12);
                     if (var_name) {
                       memcpy(var_name, "__VA_ARGS__", 11);
                       var_name[11] = '\0';
@@ -498,7 +497,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
 
                   {
                     size_t out_cap = len * 2 + 128;
-                    char *out_buf = (char *)C_CDD_MALLOC(out_cap);
+                    char *out_buf = (char *)malloc(out_cap);
                     if (out_buf) {
                       char *out_p = out_buf;
                       char *in_p = buf;
@@ -568,13 +567,13 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                           cdd_token_t *new_tok = NULL;
                           pooled = pool_string_safe(tree, out_buf);
                           if (!pooled) {
-                            C_CDD_FREE(out_buf);
+                            free(out_buf);
                             return CDD_C_ERROR_MEMORY;
                           }
                           cdd_cst_create_token_len(
                               tree, CDD_TOKEN_PREPROC_DEFINE, pooled,
                               out_p - out_buf, &new_tok);
-                          C_CDD_FREE(out_buf);
+                          free(out_buf);
                           out_buf = NULL;
                           if (new_tok) {
                             new_tok->leading_trivia = tok->leading_trivia;
@@ -588,13 +587,13 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                       }
                     }
                   }
-                  C_CDD_FREE(var_name);
+                  free(var_name);
                 }
               }
             }
           }
         }
-        C_CDD_FREE(buf);
+        free(buf);
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___INT128) {
       size_t child_idx;
@@ -1149,14 +1148,16 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
 #else
 
 #endif
-                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL", (uint64_t)high);
+                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                             (unsigned long long)high);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
               {
                 char tb2[128];
-                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL", (uint64_t)low);
+                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                             (unsigned long long)low);
 #undef ULL_HEX_FMT
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
@@ -1382,7 +1383,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
         } else {
           /* Generic fallback for any other no-arg attribute like always_inline,
            * pure, const, weak, etc. */
-          char *heap_buf = (char *)C_CDD_MALLOC(attr->length + 7);
+          char *heap_buf = (char *)malloc(attr->length + 7);
           if (heap_buf) {
             size_t c_idx;
             cdd_cst_node_t *p_node = NULL;
@@ -1403,7 +1404,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_replace_token_child(p_node, c_idx, n_tok);
               }
             } else {
-              C_CDD_FREE(heap_buf);
+              free(heap_buf);
             }
           }
           tree->base_tokens->tokens[i + 1].length = 0;
@@ -1983,7 +1984,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
             tree->base_tokens->tokens[rparen_idx].trailing_trivia = NULL;
             cdd_cst_replace_token_child(rparen_parent, rparen_cidx, new_rparen);
 
-            buf = (char *)C_CDD_MALLOC(val_len + 2);
+            buf = (char *)malloc(val_len + 2);
             if (buf) {
               const char *pooled;
               cdd_token_t *new_val = NULL;
@@ -1993,13 +1994,13 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
               buf[val_len + 1] = '\0';
               pooled = pool_string_safe(tree, buf);
               if (!pooled) {
-                C_CDD_FREE(buf);
+                free(buf);
                 return CDD_C_ERROR_MEMORY;
               }
               cdd_cst_create_token_len(
                   tree, tree->base_tokens->tokens[rparen_idx + 1].kind, pooled,
                   val_len + 1, &new_val);
-              C_CDD_FREE(buf);
+              free(buf);
               if (new_val) {
                 new_val->leading_trivia =
                     tree->base_tokens->tokens[rparen_idx + 1].leading_trivia;
@@ -2094,7 +2095,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           const uint8_t *expr_end = tree->base_tokens->tokens[i - 1].start +
                                     tree->base_tokens->tokens[i - 1].length;
           len = expr_end - expr_start;
-          buf = (char *)C_CDD_MALLOC(len + 4);
+          buf = (char *)malloc(len + 4);
           if (buf) {
             p = buf;
             *p++ = '?';
@@ -2112,12 +2113,12 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_token_t *new_tok = NULL;
                 pooled = pool_string_safe(tree, buf);
                 if (!pooled) {
-                  C_CDD_FREE(buf);
+                  free(buf);
                   return CDD_C_ERROR_MEMORY;
                 }
                 cdd_cst_create_token_len(tree, tok->kind, pooled, strlen(buf),
                                          &new_tok);
-                C_CDD_FREE(buf);
+                free(buf);
                 buf = NULL;
                 if (new_tok) {
                   new_tok->leading_trivia = tok->leading_trivia;
@@ -2443,7 +2444,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (appended) {
             char *heap_buf;
             strcat(p, " }");
-            heap_buf = (char *)C_CDD_MALLOC(strlen(buf) + 1);
+            heap_buf = (char *)malloc(strlen(buf) + 1);
             if (heap_buf) {
               size_t child_idx_shadow;
               cdd_cst_node_t *parent = NULL;
@@ -2455,12 +2456,12 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                 strcpy(heap_buf, buf);
                 pooled = pool_string_safe(tree, heap_buf);
                 if (!pooled) {
-                  C_CDD_FREE(heap_buf);
+                  free(heap_buf);
                   return CDD_C_ERROR_MEMORY;
                 }
                 cdd_cst_create_token_len(tree, t->kind, pooled,
                                          strlen(heap_buf), &new_tok);
-                C_CDD_FREE(heap_buf);
+                free(heap_buf);
                 if (new_tok) {
                   new_tok->leading_trivia = t->leading_trivia;
                   new_tok->trailing_trivia = t->trailing_trivia;
@@ -2470,7 +2471,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                                               new_tok);
                 }
               } else {
-                C_CDD_FREE(heap_buf);
+                free(heap_buf);
               }
             }
           }
@@ -2532,8 +2533,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
               if (config && config->fallback_vla_to_malloc) {
                 for (v_idx = num_vlas; v_idx > 0; v_idx--) {
-                  p += sprintf(p, "C_CDD_FREE(%.*s); ",
-                               (int)vlas[v_idx - 1].length,
+                  p += sprintf(p, "free(%.*s); ", (int)vlas[v_idx - 1].length,
                                vlas[v_idx - 1].name);
                 }
               }
@@ -2546,7 +2546,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                 p += 9;
               }
               {
-                char *dup = (char *)C_CDD_MALLOC(strlen(buf) + 1);
+                char *dup = (char *)malloc(strlen(buf) + 1);
                 if (dup) {
                   size_t child_idx_dup;
                   cdd_cst_node_t *parent = NULL;
@@ -2559,13 +2559,13 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                     strcpy(dup, buf);
                     pooled = pool_string_safe(tree, dup);
                     if (!pooled) {
-                      C_CDD_FREE(dup);
+                      free(dup);
                       return CDD_C_ERROR_MEMORY;
                     }
                     cdd_cst_create_token_len(tree,
                                              tree->base_tokens->tokens[k].kind,
                                              pooled, strlen(dup), &new_tok);
-                    C_CDD_FREE(dup);
+                    free(dup);
                     dup = NULL;
                     if (new_tok) {
                       new_tok->leading_trivia =
@@ -2579,7 +2579,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                     }
                   }
                   if (dup) {
-                    C_CDD_FREE(dup);
+                    free(dup);
                     dup = NULL;
                   }
                 }
@@ -2801,8 +2801,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
           for (j = num_local_labels; j-- > 0;) {
             if (local_labels[j].length == t->length &&
                 memcmp(local_labels[j].name, t->start, t->length) == 0) {
-              char *dup =
-                  (char *)C_CDD_MALLOC(strlen(local_labels[j].rename) + 1);
+              char *dup = (char *)malloc(strlen(local_labels[j].rename) + 1);
               if (dup) {
                 size_t child_idx;
                 cdd_cst_node_t *parent = NULL;
@@ -2813,12 +2812,12 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                   strcpy(dup, local_labels[j].rename);
                   pooled = pool_string_safe(tree, dup);
                   if (!pooled) {
-                    C_CDD_FREE(dup);
+                    free(dup);
                     return CDD_C_ERROR_MEMORY;
                   }
                   cdd_cst_create_token_len(tree, t->kind, pooled, strlen(dup),
                                            &new_tok);
-                  C_CDD_FREE(dup);
+                  free(dup);
                   dup = NULL;
                   if (new_tok) {
                     new_tok->leading_trivia = t->leading_trivia;
@@ -2829,7 +2828,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                 }
                 if (dup) {
-                  C_CDD_FREE(dup);
+                  free(dup);
                   dup = NULL;
                 }
               }
@@ -3353,7 +3352,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
               } else {
                 alloc_sz = (end_val - start_val + 2) * 32 + 128;
               }
-              heap_buf = (char *)C_CDD_MALLOC(alloc_sz);
+              heap_buf = (char *)malloc(alloc_sz);
               if (heap_buf) {
                 const char *pooled;
                 p = heap_buf;
@@ -3369,7 +3368,7 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                   strcpy(p, "case ");
                   p += 5;
                   if (append_int(p, v, &p) != 0) {
-                    C_CDD_FREE(heap_buf);
+                    free(heap_buf);
                     return CDD_C_ERROR_MEMORY;
                   }
                   if (v != end_val) {
@@ -3382,14 +3381,14 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
                 }
                 pooled = pool_string_safe(tree, heap_buf);
                 if (!pooled) {
-                  C_CDD_FREE(heap_buf);
+                  free(heap_buf);
                   return CDD_C_ERROR_MEMORY;
                 }
                 tree->base_tokens->tokens[is_case_idx].start =
                     (const uint8_t *)pooled;
                 tree->base_tokens->tokens[is_case_idx].length =
                     strlen(heap_buf);
-                C_CDD_FREE(heap_buf);
+                free(heap_buf);
                 {
                   size_t c_idx;
                   cdd_cst_node_t *p_node = NULL;
@@ -3463,14 +3462,14 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
               if (assign_val) {
                 alloc_sz =
                     (end_val - start_val + 2) * (32 + assign_val->length) + 1;
-                heap_buf = (char *)C_CDD_MALLOC(alloc_sz);
+                heap_buf = (char *)malloc(alloc_sz);
                 if (heap_buf) {
                   const char *pooled;
                   p = heap_buf;
                   for (v = start_val; v <= end_val; v++) {
                     *p++ = '[';
                     if (append_int(p, v, &p) != 0) {
-                      C_CDD_FREE(heap_buf);
+                      free(heap_buf);
                       return CDD_C_ERROR_MEMORY;
                     }
                     strcpy(p, "] = ");
@@ -3486,14 +3485,14 @@ enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
 
                   pooled = pool_string_safe(tree, heap_buf);
                   if (!pooled) {
-                    C_CDD_FREE(heap_buf);
+                    free(heap_buf);
                     return CDD_C_ERROR_MEMORY;
                   }
                   tree->base_tokens->tokens[is_range_idx].start =
                       (const uint8_t *)pooled;
                   tree->base_tokens->tokens[is_range_idx].length =
                       strlen(heap_buf);
-                  C_CDD_FREE(heap_buf);
+                  free(heap_buf);
                   {
                     size_t c_idx;
                     cdd_cst_node_t *p_node = NULL;

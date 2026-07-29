@@ -72,8 +72,8 @@ struct IncludeInfo {
  * @param[in] user_data Opaque pointer passed by caller.
  * @return 0 to continue scanning, non-zero to stop.
  */
-typedef enum cdd_c_error (*pp_visitor_cb)(const struct IncludeInfo *info,
-                                          void *user_data);
+typedef cdd_c_error_t (*pp_visitor_cb)(const struct IncludeInfo *info,
+                                       void *user_data);
 
 /**
  * @brief Represents a single definition found in source code.
@@ -111,7 +111,7 @@ struct PreprocessorContext {
  * @param[out] ctx Pointer to the context structure.
  * @return 0 on success, EINVAL or ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 pp_context_init(struct PreprocessorContext *ctx);
 
 /**
@@ -128,7 +128,7 @@ extern C_CDD_EXPORT void pp_context_free(struct PreprocessorContext *ctx);
  * @param[in] path Directory path to add (copied internally).
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 pp_add_search_path(struct PreprocessorContext *ctx, const char *path);
 
 /**
@@ -140,9 +140,9 @@ pp_add_search_path(struct PreprocessorContext *ctx, const char *path);
  * @param[in] value Macro value text (can be NULL for empty define).
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-pp_add_macro(struct PreprocessorContext *ctx, const char *name,
-             const char *value);
+extern C_CDD_EXPORT cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx,
+                                               const char *name,
+                                               const char *value);
 
 /**
  * @brief Scan a file for \#include directives and resolve them.
@@ -160,7 +160,7 @@ pp_add_macro(struct PreprocessorContext *ctx, const char *name,
  * @param[in] user_data Opaque data passed to callback.
  * @return 0 on success, error code on failure (IO, memory, or parsing).
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 pp_scan_includes(const char *filename, struct PreprocessorContext *ctx,
                  pp_visitor_cb cb, void *user_data);
 
@@ -175,7 +175,7 @@ pp_scan_includes(const char *filename, struct PreprocessorContext *ctx,
  * @param[in] filename Path to the file to parse.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 pp_scan_defines(struct PreprocessorContext *ctx, const char *filename);
 
 /**
@@ -199,10 +199,9 @@ pp_scan_defines(struct PreprocessorContext *ctx, const char *filename);
  * @param[out] result Result of the evaluation (1 or 0 usually).
  * @return 0 on success, EINVAL on syntax error.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
-                   size_t end_idx, const struct PreprocessorContext *ctx,
-                   long *result);
+extern C_CDD_EXPORT cdd_c_error_t pp_eval_expression(
+    const struct TokenList *tokens, size_t start_idx, size_t end_idx,
+    const struct PreprocessorContext *ctx, long *result);
 
 /**
  * @brief Release memory within EmbedParams structure.

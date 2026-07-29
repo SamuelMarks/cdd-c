@@ -28,14 +28,14 @@ extern "C" {
  */
 /* Forward declarations for testing */
 struct CodegenConfig;
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 generate_header(const char *prefix, const char *basename,
                 JSON_Object *schemas_obj, const struct CodegenConfig *config);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 generate_source(const char *prefix, const char *basename,
                 JSON_Object *schemas_obj, const struct CodegenConfig *config);
 
-extern C_CDD_EXPORT enum cdd_c_error schema2code_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t schema2code_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

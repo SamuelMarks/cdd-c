@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -39,11 +38,10 @@ TEST test_cli_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
-  spec.paths =
-      (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
+  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
   spec.paths[0].n_operations = 1;
-  spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
-      1, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations =
+      (struct OpenAPI_Operation *)calloc(1, sizeof(struct OpenAPI_Operation));
   spec.paths[0].operations[0].operation_id = "doSomething";
   spec.paths[0].operations[0].summary = "Does a thing";
 
@@ -57,8 +55,7 @@ TEST test_cli_gen_basic(void) {
   spec.paths[0].operations[0].req_body_required_set = 1;
   spec.paths[0].operations[0].req_body_required = 1;
   spec.paths[0].operations[0].req_body.content_schema =
-      (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
-          1, sizeof(struct OpenAPI_SchemaRef));
+      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
 
   spec.paths[0].operations[0].deprecated = 1;
 
@@ -116,9 +113,10 @@ TEST test_cli_gen_basic(void) {
     fclose(f);
 
   remove("src/test_cli_cli.c");
-  C_CDD_FREE(spec.paths[0].operations[0].req_body.content_schema);
-  C_CDD_FREE(spec.paths[0].operations);
-  C_CDD_FREE(spec.paths);
+  free(spec.paths[0].operations[0].req_body.content_schema);
+  free(spec.paths[0].operations);
+  free(spec.paths);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -138,6 +136,7 @@ TEST test_cli_gen_fail_open(void) {
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -165,7 +164,7 @@ TEST test_cli_gen_full(void) {
   spec.info.license.url = "https://license.example.com";
 
   spec.n_servers = 1;
-  spec.servers = C_CDD_CALLOC(1, sizeof(*spec.servers));
+  spec.servers = calloc(1, sizeof(*spec.servers));
   spec.servers[0].url = "https://api.example.com";
   spec.servers[0].description = "Prod server";
   spec.servers[0].variables = (void *)1; /* dummy pointer */
@@ -174,10 +173,10 @@ TEST test_cli_gen_full(void) {
   spec.external_docs.url = "https://docs.example.com";
 
   spec.n_paths = 1;
-  spec.paths = C_CDD_CALLOC(1, sizeof(*spec.paths));
+  spec.paths = calloc(1, sizeof(*spec.paths));
   spec.paths[0].route = "/full";
   spec.paths[0].n_operations = 1;
-  spec.paths[0].operations = C_CDD_CALLOC(1, sizeof(*spec.paths[0].operations));
+  spec.paths[0].operations = calloc(1, sizeof(*spec.paths[0].operations));
   spec.paths[0].operations[0].method = "get";
   spec.paths[0].operations[0].operation_id = "doFull";
   spec.paths[0].operations[0].summary = "Does full thing";
@@ -186,7 +185,7 @@ TEST test_cli_gen_full(void) {
 
   spec.paths[0].operations[0].n_parameters = 1;
   spec.paths[0].operations[0].parameters =
-      C_CDD_CALLOC(1, sizeof(*spec.paths[0].operations[0].parameters));
+      calloc(1, sizeof(*spec.paths[0].operations[0].parameters));
   spec.paths[0].operations[0].parameters[0].name = "param1";
   spec.paths[0].operations[0].parameters[0].in = 1;
   spec.paths[0].operations[0].parameters[0].required = 1;
@@ -205,10 +204,11 @@ TEST test_cli_gen_full(void) {
   ASSERT_EQ(0, rc);
 
   remove("src/test_cli_full_cli.c");
-  C_CDD_FREE(spec.servers);
-  C_CDD_FREE(spec.paths[0].operations[0].parameters);
-  C_CDD_FREE(spec.paths[0].operations);
-  C_CDD_FREE(spec.paths);
+  free(spec.servers);
+  free(spec.paths[0].operations[0].parameters);
+  free(spec.paths[0].operations);
+  free(spec.paths);
+  g_fail_io_after = -1;
 
   PASS();
 }

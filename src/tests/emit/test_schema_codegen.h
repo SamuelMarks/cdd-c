@@ -12,7 +12,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "classes/emit/schema.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
@@ -21,6 +20,7 @@ extern "C" {
 #include "classes/parse/code2schema.h" /* Included to avoid implicit declaration warnings */
 #include "functions/emit/codegen.h"
 #include "functions/parse/fs.h"
+
 /* clang-format on */
 
 /* Forward declare static functions from schema_codegen.c if we want unit-test
@@ -109,13 +109,14 @@ TEST test_schema_codegen_circular_refs(void) {
      * declarations being valid C */
   }
 
-  C_CDD_FREE(header_content);
+  free(header_content);
 
   remove(filename);
 
   remove("circular_out.h");
 
   remove("circular_out.c");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -175,7 +176,7 @@ TEST test_codegen_config_json_guards(void) {
 
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 
@@ -207,11 +208,12 @@ TEST test_codegen_config_json_guards(void) {
     ASSERT_EQ(3, count);
   }
 
-  C_CDD_FREE(content);
+  free(content);
 
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -255,7 +257,7 @@ TEST test_union_config_json_guards(void) {
 
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 
@@ -263,11 +265,12 @@ TEST test_union_config_json_guards(void) {
 
   ASSERT(strstr(content, "#endif /* UNION_GUARD */"));
 
-  C_CDD_FREE(content);
+  free(content);
 
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -318,12 +321,12 @@ TEST test_schema_codegen_union_output(void) {
   ASSERT(strstr(source_content, "Pet_from_json"));
   ASSERT(strstr(source_content, "Pet_to_json"));
 
-  C_CDD_FREE(header_content);
-  C_CDD_FREE(source_content);
+  free(header_content);
+  free(source_content);
   remove(filename);
   remove("union_out.h");
   remove("union_out.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -372,12 +375,12 @@ TEST test_schema_codegen_union_inline_variants(void) {
   ASSERT(strstr(source_content, "case JSONArray"));
   ASSERT(strstr(source_content, "Pet_InlineCat_from_jsonObject"));
 
-  C_CDD_FREE(header_content);
-  C_CDD_FREE(source_content);
+  free(header_content);
+  free(source_content);
   remove(filename);
   remove("union_inline_out.h");
   remove("union_inline_out.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -421,12 +424,12 @@ TEST test_schema_codegen_enum_output(void) {
   ASSERT(strstr(source_content, "Color_from_str"));
   ASSERT(strstr(source_content, "Color_to_str"));
 
-  C_CDD_FREE(header_content);
-  C_CDD_FREE(source_content);
+  free(header_content);
+  free(source_content);
   remove(filename);
   remove("enum_out.h");
   remove("enum_out.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -485,7 +488,7 @@ TEST test_codegen_config_utils_guards(void) {
 
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 
@@ -495,13 +498,14 @@ TEST test_codegen_config_utils_guards(void) {
 
   ASSERT(strstr(content, "#endif /* DATA_UTILS */"));
 
-  ASSERT(strstr(content, "enum cdd_c_error S_cleanup("));
+  ASSERT(strstr(content, "cdd_c_error_t S_cleanup("));
 
-  C_CDD_FREE(content);
+  free(content);
 
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -570,14 +574,15 @@ TEST test_schema_constraints_bounds(void) {
   schema_constraints_init(&sc);
   sc.has_additional_properties = 1;
   sc.additional_properties =
-      (struct SchemaType *)C_CDD_CALLOC(1, sizeof(struct SchemaType));
-  sc.additional_properties->name = (char *)C_CDD_MALLOC(2);
+      (struct SchemaType *)calloc(1, sizeof(struct SchemaType));
+  sc.additional_properties->name = (char *)malloc(2);
   strcpy(sc.additional_properties->name, "n");
-  sc.additional_properties->type = (char *)C_CDD_MALLOC(2);
+  sc.additional_properties->type = (char *)malloc(2);
   strcpy(sc.additional_properties->type, "t");
-  sc.additional_properties->ref = (char *)C_CDD_MALLOC(2);
+  sc.additional_properties->ref = (char *)malloc(2);
   strcpy(sc.additional_properties->ref, "r");
   schema_constraints_free(&sc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -613,6 +618,8 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
   for (i = 0; i < 1000; ++i) {
     void *root;
     void *schemas;
+    g_schema_fail_io_after = i;
+    g_schema_io_calls = 0;
 
     root = json_parse_file("test_codegen_schema_io.json");
     schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -630,9 +637,10 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
     ASSERT(rc != 0);
   }
 
+  g_schema_fail_io_after = -1;
   remove("test_codegen_schema_io.json");
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -676,7 +684,7 @@ TEST test_schema_codegen_union_arrays(void) {
   remove("union_array_out.h");
   remove("union_array_out.c");
   remove("union_array_out_types.h");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -707,7 +715,7 @@ TEST test_schema_codegen_specific_structs(void) {
   remove(filename);
   remove("specific_out.h");
   remove("specific_out.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -764,16 +772,24 @@ TEST test_schema_codegen_main_paths(void) {
 #ifdef CDD_BUILD_TESTS
   {
     int io_i = 1;
-
+    extern int g_schema_codegen_force_fail;
     while (1) {
       g_fail_io_after = io_i++;
-
+      g_io_calls = 0;
       rc = schema2code_main(5, (char **)argv);
       if (rc == 0)
         break;
     }
+    g_fail_io_after = -1;
 
     io_i = 1;
+    while (1) {
+      g_schema_codegen_force_fail = io_i++;
+      rc = schema2code_main(5, (char **)argv);
+      if (rc == 0)
+        break;
+    }
+    g_schema_codegen_force_fail = 0;
   }
 #else
   rc = schema2code_main(5, (char **)argv);
@@ -804,21 +820,23 @@ TEST test_schema_codegen_main_paths(void) {
   /* 6. generate_header / generate_source fails */
 #ifdef CDD_BUILD_TESTS
   write_to_file(filename, schema_defs);
-
+  g_schema_fail_io_after = 0;
+  g_schema_io_calls = 0;
   rc = schema2code_main(2, (char **)argv);
   ASSERT(rc != 0);
 
-  /* Succeed header start, fail later */
-
+  g_schema_fail_io_after = 3; /* Succeed header start, fail later */
+  g_schema_io_calls = 0;
   rc = schema2code_main(2, (char **)argv);
   ASSERT(rc != 0);
 
+  g_schema_fail_io_after = -1;
 #endif
 
   remove(filename);
   remove("main_out.h");
   remove("main_out.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 

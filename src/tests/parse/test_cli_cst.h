@@ -35,10 +35,10 @@ TEST test_cli_cst_extern_c_audit(void) {
 
   /* Audit should fail because it needs extern "C" */
   rc = cli_cst_transformer_main(argc - 1, argv);
-  ASSERT_EQ(1, rc);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
   remove("test_cli_cst_file.h");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -60,7 +60,7 @@ TEST test_cli_cst_extern_c_fix(void) {
   ASSERT_EQ(0, rc);
 
   remove("test_cli_cst_file.h");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -82,7 +82,7 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   ASSERT_EQ(0, rc);
 
   remove("test_cli_cst_file.h");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -111,13 +111,14 @@ TEST test_cli_cst_errors(void) {
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_help2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(2, argv_nofix));
-  ASSERT_EQ(1, cli_cst_transformer_main(3, argv_badfile));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cli_cst_transformer_main(3, argv_badfile));
 
   /* Hit branches for other tools */
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_msvc));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_gnu));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_percolate));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_safe));
+  g_fail_io_after = -1;
 
   PASS();
 }

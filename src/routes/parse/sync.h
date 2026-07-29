@@ -58,7 +58,7 @@ struct ApiSyncConfig {
  * @param[in] config Configuration options.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 api_sync_file(const char *filename, const struct OpenAPI_Spec *spec,
               const struct ApiSyncConfig *config);
 

@@ -10,7 +10,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "mock_server.h"
 
 #include <errno.h>
@@ -77,7 +76,7 @@ static int platform_init(void) {
   WSADATA wsa;
   return WSAStartup(MAKEWORD(2, 2), &wsa);
 }
-static enum cdd_c_error platform_cleanup(void) {
+static cdd_c_error_t platform_cleanup(void) {
   WSACleanup();
   return CDD_C_SUCCESS;
 }
@@ -91,11 +90,9 @@ static enum cdd_c_error platform_cleanup(void) {
 #ifdef _WIN32
 #include <io.h>
 #else
-#ifndef _WIN32
 #include <unistd.h>
+#endif
 /* clang-format on */
-#endif
-#endif
 
 typedef int socket_t;
 typedef pthread_t thread_t;
@@ -121,7 +118,7 @@ static int cond_wait(cond_t *c, mutex_t *m) { return pthread_cond_wait(c, m); }
 static void close_socket(socket_t s) { close(s); }
 
 static int platform_init(void) { return 0; }
-static enum cdd_c_error platform_cleanup(void) { return CDD_C_SUCCESS; }
+static cdd_c_error_t platform_cleanup(void) { return CDD_C_SUCCESS; }
 
 #endif
 
@@ -194,8 +191,8 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 
         mutex_lock(&s->lock);
         if (s->captured_request)
-          C_CDD_FREE(s->captured_request);
-        s->captured_request = (char *)C_CDD_MALLOC(bytes_read + 1);
+          free(s->captured_request);
+        s->captured_request = (char *)malloc(bytes_read + 1);
         if (s->captured_request) {
           memcpy(s->captured_request, buffer, bytes_read + 1);
           s->captured_len = bytes_read;
@@ -217,7 +214,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 
 /* --- Wrapper API --- */
 
-enum cdd_c_error mock_server_init(MockServerPtr *out) {
+cdd_c_error_t mock_server_init(MockServerPtr *out) {
   struct MockServer_ *s;
   if (platform_init() != 0) {
     if (out)
@@ -225,7 +222,7 @@ enum cdd_c_error mock_server_init(MockServerPtr *out) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  s = (struct MockServer_ *)C_CDD_CALLOC(1, sizeof(struct MockServer_));
+  s = (struct MockServer_ *)calloc(1, sizeof(struct MockServer_));
   if (!s) {
     if (out)
       *out = NULL;
@@ -277,13 +274,16 @@ void mock_server_destroy(MockServerPtr server) {
   /* cond_destroy not strictly needed in simple pthread wrapper or windows CV */
 
   if (server->captured_request)
-    C_CDD_FREE(server->captured_request);
+    free(server->captured_request);
 
-  C_CDD_FREE(server);
-  platform_cleanup();
+  free(server);
+  {
+    cdd_c_error_t rc = platform_cleanup();
+    (void)rc;
+  }
 }
 
-enum cdd_c_error mock_server_start(MockServerPtr server) {
+cdd_c_error_t mock_server_start(MockServerPtr server) {
   struct sockaddr_in addr;
 #if defined(_WIN32)
   int addr_len = sizeof(addr);
@@ -346,7 +346,7 @@ enum cdd_c_error mock_server_start(MockServerPtr server) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error mock_server_get_port(MockServerPtr server, int *out_port) {
+cdd_c_error_t mock_server_get_port(MockServerPtr server, int *out_port) {
   if (server)
     *out_port = server->port;
   else
@@ -354,9 +354,8 @@ enum cdd_c_error mock_server_get_port(MockServerPtr server, int *out_port) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-mock_server_wait_for_request(MockServerPtr server,
-                             struct MockServerRequest *out_req) {
+cdd_c_error_t mock_server_wait_for_request(MockServerPtr server,
+                                           struct MockServerRequest *out_req) {
   if (!server || !out_req)
     return CDD_C_ERROR_UNKNOWN;
 
@@ -375,7 +374,7 @@ mock_server_wait_for_request(MockServerPtr server,
     out_req->header_len = server->captured_len;
 
     /* Consume it */
-    C_CDD_FREE(server->captured_request);
+    free(server->captured_request);
     server->captured_request = NULL;
     server->has_request = 0;
 
@@ -387,9 +386,9 @@ mock_server_wait_for_request(MockServerPtr server,
   return CDD_C_ERROR_UNKNOWN;
 }
 
-enum cdd_c_error mock_server_request_cleanup(struct MockServerRequest *req) {
+cdd_c_error_t mock_server_request_cleanup(struct MockServerRequest *req) {
   if (req && req->raw_header) {
-    C_CDD_FREE(req->raw_header);
+    free(req->raw_header);
     req->raw_header = NULL;
   }
   return CDD_C_SUCCESS;

@@ -345,6 +345,8 @@ def check_file(
                 filtered_args = []
                 skip_next = False
                 for arg in raw_args:
+                    if arg == "--":
+                        break
                     if skip_next:
                         skip_next = False
                         continue
@@ -354,20 +356,19 @@ def check_file(
                     if (
                         arg == "-c"
                         or arg == os.path.abspath(filename)
-                        or arg == cmd.filename
-                        or arg == os.path.abspath(cmd.filename)
                         or arg == filename
+                        or arg.endswith(os.path.basename(filename))
                     ):
                         continue
                     filtered_args.append(arg)
-                args_to_use = filtered_args
+                args_to_use = compile_args + filtered_args
                 break
 
     try:
         tu = index.parse(filename, args=args_to_use)
     except Exception as e:
         if print_errors:
-            print(f"Error parsing {filename}: {e}\nArgs: {args_to_use}", file=sys.stderr)
+            print(f"Error parsing {filename}: {e}", file=sys.stderr)
         return 1
 
     file_lines = []
@@ -450,6 +451,8 @@ def check_file(
                 if is_logger(cursor.spelling):
                     continue
                 if is_strdup(cursor.spelling):
+                    continue
+                if is_predicate(cursor.spelling):
                     continue
                 if is_string_pooler(cursor.spelling):
                     continue

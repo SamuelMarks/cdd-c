@@ -5,7 +5,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -43,8 +42,6 @@ int main(void) {
   if (!haz_e0 || !foo_e0)
     return CDD_C_ERROR_MEMORY;
   (void)t;
-  (void)haz_e_mock0;
-  (void)foo_e_mock0;
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)

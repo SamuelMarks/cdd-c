@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -34,22 +33,33 @@
 
 /* --- Helpers --- */
 
-static enum cdd_c_error is_source_file(const char *path) {
+static cdd_c_error_t is_source_file(const char *path, int *out_is_source) {
   const char *ext = strrchr(path, '.');
+  if (!out_is_source)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_source = 0;
   if (!ext)
     return CDD_C_SUCCESS;
-  return (strcmp(ext, ".c") == 0 || strcmp(ext, ".h") == 0);
+  *out_is_source = (strcmp(ext, ".c") == 0 || strcmp(ext, ".h") == 0);
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the spec has tag operation.
  */
-static enum cdd_c_error spec_has_tag(const struct OpenAPI_Spec *spec,
-                                     const char *name) {
+static cdd_c_error_t spec_has_tag(const struct OpenAPI_Spec *spec,
+                                  const char *name, int *out_has_tag) {
   size_t i;
+  if (!out_has_tag)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has_tag = 0;
+  if (!spec || !name)
+    return CDD_C_SUCCESS;
   for (i = 0; i < spec->n_tags; ++i) {
-    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0) {
+      *out_has_tag = 1;
+      return CDD_C_SUCCESS;
+    }
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -240,16 +250,20 @@ static enum cdd_c_error spec_has_tag(const struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the spec add tag operation.
  */
-static enum cdd_c_error spec_add_tag(struct OpenAPI_Spec *spec,
-                                     const char *name) {
+static cdd_c_error_t spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   char *_ast_strdup_0 = NULL;
   struct OpenAPI_Tag *new_tags;
   struct OpenAPI_Tag *tag;
+  {
+    int has_tag = 0;
+    cdd_c_error_t rc = spec_has_tag(spec, name, &has_tag);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (has_tag)
+      return CDD_C_SUCCESS;
+  }
 
-  if (spec_has_tag(spec, name))
-    return CDD_C_SUCCESS;
-
-  new_tags = (struct OpenAPI_Tag *)C_CDD_REALLOC(
+  new_tags = (struct OpenAPI_Tag *)realloc(
       spec->tags, (spec->n_tags + 1) * sizeof(struct OpenAPI_Tag));
   if (!new_tags)
     return CDD_C_ERROR_MEMORY;
@@ -448,9 +462,8 @@ static enum cdd_c_error spec_add_tag(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the spec find tag operation.
  */
-static enum cdd_c_error spec_find_tag(struct OpenAPI_Spec *spec,
-                                      const char *name,
-                                      struct OpenAPI_Tag **_out_val) {
+static cdd_c_error_t spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
+                                   struct OpenAPI_Tag **_out_val) {
   size_t i;
   for (i = 0; i < spec->n_tags; ++i) {
     if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0) {
@@ -465,7 +478,7 @@ static enum cdd_c_error spec_find_tag(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the map doc security type operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 map_doc_security_type(enum DocSecurityType type,
                       enum OpenAPI_SecurityType *_out_val) {
   switch (type) {
@@ -500,8 +513,8 @@ map_doc_security_type(enum DocSecurityType type,
 /**
  * @brief Executes the map doc security in operation.
  */
-static enum cdd_c_error map_doc_security_in(enum DocSecurityIn in,
-                                            enum OpenAPI_SecurityIn *_out_val) {
+static cdd_c_error_t map_doc_security_in(enum DocSecurityIn in,
+                                         enum OpenAPI_SecurityIn *_out_val) {
   switch (in) {
   case DOC_SEC_IN_QUERY: {
     *_out_val = OA_SEC_IN_QUERY;
@@ -526,9 +539,8 @@ static enum cdd_c_error map_doc_security_in(enum DocSecurityIn in,
 /**
  * @brief Executes the map doc flow type operation.
  */
-static enum cdd_c_error
-map_doc_flow_type(enum DocOAuthFlowType type,
-                  enum OpenAPI_OAuthFlowType *_out_val) {
+static cdd_c_error_t map_doc_flow_type(enum DocOAuthFlowType type,
+                                       enum OpenAPI_OAuthFlowType *_out_val) {
   switch (type) {
   case DOC_OAUTH_FLOW_IMPLICIT: {
     *_out_val = OA_OAUTH_FLOW_IMPLICIT;
@@ -561,7 +573,7 @@ map_doc_flow_type(enum DocOAuthFlowType type,
 /**
  * @brief Executes the spec find security scheme operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
                           struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
@@ -581,7 +593,7 @@ spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
 /**
  * @brief Adds or sets str if missing.
  */
-static enum cdd_c_error set_str_if_missing(char **dst, const char *src) {
+static cdd_c_error_t set_str_if_missing(char **dst, const char *src) {
   char *_ast_strdup_1 = NULL;
   if (!src || !*src)
     return CDD_C_SUCCESS;
@@ -788,19 +800,19 @@ static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
     size_t e;
     struct OpenAPI_ServerVariable *var = &srv->variables[i];
     if (var->name)
-      C_CDD_FREE(var->name);
+      free(var->name);
     if (var->default_value)
-      C_CDD_FREE(var->default_value);
+      free(var->default_value);
     if (var->description)
-      C_CDD_FREE(var->description);
+      free(var->description);
     if (var->enum_values) {
       for (e = 0; e < var->n_enum_values; ++e) {
-        C_CDD_FREE(var->enum_values[e]);
+        free(var->enum_values[e]);
       }
-      C_CDD_FREE(var->enum_values);
+      free(var->enum_values);
     }
   }
-  C_CDD_FREE(srv->variables);
+  free(srv->variables);
   srv->variables = NULL;
   srv->n_variables = 0;
 }
@@ -808,15 +820,15 @@ static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
 /**
  * @brief Creates a deep copy of doc server variables.
  */
-static enum cdd_c_error copy_doc_server_variables(struct OpenAPI_Server *dst,
-                                                  const struct DocServer *src) {
+static cdd_c_error_t copy_doc_server_variables(struct OpenAPI_Server *dst,
+                                               const struct DocServer *src) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
   size_t i;
 
-  dst->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
+  dst->variables = (struct OpenAPI_ServerVariable *)calloc(
       src->n_variables, sizeof(struct OpenAPI_ServerVariable));
   if (!dst->variables)
     return CDD_C_ERROR_MEMORY;
@@ -853,8 +865,7 @@ static enum cdd_c_error copy_doc_server_variables(struct OpenAPI_Server *dst,
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
-      dv->enum_values =
-          (char **)C_CDD_CALLOC(sv->n_enum_values, sizeof(char *));
+      dv->enum_values = (char **)calloc(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
         free_openapi_server_variables(dst);
         return CDD_C_ERROR_MEMORY;
@@ -1065,8 +1076,8 @@ static enum cdd_c_error copy_doc_server_variables(struct OpenAPI_Server *dst,
 /**
  * @brief Merges scopes.
  */
-static enum cdd_c_error merge_scopes(struct OpenAPI_OAuthFlow *dst,
-                                     const struct DocOAuthFlow *src) {
+static cdd_c_error_t merge_scopes(struct OpenAPI_OAuthFlow *dst,
+                                  const struct DocOAuthFlow *src) {
   char *_ast_strdup_7 = NULL;
   char *_ast_strdup_8 = NULL;
   size_t i;
@@ -1085,7 +1096,7 @@ static enum cdd_c_error merge_scopes(struct OpenAPI_OAuthFlow *dst,
     }
     if (!found) {
       struct OpenAPI_OAuthScope *new_scopes =
-          (struct OpenAPI_OAuthScope *)C_CDD_REALLOC(
+          (struct OpenAPI_OAuthScope *)realloc(
               dst->scopes, (dst->n_scopes + 1) * sizeof(*dst->scopes));
       if (!new_scopes)
         return CDD_C_ERROR_MEMORY;
@@ -1290,9 +1301,9 @@ static enum cdd_c_error merge_scopes(struct OpenAPI_OAuthFlow *dst,
 /**
  * @brief Retrieves the oauth flow.
  */
-static enum cdd_c_error find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
-                                        enum OpenAPI_OAuthFlowType type,
-                                        struct OpenAPI_OAuthFlow **_out_val) {
+static cdd_c_error_t find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
+                                     enum OpenAPI_OAuthFlowType type,
+                                     struct OpenAPI_OAuthFlow **_out_val) {
   size_t i;
   if (!scheme || !scheme->flows) {
     *_out_val = NULL;
@@ -1313,8 +1324,8 @@ static enum cdd_c_error find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
 /**
  * @brief Merges oauth flow.
  */
-static enum cdd_c_error merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
-                                         const struct DocOAuthFlow *src) {
+static cdd_c_error_t merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
+                                      const struct DocOAuthFlow *src) {
   int rc;
   rc = set_str_if_missing(&dst->authorization_url, src->authorization_url);
   if (rc != 0)
@@ -1335,8 +1346,7 @@ static enum cdd_c_error merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
 /**
  * @brief Executes the validate doc oauth flow operation.
  */
-static enum cdd_c_error
-validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
+static cdd_c_error_t validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   if (!flow)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (flow->type == DOC_OAUTH_FLOW_UNSET)
@@ -1554,8 +1564,8 @@ validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
 /**
  * @brief Adds or sets oauth flows.
  */
-static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
-                                        const struct DocSecurityScheme *doc) {
+static cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
+                                     const struct DocSecurityScheme *doc) {
   enum OpenAPI_OAuthFlowType _ast_map_doc_flow_type_0;
   struct OpenAPI_OAuthFlow *_ast_find_oauth_flow_1;
   char *_ast_strdup_9 = NULL;
@@ -1581,10 +1591,9 @@ static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
       continue;
     }
     {
-      struct OpenAPI_OAuthFlow *new_flows =
-          (struct OpenAPI_OAuthFlow *)C_CDD_REALLOC(
-              scheme->flows,
-              (scheme->n_flows + 1) * sizeof(struct OpenAPI_OAuthFlow));
+      struct OpenAPI_OAuthFlow *new_flows = (struct OpenAPI_OAuthFlow *)realloc(
+          scheme->flows,
+          (scheme->n_flows + 1) * sizeof(struct OpenAPI_OAuthFlow));
       if (!new_flows)
         return CDD_C_ERROR_MEMORY;
       scheme->flows = new_flows;
@@ -1616,7 +1625,7 @@ static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
         return CDD_C_ERROR_MEMORY;
       if (doc->flows[i].scopes && doc->flows[i].n_scopes > 0) {
         size_t s;
-        dst_flow->scopes = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
+        dst_flow->scopes = (struct OpenAPI_OAuthScope *)calloc(
             doc->flows[i].n_scopes, sizeof(struct OpenAPI_OAuthScope));
         if (!dst_flow->scopes)
           return CDD_C_ERROR_MEMORY;
@@ -1828,7 +1837,7 @@ static enum cdd_c_error add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
 /**
  * @brief Executes the spec add security scheme operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 spec_add_security_scheme(struct OpenAPI_Spec *spec,
                          const struct DocSecurityScheme *doc) {
   enum OpenAPI_SecurityType _ast_map_doc_security_type_2;
@@ -1860,7 +1869,7 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
             _ast_spec_find_security_scheme_3);
   if (!scheme) {
     struct OpenAPI_SecurityScheme *new_schemes =
-        (struct OpenAPI_SecurityScheme *)C_CDD_REALLOC(
+        (struct OpenAPI_SecurityScheme *)realloc(
             spec->security_schemes, (spec->n_security_schemes + 1) *
                                         sizeof(struct OpenAPI_SecurityScheme));
     if (!new_schemes)
@@ -2172,7 +2181,7 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
 /**
  * @brief Applies doc security schemes.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 apply_doc_security_schemes(struct OpenAPI_Spec *spec,
                            const struct DocMetadata *meta) {
   size_t i;
@@ -2401,8 +2410,8 @@ apply_doc_security_schemes(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the append root security operation.
  */
-static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
-                                             const struct DocMetadata *meta) {
+static cdd_c_error_t append_root_security(struct OpenAPI_Spec *spec,
+                                          const struct DocMetadata *meta) {
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
   size_t i;
@@ -2411,7 +2420,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
 
   {
     struct OpenAPI_SecurityRequirementSet *new_sets =
-        (struct OpenAPI_SecurityRequirementSet *)C_CDD_REALLOC(
+        (struct OpenAPI_SecurityRequirementSet *)realloc(
             spec->security, (spec->n_security + meta->n_security) *
                                 sizeof(struct OpenAPI_SecurityRequirementSet));
     if (!new_sets)
@@ -2423,7 +2432,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
     struct OpenAPI_SecurityRequirementSet *set =
         &spec->security[spec->n_security + i];
     memset(set, 0, sizeof(*set));
-    set->requirements = (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
+    set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
         1, sizeof(struct OpenAPI_SecurityRequirement));
     if (!set->requirements)
       return CDD_C_ERROR_MEMORY;
@@ -2436,7 +2445,7 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
     if (src->n_scopes > 0) {
       size_t s;
       set->requirements[0].scopes =
-          (char **)C_CDD_CALLOC(src->n_scopes, sizeof(char *));
+          (char **)calloc(src->n_scopes, sizeof(char *));
       if (!set->requirements[0].scopes)
         return CDD_C_ERROR_MEMORY;
       set->requirements[0].n_scopes = src->n_scopes;
@@ -2670,8 +2679,8 @@ static enum cdd_c_error append_root_security(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the append root servers operation.
  */
-static enum cdd_c_error append_root_servers(struct OpenAPI_Spec *spec,
-                                            const struct DocMetadata *meta) {
+static cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
+                                         const struct DocMetadata *meta) {
   char *_ast_strdup_18 = NULL;
   char *_ast_strdup_19 = NULL;
   char *_ast_strdup_20 = NULL;
@@ -2679,7 +2688,7 @@ static enum cdd_c_error append_root_servers(struct OpenAPI_Spec *spec,
   if (!spec || !meta || meta->n_servers == 0)
     return CDD_C_SUCCESS;
   {
-    struct OpenAPI_Server *new_servers = (struct OpenAPI_Server *)C_CDD_REALLOC(
+    struct OpenAPI_Server *new_servers = (struct OpenAPI_Server *)realloc(
         spec->servers,
         (spec->n_servers + meta->n_servers) * sizeof(struct OpenAPI_Server));
     if (!new_servers)
@@ -2931,8 +2940,8 @@ static enum cdd_c_error append_root_servers(struct OpenAPI_Spec *spec,
 /**
  * @brief Applies doc global meta.
  */
-static enum cdd_c_error apply_doc_global_meta(struct OpenAPI_Spec *spec,
-                                              const struct DocMetadata *meta) {
+static cdd_c_error_t apply_doc_global_meta(struct OpenAPI_Spec *spec,
+                                           const struct DocMetadata *meta) {
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
   char *_ast_strdup_23 = NULL;
@@ -3266,8 +3275,8 @@ static enum cdd_c_error apply_doc_global_meta(struct OpenAPI_Spec *spec,
 /**
  * @brief Executes the spec apply tag meta operation.
  */
-static enum cdd_c_error spec_apply_tag_meta(struct OpenAPI_Spec *spec,
-                                            const struct DocTagMeta *meta) {
+static cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
+                                         const struct DocTagMeta *meta) {
   struct OpenAPI_Tag *_ast_spec_find_tag_5;
   char *_ast_strdup_24 = NULL;
   char *_ast_strdup_25 = NULL;
@@ -3278,10 +3287,16 @@ static enum cdd_c_error spec_apply_tag_meta(struct OpenAPI_Spec *spec,
   struct OpenAPI_Tag *tag;
   if (!spec || !meta || !meta->name || !*meta->name)
     return CDD_C_SUCCESS;
-  if (!spec_has_tag(spec, meta->name)) {
-    int rc = spec_add_tag(spec, meta->name);
-    if (rc != 0)
+  {
+    int has_tag = 0;
+    cdd_c_error_t rc = spec_has_tag(spec, meta->name, &has_tag);
+    if (rc != CDD_C_SUCCESS)
       return rc;
+    if (!has_tag) {
+      rc = spec_add_tag(spec, meta->name);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   }
   tag = (spec_find_tag(spec, meta->name, &_ast_spec_find_tag_5),
          _ast_spec_find_tag_5);
@@ -3545,8 +3560,8 @@ static enum cdd_c_error spec_apply_tag_meta(struct OpenAPI_Spec *spec,
 /**
  * @brief Applies doc tag meta.
  */
-static enum cdd_c_error apply_doc_tag_meta(struct OpenAPI_Spec *spec,
-                                           const struct DocMetadata *meta) {
+static cdd_c_error_t apply_doc_tag_meta(struct OpenAPI_Spec *spec,
+                                        const struct DocMetadata *meta) {
   size_t i;
   int rc = 0;
   if (!spec || !meta || !meta->tag_meta || meta->n_tag_meta == 0)
@@ -3777,9 +3792,8 @@ static enum cdd_c_error apply_doc_tag_meta(struct OpenAPI_Spec *spec,
 /**
  * @brief Collects tags from op.
  */
-static enum cdd_c_error
-collect_tags_from_op(struct OpenAPI_Spec *spec,
-                     const struct OpenAPI_Operation *op) {
+static cdd_c_error_t collect_tags_from_op(struct OpenAPI_Spec *spec,
+                                          const struct OpenAPI_Operation *op) {
   size_t i;
   if (!spec || !op || !op->tags)
     return CDD_C_SUCCESS;
@@ -4009,9 +4023,9 @@ collect_tags_from_op(struct OpenAPI_Spec *spec,
 /**
  * @brief Collects tags from paths.
  */
-static enum cdd_c_error
-collect_tags_from_paths(struct OpenAPI_Spec *spec,
-                        const struct OpenAPI_Path *paths, size_t n_paths) {
+static cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
+                                             const struct OpenAPI_Path *paths,
+                                             size_t n_paths) {
   size_t i;
   if (!spec || !paths)
     return CDD_C_SUCCESS;
@@ -4250,7 +4264,7 @@ collect_tags_from_paths(struct OpenAPI_Spec *spec,
 /**
  * @brief Collects spec tags.
  */
-static enum cdd_c_error collect_spec_tags(struct OpenAPI_Spec *spec) {
+static cdd_c_error_t collect_spec_tags(struct OpenAPI_Spec *spec) {
   int rc;
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -4482,8 +4496,8 @@ static enum cdd_c_error collect_spec_tags(struct OpenAPI_Spec *spec) {
  * @brief Simple signature parser to split "int foo(int x, char
  * *y)" Populates `out`. Caller must free internals.
  */
-static enum cdd_c_error
-parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
+static cdd_c_error_t parse_c_signature_string(const char *sig_str,
+                                              struct C2OpenAPI_ParsedSig *out) {
   size_t _ast_token_find_next_6 = 0;
   struct TokenList *tl = NULL;
   size_t i;
@@ -4520,7 +4534,7 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
       k--;
     if (tl->tokens[k].kind == TOKEN_IDENTIFIER) {
       size_t len = tl->tokens[k].length;
-      char *n = C_CDD_MALLOC(len + 1);
+      char *n = malloc(len + 1);
       if (!n) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -4590,7 +4604,7 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
           size_t t_len = 0;
           char *t_str;
           size_t m;
-          char *n_str = C_CDD_MALLOC(nt->length + 1);
+          char *n_str = malloc(nt->length + 1);
           if (!n_str) {
             rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
@@ -4605,9 +4619,9 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
           for (m = name_idx + 1; m < seg_end; m++)
             t_len += tl->tokens[m].length;
 
-          t_str = C_CDD_MALLOC(t_len + 1);
+          t_str = malloc(t_len + 1);
           if (!t_str) {
-            C_CDD_FREE(n_str);
+            free(n_str);
             rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
           }
@@ -4627,12 +4641,12 @@ parse_c_signature_string(const char *sig_str, struct C2OpenAPI_ParsedSig *out) {
 
           /* Add to list */
           {
-            struct C2OpenAPI_ParsedArg *new_arr = C_CDD_REALLOC(
-                out->args,
-                (out->n_args + 1) * sizeof(struct C2OpenAPI_ParsedArg));
+            struct C2OpenAPI_ParsedArg *new_arr =
+                realloc(out->args,
+                        (out->n_args + 1) * sizeof(struct C2OpenAPI_ParsedArg));
             if (!new_arr) {
-              C_CDD_FREE(n_str);
-              C_CDD_FREE(t_str);
+              free(n_str);
+              free(t_str);
               rc = CDD_C_ERROR_MEMORY;
               goto cleanup;
             }
@@ -4656,14 +4670,14 @@ cleanup:
   free_token_list(tl);
   if (rc != 0) {
     if (out->name)
-      C_CDD_FREE(out->name);
+      free(out->name);
     if (out->args) {
       size_t k;
       for (k = 0; k < out->n_args; k++) {
-        C_CDD_FREE(out->args[k].name);
-        C_CDD_FREE(out->args[k].type);
+        free(out->args[k].name);
+        free(out->args[k].type);
       }
-      C_CDD_FREE(out->args);
+      free(out->args);
     }
     memset(out, 0, sizeof(*out));
   }
@@ -4676,15 +4690,15 @@ cleanup:
 static void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   size_t i;
   if (sig->name)
-    C_CDD_FREE(sig->name);
+    free(sig->name);
   if (sig->return_type)
-    C_CDD_FREE(sig->return_type);
+    free(sig->return_type);
   if (sig->args) {
     for (i = 0; i < sig->n_args; ++i) {
-      C_CDD_FREE(sig->args[i].name);
-      C_CDD_FREE(sig->args[i].type);
+      free(sig->args[i].name);
+      free(sig->args[i].type);
     }
-    C_CDD_FREE(sig->args);
+    free(sig->args);
   }
   memset(sig, 0, sizeof(*sig));
 }
@@ -4692,8 +4706,7 @@ static void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
 /**
  * @brief Executes the process file operation.
  */
-static enum cdd_c_error process_file(const char *path,
-                                     struct OpenAPI_Spec *spec) {
+static cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   char *content = NULL;
   size_t sz = 0;
   struct TokenList *tokens = NULL;
@@ -4718,17 +4731,17 @@ static enum cdd_c_error process_file(const char *path,
     return rc;
 
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
-    C_CDD_FREE(content);
+    free(content);
     return CDD_C_ERROR_IO;
   }
   parse_tokens(tokens, &cst); /* Best effort */
 
   if (cst.size > 0) {
-    comment_used = (int *)C_CDD_CALLOC(cst.size, sizeof(int));
+    comment_used = (int *)calloc(cst.size, sizeof(int));
     if (!comment_used) {
       free_cst_node_list(&cst);
       free_token_list(tokens);
-      C_CDD_FREE(content);
+      free(content);
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -4751,7 +4764,7 @@ static enum cdd_c_error process_file(const char *path,
 
       if (doc_node) {
         /* Extract comment text */
-        char *doc_text = C_CDD_MALLOC(doc_node->length + 1);
+        char *doc_text = malloc(doc_node->length + 1);
         if (doc_text) {
           struct DocMetadata meta;
           memcpy(doc_text, doc_node->start, doc_node->length);
@@ -4766,12 +4779,12 @@ static enum cdd_c_error process_file(const char *path,
               rc_meta = apply_doc_global_meta(spec, &meta);
             if (rc_meta != 0) {
               doc_metadata_free(&meta);
-              C_CDD_FREE(doc_text);
+              free(doc_text);
               free_cst_node_list(&cst);
               free_token_list(tokens);
-              C_CDD_FREE(content);
+              free(content);
               if (comment_used)
-                C_CDD_FREE(comment_used);
+                free(comment_used);
               return rc_meta;
             }
             if (comment_used && doc_index != (size_t)-1)
@@ -4785,7 +4798,7 @@ static enum cdd_c_error process_file(const char *path,
                                                    body? */
             /* We need signature string up to brace. CST Node
              * includes body. */
-            char *sig_raw = C_CDD_MALLOC(sig_len + 1);
+            char *sig_raw = malloc(sig_len + 1);
             if (sig_raw) {
               struct C2OpenAPI_ParsedSig psig;
               const uint8_t *brace = memchr(func_node->start, '{', sig_len);
@@ -4816,11 +4829,11 @@ static enum cdd_c_error process_file(const char *path,
                 }
                 free_parsed_sig(&psig);
               }
-              C_CDD_FREE(sig_raw);
+              free(sig_raw);
             }
           }
           doc_metadata_free(&meta);
-          C_CDD_FREE(doc_text);
+          free(doc_text);
         }
       }
     }
@@ -4831,7 +4844,7 @@ static enum cdd_c_error process_file(const char *path,
     for (i = 0; i < cst.size; ++i) {
       if (cst.nodes[i].kind == CST_NODE_COMMENT && !comment_used[i]) {
         struct DocMetadata meta;
-        char *doc_text = C_CDD_MALLOC(cst.nodes[i].length + 1);
+        char *doc_text = malloc(cst.nodes[i].length + 1);
         if (!doc_text)
           continue;
         memcpy(doc_text, cst.nodes[i].start, cst.nodes[i].length);
@@ -4846,25 +4859,25 @@ static enum cdd_c_error process_file(const char *path,
             rc_meta = apply_doc_global_meta(spec, &meta);
           if (rc_meta != 0) {
             doc_metadata_free(&meta);
-            C_CDD_FREE(doc_text);
+            free(doc_text);
             free_cst_node_list(&cst);
             free_token_list(tokens);
-            C_CDD_FREE(content);
-            C_CDD_FREE(comment_used);
+            free(content);
+            free(comment_used);
             return rc_meta;
           }
         }
         doc_metadata_free(&meta);
-        C_CDD_FREE(doc_text);
+        free(doc_text);
       }
     }
   }
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
-  C_CDD_FREE(content);
+  free(content);
   if (comment_used)
-    C_CDD_FREE(comment_used);
+    free(comment_used);
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -5086,12 +5099,24 @@ static enum cdd_c_error process_file(const char *path,
 /**
  * @brief Executes the walker cb operation.
  */
-static enum cdd_c_error walker_cb(const char *path, void *user_data) {
+static cdd_c_error_t walker_cb(const char *path, void *user_data) {
   struct OpenAPI_Spec *spec = (struct OpenAPI_Spec *)user_data;
-  if (!is_source_file(path))
-    return CDD_C_SUCCESS;
+  {
+    int is_src = 0;
+    cdd_c_error_t rc = is_source_file(path, &is_src);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (!is_src)
+      return CDD_C_SUCCESS;
+  }
   printf("Scanning: %s\n", path);
-  process_file(path, spec);
+  {
+
+    cdd_c_error_t rc = process_file(path, spec);
+
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -5313,8 +5338,8 @@ static enum cdd_c_error walker_cb(const char *path, void *user_data) {
 /**
  * @brief Executes the load base spec operation.
  */
-static enum cdd_c_error load_base_spec(const char *path,
-                                       struct OpenAPI_Spec *spec) {
+static cdd_c_error_t load_base_spec(const char *path,
+                                    struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
   int rc;
 
@@ -5333,7 +5358,7 @@ static enum cdd_c_error load_base_spec(const char *path,
 /**
  * @brief Executes the c2openapi cli main operation.
  */
-enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
+cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
   struct OpenAPI_Spec spec;
   const char *src_dir;
   const char *out_file;
@@ -5410,7 +5435,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
 
   if (self_uri && *self_uri) {
     if (spec.self_uri)
-      C_CDD_FREE(spec.self_uri);
+      free(spec.self_uri);
     spec.self_uri = strdup(self_uri);
     if (!spec.self_uri) {
       fprintf(stderr, "Failed to set $self URI\n");
@@ -5420,7 +5445,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
   }
   if (dialect_uri && *dialect_uri) {
     if (spec.json_schema_dialect)
-      C_CDD_FREE(spec.json_schema_dialect);
+      free(spec.json_schema_dialect);
     spec.json_schema_dialect = strdup(dialect_uri);
     if (!spec.json_schema_dialect) {
       fprintf(stderr, "Failed to set jsonSchemaDialect\n");
@@ -5462,7 +5487,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
     rc = 0;
   }
 
-  C_CDD_FREE(json);
+  free(json);
   openapi_spec_free(&spec);
 
   return (rc == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -5471,7 +5496,7 @@ enum cdd_c_error c2openapi_cli_main(int argc, char **argv) {
 /**
  * @brief Executes the to docs json cli main operation.
  */
-enum cdd_c_error to_docs_json_cli_main(int argc, char **argv) {
+cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   const char *input_file =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   int no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
@@ -5610,31 +5635,37 @@ enum cdd_c_error to_docs_json_cli_main(int argc, char **argv) {
  * @brief CLI entry point for binding generation (e.g., `cdd-c
  * bind`).
  */
-enum cdd_c_error generate_bindings_cli_main(int argc, char **argv) {
+cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
   int i;
   int rc;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      fputs("Usage: cdd-c bind [OPTIONS]\n\n"
-            "Options:\n"
-            "  -i, --input <file|dir>    Input C header/source or directory\n"
-            "  -o, --output-dir <dir>    Output directory for bindings\n"
-            "  -l, --lang <langs>        Comma-separated list of languages or "
-            "'*'\n"
-            "                            (e.g., python,rust)\n",
-            stdout);
-      fputs(
-          "  -n, --lib-name <name>     Name of the shared library (e.g., "
-          "sqlite3)\n"
-          "  -m, --module-name <name>  Name of the generated namespace/module\n"
-          "  --skip-static             Skip static inline functions\n"
-          "  --opaque-pointers         Treat unknown structs as void* "
-          "(opaque)\n"
-          "  --generate-tests          Generate basic sanity-check tests\n"
-          "  -h, --help                Show this help message\n",
-          stdout);
+      puts("Usage: cdd-c bind [OPTIONS]\n\n"
+           "Options:\n"
+           "  -i, --input <file|dir>    Input C header/source "
+           "or directory\n"
+           "  -o, --output-dir <dir>    Output directory for "
+           "bindings\n"
+           "  -l, --lang <langs>        Comma-separated list "
+           "of languages or "
+           "'*' "
+           "(e.g., python,rust)\n"
+           "  -n, --lib-name <name>     Name of the shared "
+           "library (e.g., "
+           "sqlite3)\n"
+           "  -m, --module-name <name>  Name of the generated "
+           "namespace/module\n"
+           "  --skip-static             Skip static inline "
+           "functions\n"
+           "  --opaque-pointers         Treat unknown structs "
+           "as void* "
+           "(opaque)\n"
+           "  --generate-tests          Generate basic "
+           "sanity-check tests\n"
+           "  -h, --help                Show this help "
+           "message\n");
       return CDD_C_SUCCESS;
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&

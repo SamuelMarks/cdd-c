@@ -14,21 +14,21 @@ extern "C" {
  * @param[out] out_avail 1 if available, 0 otherwise.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error check_libpq_available(int *out_avail);
+extern C_CDD_EXPORT cdd_c_error_t check_libpq_available(int *out_avail);
 
 /**
  * @brief Checks if sqlite3 is available.
  * @param[out] out_avail 1 if available, 0 otherwise.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error check_sqlite3_available(int *out_avail);
+extern C_CDD_EXPORT cdd_c_error_t check_sqlite3_available(int *out_avail);
 
 /**
  * @brief Checks if mysql is available.
  * @param[out] out_avail 1 if available, 0 otherwise.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error check_mysql_available(int *out_avail);
+extern C_CDD_EXPORT cdd_c_error_t check_mysql_available(int *out_avail);
 
 #ifdef __cplusplus
 }

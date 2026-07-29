@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -28,11 +27,11 @@
  * @param[in,out] node The current node to process.
  */
 
-static enum cdd_c_error replace_msvc_identifiers(
+static cdd_c_error_t replace_msvc_identifiers(
     cdd_cst_tree_t *tree, cdd_cst_node_t *node, cdd_token_t **prev_token,
     cdd_token_t **prev_prev_token, int *needs_basetsd, int *needs_expect) {
   size_t i;
-  enum cdd_c_error rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_token_t *t = node->children[i].val.token;
@@ -205,11 +204,11 @@ static enum cdd_c_error replace_msvc_identifiers(
 C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
 #endif
 
-enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
-                                    const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
+                                 const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
-  enum cdd_c_error rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   int added_compat = 0;
   (void)config;
@@ -253,7 +252,7 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
           if (inc_str) {
             cdd_cst_builder_t bld;
             cdd_cst_node_t *wrap_node =
-                (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+                (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
             if (wrap_node) {
               wrap_node->kind = CDD_CST_UNKNOWN;
               cdd_cst_builder_init(&bld, tree, wrap_node);
@@ -275,8 +274,8 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
                 cdd_cst_replace_node(tree, dir, wrap_node);
                 cdd_cst_free_node(dir);
               } else {
-                C_CDD_FREE(wrap_node->children);
-                C_CDD_FREE(wrap_node);
+                free(wrap_node->children);
+                free(wrap_node);
               }
               cdd_cst_builder_free(&bld);
             }
@@ -284,7 +283,7 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
         }
       }
     }
-    C_CDD_FREE(res.nodes);
+    free(res.nodes);
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
@@ -299,7 +298,7 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
       /* Inject dependencies at the top of the translation unit */
       cdd_cst_builder_t bld;
       cdd_cst_node_t *deps_node =
-          (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+          (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
       if (deps_node) {
         deps_node->kind = CDD_CST_UNKNOWN;
         cdd_cst_builder_init(&bld, tree, deps_node);
@@ -326,14 +325,14 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
 #endif
           if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(deps_node->children);
-            C_CDD_FREE(deps_node);
+            free(deps_node->children);
+            free(deps_node);
             cdd_cst_builder_free(&bld);
             return rc;
           }
         } else {
-          C_CDD_FREE(deps_node->children);
-          C_CDD_FREE(deps_node);
+          free(deps_node->children);
+          free(deps_node);
         }
         cdd_cst_builder_free(&bld);
       }

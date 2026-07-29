@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -44,13 +43,13 @@ static void arena_free_all(void) {
   safe_crt_arena_t *node = global_arena;
   while (node) {
     safe_crt_arena_t *next = node->next;
-    C_CDD_FREE(node);
+    free(node);
     node = next;
   }
   global_arena = NULL;
 }
 
-static enum cdd_c_error arena_alloc(size_t len, void **out_ptr) {
+static cdd_c_error_t arena_alloc(size_t len, void **out_ptr) {
   safe_crt_arena_t *node;
   if (!out_ptr)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -61,7 +60,7 @@ static enum cdd_c_error arena_alloc(size_t len, void **out_ptr) {
     node = NULL;
   } else {
 #endif
-    node = (safe_crt_arena_t *)C_CDD_MALLOC(sizeof(safe_crt_arena_t) + len);
+    node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
 #ifdef CDD_BUILD_TESTS
   }
 #endif
@@ -98,8 +97,8 @@ struct expr_t {
   expr_t *next;
 };
 
-static enum cdd_c_error parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
-                                       int stop_at_comma, expr_t **out_expr) {
+static cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
+                                    int stop_at_comma, expr_t **out_expr) {
   expr_t *head = NULL;
   expr_t *tail = NULL;
   if (!out_expr)
@@ -193,7 +192,7 @@ static enum cdd_c_error parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
   return head ? 0 : ENOENT;
 }
 
-static enum cdd_c_error find_and_mark_fopen(expr_t *head) {
+static cdd_c_error_t find_and_mark_fopen(expr_t *head) {
   expr_t *curr = head;
   expr_t *lhs_start = head;
   int found = 0;
@@ -239,7 +238,7 @@ static enum cdd_c_error find_and_mark_fopen(expr_t *head) {
   return found;
 }
 
-static enum cdd_c_error check_unsupported_calls(expr_t *head) {
+static cdd_c_error_t check_unsupported_calls(expr_t *head) {
   size_t i;
   while (head) {
     if (head->type == 1) {
@@ -359,13 +358,13 @@ static inferred_size_t infer_buffer_size(expr_t *node) {
                 stmt->children[j - 1].val.token->kind == CDD_TOKEN_IDENTIFIER) {
               res.valid = 1;
               if (stmts.nodes)
-                C_CDD_FREE(stmts.nodes);
+                free(stmts.nodes);
               return res;
             }
           }
 
-          /* Pattern 2: malloc/calloc/realloc assignment -> buf =
-           * C_CDD_MALLOC(...) OR char *buf = C_CDD_MALLOC(...) */
+          /* Pattern 2: malloc/calloc/realloc assignment -> buf = malloc(...) OR
+           * char *buf = malloc(...) */
           if (j + 1 < stmt->num_children &&
               stmt->children[j + 1].kind == CDD_CST_CHILD_TOKEN &&
               stmt->children[j + 1].val.token->kind == CDD_TOKEN_ASSIGN) {
@@ -387,26 +386,26 @@ static inferred_size_t infer_buffer_size(expr_t *node) {
                       res.is_malloc = 1;
                       res.malloc_size_expr = m_expr->args[0];
                       if (stmts.nodes)
-                        C_CDD_FREE(stmts.nodes);
+                        free(stmts.nodes);
                       return res;
                     } else if (m_expr->num_args == 2 &&
                                memcmp(m_tok->start, "calloc", 6) == 0) {
-                      /* C_CDD_CALLOC(n, size) -> n * size */
+                      /* calloc(n, size) -> n * size */
                       res.valid = 1;
                       res.is_malloc = 2; /* special flag for calloc */
                       res.malloc_size_expr =
                           m_expr; /* store the call expr, handle in emit */
                       if (stmts.nodes)
-                        C_CDD_FREE(stmts.nodes);
+                        free(stmts.nodes);
                       return res;
                     } else if (m_expr->num_args == 2 &&
                                memcmp(m_tok->start, "realloc", 7) == 0) {
-                      /* C_CDD_REALLOC(ptr, size) -> size */
+                      /* realloc(ptr, size) -> size */
                       res.valid = 1;
                       res.is_malloc = 1;
                       res.malloc_size_expr = m_expr->args[1];
                       if (stmts.nodes)
-                        C_CDD_FREE(stmts.nodes);
+                        free(stmts.nodes);
                       return res;
                     }
                   }
@@ -419,11 +418,11 @@ static inferred_size_t infer_buffer_size(expr_t *node) {
     }
   }
   if (stmts.nodes)
-    C_CDD_FREE(stmts.nodes);
+    free(stmts.nodes);
   return res;
 }
 
-static enum cdd_c_error check_needs_transform(expr_t *head) {
+static cdd_c_error_t check_needs_transform(expr_t *head) {
   size_t i;
   while (head) {
     if (head->type == 1 || head->type == 5) {
@@ -535,14 +534,14 @@ static enum cdd_c_error check_needs_transform(expr_t *head) {
         return CDD_C_ERROR_UNKNOWN;
       }
       for (i = 0; i < head->num_args; i++) {
-        enum cdd_c_error err = check_needs_transform(head->args[i]);
+        cdd_c_error_t err = check_needs_transform(head->args[i]);
         if (err == CDD_C_ERROR_PARSE)
           return err;
         if (err)
           return CDD_C_ERROR_UNKNOWN;
       }
     } else if (head->type == 2) {
-      enum cdd_c_error err = check_needs_transform(head->args[0]);
+      cdd_c_error_t err = check_needs_transform(head->args[0]);
       if (err == CDD_C_ERROR_PARSE)
         return err;
       if (err)
@@ -580,7 +579,7 @@ typedef struct {
 
 static emit_ctx_t *g_msc_ctx = NULL;
 
-static enum cdd_c_error expr_is_null_or_zero(expr_t *node) {
+static cdd_c_error_t expr_is_null_or_zero(expr_t *node) {
   if (node && node->type == 0 && node->tok && !node->next) {
     if (node->tok->length == 4 && memcmp(node->tok->start, "NULL", 4) == 0)
       return CDD_C_ERROR_UNKNOWN;
@@ -597,7 +596,7 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
   dup = strdup(str);
 #ifdef CDD_BUILD_TESTS
   if (g_safe_crt_malloc_fail > 0 && --g_safe_crt_malloc_fail == 0) {
-    C_CDD_FREE(dup);
+    free(dup);
     return NULL;
   }
 #endif
@@ -615,10 +614,9 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
     }
 #endif
     if (new_cap > 0)
-      new_pool =
-          (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
+      new_pool = (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      C_CDD_FREE(dup);
+      free(dup);
       return NULL;
     }
     tree->string_pool = new_pool;
@@ -628,8 +626,8 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
   return dup;
 }
 
-static enum cdd_c_error clone_trivia(cdd_trivia_t *head,
-                                     cdd_trivia_t **out_trivia) {
+static cdd_c_error_t clone_trivia(cdd_trivia_t *head,
+                                  cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
   if (!out_trivia)
@@ -643,7 +641,7 @@ static enum cdd_c_error clone_trivia(cdd_trivia_t *head,
       tr = NULL;
     } else {
 #endif
-      tr = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
+      tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
 #ifdef CDD_BUILD_TESTS
     }
 #endif
@@ -651,7 +649,7 @@ static enum cdd_c_error clone_trivia(cdd_trivia_t *head,
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       while (new_head) {
         cdd_trivia_t *n = new_head->next;
-        C_CDD_FREE(new_head);
+        free(new_head);
         new_head = n;
       }
       return CDD_C_ERROR_MEMORY;
@@ -670,8 +668,8 @@ static enum cdd_c_error clone_trivia(cdd_trivia_t *head,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
-                                    cdd_token_t **out_token) {
+static cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
+                                 cdd_token_t **out_token) {
   cdd_token_t *ct = NULL;
   if (!tok || !out_token)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -686,11 +684,11 @@ static enum cdd_c_error clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
-                                     int is_msc);
+static cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
+                                  int is_msc);
 
-static enum cdd_c_error emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
-                                           int is_msc) {
+static cdd_c_error_t emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
+                                        int is_msc) {
   int rc = 0;
   size_t old_num_children =
       bld->target_node ? bld->target_node->num_children : 0;
@@ -702,7 +700,7 @@ static enum cdd_c_error emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
                              .val.token->leading_trivia;
       while (tr) {
         cdd_trivia_t *next = tr->next;
-        C_CDD_FREE(tr);
+        free(tr);
         tr = next;
       }
       bld->target_node->children[old_num_children].val.token->leading_trivia =
@@ -712,7 +710,7 @@ static enum cdd_c_error emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
   return rc;
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
   if (node && node->type == 0 && node->tok && node->tok->length == 1 &&
       node->tok->start[0] == '&') {
@@ -757,7 +755,7 @@ static void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest) {
         cdd_trivia_t *curr = ct->leading_trivia;
         while (curr) {
           cdd_trivia_t *nxt = curr->next;
-          C_CDD_FREE(curr);
+          free(curr);
           curr = nxt;
         }
       }
@@ -765,7 +763,7 @@ static void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest) {
         cdd_trivia_t *curr = ct->trailing_trivia;
         while (curr) {
           cdd_trivia_t *nxt = curr->next;
-          C_CDD_FREE(curr);
+          free(curr);
           curr = nxt;
         }
       }
@@ -788,8 +786,8 @@ static void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest) {
   }
 }
 
-static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
-                                     int is_msc) {
+static cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
+                                  int is_msc) {
 
   int changes = 0;
   size_t k;
@@ -912,12 +910,12 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
 
         clone_token(bld->tree, node->tok, &ct);
         if (ct) {
-          char *pooled = (char *)C_CDD_MALLOC(strlen(safe_name) + 1);
+          char *pooled = (char *)malloc(strlen(safe_name) + 1);
           strcpy(pooled, safe_name);
           if (tree->num_strings >= tree->string_capacity) {
             tree->string_capacity =
                 tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
-            tree->string_pool = (char **)C_CDD_REALLOC(
+            tree->string_pool = (char **)realloc(
                 tree->string_pool, tree->string_capacity * sizeof(char *));
           }
           tree->string_pool[tree->num_strings++] = pooled;
@@ -1541,11 +1539,11 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
 }
 
 /** @brief cdd_transform_safe_crt */
-enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
-                                        const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
+                                     const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
   int replaced_any;
 
   (void)config;
@@ -1572,7 +1570,7 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       size_t idx = 0;
       expr_t *ast;
       cdd_token_t *first_tok = NULL;
-      enum cdd_c_error chk_rc = CDD_C_SUCCESS;
+      cdd_c_error_t chk_rc = CDD_C_SUCCESS;
 
       if (stmt->num_children > 0 &&
           stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
@@ -1627,7 +1625,7 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       chk_rc = check_needs_transform(ast);
       if (chk_rc == CDD_C_ERROR_PARSE) {
         if (res.nodes)
-          C_CDD_FREE(res.nodes);
+          free(res.nodes);
         arena_free_all();
         current_tree = NULL;
         return CDD_C_ERROR_PARSE;
@@ -1888,7 +1886,7 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       }
     }
 
-    C_CDD_FREE(res.nodes);
+    free(res.nodes);
   } while (replaced_any);
 
   arena_free_all();
@@ -1897,7 +1895,7 @@ enum cdd_c_error cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
 loop_err:
   if (res.nodes)
-    C_CDD_FREE(res.nodes);
+    free(res.nodes);
   arena_free_all();
   current_tree = NULL;
   return rc;

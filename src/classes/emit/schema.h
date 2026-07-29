@@ -49,7 +49,7 @@ struct SchemaConstraints {
  * @param sc Pointer to constraints struct.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 schema_constraints_init(struct SchemaConstraints *sc);
 
 /**
@@ -58,9 +58,8 @@ schema_constraints_init(struct SchemaConstraints *sc);
  * @param field Field name.
  * @return 0 on success, error code otherwise.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-schema_constraints_add_required(struct SchemaConstraints *sc,
-                                const char *field);
+extern C_CDD_EXPORT cdd_c_error_t schema_constraints_add_required(
+    struct SchemaConstraints *sc, const char *field);
 
 /**
  * @brief Cleans up schema constraints.

@@ -54,10 +54,9 @@ struct VcpkgManifestBuilder {
 /**
  * @brief Initialize a vcpkg manifest builder.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
-                   const char *project_name, const char *version_string,
-                   const char *description);
+extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_init(
+    struct VcpkgManifestBuilder *builder, const char *project_name,
+    const char *version_string, const char *description);
 
 /**
  * @brief Free resources associated with a vcpkg manifest builder.
@@ -74,9 +73,8 @@ vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
  * @param[in] dep_name The name of the vcpkg port (e.g., "pthreads").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
-                      const char *dep_name);
+extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_add_dep(
+    struct VcpkgManifestBuilder *builder, const char *dep_name);
 
 /**
  * @brief Analyze a source file's token stream for \#include directives and map
@@ -91,9 +89,8 @@ vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
  * @param[in] file_content Null-terminated C source file content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
-                          const char *file_content);
+extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_scan_source(
+    struct VcpkgManifestBuilder *builder, const char *file_content);
 
 /**
  * @brief Generate the final vcpkg.json string.
@@ -102,9 +99,8 @@ vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
  * @param[out] out_json A newly allocated string containing the JSON structure.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
-                       char **out_json);
+extern C_CDD_EXPORT cdd_c_error_t vcpkg_builder_generate(
+    const struct VcpkgManifestBuilder *builder, char **out_json);
 
 #ifdef __cplusplus
 }

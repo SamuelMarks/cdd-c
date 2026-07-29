@@ -11,9 +11,8 @@
 #include <ctype.h>
 /* clang-format on */
 
-enum cdd_c_error
-cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
-                 const cdd_generate_bindings_config_t *config) {
+cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
+                               const cdd_generate_bindings_config_t *config) {
   FILE *c_f = NULL;
   FILE *pkg_f = NULL;
   char c_filepath[1024];
@@ -22,8 +21,9 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   size_t i, j;
   cdd_ffi_ir_node_t *node;
 
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
 
@@ -49,15 +49,6 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(pkg_filepath, sizeof(pkg_filepath), "%s/pkgIndex.tcl",
                config->output_dir);
   pkg_f = fopen(pkg_filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 556) {
-      if (pkg_f) {
-        fclose(pkg_f);
-        pkg_f = NULL;
-      }
-    }
-  }
   if (!pkg_f) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;
@@ -116,7 +107,8 @@ cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
      * e.g., Mylib_Init */
     char tcl_init_name[256];
     size_t len = strlen(lib_name);
-
+    if (len > sizeof(tcl_init_name) - 1)
+      len = sizeof(tcl_init_name) - 1;
     strncpy(tcl_init_name, lib_name, len);
     tcl_init_name[len] = '\0';
     tcl_init_name[0] = (char)toupper((unsigned char)tcl_init_name[0]);

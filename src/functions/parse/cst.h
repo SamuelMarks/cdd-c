@@ -88,8 +88,8 @@ struct CstNodeList {
  * alloc'd).
  * @return 0 on success, EINVAL on invalid inputs, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-parse_tokens(const struct TokenList *tokens, struct CstNodeList *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_tokens(const struct TokenList *tokens,
+                                               struct CstNodeList *out);
 
 /**
  * @brief Add a node manually (exposed for testing/manual construction).
@@ -102,10 +102,11 @@ parse_tokens(const struct TokenList *tokens, struct CstNodeList *out);
  * @param[in] end_tok Token end index (exclusive).
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
-             const uint8_t *start, size_t length, size_t start_tok,
-             size_t end_tok);
+extern C_CDD_EXPORT cdd_c_error_t cst_list_add(struct CstNodeList *list,
+                                               enum CstNodeKind kind,
+                                               const uint8_t *start,
+                                               size_t length, size_t start_tok,
+                                               size_t end_tok);
 
 /**
  * @brief Free internal memory of CST list.
@@ -123,9 +124,9 @@ extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *list);
  * @param[out] out_node Pointer to store the found node, or NULL if not found.
  * @return 0 on success (whether found or not), EINVAL on bad params.
  */
-extern C_CDD_EXPORT enum cdd_c_error cst_find_first(struct CstNodeList *list,
-                                                    enum CstNodeKind kind,
-                                                    struct CstNode **out_node);
+extern C_CDD_EXPORT cdd_c_error_t cst_find_first(struct CstNodeList *list,
+                                                 enum CstNodeKind kind,
+                                                 struct CstNode **out_node);
 
 #ifdef __cplusplus
 }

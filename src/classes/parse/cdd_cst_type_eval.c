@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_type_eval.h"
 #include <errno.h>
 #include <string.h>
@@ -7,9 +6,9 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-enum cdd_c_error cdd_cst_eval_primitive_type(const char *type_name,
-                                             enum cdd_cst_abi_model_t abi,
-                                             cdd_cst_type_info_t *out_info) {
+cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
+                                          enum cdd_cst_abi_model_t abi,
+                                          cdd_cst_type_info_t *out_info) {
   if (!type_name || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -99,8 +98,8 @@ enum cdd_c_error cdd_cst_eval_primitive_type(const char *type_name,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-static enum cdd_c_error extract_type_name(cdd_cst_node_t *node, char **out_name,
-                                          int *is_pointer) {
+static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
+                                       int *is_pointer) {
   size_t i;
   char buf[256];
   size_t buf_len = 0;
@@ -142,7 +141,7 @@ static enum cdd_c_error extract_type_name(cdd_cst_node_t *node, char **out_name,
       ret = NULL;
     else
 #endif
-      ret = (char *)C_CDD_MALLOC(buf_len + 1);
+      ret = (char *)malloc(buf_len + 1);
     if (!ret) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -155,34 +154,30 @@ static enum cdd_c_error extract_type_name(cdd_cst_node_t *node, char **out_name,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-enum cdd_c_error cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
-                                     cdd_cst_node_t *type_node,
-                                     enum cdd_cst_abi_model_t abi,
-                                     size_t *out_size) {
+cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
+                                  cdd_cst_node_t *type_node,
+                                  enum cdd_cst_abi_model_t abi,
+                                  size_t *out_size) {
   char *name = NULL;
   int is_pointer = 0;
+  cdd_c_error_t rc;
   cdd_cst_type_info_t info;
 
   if (!env || !type_node || !out_size)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    enum cdd_c_error ext_rc = extract_type_name(type_node, &name, &is_pointer);
-    if (ext_rc != CDD_C_SUCCESS)
-      return ext_rc;
-    if (1) {
-      enum cdd_c_error eval_rc;
-      if (is_pointer) {
-        eval_rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-      } else {
-        eval_rc = cdd_cst_eval_primitive_type(name, abi, &info);
-        C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-      }
-      C_CDD_FREE(name);
-      if (eval_rc == CDD_C_SUCCESS) {
-        *out_size = info.size;
-        return CDD_C_SUCCESS;
-      }
+  rc = extract_type_name(type_node, &name, &is_pointer);
+  if (rc == 0) {
+    if (is_pointer) {
+      rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+    } else {
+      rc = cdd_cst_eval_primitive_type(name, abi, &info);
+      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
+    }
+    free(name);
+    if (rc == 0) {
+      *out_size = info.size;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -191,34 +186,30 @@ enum cdd_c_error cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   return CDD_C_ERROR_SYSTEM;
 }
 
-enum cdd_c_error cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
-                                      cdd_cst_node_t *type_node,
-                                      enum cdd_cst_abi_model_t abi,
-                                      size_t *out_align) {
+cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
+                                   cdd_cst_node_t *type_node,
+                                   enum cdd_cst_abi_model_t abi,
+                                   size_t *out_align) {
   char *name = NULL;
   int is_pointer = 0;
+  cdd_c_error_t rc;
   cdd_cst_type_info_t info;
 
   if (!env || !type_node || !out_align)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    enum cdd_c_error ext_rc = extract_type_name(type_node, &name, &is_pointer);
-    if (ext_rc != CDD_C_SUCCESS)
-      return ext_rc;
-    if (1) {
-      enum cdd_c_error eval_rc;
-      if (is_pointer) {
-        eval_rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
-      } else {
-        eval_rc = cdd_cst_eval_primitive_type(name, abi, &info);
-        C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
-      }
-      C_CDD_FREE(name);
-      if (eval_rc == CDD_C_SUCCESS) {
-        *out_align = info.alignment;
-        return CDD_C_SUCCESS;
-      }
+  rc = extract_type_name(type_node, &name, &is_pointer);
+  if (rc == 0) {
+    if (is_pointer) {
+      rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+    } else {
+      rc = cdd_cst_eval_primitive_type(name, abi, &info);
+      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
+    }
+    free(name);
+    if (rc == 0) {
+      *out_align = info.alignment;
+      return CDD_C_SUCCESS;
     }
   }
 

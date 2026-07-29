@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <stddef.h>
 #include <stdio.h>
 #include "c_cdd_export.h"
@@ -36,8 +35,8 @@ C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail = 0;
  * @param len The length of the string to append.
  * @return 0 on success, error code otherwise.
  */
-static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
-                                   size_t len) {
+static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
+                                size_t len) {
   if (len == 0)
     return CDD_C_SUCCESS;
   if (len > (size_t)-1 - ctx->size - 1) {
@@ -60,7 +59,7 @@ static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
       new_buf = NULL;
     } else {
 #endif
-      new_buf = (char *)C_CDD_REALLOC(ctx->buf, new_cap);
+      new_buf = (char *)realloc(ctx->buf, new_cap);
 #ifdef CDD_BUILD_TESTS
     }
 #endif
@@ -83,7 +82,7 @@ static enum cdd_c_error append_str(emit_ctx_t *ctx, const uint8_t *str,
  * @param t The trivia list.
  * @return 0 on success, error code otherwise.
  */
-static enum cdd_c_error emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
+static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   while (t) {
     int rc = append_str(ctx, t->start, t->length);
     if (rc != 0)
@@ -99,7 +98,7 @@ static enum cdd_c_error emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
  * @param tok The token to emit.
  * @return 0 on success, error code otherwise.
  */
-static enum cdd_c_error emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
+static cdd_c_error_t emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
   int rc;
   if (!tok)
     return CDD_C_SUCCESS;
@@ -125,7 +124,7 @@ static enum cdd_c_error emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
  * @param node The node to emit.
  * @return 0 on success, error code otherwise.
  */
-static enum cdd_c_error emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
+static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
   size_t i;
   if (!node)
     return CDD_C_SUCCESS;
@@ -144,7 +143,7 @@ static enum cdd_c_error emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
+cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   emit_ctx_t ctx = {0};
   int rc;
 
@@ -154,7 +153,7 @@ enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   rc = emit_node(&ctx, tree->root);
   if (rc != 0) {
     if (ctx.buf)
-      C_CDD_FREE(ctx.buf);
+      free(ctx.buf);
     return rc;
   }
 
@@ -163,9 +162,9 @@ enum cdd_c_error cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
 
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : C_CDD_MALLOC(1));
+    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : malloc(1));
 #else
-    ctx.buf = (char *)C_CDD_MALLOC(1);
+    ctx.buf = (char *)malloc(1);
 #endif
 
     if (!ctx.buf)

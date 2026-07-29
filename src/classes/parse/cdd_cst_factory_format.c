@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_factory.h"
 #include "c_cdd/safe_crt.h"
 #include "cdd_cst_mutate.h"
@@ -25,9 +24,9 @@
  * @param ... Additional arguments for format.
  * @return 0 on success.
  */
-enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
-                                      cdd_cst_node_t **out_node,
-                                      const char *fmt, ...) {
+cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
+                                   cdd_cst_node_t **out_node, const char *fmt,
+                                   ...) {
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
@@ -35,23 +34,17 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   va_list args;
   cdd_cst_tree_t *temp_tree = NULL;
   cdd_cst_node_t *result = NULL;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
 
   if (!dest_tree || !out_node || !fmt)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail) {
-    if (--g_cdd_cst_alloc_token_fail == 0) {
-      buf = NULL;
-    } else {
-      buf = (char *)C_CDD_MALLOC(4096);
-    }
-  } else
+  if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
+    buf = NULL;
+  else
 #endif
-  {
-    buf = (char *)C_CDD_MALLOC(4096);
-  }
+    buf = (char *)malloc(4096);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -69,7 +62,7 @@ enum cdd_c_error cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
-  C_CDD_FREE(buf);
+  free(buf);
 
   if (rc == CDD_C_SUCCESS) {
     size_t i, j;

@@ -47,7 +47,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
       "*ctx, struct complex_config_t *cfg);\n"
       "complex_status_t complex_do_work(struct "
       "complex_context_t *ctx, const char *payload);\n"
-      "enum cdd_c_error complex_cleanup(struct complex_context_t *ctx);\n";
+      "cdd_c_error_t complex_cleanup(struct complex_context_t *ctx);\n";
 
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_ffi_e2e_out";

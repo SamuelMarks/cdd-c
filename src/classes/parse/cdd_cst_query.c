@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_query.h"
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -14,9 +13,9 @@ C_CDD_EXPORT int g_cdd_query_realloc_fail = 0;
 #include "c_cdd/log.h"
 /* clang-format on */
 
-enum cdd_c_error cdd_cst_traverse_preorder(cdd_cst_node_t *root,
-                                           cdd_cst_visitor_fn visitor,
-                                           void *user_data) {
+cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
+                                        cdd_cst_visitor_fn visitor,
+                                        void *user_data) {
   size_t i;
   int rc;
   if (!root || !visitor)
@@ -38,9 +37,9 @@ enum cdd_c_error cdd_cst_traverse_preorder(cdd_cst_node_t *root,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_cst_traverse_postorder(cdd_cst_node_t *root,
-                                            cdd_cst_visitor_fn visitor,
-                                            void *user_data) {
+cdd_c_error_t cdd_cst_traverse_postorder(cdd_cst_node_t *root,
+                                         cdd_cst_visitor_fn visitor,
+                                         void *user_data) {
   size_t i;
   int rc;
   if (!root || !visitor)
@@ -58,8 +57,8 @@ enum cdd_c_error cdd_cst_traverse_postorder(cdd_cst_node_t *root,
   return visitor(root, user_data);
 }
 
-static enum cdd_c_error append_result(cdd_cst_query_result_t *res,
-                                      cdd_cst_node_t *node) {
+static cdd_c_error_t append_result(cdd_cst_query_result_t *res,
+                                   cdd_cst_node_t *node) {
   if (res->size >= res->capacity) {
     size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
     cdd_cst_node_t **new_arr;
@@ -69,8 +68,8 @@ static enum cdd_c_error append_result(cdd_cst_query_result_t *res,
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_node_t **)C_CDD_REALLOC(
-          res->nodes, new_cap * sizeof(cdd_cst_node_t *));
+      new_arr = (cdd_cst_node_t **)realloc(res->nodes,
+                                           new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -88,28 +87,27 @@ typedef struct type_query_ctx_t {
   enum cdd_cst_node_kind_t target_kind;
   /** @brief res field */
   cdd_cst_query_result_t *res;
-  enum cdd_c_error err; /**< err */
+  cdd_c_error_t err; /**< err */
 } type_query_ctx_t;
 
-static enum cdd_c_error type_visitor(cdd_cst_node_t *node, void *user_data) {
+static cdd_c_error_t type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
-    enum cdd_c_error rc = append_result(ctx->res, node);
+    ctx->err = append_result(ctx->res, node);
 #ifdef CDD_BUILD_TESTS
+
     if (g_cdd_query_err_fail)
-      rc = CDD_C_ERROR_MEMORY;
+      ctx->err = CDD_C_ERROR_MEMORY;
 #endif
-    if (rc != CDD_C_SUCCESS) {
-      ctx->err = rc;
-      return rc;
-    }
+    if (ctx->err != CDD_C_SUCCESS)
+      return ctx->err;
   }
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_cst_find_nodes_by_type(cdd_cst_node_t *root, enum cdd_cst_node_kind_t kind,
-                           cdd_cst_query_result_t *out_result) {
+cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
+                                         enum cdd_cst_node_kind_t kind,
+                                         cdd_cst_query_result_t *out_result) {
   type_query_ctx_t ctx;
   if (!root || !out_result)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -120,13 +118,17 @@ cdd_cst_find_nodes_by_type(cdd_cst_node_t *root, enum cdd_cst_node_kind_t kind,
 
   ctx.target_kind = kind;
   ctx.res = out_result;
-  ctx.err = 0;
+  ctx.err = CDD_C_SUCCESS;
 
-  cdd_cst_traverse_preorder(root, type_visitor, &ctx);
+  {
+    cdd_c_error_t rc = cdd_cst_traverse_preorder(root, type_visitor, &ctx);
+    if (rc != CDD_C_SUCCESS && ctx.err == CDD_C_SUCCESS)
+      ctx.err = rc;
+  }
 
-  if (ctx.err != 0) {
+  if (ctx.err != CDD_C_SUCCESS) {
     if (out_result->nodes)
-      C_CDD_FREE(out_result->nodes);
+      free(out_result->nodes);
     out_result->nodes = NULL;
     out_result->size = 0;
     out_result->capacity = 0;
@@ -145,10 +147,10 @@ typedef struct call_query_ctx_t {
   size_t func_name_len;
   /** @brief err field */
   cdd_cst_query_result_t *res;
-  int err; /**< err */
+  cdd_c_error_t err; /**< err */
 } call_query_ctx_t;
 
-static enum cdd_c_error call_visitor(cdd_cst_node_t *node, void *user_data) {
+static cdd_c_error_t call_visitor(cdd_cst_node_t *node, void *user_data) {
   call_query_ctx_t *ctx = (call_query_ctx_t *)user_data;
   if (node->kind == CDD_CST_CALL_EXPR) {
     /* For now, look at children to find an identifier token that matches */
@@ -165,7 +167,7 @@ static enum cdd_c_error call_visitor(cdd_cst_node_t *node, void *user_data) {
             if (g_cdd_query_err_fail)
               ctx->err = CDD_C_ERROR_MEMORY;
 #endif
-            if (ctx->err != 0)
+            if (ctx->err != CDD_C_SUCCESS)
               return ctx->err;
             break; /* found match for this call node */
           }
@@ -185,7 +187,7 @@ static enum cdd_c_error call_visitor(cdd_cst_node_t *node, void *user_data) {
               if (g_cdd_query_err_fail)
                 ctx->err = CDD_C_ERROR_MEMORY;
 #endif
-              if (ctx->err != 0)
+              if (ctx->err != CDD_C_SUCCESS)
                 return ctx->err;
               break;
             }
@@ -212,7 +214,7 @@ static enum cdd_c_error call_visitor(cdd_cst_node_t *node, void *user_data) {
                 if (g_cdd_query_err_fail)
                   ctx->err = CDD_C_ERROR_MEMORY;
 #endif
-                if (ctx->err != 0)
+                if (ctx->err != CDD_C_SUCCESS)
                   return ctx->err;
                 break;
               }
@@ -225,7 +227,7 @@ static enum cdd_c_error call_visitor(cdd_cst_node_t *node, void *user_data) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
                                   cdd_cst_query_result_t *out_result) {
   call_query_ctx_t ctx;
@@ -239,13 +241,17 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
   ctx.func_name = func_name;
   ctx.func_name_len = strlen(func_name);
   ctx.res = out_result;
-  ctx.err = 0;
+  ctx.err = CDD_C_SUCCESS;
 
-  cdd_cst_traverse_preorder(root, call_visitor, &ctx);
+  {
+    cdd_c_error_t rc = cdd_cst_traverse_preorder(root, call_visitor, &ctx);
+    if (rc != CDD_C_SUCCESS && ctx.err == CDD_C_SUCCESS)
+      ctx.err = rc;
+  }
 
-  if (ctx.err != 0) {
+  if (ctx.err != CDD_C_SUCCESS) {
     if (out_result->nodes)
-      C_CDD_FREE(out_result->nodes);
+      free(out_result->nodes);
     out_result->nodes = NULL;
     out_result->size = 0;
     out_result->capacity = 0;

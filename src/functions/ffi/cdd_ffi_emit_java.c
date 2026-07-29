@@ -74,7 +74,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
   out[j] = '\0';
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -94,15 +94,6 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.java", config->output_dir,
                class_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -245,7 +236,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
 
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = get_java_primitive(node->fields[j].type);
         fprintf(f, "            public %s %s;\n", ftype, fname);
       }
@@ -257,7 +249,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "\n            protected List<String> getFieldOrder() {\n");
       fprintf(f, "                return Arrays.asList(");
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         fprintf(f, "\"%s\"", fname);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -284,7 +277,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "        %s %s(",
               get_java_primitive(node->return_or_base_type), node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "interface") == 0)
@@ -315,7 +309,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "    public static %s %s(",
               get_java_primitive(node->return_or_base_type), node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "interface") == 0)
@@ -359,7 +354,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       }
       fprintf(f, "%sLib.INSTANCE.%s(", class_name, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "class") == 0)
           arg_name = "clazz";
         if (strcmp(arg_name, "interface") == 0)
@@ -397,7 +393,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -410,15 +406,6 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/pom.xml", config->output_dir);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 556) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -476,12 +463,12 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_java(cdd_ffi_ir_t *ir,
-                  const cdd_generate_bindings_config_t *config) {
+cdd_c_error_t cdd_ffi_emit_java(cdd_ffi_ir_t *ir,
+                                const cdd_generate_bindings_config_t *config) {
   int rc;
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   rc = emit_java_file(ir, config);
   if (rc != 0)

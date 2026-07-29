@@ -50,12 +50,12 @@ TEST test_orchestrator_simple_propagation(void) {
   /* Check A call inside B rewritten */
   /* Logic: rc = A(); if (rc != 0) return rc; */
   printf("OUT MAIN IS: %s\n", out);
-  ASSERT(strstr(out, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
+  ASSERT(strstr(out, "cdd_c_error_t rc = CDD_C_SUCCESS;") != NULL);
   ASSERT(strstr(out, "rc = A();") != NULL);
   /* "if (rc != 0) return rc;" */
 
   free(out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -88,7 +88,7 @@ TEST test_orchestrator_propagation_ptr(void) {
   ASSERT(strstr(out, "rc = A(&x);") != NULL);
 
   free(out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -118,11 +118,11 @@ TEST test_orchestrator_main_stop(void) {
   /* Main body UPDATED */
   /* Checks internal var injection and return rc check */
   printf("OUT MAIN IS: %s\n", out);
-  ASSERT(strstr(out, "enum cdd_c_error rc = CDD_C_SUCCESS;") != NULL);
+  ASSERT(strstr(out, "cdd_c_error_t rc = CDD_C_SUCCESS;") != NULL);
   ASSERT(strstr(out, "rc = A();") != NULL);
 
   free(out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,7 +138,7 @@ TEST test_orchestrator_no_alloc(void) {
                      "void A() {") != NULL);
   ASSERT(strstr(out, "int x=1;") != NULL);
   free(out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -150,7 +150,7 @@ TEST test_orchestrator_preserves_structs(void) {
   ASSERT_EQ(0, rc);
   ASSERT(strstr(out, "struct S {") != NULL);
   free(out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -203,6 +203,7 @@ TEST test_orchestrator_edge_cases(void) {
   }
 #endif
 
+  g_fail_io_after = -1;
   PASS();
 }
 

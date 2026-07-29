@@ -10,7 +10,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,7 +70,7 @@ extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
  * @brief Helper to acquire a cryptographic provider context.
  * Uses MS_ENH_RSA_AES_PROV for SHA-256 support.
  */
-static enum cdd_c_error acquire_context(HCRYPTPROV *hProv) {
+static cdd_c_error_t acquire_context(HCRYPTPROV *hProv) {
   if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                            CRYPT_VERIFYCONTEXT)) {
     /* If failed, try creating new keyset (rarely needed for VERIFYCONTEXT but
@@ -91,8 +90,8 @@ static enum cdd_c_error acquire_context(HCRYPTPROV *hProv) {
 /**
  * @brief Executes the crypto sha256 operation.
  */
-enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
-                               unsigned char *out_digest) {
+cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
+                            unsigned char *out_digest) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   DWORD cbHash = CRYPTO_SHA256_SIZE;
@@ -162,9 +161,9 @@ cleanup:
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
-                                    const void *data, size_t data_len,
-                                    unsigned char *out_mac) {
+cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
+                                 const void *data, size_t data_len,
+                                 unsigned char *out_mac) {
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   HCRYPTKEY hKey = 0;
@@ -197,7 +196,7 @@ enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
   /* 1. Import the Key */
   /* CAPI requires keys to be imported via blobs. We build a PLAINTEXTKEYBLOB */
   blobSize = (DWORD)(sizeof(BLOBHEADER) + sizeof(DWORD) + key_len);
-  pBlob = (struct PlainTextKeyBlob *)C_CDD_MALLOC(blobSize);
+  pBlob = (struct PlainTextKeyBlob *)malloc(blobSize);
   if (!pBlob) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
@@ -252,7 +251,7 @@ enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
 
 cleanup:
   if (pBlob)
-    C_CDD_FREE(pBlob);
+    free(pBlob);
   if (hHash)
     CryptDestroyHash(hHash);
   if (hKey)
@@ -268,8 +267,8 @@ cleanup:
 /**
  * @brief Executes the crypto sha256 operation.
  */
-enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
-                               unsigned char *out_digest) {
+cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
+                            unsigned char *out_digest) {
   (void)data;
   (void)data_len;
   (void)out_digest;
@@ -279,9 +278,9 @@ enum cdd_c_error crypto_sha256(const void *data, size_t data_len,
 /**
  * @brief Executes the crypto hmac sha256 operation.
  */
-enum cdd_c_error crypto_hmac_sha256(const void *key, size_t key_len,
-                                    const void *data, size_t data_len,
-                                    unsigned char *out_mac) {
+cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
+                                 const void *data, size_t data_len,
+                                 unsigned char *out_mac) {
   (void)key;
   (void)key_len;
   (void)data;

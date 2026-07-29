@@ -23,9 +23,8 @@ extern "C" {
  * @param[in] config Configuration options for the client.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
-                            const struct OpenApiClientConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t openapi_client_gui_generate(
+    const struct OpenAPI_Spec *spec, const struct OpenApiClientConfig *config);
 
 #ifdef __cplusplus
 }

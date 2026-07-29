@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "../../classes/parse/cdd_cst_scope.h"
 #include <greatest.h>
@@ -56,7 +55,7 @@ TEST test_cdd_cst_scope_basic(void) {
   ASSERT_EQ(0, cdd_cst_scope_env_init(&env));
   env->global_scope->capacity = 1;
   env->global_scope->num_children = 1;
-  env->global_scope->children = C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t *));
+  env->global_scope->children = calloc(1, sizeof(cdd_cst_scope_t *));
   env->global_scope->children[0] = NULL;
   cdd_cst_scope_env_free(env);
   env = NULL;
@@ -87,7 +86,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
   cdd_cst_scope_env_free(env);
   cdd_cst_scope_env_free(NULL); /* Test free NULL */
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -150,7 +149,7 @@ TEST test_cdd_cst_scope_errors(void) {
   }
 
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -177,10 +176,30 @@ TEST test_cdd_cst_scope_tag(void) {
     cdd_cst_scope_env_free(env2);
   }
 
-  ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_STRUCT_TAG));
-  ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_UNION_TAG));
-  ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_ENUM_TAG));
-  ASSERT_EQ(0, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_VARIABLE));
+  {
+    int is_tag = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_STRUCT_TAG, &is_tag));
+    ASSERT_EQ(1, is_tag);
+  }
+  {
+    int is_tag = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_UNION_TAG, &is_tag));
+    ASSERT_EQ(1, is_tag);
+  }
+  {
+    int is_tag = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_ENUM_TAG, &is_tag));
+    ASSERT_EQ(1, is_tag);
+  }
+  {
+    int is_tag = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_VARIABLE, &is_tag));
+    ASSERT_EQ(0, is_tag);
+  }
 
   cdd_cst_scope_env_init(&env);
 
@@ -196,7 +215,7 @@ TEST test_cdd_cst_scope_tag(void) {
   ASSERT_EQ(CDD_CST_SYMBOL_STRUCT_TAG, sym->kind);
 
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -208,7 +227,7 @@ TEST test_cdd_cst_scope_tag(void) {
 TEST test_cdd_cst_scope_mem(void) {
   /* Test handled via alloc limits if injected, otherwise basic execution covers
    * paths. */
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -263,7 +282,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
   g_cdd_scope_alloc_fail = 0;
   cdd_cst_scope_env_free(env);
-
+  g_fail_io_after = -1;
   PASS();
 }
 #endif

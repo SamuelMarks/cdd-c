@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -26,8 +25,8 @@ extern "C" {
 
 /* --- Helpers --- */
 
-static enum cdd_c_error load_spec_str2(const char *json_str,
-                                       struct OpenAPI_Spec *spec) {
+static cdd_c_error_t load_spec_str2(const char *json_str,
+                                    struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
   int rc;
   dyn = json_parse_string(json_str);
@@ -106,8 +105,8 @@ TEST test_writer_empty_spec(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -142,8 +141,8 @@ TEST test_writer_basic_operation(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -168,9 +167,9 @@ TEST test_writer_schema_document(void) {
   ASSERT(json != NULL);
   ASSERT_STR_EQ("{\"type\":\"string\"}", json);
 
-  C_CDD_FREE(json);
+  free(json);
   openapi_spec_free(&spec);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -235,8 +234,8 @@ TEST test_writer_root_metadata_and_tags(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -308,8 +307,8 @@ TEST test_writer_path_ref_and_servers(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -356,8 +355,8 @@ TEST test_writer_webhooks(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -422,8 +421,8 @@ TEST test_writer_params_responses(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -468,8 +467,8 @@ TEST test_writer_parameter_metadata(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -509,8 +508,8 @@ TEST test_writer_allow_empty_value(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -564,8 +563,8 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -620,8 +619,8 @@ TEST test_writer_info_metadata(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -640,7 +639,7 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -660,7 +659,7 @@ TEST test_writer_server_url_query_rejected(void) {
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -698,8 +697,8 @@ TEST test_writer_operation_metadata(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -746,8 +745,8 @@ TEST test_writer_response_content_type(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -791,8 +790,8 @@ TEST test_writer_inline_response_schema_primitive(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -840,8 +839,8 @@ TEST test_writer_inline_response_schema_array(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -892,8 +891,8 @@ TEST test_writer_inline_schema_format_and_content(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -948,8 +947,8 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1038,8 +1037,8 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1111,8 +1110,8 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1168,9 +1167,9 @@ TEST test_writer_preserves_composed_component_schema(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(out_json);
+  free(out_json);
   openapi_spec_free(&spec);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1243,9 +1242,9 @@ TEST test_writer_preserves_inline_composed_schema(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(out_json);
+  free(out_json);
   openapi_spec_free(&spec);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1295,8 +1294,8 @@ TEST test_writer_schema_ref_summary_description(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1313,7 +1312,7 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   ASSERT(json == NULL);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1353,8 +1352,8 @@ TEST test_writer_options_trace_verbs(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1396,8 +1395,8 @@ TEST test_writer_query_and_external_docs(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1440,8 +1439,8 @@ TEST test_writer_parameter_styles(void) {
     }
     json_value_free(root);
   }
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1485,8 +1484,8 @@ TEST test_writer_parameter_explode_false(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1526,8 +1525,8 @@ TEST test_writer_parameter_style_matrix(void) {
     }
     json_value_free(root);
   }
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1586,8 +1585,8 @@ TEST test_writer_parameter_content_any(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1697,8 +1696,8 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1751,8 +1750,8 @@ TEST test_writer_parameter_examples_object(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1800,8 +1799,8 @@ TEST test_writer_parameter_examples_media(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1842,8 +1841,8 @@ TEST test_writer_component_examples(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1901,8 +1900,8 @@ TEST test_writer_oauth2_flows(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1945,8 +1944,8 @@ TEST test_writer_servers(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2006,8 +2005,8 @@ TEST test_writer_querystring_param(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2060,8 +2059,8 @@ TEST test_writer_ignores_reserved_header_params(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2120,8 +2119,8 @@ TEST test_writer_ignores_content_type_response_header(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2175,8 +2174,8 @@ TEST test_writer_path_level_parameters(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2234,8 +2233,8 @@ TEST test_writer_server_variables(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2316,8 +2315,8 @@ TEST test_writer_security_schemes(void) {
 
     json_value_free(root);
   }
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2390,8 +2389,8 @@ TEST test_writer_security_requirements(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2460,8 +2459,8 @@ TEST test_writer_multipart_schema(void) {
     }
     json_value_free(root);
   }
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2595,8 +2594,8 @@ TEST test_writer_components_and_response_headers(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2666,8 +2665,8 @@ TEST test_writer_components_request_bodies(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2712,9 +2711,9 @@ TEST test_writer_components_schemas(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
+  free(json);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2761,8 +2760,8 @@ TEST test_writer_components_schemas_raw(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2810,8 +2809,8 @@ TEST test_writer_schema_ref_external(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2860,8 +2859,8 @@ TEST test_writer_schema_dynamic_ref_external(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2913,8 +2912,8 @@ TEST test_writer_schema_items_ref_external(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2967,8 +2966,8 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3019,8 +3018,8 @@ TEST test_writer_additional_operations(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3100,8 +3099,8 @@ TEST test_writer_component_media_types_and_content_ref(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3158,8 +3157,8 @@ TEST test_writer_response_multiple_content(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3241,8 +3240,8 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3338,8 +3337,8 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3395,8 +3394,8 @@ TEST test_writer_component_path_items(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3486,8 +3485,8 @@ TEST test_writer_response_links(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3561,8 +3560,8 @@ TEST test_writer_callbacks(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3657,8 +3656,8 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3727,8 +3726,8 @@ TEST test_writer_parameter_schema_format_and_content(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3781,8 +3780,8 @@ TEST test_writer_request_body_ref_with_description(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3821,8 +3820,8 @@ TEST test_writer_security_scheme_deprecated(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3885,8 +3884,8 @@ TEST test_writer_schema_enum_default_nullable(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3936,8 +3935,8 @@ TEST test_writer_schema_type_union(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3999,8 +3998,8 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4051,8 +4050,8 @@ TEST test_writer_schema_items_type_union(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4095,8 +4094,8 @@ TEST test_writer_schema_boolean(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4148,8 +4147,8 @@ TEST test_writer_schema_numeric_enum(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4204,8 +4203,8 @@ TEST test_writer_schema_items_examples(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4251,8 +4250,8 @@ TEST test_writer_schema_items_boolean(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4302,8 +4301,8 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4365,8 +4364,8 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4423,9 +4422,9 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(out_json);
+  free(out_json);
   openapi_spec_free(&spec);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4437,6 +4436,7 @@ TEST test_writer_input_validation(void) {
             openapi_write_spec_to_json(NULL, &json));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_write_spec_to_json(&spec, NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -4632,8 +4632,8 @@ TEST test_writer_extensions_non_schema(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4688,8 +4688,8 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
-
+  free(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4706,7 +4706,7 @@ TEST test_writer_methods_and_styles(void) {
 
   /* Test all methods */
   path.n_operations = 7;
-  path.operations = C_CDD_CALLOC(7, sizeof(struct OpenAPI_Operation));
+  path.operations = calloc(7, sizeof(struct OpenAPI_Operation));
   path.operations[0].verb = OA_VERB_PUT;
   path.operations[1].verb = OA_VERB_DELETE;
   path.operations[2].verb = OA_VERB_PATCH;
@@ -4717,8 +4717,7 @@ TEST test_writer_methods_and_styles(void) {
 
   /* Test parameter styles */
   path.operations[0].n_parameters = 6;
-  path.operations[0].parameters =
-      C_CDD_CALLOC(6, sizeof(struct OpenAPI_Parameter));
+  path.operations[0].parameters = calloc(6, sizeof(struct OpenAPI_Parameter));
   path.operations[0].parameters[0].name = "p1";
   path.operations[0].parameters[0].in = OA_PARAM_IN_COOKIE;
   path.operations[0].parameters[0].style = OA_STYLE_COOKIE;
@@ -4747,11 +4746,11 @@ TEST test_writer_methods_and_styles(void) {
     printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
-  C_CDD_FREE(json);
+  free(json);
 
-  C_CDD_FREE(path.operations[0].parameters);
-  C_CDD_FREE(path.operations);
-
+  free(path.operations[0].parameters);
+  free(path.operations);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4767,14 +4766,12 @@ TEST test_writer_xml_and_oauth(void) {
   spec.info.version = "1";
 
   spec.n_security_schemes = 1;
-  spec.security_schemes =
-      C_CDD_CALLOC(1, sizeof(struct OpenAPI_SecurityScheme));
+  spec.security_schemes = calloc(1, sizeof(struct OpenAPI_SecurityScheme));
   spec.security_schemes[0].name = "oauth2_all";
   spec.security_schemes[0].type = OA_SEC_OAUTH2;
 
   spec.security_schemes[0].n_flows = 3;
-  spec.security_schemes[0].flows =
-      C_CDD_CALLOC(3, sizeof(struct OpenAPI_OAuthFlow));
+  spec.security_schemes[0].flows = calloc(3, sizeof(struct OpenAPI_OAuthFlow));
   spec.security_schemes[0].flows[0].type = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
   spec.security_schemes[0].flows[0].token_url = "https://a.b";
   spec.security_schemes[0].flows[1].type = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
@@ -4788,11 +4785,11 @@ TEST test_writer_xml_and_oauth(void) {
     printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
-  C_CDD_FREE(json);
+  free(json);
 
-  C_CDD_FREE(spec.security_schemes[0].flows);
-  C_CDD_FREE(spec.security_schemes);
-
+  free(spec.security_schemes[0].flows);
+  free(spec.security_schemes);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4823,7 +4820,7 @@ TEST test_writer_xml_types(void) {
   resp.code = "200";
   resp.description = "OK";
   resp.n_content_media_types = 4;
-  resp.content_media_types = C_CDD_CALLOC(4, sizeof(struct OpenAPI_MediaType));
+  resp.content_media_types = calloc(4, sizeof(struct OpenAPI_MediaType));
 
   resp.content_media_types[0].name = "application/xml";
   resp.content_media_types[0].schema_set = 1;
@@ -4850,10 +4847,10 @@ TEST test_writer_xml_types(void) {
     printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
-  C_CDD_FREE(json);
+  free(json);
 
-  C_CDD_FREE(resp.content_media_types);
-
+  free(resp.content_media_types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -4918,6 +4915,7 @@ TEST test_openapi_utils(void) {
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
   p.name = "Authorization";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  g_fail_io_after = -1;
 
   PASS();
 }

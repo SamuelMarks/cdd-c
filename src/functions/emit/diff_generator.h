@@ -34,7 +34,7 @@ extern "C" {
 C_CDD_EXPORT /**
               * @brief Executes the patch list generate diff operation.
               */
-    enum cdd_c_error
+    cdd_c_error_t
     patch_list_generate_diff(const struct TokenList *tokens,
                              const struct PatchList *list, const char *filename,
                              char **out_diff);

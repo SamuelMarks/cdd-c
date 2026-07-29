@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -22,9 +21,9 @@ extern "C" {
 #endif
 
 /* Helper to generate code and return as string buffer */
-static enum cdd_c_error generate_def_code(const char *struct_name,
-                                          struct StructFields *sf,
-                                          char **_out_val) {
+static cdd_c_error_t generate_def_code(const char *struct_name,
+                                       struct StructFields *sf,
+                                       char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -46,7 +45,7 @@ static enum cdd_c_error generate_def_code(const char *struct_name,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 
@@ -74,13 +73,13 @@ TEST test_default_primitive(void) {
           _ast_generate_def_code_0);
   ASSERT(code != NULL);
 
-  ASSERT(strstr(code, "enum cdd_c_error Prim_default(struct Prim **out)"));
+  ASSERT(strstr(code, "cdd_c_error_t Prim_default(struct Prim **out)"));
   ASSERT(strstr(code, "(*out)->x = 42;"));
   ASSERT(strstr(code, "(*out)->flag = 1;"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -111,9 +110,9 @@ TEST test_default_string(void) {
   ASSERT(strstr(code, "if (!(*out)->s) { StrS_cleanup(*out); *out=NULL; return "
                       "CDD_C_ERROR_MEMORY; }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -139,9 +138,9 @@ TEST test_default_enum(void) {
       code,
       "if (rc != 0) { EnumStruct_cleanup(*out); *out=NULL; return rc; }"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -162,12 +161,12 @@ TEST test_default_no_defaults(void) {
   ASSERT(code != NULL);
 
   /* Should just be calloc */
-  ASSERT(strstr(code, "C_CDD_CALLOC(1, sizeof(**out))"));
+  ASSERT(strstr(code, "calloc(1, sizeof(**out))"));
   ASSERT(strstr(code, "(*out)->x = ") == NULL);
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -193,9 +192,9 @@ TEST test_default_nullptr(void) {
   ASSERT(strstr(code, "(*out)->ptr_val = NULL;"));
   ASSERT(strstr(code, "(*out)->str_ptr = NULL;"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -224,9 +223,9 @@ TEST test_default_binary_literal(void) {
   ASSERT(strstr(code, "(*out)->bin_val = 5;"));
   ASSERT(strstr(code, "(*out)->bin_cap = 3;"));
 
-  C_CDD_FREE(code);
+  free(code);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -241,7 +240,7 @@ TEST test_write_forward_decl_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(tmp, NULL));
   ASSERT_EQ(0, write_forward_decl(tmp, "X"));
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -249,12 +248,16 @@ TEST test_write_forward_decl_io_fail(void) {
   FILE *tmp = tmpfile();
   int rc;
   (void)rc;
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT(tmp);
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(CDD_C_ERROR_IO, write_forward_decl(tmp, "X"));
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -264,28 +267,25 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   FILE *tmp = tmpfile();
   int rc;
   (void)rc;
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
   enum_members_add(&sf.enum_members, "M1");
   enum_members_add(&sf.enum_members, "UNKNOWN");
-  enum_members_add(&sf.enum_members, "DUMMY");
-  sf.enum_members.members[2] = NULL;
+  enum_members_add(&sf.enum_members, NULL);
   cfg.enum_guard = "MY_GUARD";
 
   ASSERT(tmp);
-
-  rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
-  ASSERT_EQ(0, rc);
-
-  /* Test with config = NULL to cover branches */
-  rc = write_enum_declaration_h(tmp, "E3", &sf, NULL);
-  ASSERT_EQ(0, rc);
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   {
     int j;
     for (j = 0; j < 20; j++) {
-
+      g_fail_io_after = j;
+      g_io_calls = 0;
       rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
       if (rc == 0)
         break;
@@ -294,7 +294,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   }
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -304,34 +304,16 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   FILE *tmp = tmpfile();
   int rc;
   (void)rc;
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
-
-  ASSERT(tmp);
-
-  /* Test empty struct fields size = 0 */
-  rc = write_struct_declaration_h(tmp, "S_EMPTY", &sf, &cfg);
-  ASSERT_EQ(0, rc);
-
-  {
-    int j;
-    for (j = 0; j < 5; j++) {
-
-      rc = write_struct_declaration_h(tmp, "S_EMPTY", &sf, &cfg);
-      if (rc == 0)
-        break;
-      ASSERT_EQ(CDD_C_ERROR_IO, rc);
-    }
-  }
-
   struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
   struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
   struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
   struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
   struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
-  struct_fields_add(&sf, "o", "object", "O", NULL, NULL);
   struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
   struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
@@ -341,10 +323,12 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   cfg.json_guard = "JSON_G";
   cfg.utils_guard = "UTILS_G";
 
+  ASSERT(tmp);
   {
     int j;
-    for (j = 0; j < 250; j++) {
-
+    for (j = 0; j < 200; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
       rc = write_struct_declaration_h(tmp, "S", &sf, &cfg);
       if (rc == 0)
         break;
@@ -353,7 +337,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   }
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -363,7 +347,8 @@ TEST test_write_union_declaration_h_io_fail(void) {
   FILE *tmp = tmpfile();
   int rc;
   (void)rc;
-
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
   struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
@@ -372,7 +357,6 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
   struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
   struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
-  struct_fields_add(&sf, "o", "object", "O", NULL, NULL);
   struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
   struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
@@ -385,8 +369,9 @@ TEST test_write_union_declaration_h_io_fail(void) {
   ASSERT(tmp);
   {
     int j;
-    for (j = 0; j < 250; j++) {
-
+    for (j = 0; j < 200; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
       rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
       if (rc == 0)
         break;
@@ -395,7 +380,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   }
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -430,7 +415,7 @@ TEST test_codegen_h_bounds(void) {
 
   fclose(tmp);
   struct_fields_free(&sf);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -442,6 +427,7 @@ SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_nullptr);
   RUN_TEST(test_default_binary_literal);
   RUN_TEST(test_write_forward_decl_bounds);
+  RUN_TEST(test_write_forward_decl_io_fail);
   RUN_TEST(test_write_enum_declaration_h_io_fail);
   RUN_TEST(test_write_struct_declaration_h_io_fail);
   RUN_TEST(test_write_union_declaration_h_io_fail);

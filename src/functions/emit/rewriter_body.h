@@ -82,11 +82,10 @@ struct SignatureTransform {
  * stored.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-rewrite_body(const struct TokenList *tokens,
-             const struct AllocationSiteList *allocs,
-             const struct RefactoredFunction *funcs, size_t func_count,
-             const struct SignatureTransform *transform, char **out_code);
+extern C_CDD_EXPORT cdd_c_error_t rewrite_body(
+    const struct TokenList *tokens, const struct AllocationSiteList *allocs,
+    const struct RefactoredFunction *funcs, size_t func_count,
+    const struct SignatureTransform *transform, char **out_code);
 
 #ifdef __cplusplus
 }

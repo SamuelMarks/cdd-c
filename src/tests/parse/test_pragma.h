@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
@@ -43,7 +42,7 @@ TEST test_tokenize_pragma_op(void) {
   ASSERT_EQ(TOKEN_RPAREN, tl->tokens[3].kind);
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -58,8 +57,8 @@ TEST test_destringize_basic(void) {
                _ast_destringize_0);
   ASSERT(res);
   ASSERT_STR_EQ("simple", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -76,8 +75,8 @@ TEST test_destringize_escaped_quote(void) {
       (c_cdd_destringize(input, &_ast_destringize_1), _ast_destringize_1);
   ASSERT(res);
   ASSERT_STR_EQ("foo\"bar", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -94,8 +93,8 @@ TEST test_destringize_escaped_backslash(void) {
       (c_cdd_destringize(input, &_ast_destringize_2), _ast_destringize_2);
   ASSERT(res);
   ASSERT_STR_EQ("path\\to", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -111,8 +110,8 @@ TEST test_destringize_wide_literal(void) {
       (c_cdd_destringize("L\"wide\"", &_ast_destringize_3), _ast_destringize_3);
   ASSERT(res);
   ASSERT_STR_EQ("wide", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,8 +156,8 @@ TEST test_destringize_mixed(void) {
 
   ASSERT(res);
   ASSERT_STR_EQ("a\\\"b", res); /* C String comparison: a\"b */
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -188,8 +187,8 @@ TEST test_destringize_invalids(void) {
             (c_cdd_destringize("L", &_ast_destringize_9), _ast_destringize_9));
   c_cdd_destringize("\"\"", &empty);
   ASSERT_EQ(0, strlen(empty));
-  C_CDD_FREE(empty);
-
+  free(empty);
+  g_fail_io_after = -1;
   PASS();
 }
 

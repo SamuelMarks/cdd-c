@@ -24,9 +24,8 @@ extern "C" {
  * @param sf Struct fields list.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
-                                     const struct StructFields *sf);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_to_form_urlencoded_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf);
 
 #ifdef __cplusplus
 }

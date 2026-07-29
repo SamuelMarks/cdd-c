@@ -49,7 +49,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi aggregator add operation
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
                                      const char *route,
                                      struct OpenAPI_Operation *op);
@@ -68,7 +68,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the openapi aggregator add webhook
                      * operation operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
                                              const char *route,
                                              struct OpenAPI_Operation *op);

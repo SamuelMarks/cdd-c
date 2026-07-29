@@ -10,7 +10,6 @@
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "greatest.h"
 
@@ -30,7 +29,7 @@ TEST test_operation_is_reserved_header_name(void) {
   ASSERT_EQ(1, out);
   ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("X-Custom", &out));
   ASSERT_EQ(0, out);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -45,13 +44,13 @@ TEST test_operation_parse_example_any(void) {
   ASSERT_EQ(0, parse_example_any("invalid_json", &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("invalid_json", out.string);
-  C_CDD_FREE(out.string);
+  free(out.string);
 
   /* Strings */
   ASSERT_EQ(0, parse_example_any("\"hello\"", &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("hello", out.string);
-  C_CDD_FREE(out.string);
+  free(out.string);
 
   /* Numbers */
   ASSERT_EQ(0, parse_example_any("42.5", &out));
@@ -71,7 +70,8 @@ TEST test_operation_parse_example_any(void) {
   ASSERT_EQ(0, parse_example_any("{\"a\": 1}", &out));
   ASSERT_EQ(OA_ANY_JSON, out.type);
   ASSERT(strstr(out.json, "a") != NULL);
-  C_CDD_FREE(out.json);
+  free(out.json);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -89,7 +89,7 @@ TEST test_operation_any_from_json_value(void) {
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("hello", out.string);
-  C_CDD_FREE(out.string);
+  free(out.string);
   json_value_free(jv);
 
   jv = json_parse_string("42.5");
@@ -113,8 +113,9 @@ TEST test_operation_any_from_json_value(void) {
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_JSON, out.type);
   ASSERT(strstr(out.json, "a") != NULL);
-  C_CDD_FREE(out.json);
+  free(out.json);
   json_value_free(jv);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -150,13 +151,14 @@ TEST test_operation_parse_link_params_json(void) {
   ASSERT_EQ(OA_ANY_STRING, out[1].value.type);
 
   for (i = 0; i < count; i++) {
-    C_CDD_FREE(out[i].name);
+    free(out[i].name);
     if (out[i].value.type == OA_ANY_STRING)
-      C_CDD_FREE(out[i].value.string);
+      free(out[i].value.string);
     if (out[i].value.type == OA_ANY_JSON)
-      C_CDD_FREE(out[i].value.json);
+      free(out[i].value.json);
   }
-  C_CDD_FREE(out);
+  free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -171,18 +173,19 @@ TEST test_operation_free_openapi_server_variables_op(void) {
 
   srv.n_variables = 1;
   srv.variables =
-      (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(1, sizeof(*srv.variables));
+      (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
   srv.variables[0].name = strdup("name");
   srv.variables[0].default_value = strdup("def");
   srv.variables[0].description = strdup("desc");
   srv.variables[0].n_enum_values = 2;
-  srv.variables[0].enum_values = (char **)C_CDD_CALLOC(2, sizeof(char *));
+  srv.variables[0].enum_values = (char **)calloc(2, sizeof(char *));
   srv.variables[0].enum_values[0] = strdup("e1");
   srv.variables[0].enum_values[1] = strdup("e2");
 
   free_openapi_server_variables_op(&srv);
   ASSERT(srv.variables == NULL);
   ASSERT_EQ(0, srv.n_variables);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -199,8 +202,7 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   ASSERT_EQ(0, copy_doc_server_variables_op(&dst, &src));
 
   src.n_variables = 1;
-  src.variables =
-      (struct DocServerVar *)C_CDD_CALLOC(1, sizeof(struct DocServerVar));
+  src.variables = (struct DocServerVar *)calloc(1, sizeof(struct DocServerVar));
 
   /* Missing name/default */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -210,7 +212,7 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   src.variables[0].default_value = "def";
   src.variables[0].description = "desc";
   src.variables[0].n_enum_values = 2;
-  src.variables[0].enum_values = (char **)C_CDD_CALLOC(2, sizeof(char *));
+  src.variables[0].enum_values = (char **)calloc(2, sizeof(char *));
   src.variables[0].enum_values[0] = strdup("e1");
   src.variables[0].enum_values[1] = strdup("def");
 
@@ -226,15 +228,16 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   free_openapi_server_variables_op(&dst);
 
   /* Test validation for default_value in enum */
-  C_CDD_FREE(src.variables[0].enum_values[1]);
+  free(src.variables[0].enum_values[1]);
   src.variables[0].enum_values[1] = strdup("e2"); /* removed "def" */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables_op(&dst, &src));
 
-  C_CDD_FREE(src.variables[0].enum_values[0]);
-  C_CDD_FREE(src.variables[0].enum_values[1]);
-  C_CDD_FREE(src.variables[0].enum_values);
-  C_CDD_FREE(src.variables);
+  free(src.variables[0].enum_values[0]);
+  free(src.variables[0].enum_values[1]);
+  free(src.variables[0].enum_values);
+  free(src.variables);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -254,8 +257,7 @@ TEST test_operation_find_response_by_code(void) {
   ASSERT(out == NULL);
 
   op.n_responses = 2;
-  op.responses =
-      (struct OpenAPI_Response *)C_CDD_CALLOC(2, sizeof(*op.responses));
+  op.responses = (struct OpenAPI_Response *)calloc(2, sizeof(*op.responses));
   op.responses[0].code = "404";
   op.responses[1].code = "200";
 
@@ -265,8 +267,8 @@ TEST test_operation_find_response_by_code(void) {
   ASSERT_EQ(0, find_response_by_code(&op, "500", &out));
   ASSERT(out == NULL);
 
-  C_CDD_FREE(op.responses);
-
+  free(op.responses);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -288,6 +290,7 @@ TEST test_operation_find_media_type_op(void) {
 
   ASSERT_EQ(0, find_media_type_op(mts, 2, "not-found", &out));
   ASSERT(out == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -329,11 +332,11 @@ TEST test_operation_apply_example(void) {
   /* Now what if content_type is provided? */
   resp.example_set = 0;
   if (resp.example.string)
-    C_CDD_FREE(resp.example.string);
+    free(resp.example.string);
   resp.example.string = NULL;
   resp.n_content_media_types = 1;
-  resp.content_media_types = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
-      1, sizeof(struct OpenAPI_MediaType));
+  resp.content_media_types =
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
   resp.content_media_types[0].name = "application/json";
 
   /* Content type provided but doesn't match */
@@ -342,7 +345,7 @@ TEST test_operation_apply_example(void) {
 
   /* Content type provided and matches */
   if (resp.content_media_types[0].example.string)
-    C_CDD_FREE(resp.content_media_types[0].example.string);
+    free(resp.content_media_types[0].example.string);
   resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test6", "application/json"));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
@@ -351,18 +354,18 @@ TEST test_operation_apply_example(void) {
   /* No content type, applies to all */
   resp.content_media_types[0].example_set = 0;
   if (resp.content_media_types[0].example.string)
-    C_CDD_FREE(resp.content_media_types[0].example.string);
+    free(resp.content_media_types[0].example.string);
   resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test7", NULL));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
   ASSERT_STR_EQ("test7", resp.content_media_types[0].example.string);
 
-  C_CDD_FREE(resp.content_media_types[0].example.string);
-  C_CDD_FREE(resp.content_media_types);
+  free(resp.content_media_types[0].example.string);
+  free(resp.content_media_types);
 
-  C_CDD_FREE(mt.example.string);
-  C_CDD_FREE(resp.example.string);
-
+  free(mt.example.string);
+  free(resp.example.string);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -397,10 +400,11 @@ TEST test_operation_ensure_response_for_code(void) {
   ASSERT_EQ(2, op.n_responses);
 
   for (i = 0; i < op.n_responses; i++) {
-    C_CDD_FREE(op.responses[i].code);
-    C_CDD_FREE(op.responses[i].description);
+    free(op.responses[i].code);
+    free(op.responses[i].description);
   }
-  C_CDD_FREE(op.responses);
+  free(op.responses);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -445,15 +449,16 @@ TEST test_operation_add_header_to_response(void) {
   ASSERT_EQ(1, resp.n_headers);
   ASSERT_STR_EQ("Test header", resp.headers[0].description);
 
-  C_CDD_FREE(resp.headers[0].name);
-  C_CDD_FREE(resp.headers[0].description);
-  C_CDD_FREE(resp.headers[0].type);
-  C_CDD_FREE(resp.headers[0].content_type);
-  C_CDD_FREE(resp.headers[0].schema.inline_type);
+  free(resp.headers[0].name);
+  free(resp.headers[0].description);
+  free(resp.headers[0].type);
+  free(resp.headers[0].content_type);
+  free(resp.headers[0].schema.inline_type);
   if (resp.headers[0].schema.format)
-    C_CDD_FREE(resp.headers[0].schema.format);
-  C_CDD_FREE(resp.headers[0].example.string);
-  C_CDD_FREE(resp.headers);
+    free(resp.headers[0].schema.format);
+  free(resp.headers[0].example.string);
+  free(resp.headers);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -499,14 +504,15 @@ TEST test_operation_add_link_to_response(void) {
   ASSERT_EQ(1, resp.n_links);
 
   /* clean up */
-  C_CDD_FREE(resp.links[0].name);
-  C_CDD_FREE(resp.links[0].operation_id);
-  C_CDD_FREE(resp.links[0].description);
-  C_CDD_FREE(resp.links[0].server->url);
-  C_CDD_FREE(resp.links[0].server->description);
-  C_CDD_FREE(resp.links[0].server);
-  C_CDD_FREE(resp.links[0].request_body.json);
-  C_CDD_FREE(resp.links);
+  free(resp.links[0].name);
+  free(resp.links[0].operation_id);
+  free(resp.links[0].description);
+  free(resp.links[0].server->url);
+  free(resp.links[0].server->description);
+  free(resp.links[0].server);
+  free(resp.links[0].request_body.json);
+  free(resp.links);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -524,8 +530,8 @@ TEST test_operation_add_param_to_op(void) {
   ASSERT_EQ(1, op.n_parameters);
   ASSERT_STR_EQ("test_param", op.parameters[0].name);
 
-  C_CDD_FREE(op.parameters);
-
+  free(op.parameters);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -550,6 +556,7 @@ TEST test_operation_schema_ref_has_data_basic(void) {
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
   ASSERT_EQ(1, schema_ref_has_data_basic(&ref));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -575,10 +582,10 @@ TEST test_operation_copy_schema_ref_basic(void) {
   ASSERT_STR_EQ("test2", dst.ref);
   ASSERT_STR_EQ("test3", dst.inline_type);
 
-  C_CDD_FREE(dst.ref_name);
-  C_CDD_FREE(dst.ref);
-  C_CDD_FREE(dst.inline_type);
-
+  free(dst.ref_name);
+  free(dst.ref);
+  free(dst.inline_type);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -596,8 +603,8 @@ TEST test_operation_response_has_media_type(void) {
   ASSERT_EQ(0, out);
 
   resp.n_content_media_types = 1;
-  resp.content_media_types = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
-      1, sizeof(struct OpenAPI_MediaType));
+  resp.content_media_types =
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
   resp.content_media_types[0].name = "test";
 
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test", &out));
@@ -609,8 +616,8 @@ TEST test_operation_response_has_media_type(void) {
   ASSERT_EQ(0, out);
   resp.content_type = NULL;
 
-  C_CDD_FREE(resp.content_media_types);
-
+  free(resp.content_media_types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -634,6 +641,7 @@ TEST test_operation_is_struct_pointer(void) {
             is_struct_pointer("struct MyStruct **", &is_dp, &out));
   ASSERT_EQ(1, out);
   ASSERT_EQ(1, is_dp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -667,6 +675,7 @@ TEST test_operation_doc_style_to_openapi(void) {
 
   ASSERT_EQ(0, doc_style_to_openapi(DOC_PARAM_STYLE_UNSET, &out));
   ASSERT_EQ(OA_STYLE_UNKNOWN, out);
+  g_fail_io_after = -1;
 
   PASS();
 }

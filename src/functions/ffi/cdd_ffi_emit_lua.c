@@ -56,7 +56,7 @@ static const char *get_luajit_c_type(cdd_ffi_type_t type) {
   }
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -73,15 +73,6 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.lua", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -98,7 +89,8 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     if (node->kind == CDD_FFI_NODE_STRUCT) {
       fprintf(f, "  typedef struct %s {\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = get_luajit_c_type(node->fields[j].type);
         if (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF) {
           fprintf(f, "    struct %s %s;\n", ftype, fname);
@@ -126,7 +118,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
               node->name);
       for (j = 0; j < node->fields_count; j++) {
         fprintf(f, "%s %s", get_luajit_c_type(node->fields[j].type),
-                node->fields[j].name);
+                node->fields[j].name ? node->fields[j].name : "arg");
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
       }
@@ -149,7 +141,8 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "-- %s\n", node->doc);
       fprintf(f, "function M.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "function") == 0)
           arg_name = "func";
         fprintf(f, "%s", arg_name);
@@ -160,7 +153,8 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
       fprintf(f, "  return lib.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "function") == 0)
           arg_name = "func";
         fprintf(f, "%s", arg_name);
@@ -178,11 +172,11 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_lua(cdd_ffi_ir_t *ir,
-                 const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+cdd_c_error_t cdd_ffi_emit_lua(cdd_ffi_ir_t *ir,
+                               const cdd_generate_bindings_config_t *config) {
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_lua_file(ir, config);
 }

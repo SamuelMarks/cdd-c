@@ -40,8 +40,8 @@
  * @param[in,out] info Structure to populate flags in.
  * @return 0 on success, -1 if invalid characters found.
  */
-static enum cdd_c_error parse_int_suffixes(const char *str,
-                                           struct IntegerInfo *info) {
+static cdd_c_error_t parse_int_suffixes(const char *str,
+                                        struct IntegerInfo *info) {
   size_t i = 0;
   while (str[i] != '\0') {
     char c = str[i];
@@ -96,13 +96,13 @@ static enum cdd_c_error parse_int_suffixes(const char *str,
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
  */
-static enum cdd_c_error parse_binary_str(const char *str, char **endptr,
-                                         uint64_t *_out_val) {
+static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
+                                      uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;
   while (*p == '0' || *p == '1') {
-    if (val > (~((uint64_t)0) >> 1)) {
-      val = ~((uint64_t)0); /* Overflow saturation */
+    if (val > (UINT64_MAX >> 1)) {
+      val = UINT64_MAX; /* Overflow saturation */
       errno = ERANGE;
     } else {
       val = (val << 1) | (*p - '0');
@@ -119,8 +119,7 @@ static enum cdd_c_error parse_binary_str(const char *str, char **endptr,
 /**
  * @brief Parses numeric literal from the given input.
  */
-enum cdd_c_error parse_numeric_literal(const char *str,
-                                       struct NumericValue *out) {
+cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
   int is_hex = 0;
   int is_bin = 0;
   int is_oct = 0;

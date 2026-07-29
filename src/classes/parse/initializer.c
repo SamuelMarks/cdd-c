@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "classes/parse/initializer.h"
-#include "c_cdd/memory.h"
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
 /* clang-format on */
@@ -23,9 +22,9 @@
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
  */
-static enum cdd_c_error join_tokens_skipping_ws(const struct TokenList *tokens,
-                                                size_t start, size_t end,
-                                                char **_out_val) {
+static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
+                                             size_t start, size_t end,
+                                             char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -38,7 +37,7 @@ static enum cdd_c_error join_tokens_skipping_ws(const struct TokenList *tokens,
     }
   }
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -65,7 +64,7 @@ static enum cdd_c_error join_tokens_skipping_ws(const struct TokenList *tokens,
 /**
  * @brief Executes the init list init operation.
  */
-enum cdd_c_error init_list_init(struct InitList *list) {
+cdd_c_error_t init_list_init(struct InitList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->items = NULL;
@@ -89,11 +88,13 @@ void init_list_free(struct InitList *list) {
   if (list->items) {
     for (i = 0; i < list->count; ++i) {
       if (list->items[i].designator)
-        C_CDD_FREE(list->items[i].designator);
-      init_value_free(list->items[i].value);
-      C_CDD_FREE(list->items[i].value);
+        free(list->items[i].designator);
+      if (list->items[i].value) {
+        init_value_free(list->items[i].value);
+        free(list->items[i].value);
+      }
     }
-    C_CDD_FREE(list->items);
+    free(list->items);
     list->items = NULL;
   }
   list->count = 0;
@@ -104,22 +105,24 @@ void init_list_free(struct InitList *list) {
  * @brief Executes the init value free operation.
  */
 static void init_value_free(struct InitValue *val) {
-  if (val->kind == INIT_KIND_SCALAR) {
-    C_CDD_FREE(val->data.scalar);
-  } else {
+  if (!val)
+    return;
+  if (val->kind == INIT_KIND_SCALAR && val->data.scalar) {
+    free(val->data.scalar);
+  } else if (val->kind == INIT_KIND_COMPOUND && val->data.compound) {
     init_list_free(val->data.compound);
-    C_CDD_FREE(val->data.compound);
+    free(val->data.compound);
   }
 }
 
 /**
  * @brief Executes the init list add operation.
  */
-static enum cdd_c_error init_list_add(struct InitList *list, char *desig,
-                                      struct InitValue *val) {
+static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
+                                   struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
-    struct InitItem *new_arr = (struct InitItem *)C_CDD_REALLOC(
+    struct InitItem *new_arr = (struct InitItem *)realloc(
         list->items, new_cap * sizeof(struct InitItem));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -136,8 +139,8 @@ static enum cdd_c_error init_list_add(struct InitList *list, char *desig,
 
 /* --- Parsing Logic --- */
 
-static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t idx,
-                                size_t limit, size_t *_out_val) {
+static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
+                             size_t limit, size_t *_out_val) {
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
     idx++;
   {
@@ -149,7 +152,7 @@ static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t idx,
 /**
  * @brief Checks if designator start.
  */
-static enum cdd_c_error is_designator_start(enum TokenKind k) {
+static cdd_c_error_t is_designator_start(enum TokenKind k) {
   return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
 }
 
@@ -157,9 +160,9 @@ static enum cdd_c_error is_designator_start(enum TokenKind k) {
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
  */
-static enum cdd_c_error parse_designator(const struct TokenList *tokens,
-                                         size_t start, size_t limit,
-                                         char **out_str, size_t *out_next) {
+static cdd_c_error_t parse_designator(const struct TokenList *tokens,
+                                      size_t start, size_t limit,
+                                      char **out_str, size_t *out_next) {
   size_t i = start;
   size_t end_desig;
 
@@ -175,7 +178,7 @@ static enum cdd_c_error parse_designator(const struct TokenList *tokens,
     i++;
   }
 
-  if (i >= limit)
+  if (i >= limit || tokens->tokens[i].kind != TOKEN_ASSIGN)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   end_desig = i;     /* Exclusive of = */
@@ -193,9 +196,9 @@ static enum cdd_c_error parse_designator(const struct TokenList *tokens,
  * @brief Parse a single expression (scalar value) until comma or brace.
  * Respects nested parens/blocks.
  */
-static enum cdd_c_error parse_expression_str(const struct TokenList *tokens,
-                                             size_t start, size_t limit,
-                                             char **out_str, size_t *out_next) {
+static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
+                                          size_t start, size_t limit,
+                                          char **out_str, size_t *out_next) {
   size_t i = start;
   int depth_paren = 0;
   int depth_brace = 0; /* Should be 0 for scalar, but compound literals
@@ -243,9 +246,9 @@ static enum cdd_c_error parse_expression_str(const struct TokenList *tokens,
 /**
  * @brief Parses initializer from the given input.
  */
-enum cdd_c_error parse_initializer(const struct TokenList *tokens,
-                                   size_t start_idx, size_t end_idx,
-                                   struct InitList *out, size_t *consumed) {
+cdd_c_error_t parse_initializer(const struct TokenList *tokens,
+                                size_t start_idx, size_t end_idx,
+                                struct InitList *out, size_t *consumed) {
   size_t i;
   int rc = 0;
 
@@ -289,11 +292,11 @@ enum cdd_c_error parse_initializer(const struct TokenList *tokens,
     skip_ws(tokens, i, end_idx, &i);
 
     /* Allocate Value Object */
-    val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));
+    val_obj = (struct InitValue *)calloc(1, sizeof(struct InitValue));
     if (!val_obj) {
       rc = CDD_C_ERROR_MEMORY;
       if (desig_str)
-        C_CDD_FREE(desig_str);
+        free(desig_str);
       goto error;
     }
 
@@ -301,14 +304,14 @@ enum cdd_c_error parse_initializer(const struct TokenList *tokens,
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {
       /* Recursive Parse */
       struct InitList *nested_list =
-          (struct InitList *)C_CDD_CALLOC(1, sizeof(struct InitList));
+          (struct InitList *)calloc(1, sizeof(struct InitList));
       size_t sub_consumed = 0;
 
       if (!nested_list) {
         rc = CDD_C_ERROR_MEMORY;
-        C_CDD_FREE(val_obj);
+        free(val_obj);
         if (desig_str)
-          C_CDD_FREE(desig_str);
+          free(desig_str);
         goto error;
       }
 
@@ -317,11 +320,11 @@ enum cdd_c_error parse_initializer(const struct TokenList *tokens,
 
       rc = parse_initializer(tokens, i, end_idx, nested_list, &sub_consumed);
       if (rc != 0) {
-        C_CDD_FREE(val_obj);
+        free(val_obj);
         init_list_free(nested_list);
-        C_CDD_FREE(nested_list);
+        free(nested_list);
         if (desig_str)
-          C_CDD_FREE(desig_str);
+          free(desig_str);
         goto error;
       }
       i += sub_consumed;
@@ -334,9 +337,9 @@ enum cdd_c_error parse_initializer(const struct TokenList *tokens,
       rc =
           parse_expression_str(tokens, i, end_idx, &expr_str, &next_after_expr);
       if (rc != 0) {
-        C_CDD_FREE(val_obj);
+        free(val_obj);
         if (desig_str)
-          C_CDD_FREE(desig_str);
+          free(desig_str);
         goto error;
       }
 
@@ -348,9 +351,9 @@ enum cdd_c_error parse_initializer(const struct TokenList *tokens,
     /* Add to list */
     if ((rc = init_list_add(out, desig_str, val_obj)) != 0) {
       if (desig_str)
-        C_CDD_FREE(desig_str);
+        free(desig_str);
       init_value_free(val_obj);
-      C_CDD_FREE(val_obj);
+      free(val_obj);
       goto error;
     }
 

@@ -56,7 +56,7 @@ static const char *get_ocaml_type(cdd_ffi_type_t type) {
   }
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
@@ -73,15 +73,6 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ml", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -120,7 +111,8 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
       fprintf(f, "let %s : %s structure typ = structure \"%s\"\n", node->name,
               node->name, node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         const char *ftype = get_ocaml_type(node->fields[j].type);
         fprintf(f, "let %s_%s = field %s \"%s\" %s\n", node->name, fname,
                 node->name, fname, ftype);
@@ -148,11 +140,11 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_ocaml(cdd_ffi_ir_t *ir,
-                   const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+cdd_c_error_t cdd_ffi_emit_ocaml(cdd_ffi_ir_t *ir,
+                                 const cdd_generate_bindings_config_t *config) {
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_ocaml_ml(ir, config);
 }

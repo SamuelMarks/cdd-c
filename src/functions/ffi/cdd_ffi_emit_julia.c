@@ -74,7 +74,7 @@ static void to_camel_case(const char *snake, char *out, size_t out_size) {
   out[j] = '\0';
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_julia_file(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -95,15 +95,6 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.jl", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -141,7 +132,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "mutable struct %s\n", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *fname = node->fields[j].name;
+        const char *fname =
+            node->fields[j].name ? node->fields[j].name : "field";
         fprintf(f, "    %s::%s\n", fname, get_julia_type(node->fields[j].type));
       }
       fprintf(f, "    %s() = new()\n", node->name);
@@ -157,7 +149,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
         fprintf(f, "# %s\n", node->doc);
       fprintf(f, "function %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         /* avoid julia keywords */
         if (strcmp(arg_name, "function") == 0)
           arg_name = "func";
@@ -179,7 +172,8 @@ emit_julia_file(cdd_ffi_ir_t *ir,
       if (node->fields_count > 0) {
         fprintf(f, ", ");
         for (j = 0; j < node->fields_count; j++) {
-          const char *arg_name = node->fields[j].name;
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           if (strcmp(arg_name, "function") == 0)
             arg_name = "func";
           fprintf(f, "%s", arg_name);
@@ -199,11 +193,11 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
-cdd_ffi_emit_julia(cdd_ffi_ir_t *ir,
-                   const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+cdd_c_error_t cdd_ffi_emit_julia(cdd_ffi_ir_t *ir,
+                                 const cdd_generate_bindings_config_t *config) {
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_julia_file(ir, config);
 }

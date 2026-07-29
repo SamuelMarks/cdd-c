@@ -63,7 +63,7 @@ struct CodegenBuildConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen build generate.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
                            const struct CodegenBuildConfig *config);
 

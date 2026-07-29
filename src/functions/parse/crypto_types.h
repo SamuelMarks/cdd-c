@@ -37,8 +37,9 @@ extern "C" {
  * bytes.
  * @return 0 on success, error code on failure (EINVAL, ENOMEM, EIO, ENOSYS).
  */
-extern C_CDD_EXPORT enum cdd_c_error
-crypto_sha256(const void *data, size_t data_len, unsigned char *out_digest);
+extern C_CDD_EXPORT cdd_c_error_t crypto_sha256(const void *data,
+                                                size_t data_len,
+                                                unsigned char *out_digest);
 
 /**
  * @brief Compute the HMAC-SHA-256 signature of a data buffer.
@@ -54,9 +55,11 @@ crypto_sha256(const void *data, size_t data_len, unsigned char *out_digest);
  * bytes.
  * @return 0 on success, error code on failure (EINVAL, ENOMEM, EIO, ENOSYS).
  */
-extern C_CDD_EXPORT enum cdd_c_error
-crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
-                   size_t data_len, unsigned char *out_mac);
+extern C_CDD_EXPORT cdd_c_error_t crypto_hmac_sha256(const void *key,
+                                                     size_t key_len,
+                                                     const void *data,
+                                                     size_t data_len,
+                                                     unsigned char *out_mac);
 
 #ifdef __cplusplus
 }

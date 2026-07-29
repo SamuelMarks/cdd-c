@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include "cdd_test_helpers/cdd_helpers.h"
@@ -26,8 +25,8 @@ extern "C" {
 
 #ifndef _MSC_VER
 #include <sys/stat.h>
-/* clang-format on */
 #endif /* !_MSC_VER */
+/* clang-format on */
 
 TEST test_get_basename(void) {
   char *res = NULL;
@@ -37,7 +36,7 @@ TEST test_get_basename(void) {
   rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt", &res);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("baz.txt", res);
-  C_CDD_FREE(res);
+  free(res);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_is_directory(NULL, &is_dir));
   ASSERT_EQ(
@@ -47,17 +46,18 @@ TEST test_get_basename(void) {
   rc = get_basename("file.txt", &res);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("file.txt", res);
-  C_CDD_FREE(res);
+  free(res);
 
   rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP, &res);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("bar", res);
-  C_CDD_FREE(res);
+  free(res);
 
   rc = get_basename(NULL, &res);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ(".", res);
-  C_CDD_FREE(res);
+  free(res);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -73,11 +73,12 @@ TEST test_read_to_file_error(void) {
 
   rc = read_to_file(NULL, "r", &s, &size);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
 
-static enum cdd_c_error mock_walk_cb(const char *path, void *user_data) {
+static cdd_c_error_t mock_walk_cb(const char *path, void *user_data) {
   int *count = (int *)user_data;
   (*count)++;
   (void)path;
@@ -102,10 +103,10 @@ TEST test_walk_directory(void) {
 
   /* Create a unique subdirectory to avoid counting other temp files */
   if (asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()) == -1) {
-    C_CDD_FREE(sys_tmp);
+    free(sys_tmp);
     FAILm("asprintf failed");
   }
-  C_CDD_FREE(sys_tmp);
+  free(sys_tmp);
 
   rc = makedir(root);
   ASSERT_EQ(0, rc);
@@ -134,12 +135,12 @@ TEST test_walk_directory(void) {
     rmdir(sub);
     rmdir(root);
 
-    C_CDD_FREE(sub);
-    C_CDD_FREE(f1);
-    C_CDD_FREE(f2);
+    free(sub);
+    free(f1);
+    free(f2);
   }
-  C_CDD_FREE(root);
-
+  free(root);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -152,14 +153,14 @@ TEST test_makedir_check(void) {
   rmdir(p);
   /* Don't try to remove system temp dir (t) */
   /* rmdir(t); */
-  C_CDD_FREE(p);
-  C_CDD_FREE(t);
-
+  free(p);
+  free(t);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_fs_fopen_error_from(void) {
-  enum FopenError err;
+  FopenError_t err;
 
   fopen_error_from(0, &err);
   ASSERT_EQ(FOPEN_OK, err);
@@ -175,6 +176,7 @@ TEST test_fs_fopen_error_from(void) {
   ASSERT_EQ(FOPEN_PERMISSION_DENIED, err);
   fopen_error_from(EIO, &err);
   ASSERT_EQ(FOPEN_UNKNOWN_ERROR, err);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -197,6 +199,7 @@ TEST test_fs_cp(void) {
   rc = cp("invalid/dst/path", "invalid_src.txt");
 
   ASSERT(rc != 0);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -209,7 +212,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
 
   ASSERT_EQ(0, get_basename("///", &out));
   ASSERT_STR_EQ("/", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   /* get_dirname edges */
@@ -217,13 +220,14 @@ TEST test_fs_basename_dirname_edge_cases(void) {
 
   ASSERT_EQ(0, get_dirname("foo///", &out));
   ASSERT_STR_EQ(".", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   ASSERT_EQ(0, get_dirname("///", &out));
   ASSERT_STR_EQ("/", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -233,18 +237,19 @@ TEST test_fs_dirname_more_edge_cases(void) {
 
   ASSERT_EQ(0, get_dirname("", &out));
   ASSERT_STR_EQ(".", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   ASSERT_EQ(0, get_dirname("foo//bar", &out));
   ASSERT_STR_EQ("foo", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
 
   ASSERT_EQ(0, get_dirname("foo/bar///", &out));
   ASSERT_STR_EQ("foo", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -266,11 +271,12 @@ TEST test_fs_write_to_file(void) {
   read_to_file(file_path, "r", &out_data, &sz);
   ASSERT_STR_EQ("hello world", out_data);
 
-  C_CDD_FREE(out_data);
+  free(out_data);
   remove(file_path);
   rmdir(tmp_dir);
-  C_CDD_FREE(file_path);
-  C_CDD_FREE(tmp_dir);
+  free(file_path);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -280,17 +286,19 @@ TEST test_fs_dirname_foo(void) {
 
   ASSERT_EQ(0, get_dirname("foo", &out));
   ASSERT_STR_EQ(".", out);
-  C_CDD_FREE(out);
+  free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_fs_cdd_fopen_too_long(void) {
-  enum FopenError err;
+  FopenError_t err;
 
   ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
   ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -298,7 +306,7 @@ TEST test_fs_cdd_fopen_too_long(void) {
 TEST test_fs_write_to_file_errors(void) {
   ASSERT_NEQ(
       0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -313,7 +321,7 @@ TEST test_read_from_fh_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, &data, NULL));
 
   fclose(f);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -349,6 +357,7 @@ TEST test_ascii_wide_conversion(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, NULL, 32, &alen));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, abuf, 0, &alen));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, wide_to_ascii(wbuf, abuf, 32, NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }

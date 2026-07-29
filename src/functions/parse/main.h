@@ -8,7 +8,7 @@ extern "C" {
 #include "cdd_c_error.h"
 /* clang-format on */
 /** @brief Main entry point function */
-extern C_CDD_EXPORT enum cdd_c_error cdd_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

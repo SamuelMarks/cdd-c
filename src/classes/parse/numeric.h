@@ -43,9 +43,9 @@ typedef unsigned __int64 uint64_t;
 #else
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdint.h>
+#endif
+#endif
 /* clang-format on */
-#endif
-#endif
 
 /* Fallback for Pre-C99 environments missing stdint.h */
 #if !defined(UINT64_MAX)
@@ -123,7 +123,7 @@ struct NumericValue {
 extern C_CDD_EXPORT /**
                      * @brief Parses numeric literal from the given input.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     parse_numeric_literal(const char *str, struct NumericValue *out);
 
 #ifdef __cplusplus

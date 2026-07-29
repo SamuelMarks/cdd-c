@@ -46,7 +46,7 @@ struct SdkTestsConfig {
  * @return 0 on success, error code
  * (CDD_C_ERROR_INVALID_ARGUMENT/CDD_C_ERROR_IO) on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                            const struct SdkTestsConfig *config);
 

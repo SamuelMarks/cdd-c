@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,8 +44,7 @@ struct TestPPCtx {
 };
 
 /* Updated mock callback for new signature */
-static enum cdd_c_error mock_cb(const struct IncludeInfo *info,
-                                void *user_data) {
+static cdd_c_error_t mock_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -70,14 +68,14 @@ static enum cdd_c_error mock_cb(const struct IncludeInfo *info,
     ctx->last_params.limit = info->params.limit;
 
     if (ctx->last_params.prefix)
-      C_CDD_FREE(ctx->last_params.prefix);
+      free(ctx->last_params.prefix);
     if (info->params.prefix)
       ctx->last_params.prefix = strdup(info->params.prefix);
     else
       ctx->last_params.prefix = NULL;
 
     if (ctx->last_params.suffix)
-      C_CDD_FREE(ctx->last_params.suffix);
+      free(ctx->last_params.suffix);
     if (info->params.suffix)
       ctx->last_params.suffix = strdup(info->params.suffix);
     else
@@ -142,7 +140,7 @@ TEST test_pp_eval_arithmetic(void) {
     eval("5 % 2", NULL, &out);
     ASSERT_EQ(1, out);
   }
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -177,7 +175,7 @@ TEST test_pp_eval_logical(void) {
     eval("!1", NULL, &out);
     ASSERT_EQ(0, out);
   }
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -212,7 +210,7 @@ TEST test_pp_eval_comparison(void) {
     eval("1 <= 1", NULL, &out);
     ASSERT_EQ(1, out);
   }
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -237,7 +235,7 @@ TEST test_pp_eval_defined(void) {
     ASSERT_EQ(0, out);
   }
   pp_context_free(&ctx);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -254,7 +252,7 @@ TEST test_pp_eval_macros_as_values(void) {
   }
 
   pp_context_free(&ctx);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -289,10 +287,10 @@ TEST test_pp_has_include(void) {
   pp_context_free(&ctx);
   remove(h);
   rmdir(root);
-  C_CDD_FREE(h);
-  C_CDD_FREE(root);
-  C_CDD_FREE(tmp);
-
+  free(h);
+  free(root);
+  free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -326,19 +324,19 @@ TEST test_pp_embed_params_parsing(void) {
   ASSERT_STR_EQ(" ,0xFF", tctx.last_params.suffix);
 
   if (tctx.last_params.prefix)
-    C_CDD_FREE(tctx.last_params.prefix);
+    free(tctx.last_params.prefix);
   if (tctx.last_params.suffix)
-    C_CDD_FREE(tctx.last_params.suffix);
+    free(tctx.last_params.suffix);
 
   pp_context_free(&ctx);
   remove(src);
   remove(dat);
   rmdir(root);
-  C_CDD_FREE(src);
-  C_CDD_FREE(dat);
-  C_CDD_FREE(root);
-  C_CDD_FREE(tmp);
-
+  free(src);
+  free(dat);
+  free(root);
+  free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -372,11 +370,11 @@ TEST test_pp_ifdef_skip(void) {
   remove(header);
   remove(main_c);
   rmdir(root);
-  C_CDD_FREE(header);
-  C_CDD_FREE(main_c);
-  C_CDD_FREE(root);
-  C_CDD_FREE(tmp);
-
+  free(header);
+  free(main_c);
+  free(root);
+  free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -411,12 +409,12 @@ TEST test_pp_if_else(void) {
   remove(h2);
   remove(main_c);
   rmdir(root);
-  C_CDD_FREE(h1);
-  C_CDD_FREE(h2);
-  C_CDD_FREE(main_c);
-  C_CDD_FREE(root);
-  C_CDD_FREE(tmp);
-
+  free(h1);
+  free(h2);
+  free(main_c);
+  free(root);
+  free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -446,16 +444,16 @@ TEST test_pp_nested_if(void) {
   remove(h1);
   remove(main_c);
   rmdir(root);
-  C_CDD_FREE(h1);
-  C_CDD_FREE(main_c);
-  C_CDD_FREE(root);
-  C_CDD_FREE(tmp);
-
+  free(h1);
+  free(main_c);
+  free(root);
+  free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
-static enum cdd_c_error
-test_include_next_visitor(const struct IncludeInfo *info, void *user_data) {
+static cdd_c_error_t test_include_next_visitor(const struct IncludeInfo *info,
+                                               void *user_data) {
   int *called = (int *)user_data;
   (*called)++;
   if (info->kind != PP_DIR_INCLUDE)
@@ -500,12 +498,11 @@ TEST test_pp_include_next(void) {
   remove(sys_file);
   rmdir(test_dir);
   rmdir(sys_dir);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
-static enum cdd_c_error abort_cb(const struct IncludeInfo *info,
-                                 void *user_data) {
+static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
   int *called;
   (void)info;
   called = (int *)user_data;
@@ -552,14 +549,14 @@ TEST test_preprocessor_abort(void) {
   remove(sys_file2);
   rmdir(test_dir);
   rmdir(sys_dir);
-  C_CDD_FREE(test_dir);
-  C_CDD_FREE(test_file);
-  C_CDD_FREE(sys_dir);
-  C_CDD_FREE(sys_file1);
-  C_CDD_FREE(sys_file2);
+  free(test_dir);
+  free(test_file);
+  free(sys_dir);
+  free(sys_file1);
+  free(sys_file2);
   if (tmp)
-    C_CDD_FREE(tmp);
-
+    free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

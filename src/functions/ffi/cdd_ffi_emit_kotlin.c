@@ -7,7 +7,7 @@
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_kotlin_def(cdd_ffi_ir_t *ir,
                 const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -27,15 +27,6 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.def", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -57,11 +48,12 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_emit_kotlin(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_kotlin_def(ir, config);
 }

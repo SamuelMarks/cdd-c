@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,9 +14,8 @@
 #include "win_compat_sym.h"
 /* clang-format on */
 
-enum cdd_c_error write_oauth2_error_parser_func(FILE *fp,
-                                                const char *struct_name,
-                                                const struct StructFields *sf) {
+cdd_c_error_t write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
+                                             const struct StructFields *sf) {
   size_t i;
   if (!fp || !struct_name || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -49,7 +47,7 @@ enum cdd_c_error write_oauth2_error_parser_func(FILE *fp,
   fprintf(fp, "  char *val;\n\n");
   fprintf(fp, "  if (!json || !out || !out_err) return CDD_C_ERROR_UNKNOWN;\n");
   fprintf(fp, "  *out_err = %s_ERROR_NONE;\n", struct_name);
-  fprintf(fp, "  ret = (struct %s *)C_CDD_CALLOC(1, sizeof(struct %s));\n",
+  fprintf(fp, "  ret = (struct %s *)calloc(1, sizeof(struct %s));\n",
           struct_name, struct_name);
   fprintf(fp, "  if (!ret) return CDD_C_ERROR_UNKNOWN;\n\n");
 

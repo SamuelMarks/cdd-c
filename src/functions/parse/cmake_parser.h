@@ -42,9 +42,9 @@ struct CMakeModifier {
  * add_compile_options/link_libraries.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
-                    const char *target_name);
+extern C_CDD_EXPORT cdd_c_error_t cmake_modifier_init(struct CMakeModifier *mod,
+                                                      const char *filepath,
+                                                      const char *target_name);
 
 /**
  * @brief Add a compile option to be injected.
@@ -53,7 +53,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the cmake modifier add compile opt
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt);
 
 /**
@@ -63,7 +63,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the cmake modifier add link lib
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib);
 
 /**
@@ -84,7 +84,7 @@ extern C_CDD_EXPORT void cmake_modifier_free(struct CMakeModifier *mod);
  * @param[out] out_diff A newly allocated string containing the unified diff.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 cmake_modifier_apply_diff(const struct CMakeModifier *mod, char **out_diff);
 
 #ifdef __cplusplus

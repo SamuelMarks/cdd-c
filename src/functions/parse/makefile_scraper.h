@@ -38,7 +38,7 @@ struct ExtractedBuildInfo {
 /**
  * @brief Initialize a build info structure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 build_info_init(struct ExtractedBuildInfo *info);
 
 /**
@@ -56,7 +56,7 @@ extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
  * @param[in] makefile_content The raw text content of the Makefile.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 scrape_makefile(struct ExtractedBuildInfo *info, const char *makefile_content);
 
 /**
@@ -70,9 +70,8 @@ scrape_makefile(struct ExtractedBuildInfo *info, const char *makefile_content);
  * @param[in] configure_ac_content The raw text content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-scrape_configure_ac(struct ExtractedBuildInfo *info,
-                    const char *configure_ac_content);
+extern C_CDD_EXPORT cdd_c_error_t scrape_configure_ac(
+    struct ExtractedBuildInfo *info, const char *configure_ac_content);
 
 /**
  * @brief Generate a modern CMakeLists.txt string from the extracted info.
@@ -83,7 +82,7 @@ scrape_configure_ac(struct ExtractedBuildInfo *info,
  * contents.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 build_info_to_cmake(const struct ExtractedBuildInfo *info,
                     const char *project_name, char **out_cmake);
 

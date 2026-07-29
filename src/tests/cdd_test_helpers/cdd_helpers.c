@@ -1,4 +1,3 @@
-/* clang-format off */
 #include "cdd_c_error.h"
 /**
  * @file cdd_helpers.c
@@ -6,12 +5,13 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "cdd_helpers.h"
-#include <errno.h>
 /* clang-format on */
+#include <errno.h>
 
 /**
  * @brief Logs a precondition failure to stderr.
@@ -27,8 +27,8 @@ void cdd_precondition_failed(void) {
  * @param[in] contents The contents to write.
  * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-enum cdd_c_error write_to_file(const char *const filename,
-                               const char *const contents) {
+cdd_c_error_t write_to_file(const char *const filename,
+                            const char *const contents) {
   FILE *fh;
   int rc = CDD_C_SUCCESS;
 

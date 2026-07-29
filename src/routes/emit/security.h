@@ -46,7 +46,7 @@ extern "C" {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security write apply.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
                                  const struct OpenAPI_Spec *spec);
 
@@ -57,7 +57,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security requires
                      * query.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_security_requires_query(const struct OpenAPI_Operation *op,
                                     const struct OpenAPI_Spec *spec);
 
@@ -68,14 +68,14 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen security requires
                      * cookie.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
                                      const struct OpenAPI_Spec *spec);
 
 extern C_CDD_EXPORT /**
                      * @brief Generate middleware check for servers
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_security_write_server_apply(FILE *fp,
                                         const struct OpenAPI_Operation *op,
                                         const struct OpenAPI_Spec *spec);

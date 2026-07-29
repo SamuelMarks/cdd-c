@@ -79,7 +79,7 @@ struct InitList {
  * @param[out] list Pointer to the list to init.
  * @return 0 on success, EINVAL if list is NULL.
  */
-extern C_CDD_EXPORT enum cdd_c_error init_list_init(struct InitList *list);
+extern C_CDD_EXPORT cdd_c_error_t init_list_init(struct InitList *list);
 
 /**
  * @brief Free an InitList and all its contents (recursive).
@@ -105,7 +105,7 @@ extern C_CDD_EXPORT void init_list_free(struct InitList *list);
 extern C_CDD_EXPORT /**
                      * @brief Parses initializer from the given input.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     parse_initializer(const struct TokenList *tokens, size_t start_idx,
                       size_t end_idx, struct InitList *out, size_t *consumed);
 

@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
@@ -28,7 +27,7 @@ TEST test_jsonschema2tests_wrong_args(void) {
   argv[1] = NULL;
   rc = jsonschema2tests_main(1, argv);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -39,7 +38,7 @@ TEST test_schema2tests_argc_error(void) {
   argv[0] = arg0;
   argv[1] = arg1;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, jsonschema2tests_main(1, argv));
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -53,7 +52,7 @@ TEST test_schema2tests_bad_json(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(filename);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -90,7 +89,7 @@ TEST test_schema2tests_success(void) {
   remove("build" PATH_SEP "test_s2t.h");
   remove("build" PATH_SEP "test_main.c");
   rmdir("build");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -137,6 +136,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
     ASSERT(rc != 0);
     remove(out_dir_as_file);
   }
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -154,7 +154,7 @@ TEST test_schema2tests_defs_fallback(void) {
   remove("build" PATH_SEP "defs_out.h");
   remove("build" PATH_SEP "test_main.c");
   rmdir("build");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -167,7 +167,7 @@ TEST test_schema2tests_invalid_schema_root(void) {
   write_to_file(schema_file, "[]");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_schema2tests_no_schemas_object(void) {
@@ -179,7 +179,7 @@ TEST test_schema2tests_no_schemas_object(void) {
   write_to_file(schema_file, "{}");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_schema2tests_malformed_schemas(void) {
@@ -203,7 +203,7 @@ TEST test_schema2tests_malformed_schemas(void) {
   remove("build" PATH_SEP "out.h");
   remove("build" PATH_SEP "test_main.c");
   rmdir("build");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,7 +220,7 @@ TEST test_schema2tests_with_null_enum_val(void) {
   remove("build" PATH_SEP "null_enum_out.h");
   remove("build" PATH_SEP "test_main.c");
   rmdir("build");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -301,7 +301,7 @@ TEST test_schema2tests_sanitize_names(void) {
   remove(schema_file);
   remove("build" PATH_SEP "test_sanitize.h");
   remove("build" PATH_SEP "test_main.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -345,7 +345,7 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
     read_err = read_to_file(argv[2], "r", &content, &fsize);
     ASSERT_EQ(0, read_err);
     ASSERT(strstr(content, "#include \"NonExistent.h\"") == NULL);
-    C_CDD_FREE(content);
+    free(content);
   }
 
   remove(argv[0]);
@@ -366,7 +366,7 @@ TEST test_schema2tests_output_in_current_dir(void) {
   remove(argv[0]);
   remove(argv[2]);
   remove("test_main.c");
-
+  g_fail_io_after = -1;
   PASS();
 }
 

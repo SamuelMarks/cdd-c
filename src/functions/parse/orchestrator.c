@@ -15,7 +15,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -41,8 +40,8 @@
 #else
 #include <errno.h>
 #include "c_cdd/log.h"
-/* clang-format on */
 #endif
+/* clang-format on */
 
 /* --- Graph Data Structures --- */
 
@@ -89,9 +88,8 @@ struct DependencyGraph {
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
  */
-static enum cdd_c_error get_token_slice(const struct TokenList *src,
-                                        size_t start, size_t end,
-                                        struct TokenList *dst) {
+static cdd_c_error_t get_token_slice(const struct TokenList *src, size_t start,
+                                     size_t end, struct TokenList *dst) {
   if (start >= src->size || end > src->size || start > end)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   dst->tokens = src->tokens + start;
@@ -104,10 +102,10 @@ static enum cdd_c_error get_token_slice(const struct TokenList *src,
 /**
  * @brief Retrieves the token in range.
  */
-static enum cdd_c_error find_token_in_range(const struct TokenList *tokens,
-                                            size_t start, size_t end,
-                                            enum TokenKind kind,
-                                            size_t *_out_val) {
+static cdd_c_error_t find_token_in_range(const struct TokenList *tokens,
+                                         size_t start, size_t end,
+                                         enum TokenKind kind,
+                                         size_t *_out_val) {
   size_t i;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind == kind) {
@@ -125,7 +123,7 @@ static enum cdd_c_error find_token_in_range(const struct TokenList *tokens,
 /**
  * @brief Executes the token eq str operation.
  */
-static enum cdd_c_error token_eq_str(const struct Token *tok, const char *s) {
+static cdd_c_error_t token_eq_str(const struct Token *tok, const char *s) {
   size_t len = strlen(s);
   return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
 }
@@ -134,9 +132,9 @@ static enum cdd_c_error token_eq_str(const struct Token *tok, const char *s) {
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  */
-static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
-                                          size_t start, size_t body_start,
-                                          char **_out_val) {
+static cdd_c_error_t extract_func_name(const struct TokenList *tokens,
+                                       size_t start, size_t body_start,
+                                       char **_out_val) {
   size_t _ast_find_token_in_range_0 = 0;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_0),
@@ -155,7 +153,7 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
       continue;
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
       size_t len = tokens->tokens[i].length;
-      char *name = C_CDD_MALLOC(len + 1);
+      char *name = malloc(len + 1);
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -177,9 +175,9 @@ static enum cdd_c_error extract_func_name(const struct TokenList *tokens,
 /**
  * @brief Join tokens into a single string.
  */
-static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
-                                        size_t start, size_t end,
-                                        char **_out_val) {
+static cdd_c_error_t join_tokens_str(const struct TokenList *tokens,
+                                     size_t start, size_t end,
+                                     char **_out_val) {
   char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
@@ -190,7 +188,7 @@ static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
   }
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
-  buf = C_CDD_MALLOC(len + 1);
+  buf = malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -210,11 +208,10 @@ static enum cdd_c_error join_tokens_str(const struct TokenList *tokens,
 /**
  * @brief Analyze return type tokens to determine void/int/pointer status.
  */
-static enum cdd_c_error analyze_signature_tokens(const struct TokenList *tokens,
-                                                 size_t start,
-                                                 size_t body_start, int *is_ptr,
-                                                 int *is_void,
-                                                 char **type_str) {
+static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
+                                              size_t start, size_t body_start,
+                                              int *is_ptr, int *is_void,
+                                              char **type_str) {
   size_t _ast_find_token_in_range_1 = 0;
   char *_ast_join_tokens_str_2 = NULL;
   size_t i;
@@ -271,8 +268,8 @@ static enum cdd_c_error analyze_signature_tokens(const struct TokenList *tokens,
 /**
  * @brief Executes the graph add node operation.
  */
-static enum cdd_c_error graph_add_node(struct DependencyGraph *g, size_t idx,
-                                       const char *name) {
+static cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
+                                    const char *name) {
   char *_ast_strdup_1 = NULL;
   g->nodes[idx].node_idx = idx;
   g->nodes[idx].name = (c_cdd_strdup(name, &_ast_strdup_1), _ast_strdup_1);
@@ -293,8 +290,8 @@ static enum cdd_c_error graph_add_node(struct DependencyGraph *g, size_t idx,
 /**
  * @brief Executes the graph add edge operation.
  */
-static enum cdd_c_error graph_add_edge(struct DependencyGraph *g,
-                                       size_t caller_idx, size_t callee_idx) {
+static cdd_c_error_t graph_add_edge(struct DependencyGraph *g,
+                                    size_t caller_idx, size_t callee_idx) {
   struct FuncNode *callee = &g->nodes[callee_idx];
   size_t i;
   /* Prevent duplicate edges */
@@ -305,7 +302,7 @@ static enum cdd_c_error graph_add_edge(struct DependencyGraph *g,
 
   if (callee->num_callers >= callee->alloc_callers) {
     size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
-    size_t *new_arr = C_CDD_REALLOC(callee->callers, new_cap * sizeof(size_t));
+    size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -325,11 +322,11 @@ static void graph_free_contents(struct DependencyGraph *g) {
   if (!g || !g->nodes)
     return;
   for (i = 0; i < g->count; i++) {
-    C_CDD_FREE(g->nodes[i].name);
-    C_CDD_FREE(g->nodes[i].callers);
-    C_CDD_FREE(g->nodes[i].original_return_type);
+    free(g->nodes[i].name);
+    free(g->nodes[i].callers);
+    free(g->nodes[i].original_return_type);
   }
-  C_CDD_FREE(g->nodes);
+  free(g->nodes);
   g->nodes = NULL;
   g->count = 0;
 }
@@ -339,8 +336,8 @@ static void graph_free_contents(struct DependencyGraph *g) {
 /**
  * @brief Executes the propagate refactor mark operation.
  */
-static enum cdd_c_error propagate_refactor_mark(struct DependencyGraph *g,
-                                                size_t idx) {
+static cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
+                                             size_t idx) {
   struct FuncNode *node = &g->nodes[idx];
   size_t i;
 
@@ -367,8 +364,7 @@ static enum cdd_c_error propagate_refactor_mark(struct DependencyGraph *g,
 /**
  * @brief Executes the orchestrate fix operation.
  */
-enum cdd_c_error orchestrate_fix(const char *source_code,
-                                 char **const out_code) {
+cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
   size_t _ast_find_token_in_range_3 = 0;
   char *_ast_extract_func_name_4 = NULL;
   char *_ast_join_tokens_str_5 = NULL;
@@ -415,7 +411,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
   }
 
   if (graph.count > 0) {
-    graph.nodes = C_CDD_CALLOC(graph.count, sizeof(struct FuncNode));
+    graph.nodes = calloc(graph.count, sizeof(struct FuncNode));
     if (!graph.nodes) {
       rc = CDD_C_ERROR_MEMORY;
       goto cleanup;
@@ -459,7 +455,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
           name = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
 
         rc = graph_add_node(&graph, f_idx, name);
-        C_CDD_FREE(name);
+        free(name);
         if (rc != 0)
           goto cleanup;
 
@@ -529,7 +525,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
         marked_count++;
 
     if (marked_count > 0) {
-      ref_funcs = C_CDD_CALLOC(marked_count, sizeof(struct RefactoredFunction));
+      ref_funcs = calloc(marked_count, sizeof(struct RefactoredFunction));
       if (!ref_funcs) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -626,8 +622,8 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
                     size_t nc = local_allocs.capacity == 0
                                     ? 4
                                     : local_allocs.capacity * 2;
-                    new_sites = C_CDD_REALLOC(
-                        local_allocs.sites, nc * sizeof(struct AllocationSite));
+                    new_sites = realloc(local_allocs.sites,
+                                        nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
                       return CDD_C_ERROR_MEMORY;
                     }
@@ -643,8 +639,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
                 asprintf(&segment, "%s %s", new_sig, new_body);
 #else
-                char *buf =
-                    C_CDD_MALLOC(strlen(new_sig) + strlen(new_body) + 2);
+                char *buf = malloc(strlen(new_sig) + strlen(new_body) + 2);
                 if (buf) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -656,8 +651,8 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
                 }
                 segment = buf;
 #endif
-                C_CDD_FREE(new_sig);
-                C_CDD_FREE(new_body);
+                free(new_sig);
+                free(new_body);
               }
               allocation_site_list_free(&local_allocs);
             }
@@ -675,7 +670,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
           asprintf(&joined, "%s%s", output, segment);
 #else
-          joined = C_CDD_MALLOC(strlen(output) + strlen(segment) + 1);
+          joined = malloc(strlen(output) + strlen(segment) + 1);
           if (joined) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -686,9 +681,9 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #endif
           }
 #endif
-          C_CDD_FREE(output);
+          free(output);
           output = joined;
-          C_CDD_FREE(segment);
+          free(segment);
         }
         f_idx++;
         continue;
@@ -703,7 +698,7 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #ifdef HAVE_ASPRINTF
         asprintf(&joined, "%s%s", output, content);
 #else
-        joined = C_CDD_MALLOC(strlen(output) + strlen(content) + 1);
+        joined = malloc(strlen(output) + strlen(content) + 1);
         if (joined) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -714,9 +709,9 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 #endif
         }
 #endif
-        C_CDD_FREE(output);
+        free(output);
         output = joined;
-        C_CDD_FREE(content);
+        free(content);
       }
     }
   }
@@ -726,10 +721,10 @@ enum cdd_c_error orchestrate_fix(const char *source_code,
 
 cleanup:
   if (ref_funcs)
-    C_CDD_FREE(ref_funcs);
+    free(ref_funcs);
   graph_free_contents(&graph);
   if (output)
-    C_CDD_FREE(output);
+    free(output);
   free_cst_node_list(&cst);
   allocation_site_list_free(&allocs);
   free_token_list(tokens);
@@ -753,7 +748,7 @@ struct FixWalkContext {
 /**
  * @brief Checks if c source.
  */
-static enum cdd_c_error is_c_source(const char *path, int *out_is_src) {
+static cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
   const char *dot;
   int diff;
   if (!out_is_src)
@@ -770,7 +765,7 @@ static enum cdd_c_error is_c_source(const char *path, int *out_is_src) {
 /**
  * @brief Executes the fix file callback operation.
  */
-static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
+static cdd_c_error_t fix_file_callback(const char *path, void *user_data) {
   struct FixWalkContext *ctx = (struct FixWalkContext *)user_data;
   char *content = NULL;
   char *result = NULL;
@@ -793,7 +788,7 @@ static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
   }
 
   rc = orchestrate_fix(content, &result);
-  C_CDD_FREE(content);
+  free(content);
 
   if (rc != 0) {
     fprintf(stderr, "Refactoring failed for %s (code %d)\n", path, rc);
@@ -824,14 +819,14 @@ static enum cdd_c_error fix_file_callback(const char *path, void *user_data) {
     }
   }
 
-  C_CDD_FREE(result);
+  free(result);
   return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the fix code main operation.
  */
-enum cdd_c_error fix_code_main(int argc, char **argv) {
+cdd_c_error_t fix_code_main(int argc, char **argv) {
   struct FixWalkContext ctx = {0};
   const char *target;
 

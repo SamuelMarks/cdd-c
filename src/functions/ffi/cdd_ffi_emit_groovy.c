@@ -51,7 +51,7 @@ static const char *map_groovy_jna_type(cdd_ffi_type_t *t) {
   }
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
@@ -60,8 +60,9 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   const char *module_name = config->module_name ? config->module_name : "MyLib";
   size_t i, j;
 
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.groovy", config->output_dir,
@@ -73,15 +74,6 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.groovy", config->output_dir,
                module_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

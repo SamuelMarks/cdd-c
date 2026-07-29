@@ -60,8 +60,7 @@ struct VLASiteList {
 /**
  * @brief Initialize a VLA site list.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-vla_site_list_init(struct VLASiteList *list);
+extern C_CDD_EXPORT cdd_c_error_t vla_site_list_init(struct VLASiteList *list);
 
 /**
  * @brief Free resources associated with a VLA site list.
@@ -78,8 +77,8 @@ extern C_CDD_EXPORT void vla_site_list_free(struct VLASiteList *list);
  * @param[out] list The initialized list to populate.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list);
+extern C_CDD_EXPORT cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
+                                                struct VLASiteList *list);
 
 #ifdef __cplusplus
 }

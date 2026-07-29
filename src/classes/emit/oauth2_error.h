@@ -24,9 +24,8 @@ extern "C" {
  * @param sf Struct fields
  * @return 0 on success, error code otherwise
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
-                               const struct StructFields *sf);
+extern C_CDD_EXPORT cdd_c_error_t write_oauth2_error_parser_func(
+    FILE *fp, const char *struct_name, const struct StructFields *sf);
 
 #ifdef __cplusplus
 }

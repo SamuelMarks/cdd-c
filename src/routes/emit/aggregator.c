@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,9 +17,9 @@
 /**
  * @brief Comparison function to find a path by route string.
  */
-static enum cdd_c_error find_path_in_list(struct OpenAPI_Path *paths,
-                                          size_t n_paths, const char *route,
-                                          struct OpenAPI_Path **_out_val) {
+static cdd_c_error_t find_path_in_list(struct OpenAPI_Path *paths,
+                                       size_t n_paths, const char *route,
+                                       struct OpenAPI_Path **_out_val) {
   size_t i;
   if (!paths || !route) {
     *_out_val = NULL;
@@ -43,9 +42,9 @@ static enum cdd_c_error find_path_in_list(struct OpenAPI_Path *paths,
 /**
  * @brief Append a new path object to a list.
  */
-static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
-                                            size_t *n_paths, const char *route,
-                                            struct OpenAPI_Path **out_ptr) {
+static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
+                                         size_t *n_paths, const char *route,
+                                         struct OpenAPI_Path **out_ptr) {
   char *_ast_strdup_0 = NULL;
   size_t new_count;
   struct OpenAPI_Path *new_arr;
@@ -54,7 +53,7 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_count = *n_paths + 1;
-  new_arr = (struct OpenAPI_Path *)C_CDD_REALLOC(
+  new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -78,9 +77,9 @@ static enum cdd_c_error append_path_to_list(struct OpenAPI_Path **paths,
 /**
  * @brief Executes the append operation operation.
  */
-static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
-                                         size_t *count,
-                                         struct OpenAPI_Operation *op) {
+static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
+                                      size_t *count,
+                                      struct OpenAPI_Operation *op) {
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 
@@ -88,7 +87,7 @@ static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_count = *count + 1;
-  new_ops = (struct OpenAPI_Operation *)C_CDD_REALLOC(
+  new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -105,9 +104,9 @@ static enum cdd_c_error append_operation(struct OpenAPI_Operation **ops,
 /**
  * @brief Executes the openapi aggregator add operation operation.
  */
-enum cdd_c_error
-openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
-                                 struct OpenAPI_Operation *op) {
+cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
+                                               const char *route,
+                                               struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_0;
   struct OpenAPI_Path *target_path;
   int rc;
@@ -149,7 +148,7 @@ openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
 /**
  * @brief Executes the openapi aggregator add webhook operation operation.
  */
-enum cdd_c_error
+cdd_c_error_t
 openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
                                          const char *route,
                                          struct OpenAPI_Operation *op) {

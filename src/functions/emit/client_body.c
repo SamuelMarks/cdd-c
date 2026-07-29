@@ -9,7 +9,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -34,6 +33,26 @@
 #endif
 
 /** @brief CHECK_IO definition */
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((format(printf, 2, 3)))
+#endif
+    ;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define fprintf test_cdd_fprintf_hook
+#endif
 
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
@@ -48,8 +67,8 @@
 /**
  * @brief Executes the verb to enum str operation.
  */
-static enum cdd_c_error verb_to_enum_str(enum OpenAPI_Verb v,
-                                         const char **_out_val) {
+static cdd_c_error_t verb_to_enum_str(enum OpenAPI_Verb v,
+                                      const char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "HTTP_GET";
@@ -97,8 +116,8 @@ static enum cdd_c_error verb_to_enum_str(enum OpenAPI_Verb v,
 /**
  * @brief Executes the method str to enum str operation.
  */
-static enum cdd_c_error method_str_to_enum_str(const char *method,
-                                               const char **_out_val) {
+static cdd_c_error_t method_str_to_enum_str(const char *method,
+                                            const char **_out_val) {
   int _ast_iequal_0 = false;
   int _ast_iequal_1 = false;
   int _ast_iequal_2 = false;
@@ -162,7 +181,7 @@ static enum cdd_c_error method_str_to_enum_str(const char *method,
 /**
  * @brief Executes the mapped err code operation.
  */
-static enum cdd_c_error mapped_err_code(int status) {
+static cdd_c_error_t mapped_err_code(int status) {
   if (status == 400)
     return 22; /* EINVAL */
   if (status == 401 || status == 403)
@@ -175,7 +194,7 @@ static enum cdd_c_error mapped_err_code(int status) {
 /**
  * @brief Retrieves the media type.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
                 const struct OpenAPI_MediaType **_out_val) {
   size_t i;
@@ -198,9 +217,9 @@ find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
 /**
  * @brief Retrieves the encoding.
  */
-static enum cdd_c_error find_encoding(const struct OpenAPI_MediaType *mt,
-                                      const char *name,
-                                      struct OpenAPI_Encoding **_out_val) {
+static cdd_c_error_t find_encoding(const struct OpenAPI_MediaType *mt,
+                                   const char *name,
+                                   struct OpenAPI_Encoding **_out_val) {
   size_t i;
   if (!mt || !name || !mt->encoding) {
     *_out_val = NULL;
@@ -223,7 +242,7 @@ static enum cdd_c_error find_encoding(const struct OpenAPI_MediaType *mt,
 /**
  * @brief Checks if primitive type.
  */
-static enum cdd_c_error is_primitive_type(const char *type) {
+static cdd_c_error_t is_primitive_type(const char *type) {
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -231,7 +250,7 @@ static enum cdd_c_error is_primitive_type(const char *type) {
 /**
  * @brief Checks if object ref type.
  */
-static enum cdd_c_error is_object_ref_type(const char *type) {
+static cdd_c_error_t is_object_ref_type(const char *type) {
   if (is_primitive_type(type))
     return CDD_C_SUCCESS;
   if (strcmp(type, "object") == 0)
@@ -246,7 +265,7 @@ static enum cdd_c_error is_object_ref_type(const char *type) {
 /**
  * @brief Executes the struct fields all primitive operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 struct_fields_all_primitive(const struct StructFields *sf) {
   size_t i;
   for (i = 0; i < sf->size; ++i) {
@@ -260,17 +279,25 @@ struct_fields_all_primitive(const struct StructFields *sf) {
 /**
  * @brief Executes the schema has inline operation.
  */
-static enum cdd_c_error
-schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
+static cdd_c_error_t schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
+  if (!schema)
+
+    return CDD_C_SUCCESS;
+
   return schema->inline_type != NULL;
 }
 
 /**
  * @brief Executes the media type base len operation.
  */
-static enum cdd_c_error media_type_base_len(const char *media_type,
-                                            size_t *_out_val) {
+static cdd_c_error_t media_type_base_len(const char *media_type,
+                                         size_t *_out_val) {
   size_t i = 0;
+  if (!media_type) {
+    *_out_val = 0;
+
+    return CDD_C_SUCCESS;
+  }
   while (media_type[i] && media_type[i] != ';')
     ++i;
   {
@@ -282,8 +309,8 @@ static enum cdd_c_error media_type_base_len(const char *media_type,
 /**
  * @brief Executes the media type has prefix operation.
  */
-static enum cdd_c_error media_type_has_prefix(const char *media_type,
-                                              const char *prefix) {
+static cdd_c_error_t media_type_has_prefix(const char *media_type,
+                                           const char *prefix) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
@@ -307,8 +334,8 @@ static enum cdd_c_error media_type_has_prefix(const char *media_type,
 /**
  * @brief Executes the media type has suffix operation.
  */
-static enum cdd_c_error media_type_has_suffix(const char *media_type,
-                                              const char *suffix) {
+static cdd_c_error_t media_type_has_suffix(const char *media_type,
+                                           const char *suffix) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
@@ -332,8 +359,8 @@ static enum cdd_c_error media_type_has_suffix(const char *media_type,
 /**
  * @brief Executes the media type ieq operation.
  */
-static enum cdd_c_error media_type_ieq(const char *media_type,
-                                       const char *expected) {
+static cdd_c_error_t media_type_ieq(const char *media_type,
+                                    const char *expected) {
   size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
@@ -357,7 +384,7 @@ static enum cdd_c_error media_type_ieq(const char *media_type,
 /**
  * @brief Executes the media type is json operation.
  */
-static enum cdd_c_error media_type_is_json(const char *media_type) {
+static cdd_c_error_t media_type_is_json(const char *media_type) {
   if (media_type_ieq(media_type, "application/json"))
     return CDD_C_ERROR_UNKNOWN;
   return media_type_has_suffix(media_type, "+json");
@@ -366,37 +393,37 @@ static enum cdd_c_error media_type_is_json(const char *media_type) {
 /**
  * @brief Executes the media type is form operation.
  */
-static enum cdd_c_error media_type_is_form(const char *media_type) {
+static cdd_c_error_t media_type_is_form(const char *media_type) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
  * @brief Executes the media type is text plain operation.
  */
-static enum cdd_c_error media_type_is_text_plain(const char *media_type) {
+static cdd_c_error_t media_type_is_text_plain(const char *media_type) {
   return media_type_ieq(media_type, "text/plain");
 }
 
 /**
  * @brief Executes the media type is multipart operation.
  */
-static enum cdd_c_error media_type_is_multipart(const char *media_type) {
+static cdd_c_error_t media_type_is_multipart(const char *media_type) {
   return media_type_has_prefix(media_type, "multipart/");
 }
 
 /**
  * @brief Executes the media type is multipart form operation.
  */
-static enum cdd_c_error media_type_is_multipart_form(const char *media_type) {
+static cdd_c_error_t media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
 /**
  * @brief Executes the first content type entry operation.
  */
-static enum cdd_c_error first_content_type_entry(const char *content_type,
-                                                 char *buf, size_t buf_sz,
-                                                 const char **_out_val) {
+static cdd_c_error_t first_content_type_entry(const char *content_type,
+                                              char *buf, size_t buf_sz,
+                                              const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
@@ -419,8 +446,7 @@ static enum cdd_c_error first_content_type_entry(const char *content_type,
 /**
  * @brief Executes the sanitize ident operation.
  */
-static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
-                                       const char *in) {
+static cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
   size_t i = 0;
   size_t j = 0;
   out[0] = '\0';
@@ -446,13 +472,13 @@ static enum cdd_c_error sanitize_ident(char *out, size_t outsz,
 /**
  * @brief Executes the multipart header param name operation.
  */
-static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
-                                                    const char *field,
-                                                    const char *header) {
+static cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
+                                                 const char *field,
+                                                 const char *header) {
   char hdr_sanitized[128];
   out[0] = '\0';
   {
-    enum cdd_c_error rc =
+    cdd_c_error_t rc =
         sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
     if (rc != CDD_C_SUCCESS)
 
@@ -465,7 +491,7 @@ static enum cdd_c_error multipart_header_param_name(char *out, size_t outsz,
 /**
  * @brief Executes the header name is content type operation.
  */
-static enum cdd_c_error header_name_is_content_type(const char *name) {
+static cdd_c_error_t header_name_is_content_type(const char *name) {
   int _ast_iequal_10 = false;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
           _ast_iequal_10) != 0;
@@ -474,7 +500,7 @@ static enum cdd_c_error header_name_is_content_type(const char *name) {
 /**
  * @brief Executes the media type is textual operation.
  */
-static enum cdd_c_error media_type_is_textual(const char *media_type) {
+static cdd_c_error_t media_type_is_textual(const char *media_type) {
   if (media_type_is_text_plain(media_type))
     return CDD_C_ERROR_UNKNOWN;
   if (media_type_has_prefix(media_type, "text/"))
@@ -493,7 +519,7 @@ static enum cdd_c_error media_type_is_textual(const char *media_type) {
 /**
  * @brief Executes the media type is binary operation.
  */
-static enum cdd_c_error media_type_is_binary(const char *media_type) {
+static cdd_c_error_t media_type_is_binary(const char *media_type) {
   if (media_type_is_json(media_type))
     return CDD_C_SUCCESS;
   if (media_type_is_form(media_type))
@@ -508,9 +534,9 @@ static enum cdd_c_error media_type_is_binary(const char *media_type) {
 /**
  * @brief Executes the schema inline is string operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
-  if (schema->is_array || !schema->inline_type)
+  if (!schema || schema->is_array || !schema->inline_type)
     return CDD_C_SUCCESS;
   return strcmp(schema->inline_type, "string") == 0;
 }
@@ -518,7 +544,7 @@ schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
 /**
  * @brief Executes the response is textual string operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 response_is_textual_string(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
     return CDD_C_SUCCESS;
@@ -532,14 +558,12 @@ response_is_textual_string(const struct OpenAPI_Response *resp) {
 /**
  * @brief Executes the schema has payload operation.
  */
-static enum cdd_c_error
-schema_has_payload(const struct OpenAPI_SchemaRef *schema);
+static cdd_c_error_t schema_has_payload(const struct OpenAPI_SchemaRef *schema);
 
 /**
  * @brief Executes the response is binary operation.
  */
-static enum cdd_c_error
-response_is_binary(const struct OpenAPI_Response *resp) {
+static cdd_c_error_t response_is_binary(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
     return CDD_C_SUCCESS;
   if (!media_type_is_binary(resp->content_type))
@@ -550,11 +574,10 @@ response_is_binary(const struct OpenAPI_Response *resp) {
 /**
  * @brief Generates C code for write text plain success.
  */
-static enum cdd_c_error write_text_plain_success(FILE *fp) {
+static cdd_c_error_t write_text_plain_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
   CHECK_IO(fprintf(fp, "        size_t body_len = res->body_len;\n"));
-  CHECK_IO(
-      fprintf(fp, "        char *tmp = (char *)C_CDD_MALLOC(body_len + 1);\n"));
+  CHECK_IO(fprintf(fp, "        char *tmp = (char *)malloc(body_len + 1);\n"));
   CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
   CHECK_IO(fprintf(fp, "        else {\n"));
   CHECK_IO(fprintf(fp, "          memcpy(tmp, res->body, body_len);\n"));
@@ -568,14 +591,14 @@ static enum cdd_c_error write_text_plain_success(FILE *fp) {
 /**
  * @brief Generates C code for write binary success.
  */
-static enum cdd_c_error write_binary_success(FILE *fp) {
+static cdd_c_error_t write_binary_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (out && out_len) {\n"));
   CHECK_IO(fprintf(fp, "        if (!res->body || res->body_len == 0) {\n"));
   CHECK_IO(fprintf(fp, "          *out = NULL;\n"));
   CHECK_IO(fprintf(fp, "          *out_len = 0;\n"));
   CHECK_IO(fprintf(fp, "        } else {\n"));
   CHECK_IO(fprintf(fp, "          unsigned char *tmp = "
-                       "(unsigned char *)C_CDD_MALLOC(res->body_len);\n"));
+                       "(unsigned char *)malloc(res->body_len);\n"));
   CHECK_IO(fprintf(fp, "          if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
   CHECK_IO(fprintf(fp,
                    "          else { memcpy(tmp, res->body, res->body_len); "
@@ -588,8 +611,11 @@ static enum cdd_c_error write_binary_success(FILE *fp) {
 /**
  * @brief Executes the schema has payload operation.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
+  if (!schema)
+
+    return CDD_C_SUCCESS;
 
   if (schema->ref_name)
     return CDD_C_ERROR_UNKNOWN;
@@ -602,7 +628,7 @@ schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
 /**
  * @brief Generates C code for write inline json parse.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
   const char *type;
   if (!fp || !schema || !schema->inline_type)
@@ -631,9 +657,8 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
     CHECK_IO(fprintf(fp, "            *out = NULL;\n"));
     CHECK_IO(fprintf(fp, "          } else {\n"));
     if (strcmp(type, "string") == 0) {
-      CHECK_IO(fprintf(fp,
-                       "            char **tmp = (char **)C_CDD_CALLOC(count, "
-                       "sizeof(char *));\n"));
+      CHECK_IO(fprintf(fp, "            char **tmp = (char **)calloc(count, "
+                           "sizeof(char *));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
@@ -654,11 +679,11 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "            } else if (tmp) {\n"));
       CHECK_IO(fprintf(fp, "              size_t k;\n"));
       CHECK_IO(fprintf(fp, "              for (k = 0; k < count; ++k) "
-                           "C_CDD_FREE(tmp[k]);\n"));
-      CHECK_IO(fprintf(fp, "              C_CDD_FREE(tmp);\n"));
+                           "free(tmp[k]);\n"));
+      CHECK_IO(fprintf(fp, "              free(tmp);\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
     } else if (strcmp(type, "integer") == 0) {
-      CHECK_IO(fprintf(fp, "            int *tmp = (int *)C_CDD_CALLOC(count, "
+      CHECK_IO(fprintf(fp, "            int *tmp = (int *)calloc(count, "
                            "sizeof(int));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
@@ -676,11 +701,10 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
       CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else C_CDD_FREE(tmp);\n"));
+          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
     } else if (strcmp(type, "number") == 0) {
-      CHECK_IO(
-          fprintf(fp, "            double *tmp = (double *)C_CDD_CALLOC(count, "
-                      "sizeof(double));\n"));
+      CHECK_IO(fprintf(fp, "            double *tmp = (double *)calloc(count, "
+                           "sizeof(double));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
@@ -697,9 +721,9 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
       CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else C_CDD_FREE(tmp);\n"));
+          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
     } else if (strcmp(type, "boolean") == 0) {
-      CHECK_IO(fprintf(fp, "            int *tmp = (int *)C_CDD_CALLOC(count, "
+      CHECK_IO(fprintf(fp, "            int *tmp = (int *)calloc(count, "
                            "sizeof(int));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
@@ -717,7 +741,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
       CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else C_CDD_FREE(tmp);\n"));
+          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
     } else {
       CHECK_IO(fprintf(fp, "            rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     }
@@ -780,7 +804,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
  * @brief Generates C code for write joined form array.
  */
 
-static enum cdd_c_error write_joined_form_array(
+static cdd_c_error_t write_joined_form_array(
 
     FILE *fp, const char *field, const char *len_field, const char *items_type,
     char delim, const char *encode_fn, int add_encoded, int items_is_object) {
@@ -807,7 +831,7 @@ static enum cdd_c_error write_joined_form_array(
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
-      CHECK_IO(fprintf(fp, "      if (!enc) { C_CDD_FREE(raw); rc = "
+      CHECK_IO(fprintf(fp, "      if (!enc) { free(raw); rc = "
 
                            "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
 
@@ -817,10 +841,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
-          "        if (!tmp) { C_CDD_FREE(raw); C_CDD_FREE(enc); rc = "
-          "CDD_C_ERROR_MEMORY; "
+          "        if (!tmp) { free(raw); free(enc); rc = CDD_C_ERROR_MEMORY; "
           "goto cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -830,8 +853,8 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(raw);\n"));
+      CHECK_IO(fprintf(fp, "      free(enc);\n"));
+      CHECK_IO(fprintf(fp, "      free(raw);\n"));
 
     } else {
 
@@ -841,10 +864,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len + "
-          "extra + "
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { C_CDD_FREE(raw); rc = CDD_C_ERROR_MEMORY; goto "
+          "        if (!tmp) { free(raw); rc = CDD_C_ERROR_MEMORY; goto "
           "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -854,7 +876,7 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(raw);\n"));
+      CHECK_IO(fprintf(fp, "      free(raw);\n"));
     }
 
   } else if (items_type && strcmp(items_type, "integer") == 0) {
@@ -878,10 +900,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len + "
-          "extra + "
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { C_CDD_FREE(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
           "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -891,7 +912,7 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+      CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
     } else {
 
@@ -901,7 +922,7 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -934,10 +955,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len + "
-          "extra + "
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { C_CDD_FREE(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
           "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -947,7 +967,7 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+      CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
     } else {
 
@@ -957,7 +977,7 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -988,10 +1008,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len + "
-          "extra + "
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { C_CDD_FREE(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
           "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -1001,7 +1020,7 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+      CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
     } else {
 
@@ -1011,7 +1030,7 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -1039,10 +1058,9 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len + "
-          "extra + "
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
-          "        if (!tmp) { C_CDD_FREE(enc); rc = CDD_C_ERROR_MEMORY; goto "
+          "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto "
           "cleanup; }\n"
           "        joined = tmp;\n"
           "        if (i > 0) joined[joined_len++] = '%c';\n"
@@ -1052,7 +1070,7 @@ static enum cdd_c_error write_joined_form_array(
           "      }\n",
           delim));
 
-      CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+      CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
     } else {
 
@@ -1062,7 +1080,7 @@ static enum cdd_c_error write_joined_form_array(
           fp,
           "      {\n"
           "        size_t extra = val_len + (i > 0 ? 1 : 0);\n"
-          "        char *tmp = (char *)C_CDD_REALLOC(joined, joined_len "
+          "        char *tmp = (char *)realloc(joined, joined_len "
           "+ extra + 1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
           "        joined = tmp;\n"
@@ -1089,7 +1107,7 @@ static enum cdd_c_error write_joined_form_array(
         fp, "      rc = url_query_add(&form_qp, \"%s\", joined);\n", field));
   }
 
-  CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+  CHECK_IO(fprintf(fp, "      free(joined);\n"));
   CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "    }\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
@@ -1100,7 +1118,7 @@ static enum cdd_c_error write_joined_form_array(
 /**
  * @brief Generates C code for write header param logic.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
   size_t i;
   for (i = 0; i < op->n_parameters; ++i) {
@@ -1262,7 +1280,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                 fp, "      item_val = json_parse_string(item_json);\n"));
 
-            CHECK_IO(fprintf(fp, "      C_CDD_FREE(item_json);\n"));
+            CHECK_IO(fprintf(fp, "      free(item_json);\n"));
             CHECK_IO(
 
                 fprintf(fp, "      if (!item_val) { rc = "
@@ -1322,7 +1340,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                 fp,
                 "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
                 p->name));
-            CHECK_IO(fprintf(fp, "    C_CDD_FREE(hdr_json);\n"));
+            CHECK_IO(fprintf(fp, "    free(hdr_json);\n"));
             CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
 
@@ -1545,9 +1563,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(
             fp,
             "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
-        CHECK_IO(fprintf(fp,
-                         "        char *tmp = (char *)C_CDD_REALLOC(joined, "
-                         "joined_len + extra + 1);\n"));
+        CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
+                             "joined_len + extra + 1);\n"));
         CHECK_IO(fprintf(
             fp,
             "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
@@ -1564,11 +1581,11 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(
             fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
             p->name));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+        CHECK_IO(fprintf(fp, "      free(joined);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
-      } else if (p->type && strcmp(p->type, "object") == 0) {
+      } else if (strcmp(p->type, "object") == 0) {
         int explode = p->explode_set ? p->explode : 0;
         CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
         CHECK_IO(fprintf(fp, "    char *joined = NULL;\n"));
@@ -1608,7 +1625,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
               "        size_t val_len = strlen(kv_raw);\n"
               "        size_t extra = key_len + val_len + 1 + "
               "(first ? 0 : 1);\n"
-              "        char *tmp = (char *)C_CDD_REALLOC(joined, "
+              "        char *tmp = (char *)realloc(joined, "
               "joined_len + extra + 1);\n"
               "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
               "        joined = tmp;\n",
@@ -1630,7 +1647,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
               "        size_t val_len = strlen(kv_raw);\n"
               "        size_t extra = key_len + val_len + 1 + "
               "(first ? 0 : 1) + 1;\n"
-              "        char *tmp = (char *)C_CDD_REALLOC(joined, "
+              "        char *tmp = (char *)realloc(joined, "
               "joined_len + extra + 1);\n"
               "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
               "        joined = tmp;\n",
@@ -1654,11 +1671,11 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(
             fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
             p->name));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+        CHECK_IO(fprintf(fp, "      free(joined);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
-      } else if (p->type && strcmp(p->type, "string") == 0) {
+      } else if (strcmp(p->type, "string") == 0) {
 
         CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
         CHECK_IO(fprintf(
@@ -1669,7 +1686,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
 
-      } else if (p->type && strcmp(p->type, "integer") == 0) {
+      } else if (strcmp(p->type, "integer") == 0) {
 
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
         CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", p->name));
@@ -1680,7 +1697,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
         CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
 
-      } else if (p->type && strcmp(p->type, "number") == 0) {
+      } else if (strcmp(p->type, "number") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
         CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", p->name));
         CHECK_IO(fprintf(
@@ -1688,7 +1705,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             p->name));
         CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
 
-      } else if (p->type && strcmp(p->type, "boolean") == 0) {
+      } else if (strcmp(p->type, "boolean") == 0) {
         CHECK_IO(fprintf(fp,
 
                          "  rc = http_headers_add(&req.headers, \"%s\", %s ? "
@@ -1705,7 +1722,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 /**
  * @brief Generates C code for write form urlencoded body.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                            const struct OpenAPI_Spec *spec) {
   const struct OpenAPI_MediaType *_ast_find_media_type_3;
@@ -1785,14 +1802,14 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                     items_type, f->name));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "      enc = %s(item_json);\n", enc_fn));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(item_json);\n"));
+        CHECK_IO(fprintf(fp, "      free(item_json);\n"));
         CHECK_IO(fprintf(
             fp,
             "      if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
         CHECK_IO(fprintf(
             fp, "      rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
             f->name));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+        CHECK_IO(fprintf(fp, "      free(enc);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n  }\n"));
       } else if (style == OA_STYLE_FORM && explode) {
@@ -1818,7 +1835,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
                 f->name));
 
-            CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+            CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
           } else {
             CHECK_IO(fprintf(fp,
@@ -1913,7 +1930,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
             fp, "    rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
             f->name));
 
-        CHECK_IO(fprintf(fp, "    C_CDD_FREE(enc);\n"));
+        CHECK_IO(fprintf(fp, "    free(enc);\n"));
 
       } else {
         CHECK_IO(fprintf(
@@ -2001,7 +2018,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                    "\"%s\", enc);\n",
                                    pf->name));
 
-                  CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+                  CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
                 } else {
                   CHECK_IO(fprintf(fp,
@@ -2119,7 +2136,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 fp,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", joined);\n",
                 f->name));
-            CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+            CHECK_IO(fprintf(fp, "      free(joined);\n"));
             CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
@@ -2151,7 +2168,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                    "\"%s[%s]\", enc);\n",
                                    f->name, pf->name));
 
-                  CHECK_IO(fprintf(fp, "      C_CDD_FREE(enc);\n"));
+                  CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
                 } else {
                   CHECK_IO(fprintf(fp,
@@ -2299,7 +2316,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", joined);\n",
                 f->name));
 
-            CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+            CHECK_IO(fprintf(fp, "      free(joined);\n"));
             CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
@@ -2322,14 +2339,14 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                            f->ref, f->name));
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
           CHECK_IO(fprintf(fp, "    enc = %s(obj_json);\n", enc_fn));
-          CHECK_IO(fprintf(fp, "    C_CDD_FREE(obj_json);\n"));
+          CHECK_IO(fprintf(fp, "    free(obj_json);\n"));
           CHECK_IO(fprintf(
               fp,
               "    if (!enc) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
               f->name));
-          CHECK_IO(fprintf(fp, "    C_CDD_FREE(enc);\n"));
+          CHECK_IO(fprintf(fp, "    free(enc);\n"));
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
         }
       } else {
@@ -2360,7 +2377,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
 /**
  * @brief Generates C code for write cookie param logic.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
   size_t i;
   int has_cookie = 0;
@@ -2444,10 +2461,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             CHECK_IO(fprintf(fp, "        if (kv->type == OA_KV_STRING) {\n"));
             CHECK_IO(
                 fprintf(fp, "          val_enc = %s(kv_raw);\n", encode_fn));
-            CHECK_IO(
-                fprintf(fp, "          if (!val_enc) { C_CDD_FREE(key_enc); rc "
-                            "= CDD_C_ERROR_MEMORY; goto "
-                            "cleanup; }\n"));
+            CHECK_IO(fprintf(fp, "          if (!val_enc) { free(key_enc); rc "
+                                 "= CDD_C_ERROR_MEMORY; goto "
+                                 "cleanup; }\n"));
             CHECK_IO(fprintf(fp, "        }\n"));
             CHECK_IO(fprintf(fp, "        {\n"));
             CHECK_IO(fprintf(fp, "          const char *out_key = key_enc;\n"));
@@ -2460,13 +2476,13 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             CHECK_IO(fprintf(fp,
                              "          size_t extra = name_len + 1 + val_len "
                              "+ (cookie_len ? 2 : 0);\n"));
+            CHECK_IO(
+                fprintf(fp, "          char *tmp = (char *)realloc(cookie_str, "
+                            "cookie_len + extra + 1);\n"));
             CHECK_IO(fprintf(
-                fp, "          char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
-                    "cookie_len + extra + 1);\n"));
-            CHECK_IO(fprintf(
-                fp, "          if (!tmp) { C_CDD_FREE(key_enc); if (val_enc) "
-                    "C_CDD_FREE(val_enc); rc = CDD_C_ERROR_MEMORY; goto "
-                    "cleanup; }\n"));
+                fp,
+                "          if (!tmp) { free(key_enc); if (val_enc) "
+                "free(val_enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
             CHECK_IO(fprintf(fp, "          cookie_str = tmp;\n"));
             CHECK_IO(fprintf(fp, "          if (cookie_len) { "
                                  "cookie_str[cookie_len++] = ';'; "
@@ -2482,9 +2498,8 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             CHECK_IO(
                 fprintf(fp, "          cookie_str[cookie_len] = '\\0';\n"));
             CHECK_IO(fprintf(fp, "        }\n"));
-            CHECK_IO(fprintf(fp, "        C_CDD_FREE(key_enc);\n"));
-            CHECK_IO(
-                fprintf(fp, "        if (val_enc) C_CDD_FREE(val_enc);\n"));
+            CHECK_IO(fprintf(fp, "        free(key_enc);\n"));
+            CHECK_IO(fprintf(fp, "        if (val_enc) free(val_enc);\n"));
             CHECK_IO(fprintf(fp, "      }\n"));
           } else {
 
@@ -2499,11 +2514,10 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                              "        size_t extra = name_len + 1 + val_len + "
                              "(cookie_len ? 2 : 0);\n"));
 
-            CHECK_IO(
-                fprintf(fp,
+            CHECK_IO(fprintf(fp,
 
-                        "        char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
-                        "cookie_len + extra + 1);\n"));
+                             "        char *tmp = (char *)realloc(cookie_str, "
+                             "cookie_len + extra + 1);\n"));
 
             CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
 
@@ -2599,11 +2613,10 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                 fprintf(fp, "          val_enc = %s(kv_raw);\n", encode_fn));
 
-            CHECK_IO(
-                fprintf(fp, "          if (!val_enc) { C_CDD_FREE(key_enc); rc "
+            CHECK_IO(fprintf(fp, "          if (!val_enc) { free(key_enc); rc "
 
-                            "= CDD_C_ERROR_MEMORY; goto "
-                            "cleanup; }\n"));
+                                 "= CDD_C_ERROR_MEMORY; goto "
+                                 "cleanup; }\n"));
 
             CHECK_IO(fprintf(fp, "        }\n"));
             CHECK_IO(fprintf(fp, "        {\n"));
@@ -2625,17 +2638,15 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                              "          size_t extra = key_len + val_len + 2 + "
                              "(joined_len ? 1 : 0);\n"));
 
-            CHECK_IO(
-                fprintf(fp,
-
-                        "          char *tmp = (char *)C_CDD_REALLOC(joined, "
-                        "joined_len + extra + 1);\n"));
-
             CHECK_IO(fprintf(fp,
-                             "          if (!tmp) { C_CDD_FREE(key_enc); if "
 
-                             "(val_enc) C_CDD_FREE(val_enc); "
-                             "rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
+                             "          char *tmp = (char *)realloc(joined, "
+                             "joined_len + extra + 1);\n"));
+
+            CHECK_IO(fprintf(fp, "          if (!tmp) { free(key_enc); if "
+
+                                 "(val_enc) free(val_enc); "
+                                 "rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
 
             CHECK_IO(fprintf(fp, "          joined = tmp;\n"));
             CHECK_IO(fprintf(fp,
@@ -2658,9 +2669,8 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             CHECK_IO(fprintf(fp, "          joined_len += val_len;\n"));
             CHECK_IO(fprintf(fp, "          joined[joined_len] = '\\0';\n"));
             CHECK_IO(fprintf(fp, "        }\n"));
-            CHECK_IO(fprintf(fp, "        C_CDD_FREE(key_enc);\n"));
-            CHECK_IO(
-                fprintf(fp, "        if (val_enc) C_CDD_FREE(val_enc);\n"));
+            CHECK_IO(fprintf(fp, "        free(key_enc);\n"));
+            CHECK_IO(fprintf(fp, "        if (val_enc) free(val_enc);\n"));
             CHECK_IO(fprintf(fp, "      }\n"));
 
           } else {
@@ -2673,10 +2683,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                              "        size_t extra = key_len + val_len + 2 + "
                              "(joined_len ? 1 : 0);\n"));
 
-            CHECK_IO(
-                fprintf(fp, "        char *tmp = (char *)C_CDD_REALLOC(joined, "
+            CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
 
-                            "joined_len + extra + 1);\n"));
+                                 "joined_len + extra + 1);\n"));
 
             CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
 
@@ -2714,16 +2723,15 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                                "(cookie_len ? 2 : 0);\n"));
 
-          CHECK_IO(
-              fprintf(fp, "      char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
+          CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
 
-                          "cookie_len + extra + 1);\n"));
+                               "cookie_len + extra + 1);\n"));
 
           CHECK_IO(fprintf(
 
-              fp, "      if (!tmp) { C_CDD_FREE(joined); rc = "
-                  "CDD_C_ERROR_MEMORY; goto "
-                  "cleanup; }\n"));
+              fp,
+              "      if (!tmp) { free(joined); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
 
           CHECK_IO(fprintf(fp, "      cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
@@ -2745,7 +2753,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
           CHECK_IO(fprintf(fp, "      cookie_len += val_len;\n"));
           CHECK_IO(fprintf(fp, "      cookie_str[cookie_len] = '\\0';\n"));
-          CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+          CHECK_IO(fprintf(fp, "      free(joined);\n"));
           CHECK_IO(fprintf(fp, "    }\n  }\n"));
         }
         continue;
@@ -2808,9 +2816,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp,
                            "        size_t extra = name_len + 1 + val_len + "
                            "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(fprintf(
-              fp, "        char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
-                  "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp,
+                           "        char *tmp = (char *)realloc(cookie_str, "
+                           "cookie_len + extra + 1);\n"));
           CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
                                "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        cookie_str = tmp;\n"));
@@ -2830,8 +2838,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "        cookie_str[cookie_len] = '\\0';\n"));
           CHECK_IO(fprintf(fp, "      }\n"));
           if (encode_fn) {
-            CHECK_IO(
-                fprintf(fp, "      if (cookie_enc) C_CDD_FREE(cookie_enc);\n"));
+            CHECK_IO(fprintf(fp, "      if (cookie_enc) free(cookie_enc);\n"));
           }
           CHECK_IO(fprintf(fp, "    }\n  }\n"));
         } else {
@@ -2886,9 +2893,8 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(
               fp,
               "        size_t extra = val_len + (joined_len > 0 ? 1 : 0);\n"));
-          CHECK_IO(fprintf(fp,
-                           "        char *tmp = (char *)C_CDD_REALLOC(joined, "
-                           "joined_len + extra + 1);\n"));
+          CHECK_IO(fprintf(fp, "        char *tmp = (char *)realloc(joined, "
+                               "joined_len + extra + 1);\n"));
           CHECK_IO(fprintf(fp, "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
                                "goto cleanup; }\n"));
           CHECK_IO(fprintf(fp, "        joined = tmp;\n"));
@@ -2900,7 +2906,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "        joined[joined_len] = '\\0';\n"));
           CHECK_IO(fprintf(fp, "      }\n"));
           if (encode_fn) {
-            CHECK_IO(fprintf(fp, "      if (raw_enc) C_CDD_FREE(raw_enc);\n"));
+            CHECK_IO(fprintf(fp, "      if (raw_enc) free(raw_enc);\n"));
           }
           CHECK_IO(fprintf(fp, "    }\n"));
           CHECK_IO(fprintf(fp, "    if (joined) {\n"));
@@ -2909,12 +2915,12 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "      size_t val_len = strlen(joined);\n"));
           CHECK_IO(fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
                                "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(
-              fprintf(fp, "      char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
-                          "cookie_len + extra + 1);\n"));
-          CHECK_IO(fprintf(fp, "      if (!tmp) { C_CDD_FREE(joined); rc = "
-                               "CDD_C_ERROR_MEMORY; goto "
-                               "cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "      char *tmp = (char *)realloc(cookie_str, "
+                               "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "      if (!tmp) { free(joined); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
           CHECK_IO(fprintf(fp, "      cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "      if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2929,10 +2935,10 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                                "val_len);\n"));
           CHECK_IO(fprintf(fp, "      cookie_len += val_len;\n"));
           CHECK_IO(fprintf(fp, "      cookie_str[cookie_len] = '\\0';\n"));
-          CHECK_IO(fprintf(fp, "      C_CDD_FREE(joined);\n"));
+          CHECK_IO(fprintf(fp, "      free(joined);\n"));
           CHECK_IO(fprintf(fp, "    }\n  }\n"));
         }
-      } else if (p->type && strcmp(p->type, "string") == 0) {
+      } else if (strcmp(p->type, "string") == 0) {
         if (encode_fn) {
           CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
           CHECK_IO(fprintf(fp, "    char *cookie_val = %s(%s);\n", encode_fn,
@@ -2944,12 +2950,12 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "    size_t val_len = strlen(cookie_val);\n"));
           CHECK_IO(fprintf(fp, "    size_t extra = name_len + 1 + val_len + "
                                "(cookie_len ? 2 : 0);\n"));
-          CHECK_IO(fprintf(fp,
-                           "    char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
-                           "cookie_len + extra + 1);\n"));
-          CHECK_IO(fprintf(fp, "    if (!tmp) { C_CDD_FREE(cookie_val); rc = "
-                               "CDD_C_ERROR_MEMORY; goto "
-                               "cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
+                               "cookie_len + extra + 1);\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "    if (!tmp) { free(cookie_val); rc = CDD_C_ERROR_MEMORY; goto "
+              "cleanup; }\n"));
           CHECK_IO(fprintf(fp, "    cookie_str = tmp;\n"));
           CHECK_IO(fprintf(fp,
                            "    if (cookie_len) { cookie_str[cookie_len++] = "
@@ -2964,7 +2970,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                            "val_len);\n"));
           CHECK_IO(fprintf(fp, "    cookie_len += val_len;\n"));
           CHECK_IO(fprintf(fp, "    cookie_str[cookie_len] = '\\0';\n"));
-          CHECK_IO(fprintf(fp, "    C_CDD_FREE(cookie_val);\n"));
+          CHECK_IO(fprintf(fp, "    free(cookie_val);\n"));
           CHECK_IO(fprintf(fp, "  }\n"));
         } else {
 
@@ -2979,10 +2985,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                                "(cookie_len ? 2 : 0);\n"));
 
-          CHECK_IO(fprintf(fp,
-                           "    char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
+          CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                           "cookie_len + extra + 1);\n"));
+                               "cookie_len + extra + 1);\n"));
 
           CHECK_IO(fprintf(
 
@@ -3012,7 +3017,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "  }\n"));
         }
 
-      } else if (p->type && strcmp(p->type, "integer") == 0) {
+      } else if (strcmp(p->type, "integer") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
         CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", p->name));
         CHECK_IO(
@@ -3024,10 +3029,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 
@@ -3052,7 +3056,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(fp, "    cookie_len += val_len;\n"));
         CHECK_IO(fprintf(fp, "    cookie_str[cookie_len] = '\\0';\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
-      } else if (p->type && strcmp(p->type, "number") == 0) {
+      } else if (strcmp(p->type, "number") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
         CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", p->name));
         CHECK_IO(
@@ -3064,10 +3068,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 
@@ -3092,7 +3095,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(fp, "    cookie_len += val_len;\n"));
         CHECK_IO(fprintf(fp, "    cookie_str[cookie_len] = '\\0';\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
-      } else if (p->type && strcmp(p->type, "boolean") == 0) {
+      } else if (strcmp(p->type, "boolean") == 0) {
         CHECK_IO(fprintf(
 
             fp,
@@ -3108,10 +3111,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                              "(cookie_len ? 2 : 0);\n"));
 
-        CHECK_IO(fprintf(fp,
-                         "    char *tmp = (char *)C_CDD_REALLOC(cookie_str, "
+        CHECK_IO(fprintf(fp, "    char *tmp = (char *)realloc(cookie_str, "
 
-                         "cookie_len + extra + 1);\n"));
+                             "cookie_len + extra + 1);\n"));
 
         CHECK_IO(fprintf(
 
@@ -3153,7 +3155,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 /**
  * @brief Generates C code for write multipart part headers.
  */
-static enum cdd_c_error
+static cdd_c_error_t
 write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
   size_t h;
   if (!fp || !enc || !enc->headers || enc->n_headers == 0 || !enc->name)
@@ -3224,7 +3226,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "(%s > 0 ? 1 : 0);\n",
                        joined_len_name));
       CHECK_IO(fprintf(fp,
-                       "            char *tmp = (char *)C_CDD_REALLOC(%s, %s + "
+                       "            char *tmp = (char *)realloc(%s, %s + "
                        "extra + 1);\n",
                        joined_name, joined_len_name));
       CHECK_IO(fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; "
@@ -3244,7 +3246,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "          rc = http_request_add_part_header_last(&req, "
                        "\"%s\", %s);\n",
                        hdr->name, joined_name));
-      CHECK_IO(fprintf(fp, "          C_CDD_FREE(%s);\n", joined_name));
+      CHECK_IO(fprintf(fp, "          free(%s);\n", joined_name));
       CHECK_IO(fprintf(fp, "          if (rc != 0) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "        }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
@@ -3307,8 +3309,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
             "            size_t key_len = strlen(kv_key);\n"
             "            size_t val_len = strlen(kv_raw);\n"
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1);\n"
-            "            char *tmp = (char *)C_CDD_REALLOC(%s, %s + extra + "
-            "1);\n"
+            "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
             "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
             "}\n",
             first_name, joined_name, joined_len_name));
@@ -3337,8 +3338,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
             "            size_t val_len = strlen(kv_raw);\n"
             "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1) + "
             "1;\n"
-            "            char *tmp = (char *)C_CDD_REALLOC(%s, %s + extra + "
-            "1);\n"
+            "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
             "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; "
             "}\n",
             first_name, joined_name, joined_len_name));
@@ -3370,7 +3370,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", %s);\n",
                        hdr->name, joined_name));
 
-      CHECK_IO(fprintf(fp, "          C_CDD_FREE(%s);\n", joined_name));
+      CHECK_IO(fprintf(fp, "          free(%s);\n", joined_name));
       CHECK_IO(fprintf(fp, "          if (rc != 0) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "        }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
@@ -3440,9 +3440,9 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
 /**
  * @brief Generates C code for write multipart body.
  */
-static enum cdd_c_error write_multipart_body(FILE *fp,
-                                             const struct OpenAPI_Operation *op,
-                                             const struct OpenAPI_Spec *spec) {
+static cdd_c_error_t write_multipart_body(FILE *fp,
+                                          const struct OpenAPI_Operation *op,
+                                          const struct OpenAPI_Spec *spec) {
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
   const struct OpenAPI_MediaType *_ast_find_media_type_8;
   struct OpenAPI_Encoding *_ast_find_encoding_9;
@@ -3520,7 +3520,7 @@ static enum cdd_c_error write_multipart_body(FILE *fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, part_json, strlen(part_json));\n",
                          f->name, ct_arg));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(part_json);\n"));
+        CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -3758,7 +3758,7 @@ static enum cdd_c_error write_multipart_body(FILE *fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, part_json, strlen(part_json));\n",
                          f->name, ct_arg));
-        CHECK_IO(fprintf(fp, "      C_CDD_FREE(part_json);\n"));
+        CHECK_IO(fprintf(fp, "      free(part_json);\n"));
         CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
@@ -3781,7 +3781,7 @@ static enum cdd_c_error write_multipart_body(FILE *fp,
 /**
  * @brief Checks if status range code.
  */
-static enum cdd_c_error is_status_range_code(const char *code) {
+static cdd_c_error_t is_status_range_code(const char *code) {
   if (!code)
 
     return CDD_C_SUCCESS;
@@ -3793,7 +3793,7 @@ static enum cdd_c_error is_status_range_code(const char *code) {
 /**
  * @brief Executes the status range prefix operation.
  */
-static enum cdd_c_error status_range_prefix(const char *code) {
+static cdd_c_error_t status_range_prefix(const char *code) {
   if (!is_status_range_code(code))
 
     return CDD_C_SUCCESS;
@@ -3804,7 +3804,7 @@ static enum cdd_c_error status_range_prefix(const char *code) {
 /**
  * @brief Checks if status code literal.
  */
-static enum cdd_c_error is_status_code_literal(const char *code) {
+static cdd_c_error_t is_status_code_literal(const char *code) {
   if (!code || strlen(code) != 3)
 
     return CDD_C_SUCCESS;
@@ -3816,11 +3816,11 @@ static enum cdd_c_error is_status_code_literal(const char *code) {
 /**
  * @brief Generates C code for codegen client write body.
  */
-enum cdd_c_error codegen_client_write_body(FILE *fp,
-                                           const struct OpenAPI_Operation *op,
-                                           const struct OpenAPI_Spec *spec,
-                                           const char *path_template,
-                                           const char *base_url_expr) {
+cdd_c_error_t codegen_client_write_body(FILE *fp,
+                                        const struct OpenAPI_Operation *op,
+                                        const struct OpenAPI_Spec *spec,
+                                        const char *path_template,
+                                        const char *base_url_expr) {
   const char *_ast_verb_to_enum_str_16 = NULL;
   const char *_ast_method_str_to_enum_str_17 = NULL;
   int query_exists = 0;
@@ -4359,7 +4359,7 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
           fprintf(fp, "      rc = %d;\n", mapped_err_code(atoi(resp->code))));
       CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
-          fp, "        enum cdd_c_error api_rc = ApiError_from_json((const "
+          fp, "        cdd_c_error_t api_rc = ApiError_from_json((const "
               "char*)res->body, api_error);\n"));
       CHECK_IO(fprintf(fp, "        if (api_rc != CDD_C_SUCCESS) { "
                            "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
@@ -4418,7 +4418,7 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
             fprintf(fp, "      rc = %d;\n", mapped_err_code((int)(i * 100))));
 
         CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
-        CHECK_IO(fprintf(fp, "        enum cdd_c_error api_rc = "
+        CHECK_IO(fprintf(fp, "        cdd_c_error_t api_rc = "
 
                              "ApiError_from_json((const char*)res->body, "
                              "api_error);\n"));
@@ -4491,7 +4491,7 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
       CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
 
-          fp, "      enum cdd_c_error api_rc = ApiError_from_json((const "
+          fp, "      cdd_c_error_t api_rc = ApiError_from_json((const "
               "char*)res->body, api_error);\n"));
 
       CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
@@ -4504,9 +4504,9 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
   } else {
     CHECK_IO(fprintf(fp, "    rc = CDD_C_ERROR_IO;\n"));
     CHECK_IO(fprintf(fp, "    if (res->body && api_error) {\n"));
-    CHECK_IO(
-        fprintf(fp, "      enum cdd_c_error api_rc = ApiError_from_json((const "
-                    "char*)res->body, api_error);\n"));
+    CHECK_IO(fprintf(fp,
+                     "      cdd_c_error_t api_rc = ApiError_from_json((const "
+                     "char*)res->body, api_error);\n"));
     CHECK_IO(fprintf(fp, "      if (api_rc != CDD_C_SUCCESS) { "
                          "C_CDD_LOG_DEBUG(\"Failed to parse ApiError: "
                          "%%d\\n\", api_rc); }\n"));
@@ -4520,24 +4520,23 @@ enum cdd_c_error codegen_client_write_body(FILE *fp,
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
       (op->req_body.ref_name || schema_has_inline(&op->req_body))) {
-    CHECK_IO(fprintf(fp, "  if (req_json) C_CDD_FREE(req_json);\n"));
+    CHECK_IO(fprintf(fp, "  if (req_json) free(req_json);\n"));
   }
   if (op->req_body.ref_name && op->req_body.content_type &&
       media_type_is_form(op->req_body.content_type)) {
-    CHECK_IO(fprintf(fp, "  if (form_body) C_CDD_FREE(form_body);\n"));
+    CHECK_IO(fprintf(fp, "  if (form_body) free(form_body);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&form_qp);\n"));
   }
   if (query_exists || security_query) {
-    CHECK_IO(fprintf(fp, "  if (path_str) C_CDD_FREE(path_str);\n"));
-    CHECK_IO(fprintf(fp, "  if (query_str) C_CDD_FREE(query_str);\n"));
+    CHECK_IO(fprintf(fp, "  if (path_str) free(path_str);\n"));
+    CHECK_IO(fprintf(fp, "  if (query_str) free(query_str);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&qp);\n"));
   }
   if (cookie_exists || security_cookie) {
-    CHECK_IO(fprintf(fp, "  if (cookie_str) C_CDD_FREE(cookie_str);\n"));
+    CHECK_IO(fprintf(fp, "  if (cookie_str) free(cookie_str);\n"));
   }
   CHECK_IO(fprintf(fp, "  http_request_free(&req);\n"));
-  CHECK_IO(fprintf(
-      fp, "  if (res) { http_response_free(res); C_CDD_FREE(res); }\n"));
+  CHECK_IO(fprintf(fp, "  if (res) { http_response_free(res); free(res); }\n"));
   CHECK_IO(fprintf(fp, "  return rc;\n}\n"));
 
   return CDD_C_SUCCESS;

@@ -22,8 +22,8 @@
 #endif
 #else
 #include <dlfcn.h>
-/* clang-format on */
 #endif
+/* clang-format on */
 
 /**
  * @brief Internal function to check if a dynamic library can be loaded.
@@ -33,8 +33,8 @@
  * @param[out] out_avail 1 if available, 0 otherwise.
  * @return int 0 on success, error code otherwise.
  */
-static enum cdd_c_error check_lib(const char *win_name, const char *posix_name,
-                                  int *out_avail) {
+static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
+                               int *out_avail) {
   (void)win_name;
   (void)posix_name;
   if (!out_avail)
@@ -89,14 +89,14 @@ static enum cdd_c_error check_lib(const char *win_name, const char *posix_name,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error check_libpq_available(int *out_avail) {
+cdd_c_error_t check_libpq_available(int *out_avail) {
   return check_lib("libpq.dll", "libpq.so", out_avail);
 }
 
-enum cdd_c_error check_sqlite3_available(int *out_avail) {
+cdd_c_error_t check_sqlite3_available(int *out_avail) {
   return check_lib("sqlite3.dll", "libsqlite3.so", out_avail);
 }
 
-enum cdd_c_error check_mysql_available(int *out_avail) {
+cdd_c_error_t check_mysql_available(int *out_avail) {
   return check_lib("libmysql.dll", "libmysqlclient.so", out_avail);
 }

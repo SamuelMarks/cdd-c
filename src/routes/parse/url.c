@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -15,6 +14,24 @@
 #include "routes/parse/url.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#undef malloc
+#define malloc(sz)                                                             \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (malloc)(sz))
+#undef realloc
+#define realloc(ptr, sz)                                                       \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
+       ? NULL                                                                  \
+       : (realloc)(ptr, sz))
+#undef calloc
+#define calloc(n, sz)                                                          \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (calloc)(n, sz))
+#endif
 
 /* Standard definitions for C89 compatibility */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -30,7 +47,7 @@
  *
  * Unreserved characters: ALPHA, DIGIT, "-", ".", "_", "~".
  */
-static enum cdd_c_error is_unreserved(unsigned char c) {
+static cdd_c_error_t is_unreserved(unsigned char c) {
   if (isalnum(c))
     return CDD_C_ERROR_UNKNOWN;
   if (c == '-' || c == '.' || c == '_' || c == '~')
@@ -41,7 +58,7 @@ static enum cdd_c_error is_unreserved(unsigned char c) {
 /**
  * @brief Check if a character is reserved per RFC 3986 Section 2.2.
  */
-static enum cdd_c_error is_reserved(unsigned char c) {
+static cdd_c_error_t is_reserved(unsigned char c) {
   switch (c) {
   case ':':
   case '/':
@@ -70,12 +87,12 @@ static enum cdd_c_error is_reserved(unsigned char c) {
 /**
  * @brief Checks if hex.
  */
-static enum cdd_c_error is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
+static cdd_c_error_t is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
 
 /**
  * @brief Checks if pct encoded.
  */
-static enum cdd_c_error is_pct_encoded(const char *p) {
+static cdd_c_error_t is_pct_encoded(const char *p) {
   if (!p)
     return CDD_C_SUCCESS;
   return (p[0] == '%' && is_hex((unsigned char)p[1]) &&
@@ -85,7 +102,7 @@ static enum cdd_c_error is_pct_encoded(const char *p) {
 /**
  * @brief Convert a nibble to hexagonal character.
  */
-static enum cdd_c_error to_hex(char code, char *_out_val) {
+static cdd_c_error_t to_hex(char code, char *_out_val) {
   static const char hex[] = "0123456789ABCDEF";
   {
     *_out_val = hex[code & 15];
@@ -96,7 +113,7 @@ static enum cdd_c_error to_hex(char code, char *_out_val) {
 /**
  * @brief Checks if unreserved form.
  */
-static enum cdd_c_error is_unreserved_form(unsigned char c) {
+static cdd_c_error_t is_unreserved_form(unsigned char c) {
   if (isalnum(c))
     return CDD_C_ERROR_UNKNOWN;
   if (c == '-' || c == '.' || c == '_' || c == '*')
@@ -107,7 +124,7 @@ static enum cdd_c_error is_unreserved_form(unsigned char c) {
 /**
  * @brief Executes the url encode operation.
  */
-enum cdd_c_error url_encode(const char *str, char **_out_val) {
+cdd_c_error_t url_encode(const char *str, char **_out_val) {
   char _ast_to_hex_0;
   char _ast_to_hex_1;
   const char *p;
@@ -130,7 +147,7 @@ enum cdd_c_error url_encode(const char *str, char **_out_val) {
   }
 
   /* Alloc */
-  enc = (char *)C_CDD_MALLOC(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -159,7 +176,7 @@ enum cdd_c_error url_encode(const char *str, char **_out_val) {
 /**
  * @brief Executes the url encode allow reserved operation.
  */
-enum cdd_c_error url_encode_allow_reserved(const char *str, char **_out_val) {
+cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
   char _ast_to_hex_2;
   char _ast_to_hex_3;
   const char *p;
@@ -186,7 +203,7 @@ enum cdd_c_error url_encode_allow_reserved(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)C_CDD_MALLOC(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -219,7 +236,7 @@ enum cdd_c_error url_encode_allow_reserved(const char *str, char **_out_val) {
 /**
  * @brief Executes the url encode form operation.
  */
-enum cdd_c_error url_encode_form(const char *str, char **_out_val) {
+cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   char _ast_to_hex_4;
   char _ast_to_hex_5;
   const char *p;
@@ -243,7 +260,7 @@ enum cdd_c_error url_encode_form(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)C_CDD_MALLOC(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -272,8 +289,7 @@ enum cdd_c_error url_encode_form(const char *str, char **_out_val) {
 /**
  * @brief Executes the url encode form allow reserved operation.
  */
-enum cdd_c_error url_encode_form_allow_reserved(const char *str,
-                                                char **_out_val) {
+cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
   char _ast_to_hex_6;
   char _ast_to_hex_7;
   char _ast_to_hex_8;
@@ -306,7 +322,7 @@ enum cdd_c_error url_encode_form_allow_reserved(const char *str,
     }
   }
 
-  enc = (char *)C_CDD_MALLOC(needed_len + 1);
+  enc = (char *)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -345,7 +361,7 @@ enum cdd_c_error url_encode_form_allow_reserved(const char *str,
 /**
  * @brief Executes the url query init operation.
  */
-enum cdd_c_error url_query_init(struct UrlQueryParams *qp) {
+cdd_c_error_t url_query_init(struct UrlQueryParams *qp) {
   if (!qp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   qp->params = NULL;
@@ -364,11 +380,11 @@ void url_query_free(struct UrlQueryParams *qp) {
   if (qp->params) {
     for (i = 0; i < qp->count; ++i) {
       if (qp->params[i].key)
-        C_CDD_FREE(qp->params[i].key);
+        free(qp->params[i].key);
       if (qp->params[i].value)
-        C_CDD_FREE(qp->params[i].value);
+        free(qp->params[i].value);
     }
-    C_CDD_FREE(qp->params);
+    free(qp->params);
     qp->params = NULL;
   }
   qp->count = 0;
@@ -378,8 +394,8 @@ void url_query_free(struct UrlQueryParams *qp) {
 /**
  * @brief Executes the url query add operation.
  */
-enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const char *key,
-                               const char *value) {
+cdd_c_error_t url_query_add(struct UrlQueryParams *qp, const char *key,
+                            const char *value) {
   char *_ast_strdup_0 = NULL;
   char *_ast_strdup_1 = NULL;
   if (!qp || !key || !value)
@@ -387,7 +403,7 @@ enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const char *key,
 
   if (qp->count >= qp->capacity) {
     size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;
-    struct UrlQueryParam *new_arr = (struct UrlQueryParam *)C_CDD_REALLOC(
+    struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -405,7 +421,7 @@ enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const char *key,
   qp->params[qp->count].value =
       (c_cdd_strdup(value, &_ast_strdup_1), _ast_strdup_1);
   if (!qp->params[qp->count].value) {
-    C_CDD_FREE(qp->params[qp->count].key);
+    free(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
   }
   qp->params[qp->count].value_is_encoded = 0;
@@ -417,8 +433,8 @@ enum cdd_c_error url_query_add(struct UrlQueryParams *qp, const char *key,
 /**
  * @brief Executes the url query add encoded operation.
  */
-enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
-                                       const char *key, const char *value) {
+cdd_c_error_t url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
+                                    const char *value) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   if (!qp || !key || !value)
@@ -426,7 +442,7 @@ enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
 
   if (qp->count >= qp->capacity) {
     size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;
-    struct UrlQueryParam *new_arr = (struct UrlQueryParam *)C_CDD_REALLOC(
+    struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -444,7 +460,7 @@ enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
   qp->params[qp->count].value =
       (c_cdd_strdup(value, &_ast_strdup_3), _ast_strdup_3);
   if (!qp->params[qp->count].value) {
-    C_CDD_FREE(qp->params[qp->count].key);
+    free(qp->params[qp->count].key);
     return CDD_C_ERROR_MEMORY;
   }
   qp->params[qp->count].value_is_encoded = 1;
@@ -456,8 +472,7 @@ enum cdd_c_error url_query_add_encoded(struct UrlQueryParams *qp,
 /**
  * @brief Executes the url query build operation.
  */
-enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
-                                 char **out_str) {
+cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   char *_ast_url_encode_10 = NULL;
   char *_ast_url_encode_11 = NULL;
   char *_ast_url_encode_12 = NULL;
@@ -500,9 +515,9 @@ enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
 
     if (!e_key || !e_val) {
       if (e_key)
-        C_CDD_FREE(e_key);
+        free(e_key);
       if (e_val)
-        C_CDD_FREE(e_val);
+        free(e_val);
       return CDD_C_ERROR_MEMORY;
     }
 
@@ -511,12 +526,12 @@ enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
     if (i < qp->count - 1)
       total_len += 1; /* & */
 
-    C_CDD_FREE(e_key);
-    C_CDD_FREE(e_val);
+    free(e_key);
+    free(e_val);
   }
 
   /* 2. Allocate */
-  buf = (char *)C_CDD_MALLOC(total_len + 1);
+  buf = (char *)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -542,10 +557,10 @@ enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
 
     if (!e_key || !e_val) {
       if (e_key)
-        C_CDD_FREE(e_key);
+        free(e_key);
       if (e_val)
-        C_CDD_FREE(e_val);
-      C_CDD_FREE(buf);
+        free(e_val);
+      free(buf);
       return CDD_C_ERROR_MEMORY;
     }
 
@@ -569,8 +584,8 @@ enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
       *ptr++ = '&';
     }
 
-    C_CDD_FREE(e_key);
-    C_CDD_FREE(e_val);
+    free(e_key);
+    free(e_val);
   }
   *ptr = '\0';
 
@@ -581,8 +596,8 @@ enum cdd_c_error url_query_build(const struct UrlQueryParams *qp,
 /**
  * @brief Executes the url query build form operation.
  */
-enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
-                                      char **out_str) {
+cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
+                                   char **out_str) {
   char *_ast_url_encode_form_14 = NULL;
   char *_ast_url_encode_form_15 = NULL;
   char *_ast_url_encode_form_16 = NULL;
@@ -598,7 +613,7 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (qp->count == 0) {
-    *out_str = (char *)C_CDD_CALLOC(1, 1);
+    *out_str = (char *)calloc(1, 1);
     if (!*out_str)
       return CDD_C_ERROR_MEMORY;
     return CDD_C_SUCCESS;
@@ -621,7 +636,7 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
                _ast_url_encode_form_15);
     }
     if (!e_val) {
-      C_CDD_FREE(e_key);
+      free(e_key);
       return CDD_C_ERROR_MEMORY;
     }
     kl = strlen(e_key);
@@ -629,11 +644,11 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
     total_len += kl + 1 + vl;
     if (i + 1 < qp->count)
       total_len += 1;
-    C_CDD_FREE(e_key);
-    C_CDD_FREE(e_val);
+    free(e_key);
+    free(e_val);
   }
 
-  buf = (char *)C_CDD_MALLOC(total_len + 1);
+  buf = (char *)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -646,7 +661,7 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
     char *e_val;
     size_t kl, vl;
     if (!e_key) {
-      C_CDD_FREE(buf);
+      free(buf);
       return CDD_C_ERROR_MEMORY;
     }
     if (qp->params[i].value_is_encoded) {
@@ -657,8 +672,8 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
                _ast_url_encode_form_17);
     }
     if (!e_val) {
-      C_CDD_FREE(e_key);
-      C_CDD_FREE(buf);
+      free(e_key);
+      free(buf);
       return CDD_C_ERROR_MEMORY;
     }
     kl = strlen(e_key);
@@ -670,8 +685,8 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
     ptr += vl;
     if (i + 1 < qp->count)
       *ptr++ = '&';
-    C_CDD_FREE(e_key);
-    C_CDD_FREE(e_val);
+    free(e_key);
+    free(e_val);
   }
   *ptr = '\0';
   *out_str = buf;
@@ -681,8 +696,8 @@ enum cdd_c_error url_query_build_form(const struct UrlQueryParams *qp,
 /**
  * @brief Executes the append str operation.
  */
-static enum cdd_c_error append_str(char **buf, size_t *len, size_t *cap,
-                                   const char *s) {
+static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
+                                const char *s) {
   size_t slen;
   size_t need;
   char *tmp;
@@ -696,7 +711,7 @@ static enum cdd_c_error append_str(char **buf, size_t *len, size_t *cap,
     size_t new_cap = (*cap == 0) ? 64 : *cap * 2;
     while (new_cap < need)
       new_cap *= 2;
-    tmp = (char *)C_CDD_REALLOC(*buf, new_cap);
+    tmp = (char *)realloc(*buf, new_cap);
     if (!tmp) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -713,9 +728,8 @@ static enum cdd_c_error append_str(char **buf, size_t *len, size_t *cap,
 /**
  * @brief Executes the kv value to string operation.
  */
-static enum cdd_c_error kv_value_to_string(const struct OpenAPI_KV *kv,
-                                           char *buf, size_t buf_len,
-                                           const char **_out_val) {
+static cdd_c_error_t kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
+                                        size_t buf_len, const char **_out_val) {
   if (!kv) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -759,9 +773,9 @@ static enum cdd_c_error kv_value_to_string(const struct OpenAPI_KV *kv,
 /**
  * @brief Executes the openapi kv join form operation.
  */
-enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
-                                      const char *delim, int allow_reserved,
-                                      char **_out_val) {
+cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
+                                   const char *delim, int allow_reserved,
+                                   char **_out_val) {
   const char *_ast_kv_value_to_string_18 = NULL;
   size_t i;
   char *buf = NULL;
@@ -770,14 +784,14 @@ enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   char num_buf[64];
   char *enc_key = NULL;
   char *enc_val = NULL;
-  enum cdd_c_error (*enc_fn)(const char *, char **) =
+  cdd_c_error_t (*enc_fn)(const char *, char **) =
       allow_reserved ? url_encode_form_allow_reserved : url_encode_form;
 
   if (!delim)
     delim = ",";
 
   if (!kvs || n == 0) {
-    buf = (char *)C_CDD_CALLOC(1, 1);
+    buf = (char *)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
     {
@@ -811,14 +825,14 @@ enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
       goto oom;
     if (append_str(&buf, &len, &cap, enc_val) != 0)
       goto oom;
-    C_CDD_FREE(enc_key);
-    C_CDD_FREE(enc_val);
+    free(enc_key);
+    free(enc_val);
     enc_key = NULL;
     enc_val = NULL;
   }
 
   if (!buf) {
-    buf = (char *)C_CDD_CALLOC(1, 1);
+    buf = (char *)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
   }
@@ -829,11 +843,11 @@ enum cdd_c_error openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
 
 oom:
   if (enc_key)
-    C_CDD_FREE(enc_key);
+    free(enc_key);
   if (enc_val)
-    C_CDD_FREE(enc_val);
+    free(enc_val);
   if (buf)
-    C_CDD_FREE(buf);
+    free(buf);
   {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -842,23 +856,23 @@ oom:
 
 #ifdef CDD_BUILD_TESTS
 
-C_CDD_EXPORT enum cdd_c_error is_pct_encoded_test(const char *p);
-C_CDD_EXPORT enum cdd_c_error
-kv_value_to_string_test(const struct OpenAPI_KV *kv, char *buf, size_t buf_len,
-                        const char **_out_val);
-C_CDD_EXPORT enum cdd_c_error append_str_test(char **buf, size_t *len,
-                                              size_t *cap, const char *s);
+C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p);
+C_CDD_EXPORT cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
+                                                   char *buf, size_t buf_len,
+                                                   const char **_out_val);
+C_CDD_EXPORT cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
+                                           const char *s);
 
-C_CDD_EXPORT enum cdd_c_error is_pct_encoded_test(const char *p) {
+C_CDD_EXPORT cdd_c_error_t is_pct_encoded_test(const char *p) {
   return is_pct_encoded(p);
 }
-C_CDD_EXPORT enum cdd_c_error
-kv_value_to_string_test(const struct OpenAPI_KV *kv, char *buf, size_t buf_len,
-                        const char **_out_val) {
+C_CDD_EXPORT cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
+                                                   char *buf, size_t buf_len,
+                                                   const char **_out_val) {
   return kv_value_to_string(kv, buf, buf_len, _out_val);
 }
-C_CDD_EXPORT enum cdd_c_error append_str_test(char **buf, size_t *len,
-                                              size_t *cap, const char *s) {
+C_CDD_EXPORT cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
+                                           const char *s) {
   return append_str(buf, len, cap, s);
 }
 #endif

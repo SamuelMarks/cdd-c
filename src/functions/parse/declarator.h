@@ -82,7 +82,7 @@ struct DeclInfo {
  * @brief Initialize a DeclInfo structure.
  * @param[out] info The structure to zero.
  */
-extern C_CDD_EXPORT enum cdd_c_error decl_info_init(struct DeclInfo *info);
+extern C_CDD_EXPORT cdd_c_error_t decl_info_init(struct DeclInfo *info);
 
 /**
  * @brief Free resources in a DeclInfo structure.
@@ -102,7 +102,7 @@ extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
 extern C_CDD_EXPORT /**
                      * @brief Parses declaration from the given input.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info);
 

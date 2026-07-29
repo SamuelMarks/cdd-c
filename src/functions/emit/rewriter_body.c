@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
 
 #include "functions/emit/patcher.h"
@@ -22,12 +21,15 @@
 
 /* --- Implementation Helpers --- */
 
-static enum cdd_c_error
+static cdd_c_error_t
 find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
                      const char *name,
                      const struct RefactoredFunction **_out_val) {
   size_t i;
-  /* funcs and name are guaranteed non-null by caller */
+  if (!funcs || !name) {
+    *_out_val = NULL;
+    return CDD_C_SUCCESS;
+  }
   for (i = 0; i < func_count; ++i) {
     if (strcmp(funcs[i].name, name) == 0) {
       {
@@ -45,23 +47,26 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
 /**
  * @brief Extracts token text.
  */
-static enum cdd_c_error extract_token_text(const struct Token *tok,
-                                           char **_out_val) {
-  char *s = C_CDD_MALLOC(tok->length + 1);
-
+static cdd_c_error_t extract_token_text(const struct Token *tok,
+                                        char **_out_val) {
+  char *s = malloc(tok->length + 1);
+  if (!s) {
+    *_out_val = NULL;
+    return 12;
+  }
   memcpy(s, tok->start, tok->length);
   s[tok->length] = '\0';
   {
     *_out_val = s;
-    return CDD_C_SUCCESS;
+    return 12;
   }
 }
 
 /**
  * @brief Retrieves the semicolon.
  */
-static enum cdd_c_error find_semicolon(const struct TokenList *tokens,
-                                       size_t start, size_t *_out_val) {
+static cdd_c_error_t find_semicolon(const struct TokenList *tokens,
+                                    size_t start, size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
@@ -74,15 +79,17 @@ static enum cdd_c_error find_semicolon(const struct TokenList *tokens,
       return CDD_C_SUCCESS;
     }
   }
-  *_out_val = tokens->size;
-  return CDD_C_SUCCESS;
+  {
+    *_out_val = tokens->size;
+    return CDD_C_SUCCESS;
+  }
 }
 
 /**
  * @brief Retrieves the stmt start.
  */
-static enum cdd_c_error find_stmt_start(const struct TokenList *tokens,
-                                        size_t pos, size_t *_out_val) {
+static cdd_c_error_t find_stmt_start(const struct TokenList *tokens, size_t pos,
+                                     size_t *_out_val) {
   size_t i = pos;
   while (i > 0) {
     if (tokens->tokens[i - 1].kind == TOKEN_SEMICOLON ||
@@ -104,21 +111,26 @@ static enum cdd_c_error find_stmt_start(const struct TokenList *tokens,
 /**
  * @brief Executes the join tokens range operation.
  */
-static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
-                                          size_t start, size_t end,
-                                          char **_out_val) {
+static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
+                                       size_t start, size_t end,
+                                       char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
 
   if (start >= end) {
-    return c_cdd_strdup("", _out_val);
+    c_cdd_strdup("", _out_val);
+    return CDD_C_SUCCESS;
   }
 
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = C_CDD_MALLOC(len + 1);
+  buf = malloc(len + 1);
+  if (!buf) {
+    *_out_val = NULL;
+    return CDD_C_SUCCESS;
+  }
 
   p = buf;
   for (i = start; i < end; ++i) {
@@ -137,12 +149,12 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
 /**
  * @brief Executes the rewrite body operation.
  */
-enum cdd_c_error rewrite_body(const struct TokenList *tokens,
-                              const struct AllocationSiteList *allocs,
-                              const struct RefactoredFunction *funcs,
-                              size_t func_count,
-                              const struct SignatureTransform *transform,
-                              char **out_code) {
+cdd_c_error_t rewrite_body(const struct TokenList *tokens,
+                           const struct AllocationSiteList *allocs,
+                           const struct RefactoredFunction *funcs,
+                           size_t func_count,
+                           const struct SignatureTransform *transform,
+                           char **out_code) {
   struct PatchList patches;
   int rc;
   size_t i;
@@ -161,7 +173,9 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
       return CDD_C_ERROR_MEMORY;
   }
 #endif
-  patch_list_init(&patches);
+  if (patch_list_init(&patches) != 0) {
+    return CDD_C_ERROR_MEMORY;
+  }
 
   /* 2. Apply Safety Strategies */
   if (allocs) {
@@ -181,7 +195,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
         const struct RefactoredFunction *rf = NULL;
         extract_token_text(id_tok, &name_str);
         find_refactored_func(funcs, func_count, name_str, &rf);
-        C_CDD_FREE(name_str);
+        free(name_str);
 
         if (rf) {
           /* Check if it's a function call lookup: ID + LPAREN */
@@ -271,14 +285,19 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                       patch_list_add(&patches, eq_idx, eq_idx + 1, tmp);
                     };
                   } else {
+                    {
+                      char *tmp = NULL;
+                      c_cdd_strdup("rc =", &tmp);
+                      patch_list_add(&patches, lhs_start, eq_idx + 1, tmp);
+                    };
                   }
 
                   /* Append arg */
                   {
+                    char *arg_append = malloc(strlen(lhs_name) + 10);
+                    /* Check if empty args */
                     int is_empty = 1;
                     size_t a;
-                    char *arg_append = C_CDD_MALLOC(strlen(lhs_name) + 10);
-                    /* Check if empty args */
                     for (a = lparen + 1; a < rparen; a++)
                       if (tokens->tokens[a].kind != TOKEN_WHITESPACE)
                         is_empty = 0;
@@ -308,7 +327,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                     patch_list_add(&patches, semi + 1, semi + 1, tmp);
                   };
 
-                  C_CDD_FREE(lhs_name);
+                  free(lhs_name);
                   injected_rc = 1;
                 }
               }
@@ -363,8 +382,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                        rf->original_return_type, tmp_var, rf->name, call_args,
                        (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 #else
-              injection = C_CDD_MALLOC(1024);
-
+              injection = malloc(1024);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(injection, 1024,
                         "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
@@ -379,7 +397,6 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                       (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 #endif
 #endif
-
               /* Inject before statement */
               patch_list_add(&patches, stmt_start, stmt_start, injection);
 
@@ -390,7 +407,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                 patch_list_add(&patches, i, rparen + 1, tmp);
               };
 
-              C_CDD_FREE(call_args);
+              free(call_args);
               injected_rc = 1;
             }
           }
@@ -424,8 +441,9 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
             /* Fix: Check for inline unchecked alloc in return statement */
             int contains_alloc = 0;
             if (allocs) {
-              size_t k = 0;
-              while (k < allocs->size) {
+              size_t k;
+              for (k = 0; k < allocs->size; k++) {
+                /* If site is between return and semicolon */
                 if (allocs->sites[k].token_index > i &&
                     allocs->sites[k].token_index < semi) {
                   contains_alloc = 1;
@@ -435,9 +453,9 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
             }
 
             if (contains_alloc) {
-              /* Transform: return C_CDD_MALLOC(...) -> { Type _safe_ret =
-               * C_CDD_MALLOC(...); if(!_safe_ret) return CDD_C_ERROR_MEMORY;
-               * *out = _safe_ret; return CDD_C_SUCCESS; } */
+              /* Transform: return malloc(...) -> { Type _safe_ret =
+               * malloc(...); if(!_safe_ret) return CDD_C_ERROR_MEMORY; *out =
+               * _safe_ret; return CDD_C_SUCCESS; } */
               /* Extract expr between return (i) and semi (inclusive of nothing,
                * wait range excludes return kw) */
               char *expr = NULL;
@@ -451,11 +469,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
                        transform->return_type, expr, transform->error_code,
                        transform->arg_name, transform->success_code);
 #else
-              replacement = C_CDD_MALLOC(strlen(expr) + 256);
-              if (!replacement) {
-                C_CDD_FREE(expr);
-                patch_list_free(&patches);
-              }
+              replacement = malloc(strlen(expr) + 256);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(replacement, strlen(expr) + 256,
                         "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
@@ -472,7 +486,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
 #endif
               /* Replace entire statement "return ...;" */
               patch_list_add(&patches, i, semi + 1, replacement);
-              C_CDD_FREE(expr);
+              free(expr);
             } else {
               /* Replace return val; -> *out = val; return CDD_C_SUCCESS; */
               {
@@ -493,29 +507,22 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
 
     if (transform->type == TRANSFORM_VOID_TO_INT && tokens->size > 0) {
       size_t last = tokens->size - 1;
+      while (last > 0 && tokens->tokens[last].kind != TOKEN_RBRACE)
+        last--;
 
       if (tokens->tokens[last].kind == TOKEN_RBRACE) {
         size_t prev_stmt = last;
         int has_ret = 0;
-        int seen_semi = 0;
         while (prev_stmt > 0) {
           prev_stmt--;
-          if (tokens->tokens[prev_stmt].kind == TOKEN_WHITESPACE)
-            continue;
-          if (tokens->tokens[prev_stmt].kind == TOKEN_SEMICOLON) {
-            if (seen_semi)
-              break;
-            seen_semi = 1;
-            continue;
-          }
           if (tokens->tokens[prev_stmt].kind == TOKEN_KEYWORD_RETURN) {
             has_ret = 1;
             break;
           }
-          if (tokens->tokens[prev_stmt].kind == TOKEN_LBRACE ||
-              tokens->tokens[prev_stmt].kind == TOKEN_RBRACE)
+          if (tokens->tokens[prev_stmt].kind == TOKEN_SEMICOLON ||
+              tokens->tokens[prev_stmt].kind == TOKEN_RBRACE ||
+              tokens->tokens[prev_stmt].kind == TOKEN_LBRACE)
             break;
-          seen_semi = 1; /* Any other token means we are in the statement */
         }
         if (!has_ret) {
           {
@@ -536,7 +543,7 @@ enum cdd_c_error rewrite_body(const struct TokenList *tokens,
     if (k < tokens->size) {
       {
         char *tmp = NULL;
-        c_cdd_strdup("\n  enum cdd_c_error rc = CDD_C_SUCCESS;", &tmp);
+        c_cdd_strdup("\n  cdd_c_error_t rc = CDD_C_SUCCESS;", &tmp);
         patch_list_add(&patches, k + 1, k + 1, tmp);
       };
     }

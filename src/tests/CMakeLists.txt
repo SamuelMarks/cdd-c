@@ -100,7 +100,7 @@ target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 
 set(EXEC_NAME "test_c_cdd")
 
-set(Source_Files "test_c_cdd.c" "c_cdd/test_allocator.c")
+set(Source_Files "test_c_cdd.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
 add_executable("${EXEC_NAME}" "${Source_Files}")
@@ -135,7 +135,7 @@ source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
 target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks" "${LIBRARY_NAME}")
+target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 if (C_CDD_USE_ASAN)
     set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")

@@ -10,12 +10,6 @@ extern "C" {
 #include "cdd_c_error.h"
 #include "preprocessor.h"
 #include <stddef.h>
-#if defined(_MSC_VER) && _MSC_VER < 1600
-typedef signed __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#else
-#include <stdint.h>
-#endif
 /* clang-format on */
 
 /**
@@ -37,7 +31,7 @@ typedef struct cdd_macro_eval_result_t {
   /** @brief Type of the result */
   cdd_macro_eval_type_t type;
   /** @brief Integer value */
-  int64_t int_val;
+  long long int_val;
   /** @brief Float value */
   double float_val;
   /** @brief String value (dynamically allocated) */
@@ -52,7 +46,7 @@ typedef struct cdd_macro_eval_result_t {
  * @return 0 on success, non-zero on error (e.g. invalid expression or unknown
  * identifier).
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_macro_evaluate(struct PreprocessorContext *ctx, const char *expression,
                    cdd_macro_eval_result_t *out_result);
 

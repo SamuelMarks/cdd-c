@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -20,7 +19,7 @@
 /**
  * @brief Executes the c mapping init operation.
  */
-enum cdd_c_error c_mapping_init(struct OpenApiTypeMapping *out) {
+cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(out, 0, sizeof(*out));
@@ -34,11 +33,11 @@ enum cdd_c_error c_mapping_init(struct OpenApiTypeMapping *out) {
 void c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
     if (out->oa_type)
-      C_CDD_FREE(out->oa_type);
+      free(out->oa_type);
     if (out->oa_format)
-      C_CDD_FREE(out->oa_format);
+      free(out->oa_format);
     if (out->ref_name)
-      C_CDD_FREE(out->ref_name);
+      free(out->ref_name);
     memset(out, 0, sizeof(*out));
   }
 }
@@ -46,8 +45,8 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
 /**
  * @brief Adds or sets primitive.
  */
-static enum cdd_c_error set_primitive(struct OpenApiTypeMapping *out,
-                                      const char *type, const char *fmt) {
+static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
+                                   const char *type, const char *fmt) {
   out->kind = OA_TYPE_PRIMITIVE;
   c_cdd_strdup(type, &out->oa_type);
   if (!out->oa_type) {
@@ -57,7 +56,7 @@ static enum cdd_c_error set_primitive(struct OpenApiTypeMapping *out,
   if (fmt) {
     c_cdd_strdup(fmt, &out->oa_format);
     if (!out->oa_format) {
-      C_CDD_FREE(out->oa_type);
+      free(out->oa_type);
       out->oa_type = NULL;
       return CDD_C_ERROR_MEMORY;
     }
@@ -68,8 +67,7 @@ static enum cdd_c_error set_primitive(struct OpenApiTypeMapping *out,
 /**
  * @brief Adds or sets ref.
  */
-static enum cdd_c_error set_ref(struct OpenApiTypeMapping *out,
-                                const char *ref) {
+static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
@@ -83,8 +81,7 @@ static enum cdd_c_error set_ref(struct OpenApiTypeMapping *out,
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static enum cdd_c_error skip_qualifiers(const char *type,
-                                        const char **_out_val) {
+static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
   const char *p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
@@ -113,7 +110,7 @@ static enum cdd_c_error skip_qualifiers(const char *type,
 /**
  * @brief Executes the clean type str operation.
  */
-static enum cdd_c_error clean_type_str(const char *in, char **_out_val) {
+static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
   int rc;
@@ -137,9 +134,8 @@ static enum cdd_c_error clean_type_str(const char *in, char **_out_val) {
 /**
  * @brief Executes the c mapping map type operation.
  */
-enum cdd_c_error c_mapping_map_type(const char *c_type_in,
-                                    const char *decl_name,
-                                    struct OpenApiTypeMapping *out) {
+cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
+                                 struct OpenApiTypeMapping *out) {
   char *clean = NULL;
   const char *c_type = NULL;
   int is_ptr = 0;
@@ -230,7 +226,7 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
 
         rc = set_ref(out, start);
       }
-      C_CDD_FREE(clean);
+      free(clean);
     } else {
       /* Fallback: Unknown type (defaults to string usually in schemas?) */
       /* Keep generic T as object for templates */
@@ -271,9 +267,9 @@ enum cdd_c_error c_mapping_map_type(const char *c_type_in,
     (void)inner_ref;
     (void)inner_type;
     if (inner_ref)
-      C_CDD_FREE(inner_ref);
+      free(inner_ref);
     if (inner_type)
-      C_CDD_FREE(inner_type);
+      free(inner_type);
   }
 
   return CDD_C_SUCCESS;

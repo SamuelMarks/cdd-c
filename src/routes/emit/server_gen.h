@@ -14,7 +14,7 @@ extern "C" {
 C_CDD_EXPORT /**
               * @brief Executes the openapi server generate operation.
               */
-    enum cdd_c_error
+    cdd_c_error_t
     openapi_server_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config);
 

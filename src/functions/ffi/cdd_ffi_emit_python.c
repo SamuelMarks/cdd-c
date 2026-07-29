@@ -262,7 +262,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "    def %s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent != CDD_FFI_INTENT_OUT) {
-            const char *arg_name = node->fields[j].name;
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
             fprintf(f, "%s, ", arg_name);
           }
         }
@@ -288,7 +289,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
             fprintf(f, "ctypes.byref(out_%s), ", node->fields[j].name);
           } else {
-            const char *arg_name = node->fields[j].name;
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
             fprintf(f, "%s, ", arg_name);
           }
         }
@@ -299,7 +301,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "    def %s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent != CDD_FFI_INTENT_OUT) {
-            const char *arg_name = node->fields[j].name;
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
             if (!first_arg)
               fprintf(f, ", ");
             fprintf(f, "%s", arg_name);
@@ -342,7 +345,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
             fprintf(f, "ctypes.byref(out_%s), ", node->fields[j].name);
           } else {
-            const char *arg_name = node->fields[j].name;
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
             fprintf(f, "%s, ", arg_name);
           }
         }

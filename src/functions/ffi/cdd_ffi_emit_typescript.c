@@ -90,7 +90,7 @@ static const char *get_ts_type(cdd_ffi_type_t type) {
   }
 }
 
-static enum cdd_c_error
+static cdd_c_error_t
 emit_deno_module(cdd_ffi_ir_t *ir,
                  const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
@@ -108,15 +108,6 @@ emit_deno_module(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ts", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
-  {
-    extern volatile int g_fail_io_after;
-    if (g_fail_io_after == 555) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
-    }
-  }
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -172,7 +163,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
         fprintf(f, "      %s", get_deno_ffi_type(node->fields[j].type));
         if (j < node->fields_count - 1)
           fprintf(f, ",");
-        fprintf(f, " /* %s */\n", node->fields[j].name);
+        fprintf(f, " /* %s */\n",
+                node->fields[j].name ? node->fields[j].name : "arg");
       }
       fprintf(f, "    ],\n");
       fprintf(f, "    result: %s\n",
@@ -193,7 +185,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       fprintf(f, "export function %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
         if (node->fields[j].intent != CDD_FFI_INTENT_OUT) {
-          const char *arg_name = node->fields[j].name;
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           /* handle TS keywords */
           if (strcmp(arg_name, "function") == 0)
             arg_name = "func";
@@ -221,7 +214,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
           for (j = 0; j < node->fields_count; j++) {
             if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
                 node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-              const char *arg_name = node->fields[j].name;
+              const char *arg_name =
+                  node->fields[j].name ? node->fields[j].name : "arg";
               fprintf(f, ", %s: number", arg_name); /* Naively map all ptrs out
                                                        to number via dataview */
             }
@@ -242,7 +236,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
       for (j = 0; j < node->fields_count; j++) {
         if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
             node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-          const char *arg_name = node->fields[j].name;
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           fprintf(f, "  const out_%s = new Uint8Array(8);\n", arg_name);
           if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
             fprintf(f,
@@ -255,7 +250,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
 
       fprintf(f, "  const res = lib.symbols.%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        const char *arg_name = node->fields[j].name;
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (strcmp(arg_name, "function") == 0)
           arg_name = "func";
 
@@ -285,7 +281,8 @@ emit_deno_module(cdd_ffi_ir_t *ir,
           for (j = 0; j < node->fields_count; j++) {
             if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
                 node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-              const char *arg_name = node->fields[j].name;
+              const char *arg_name =
+                  node->fields[j].name ? node->fields[j].name : "arg";
               fprintf(f,
                       ",\n    %s: Number(new "
                       "DataView(out_%s.buffer).getBigInt64(0, true))",
@@ -306,11 +303,12 @@ emit_deno_module(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_emit_typescript(cdd_ffi_ir_t *ir,
                         const cdd_generate_bindings_config_t *config) {
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   return emit_deno_module(ir, config);
 }

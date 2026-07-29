@@ -1,19 +1,22 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <stdlib.h>
 
 #include "simple.h"
 /* clang-format on */
 
-enum cdd_c_error Haz_cleanup(struct Haz *const haz) {
+cdd_c_error_t Haz_cleanup(struct Haz *const haz) {
   free(haz);
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error Foo_cleanup(struct Foo *const foo) {
+cdd_c_error_t Foo_cleanup(struct Foo *const foo) {
   if (foo == NULL)
     return CDD_C_SUCCESS;
-  Haz_cleanup(foo->haz);
+  {
+    cdd_c_error_t rc = Haz_cleanup(foo->haz);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   free(foo);
   return CDD_C_SUCCESS;
 }

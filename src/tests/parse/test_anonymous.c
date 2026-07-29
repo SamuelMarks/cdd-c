@@ -1,12 +1,11 @@
 extern C_CDD_EXPORT int g_fail_io_after;
-
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_anonymous.c
  * @brief Integration tests for anonymous structure lifting.
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -55,7 +54,7 @@ TEST test_lift_anonymous_struct(void) {
     fseek(f, 0, SEEK_END);
     sz = ftell(f);
     rewind(f);
-    content = (char *)C_CDD_MALLOC(sz + 1);
+    content = (char *)malloc(sz + 1);
     if (!content)
       return CDD_C_ERROR_MEMORY;
     fread(content, 1, sz, f);
@@ -75,18 +74,18 @@ TEST test_lift_anonymous_struct(void) {
     /* We expect Parent to have property coords referencing Parent_coords */
     ASSERT(strstr(content, "\"$ref\": \"#/components/schemas/Parent_coords\""));
 
-    C_CDD_FREE(content);
+    free(content);
   }
 
   remove("anon.h");
   remove("anon.json");
-
+  g_fail_io_after = -1;
   PASS();
 }
 
 SUITE(anonymous_suite) { RUN_TEST(test_lift_anonymous_struct); }
 
-enum cdd_c_error main(int argc, char **argv) {
+cdd_c_error_t main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   RUN_SUITE(anonymous_suite);
   GREATEST_MAIN_END();

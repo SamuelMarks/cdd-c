@@ -1,8 +1,6 @@
 #ifndef TEST_ORCHESTRATOR_INTERNALS_H
 #define TEST_ORCHESTRATOR_INTERNALS_H
 
-/* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
 #include <greatest.h>
@@ -12,15 +10,14 @@ int g_force_find_allocations_fail = 0;
 #define fix_code_main internal_fix_code_main
 
 #define find_allocations mock_find_allocations
-static enum cdd_c_error mock_find_allocations(const struct TokenList *tokens,
-                                              struct AllocationSiteList *out);
+static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
+                                           struct AllocationSiteList *out);
 #include "functions/parse/orchestrator.c"
-/* clang-format on */
 #undef find_allocations
-extern enum cdd_c_error find_allocations(const struct TokenList *tokens,
-                                         struct AllocationSiteList *out);
-static enum cdd_c_error mock_find_allocations(const struct TokenList *tokens,
-                                              struct AllocationSiteList *out) {
+extern cdd_c_error_t find_allocations(const struct TokenList *tokens,
+                                      struct AllocationSiteList *out);
+static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
+                                           struct AllocationSiteList *out) {
   if (g_force_find_allocations_fail)
     return CDD_C_ERROR_MEMORY;
   return find_allocations(tokens, out);
@@ -69,7 +66,7 @@ TEST test_orchestrator_internals(void) {
            my_tl->tokens[0].start, token_eq_str(&my_tl->tokens[0], "void"));
 
     if (type_str)
-      C_CDD_FREE(type_str);
+      free(type_str);
     free_token_list(my_tl);
   }
 

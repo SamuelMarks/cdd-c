@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "url_utils.h"
 #include <parson.h>
 #include <stdio.h>
@@ -24,33 +23,33 @@
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-enum cdd_c_error ApiError_cleanup(struct ApiError *err) {
+cdd_c_error_t ApiError_cleanup(struct ApiError *err) {
   if (!err)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (err->type)
-    C_CDD_FREE(err->type);
+    free(err->type);
   if (err->title)
-    C_CDD_FREE(err->title);
+    free(err->title);
   if (err->detail)
-    C_CDD_FREE(err->detail);
+    free(err->detail);
   if (err->instance)
-    C_CDD_FREE(err->instance);
+    free(err->instance);
   if (err->raw_body)
-    C_CDD_FREE(err->raw_body);
-  C_CDD_FREE(err);
+    free(err->raw_body);
+  free(err);
   return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-static enum cdd_c_error ApiError_from_json(const char *json,
-                                           struct ApiError **out) {
+static cdd_c_error_t ApiError_from_json(const char *json,
+                                        struct ApiError **out) {
   JSON_Value *root;
   JSON_Object *obj;
   if (!json || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out = C_CDD_CALLOC(1, sizeof(struct ApiError));
+  *out = calloc(1, sizeof(struct ApiError));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   (*out)->raw_body = strdup(json);
@@ -95,7 +94,7 @@ static enum cdd_c_error ApiError_from_json(const char *json,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
+cdd_c_error_t api_init(struct HttpClient *client, const char *base_url) {
   int rc;
   if (!client)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -107,7 +106,7 @@ enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
     base_url = default_url;
   }
   if (base_url) {
-    client->base_url = C_CDD_MALLOC(strlen(base_url) + 1);
+    client->base_url = malloc(strlen(base_url) + 1);
     if (!client->base_url)
       return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -133,7 +132,7 @@ enum cdd_c_error api_init(struct HttpClient *client, const char *base_url) {
   return rc;
 }
 
-enum cdd_c_error api_cleanup(struct HttpClient *client) {
+cdd_c_error_t api_cleanup(struct HttpClient *client) {
   if (!client)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #ifdef USE_WININET
@@ -149,8 +148,8 @@ enum cdd_c_error api_cleanup(struct HttpClient *client) {
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error Bar_api_test_op(struct HttpClient *ctx,
-                                 struct ApiError **api_error) {
+cdd_c_error_t Bar_api_test_op(struct HttpClient *ctx,
+                              struct ApiError **api_error) {
   struct HttpRequest req;
   struct HttpResponse *res = NULL;
   int rc = 0;
@@ -197,10 +196,11 @@ enum cdd_c_error Bar_api_test_op(struct HttpClient *ctx,
   if (!handled) {
     rc = CDD_C_ERROR_IO;
     if (res->body && api_error) {
-      enum cdd_c_error api_rc =
+      cdd_c_error_t api_rc =
           ApiError_from_json((const char *)res->body, api_error);
       if (api_rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("Failed to parse ApiError: %d\n", api_rc);
+        rc = api_rc;
       }
     }
   }
@@ -209,7 +209,7 @@ cleanup:
   http_request_free(&req);
   if (res) {
     http_response_free(res);
-    C_CDD_FREE(res);
+    free(res);
   }
   return rc;
 }

@@ -56,7 +56,7 @@ extern "C" {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen client write body.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec,
                               const char *path_template,

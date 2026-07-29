@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -23,13 +22,9 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-extern C_CDD_EXPORT int g_cdd_alloc_fail_countdown_countdown;
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
-
-static enum cdd_c_error gen_sig(const struct OpenAPI_Operation *op,
-                                const struct CodegenSigConfig *cfg,
-                                char **_out_val) {
+static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
+                             const struct CodegenSigConfig *cfg,
+                             char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
@@ -51,7 +46,7 @@ static enum cdd_c_error gen_sig(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 
@@ -63,10 +58,10 @@ static enum cdd_c_error gen_sig(const struct OpenAPI_Operation *op,
 }
 
 TEST test_sig_simple_get(void) {
-  printf("running test_sig_simple_get\n");
+  char *_ast_gen_sig_0 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "get_pet";
 
@@ -77,11 +72,7 @@ TEST test_sig_simple_get(void) {
 
   op.req_body.ref_name = "Pet";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_0), _ast_gen_sig_0);
   ASSERT(code);
 
   /* Verify standard signature including ApiError */
@@ -90,64 +81,54 @@ TEST test_sig_simple_get(void) {
                 "int get_pet(struct HttpClient *ctx, int id, struct Pet **out, "
                 "struct ApiError **api_error) {"));
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_verify_apierror(void) {
+  char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
   op.operation_id = (char *)"do";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
   ASSERT(code);
 
   ASSERT(strstr(code, ", struct ApiError **api_error)"));
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_grouped(void) {
+  char *_ast_gen_sig_2 = NULL;
   struct OpenAPI_Operation op = {0};
   struct CodegenSigConfig cfg = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "getById";
 
   cfg.prefix = "api_";
   cfg.group_name = "Pet";
 
-  gen_sig(&op, &cfg, &code);
+  code = (gen_sig(&op, &cfg, &_ast_gen_sig_2), _ast_gen_sig_2);
   ASSERT(code);
 
   /* Expect: Pet_api_getById */
   ASSERT(strstr(code, "int Pet_api_getById(struct HttpClient *ctx"));
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_success_range_response(void) {
+  char *_ast_gen_sig_3 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "listPets";
 
@@ -156,26 +137,20 @@ TEST test_sig_success_range_response(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_3), _ast_gen_sig_3);
   ASSERT(code);
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_default_response_success(void) {
+  char *_ast_gen_sig_4 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "defaultPet";
 
@@ -184,26 +159,20 @@ TEST test_sig_default_response_success(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_4), _ast_gen_sig_4);
   ASSERT(code);
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_inline_response_string(void) {
+  char *_ast_gen_sig_5 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "getInline";
 
@@ -212,26 +181,20 @@ TEST test_sig_inline_response_string(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_5), _ast_gen_sig_5);
   ASSERT(code);
   ASSERT(strstr(code, "char **out") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_inline_response_array(void) {
+  char *_ast_gen_sig_6 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "getInlineArr";
 
@@ -241,77 +204,59 @@ TEST test_sig_inline_response_array(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_6), _ast_gen_sig_6);
   ASSERT(code);
   ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_inline_request_body_string(void) {
+  char *_ast_gen_sig_7 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postInline";
   op.req_body.content_type = "application/json";
   op.req_body.inline_type = "string";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_7), _ast_gen_sig_7);
   ASSERT(code);
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_inline_request_body_array(void) {
+  char *_ast_gen_sig_8 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postInlineArr";
   op.req_body.content_type = "application/json";
   op.req_body.is_array = 1;
   op.req_body.inline_type = "number";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_8), _ast_gen_sig_8);
   ASSERT(code);
   ASSERT(strstr(code, "const double *body, size_t body_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_multipart_encoding_headers(void) {
+  char *_ast_gen_sig_9 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_MediaType mt = {0};
   struct OpenAPI_Encoding enc = {0};
   struct OpenAPI_Header headers[3] = {{0}};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "upload";
 
@@ -336,122 +281,92 @@ TEST test_sig_multipart_encoding_headers(void) {
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_9), _ast_gen_sig_9);
   ASSERT(code);
   ASSERT(strstr(code, "const char *file_hdr_X_Trace") != NULL);
   ASSERT(strstr(code, "const int *file_hdr_X_Ids, size_t file_hdr_X_Ids_len") !=
          NULL);
   ASSERT(strstr(code, "file_hdr_Content_Type") == NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_text_plain_request_body(void) {
+  char *_ast_gen_sig_10 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postText";
   op.req_body.content_type = "text/plain";
   op.req_body.inline_type = "string";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_10), _ast_gen_sig_10);
   ASSERT(code);
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_textual_request_body_xml(void) {
+  char *_ast_gen_sig_11 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postXml";
   op.req_body.content_type = "application/xml";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_11), _ast_gen_sig_11);
   ASSERT(code);
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_octet_stream_request_body(void) {
+  char *_ast_gen_sig_12 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postBinary";
   op.req_body.content_type = "application/octet-stream";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_12), _ast_gen_sig_12);
   ASSERT(code);
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_binary_request_body_pdf(void) {
+  char *_ast_gen_sig_13 = NULL;
   struct OpenAPI_Operation op = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "postPdf";
   op.req_body.content_type = "application/pdf";
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_13), _ast_gen_sig_13);
   ASSERT(code);
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_octet_stream_response_body(void) {
+  char *_ast_gen_sig_14 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "download";
   resp.code = "200";
@@ -459,26 +374,20 @@ TEST test_sig_octet_stream_response_body(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_14), _ast_gen_sig_14);
   ASSERT(code);
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_binary_response_body_pdf(void) {
+  char *_ast_gen_sig_15 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "downloadPdf";
   resp.code = "200";
@@ -486,28 +395,20 @@ TEST test_sig_binary_response_body_pdf(void) {
   op.responses = &resp;
   op.n_responses = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_15), _ast_gen_sig_15);
   ASSERT(code);
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_form_object(void) {
-  printf("running test_sig_querystring_form_object\n");
-  fflush(stdout);
+  char *_ast_gen_sig_16 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "search";
 
@@ -520,31 +421,23 @@ TEST test_sig_querystring_form_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_16), _ast_gen_sig_16);
   ASSERT(code);
   ASSERT(strstr(code,
                 ""
                 "int search(struct HttpClient *ctx, const struct OpenAPI_KV "
                 "*qs, size_t qs_len, struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_json_ref(void) {
-  printf("running test_sig_querystring_json_ref\n");
-  fflush(stdout);
+  char *_ast_gen_sig_17 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchJson";
 
@@ -557,31 +450,23 @@ TEST test_sig_querystring_json_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_17), _ast_gen_sig_17);
   ASSERT(code);
   ASSERT(strstr(code,
                 ""
                 "int searchJson(struct HttpClient *ctx, const struct Pet *qs, "
                 "struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_json_primitive(void) {
-  printf("running test_sig_querystring_json_primitive\n");
-  fflush(stdout);
+  char *_ast_gen_sig_18 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchJsonInt";
 
@@ -594,35 +479,27 @@ TEST test_sig_querystring_json_primitive(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_18), _ast_gen_sig_18);
   ASSERT(code);
   ASSERT(strstr(code, ""
                       "int searchJsonInt(struct HttpClient *ctx, int qs, "
                       "struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_json_array(void) {
+  char *_ast_gen_sig_19 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchJsonTags";
 
   param.name = "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  printf("Before param.type = array\n");
-  fflush(stdout);
   param.type = "array";
   param.content_type = "application/json";
   param.schema.is_array = 1;
@@ -631,38 +508,28 @@ TEST test_sig_querystring_json_array(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_19), _ast_gen_sig_19);
   ASSERT(code);
-  printf("CODE WAS: \n%s\n", code);
-  fflush(stdout);
   ASSERT(strstr(code,
                 ""
                 "int searchJsonTags(struct HttpClient *ctx, const char **qs, "
                 "size_t qs_len, struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_json_array_object(void) {
+  char *_ast_gen_sig_20 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchJsonPets";
 
   param.name = "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  printf("Before param.type = array\n");
-  fflush(stdout);
   param.type = "array";
   param.content_type = "application/json";
   param.schema.is_array = 1;
@@ -671,29 +538,23 @@ TEST test_sig_querystring_json_array_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_20), _ast_gen_sig_20);
   ASSERT(code);
   ASSERT(strstr(code,
                 ""
                 "int searchJsonPets(struct HttpClient *ctx, const struct Pet "
                 "**qs, size_t qs_len, struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_raw_string(void) {
+  char *_ast_gen_sig_21 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchRaw";
 
@@ -706,28 +567,22 @@ TEST test_sig_querystring_raw_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_21), _ast_gen_sig_21);
   ASSERT(code);
   ASSERT(strstr(code, ""
                       "int searchRaw(struct HttpClient *ctx, const char *qs, "
                       "struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_querystring_raw_integer(void) {
+  char *_ast_gen_sig_22 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "searchRawInt";
 
@@ -740,28 +595,22 @@ TEST test_sig_querystring_raw_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_22), _ast_gen_sig_22);
   ASSERT(code);
   ASSERT(strstr(code, ""
                       "int searchRawInt(struct HttpClient *ctx, int qs, "
                       "struct ApiError **api_error) {") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_query_object_param_kv(void) {
+  char *_ast_gen_sig_23 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "list";
 
@@ -772,27 +621,21 @@ TEST test_sig_query_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_23), _ast_gen_sig_23);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_path_object_param_kv(void) {
+  char *_ast_gen_sig_24 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "byPath";
 
@@ -803,27 +646,21 @@ TEST test_sig_path_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_24), _ast_gen_sig_24);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_header_object_param_kv(void) {
+  char *_ast_gen_sig_25 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "byHeader";
 
@@ -834,27 +671,21 @@ TEST test_sig_header_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_25), _ast_gen_sig_25);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_cookie_object_param_kv(void) {
+  char *_ast_gen_sig_26 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "byCookie";
 
@@ -865,27 +696,21 @@ TEST test_sig_cookie_object_param_kv(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_26), _ast_gen_sig_26);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *prefs, size_t prefs_len") !=
          NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sig_json_content_query_ref(void) {
+  char *_ast_gen_sig_27 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *code = NULL;
+  char *code;
 
   op.operation_id = "list";
 
@@ -897,19 +722,12 @@ TEST test_sig_json_content_query_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  printf("B1\n");
-  fflush(stdout);
-  gen_sig(&op, NULL, &code);
-  printf("B2\n");
-  fflush(stdout);
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_27), _ast_gen_sig_27);
   ASSERT(code);
   ASSERT(strstr(code, "const struct Filter *filter") != NULL);
 
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -936,11 +754,8 @@ TEST test_sig_header_param_boolean(void) {
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
   ASSERT(strstr(code, "int X-Bool") != NULL);
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -967,11 +782,8 @@ TEST test_sig_header_param_number(void) {
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
   ASSERT(strstr(code, "double X-Num") != NULL);
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -998,11 +810,8 @@ TEST test_sig_header_param_integer(void) {
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
   ASSERT(strstr(code, "int X-Int") != NULL);
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1029,11 +838,8 @@ TEST test_sig_header_param_string(void) {
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
   ASSERT(strstr(code, "char *X-String") != NULL);
-  if (code) {
-    C_CDD_FREE(code);
-    code = NULL;
-  }
-
+  free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 SUITE(client_sig_suite) {

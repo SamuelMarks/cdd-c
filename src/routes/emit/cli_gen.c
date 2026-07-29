@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd/safe_crt.h"
 #include "cli_gen.h"
 #include <stdio.h>
@@ -23,16 +22,15 @@
 /**
  * @brief Executes the openapi cli generate operation.
  */
-enum cdd_c_error
-openapi_cli_generate(const struct OpenAPI_Spec *spec,
-                     const struct OpenApiClientConfig *config) {
+cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
+                                   const struct OpenApiClientConfig *config) {
   char path[1024];
   FILE *fp = NULL;
   size_t i, j, k;
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = C_CDD_MALLOC(512);
+    char *src_dir = malloc(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
@@ -41,11 +39,11 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
     makedirs(src_dir);
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir,
                  base_name ? base_name : "generated_client");
-    C_CDD_FREE(src_dir);
+    free(src_dir);
     if (dir_name)
-      C_CDD_FREE(dir_name);
+      free(dir_name);
     if (base_name)
-      C_CDD_FREE(base_name);
+      free(base_name);
   }
 #if defined(_MSC_VER)
   if (fopen_s(&fp, path, "w") != 0)
@@ -71,14 +69,14 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
     get_basename(config->filename_base, &base);
     fprintf(fp, "#include \"%s.h\"\n\n", base ? base : config->filename_base);
     if (base)
-      C_CDD_FREE(base);
+      free(base);
   }
 
   /* Info Object details */
   fprintf(fp, "/**\n"
               " * @brief Auto-generated code from OpenAPI specification\n"
               " */\n"
-              "enum cdd_c_error print_cli_help(void) {\n");
+              "cdd_c_error_t print_cli_help(void) {\n");
   fprintf(fp, "  printf(\"%%s v%%s\\n\", \"%s\", \"%s\");\n",
           spec->info.title ? spec->info.title : "CLI Tool",
           spec->info.version ? spec->info.version : "1.0.0");
@@ -190,7 +188,7 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp,
           "  if (cmd_idx >= argc || strcmp(argv[cmd_idx], \"--help\") == 0 || "
           "strcmp(argv[cmd_idx], \"-h\") == 0) {\n");
-  fprintf(fp, "    enum cdd_c_error rc = print_cli_help(); if(rc != "
+  fprintf(fp, "    cdd_c_error_t rc = print_cli_help(); if(rc != "
               "CDD_C_SUCCESS) return rc;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");
@@ -280,7 +278,7 @@ openapi_cli_generate(const struct OpenAPI_Spec *spec,
               "{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"%%s\\\"}]}}\\n\", "
               "out_result ? out_result : \"Error executing tool\");\n");
   fprintf(fp, "          }\n");
-  fprintf(fp, "          if (out_result) C_CDD_FREE(out_result);\n");
+  fprintf(fp, "          if (out_result) free(out_result);\n");
   fprintf(fp, "          fflush(stdout);\n");
   fprintf(fp,
           "        } else if (strcmp(method, \"resources/list\") == 0) {\n");

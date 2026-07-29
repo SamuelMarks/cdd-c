@@ -28,11 +28,9 @@ extern "C" {
 #ifdef _WIN32
 #include <io.h>
 #else
-#ifndef _WIN32
 #include <unistd.h>
+#endif
 /* clang-format on */
-#endif
-#endif
 
 #define TEMP_OUT_FILE "to_docs_json_out.json"
 #define TEMP_SPEC_FILE "test_spec.json"
@@ -121,7 +119,7 @@ TEST test_to_docs_json_basic(void) {
 
   remove(TEMP_SPEC_FILE);
   remove(TEMP_OUT_FILE);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,7 +179,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
 
   remove(TEMP_SPEC_FILE);
   remove(TEMP_OUT_FILE);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -93,53 +93,49 @@ struct OpenApiClientConfig {
  * @param[in] config Configuration options for generation.
  * @return 0 on success, error code (EINVAL, ENOMEM, EIO) on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-openapi_client_generate(const struct OpenAPI_Spec *spec,
-                        const struct OpenApiClientConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t openapi_client_generate(
+    const struct OpenAPI_Spec *spec, const struct OpenApiClientConfig *config);
 
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 find_server_variable(const struct OpenAPI_Server *srv, const char *name,
                      const struct OpenAPI_ServerVariable **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 render_server_url_default(const struct OpenAPI_Server *srv, char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error escape_c_string_literal(const char *s,
-                                                             char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
-select_operation_server(const struct OpenAPI_Path *path,
-                        const struct OpenAPI_Operation *op,
-                        struct OpenAPI_Server **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error build_base_url_literal(const char *url,
-                                                            char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error generate_guard(const char *base,
-                                                    char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error derive_model_header(const char *base,
+extern C_CDD_EXPORT cdd_c_error_t escape_c_string_literal(const char *s,
+                                                          char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t select_operation_server(
+    const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
+    struct OpenAPI_Server **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t build_base_url_literal(const char *url,
                                                          char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error sanitize_tag(const char *tag,
-                                                  char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
-param_keys_match(const struct OpenAPI_Parameter *a,
-                 const struct OpenAPI_Parameter *b);
-extern C_CDD_EXPORT enum cdd_c_error build_effective_parameters(
+extern C_CDD_EXPORT cdd_c_error_t generate_guard(const char *base,
+                                                 char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t derive_model_header(const char *base,
+                                                      char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t sanitize_tag(const char *tag,
+                                               char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t param_keys_match(
+    const struct OpenAPI_Parameter *a, const struct OpenAPI_Parameter *b);
+extern C_CDD_EXPORT cdd_c_error_t build_effective_parameters(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     struct OpenAPI_Parameter **out_params, size_t *out_count);
-extern C_CDD_EXPORT enum cdd_c_error verb_to_string(enum OpenAPI_Verb verb,
-                                                    char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb,
+                                                 char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t
 write_docblock(FILE *fp, const struct OpenAPI_Path *path,
                const struct OpenAPI_Operation *op);
-extern C_CDD_EXPORT enum cdd_c_error
-write_header_preamble(FILE *fp, const char *guard, const char *model_decl);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t write_header_preamble(FILE *fp,
+                                                        const char *guard,
+                                                        const char *model_decl);
+extern C_CDD_EXPORT cdd_c_error_t
 write_source_preamble(FILE *fp, const char *header_name);
-extern C_CDD_EXPORT enum cdd_c_error
-write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
-                      const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT cdd_c_error_t write_lifecycle_funcs(
+    FILE *h, FILE *c, const char *prefix, const struct OpenAPI_Spec *spec);
 
-extern C_CDD_EXPORT enum cdd_c_error
-emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
-               const struct OpenAPI_Operation *op,
-               const struct OpenAPI_Spec *spec,
-               const struct OpenApiClientConfig *config, const char *prefix);
+extern C_CDD_EXPORT cdd_c_error_t emit_operation(
+    FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
+    const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
+    const struct OpenApiClientConfig *config, const char *prefix);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

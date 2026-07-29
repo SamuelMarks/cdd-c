@@ -19,8 +19,8 @@ extern "C" {
  * @param out_tree The generated tree containing nodes and token ownership.
  * @return 0 on success, or ENOMEM/EINVAL.
  */
-C_CDD_EXPORT enum cdd_c_error cdd_cst_parse(az_span source,
-                                            cdd_cst_tree_t **out_tree);
+C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
+                                         cdd_cst_tree_t **out_tree);
 
 /**
  * @brief Free the Concrete Syntax Tree and its constituent structures.

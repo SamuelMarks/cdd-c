@@ -49,7 +49,7 @@ struct CodegenUrlConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen url write builder.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_url_write_builder(FILE *fp, const char *path_template,
                               const struct OpenAPI_Parameter *params,
                               size_t n_params,
@@ -76,35 +76,32 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen url write query
                      * params.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
                                    int qp_tracking);
 
-extern C_CDD_EXPORT enum cdd_c_error is_primitive_type_url(const char *type);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t is_primitive_type_url(const char *type);
+extern C_CDD_EXPORT cdd_c_error_t
 param_is_object_kv_url(const struct OpenAPI_Parameter *p);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 media_type_base_len_url(const char *media_type, size_t *_out_val);
-extern C_CDD_EXPORT enum cdd_c_error media_type_ieq_url(const char *media_type,
-                                                        const char *expected);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t media_type_ieq_url(const char *media_type,
+                                                     const char *expected);
+extern C_CDD_EXPORT cdd_c_error_t
 media_type_is_json_url(const char *media_type);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 media_type_is_form_url(const char *media_type);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 querystring_param_is_form_object(const struct OpenAPI_Parameter *p);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t
 querystring_param_is_json_ref(const struct OpenAPI_Parameter *p);
-extern C_CDD_EXPORT enum cdd_c_error
-querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
-                                      const char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
-querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
-                                       const char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
-querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
-                                      const char **_out_val);
-extern C_CDD_EXPORT enum cdd_c_error
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_json_primitive_type(
+    const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_json_array_item_type(
+    const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_json_array_item_ref(
+    const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t
 write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p);
 #ifdef __cplusplus
 }

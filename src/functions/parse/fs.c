@@ -3,7 +3,6 @@
 #endif
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "functions/parse/str.h"
 /**
  * @file fs.c
@@ -23,7 +22,7 @@
 #include "c_cdd/log.h"
 #include "functions/str_includes.h"
 
-static enum cdd_c_error errno_to_cdd_error(int err) {
+static cdd_c_error_t errno_to_cdd_error(int err) {
   if (err == 0) return CDD_C_SUCCESS;
   if (err == ENOENT) return CDD_C_ERROR_NOT_FOUND;
   if (err == ENOMEM) return CDD_C_ERROR_MEMORY;
@@ -101,15 +100,13 @@ static enum cdd_c_error errno_to_cdd_error(int err) {
 #if defined(_MSC_VER)
 #include <io.h>
 #else
-#ifndef _WIN32
 #include <unistd.h>
 #endif
-#endif
 #include "c_cdd/log.h"
-/* clang-format on */
 #endif
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+/* clang-format on */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -121,8 +118,8 @@ static enum cdd_c_error errno_to_cdd_error(int err) {
 /**
  * @brief Executes the ascii to wide operation.
  */
-enum cdd_c_error ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
-                               size_t *out_len) {
+cdd_c_error_t ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
+                            size_t *out_len) {
   int result;
   if (s == NULL || ws == NULL || buf_cap == 0 || out_len == NULL) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -148,8 +145,8 @@ enum cdd_c_error ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
 /**
  * @brief Executes the wide to ascii operation.
  */
-enum cdd_c_error wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
-                               size_t *out_len) {
+cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
+                            size_t *out_len) {
   int result;
   if (ws == NULL || s == NULL || buf_cap == 0 || out_len == NULL) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -194,7 +191,7 @@ enum cdd_c_error wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
 /**
  * @brief Executes the fs is directory operation.
  */
-enum cdd_c_error fs_is_directory(const char *path, int *out_is_dir) {
+cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
   c_stat st;
   if (!out_is_dir)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -210,7 +207,7 @@ enum cdd_c_error fs_is_directory(const char *path, int *out_is_dir) {
 /**
  * @brief Retrieves the basename.
  */
-enum cdd_c_error get_basename(const char *path, char **out) {
+cdd_c_error_t get_basename(const char *path, char **out) {
   char *_ast_strdup_0 = NULL;
   const char *start_p, *p;
   size_t len;
@@ -232,7 +229,7 @@ enum cdd_c_error get_basename(const char *path, char **out) {
 
   /* Check if it was all separators (e.g. "///") -> returns "/" */
   if (p == path && (*p == '/' || *p == '\\')) {
-    *out = (char *)C_CDD_MALLOC(2);
+    *out = (char *)malloc(2);
     if (!*out)
       return CDD_C_ERROR_MEMORY;
     (*out)[0] = '/';
@@ -247,7 +244,7 @@ enum cdd_c_error get_basename(const char *path, char **out) {
   }
 
   len = (size_t)(p - start_p) + 1;
-  ret = (char *)C_CDD_MALLOC(len + 1);
+  ret = (char *)malloc(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -263,7 +260,7 @@ enum cdd_c_error get_basename(const char *path, char **out) {
 /**
  * @brief Retrieves the dirname.
  */
-enum cdd_c_error get_dirname(const char *path, char **out) {
+cdd_c_error_t get_dirname(const char *path, char **out) {
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
@@ -295,7 +292,7 @@ enum cdd_c_error get_dirname(const char *path, char **out) {
   if (p == path) {
     if (*p == '/' || *p == '\\') {
       len = 1; /* Root */
-      ret = (char *)C_CDD_MALLOC(2);
+      ret = (char *)malloc(2);
       if (!ret)
         return CDD_C_ERROR_MEMORY;
       ret[0] = '/';
@@ -323,7 +320,7 @@ enum cdd_c_error get_dirname(const char *path, char **out) {
     return *out ? 0 : ENOMEM;
   }
 
-  ret = (char *)C_CDD_MALLOC(len + 1);
+  ret = (char *)malloc(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -340,7 +337,7 @@ enum { READ_CHUNK_SIZE = 4096 };
 /**
  * @brief Executes the fopen error from operation.
  */
-enum cdd_c_error fopen_error_from(int fopen_error, enum FopenError *_out_val) {
+cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
   switch (fopen_error) {
   case 0: {
     *_out_val = FOPEN_OK;
@@ -380,7 +377,7 @@ enum cdd_c_error fopen_error_from(int fopen_error, enum FopenError *_out_val) {
 /**
  * @brief Executes the fs write to file operation.
  */
-enum cdd_c_error fs_write_to_file(const char *path, const char *content) {
+cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
   FILE *f;
   int rc = 0;
 
@@ -429,14 +426,14 @@ enum cdd_c_error fs_write_to_file(const char *path, const char *content) {
     rc = CDD_C_ERROR_IO;
 
   fclose(f);
-  return (enum cdd_c_error)rc;
+  return (cdd_c_error_t)rc;
 }
 
 /**
  * @brief Executes the read to file operation.
  */
-enum cdd_c_error read_to_file(const char *path, const char *mode,
-                              char **out_data, size_t *out_size) {
+cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
+                           size_t *out_size) {
   FILE *f = NULL;
   int internal_rc = 0;
 
@@ -508,7 +505,7 @@ enum cdd_c_error read_to_file(const char *path, const char *mode,
 /**
  * @brief Executes the read from fh operation.
  */
-enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
+cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   char *buffer = NULL;
   size_t total_read = 0;
   size_t capacity = 0;
@@ -522,9 +519,9 @@ enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* If buffer handles huge files, standard capacity doubling is fine */
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
-      char *new_buffer = (char *)C_CDD_REALLOC(buffer, new_capacity);
+      char *new_buffer = (char *)realloc(buffer, new_capacity);
       if (!new_buffer) {
-        C_CDD_FREE(buffer);
+        free(buffer);
         return CDD_C_ERROR_MEMORY;
       }
       buffer = new_buffer;
@@ -540,7 +537,7 @@ enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
      */
     if (rc == 0)
       rc = CDD_C_ERROR_IO;
-    C_CDD_FREE(buffer);
+    free(buffer);
     return rc;
   }
 
@@ -549,7 +546,7 @@ enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     buffer[total_read] = '\0';
   } else {
     /* Empty file case, allocate distinct empty string */
-    buffer = (char *)C_CDD_MALLOC(1);
+    buffer = (char *)malloc(1);
     if (!buffer) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -565,7 +562,7 @@ enum cdd_c_error read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
 /**
  * @brief Executes the cp operation.
  */
-enum cdd_c_error cp(const char *dst, const char *src) {
+cdd_c_error_t cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (!CopyFileA(src, dst, TRUE))
     return (int)GetLastError(); /* Return Windows error code as int */
@@ -640,7 +637,7 @@ out_error:
 /**
  * @brief Executes the maybe mkdir operation.
  */
-static enum cdd_c_error maybe_mkdir(const char *path) {
+static cdd_c_error_t maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
@@ -671,7 +668,7 @@ static enum cdd_c_error maybe_mkdir(const char *path) {
 /**
  * @brief Executes the makedirs operation.
  */
-enum cdd_c_error makedirs(const char *path) {
+cdd_c_error_t makedirs(const char *path) {
   char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
   int rc = 0;
@@ -716,7 +713,7 @@ enum cdd_c_error makedirs(const char *path) {
       *p = '\0';
       rc = maybe_mkdir(dup_path);
       if (rc != 0) {
-        C_CDD_FREE(dup_path);
+        free(dup_path);
         return rc;
       }
       *p = PATH_SEP_C;
@@ -724,14 +721,14 @@ enum cdd_c_error makedirs(const char *path) {
   }
 
   rc = maybe_mkdir(dup_path);
-  C_CDD_FREE(dup_path);
+  free(dup_path);
   return rc;
 }
 
 /**
  * @brief Executes the makedir operation.
  */
-enum cdd_c_error makedir(const char *path) {
+cdd_c_error_t makedir(const char *path) {
   if (path == NULL || *path == '\0')
     return CDD_C_ERROR_INVALID_ARGUMENT;
 #if defined(_WIN32)
@@ -750,7 +747,7 @@ enum cdd_c_error makedir(const char *path) {
 /**
  * @brief Executes the tempdir operation.
  */
-enum cdd_c_error tempdir(char **out_path) {
+cdd_c_error_t tempdir(char **out_path) {
   char *_ast_strdup_5 = NULL;
   const char *env;
 
@@ -773,11 +770,11 @@ enum cdd_c_error tempdir(char **out_path) {
     len = GetTempPathA(0, NULL);
     if (len == 0)
       return CDD_C_ERROR_IO;
-    *out_path = C_CDD_MALLOC(len + 1);
+    *out_path = malloc(len + 1);
     if (!*out_path)
       return CDD_C_ERROR_MEMORY;
     if (GetTempPathA(len + 1, *out_path) == 0) {
-      C_CDD_FREE(*out_path);
+      free(*out_path);
       *out_path = NULL;
       return CDD_C_ERROR_IO;
     }
@@ -805,7 +802,7 @@ enum cdd_c_error tempdir(char **out_path) {
 /**
  * @brief Executes the FilenameAndPtr cleanup operation.
  */
-enum cdd_c_error FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
+cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->fh) {
@@ -813,7 +810,7 @@ enum cdd_c_error FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
     file->fh = NULL;
   }
   if (file->filename) {
-    C_CDD_FREE(file->filename);
+    free(file->filename);
     file->filename = NULL;
   }
   return CDD_C_SUCCESS;
@@ -822,8 +819,7 @@ enum cdd_c_error FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
 /**
  * @brief Executes the FilenameAndPtr delete and cleanup operation.
  */
-enum cdd_c_error
-FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
+cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->filename) {
@@ -837,9 +833,9 @@ FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
 /**
  * @brief Executes the mktmpfilegetnameandfile operation.
  */
-enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
-                                         const char *mode,
-                                         struct FilenameAndPtr *file) {
+cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
+                                      const char *mode,
+                                      struct FilenameAndPtr *file) {
   unsigned char i;
   char *tmpdir_path = NULL;
   char *tmpfilename = NULL;
@@ -859,13 +855,13 @@ enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       unsigned int number;
       errno_t err = rand_s(&number);
       if (err) {
-        C_CDD_FREE(tmpdir_path);
+        free(tmpdir_path);
         return err;
       }
       if (asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, number,
                    suffix == NULL ? "" : suffix) == -1) {
-        C_CDD_FREE(tmpdir_path);
+        free(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -878,7 +874,7 @@ enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       if (asprintf(&tmpfilename, "%s%c%s%lu%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, (unsigned long)number,
                    suffix == NULL ? "" : suffix) == -1) {
-        C_CDD_FREE(tmpdir_path);
+        free(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -890,7 +886,7 @@ enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       errno_t err = fopen_s(&file->fh, tmpfilename, mode);
       if (err != 0 || file->fh == NULL) {
-        C_CDD_FREE(tmpfilename);
+        free(tmpfilename);
         /* Try next iteration */
         continue;
       }
@@ -921,19 +917,19 @@ enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #endif
 #endif
       if (!file->fh) {
-        C_CDD_FREE(tmpfilename);
+        free(tmpfilename);
         continue;
       }
 #endif
       /* Success */
       file->filename = tmpfilename;
-      C_CDD_FREE(tmpdir_path);
+      free(tmpdir_path);
       return CDD_C_SUCCESS;
     }
-    C_CDD_FREE(tmpfilename);
+    free(tmpfilename);
   }
 
-  C_CDD_FREE(tmpdir_path);
+  free(tmpdir_path);
   return CDD_C_ERROR_IO; /* Or simple general failure */
 }
 
@@ -941,7 +937,7 @@ enum cdd_c_error mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 /**
  * @brief Executes the path is unc operation.
  */
-enum cdd_c_error path_is_unc(const char *path, int *out_is_unc) {
+cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
   if (!out_is_unc)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!path) {
@@ -958,8 +954,7 @@ enum cdd_c_error path_is_unc(const char *path, int *out_is_unc) {
 /**
  * @brief Executes the walk directory operation.
  */
-enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
-                                void *user_data) {
+cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   char *full_path = NULL;
   c_stat st;
   int rc = 0;
@@ -994,7 +989,7 @@ enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
     }
 
     handle = _findfirst(search_path, &file_info);
-    C_CDD_FREE(search_path);
+    free(search_path);
 
     if (handle == -1) {
       /* Empty dir or error? ENOENT means strict empty or not found. */
@@ -1019,7 +1014,7 @@ enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
       } else {
         rc = cb(full_path, user_data);
       }
-      C_CDD_FREE(full_path);
+      free(full_path);
 
       if (rc != 0) {
         _findclose(handle);
@@ -1064,7 +1059,7 @@ enum cdd_c_error walk_directory(const char *path, fs_walk_cb cb,
         /* Failed to stat? Skip or warning. */
       }
 
-      C_CDD_FREE(full_path);
+      free(full_path);
 
       if (rc != 0) {
         closedir(d);

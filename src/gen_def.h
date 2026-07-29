@@ -27,7 +27,7 @@ struct ApiError {
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-enum cdd_c_error ApiError_cleanup(struct ApiError *err);
+cdd_c_error_t ApiError_cleanup(struct ApiError *err);
 
 /**
  * @brief Initialize the API Client.
@@ -35,12 +35,12 @@ enum cdd_c_error ApiError_cleanup(struct ApiError *err);
  * @param[in] base_url The API base URL (or NULL to use the default server URL).
  * @return 0 on success.
  */
-enum cdd_c_error init(struct HttpClient *client, const char *base_url);
+cdd_c_error_t init(struct HttpClient *client, const char *base_url);
 
 /**
  * @brief Cleanup the API Client.
  */
-enum cdd_c_error cleanup(struct HttpClient *client);
+cdd_c_error_t cleanup(struct HttpClient *client);
 
 /**
  * @brief test_op
@@ -49,7 +49,7 @@ enum cdd_c_error cleanup(struct HttpClient *client);
  * @termsOfService test_op
  * @return 200
  */
-enum cdd_c_error test_op(struct HttpClient *ctx, struct ApiError **api_error);
+cdd_c_error_t test_op(struct HttpClient *ctx, struct ApiError **api_error);
 
 #ifdef __cplusplus
 }

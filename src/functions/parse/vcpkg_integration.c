@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +17,7 @@
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
 
-static enum cdd_c_error my_strdup(const char *s, char **out_val) {
+static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
@@ -27,7 +26,7 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)C_CDD_MALLOC(len);
+  d = (char *)malloc(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -38,10 +37,10 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
 /**
  * @brief Executes the vcpkg builder init operation.
  */
-enum cdd_c_error vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
-                                    const char *project_name,
-                                    const char *version_string,
-                                    const char *description) {
+cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
+                                 const char *project_name,
+                                 const char *version_string,
+                                 const char *description) {
   if (!builder || !project_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -75,26 +74,26 @@ void vcpkg_builder_free(struct VcpkgManifestBuilder *builder) {
     return;
 
   if (builder->project_name)
-    C_CDD_FREE(builder->project_name);
+    free(builder->project_name);
   if (builder->version_string)
-    C_CDD_FREE(builder->version_string);
+    free(builder->version_string);
   if (builder->description)
-    C_CDD_FREE(builder->description);
+    free(builder->description);
 
   if (builder->deps) {
     for (i = 0; i < builder->deps_count; i++) {
       if (builder->deps[i].name)
-        C_CDD_FREE(builder->deps[i].name);
+        free(builder->deps[i].name);
     }
-    C_CDD_FREE(builder->deps);
+    free(builder->deps);
   }
 }
 
 /**
  * @brief Executes the vcpkg builder add dep operation.
  */
-enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
-                                       const char *dep_name) {
+cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
+                                    const char *dep_name) {
   size_t i;
   if (!builder || !dep_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -109,7 +108,7 @@ enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
   if (builder->deps_count >= builder->deps_capacity) {
     size_t new_cap =
         builder->deps_capacity == 0 ? 4 : builder->deps_capacity * 2;
-    struct VcpkgDependency *new_deps = (struct VcpkgDependency *)C_CDD_REALLOC(
+    struct VcpkgDependency *new_deps = (struct VcpkgDependency *)realloc(
         builder->deps, new_cap * sizeof(struct VcpkgDependency));
     if (!new_deps) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -130,8 +129,8 @@ enum cdd_c_error vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 /**
  * @brief Executes the vcpkg builder scan source operation.
  */
-enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
-                                           const char *file_content) {
+cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
+                                        const char *file_content) {
   struct TokenList *tokens = NULL;
   int res;
   size_t i;
@@ -172,7 +171,7 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                   (const char *)tokens->tokens[end_inc - 1].start +
                   tokens->tokens[end_inc - 1].length;
               size_t inc_len = (size_t)(inc_end - inc_start);
-              char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
+              char *inc_str = (char *)malloc(inc_len + 1);
               if (inc_str) {
                 memcpy(inc_str, inc_start, inc_len);
                 inc_str[inc_len] = '\0';
@@ -184,7 +183,7 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                 if (strstr(inc_str, "zlib.h"))
                   vcpkg_builder_add_dep(builder, "zlib");
 
-                C_CDD_FREE(inc_str);
+                free(inc_str);
               }
             }
           }
@@ -199,9 +198,8 @@ enum cdd_c_error vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
 /**
  * @brief Executes the vcpkg builder generate operation.
  */
-enum cdd_c_error
-vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
-                       char **out_json) {
+cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
+                                     char **out_json) {
   char *json = NULL;
   size_t cap = 1024;
   size_t len = 0;
@@ -210,7 +208,7 @@ vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   if (!builder || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  json = (char *)C_CDD_MALLOC(cap);
+  json = (char *)malloc(cap);
   if (!json) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

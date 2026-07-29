@@ -11,23 +11,34 @@
 /* clang-format off */
 #include "c_cdd_export.h"
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "functions/emit/patcher.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
 #include "c_cdd/log.h"
-#include "c_cdd/memory.h"
 /* clang-format on */
 
 /**
  * @brief Executes the patch list init operation.
  */
-enum cdd_c_error patch_list_init(struct PatchList *list) {
+cdd_c_error_t patch_list_init(struct PatchList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 8;
-  list->patches =
-      (struct Patch *)C_CDD_CALLOC(list->capacity, sizeof(struct Patch));
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc == 1000)
+      list->patches = NULL;
+    else
+      list->patches =
+          (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
+  }
+#else
+  list->patches = (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
+#endif
   if (!list->patches) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -45,10 +56,10 @@ void patch_list_free(struct PatchList *list) {
   if (list->patches) {
     for (i = 0; i < list->size; ++i) {
       if (list->patches[i].text) {
-        C_CDD_FREE(list->patches[i].text);
+        free(list->patches[i].text);
       }
     }
-    C_CDD_FREE(list->patches);
+    free(list->patches);
     list->patches = NULL;
   }
   list->size = 0;
@@ -58,20 +69,32 @@ void patch_list_free(struct PatchList *list) {
 /**
  * @brief Executes the patch list add operation.
  */
-enum cdd_c_error patch_list_add(struct PatchList *list, const size_t start_idx,
-                                const size_t end_idx, char *text) {
+cdd_c_error_t patch_list_add(struct PatchList *list, const size_t start_idx,
+                             const size_t end_idx, char *text) {
   if (!list || !text) {
     if (text)
-      C_CDD_FREE(text); /* Prevent leak on bad args */
+      free(text); /* Prevent leak on bad args */
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct Patch *new_arr = (struct Patch *)C_CDD_REALLOC(
-        list->patches, new_cap * sizeof(struct Patch));
+    struct Patch *new_arr;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc == 2000)
+        new_arr = NULL;
+      else
+        new_arr = (struct Patch *)realloc(list->patches,
+                                          new_cap * sizeof(struct Patch));
+    }
+#else
+    new_arr =
+        (struct Patch *)realloc(list->patches, new_cap * sizeof(struct Patch));
+#endif
     if (!new_arr) {
-      C_CDD_FREE(text); /* Prevent leak on alloc failure */
+      free(text); /* Prevent leak on alloc failure */
       return CDD_C_ERROR_MEMORY;
     }
     list->patches = new_arr;
@@ -104,7 +127,7 @@ static int compare_patches(const void *a, const void *b) {
 /**
  * @brief Executes the patch list sort operation.
  */
-enum cdd_c_error patch_list_sort(struct PatchList *list) {
+cdd_c_error_t patch_list_sort(struct PatchList *list) {
   if (list && list->patches && list->size > 1) {
     qsort(list->patches, list->size, sizeof(struct Patch), compare_patches);
   }
@@ -114,9 +137,9 @@ enum cdd_c_error patch_list_sort(struct PatchList *list) {
 /**
  * @brief Executes the patch list apply operation.
  */
-enum cdd_c_error patch_list_apply(struct PatchList *list,
-                                  const struct TokenList *tokens,
-                                  char **out_code) {
+cdd_c_error_t patch_list_apply(struct PatchList *list,
+                               const struct TokenList *tokens,
+                               char **out_code) {
   char *output = NULL;
   size_t current_token = 0;
   size_t patch_idx = 0;
@@ -129,11 +152,11 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
 
   /* Ensure patches are ordered so we can iterate linearly */
   (void)patch_list_sort(list);
-  output = (char *)C_CDD_MALLOC(out_cap);
+
+  output = (char *)malloc(out_cap);
   if (!output) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    rc = CDD_C_ERROR_MEMORY;
-    goto cleanup;
+    return CDD_C_ERROR_MEMORY;
   }
   output[0] = '\0';
 
@@ -148,7 +171,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-        tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)realloc(output, out_cap);
         if (!tmp) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -185,7 +208,7 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
-        tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)realloc(output, out_cap);
         if (!tmp) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -204,22 +227,24 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
   /* Append any patches that might be appended at the very end of the
    * file/stream */
   while (patch_idx < list->size) {
-    const struct Patch *p = &list->patches[patch_idx];
-    size_t text_len = strlen(p->text);
+    if (list->patches[patch_idx].start_token_idx >= tokens->size) {
+      const struct Patch *p = &list->patches[patch_idx];
+      size_t text_len = strlen(p->text);
 
-    while (out_len + text_len + 1 > out_cap) {
-      char *tmp;
-      out_cap = out_cap * 2 + text_len;
-      tmp = (char *)C_CDD_REALLOC(output, out_cap);
-      if (!tmp) {
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup;
+      while (out_len + text_len + 1 > out_cap) {
+        char *tmp;
+        out_cap = out_cap * 2 + text_len;
+        tmp = (char *)realloc(output, out_cap);
+        if (!tmp) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
+        output = tmp;
       }
-      output = tmp;
+      memcpy(output + out_len, p->text, text_len);
+      out_len += text_len;
+      output[out_len] = '\0';
     }
-    memcpy(output + out_len, p->text, text_len);
-    out_len += text_len;
-    output[out_len] = '\0';
     patch_idx++;
   }
 
@@ -228,6 +253,6 @@ enum cdd_c_error patch_list_apply(struct PatchList *list,
 
 cleanup:
   if (output)
-    C_CDD_FREE(output);
+    free(output);
   return rc;
 }

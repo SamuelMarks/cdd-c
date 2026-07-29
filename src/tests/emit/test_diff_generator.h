@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -61,10 +60,10 @@ TEST test_diff_generation_basic(void) {
   ASSERT_EQ(0, rc);
   ASSERT(diff != NULL);
   ASSERT_EQ('\0', diff[0]);
-  C_CDD_FREE(diff);
+  free(diff);
 
   {
-    char *text = (char *)C_CDD_MALLOC(5);
+    char *text = (char *)malloc(5);
     strcpy(text, "void");
     ASSERT_EQ(0, patch_list_add(&patch_list, 0, 1, text));
   }
@@ -77,7 +76,7 @@ TEST test_diff_generation_basic(void) {
   ASSERT(strstr(diff, "-int"));
   ASSERT(strstr(diff, "+void"));
 
-  C_CDD_FREE(diff);
+  free(diff);
   patch_list_free(&patch_list);
 
 #ifdef CDD_BUILD_TESTS
@@ -99,7 +98,7 @@ TEST test_diff_generation_basic(void) {
   /* Trigger realloc success */
   ASSERT_EQ(0, patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
   ASSERT(diff3 != NULL);
-  C_CDD_FREE(diff3);
+  free(diff3);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -130,7 +129,7 @@ TEST test_diff_generation_basic(void) {
     ASSERT_EQ(0,
               patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3));
     ASSERT(diff3 != NULL);
-    C_CDD_FREE(diff3);
+    free(diff3);
 
     patch_list_free(&patch_list3);
     free_token_list(tokens2);
@@ -139,7 +138,7 @@ TEST test_diff_generation_basic(void) {
 
   patch_list_free(&patch_list2);
   free_token_list(tokens);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

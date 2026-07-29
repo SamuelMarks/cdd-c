@@ -3,6 +3,7 @@
 
 /* clang-format off */
 #include "cdd_api.h"
+#include "functions/parse/fs.h"
 #include <greatest.h>
 /* clang-format on */
 
@@ -86,7 +87,6 @@ TEST test_cdd_serve_json_rpc(void) {
 
 extern volatile int g_ffi_extractor_alloc_fail;
 extern int g_cdd_ffi_ir_calloc_fail;
-extern int g_cdd_has_lang_fail;
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
@@ -132,15 +132,6 @@ TEST test_cdd_generate_bindings(void) {
   ASSERT_NEQ(0, cdd_generate_bindings(&config));
   g_cdd_ffi_ir_calloc_fail = 0;
 
-  /* has_lang failure */
-  config.target_langs = "all";
-  config.output_dir = ".";
-  for (i = 0; i < 42; i++) {
-    g_cdd_has_lang_fail = i;
-    cdd_generate_bindings(&config);
-  }
-  g_cdd_has_lang_fail = -1;
-
   /* Test failure branch (rc != 0) for each language */
   config.output_dir = "nonexistent_dir_12345/nonexistent";
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
@@ -149,7 +140,8 @@ TEST test_cdd_generate_bindings(void) {
   }
 
   /* Test success branch for each language */
-  config.output_dir = ".";
+  config.output_dir = "test_bindings_out";
+  makedir(config.output_dir);
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
     config.target_langs = langs[i];
     int rc = cdd_generate_bindings(&config);

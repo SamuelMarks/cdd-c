@@ -1,13 +1,14 @@
 #ifndef CDD_API_H
 #define CDD_API_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 /* clang-format on */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * @brief Configuration for from_openapi command.
@@ -96,7 +97,7 @@ typedef struct cdd_generate_bindings_config {
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_generate_from_openapi(const cdd_from_openapi_config_t *config);
 
 /**
@@ -104,7 +105,7 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
 
 /**
@@ -113,7 +114,7 @@ cdd_generate_to_openapi(const cdd_to_openapi_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_generate_docs_json(const cdd_docs_json_config_t *config);
 
 /**
@@ -121,7 +122,7 @@ cdd_generate_docs_json(const cdd_docs_json_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
 
 /**
@@ -129,11 +130,11 @@ cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config);
  * @param config The configuration struct.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT enum cdd_c_error
+C_CDD_EXPORT cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
-
-#endif /* CDD_API_H */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* CDD_API_H */

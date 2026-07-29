@@ -67,7 +67,7 @@ C_CDD_EXPORT /**
 C_CDD_EXPORT /**
               * @brief Executes the cst extract cli command operation.
               */
-    enum cdd_c_error
+    cdd_c_error_t
     cst_extract_cli_command(const struct CstNodeList *nodes,
                             const struct TokenList *tokens,
                             struct CliCommand *cmd);

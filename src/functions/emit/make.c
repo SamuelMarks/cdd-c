@@ -10,6 +10,7 @@
 #include <string.h>
 #include "functions/emit/make.h"
 #include <stdarg.h>
+
 /* clang-format on */
 
 #if defined(_MSC_VER)
@@ -18,89 +19,130 @@
 #endif
 
 /** @brief CHECK_IO definition */
-#ifndef CHECK_IO
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fprintf_fail;
+static int test_cdd_check_io_helper_make(int rc) {
+  if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
+    return -1;
+  return rc;
+}
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if (test_cdd_check_io_helper_make(x) < 0)                                  \
+      return CDD_C_ERROR_IO;                                                   \
+  } while (0)
+#else
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return CDD_C_ERROR_IO;                                                   \
   } while (0)
 #endif
-enum cdd_c_error codegen_make_generate(FILE *fp,
-                                       const struct MakeConfig *config) {
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((format(printf, 2, 3)));
+#else
+    ;
+#endif
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+/** @brief FPRINTF_HOOK macro */
+#define FPRINTF_HOOK test_cdd_fprintf_hook
+#else
+/** @brief FPRINTF_HOOK macro */
+#define FPRINTF_HOOK fprintf
+#endif
+
+cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   size_t i;
 
   if (!fp || !config || !config->project_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Header */
-  CHECK_IO(
-      fprintf(fp, "cmake_minimum_required(VERSION %s)\n",
-              config->min_cmake_version ? config->min_cmake_version : "3.10"));
-  CHECK_IO(fprintf(fp, "project(%s VERSION 0.0.2 LANGUAGES C)\n\n",
-                   config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
+                        config->min_cmake_version ? config->min_cmake_version
+                                                  : "3.10"));
+  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.2 LANGUAGES C)\n\n",
+                        config->project_name));
 
   /* Core Sources */
-  CHECK_IO(fprintf(fp, "set(SOURCES\n"));
-  CHECK_IO(fprintf(fp, "    \"%s.c\"\n",
-                   config->project_name)); /* Assumes lib matches proj */
-  CHECK_IO(fprintf(fp, "    \"str_utils.c\"\n"));
-  CHECK_IO(fprintf(fp, "    \"fs.c\"\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "set(SOURCES\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"%s.c\"\n",
+                        config->project_name)); /* Assumes lib matches proj */
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"str_utils.c\"\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"fs.c\"\n"));
 
   if (config->extra_sources) {
     for (i = 0; i < config->extra_source_count; ++i) {
       if (config->extra_sources[i]) {
-        CHECK_IO(fprintf(fp, "    \"%s\"\n", config->extra_sources[i]));
+        CHECK_IO(FPRINTF_HOOK(fp, "    \"%s\"\n", config->extra_sources[i]));
       }
     }
   }
-  CHECK_IO(fprintf(fp, ")\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, ")\n\n"));
 
   /* Platform Logic */
-  CHECK_IO(fprintf(
+  CHECK_IO(FPRINTF_HOOK(
       fp, "if(EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL \\\"DOS\\\")\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_standalone.c\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(WIN32)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
-  CHECK_IO(fprintf(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
-  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_apple.c\")\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
-  CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(OpenSSL REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "endif()\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_standalone.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(WIN32)\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(ANDROID)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(APPLE)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_apple.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "else()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    find_package(CURL REQUIRED)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    find_package(OpenSSL REQUIRED)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n"));
 
   /* Dependencies (Common) */
-  CHECK_IO(fprintf(fp, "find_package(parson CONFIG REQUIRED)\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "find_package(parson CONFIG REQUIRED)\n\n"));
 
   /* Target Definition */
-  CHECK_IO(fprintf(fp, "add_library(%s ${SOURCES})\n", config->project_name));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "add_library(%s ${SOURCES})\n", config->project_name));
 
   /* Link Libraries */
-  CHECK_IO(fprintf(fp, "if(WIN32)\n"));
-  CHECK_IO(fprintf(fp,
-                   "    target_link_libraries(%s PRIVATE winhttp crypt32)\n",
-                   config->project_name));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp,
-                   "    target_link_libraries(%s PRIVATE CURL::libcurl "
-                   "OpenSSL::SSL OpenSSL::Crypto)\n",
-                   config->project_name));
-  CHECK_IO(fprintf(fp, "endif()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "if(WIN32)\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "    target_link_libraries(%s PRIVATE winhttp crypt32)\n",
+      config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "else()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "    target_link_libraries(%s PRIVATE CURL::libcurl "
+                        "OpenSSL::SSL OpenSSL::Crypto)\n",
+                        config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n"));
 
-  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
-                   config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
+                        config->project_name));
 
   /* Install Rules */
-  CHECK_IO(fprintf(fp, "include(GNUInstallDirs)\n"));
-  CHECK_IO(fprintf(fp, "install(TARGETS %s EXPORT %sTargets\n",
-                   config->project_name, config->project_name));
-  CHECK_IO(
-      fprintf(fp, "        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}\n"));
-  CHECK_IO(
-      fprintf(fp, "        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "include(GNUInstallDirs)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "install(TARGETS %s EXPORT %sTargets\n",
+                        config->project_name, config->project_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})\n"));
 
   return CDD_C_SUCCESS;
 }

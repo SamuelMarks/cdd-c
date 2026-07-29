@@ -12,20 +12,20 @@ extern "C" {
 
 struct OpenAPI_KV;
 
+extern int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
-extern enum cdd_c_error is_pct_encoded_test(const char *p);
-extern enum cdd_c_error kv_value_to_string_test(const struct OpenAPI_KV *kv,
-                                                char *buf, size_t buf_len,
-                                                const char **_out_val);
-extern enum cdd_c_error append_str_test(char **buf, size_t *len, size_t *cap,
-                                        const char *s);
+extern cdd_c_error_t is_pct_encoded_test(const char *p);
+extern cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
+                                             char *buf, size_t buf_len,
+                                             const char **_out_val);
+extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
+                                     const char *s);
 
 /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
@@ -41,8 +41,8 @@ TEST test_url_encode_simple(void) {
   char *res = (url_encode("hello", &_ast_url_encode_0), _ast_url_encode_0);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -52,8 +52,8 @@ TEST test_url_encode_spaces(void) {
       (url_encode("hello world", &_ast_url_encode_1), _ast_url_encode_1);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello%20world", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -69,8 +69,8 @@ TEST test_url_encode_reserved(void) {
 
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -81,8 +81,8 @@ TEST test_url_encode_unreserved(void) {
   char *res = (url_encode(input, &_ast_url_encode_3), _ast_url_encode_3);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a-b.c_d~1", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -95,8 +95,8 @@ TEST test_url_encode_allow_reserved(void) {
        _ast_url_encode_allow_reserved_4);
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -106,8 +106,8 @@ TEST test_url_encode_form_spaces(void) {
                _ast_url_encode_form_5);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello+world", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -118,8 +118,8 @@ TEST test_url_encode_form_reserved(void) {
       (url_encode_form(input, &_ast_url_encode_form_6), _ast_url_encode_form_6);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("%26%3D%2B", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -132,15 +132,15 @@ TEST test_url_encode_form_allow_reserved(void) {
                _ast_url_encode_form_allow_reserved_7);
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_url_encode_null(void) {
   char *_ast_url_encode_8 = NULL;
   ASSERT((url_encode(NULL, &_ast_url_encode_8), _ast_url_encode_8) == NULL);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -163,6 +163,7 @@ TEST test_query_lifecycle(void) {
   url_query_free(&qp);
   ASSERT_EQ(0, qp.count);
   ASSERT(qp.params == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -176,9 +177,9 @@ TEST test_query_build_empty(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -193,9 +194,9 @@ TEST test_query_build_single(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("?q=hello%20world", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -212,9 +213,9 @@ TEST test_query_build_multiple(void) {
   /* Order is preserved */
   ASSERT_STR_EQ("?a=1&b=2%2B2", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -229,9 +230,9 @@ TEST test_query_build_form_single(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("q=hello+world", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -247,9 +248,9 @@ TEST test_query_build_form_multiple(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a=1&b=2%2B2", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -264,9 +265,9 @@ TEST test_query_build_form_preserves_encoded_value(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("color=blue,black", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -286,8 +287,8 @@ TEST test_openapi_kv_join_form_comma(void) {
          _ast_openapi_kv_join_form_9);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("R,100,G,200", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -307,8 +308,8 @@ TEST test_openapi_kv_join_form_space(void) {
          _ast_openapi_kv_join_form_10);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("alpha%20a+b%20beta%20c", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -325,8 +326,8 @@ TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
          _ast_openapi_kv_join_form_11);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("path%7Ca/b", res);
-  C_CDD_FREE(res);
-
+  free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -343,9 +344,9 @@ TEST test_query_build_preserves_encoded_value(void) {
   /* Comma should remain, while space in other param is encoded */
   ASSERT_STR_EQ("?color=blue,black&q=hello%20world", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -360,9 +361,9 @@ TEST test_query_build_encoding_keys(void) {
   /* Key should be encoded too */
   ASSERT_STR_EQ("?user%20id=100", res);
 
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -382,6 +383,7 @@ TEST test_query_null_safety(void) {
 
   url_query_free(NULL); /* Safe */
   url_query_free(&qp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -409,6 +411,7 @@ TEST test_url_utils_write_query_json_param(void) {
 
   fclose(fp);
   remove("test_url_json.txt");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -428,44 +431,48 @@ TEST test_url_encode_all_null(void) {
 
 TEST test_url_encode_oom(void) {
   char *res = NULL;
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello world", &res));
   ASSERT(res == NULL);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   PASS();
 }
 
 TEST test_url_encode_allow_reserved_oom(void) {
   char *res = NULL;
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_allow_reserved("hello world", &res));
   ASSERT(res == NULL);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   PASS();
 }
 
 TEST test_url_encode_form_oom(void) {
   char *res = NULL;
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("hello world", &res));
   ASSERT(res == NULL);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   PASS();
 }
 
 TEST test_url_encode_form_allow_reserved_oom(void) {
   char *res = NULL;
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved("hello world", &res));
   ASSERT(res == NULL);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   PASS();
 }
@@ -475,7 +482,7 @@ TEST test_url_encode_form_allow_reserved_pct(void) {
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved("a b<", &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a+b%3C", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -484,7 +491,7 @@ TEST test_url_encode_unreserved_form_asterisk(void) {
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("a*", &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a*", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -506,11 +513,12 @@ TEST test_url_query_add_oom(void) {
   int i;
   for (i = 1; i <= 3; ++i) {
     url_query_init(&qp);
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     url_query_add(&qp, "key", "value");
     url_query_free(&qp);
-
+    g_fail_io_after = -1;
     g_cdd_strdup_fail = -1;
   }
 
@@ -519,10 +527,11 @@ TEST test_url_query_add_oom(void) {
   url_query_add(&qp, "k2", "v2");
   url_query_add(&qp, "k3", "v3");
   url_query_add(&qp, "k4", "v4");
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   url_query_add(&qp, "k5", "v5");
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
   PASS();
@@ -533,11 +542,12 @@ TEST test_url_query_add_encoded_oom(void) {
   int i;
   for (i = 1; i <= 3; ++i) {
     url_query_init(&qp);
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     url_query_add_encoded(&qp, "key", "value");
     url_query_free(&qp);
-
+    g_fail_io_after = -1;
     g_cdd_strdup_fail = -1;
   }
 
@@ -546,10 +556,11 @@ TEST test_url_query_add_encoded_oom(void) {
   url_query_add_encoded(&qp, "k2", "v2");
   url_query_add_encoded(&qp, "k3", "v3");
   url_query_add_encoded(&qp, "k4", "v4");
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   url_query_add_encoded(&qp, "k5", "v5");
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
   PASS();
@@ -565,23 +576,25 @@ TEST test_url_query_build_oom(void) {
   url_query_add_encoded(&qp, "k2", "v2");
 
   for (i = 0; i < 20; ++i) {
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     url_query_build(&qp, &res);
     if (res) {
-      C_CDD_FREE(res);
+      free(res);
       res = NULL;
     }
   }
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
 
   url_query_init(&qp);
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   url_query_build(&qp, &res);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
   PASS();
@@ -597,23 +610,25 @@ TEST test_url_query_build_form_oom(void) {
   url_query_add_encoded(&qp, "k2", "v2");
 
   for (i = 0; i < 20; ++i) {
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     url_query_build_form(&qp, &res);
     if (res) {
-      C_CDD_FREE(res);
+      free(res);
       res = NULL;
     }
   }
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
 
   url_query_init(&qp);
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   url_query_build_form(&qp, &res);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   url_query_free(&qp);
   PASS();
@@ -645,7 +660,7 @@ TEST test_openapi_kv_join_form_types(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 5, ",", 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("B,false,F,3.14,S,str", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -654,7 +669,7 @@ TEST test_openapi_kv_join_form_null(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(NULL, 0, ",", 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -667,7 +682,7 @@ TEST test_openapi_kv_join_form_delim_null(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, NULL, 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("k,v", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -688,23 +703,26 @@ TEST test_openapi_kv_join_form_oom(void) {
   kvs[1].value.s = "BBBBBBBBBB";
 
   for (i = 0; i < 20; ++i) {
-
+    g_io_calls = 0;
+    g_fail_io_after = i;
     g_cdd_strdup_fail = i;
     openapi_kv_join_form(kvs, 2, ",", 0, &res);
     if (res) {
-      C_CDD_FREE(res);
+      free(res);
       res = NULL;
     }
   }
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
 
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   openapi_kv_join_form(NULL, 0, ",", 0, &res);
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   if (res) {
-    C_CDD_FREE(res);
+    free(res);
     res = NULL;
   }
   PASS();
@@ -720,7 +738,7 @@ TEST test_openapi_kv_join_form_large_string(void) {
       "loop_in_append_str_for_realloc_capacity_doubling_very_large_indeed";
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, ",", 0, &res));
   ASSERT(res != NULL);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -782,7 +800,7 @@ TEST test_openapi_kv_join_form_all_skipped(void) {
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, ",", 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
-  C_CDD_FREE(res);
+  free(res);
   PASS();
 }
 
@@ -793,7 +811,7 @@ TEST test_url_query_build_form_empty(void) {
   ASSERT_EQ(CDD_C_SUCCESS, url_query_build_form(&qp, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("", res);
-  C_CDD_FREE(res);
+  free(res);
   url_query_free(&qp);
   PASS();
 }
@@ -802,10 +820,11 @@ TEST test_openapi_kv_join_form_all_skipped_oom(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
   kvs[0].key = NULL;
-
+  g_io_calls = 0;
+  g_fail_io_after = 0;
   g_cdd_strdup_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_kv_join_form(kvs, 1, ",", 0, &res));
-
+  g_fail_io_after = -1;
   g_cdd_strdup_fail = -1;
   PASS();
 }

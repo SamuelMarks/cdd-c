@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
@@ -86,17 +85,17 @@ TEST test_standalone_json_gen(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "MyStruct_parse_json"));
   ASSERT(strstr(content, "my_str"));
   ASSERT(strstr(content, "my_int"));
 
-  C_CDD_FREE(content);
+  free(content);
   struct_fields_free(&sf);
   fclose(tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

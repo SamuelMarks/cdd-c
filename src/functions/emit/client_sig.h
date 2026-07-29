@@ -46,7 +46,7 @@ extern C_CDD_EXPORT /**
                      * @brief Generates C code for codegen client write
                      * signature.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
                                    const struct CodegenSigConfig *config);
 

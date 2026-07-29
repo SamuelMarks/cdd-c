@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -60,7 +59,7 @@ TEST test_register_single_struct(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -89,7 +88,7 @@ TEST test_register_deduplication(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -132,7 +131,7 @@ TEST test_register_multiple_structs(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -150,7 +149,7 @@ TEST test_register_null_safety(void) {
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -189,7 +188,7 @@ TEST test_register_enum_schema(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -203,13 +202,12 @@ TEST test_register_type_union_copy(void) {
   type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */
-  types.items = C_CDD_CALLOC(1, sizeof(struct TypeDefinition));
+  types.items = calloc(1, sizeof(struct TypeDefinition));
   types.size = 1;
   types.capacity = 1;
   types.items[0].name = "TestUnion";
   types.items[0].kind = KIND_STRUCT;
-  types.items[0].details.struct_fields =
-      C_CDD_CALLOC(1, sizeof(struct StructFields));
+  types.items[0].details.struct_fields = calloc(1, sizeof(struct StructFields));
 
   struct StructFields *sf = types.items[0].details.struct_fields;
   struct_fields_init(sf);
@@ -235,6 +233,7 @@ TEST test_register_type_union_copy(void) {
   /* struct_fields_free(sf) is handled by type_def_list_free! */
   types.items[0].name = NULL; /* prevent free */
   type_def_list_free(&types);
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -49,7 +48,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
 
   hoist_site_list_free(&list);
   free_token_list(tokens);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -70,7 +69,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 
   hoist_site_list_free(&list);
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -94,12 +93,12 @@ TEST test_decl_hoist_edges(void) {
   tokenize(az_span_create_from_str("int main() { int a; return 0; }"), &tl);
   list.capacity = 1;
   list.count = 1;
-  list.sites = C_CDD_CALLOC(1, sizeof(struct HoistSite));
+  list.sites = calloc(1, sizeof(struct HoistSite));
 
   hoist_site_list_free(&list);
 
   free_token_list(tl);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

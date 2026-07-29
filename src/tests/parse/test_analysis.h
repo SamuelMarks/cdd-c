@@ -21,8 +21,8 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
-static enum cdd_c_error find_allocs(const char *code,
-                                    struct AllocationSiteList *sites) {
+static cdd_c_error_t find_allocs(const char *code,
+                                 struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
   int rc;
   const az_span source = az_span_create_from_str((char *)code);
@@ -50,7 +50,7 @@ TEST test_analysis_find_malloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "malloc") == 0);
 
   allocation_site_list_free(&sites);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -69,7 +69,7 @@ TEST test_analysis_find_calloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "calloc") == 0);
 
   allocation_site_list_free(&sites);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -88,7 +88,7 @@ TEST test_analysis_find_realloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "realloc") == 0);
 
   allocation_site_list_free(&sites);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -106,7 +106,7 @@ TEST test_analysis_find_none(void) {
   ASSERT_EQ(0, sites.size);
 
   allocation_site_list_free(&sites);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -122,7 +122,7 @@ TEST test_analysis_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_allocations(&tl, NULL));
 
   allocation_site_list_free(NULL); /* Should not crash */
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -170,12 +170,18 @@ TEST test_analysis_edge_cases(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* The exact number of allocations depends on the tokenizer and analysis
-     * pipeline, which can change. We remove this fragile mock test for var_name
-     * OOM. */
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    g_cdd_fail_alloc = 1;
+    ASSERT_EQ(0, find_allocs("void *p = malloc(10);", &sites));
+    if (sites.size > 0) {
+      ASSERT(sites.sites[0].var_name == NULL);
+    }
+    allocation_site_list_free(&sites);
+    g_cdd_fail_alloc = 0;
   }
 #endif
 
+  g_fail_io_after = -1;
   PASS();
 }
 

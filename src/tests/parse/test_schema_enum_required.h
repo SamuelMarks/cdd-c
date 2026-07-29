@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
@@ -25,8 +24,8 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
-static enum cdd_c_error load_spec_string(const char *json,
-                                         struct OpenAPI_Spec *spec) {
+static cdd_c_error_t load_spec_string(const char *json,
+                                      struct OpenAPI_Spec *spec) {
   JSON_Value *root;
   int rc;
   if (!json || !spec)
@@ -83,7 +82,7 @@ TEST test_loader_enum_and_required(void) {
   }
 
   openapi_spec_free(&spec);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -143,10 +142,10 @@ TEST test_writer_enum_and_required(void) {
     json_value_free(root);
   }
 
-  C_CDD_FREE(json);
+  free(json);
   struct_fields_free(&schemas[0]);
   struct_fields_free(&schemas[1]);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

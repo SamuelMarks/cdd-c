@@ -11,7 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
@@ -30,9 +29,7 @@ extern "C" {
 TEST test_cdd_transform_msvc(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
-#ifndef _WIN32
       "#include <unistd.h>\n#include <sys/time.h>\nint "
-#endif
       "main() {\n  strcasecmp /* comment */ (\"a\", \"b\");\n  "
       "strncasecmp(\"a\", \"b\", 1);\n  strdup(\"a\");\n  ssize_t s = "
       "0;\n  __builtin_expect(1, 1);\n"
@@ -86,7 +83,7 @@ TEST test_cdd_transform_msvc(void) {
     cdd_cst_tree_t *tree2 = NULL;
     cdd_cst_node_t *node = NULL;
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &node);
-    tree2 = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
+    tree2 = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
     tree2->root = node;
     ASSERT_EQ(
         0, cdd_transform_msvc(tree2, &config)); /* Should not crash on empty */
@@ -105,9 +102,9 @@ TEST test_cdd_transform_msvc(void) {
   ASSERT(strstr(out, "SSIZE_T") != NULL);
   ASSERT(strstr(out, "cdd_builtin_expect") != NULL);
 
-  C_CDD_FREE(out);
+  free(out);
   cdd_cst_tree_free(tree);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -141,7 +138,7 @@ TEST test_cdd_transform_msvc_context(void) {
   ASSERT(strstr(out, "MACRO(strdup)") != NULL);
   ASSERT(strstr(out, "a.strdup") != NULL);
 
-  C_CDD_FREE(out);
+  free(out);
   cdd_cst_tree_free(tree);
   PASS();
 }
@@ -151,9 +148,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   cdd_cst_tree_t *tree = NULL;
   int rc;
   const char *code =
-#ifndef _WIN32
       "#include <unistd.h>\nvoid f() { __builtin_expect(1, 1); }\n";
-#endif
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
@@ -207,7 +202,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     }
   }
 #endif
-
+  g_fail_io_after = -1;
   PASS();
 }
 

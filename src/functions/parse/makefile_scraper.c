@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -18,7 +17,7 @@
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
 
-static enum cdd_c_error my_strdup(const char *s, char **out_val) {
+static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
@@ -27,7 +26,7 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)C_CDD_MALLOC(len);
+  d = (char *)malloc(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -38,7 +37,7 @@ static enum cdd_c_error my_strdup(const char *s, char **out_val) {
 /**
  * @brief Executes the build info init operation.
  */
-enum cdd_c_error build_info_init(struct ExtractedBuildInfo *info) {
+cdd_c_error_t build_info_init(struct ExtractedBuildInfo *info) {
   if (!info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   info->source_files = NULL;
@@ -60,21 +59,21 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 
   if (info->source_files) {
     for (i = 0; i < info->source_files_n; i++) {
-      C_CDD_FREE(info->source_files[i]);
+      free(info->source_files[i]);
     }
-    C_CDD_FREE(info->source_files);
+    free(info->source_files);
   }
   if (info->include_dirs) {
     for (i = 0; i < info->include_dirs_n; i++) {
-      C_CDD_FREE(info->include_dirs[i]);
+      free(info->include_dirs[i]);
     }
-    C_CDD_FREE(info->include_dirs);
+    free(info->include_dirs);
   }
   if (info->compile_defs) {
     for (i = 0; i < info->compile_defs_n; i++) {
-      C_CDD_FREE(info->compile_defs[i]);
+      free(info->compile_defs[i]);
     }
-    C_CDD_FREE(info->compile_defs);
+    free(info->compile_defs);
   }
 
   (void)build_info_init(info);
@@ -83,17 +82,17 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 /**
  * @brief Adds or sets string to array.
  */
-static enum cdd_c_error add_string_to_array(char ***arr, size_t *n,
-                                            const char *str) {
+static cdd_c_error_t add_string_to_array(char ***arr, size_t *n,
+                                         const char *str) {
   size_t i;
   char **new_arr;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
   /* check dupes */
   for (i = 0; i < *n; i++) {
     if (strcmp((*arr)[i], str) == 0)
       return CDD_C_SUCCESS;
   }
-  new_arr = (char **)C_CDD_REALLOC(*arr, (*n + 1) * sizeof(char *));
+  new_arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
   if (!new_arr)
     return CDD_C_ERROR_MEMORY;
   *arr = new_arr;
@@ -107,10 +106,10 @@ static enum cdd_c_error add_string_to_array(char ***arr, size_t *n,
 /**
  * @brief Executes the process token operation.
  */
-static enum cdd_c_error process_token(struct ExtractedBuildInfo *info,
-                                      const char *tok) {
+static cdd_c_error_t process_token(struct ExtractedBuildInfo *info,
+                                   const char *tok) {
   size_t len = strlen(tok);
-  enum cdd_c_error rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (len > 2 && tok[len - 2] == '.' && tok[len - 1] == 'c') {
     const char *eq = strchr(tok, '=');
     if (eq) {
@@ -147,12 +146,12 @@ static enum cdd_c_error process_token(struct ExtractedBuildInfo *info,
 /**
  * @brief Executes the scrape makefile operation.
  */
-enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
-                                 const char *makefile_content) {
+cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
+                              const char *makefile_content) {
   char *copy;
   char *saveptr;
   char *tok;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
 
   if (!info || !makefile_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -171,7 +170,7 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(copy);
+      free(copy);
       return rc;
     }
 #if defined(_WIN32)
@@ -181,14 +180,14 @@ enum cdd_c_error scrape_makefile(struct ExtractedBuildInfo *info,
 #endif
   }
 
-  C_CDD_FREE(copy);
+  free(copy);
   return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the scrape configure ac operation.
  */
-enum cdd_c_error scrape_configure_ac(
+cdd_c_error_t scrape_configure_ac(
     struct ExtractedBuildInfo *info,
     const char
         *configure_ac_content) { /* Minimal implementation: scan similarly to
@@ -196,7 +195,7 @@ enum cdd_c_error scrape_configure_ac(
   char *copy;
   char *saveptr;
   char *tok;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
 
   if (!info || !configure_ac_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -215,7 +214,7 @@ enum cdd_c_error scrape_configure_ac(
   while (tok) {
     rc = process_token(info, tok);
     if (rc != CDD_C_SUCCESS) {
-      C_CDD_FREE(copy);
+      free(copy);
       return rc;
     }
 #if defined(_WIN32)
@@ -225,16 +224,15 @@ enum cdd_c_error scrape_configure_ac(
 #endif
   }
 
-  C_CDD_FREE(copy);
+  free(copy);
   return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the build info to cmake operation.
  */
-enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
-                                     const char *project_name,
-                                     char **out_cmake) {
+cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
+                                  const char *project_name, char **out_cmake) {
   size_t cap = 4096;
   size_t len = 0;
   char *buf;
@@ -243,7 +241,7 @@ enum cdd_c_error build_info_to_cmake(const struct ExtractedBuildInfo *info,
   if (!info || !project_name || !out_cmake)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  buf = (char *)C_CDD_MALLOC(cap);
+  buf = (char *)malloc(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

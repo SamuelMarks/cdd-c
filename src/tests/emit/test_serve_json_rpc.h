@@ -29,13 +29,11 @@ extern "C" {
 #ifdef _WIN32
 #include <io.h>
 #else
-#ifndef _WIN32
 #include <unistd.h>
+#endif
+#endif
+#endif
 /* clang-format on */
-#endif
-#endif
-#endif
-#endif
 
 /**
  * @brief Tests binding failure scenario for the JSON RPC server.
@@ -78,6 +76,7 @@ TEST test_serve_json_rpc_bind_fail(void) {
 #else
   close(server_fd);
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -95,6 +94,7 @@ TEST test_serve_json_rpc_listen_once(void) {
   /* Should break immediately because listen_flag is -1 */
   rc = serve_json_rpc_main(argc, argv);
   ASSERT_EQ(0, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -118,6 +118,7 @@ TEST test_serve_json_rpc_basic(void) {
      returns 0. If fails, it returns 1. */
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
          rc == CDD_C_ERROR_UNKNOWN);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -137,6 +138,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   rc = serve_json_rpc_main(argc, argv);
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
          rc == CDD_C_ERROR_UNKNOWN);
+  g_fail_io_after = -1;
 
   PASS();
 }

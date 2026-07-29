@@ -1,3 +1,4 @@
+/* clang-format off */
 #ifndef TEST_FFI_VARIADIC_H
 #define TEST_FFI_VARIADIC_H
 
@@ -5,18 +6,18 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* clang-format off */
 #include "greatest.h"
 #include "cdd_c_error.h"
 #include "../../../include/ffi/cdd_ffi_variadic.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 /* clang-format on */
 
 static int dummy_variadic_func_call_count = 0;
 
-static enum cdd_c_error dummy_variadic_func(const char *fmt, ...) {
+static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
   va_list args;
   const char *p;
 
@@ -49,7 +50,7 @@ TEST test_ffi_variadic_format_parser(void) {
   cdd_ffi_type_t types[20];
   size_t count;
 
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
 
   /* Invalid args */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -128,7 +129,7 @@ TEST test_ffi_variadic_format_parser(void) {
 
 TEST test_ffi_variadic_invoke(void) {
   cdd_ffi_var_arg_t args[10];
-  enum cdd_c_error result;
+  cdd_c_error_t result;
   int d_val = 42;
   char *s_val = "test";
   void *p_val = &d_val;
@@ -173,7 +174,7 @@ TEST test_ffi_variadic_invoke(void) {
   ASSERT_EQ(CDD_C_SUCCESS, result);
 
   result = cdd_ffi_invoke_variadic(dummy_variadic_func, "", args, 9);
-  ASSERT_EQ((enum cdd_c_error) - 1, result);
+  ASSERT_EQ((cdd_c_error_t)-1, result);
 
   PASS();
 }

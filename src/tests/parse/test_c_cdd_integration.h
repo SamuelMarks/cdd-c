@@ -26,9 +26,10 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "openapi/parse/openapi.h"
-/* clang-format on */
+
 
 /* Integration of the full pipeline (Audit & Fix & Gen command simulation) */
+/* clang-format on */
 
 /**
  * @brief Test the tokenization, analysis, and rewriting pipeline on a single
@@ -83,7 +84,7 @@ TEST test_integration_full_pipeline(void) {
   free(final_output);
   allocation_site_list_free(&allocs);
   free_token_list(tokens);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -122,6 +123,7 @@ TEST test_integration_fix_file_io(void) {
   free(read_back);
   remove(in_file);
   remove(out_file);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -192,7 +194,7 @@ TEST test_integration_recursive_fix(void) {
   rmdir(root);
   free(root);
   free(sys_tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -224,7 +226,7 @@ TEST test_integration_fix_file_in_place(void) {
 
   free(read_back);
   remove(in_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -250,7 +252,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   rmdir(root);
   free(root);
   free(sys_tmp);
-
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -352,7 +354,7 @@ TEST test_end_to_end_project_lifecycle(void) {
     /* Check error propagation: `if (rc != 0) return rc` implies function
      * signature change to int */
     ASSERT(strstr(content, "int process_data()") != NULL);
-    ASSERT(strstr(content, "enum cdd_c_error rc") != NULL);
+    ASSERT(strstr(content, "cdd_c_error_t rc") != NULL);
     ASSERT(strstr(content, "return rc;") != NULL);
     free(content);
   }
@@ -363,6 +365,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   free(src_c);
   free(project_root);
   free(sys_tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -402,9 +405,9 @@ TEST test_integration_schema2code_with_guards(void) {
   rc = read_to_file(header_file, "r", &content, &sz);
   ASSERT_EQ(0, rc);
   ASSERT(strstr(content, "#ifdef ENABLE_JSON") != NULL);
-  ASSERT(strstr(content, "enum cdd_c_error S_to_json(") != NULL);
+  ASSERT(strstr(content, "cdd_c_error_t S_to_json(") != NULL);
   ASSERT(strstr(content, "#ifdef DATA_UTILS") != NULL);
-  ASSERT(strstr(content, "enum cdd_c_error S_cleanup(") != NULL);
+  ASSERT(strstr(content, "cdd_c_error_t S_cleanup(") != NULL);
   free(content);
 
   /* 4. Verify Source */
@@ -418,7 +421,7 @@ TEST test_integration_schema2code_with_guards(void) {
   remove(schema_file);
   remove(header_file);
   remove(source_file);
-
+  g_fail_io_after = -1;
   PASS();
 }
 

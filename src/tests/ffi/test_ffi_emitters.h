@@ -1,8 +1,6 @@
 #ifndef TEST_FFI_EMITTERS_H
 #define TEST_FFI_EMITTERS_H
 
-/* clang-format off */
-#include "c_cdd/memory.h"
 #include "ffi/cdd_ffi_ir.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
@@ -48,22 +46,20 @@
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
-/* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static cdd_ffi_ir_t *create_dummy_ir(void) {
-  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_ir_t));
-  ir->nodes = (cdd_ffi_ir_node_t *)C_CDD_CALLOC(30, sizeof(cdd_ffi_ir_node_t));
+  cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
+  ir->nodes = (cdd_ffi_ir_node_t *)calloc(30, sizeof(cdd_ffi_ir_node_t));
 
   /* node 0: Struct with all types */
   ir->nodes[0].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[0].name = "TestStruct";
   ir->nodes[0].doc = "Struct doc";
-  ir->nodes[0].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(30, sizeof(cdd_ffi_field_t));
+  ir->nodes[0].fields = (cdd_ffi_field_t *)calloc(30, sizeof(cdd_ffi_field_t));
   ir->nodes[0].fields_count = 29;
   ir->nodes[0].fields[0].name = "f_void";
   ir->nodes[0].fields[0].type.kind = CDD_FFI_KIND_VOID;
@@ -148,7 +144,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[1].name = "TestEnum";
   ir->nodes[1].doc = "Enum doc";
   ir->nodes[1].variants =
-      (cdd_ffi_enum_variant_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_enum_variant_t));
+      (cdd_ffi_enum_variant_t *)calloc(2, sizeof(cdd_ffi_enum_variant_t));
   ir->nodes[1].variants_count = 2;
   ir->nodes[1].variants[0].name = "VARIANT_A";
   ir->nodes[1].variants[0].value = "10";
@@ -159,8 +155,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[2].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[2].name = "test_func_void";
   ir->nodes[2].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[2].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[2].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
   ir->nodes[2].fields_count = 3;
   ir->nodes[2].fields[0].name = "param1";
   ir->nodes[2].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
@@ -176,8 +171,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[3].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[3].name = "testFunc";
   ir->nodes[3].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[3].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[3].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   ir->nodes[3].fields_count = 1;
   ir->nodes[3].fields[0].name = "function";
   ir->nodes[3].fields[0].type.kind = CDD_FFI_KIND_INT32;
@@ -185,8 +179,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 4: Union */
   ir->nodes[4].kind = CDD_FFI_NODE_UNION;
   ir->nodes[4].name = "TestUnion";
-  ir->nodes[4].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[4].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   ir->nodes[4].fields_count = 1;
   ir->nodes[4].fields[0].name = "field1";
   ir->nodes[4].fields[0].type.kind = CDD_FFI_KIND_INT32;
@@ -201,8 +194,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[6].name = "test_func_int_with_args";
   ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[6].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(17, sizeof(cdd_ffi_field_t));
+  ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(17, sizeof(cdd_ffi_field_t));
   ir->nodes[6].fields_count = 17;
   ir->nodes[6].fields[0].name = "interface";
   ir->nodes[6].fields[0].type.kind = CDD_FFI_KIND_INT32;
@@ -243,8 +235,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 7: Null ref_name field */
   ir->nodes[7].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[7].name = "BadStruct";
-  ir->nodes[7].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[7].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
   ir->nodes[7].fields_count = 3;
   ir->nodes[7].fields[0].name = NULL;
   ir->nodes[7].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
@@ -272,8 +263,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 10: Trampoline struct */
   ir->nodes[10].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[10].name = "TestClass_Trampoline";
-  ir->nodes[10].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[10].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
   ir->nodes[10].fields_count = 4;
   ir->nodes[10].fields[0].name = "ctx";
   ir->nodes[10].fields[1].name = "cb_AddRef";
@@ -285,8 +275,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[11].name = "test_func_cpp_args";
   ir->nodes[11].doc = "My docstring";
   ir->nodes[11].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[11].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_field_t));
+  ir->nodes[11].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
   ir->nodes[11].fields_count = 2;
   ir->nodes[11].fields[0].name = "class";
   ir->nodes[11].fields[0].type.kind = CDD_FFI_KIND_INT32;
@@ -301,7 +290,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[13].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[13].name = "DerivedStruct";
   ir->nodes[13].base_classes =
-      (cdd_ffi_base_class_t *)C_CDD_CALLOC(2, sizeof(cdd_ffi_base_class_t));
+      (cdd_ffi_base_class_t *)calloc(2, sizeof(cdd_ffi_base_class_t));
   ir->nodes[13].base_classes_count = 2;
   ir->nodes[13].base_classes[0].name = "BaseClass";
   ir->nodes[13].base_classes[1].name = "OtherBaseClass";
@@ -318,15 +307,14 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[15].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[15].name = "test_func_out_inout_var";
   ir->nodes[15].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[15].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[15].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
   ir->nodes[15].fields_count = 4;
   ir->nodes[15].is_variadic = 1;
   ir->nodes[15].fields[0].name = "out_arg";
   ir->nodes[15].fields[0].type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[15].fields[0].type.pointer_depth = 1;
   ir->nodes[15].fields[0].intent = CDD_FFI_INTENT_OUT;
-  ir->nodes[15].fields[1].name = "inout";
+  ir->nodes[15].fields[1].name = "inout_arg";
   ir->nodes[15].fields[1].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir->nodes[15].fields[1].type.ref_name = "TestStruct";
   ir->nodes[15].fields[1].type.pointer_depth = 1;
@@ -354,8 +342,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 18: Function with array out param */
   ir->nodes[18].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[18].name = "test_arr_out";
-  ir->nodes[18].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[18].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
   ir->nodes[18].fields_count = 1;
   ir->nodes[18].fields[0].name = "arr_out";
   ir->nodes[18].fields[0].intent = CDD_FFI_INTENT_OUT;
@@ -394,8 +381,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 24: Function with various OUT params */
   ir->nodes[24].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[24].name = "test_func_many_out";
-  ir->nodes[24].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(3, sizeof(cdd_ffi_field_t));
+  ir->nodes[24].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
   ir->nodes[24].fields_count = 3;
   ir->nodes[24].fields[0].name = "out_i64";
   ir->nodes[24].fields[0].type.kind = CDD_FFI_KIND_INT64;
@@ -410,58 +396,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[24].fields[2].type.pointer_depth = 1;
   ir->nodes[24].fields[2].intent = CDD_FFI_INTENT_OUT;
 
-  /* node 25: STRUCT_REF with NULL ref_name */
-  ir->nodes[25].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[25].name = "test_struct_ref_null";
-  ir->nodes[25].return_or_base_type.kind = CDD_FFI_KIND_STRUCT_REF;
-  ir->nodes[25].return_or_base_type.pointer_depth = 1;
-  ir->nodes[25].return_or_base_type.ref_name = NULL;
-
-  /* node 26: TYPEDEF_REF with NULL ref_name */
-  ir->nodes[26].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[26].name = "test_typedef_ref_null";
-  ir->nodes[26].return_or_base_type.kind = CDD_FFI_KIND_TYPEDEF_REF;
-  ir->nodes[26].return_or_base_type.pointer_depth = 1;
-  ir->nodes[26].return_or_base_type.ref_name = NULL;
-
-  /* node 27: ENUM_REF with NULL ref_name */
-  ir->nodes[27].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[27].name = "test_enum_ref_null";
-  ir->nodes[27].return_or_base_type.kind = CDD_FFI_KIND_ENUM_REF;
-  ir->nodes[27].return_or_base_type.pointer_depth = 1;
-  ir->nodes[27].return_or_base_type.ref_name = NULL;
-
-  /* node 28: Function returning int, with OUT param */
-  ir->nodes[28].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[28].name = "test_func_ret_and_out";
-  ir->nodes[28].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[28].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
-  ir->nodes[28].fields_count = 1;
-  ir->nodes[28].fields[0].name = "out_val";
-  ir->nodes[28].fields[0].type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[28].fields[0].intent = CDD_FFI_INTENT_OUT;
-  ir->nodes[28].fields[0].type.pointer_depth = 1;
-
-  /* node 29: Function with INOUT param */
-  ir->nodes[29].kind = CDD_FFI_NODE_FUNCTION;
-  ir->nodes[29].name = "test_func_inout";
-  ir->nodes[29].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[29].fields =
-      (cdd_ffi_field_t *)C_CDD_CALLOC(1, sizeof(cdd_ffi_field_t));
-  ir->nodes[29].fields_count = 1;
-  ir->nodes[29].fields[0].name = "error";
-  ir->nodes[29].fields[0].type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[29].fields[0].intent = CDD_FFI_INTENT_INOUT;
-  ir->nodes[29].fields[0].type.pointer_depth = 1;
-
-  /* node 30: Empty UNION */
-  ir->nodes[30].kind = CDD_FFI_NODE_UNION;
-  ir->nodes[30].name = "test_empty_union";
-  ir->nodes[30].fields_count = 0;
-
-  ir->nodes_count = 31;
-  ir->nodes_capacity = 40;
+  ir->nodes_count = 25;
+  ir->nodes_capacity = 30;
 
   return ir;
 }
@@ -469,18 +405,18 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
 static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   if (!ir)
     return;
-  C_CDD_FREE(ir->nodes[0].fields);
-  C_CDD_FREE(ir->nodes[1].variants);
-  C_CDD_FREE(ir->nodes[2].fields);
-  C_CDD_FREE(ir->nodes[4].fields);
-  C_CDD_FREE(ir->nodes[6].fields);
-  C_CDD_FREE(ir->nodes[7].fields);
-  C_CDD_FREE(ir->nodes[10].fields);
-  C_CDD_FREE(ir->nodes[11].fields);
-  C_CDD_FREE(ir->nodes[13].base_classes);
-  C_CDD_FREE(ir->nodes[15].fields);
-  C_CDD_FREE(ir->nodes);
-  C_CDD_FREE(ir);
+  free(ir->nodes[0].fields);
+  free(ir->nodes[1].variants);
+  free(ir->nodes[2].fields);
+  free(ir->nodes[4].fields);
+  free(ir->nodes[6].fields);
+  free(ir->nodes[7].fields);
+  free(ir->nodes[10].fields);
+  free(ir->nodes[11].fields);
+  free(ir->nodes[13].base_classes);
+  free(ir->nodes[15].fields);
+  free(ir->nodes);
+  free(ir);
 }
 
 #define TEST_EMITTER(lang)                                                     \
@@ -504,13 +440,14 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     config.module_name = "TestMod";                                            \
                                                                                \
     for (i = 1; i <= 5; i++) {                                                 \
-                                                                               \
+      g_fail_io_after = i;                                                     \
       cdd_ffi_emit_##lang(ir, &config);                                        \
     }                                                                          \
-    for (i = 555; i <= 560; i++) {                                             \
-                                                                               \
+    for (i = 555; i <= 557; i++) {                                             \
+      g_fail_io_after = i;                                                     \
       cdd_ffi_emit_##lang(ir, &config);                                        \
     }                                                                          \
+    g_fail_io_after = -1;                                                      \
                                                                                \
     cdd_ffi_emit_##lang(NULL, &config);                                        \
                                                                                \

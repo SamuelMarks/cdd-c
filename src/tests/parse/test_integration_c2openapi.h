@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <parson.h>
@@ -240,11 +239,12 @@ TEST test_c2openapi_full_flow(void) {
   remove(h_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(h_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -354,12 +354,13 @@ TEST test_c2openapi_with_base_spec(void) {
   remove(out_json);
   remove(base_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(h_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(base_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(base_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -414,11 +415,12 @@ TEST test_c2openapi_with_self_uri(void) {
   remove(h_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(h_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(h_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -507,10 +509,11 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -544,12 +547,13 @@ TEST test_c2o_cli_source_file_checks(void) {
   remove(no_ext_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(txt_file);
-  C_CDD_FREE(no_ext_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(txt_file);
+  free(no_ext_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -609,7 +613,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     write_to_file(c_file, snippets[i]);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
@@ -620,13 +624,14 @@ TEST test_c2o_cli_doc_sec_unset(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     remove(c_file);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -659,10 +664,11 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -703,10 +709,11 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -738,10 +745,11 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -775,10 +783,11 @@ TEST test_c2o_cli_server_variables(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -813,10 +822,11 @@ TEST test_c2o_cli_server_variables_validation(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -854,10 +864,11 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(c_file);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(c_file);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -896,7 +907,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     write_to_file(c_file, snippets[i]);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
@@ -907,13 +918,14 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     remove(c_file);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -959,7 +971,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     write_to_file(c_file, snippets[i]);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
@@ -970,13 +982,14 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
     char *c_file = NULL;
     asprintf(&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C, (unsigned long)i);
     remove(c_file);
-    C_CDD_FREE(c_file);
+    free(c_file);
   }
   remove(out_json);
   rmdir(src_dir);
-  C_CDD_FREE(out_json);
-  C_CDD_FREE(src_dir);
-  C_CDD_FREE(tmp_dir);
+  free(out_json);
+  free(src_dir);
+  free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }

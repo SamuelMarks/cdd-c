@@ -12,7 +12,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
@@ -26,16 +25,36 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#undef malloc
+#define malloc(sz)                                                             \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (malloc)(sz))
+#undef calloc
+#define calloc(n, sz)                                                          \
+  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
+                                                            : (calloc)(n, sz))
+#endif
+
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
+C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
+                                         struct DeclType **tail,
+                                         struct DeclType *node);
+C_CDD_EXPORT cdd_c_error_t is_grouping_paren(const struct TokenList *tokens,
+                                             size_t start, size_t end,
+                                             int *out_res);
+
 /* --- Helpers --- */
 
-static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
-                                          size_t start, size_t end,
-                                          char **_out_val) {
+static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
+                                       size_t start, size_t end,
+                                       char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -44,7 +63,7 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -66,8 +85,8 @@ static enum cdd_c_error join_tokens_range(const struct TokenList *tokens,
 /**
  * @brief Executes the skip ws operation.
  */
-static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t i,
-                                size_t limit, size_t *_out_val) {
+static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t i,
+                             size_t limit, size_t *_out_val) {
   while (i < limit && (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
                        tokens->tokens[i].kind == TOKEN_COMMENT))
     i++;
@@ -80,8 +99,8 @@ static enum cdd_c_error skip_ws(const struct TokenList *tokens, size_t i,
 /**
  * @brief Executes the skip ws back operation.
  */
-static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
-                                     size_t limit, size_t *_out_val) {
+static cdd_c_error_t skip_ws_back(const struct TokenList *tokens, size_t i,
+                                  size_t limit, size_t *_out_val) {
   if (i <= limit) {
     *_out_val = SIZE_MAX;
     return CDD_C_SUCCESS;
@@ -111,9 +130,9 @@ static enum cdd_c_error skip_ws_back(const struct TokenList *tokens, size_t i,
 /**
  * @brief Executes the skip group operation.
  */
-static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
-                                   size_t limit, enum TokenKind open_k,
-                                   enum TokenKind close_k, size_t *_out_val) {
+static cdd_c_error_t skip_group(const struct TokenList *tokens, size_t start,
+                                size_t limit, enum TokenKind open_k,
+                                enum TokenKind close_k, size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -140,7 +159,7 @@ static enum cdd_c_error skip_group(const struct TokenList *tokens, size_t start,
 /**
  * @brief Executes the decl info init operation.
  */
-enum cdd_c_error decl_info_init(struct DeclInfo *info) {
+cdd_c_error_t decl_info_init(struct DeclInfo *info) {
   if (!info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   info->identifier = NULL;
@@ -158,22 +177,22 @@ static void free_decl_type(struct DeclType *t) {
   switch (t->kind) {
   case DECL_BASE:
     if (t->data.base.name)
-      C_CDD_FREE(t->data.base.name);
+      free(t->data.base.name);
     break;
   case DECL_PTR:
     if (t->data.ptr.qualifiers)
-      C_CDD_FREE(t->data.ptr.qualifiers);
+      free(t->data.ptr.qualifiers);
     break;
   case DECL_ARRAY:
     if (t->data.array.size_expr)
-      C_CDD_FREE(t->data.array.size_expr);
+      free(t->data.array.size_expr);
     break;
   case DECL_FUNC:
     if (t->data.func.args_str)
-      C_CDD_FREE(t->data.func.args_str);
+      free(t->data.func.args_str);
     break;
   }
-  C_CDD_FREE(t);
+  free(t);
 }
 
 /**
@@ -183,7 +202,7 @@ void decl_info_free(struct DeclInfo *info) {
   if (!info)
     return;
   if (info->identifier)
-    C_CDD_FREE(info->identifier);
+    free(info->identifier);
   free_decl_type(info->type);
   info->identifier = NULL;
   info->type = NULL;
@@ -192,13 +211,9 @@ void decl_info_free(struct DeclInfo *info) {
 /**
  * @brief Adds or sets type node.
  */
-C_CDD_EXPORT enum cdd_c_error add_type_node(struct DeclInfo *info,
-                                            struct DeclType **current_tail,
-                                            struct DeclType *node);
-
-C_CDD_EXPORT enum cdd_c_error add_type_node(struct DeclInfo *info,
-                                            struct DeclType **current_tail,
-                                            struct DeclType *node) {
+C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
+                                         struct DeclType **current_tail,
+                                         struct DeclType *node) {
   if (!node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!info->type) {
@@ -213,10 +228,10 @@ C_CDD_EXPORT enum cdd_c_error add_type_node(struct DeclInfo *info,
 /**
  * @brief Executes the create node operation.
  */
-static enum cdd_c_error create_node(enum DeclTypeKind kind,
-                                    struct DeclType **_out_val) {
+static cdd_c_error_t create_node(enum DeclTypeKind kind,
+                                 struct DeclType **_out_val) {
   struct DeclType *t = NULL;
-  t = (struct DeclType *)C_CDD_CALLOC(1, sizeof(struct DeclType));
+  t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
   if (t)
     t->kind = kind;
   {
@@ -227,13 +242,9 @@ static enum cdd_c_error create_node(enum DeclTypeKind kind,
 
 /* --- Parse Logic --- */
 
-C_CDD_EXPORT enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
-                                                size_t paren_idx, size_t limit,
-                                                int *out_is_grouping);
-
-C_CDD_EXPORT enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
-                                                size_t paren_idx, size_t limit,
-                                                int *out_is_grouping) {
+C_CDD_EXPORT cdd_c_error_t is_grouping_paren(const struct TokenList *tokens,
+                                             size_t paren_idx, size_t limit,
+                                             int *out_is_grouping) {
   size_t i;
   if (!out_is_grouping)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -257,9 +268,9 @@ C_CDD_EXPORT enum cdd_c_error is_grouping_paren(const struct TokenList *tokens,
 /**
  * @brief Retrieves the abstract pivot.
  */
-static enum cdd_c_error find_abstract_pivot(const struct TokenList *tokens,
-                                            size_t start, size_t end,
-                                            size_t *_out_val) {
+static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
+                                         size_t start, size_t end,
+                                         size_t *_out_val) {
   size_t i = start;
   size_t best_pivot = end;
   int current_depth = 0;
@@ -338,9 +349,9 @@ static enum cdd_c_error find_abstract_pivot(const struct TokenList *tokens,
 /**
  * @brief Find the declared identifier (pivot point).
  */
-static enum cdd_c_error find_pivot(const struct TokenList *tokens, size_t start,
-                                   size_t end, int *is_abstract,
-                                   size_t *_out_val) {
+static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
+                                size_t end, int *is_abstract,
+                                size_t *_out_val) {
   size_t i = start;
   size_t best_ident = end;
 
@@ -391,8 +402,8 @@ static enum cdd_c_error find_pivot(const struct TokenList *tokens, size_t start,
 /**
  * @brief Parses declaration from the given input.
  */
-enum cdd_c_error parse_declaration(const struct TokenList *tokens, size_t start,
-                                   size_t end, struct DeclInfo *out_info) {
+cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
+                                size_t end, struct DeclInfo *out_info) {
   size_t pivot;
   size_t left, right;
   size_t left_limit = start;

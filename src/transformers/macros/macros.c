@@ -6,7 +6,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -29,12 +28,11 @@
  * @param config The transform configuration.
  * @return 0 on success, or an error code.
  */
-C_CDD_EXPORT enum cdd_c_error
-cdd_transform_macros(cdd_cst_tree_t *tree,
-                     const cdd_transform_config_t *config) {
+C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
+    cdd_cst_tree_t *tree, const cdd_transform_config_t *config) {
   cdd_cst_query_result_t calls;
   size_t i;
-  enum cdd_c_error rc;
+  cdd_c_error_t rc;
   (void)config;
 
   if (!tree || !tree->root)
@@ -60,7 +58,7 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
 
       rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
       if (rc != CDD_C_SUCCESS) {
-        C_CDD_FREE(calls.nodes);
+        free(calls.nodes);
         return rc;
       }
       cdd_cst_builder_init(&bld, tree, replacement);
@@ -75,7 +73,7 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
       } else {
         cdd_cst_free_node(replacement);
         rc = bld.error_state;
-        C_CDD_FREE(calls.nodes);
+        free(calls.nodes);
         cdd_cst_builder_free(&bld);
         return rc;
       }
@@ -95,9 +93,9 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
 
           rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
           if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(stringify_calls.nodes);
+            free(stringify_calls.nodes);
             if (calls.nodes)
-              C_CDD_FREE(calls.nodes);
+              free(calls.nodes);
             return rc;
           }
           cdd_cst_builder_init(&bld, tree, replacement);
@@ -111,16 +109,16 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
           } else {
             cdd_cst_free_node(replacement);
             rc = bld.error_state;
-            C_CDD_FREE(stringify_calls.nodes);
+            free(stringify_calls.nodes);
             cdd_cst_builder_free(&bld);
             if (calls.nodes)
-              C_CDD_FREE(calls.nodes);
+              free(calls.nodes);
             return rc;
           }
         }
       }
       if (stringify_calls.nodes)
-        C_CDD_FREE(stringify_calls.nodes);
+        free(stringify_calls.nodes);
     }
   }
 
@@ -136,9 +134,9 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
 
           rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
           if (rc != CDD_C_SUCCESS) {
-            C_CDD_FREE(concat_calls.nodes);
+            free(concat_calls.nodes);
             if (calls.nodes)
-              C_CDD_FREE(calls.nodes);
+              free(calls.nodes);
             return rc;
           }
           cdd_cst_builder_init(&bld, tree, replacement);
@@ -152,21 +150,21 @@ cdd_transform_macros(cdd_cst_tree_t *tree,
           } else {
             cdd_cst_free_node(replacement);
             rc = bld.error_state;
-            C_CDD_FREE(concat_calls.nodes);
+            free(concat_calls.nodes);
             cdd_cst_builder_free(&bld);
             if (calls.nodes)
-              C_CDD_FREE(calls.nodes);
+              free(calls.nodes);
             return rc;
           }
         }
       }
       if (concat_calls.nodes)
-        C_CDD_FREE(concat_calls.nodes);
+        free(concat_calls.nodes);
     }
   }
 
   if (calls.nodes) {
-    C_CDD_FREE(calls.nodes);
+    free(calls.nodes);
   }
   return CDD_C_SUCCESS;
 }

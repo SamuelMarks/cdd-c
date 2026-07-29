@@ -7,7 +7,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
@@ -20,6 +19,7 @@
 #include <string.h>
 #include "c_cdd/log.h"
 #include "c_cdd_export.h"
+
 /* clang-format on */
 
 C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
@@ -35,7 +35,7 @@ C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
 /**
  * @brief Executes the audit stats init operation.
  */
-enum cdd_c_error audit_stats_init(struct AuditStats *stats) {
+cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
   if (!stats)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   stats->files_scanned = 0;
@@ -57,11 +57,11 @@ void audit_stats_free(struct AuditStats *stats) {
     return;
   if (stats->violations.items) {
     for (i = 0; i < stats->violations.size; i++) {
-      C_CDD_FREE(stats->violations.items[i].file_path);
-      C_CDD_FREE(stats->violations.items[i].variable_name);
-      C_CDD_FREE(stats->violations.items[i].allocator_name);
+      free(stats->violations.items[i].file_path);
+      free(stats->violations.items[i].variable_name);
+      free(stats->violations.items[i].allocator_name);
     }
-    C_CDD_FREE(stats->violations.items);
+    free(stats->violations.items);
     stats->violations.items = NULL;
   }
   stats->violations.size = 0;
@@ -71,10 +71,10 @@ void audit_stats_free(struct AuditStats *stats) {
 /**
  * @brief Adds or sets violation.
  */
-static enum cdd_c_error add_violation(struct AuditStats *stats,
-                                      const char *file_path, size_t line,
-                                      size_t col, const char *var_name,
-                                      const char *allocator) {
+static cdd_c_error_t add_violation(struct AuditStats *stats,
+                                   const char *file_path, size_t line,
+                                   size_t col, const char *var_name,
+                                   const char *allocator) {
   struct AuditViolationList *list = &stats->violations;
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
@@ -86,11 +86,11 @@ static enum cdd_c_error add_violation(struct AuditStats *stats,
       if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
         new_items = NULL;
       else
-        new_items = (struct AuditViolation *)C_CDD_REALLOC(
+        new_items = (struct AuditViolation *)realloc(
             list->items, new_cap * sizeof(struct AuditViolation));
     }
 #else
-    new_items = (struct AuditViolation *)C_CDD_REALLOC(
+    new_items = (struct AuditViolation *)realloc(
         list->items, new_cap * sizeof(struct AuditViolation));
 #endif
     if (!new_items) {
@@ -146,9 +146,9 @@ static enum cdd_c_error add_violation(struct AuditStats *stats,
       (allocator && !list->items[list->size].allocator_name)) {
     /* Handle partial alloc failure */
     printf("PARTIAL ALLOC FAILURE\n");
-    C_CDD_FREE(list->items[list->size].file_path);
-    C_CDD_FREE(list->items[list->size].variable_name);
-    C_CDD_FREE(list->items[list->size].allocator_name);
+    free(list->items[list->size].file_path);
+    free(list->items[list->size].variable_name);
+    free(list->items[list->size].allocator_name);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -184,7 +184,7 @@ static void get_line_col(const char *content, const uint8_t *token_ptr,
 /**
  * @brief Check if filename ends with .c extension.
  */
-static enum cdd_c_error is_c_source(const char *path, int *out_is_source) {
+static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
   if (!out_is_source)
@@ -201,8 +201,8 @@ static enum cdd_c_error is_c_source(const char *path, int *out_is_source) {
 /**
  * @brief Helper to detect functions returning allocations directly.
  */
-static enum cdd_c_error count_returning_allocs(const struct TokenList *tokens,
-                                               int *out_count) {
+static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
+                                            int *out_count) {
   size_t i;
   int count = 0;
   if (!out_count)
@@ -240,7 +240,7 @@ static enum cdd_c_error count_returning_allocs(const struct TokenList *tokens,
  * @brief Callback for directory walker.
  * Parses file and updates stats.
  */
-static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
+static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
   struct TokenList *tokens = NULL;
   struct AllocationSiteList sites = {0};
@@ -267,7 +267,7 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
   /* Tokenize */
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
     free_token_list(tokens);
-    C_CDD_FREE(content);
+    free(content);
     return CDD_C_SUCCESS; /* Tokenization fail - skip */
   }
 
@@ -305,7 +305,7 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
   }
 
   free_token_list(tokens);
-  C_CDD_FREE(content);
+  free(content);
 
   return CDD_C_SUCCESS;
 }
@@ -313,8 +313,7 @@ static enum cdd_c_error audit_file_callback(const char *path, void *user_data) {
 /**
  * @brief Executes the audit project operation.
  */
-enum cdd_c_error audit_project(const char *root_path,
-                               struct AuditStats *stats) {
+cdd_c_error_t audit_project(const char *root_path, struct AuditStats *stats) {
   if (!root_path || !stats)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -324,8 +323,8 @@ enum cdd_c_error audit_project(const char *root_path,
 /**
  * @brief Executes the audit print json operation.
  */
-enum cdd_c_error audit_print_json(const struct AuditStats *stats,
-                                  char **out_json) {
+cdd_c_error_t audit_print_json(const struct AuditStats *stats,
+                               char **out_json) {
   JSON_Value *root_val = NULL;
   JSON_Object *root_obj;
   char *str = NULL;

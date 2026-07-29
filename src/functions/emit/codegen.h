@@ -45,7 +45,7 @@ struct CodegenConfig {
 extern C_CDD_EXPORT /**
                      * @brief Generates C code for write forward decl.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     write_forward_decl(FILE *fp, const char *struct_name);
 
 /**
@@ -57,10 +57,9 @@ extern C_CDD_EXPORT /**
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_enum_declaration_h(FILE *hfile, const char *enum_name,
-                         const struct StructFields *sf,
-                         const struct CodegenConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_enum_declaration_h(
+    FILE *hfile, const char *enum_name, const struct StructFields *sf,
+    const struct CodegenConfig *config);
 
 /**
  * @brief Generates C code for write union declaration.
@@ -71,10 +70,9 @@ write_enum_declaration_h(FILE *hfile, const char *enum_name,
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_union_declaration_h(FILE *hfile, const char *union_name,
-                          const struct StructFields *sf,
-                          const struct CodegenConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_union_declaration_h(
+    FILE *hfile, const char *union_name, const struct StructFields *sf,
+    const struct CodegenConfig *config);
 
 /**
  * @brief Generates C code for write struct declaration.
@@ -85,10 +83,9 @@ write_union_declaration_h(FILE *hfile, const char *union_name,
  * @param[in] config The codegen configuration.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT enum cdd_c_error
-write_struct_declaration_h(FILE *hfile, const char *struct_name,
-                           const struct StructFields *sf,
-                           const struct CodegenConfig *config);
+extern C_CDD_EXPORT cdd_c_error_t write_struct_declaration_h(
+    FILE *hfile, const char *struct_name, const struct StructFields *sf,
+    const struct CodegenConfig *config);
 
 #ifdef __cplusplus
 }

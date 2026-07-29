@@ -1,5 +1,4 @@
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -11,8 +10,8 @@
 #include <stdlib.h>
 /* clang-format on */
 
-enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
-                                        const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
+                                     const cdd_transform_config_t *config) {
   int rc;
   cdd_cst_query_result_t res;
   size_t i;
@@ -47,7 +46,7 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
         }
       }
     }
-    C_CDD_FREE(res.nodes);
+    free(res.nodes);
   }
 
   if (found_cpp)
@@ -119,8 +118,8 @@ enum cdd_c_error cdd_transform_extern_c(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
-                                    const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
+                                 const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
@@ -198,7 +197,7 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
         }
       }
     }
-    C_CDD_FREE(res.nodes);
+    free(res.nodes);
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
@@ -228,8 +227,8 @@ enum cdd_c_error cdd_transform_msvc(cdd_cst_tree_t *tree,
   return CDD_C_SUCCESS;
 }
 
-enum cdd_c_error cdd_transform_gnu(cdd_cst_tree_t *tree,
-                                   const cdd_transform_config_t *config) {
+cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
+                                const cdd_transform_config_t *config) {
   size_t i;
   (void)config;
 

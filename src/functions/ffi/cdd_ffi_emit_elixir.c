@@ -41,7 +41,7 @@ static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   out_name[j] = '\0';
 }
 
-enum cdd_c_error
+cdd_c_error_t
 cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
   FILE *c_f = NULL;
@@ -56,8 +56,9 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   int has_functions = 0;
   extern volatile int g_fail_io_after;
 
-  if (!ir)
+  if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
+  }
 
   lib_name = config->library_name ? config->library_name : "mylib";
 

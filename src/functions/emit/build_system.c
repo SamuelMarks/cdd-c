@@ -9,7 +9,6 @@
  */
 
 /* clang-format off */
-#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -33,7 +32,7 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc;
 /* Helper macro for I/O checking */
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-static int test_cdd_check_io_helper2(int rc) {
+static cdd_c_error_t test_cdd_check_io_helper2(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
   return rc;
@@ -56,8 +55,8 @@ static int test_cdd_check_io_helper2(int rc) {
 /**
  * @brief Generates C code for write cmake content.
  */
-static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
-                                            int has_tests) {
+static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
+                                         int has_tests) {
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n\n"));
@@ -286,9 +285,8 @@ static enum cdd_c_error write_cmake_content(FILE *fp, const char *project_name,
 /**
  * @brief Generates cmake project.
  */
-enum cdd_c_error generate_cmake_project(const char *output_path,
-                                        const char *project_name,
-                                        int has_tests) {
+cdd_c_error_t generate_cmake_project(const char *output_path,
+                                     const char *project_name, int has_tests) {
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
@@ -311,7 +309,7 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
       full_path = NULL;
     else
 #endif
-      full_path = C_CDD_MALLOC(len);
+      full_path = malloc(len);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -359,7 +357,7 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
 
   if (!fp) {
     rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
-    C_CDD_FREE(full_path);
+    free(full_path);
     return rc;
   }
 
@@ -378,15 +376,15 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
     char *src_dir = NULL;
     char *src_cmake = NULL;
     if (output_path) {
-      src_dir = C_CDD_MALLOC(strlen(output_path) + 5);
+      src_dir = malloc(strlen(output_path) + 5);
       sprintf(src_dir, "%s/src", output_path);
       makedirs(src_dir);
-      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
+      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     } else {
       src_dir = strdup("src");
       makedirs(src_dir);
-      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
+      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     }
 
@@ -411,19 +409,19 @@ enum cdd_c_error generate_cmake_project(const char *output_path,
     } else {
       rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     }
-    C_CDD_FREE(src_dir);
-    C_CDD_FREE(src_cmake);
+    free(src_dir);
+    free(src_cmake);
   }
   fp = NULL;
 
-  C_CDD_FREE(full_path);
+  free(full_path);
   return rc;
 }
 
 /**
  * @brief Generates build system main.
  */
-enum cdd_c_error generate_build_system_main(int argc, char **argv) {
+cdd_c_error_t generate_build_system_main(int argc, char **argv) {
   const char *sys_type;
   const char *out_dir;
   const char *name;

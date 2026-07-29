@@ -18,7 +18,7 @@ extern C_CDD_EXPORT /**
                      * @brief Executes the weaver translate gcc attributes
                      * operation.
                      */
-    enum cdd_c_error
+    cdd_c_error_t
     weaver_translate_gcc_attributes(struct PatchList *patches,
                                     const struct TokenList *tokens,
                                     const struct CstNodeList *cst);

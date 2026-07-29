@@ -3,10 +3,9 @@
 #include <string.h>
 /* clang-format on */
 
-enum cdd_c_error cdd_ffi_parse_printf_format(const char *fmt,
-                                             cdd_ffi_type_t *out_types,
-                                             size_t max_types,
-                                             size_t *out_count) {
+cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
+                                          cdd_ffi_type_t *out_types,
+                                          size_t max_types, size_t *out_count) {
   size_t count = 0;
   const char *p = fmt;
 
@@ -119,9 +118,9 @@ enum cdd_c_error cdd_ffi_parse_printf_format(const char *fmt,
    "fallback", we do our best.
 */
 
-enum cdd_c_error
-cdd_ffi_invoke_variadic(enum cdd_c_error (*fn)(const char *, ...),
-                        const char *fmt, cdd_ffi_var_arg_t *args, size_t argc) {
+cdd_c_error_t cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...),
+                                      const char *fmt, cdd_ffi_var_arg_t *args,
+                                      size_t argc) {
   /* This C-level trampoline uses a switch to unpack up to 8 arguments.
      We pass the arguments as 'void*', which works for pointers and integers
      on typical 64-bit platforms (size_t). */
