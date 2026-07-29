@@ -266,6 +266,7 @@ set(Source_Files
         "functions/ffi/cdd_ffi_emit_zig.c"
         "functions/ffi/cdd_ffi_variadic.c"
         "functions/parse/main.c"
+        "g_fail_io_after.c"
 )
 
 # Platform specific source selection to avoid duplicate symbols
