@@ -25,6 +25,15 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init = 0;
+C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init = 0;
+C_CDD_EXPORT int g_cdd_sync_fail_extract = 0;
+C_CDD_EXPORT int g_cdd_sync_fail_tokenize = 0;
+C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply = 0;
+C_CDD_EXPORT int g_cdd_sync_fail_fopen_write = 0;
+#endif
+
 /**
  * @brief Executes the sync code main operation.
  */
@@ -65,13 +74,17 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
 #ifdef CDD_BUILD_TESTS
   {
     extern int g_cdd_fprintf_fail;
-    printf("sync.c g_cdd_fprintf_fail=%d addr=%p\n", g_cdd_fprintf_fail,
-           (void *)&g_cdd_fprintf_fail);
-    if (g_cdd_fprintf_fail == 8001) {
-      if (out)
-        fclose(out);
+    if (g_cdd_fprintf_fail >= 8001 && g_cdd_fprintf_fail <= 8004) {
+      fclose(out);
       out = NULL;
-      errno = 0;
+      if (g_cdd_fprintf_fail == 8001)
+        errno = 0;
+      if (g_cdd_fprintf_fail == 8002)
+        errno = ENOENT;
+      if (g_cdd_fprintf_fail == 8003)
+        errno = ENOMEM;
+      if (g_cdd_fprintf_fail == 8004)
+        errno = EINVAL;
     }
   }
 #endif
@@ -97,9 +110,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
 #ifdef CDD_BUILD_TESTS
     {
       extern int g_cdd_fprintf_fail;
-      if (g_cdd_fprintf_fail == 8002) {
-        if (base)
-          free(base);
+      if (g_cdd_fprintf_fail == 8005) {
+        free(base);
         base = NULL;
       }
     }
@@ -118,7 +130,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
       struct EnumMembers *em = def->details.enum_members;
       write_enum_to_str_func(out, def->name, em, NULL);
       write_enum_from_str_func(out, def->name, em, NULL);
-    } else if (def->kind == KIND_STRUCT) {
+    } else {
       struct StructFields *sf = def->details.struct_fields;
       /* Emit Lifecycle */
       write_struct_cleanup_func(out, def->name, sf, &struct_cfg);
@@ -156,17 +168,49 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   int rc;
 
   /* Init structures */
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init;
+    if (g_cdd_sync_fail_func_sig_init)
+      rc = CDD_C_ERROR_MEMORY;
+    else
+      rc = func_sig_list_init(&sigs);
+  }
+#else
   rc = func_sig_list_init(&sigs);
+#endif
   if (rc != 0)
     return rc;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init;
+    if (g_cdd_sync_fail_patch_list_init)
+      rc = CDD_C_ERROR_MEMORY;
+    else
+      rc = patch_list_init(&patches);
+  }
+#else
   rc = patch_list_init(&patches);
+#endif
   if (rc != 0) {
     func_sig_list_free(&sigs);
     return rc;
   }
 
   /* 1. Extract signatures from implementation source code */
-  if ((rc = c_inspector_extract_signatures(refactored_source, &sigs)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_sync_fail_extract;
+    if (g_cdd_sync_fail_extract)
+      rc = CDD_C_ERROR_MEMORY;
+    else
+      rc = c_inspector_extract_signatures(refactored_source, &sigs);
+  }
+#else
+  rc = c_inspector_extract_signatures(refactored_source, &sigs);
+#endif
+  if (rc != 0) {
     goto cleanup;
   }
 
@@ -174,7 +218,19 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   if ((rc = read_to_file(header_path, "r", &hdr_content, &hdr_sz)) != 0) {
     goto cleanup;
   }
-  if ((rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens)) != 0) {
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize;
+    if (g_cdd_sync_fail_tokenize)
+      rc = CDD_C_ERROR_MEMORY;
+    else
+      rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens);
+  }
+#else
+  rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens);
+#endif
+  if (rc != 0) {
     goto cleanup;
   }
 
@@ -204,10 +260,16 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
           size_t end;
           while (start > 0) {
             enum TokenKind pk = hdr_tokens->tokens[start - 1].kind;
-            if (pk == TOKEN_SEMICOLON || pk == TOKEN_RBRACE ||
-                pk == TOKEN_LBRACE)
+            switch (pk) {
+            case TOKEN_SEMICOLON:
+            case TOKEN_RBRACE:
+            case TOKEN_LBRACE:
               break;
-            start--;
+            default:
+              start--;
+              continue;
+            }
+            break;
           }
           /* Look ahead for end of decl (SEMICOLON) */
           end = next;
@@ -242,18 +304,38 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   }
 
   /* 4. Apply Patches */
-  if ((rc = patch_list_apply(&patches, hdr_tokens, &new_header)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply;
+    if (g_cdd_sync_fail_patch_list_apply)
+      rc = CDD_C_ERROR_MEMORY;
+    else
+      rc = patch_list_apply(&patches, hdr_tokens, &new_header);
+  }
+#else
+  rc = patch_list_apply(&patches, hdr_tokens, &new_header);
+#endif
+  if (rc != 0) {
     goto cleanup;
   }
 
   /* 5. Write Patch */
-  if (new_header) {
+  {
     FILE *fp;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&fp, header_path, "w") != 0)
       fp = NULL;
 #else
     fp = fopen(header_path, "w");
+#endif
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
+      if (g_cdd_sync_fail_fopen_write) {
+        fclose(fp);
+        fp = NULL;
+      }
+    }
 #endif
     if (fp) {
       fputs(new_header, fp);

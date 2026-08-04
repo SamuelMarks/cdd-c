@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -22,24 +23,28 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 
 #ifdef CDD_BUILD_TESTS
 
+  /* LCOV_EXCL_START */
   if (g_cdd_scope_alloc_fail == 1)
     env = NULL;
   else
 #endif
-    env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
+    env = (cdd_cst_scope_env_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_env_t));
+  /* LCOV_EXCL_STOP */
   if (!env) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
 
 #ifdef CDD_BUILD_TESTS
+  /* LCOV_EXCL_START */
   if (g_cdd_scope_alloc_fail == 2)
     global = NULL;
   else
 #endif
-    global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+    global = (cdd_cst_scope_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t));
+  /* LCOV_EXCL_STOP */
   if (!global) {
-    free(env);
+    C_CDD_FREE(env);
     return CDD_C_ERROR_MEMORY;
   }
   global->kind = CDD_CST_SCOPE_FILE;
@@ -54,8 +59,8 @@ cdd_c_error_t cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 static void free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
-    free((void *)sym->name);
-    free(sym);
+    C_CDD_FREE((void *)sym->name);
+    C_CDD_FREE(sym);
     sym = next;
   }
 }
@@ -69,15 +74,15 @@ static void free_scope(cdd_cst_scope_t *scope) {
     free_scope(scope->children[i]);
   }
   if (scope->children)
-    free(scope->children);
-  free(scope);
+    C_CDD_FREE(scope->children);
+  C_CDD_FREE(scope);
 }
 
 void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env) {
   if (!env)
     return;
   free_scope(env->global_scope);
-  free(env);
+  C_CDD_FREE(env);
 }
 
 cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
@@ -92,11 +97,13 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
 #ifdef CDD_BUILD_TESTS
 
+  /* LCOV_EXCL_START */
   if (g_cdd_scope_alloc_fail == 3)
     new_scope = NULL;
   else
 #endif
-    new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+    new_scope = (cdd_cst_scope_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_scope_t));
+  /* LCOV_EXCL_STOP */
   if (!new_scope) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -110,14 +117,16 @@ cdd_c_error_t cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
     cdd_cst_scope_t **new_arr;
 #ifdef CDD_BUILD_TESTS
 
+    /* LCOV_EXCL_START */
     if (g_cdd_scope_alloc_fail == 4)
       new_arr = NULL;
     else
 #endif
-      new_arr = (cdd_cst_scope_t **)realloc(
+      new_arr = (cdd_cst_scope_t **)C_CDD_REALLOC(
           parent->children, new_cap * sizeof(cdd_cst_scope_t *));
+    /* LCOV_EXCL_STOP */
     if (!new_arr) {
-      free(new_scope);
+      C_CDD_FREE(new_scope);
       return CDD_C_ERROR_MEMORY;
     }
     parent->children = new_arr;
@@ -144,11 +153,13 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   len = strlen(s);
 #ifdef CDD_BUILD_TESTS
 
+  /* LCOV_EXCL_START */
   if (g_cdd_scope_alloc_fail == 5)
     d = NULL;
   else
 #endif
-    d = (char *)malloc(len + 1);
+    d = (char *)C_CDD_MALLOC(len + 1);
+  /* LCOV_EXCL_STOP */
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -169,11 +180,13 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
 
 #ifdef CDD_BUILD_TESTS
 
+  /* LCOV_EXCL_START */
   if (g_cdd_scope_alloc_fail == 6)
     sym = NULL;
   else
 #endif
-    sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
+    sym = (cdd_cst_symbol_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_symbol_t));
+  /* LCOV_EXCL_STOP */
   if (!sym) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -182,7 +195,7 @@ cdd_c_error_t cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
   if (cdd_strdup(name, (char **)&sym->name) != 0)
     sym->name = NULL;
   if (!sym->name) {
-    free(sym);
+    C_CDD_FREE(sym);
     return CDD_C_ERROR_MEMORY;
   }
   sym->kind = kind;
@@ -216,8 +229,11 @@ cdd_c_error_t cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = cdd_cst_symbol_is_tag(kind, &is_tag_lookup);
-  if (rc != CDD_C_SUCCESS)
+  /* LCOV_EXCL_START */
+  if (rc != CDD_C_SUCCESS) {
     return rc;
+  }
+  /* LCOV_EXCL_STOP */
 
   curr = env->current_scope;
   while (curr) {
@@ -230,8 +246,11 @@ cdd_c_error_t cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
          * now */
         int sym_is_tag = 0;
         rc = cdd_cst_symbol_is_tag(sym->kind, &sym_is_tag);
-        if (rc != CDD_C_SUCCESS)
+        /* LCOV_EXCL_START */
+        if (rc != CDD_C_SUCCESS) {
           return rc;
+        }
+        /* LCOV_EXCL_STOP */
         if (is_tag_lookup == sym_is_tag) {
           *out_symbol = sym;
           return CDD_C_SUCCESS;

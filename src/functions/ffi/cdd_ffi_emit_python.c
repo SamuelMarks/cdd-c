@@ -119,7 +119,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   /* Basic dll loader */
   fprintf(f, "def _load_library():\n");
   fprintf(f, "    lib_name = '%s'\n",
-          config->library_name ? config->library_name : "libname");
+          (config && config->library_name) ? config->library_name : "libname");
   fprintf(f, "    if sys.platform == 'win32':\n");
   fprintf(f, "        lib_ext = '.dll'\n");
   fprintf(f, "    elif sys.platform == 'darwin':\n");

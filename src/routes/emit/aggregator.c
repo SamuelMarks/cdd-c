@@ -14,6 +14,12 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc = 0;
+C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc = 0;
+C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup = 0;
+#endif
+
 /**
  * @brief Comparison function to find a path by route string.
  */
@@ -21,10 +27,6 @@ static cdd_c_error_t find_path_in_list(struct OpenAPI_Path *paths,
                                        size_t n_paths, const char *route,
                                        struct OpenAPI_Path **_out_val) {
   size_t i;
-  if (!paths || !route) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
   for (i = 0; i < n_paths; ++i) {
     if (paths[i].route && strcmp(paths[i].route, route) == 0) {
       {
@@ -49,12 +51,21 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
   size_t new_count;
   struct OpenAPI_Path *new_arr;
 
-  if (!paths || !n_paths || !route || !out_ptr)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   new_count = *n_paths + 1;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
+    if (g_cdd_aggregator_fail_path_realloc) {
+      new_arr = NULL;
+    } else {
+      new_arr = (struct OpenAPI_Path *)realloc(
+          *paths, new_count * sizeof(struct OpenAPI_Path));
+    }
+  }
+#else
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
+#endif
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -67,7 +78,18 @@ static cdd_c_error_t append_path_to_list(struct OpenAPI_Path **paths,
   *out_ptr = &(*paths)[new_count - 1];
   memset(*out_ptr, 0, sizeof(struct OpenAPI_Path));
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
+    if (g_cdd_aggregator_fail_route_strdup) {
+      (*out_ptr)->route = NULL;
+    } else {
+      (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
+    }
+  }
+#else
   (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
+#endif
   if (!(*out_ptr)->route)
     return CDD_C_ERROR_MEMORY;
 
@@ -83,12 +105,21 @@ static cdd_c_error_t append_operation(struct OpenAPI_Operation **ops,
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 
-  if (!ops || !count || !op)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   new_count = *count + 1;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
+    if (g_cdd_aggregator_fail_ops_realloc) {
+      new_ops = NULL;
+    } else {
+      new_ops = (struct OpenAPI_Operation *)realloc(
+          *ops, new_count * sizeof(struct OpenAPI_Operation));
+    }
+  }
+#else
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
+#endif
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -111,9 +142,12 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
   struct OpenAPI_Path *target_path;
   int rc;
 
-  if (!spec || !route || !op) {
+  if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
+  if (!route)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!op)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Find or Create Path */
   target_path = (find_path_in_list(spec->paths, spec->n_paths, route,
@@ -156,9 +190,12 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   struct OpenAPI_Path *target_path;
   int rc;
 
-  if (!spec || !route || !op) {
+  if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  }
+  if (!route)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!op)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
                                    &_ast_find_path_in_list_1),

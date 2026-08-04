@@ -118,7 +118,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = config->library_name ? config->library_name : "mylib";
+  lib_name = (config && config->library_name) ? config->library_name : "mylib";
   schemify_name(lib_name, scheme_lib_name, sizeof(scheme_lib_name));
 
 #if defined(_MSC_VER)

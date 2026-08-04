@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "cdd_api.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
@@ -185,16 +186,19 @@ cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
  * @brief Generate SWIG-like FFI bindings for multiple target languages.
  */
 
-static int has_lang(const char *langs, const char *lang) {
+static cdd_c_error_t has_lang(const char *langs, const char *lang,
+                              int *out_result) {
   const char *p = langs;
   size_t len = strlen(lang);
   while ((p = strstr(p, lang)) != NULL) {
     if ((p == langs || p[-1] == ',') && (p[len] == '\0' || p[len] == ',')) {
-      return 1;
+      *out_result = 1;
+      return CDD_C_SUCCESS;
     }
     p += len;
   }
-  return 0;
+  *out_result = 0;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t
@@ -220,7 +224,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   /* Extract exports into FFI IR */
   rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
   if (rc != 0) {
-    free(file_content);
+    C_CDD_FREE(file_content);
     return rc;
   }
 
@@ -228,14 +232,17 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   rc = cdd_ffi_ir_topological_sort(ir);
   if (rc != 0) {
     cdd_ffi_ir_free(ir);
-    free(ir);
-    free(file_content);
+    C_CDD_FREE(ir);
+    C_CDD_FREE(file_content);
     return rc;
   }
 
   /* Dispatch to Emitters */
-  if (config->target_langs) {
-    if (has_lang(config->target_langs, "python") ||
+  if (1) {
+    int out_result = 0;
+    if ((has_lang(config->target_langs, "python", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_python(ir, config);
@@ -245,12 +252,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       if (rc != 0) {
         printf("Failed at python, rc = %d\n", rc);
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "rust") ||
+    if ((has_lang(config->target_langs, "rust", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_rust(ir, config);
@@ -259,12 +267,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "csharp") ||
+    if ((has_lang(config->target_langs, "csharp", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_csharp(ir, config);
@@ -273,12 +283,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "typescript") ||
+    if ((has_lang(config->target_langs, "typescript", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_typescript(ir, config);
@@ -287,12 +299,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "napi") ||
+    if ((has_lang(config->target_langs, "napi", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_napi(ir, config);
@@ -301,12 +314,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "java") ||
+    if ((has_lang(config->target_langs, "java", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_java(ir, config);
@@ -315,12 +329,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "cpp") ||
+    if ((has_lang(config->target_langs, "cpp", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_cpp(ir, config);
@@ -329,12 +344,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "go") ||
+    if ((has_lang(config->target_langs, "go", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_go(ir, config);
@@ -343,12 +359,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "swift") ||
+    if ((has_lang(config->target_langs, "swift", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_swift(ir, config);
@@ -357,12 +375,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "dart") ||
+    if ((has_lang(config->target_langs, "dart", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_dart(ir, config);
@@ -371,12 +390,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "ruby") ||
+    if ((has_lang(config->target_langs, "ruby", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ruby(ir, config);
@@ -385,12 +405,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "kotlin") ||
+    if ((has_lang(config->target_langs, "kotlin", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_kotlin(ir, config);
@@ -399,12 +421,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "php") ||
+    if ((has_lang(config->target_langs, "php", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_php(ir, config);
@@ -413,12 +436,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "lua") ||
+    if ((has_lang(config->target_langs, "lua", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_lua(ir, config);
@@ -427,12 +451,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "zig") ||
+    if ((has_lang(config->target_langs, "zig", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_zig(ir, config);
@@ -441,12 +466,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "odin") ||
+    if ((has_lang(config->target_langs, "odin", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_odin(ir, config);
@@ -455,12 +481,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "julia") ||
+    if ((has_lang(config->target_langs, "julia", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_julia(ir, config);
@@ -469,12 +497,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "r") ||
+    if ((has_lang(config->target_langs, "r", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_r(ir, config);
@@ -483,12 +512,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "matlab") ||
+    if ((has_lang(config->target_langs, "matlab", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_matlab(ir, config);
@@ -497,12 +528,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "haskell") ||
+    if ((has_lang(config->target_langs, "haskell", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_haskell(ir, config);
@@ -511,12 +544,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "ocaml") ||
+    if ((has_lang(config->target_langs, "ocaml", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ocaml(ir, config);
@@ -525,12 +560,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "elixir") ||
+    if ((has_lang(config->target_langs, "elixir", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_elixir(ir, config);
@@ -539,12 +576,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "erlang") ||
+    if ((has_lang(config->target_langs, "erlang", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_erlang(ir, config);
@@ -553,12 +592,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "common_lisp") ||
+    if ((has_lang(config->target_langs, "common_lisp", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_common_lisp(ir, config);
@@ -567,12 +608,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "racket") ||
+    if ((has_lang(config->target_langs, "racket", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_racket(ir, config);
@@ -581,12 +624,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "scheme") ||
+    if ((has_lang(config->target_langs, "scheme", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scheme(ir, config);
@@ -595,12 +640,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "scala") ||
+    if ((has_lang(config->target_langs, "scala", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scala(ir, config);
@@ -609,12 +656,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "fsharp") ||
+    if ((has_lang(config->target_langs, "fsharp", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fsharp(ir, config);
@@ -623,12 +672,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "clojure") ||
+    if ((has_lang(config->target_langs, "clojure", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_clojure(ir, config);
@@ -637,12 +688,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "groovy") ||
+    if ((has_lang(config->target_langs, "groovy", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_groovy(ir, config);
@@ -651,12 +704,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "webassembly") ||
+    if ((has_lang(config->target_langs, "webassembly", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "wasm") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
@@ -666,12 +721,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "nim") ||
+    if ((has_lang(config->target_langs, "nim", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_nim(ir, config);
@@ -680,12 +736,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "vlang") ||
+    if ((has_lang(config->target_langs, "vlang", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_vlang(ir, config);
@@ -694,12 +752,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "dlang") ||
+    if ((has_lang(config->target_langs, "dlang", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_d(ir, config);
@@ -708,12 +768,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "perl") ||
+    if ((has_lang(config->target_langs, "perl", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_perl(ir, config);
@@ -722,12 +783,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "tcl") ||
+    if ((has_lang(config->target_langs, "tcl", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_tcl(ir, config);
@@ -736,12 +798,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "fortran") ||
+    if ((has_lang(config->target_langs, "fortran", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fortran(ir, config);
@@ -750,12 +814,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "delphi") ||
+    if ((has_lang(config->target_langs, "delphi", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "pascal") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
@@ -765,12 +831,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "ada") ||
+    if ((has_lang(config->target_langs, "ada", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ada(ir, config);
@@ -779,12 +846,13 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "objc") ||
+    if ((has_lang(config->target_langs, "objc", &out_result) == CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "objective-c") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
@@ -794,12 +862,14 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
-    if (has_lang(config->target_langs, "crystal") ||
+    if ((has_lang(config->target_langs, "crystal", &out_result) ==
+             CDD_C_SUCCESS &&
+         out_result) ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_crystal(ir, config);
@@ -808,8 +878,8 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
-        free(ir);
-        free(file_content);
+        C_CDD_FREE(ir);
+        C_CDD_FREE(file_content);
         return rc;
       }
     }
@@ -817,8 +887,9 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   /* Cleanup */
   cdd_ffi_ir_free(ir);
-  free(ir);
-  free(file_content);
+  C_CDD_FREE(ir);
+  C_CDD_FREE(file_content);
 
   return CDD_C_SUCCESS;
 }
+C_CDD_EXPORT int g_cdd_alloc_fail = 0;

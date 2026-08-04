@@ -63,7 +63,9 @@ TEST test_sync_code_simple_struct_enum(void) {
                     "enum DEF{A,B=5,C};\n"
                     "struct S { int foo; double bar; struct Foo *baz; };\n"
                     "struct T {};\n"
-                    "struct U;"));
+                    "struct U;\n"
+                    "typedef int MyInt;\n"
+                    "union MyUnion { int i; float f; };"));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
   remove("impl30.c");
@@ -277,6 +279,108 @@ TEST test_patch_header_ignore_others(void) {
   PASS();
 }
 
+TEST test_patch_header_bounds(void) {
+  const char *h_path = "bounds_patch.h";
+  const char *src = "int foo() { return 0; }";
+  int rc;
+
+  /* End of file while looking for semicolon */
+  write_to_file(h_path, "void foo()");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  /* End of file while looking for paren */
+  write_to_file(h_path, "void foo");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  write_to_file(h_path, "void foo ");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  write_to_file(h_path, "void foo bar");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  /* Semicolon bounds looking backward */
+  write_to_file(h_path, "{ void foo();");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  write_to_file(h_path, "} void foo();");
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  remove(h_path);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_patch_header_failures(void) {
+#ifdef CDD_BUILD_TESTS
+  const char *h_path = "fail_patch.h";
+  const char *src = "int foo() { return 0; }";
+  int rc;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_extract;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply;
+  extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
+
+  write_to_file(h_path, "void foo();\n");
+
+  /* Test func_sig_list_init failure */
+  g_cdd_sync_fail_func_sig_init = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_sync_fail_func_sig_init = 0;
+
+  /* Test patch_list_init failure */
+  g_cdd_sync_fail_patch_list_init = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_sync_fail_patch_list_init = 0;
+
+  /* Test extract failure */
+  g_cdd_sync_fail_extract = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_sync_fail_extract = 0;
+
+  /* Test tokenize failure */
+  g_cdd_sync_fail_tokenize = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_sync_fail_tokenize = 0;
+
+  /* Test patch_list_apply failure */
+  g_cdd_sync_fail_patch_list_apply = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_sync_fail_patch_list_apply = 0;
+
+  /* Test fopen write failure */
+  g_cdd_sync_fail_fopen_write = 1;
+  rc = patch_header_from_source(h_path, src);
+  ASSERT(rc != 0); /* will be EIO or CDD_C_ERROR_SYSTEM via errno */
+  g_cdd_sync_fail_fopen_write = 0;
+
+  /* Test read_to_file failure inside patch_header_from_source */
+  {
+    /* read_to_file fails if it can't open file. So give it a missing file. */
+    rc = patch_header_from_source("missing_file_abc123.h", src);
+    ASSERT(rc != 0);
+  }
+
+  remove(h_path);
+#endif
+  PASS();
+}
+
+/**
+ * @brief test_sync_oom
+ */
 TEST test_sync_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
@@ -297,17 +401,21 @@ TEST test_sync_oom(void) {
 
     g_cdd_fprintf_fail = 8001;
     rc_s = sync_code_main(2, (char **)argv);
-    printf("test_sync_oom rc_s=%d\n", rc_s);
-    g_cdd_fail_alloc = 0;
-    if (rc_s != CDD_C_ERROR_IO)
-      printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    /* Ignore error code in MSVC */
+    ASSERT_EQ(CDD_C_ERROR_IO, rc_s);
 
     g_cdd_fprintf_fail = 8002;
+    rc_s = sync_code_main(2, (char **)argv);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc_s);
+
+    g_cdd_fprintf_fail = 8003;
+    rc_s = sync_code_main(2, (char **)argv);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_s);
+
+    g_cdd_fprintf_fail = 8004;
+    rc_s = sync_code_main(2, (char **)argv);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc_s);
+
+    g_cdd_fprintf_fail = 8005;
     rc_s2 = sync_code_main(2, (char **)argv);
     g_cdd_fprintf_fail = 0;
     ASSERT_EQ(0, rc_s2);
@@ -337,6 +445,8 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_patch_header_basic);
   RUN_TEST(test_patch_header_ptr_arg);
   RUN_TEST(test_patch_header_ignore_others);
+  RUN_TEST(test_patch_header_bounds);
+  RUN_TEST(test_patch_header_failures);
 }
 
 #ifdef __cplusplus

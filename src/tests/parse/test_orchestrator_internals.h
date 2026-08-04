@@ -1,6 +1,7 @@
 #ifndef TEST_ORCHESTRATOR_INTERNALS_H
 #define TEST_ORCHESTRATOR_INTERNALS_H
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
 #include <greatest.h>
@@ -12,7 +13,10 @@ int g_force_find_allocations_fail = 0;
 #define find_allocations mock_find_allocations
 static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
                                            struct AllocationSiteList *out);
+
 #include "functions/parse/orchestrator.c"
+/* clang-format on */
+
 #undef find_allocations
 extern cdd_c_error_t find_allocations(const struct TokenList *tokens,
                                       struct AllocationSiteList *out);

@@ -123,7 +123,7 @@ TEST test_make_io_failure(void) {
   ASSERT(f);
   g_fail_io_after = 0;
   g_io_calls = 0;
-  g_fail_io_after = 0;
+  g_fail_io_after = 1;
   g_io_calls = 0;
   ASSERT_EQ(CDD_C_ERROR_IO, codegen_make_generate(f, &cfg));
   fclose(f);

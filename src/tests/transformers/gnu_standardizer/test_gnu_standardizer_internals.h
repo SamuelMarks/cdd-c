@@ -1,6 +1,7 @@
 #ifndef TEST_GNU_STANDARDIZER_INTERNALS_H
 #define TEST_GNU_STANDARDIZER_INTERNALS_H
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -15,6 +16,7 @@ int g_force_strdup_fail = 0;
 #define cdd_transform_gnu internal_cdd_transform_gnu
 
 #include "transformers/gnu_standardizer/gnu_standardizer.c"
+/* clang-format on */
 
 extern cdd_c_error_t append_int(char *p, int v, char **out_p);
 extern void parse_hex_128_literal(const char *str, size_t len, uint64_t *high,

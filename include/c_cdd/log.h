@@ -18,7 +18,7 @@ extern "C" {
  * @param fmt Format string.
  * @param ... Arguments.
  */
-void c_cdd_log_debug(const char *fmt, ...);
+cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 #define C_CDD_LOG_DEBUG c_cdd_log_debug
 #else
 /**
@@ -26,8 +26,8 @@ void c_cdd_log_debug(const char *fmt, ...);
  * @param fmt Format string.
  * @param ... Arguments.
  */
-void c_cdd_log_debug(const char *fmt, ...);
-#define C_CDD_LOG_DEBUG 1 ? (void)0 : c_cdd_log_debug
+cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
+#define C_CDD_LOG_DEBUG 1 ? (cdd_c_error_t)0 : c_cdd_log_debug
 #endif /* DEBUG */
 #endif /* !C_CDD_LOG_DEBUG */
 

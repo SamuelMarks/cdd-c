@@ -79,6 +79,7 @@ TEST test_cdd_serve_json_rpc(void) {
   cdd_serve_json_rpc(&config);
 
   config.port = 0;
+  config.listen_host = "255";
   config.listen_host = NULL;
   cdd_serve_json_rpc(&config);
 
@@ -91,20 +92,26 @@ extern int g_cdd_ffi_ir_calloc_fail;
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
-  const char *langs[] = {
-      "python",      "rust",    "csharp", "typescript",  "napi",
-      "java",        "cpp",     "go",     "swift",       "dart",
-      "ruby",        "kotlin",  "php",    "lua",         "zig",
-      "odin",        "julia",   "r",      "matlab",      "haskell",
-      "ocaml",       "elixir",  "erlang", "common_lisp", "racket",
-      "scheme",      "scala",   "fsharp", "clojure",     "groovy",
-      "webassembly", "nim",     "vlang",  "dlang",       "perl",
-      "tcl",         "fortran", "delphi", "ada",         "objc",
-      "crystal",     "all",     "*"};
+  const char *langs[] = {"python",  "rust",    "csharp",      "typescript",
+                         "napi",    "java",    "cpp",         "go",
+                         "swift",   "dart",    "ruby",        "kotlin",
+                         "php",     "lua",     "zig",         "odin",
+                         "julia",   "r",       "matlab",      "haskell",
+                         "ocaml",   "elixir",  "erlang",      "common_lisp",
+                         "racket",  "scheme",  "scala",       "fsharp",
+                         "clojure", "groovy",  "webassembly", "wasm",
+                         "nim",     "vlang",   "dlang",       "perl",
+                         "tcl",     "fortran", "delphi",      "pascal",
+                         "ada",     "objc",    "objective-c", "crystal",
+                         "all",     "*"};
   size_t i;
 
   /* NULL config / args */
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(NULL));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
+  config.input = "input";
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
+  config.output_dir = "out";
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
 
   config.input = "nonexistent.c";

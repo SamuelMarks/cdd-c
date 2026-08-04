@@ -62,7 +62,10 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "MyLib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "MyLib")
+          : "MyLib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.swift", config->output_dir,
@@ -74,6 +77,16 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.swift", config->output_dir,
                lib_name);
   f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -170,7 +183,10 @@ static cdd_c_error_t
 emit_module_map(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
-  const char *lib_name = config->library_name ? config->library_name : "MyLib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "MyLib")
+          : "MyLib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\module.modulemap",
@@ -182,6 +198,16 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/module.modulemap",
                config->output_dir);
   f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

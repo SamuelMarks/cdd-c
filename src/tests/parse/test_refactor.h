@@ -89,6 +89,8 @@ TEST test_apply_refactoring_to_string_errors(void) {
             apply_refactoring_to_string(NULL, "int main() {}", &out));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             apply_refactoring_to_string(&ctx, NULL, &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            apply_refactoring_to_string(&ctx, "int main() {}", NULL));
   /* Tokenize failure. Unclosed string literal is actually not an error in our
    * lexer, but unclosed block comment might be? Wait, what fails tokenizer? */
   /* Actually, let's just make it return error by using CDD_C_ERROR_MEMORY if we
@@ -101,6 +103,37 @@ TEST test_apply_refactoring_to_string_errors(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add;
+extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+#endif
+
+TEST test_refactor_mocks(void) {
+#ifdef CDD_BUILD_TESTS
+  struct RefactorContext ctx;
+  char *out = NULL;
+
+  refactor_context_init(&ctx);
+
+  g_cdd_fail_alloc_refactor_add = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            refactor_context_add_function(&ctx, "foo", REF_VOID_TO_INT, "int"));
+  g_cdd_fail_alloc_refactor_add = 0;
+
+  g_cdd_audit_fail_tokenize = 1;
+  ASSERT_NEQ(0, apply_refactoring_to_string(&ctx, "int main() {}", &out));
+  g_cdd_audit_fail_tokenize = 0;
+
+  g_cdd_audit_fail_find = 1;
+  ASSERT_NEQ(0, apply_refactoring_to_string(&ctx, "int main() {}", &out));
+  g_cdd_audit_fail_find = 0;
+
+  refactor_context_free(&ctx);
+#endif
+  PASS();
+}
+
 /**
  * @brief Refactor test suite.
  */
@@ -108,6 +141,7 @@ SUITE(refactor_suite) {
   RUN_TEST(test_refactor_context_lifecycle);
   RUN_TEST(test_apply_refactoring_to_string_basic);
   RUN_TEST(test_apply_refactoring_to_string_errors);
+  RUN_TEST(test_refactor_mocks);
 }
 
 #ifdef __cplusplus

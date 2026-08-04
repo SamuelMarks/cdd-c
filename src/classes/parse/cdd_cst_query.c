@@ -4,11 +4,11 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/memory.h"
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 C_CDD_EXPORT int g_cdd_query_err_fail = 0;
-C_CDD_EXPORT int g_cdd_query_realloc_fail = 0;
 #endif
 #include "c_cdd/log.h"
 /* clang-format on */
@@ -62,14 +62,8 @@ static cdd_c_error_t append_result(cdd_cst_query_result_t *res,
   if (res->size >= res->capacity) {
     size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
     cdd_cst_node_t **new_arr;
-#ifdef CDD_BUILD_TESTS
-    extern int g_cdd_query_realloc_fail;
-    if (g_cdd_query_realloc_fail)
-      new_arr = NULL;
-    else
-#endif
-      new_arr = (cdd_cst_node_t **)realloc(res->nodes,
-                                           new_cap * sizeof(cdd_cst_node_t *));
+    new_arr = (cdd_cst_node_t **)C_CDD_REALLOC(
+        res->nodes, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -126,7 +120,7 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
     cdd_c_error_t rc = cdd_cst_traverse_preorder(root, type_visitor, &ctx);
     if (rc != CDD_C_SUCCESS) {
       if (out_result->nodes)
-        free(out_result->nodes);
+        C_CDD_FREE(out_result->nodes);
       out_result->nodes = NULL;
       out_result->size = 0;
       out_result->capacity = 0;
@@ -134,7 +128,7 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
     }
     if (ctx.err != CDD_C_SUCCESS) {
       if (out_result->nodes)
-        free(out_result->nodes);
+        C_CDD_FREE(out_result->nodes);
       out_result->nodes = NULL;
       out_result->size = 0;
       out_result->capacity = 0;
@@ -254,7 +248,7 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
     cdd_c_error_t rc = cdd_cst_traverse_preorder(root, call_visitor, &ctx);
     if (rc != CDD_C_SUCCESS) {
       if (out_result->nodes)
-        free(out_result->nodes);
+        C_CDD_FREE(out_result->nodes);
       out_result->nodes = NULL;
       out_result->size = 0;
       out_result->capacity = 0;
@@ -262,7 +256,7 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
     }
     if (ctx.err != CDD_C_SUCCESS) {
       if (out_result->nodes)
-        free(out_result->nodes);
+        C_CDD_FREE(out_result->nodes);
       out_result->nodes = NULL;
       out_result->size = 0;
       out_result->capacity = 0;

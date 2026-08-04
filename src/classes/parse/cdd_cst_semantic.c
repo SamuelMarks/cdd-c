@@ -3,37 +3,29 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+
 #ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_semantic_oom_extract = 0;
-C_CDD_EXPORT int g_cdd_semantic_oom_scope = 0;
-C_CDD_EXPORT int g_cdd_semantic_oom_scope2 = 0;
+C_CDD_EXPORT int g_cdd_scope_enter_fails = 0;
+C_CDD_EXPORT int g_cdd_scope_leave_fails = 0;
+C_CDD_EXPORT int g_cdd_scope_add_fails = 0;
 #endif
 
 static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
                                         const char **out_name) {
   size_t i;
-  if (!node)
-    return CDD_C_ERROR_NOT_FOUND;
+  cdd_c_error_t rc;
 
   if (node->kind == CDD_CST_IDENTIFIER) {
     for (i = 0; i < node->num_children; i++) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
-          char *name = NULL;
-#ifdef CDD_BUILD_TESTS
-          if (g_cdd_semantic_oom_extract == 5) {
-            name = NULL;
-          } else {
-#endif
-            name = (char *)malloc(tok->length + 1);
-#ifdef CDD_BUILD_TESTS
-          }
-#endif
+          char *name;
+          name = (char *)C_CDD_MALLOC(tok->length + 1);
           if (!name) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return CDD_C_ERROR_MEMORY;
           }
           memcpy(name, tok->start, tok->length);
@@ -43,12 +35,16 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
         }
       }
     }
+    return CDD_C_ERROR_NOT_FOUND; /* Loop exhausted */
   }
-
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      if (extract_identifier(node->children[i].val.node, out_name) == 0) {
+      rc = extract_identifier(node->children[i].val.node, out_name);
+      if (rc == CDD_C_SUCCESS) {
         return CDD_C_SUCCESS;
+      }
+      if (rc != CDD_C_ERROR_NOT_FOUND) {
+        return rc;
       }
     }
   }
@@ -58,7 +54,7 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
 
 static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
                                   cdd_cst_node_t *node) {
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   size_t i;
 
   if (!node)
@@ -66,63 +62,70 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 
   switch (node->kind) {
   case CDD_CST_BLOCK:
-    rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_semantic_oom_scope)
-      rc = CDD_C_ERROR_MEMORY;
+    if (g_cdd_scope_enter_fails)
+      return CDD_C_ERROR_MEMORY;
 #endif
-    if (rc != 0)
+    rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
+    if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   case CDD_CST_FUNCTION_DEFINITION:
-    rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION);
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_semantic_oom_scope2)
-      rc = CDD_C_ERROR_MEMORY;
+    if (g_cdd_scope_enter_fails)
+      return CDD_C_ERROR_MEMORY;
 #endif
-    if (rc != 0)
+    rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION);
+    if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   case CDD_CST_NAMESPACE_DECLARATION:
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_scope_enter_fails)
+      return CDD_C_ERROR_MEMORY;
+#endif
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_NAMESPACE);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   case CDD_CST_DECLARATION: {
     const char *name = NULL;
     /* Very simplified extraction of identifier */
     rc = extract_identifier(node, &name);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc == CDD_C_SUCCESS && name) {
-      cdd_c_error_t _rc;
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
 #ifdef CDD_BUILD_TESTS
-      if (g_cdd_semantic_oom_extract == 1)
-        _rc = CDD_C_ERROR_MEMORY;
-      else
+      if (g_cdd_scope_add_fails) {
+        C_CDD_FREE((void *)name);
+        return CDD_C_ERROR_MEMORY;
+      }
 #endif
-        _rc =
-            cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
-      free((void *)name);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
+      rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
+      C_CDD_FREE((void *)name);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     break;
   }
   case CDD_CST_TYPE_SPECIFIER: {
     const char *name = NULL;
     rc = extract_identifier(node, &name);
-    if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+    if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc == CDD_C_SUCCESS && name) {
-      cdd_c_error_t _rc;
       /* Assuming Struct tag for simplicity */
-      _rc =
-          cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
-      free((void *)name);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
+#ifdef CDD_BUILD_TESTS
+      if (g_cdd_scope_add_fails) {
+        C_CDD_FREE((void *)name);
+        return CDD_C_ERROR_MEMORY;
+      }
+#endif
+      rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
+      C_CDD_FREE((void *)name);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     break;
   }
@@ -133,7 +136,7 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = analyze_node(env, node->children[i].val.node);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
@@ -142,12 +145,12 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   case CDD_CST_BLOCK:
   case CDD_CST_FUNCTION_DEFINITION:
   case CDD_CST_NAMESPACE_DECLARATION:
-    rc = cdd_cst_scope_leave(env);
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_semantic_oom_extract == 2)
-      rc = CDD_C_ERROR_MEMORY;
+    if (g_cdd_scope_leave_fails)
+      return CDD_C_ERROR_MEMORY;
 #endif
-    if (rc != 0)
+    rc = cdd_cst_scope_leave(env);
+    if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   default:
@@ -159,29 +162,18 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 
 cdd_c_error_t cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
                                           cdd_cst_scope_env_t **out_env) {
-  int rc;
   cdd_cst_scope_env_t *env = NULL;
+  cdd_c_error_t rc;
 
   if (!tree || !out_env)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = cdd_cst_scope_env_init(&env);
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_semantic_oom_extract == 3)
-    rc = CDD_C_ERROR_MEMORY;
-#endif
-  if (rc != 0) {
-    if (env)
-      cdd_cst_scope_env_free(env);
+  if (rc != CDD_C_SUCCESS)
     return rc;
-  }
 
   rc = analyze_node(env, tree->root);
-#ifdef CDD_BUILD_TESTS
-  if (g_cdd_semantic_oom_extract == 4)
-    rc = CDD_C_ERROR_MEMORY;
-#endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     cdd_cst_scope_env_free(env);
     return rc;
   }

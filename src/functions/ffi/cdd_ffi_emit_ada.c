@@ -101,8 +101,7 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
 
   if (g_fail_io_after == 555) {
-    if (gpr_f)
-      fclose(gpr_f);
+    fclose(gpr_f);
     gpr_f = NULL;
   }
 #endif

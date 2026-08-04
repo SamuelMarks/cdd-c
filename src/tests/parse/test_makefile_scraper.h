@@ -116,7 +116,81 @@ TEST test_scrape_configure_ac_basic(void) {
 /**
  * @brief Makefile scraper test suite.
  */
+
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+#endif
+
+TEST test_scrape_makefile_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct ExtractedBuildInfo info;
+  char *cmake_str = NULL;
+  const char *makefile = "CC=gcc\n"
+                         "CFLAGS=-I./include -DDEBUG=1\n"
+                         "SRCS=main.c util.c";
+  int i;
+  for (i = 1; i < 20; i++) {
+    build_info_init(&info);
+    g_cdd_alloc_fail = i;
+    int rc = scrape_makefile(&info, makefile);
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      build_info_free(&info);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    build_info_free(&info);
+  }
+#endif
+  PASS();
+}
+
+TEST test_scrape_configure_ac_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct ExtractedBuildInfo info;
+  const char *config = "AC_INIT([test], [1.0])\n"
+                       "AC_CONFIG_SRCDIR([main.c])\n"
+                       "CFLAGS=\"-Iinc -DTEST\"\n";
+  int i;
+  for (i = 1; i < 20; i++) {
+    build_info_init(&info);
+    g_cdd_alloc_fail = i;
+    int rc = scrape_configure_ac(&info, config);
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      build_info_free(&info);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    build_info_free(&info);
+  }
+#endif
+  PASS();
+}
+
+TEST test_build_info_to_cmake_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct ExtractedBuildInfo info;
+  char *cmake_str = NULL;
+  const char *makefile = "CC=gcc\n"
+                         "CFLAGS=-I./include -DDEBUG=1\n"
+                         "SRCS=main.c util.c";
+  build_info_init(&info);
+  scrape_makefile(&info, makefile);
+
+  g_cdd_alloc_fail = 1;
+  int rc = build_info_to_cmake(&info, "my_proj", &cmake_str);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  build_info_free(&info);
+#endif
+  PASS();
+}
+
 SUITE(makefile_scraper_suite) {
+  RUN_TEST(test_scrape_makefile_oom);
+  RUN_TEST(test_scrape_configure_ac_oom);
+  RUN_TEST(test_build_info_to_cmake_oom);
   RUN_TEST(test_scrape_makefile_basic);
   RUN_TEST(test_scrape_errors);
   RUN_TEST(test_scrape_configure_ac_basic);

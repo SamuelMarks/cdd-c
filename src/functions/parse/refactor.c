@@ -25,6 +25,10 @@
 #endif
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add = 0;
+#endif
+
 /**
  * @brief Initializes a refactor context.
  *
@@ -68,6 +72,15 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
 
   new_alloc = (struct RefactoredFunction *)realloc(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc_refactor_add;
+    if (g_cdd_fail_alloc_refactor_add) {
+      free(new_alloc);
+      new_alloc = NULL;
+    }
+  }
+#endif
   if (!new_alloc) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -93,24 +106,49 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   struct AllocationSiteList allocs = {0};
   int rc;
 
-  if (ctx == NULL || source_code == NULL || out_code == NULL)
+  if (ctx == NULL)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (source_code == NULL)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  /* 1. Tokenize */
-  if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
-      0) {
+    /* 1. Tokenize */
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+    if (g_cdd_audit_fail_tokenize)
+      rc = 1;
+    else
+      rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
+  }
+#else
+  rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
+#endif
+  if (rc != 0) {
     return rc;
   }
 
   /* 2. Analyze Allocations */
-  if ((rc = find_allocations(tokens, &allocs)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+    if (g_cdd_audit_fail_find)
+      rc = 1;
+    else
+      rc = find_allocations(tokens, &allocs);
+  }
+#else
+  rc = find_allocations(tokens, &allocs);
+#endif
+  if (rc != 0) {
     free_token_list(tokens);
     return rc;
   }
 
   /* 3. Rewrite Body */
-  rc = rewrite_body(tokens, &allocs, ctx ? ctx->funcs : NULL,
-                    ctx ? ctx->func_count : 0, NULL, out_code);
+  rc = rewrite_body(tokens, &allocs, ctx->funcs, ctx->func_count, NULL,
+                    out_code);
 
   allocation_site_list_free(&allocs);
   free_token_list(tokens);

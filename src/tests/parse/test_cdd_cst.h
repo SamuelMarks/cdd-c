@@ -416,7 +416,200 @@ TEST test_cdd_cst_cpp_inheritance(void) {
   PASS();
 }
 
+TEST test_cdd_cst_parser_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  int i;
+  const char *code = "template <typename T, class U> class Pair : public A { T "
+                     "x; }; namespace N { using namespace std; try { throw 1; "
+                     "} catch(...) {} } __asm__(\"nop\");\n"
+                     "#define FOO\n"
+                     "#if defined(FOO)\n"
+                     "int a;\n"
+                     "{\nint x;\n}\n"
+                     "#elif defined BAR\n"
+                     "int b;\n"
+                     "#elif 0\n"
+                     "int c;\n"
+                     "#elif 1\n"
+                     "int cc;\n"
+                     "#elif FOO\n"
+                     "int d;\n"
+                     "#else\n"
+                     "int e;\n"
+                     "#endif\n"
+                     "#ifndef BAZ\n"
+                     "int f;\n"
+                     "#endif\n"
+                     "#elif 0\n"
+                     "#elif 1\n"
+                     "#elif FOO\n"
+                     "#elif defined(FOO)\n"
+                     "#elif defined FOO\n"
+                     "#elif defined(BAR)\n"
+                     "#elif defined BAR\n"
+                     "#if\n" /* empty if */
+                     "#endif\n"
+                     "void big() { int a; int b; int c; int d; int e; int f; "
+                     "int g; int h; int i; int j; }";
+
+  for (i = 1; i < 5000; i++) {
+    tree = NULL;
+    g_cdd_alloc_fail = i;
+    if (cdd_cst_parse(az_span_create_from_str((char *)code), &tree) == 0) {
+      cdd_cst_tree_free(tree);
+      break;
+    }
+    if (tree)
+      cdd_cst_tree_free(tree);
+  }
+  g_cdd_alloc_fail = 0;
+
+  for (i = 1; i < 5000; i++) {
+    tree = NULL;
+    g_cdd_alloc_fail = i;
+    if (cdd_cst_parse(az_span_create_from_str((char *)code), &tree) == 0) {
+      cdd_cst_tree_free(tree);
+      break;
+    }
+    if (tree)
+      cdd_cst_tree_free(tree);
+  }
+  g_cdd_alloc_fail = 0;
+#endif
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cdd_cst_parser_macros_full(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "#define FOO\n"
+                     "#if defined(FOO)\n"
+                     "int a;\n"
+                     "{\nint x;\n}\n"
+                     "#elif defined BAR\n"
+                     "int b;\n"
+                     "#elif 0\n"
+                     "int c;\n"
+                     "#elif 1\n"
+                     "int cc;\n"
+                     "#elif FOO\n"
+                     "int d;\n"
+                     "#else\n"
+                     "int e;\n"
+                     "#endif\n"
+                     "#ifndef BAZ\n"
+                     "int f;\n"
+                     "#endif\n"
+                     "#elif 0\n"
+                     "#elif 1\n"
+                     "#elif FOO\n"
+                     "#elif defined(FOO)\n"
+                     "#elif defined FOO\n"
+                     "#elif defined(BAR)\n"
+                     "#elif defined BAR\n"
+                     "#if\n" /* empty if */
+                     "#endif\n"
+                     "void big() { int a; int b; int c; int d; int e; int f; "
+                     "int g; int h; int i; int j; }";
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+typedef struct parser_state_t {
+  cdd_token_list_t *list;
+  size_t pos;
+  int err;
+  struct {
+    void *defs;
+    size_t count;
+    size_t capacity;
+  } macros;
+} parser_state_t;
+
+extern cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
+extern cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
+
+TEST test_cdd_cst_peek_advance_eof(void) {
+  parser_state_t s = {0};
+  cdd_token_t *tok = NULL;
+  cdd_token_list_t *tl;
+  cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  s.list = tl;
+  s.pos = tl->size; /* Move past end */
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, peek(&s, &tok));
+  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, advance(&s, &tok));
+  cdd_lexer_free_token_list(tl);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cdd_cst_parser_complex_syntax(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code =
+      "#define M1 1\n#define M2 2\n#define M3 3\n#define M4 4\n#define M5 "
+      "5\n#define M6 6\n#define M7 7\n#define M8 8\n#define M9 9\n#define M10 "
+      "10\n#define M11 11\n#define M12 12\n#define M13 13\n#define M14 "
+      "14\n#define M15 15\n#define M16 16\n#define M17 17\n"
+      "class MyClass : public Base1, private Base2 { public: void foo() "
+      "noexcept; void bar() noexcept(true); };"
+      "void func() { throw MyException(1, 2); }"
+      "namespace A { namespace B { class C {}; } }"
+      "template <class T, int N> class Arr {};"
+      "void big_func() { int a; int b; int c; int d; int e; int f; int g; int "
+      "h; int i; int j; }";
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cdd_cst_parser_errors(void) {
+  cdd_cst_tree_t *tree = NULL;
+  /* Unmatched brace */
+  cdd_cst_parse(az_span_create_from_str("{"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Missing namespace name */
+  cdd_cst_parse(az_span_create_from_str("namespace {"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Missing catch */
+  cdd_cst_parse(az_span_create_from_str("try { }"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Class without semicolon or body */
+  cdd_cst_parse(az_span_create_from_str("class X : public Y"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Template without params */
+  cdd_cst_parse(az_span_create_from_str("template < > class X;"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(cdd_cst_suite) {
+  RUN_TEST(test_cdd_cst_peek_advance_eof);
+  RUN_TEST(test_cdd_cst_parser_complex_syntax);
+  RUN_TEST(test_cdd_cst_parser_errors);
+  RUN_TEST(test_cdd_cst_parser_oom);
+  RUN_TEST(test_cdd_cst_parser_macros_full);
   RUN_TEST(test_cdd_cst_roundtrip_basic);
   RUN_TEST(test_cdd_cst_roundtrip_macros);
   RUN_TEST(test_cdd_cst_asm_statement);

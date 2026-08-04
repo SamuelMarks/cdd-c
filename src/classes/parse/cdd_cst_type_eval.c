@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
@@ -135,13 +136,7 @@ static cdd_c_error_t extract_type_name(cdd_cst_node_t *node, char **out_name,
 
   if (buf_len > 0) {
     char *ret;
-#ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_alloc_token_fail;
-    if (g_cdd_cst_alloc_token_fail == 1)
-      ret = NULL;
-    else
-#endif
-      ret = (char *)malloc(buf_len + 1);
+    ret = (char *)C_CDD_MALLOC(buf_len + 1);
     if (!ret) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -175,20 +170,20 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   if (is_pointer) {
     rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
     if (rc != CDD_C_SUCCESS) {
-      free(name);
+      C_CDD_FREE(name);
       *out_size = 0;
       return rc;
     }
   } else {
     rc = cdd_cst_eval_primitive_type(name, abi, &info);
     if (rc != CDD_C_SUCCESS) {
-      free(name);
+      C_CDD_FREE(name);
       *out_size = 0;
       return rc;
     }
     C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
   }
-  free(name);
+  C_CDD_FREE(name);
 
   *out_size = info.size;
   return CDD_C_SUCCESS;
@@ -215,20 +210,20 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
   if (is_pointer) {
     rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
     if (rc != CDD_C_SUCCESS) {
-      free(name);
+      C_CDD_FREE(name);
       *out_align = 0;
       return rc;
     }
   } else {
     rc = cdd_cst_eval_primitive_type(name, abi, &info);
     if (rc != CDD_C_SUCCESS) {
-      free(name);
+      C_CDD_FREE(name);
       *out_align = 0;
       return rc;
     }
     C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
   }
-  free(name);
+  C_CDD_FREE(name);
 
   *out_align = info.alignment;
   return CDD_C_SUCCESS;

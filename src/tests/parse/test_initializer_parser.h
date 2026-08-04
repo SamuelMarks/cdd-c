@@ -17,6 +17,7 @@ extern "C" {
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
@@ -274,6 +275,164 @@ TEST test_init_errors(void) {
 }
 
 /**
+ * @brief test_init_oom
+ * @return TEST
+ */
+TEST test_init_oom(void) {
+  struct TokenList *tl;
+  const char *code = "{ .pt = 1 /* c */, 2, 3, 4, 5, [0] = { 6 }, { 7 } }";
+  struct InitList list;
+  int rc;
+  int i;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+
+  for (i = 1; i < 30; ++i) {
+    g_cdd_alloc_fail = i;
+    (void)tokenize_str(code, &tl);
+    if (!tl) {
+      g_cdd_alloc_fail = 0;
+      continue;
+    }
+
+    init_list_init(&list);
+    rc = parse_initializer(tl, 0, tl->size, &list, NULL);
+    g_cdd_alloc_fail = 0;
+
+    if (rc != 0) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+    init_list_free(&list);
+    free_token_list(tl);
+  }
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
+ * @brief test_init_more_errors
+ * @return TEST
+ */
+TEST test_init_more_errors(void) {
+  struct TokenList *tl;
+  struct InitList list;
+  int rc;
+
+  /* Invalid designator ending */
+  (void)tokenize_str("{ .x , }", &tl);
+  init_list_init(&list);
+  rc = parse_initializer(tl, 0, tl->size, &list, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Empty expression */
+  (void)tokenize_str("{ , }", &tl);
+  init_list_init(&list);
+  rc = parse_initializer(tl, 0, tl->size, &list, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Designator invalid syntax limit */
+  (void)tokenize_str("{ .x }", &tl);
+  init_list_init(&list);
+  rc = parse_initializer(tl, 0, tl->size, &list, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Empty list? */
+  (void)tokenize_str("{ }", &tl);
+  init_list_init(&list);
+  rc = parse_initializer(tl, 0, tl->size, &list, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  init_list_free(&list);
+  free_token_list(tl);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
+ * @brief test_init_branches
+ * @return TEST
+ */
+TEST test_init_branches(void) {
+  struct TokenList *tl;
+  struct InitList list;
+
+  /* Null args */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, init_list_init(NULL));
+  init_list_free(NULL);
+
+  (void)tokenize_str("{ 1 }", &tl);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(NULL, 0, tl->size, &list, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, NULL, NULL));
+  free_token_list(tl);
+
+  /* Expression with brackets */
+  (void)tokenize_str("{ .x = a[0] }", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Designator reaching limit without = */
+  (void)tokenize_str("{ .x", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Trailing whitespace EOF */
+  (void)tokenize_str("{ 1,   ", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Semicolon in designator */
+  (void)tokenize_str("{ .x ; }", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Empty tokens to hit i >= end_idx for LBRACE */
+  (void)tokenize_str("", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            parse_initializer(tl, 0, tl->size, &list, NULL));
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Resize list > 4 */
+  (void)tokenize_str("{ 1, 2, 3, 4, 5, 6 }", &tl);
+  init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
+  ASSERT_EQ(6, list.count);
+  init_list_free(&list);
+  free_token_list(tl);
+
+  /* Mock init_value_free(NULL) via manual list injection */
+  init_list_init(&list);
+  list.items = (struct InitItem *)C_CDD_CALLOC(1, sizeof(struct InitItem));
+  list.items[0].value = NULL;
+  list.items[0].designator = NULL;
+  list.count = 1;
+  list.capacity = 1;
+  init_list_free(&list);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
  * @brief initializer_parser_suite
  */
 SUITE(initializer_parser_suite) {
@@ -284,6 +443,9 @@ SUITE(initializer_parser_suite) {
   RUN_TEST(test_init_mixed_expressions);
   RUN_TEST(test_init_trailing_comma);
   RUN_TEST(test_init_errors);
+  RUN_TEST(test_init_oom);
+  RUN_TEST(test_init_more_errors);
+  RUN_TEST(test_init_branches);
 }
 
 #ifdef __cplusplus

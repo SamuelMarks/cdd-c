@@ -5,12 +5,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <ffi/cdd_ffi_ir.h>
+/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
@@ -247,7 +249,64 @@ TEST test_ffi_ir_free_partial(void) {
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
 extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
+extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 #endif
+
+TEST test_ffi_ir_c_toposort_dfs_errors(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_ffi_ir_t ir = {0};
+  cdd_ffi_ir_node_t *n;
+  int rc;
+
+  ir.nodes_count = 3;
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(3, sizeof(cdd_ffi_ir_node_t));
+
+  /* Node 0: struct A, depends on B */
+  n = &ir.nodes[0];
+  n->name = strdup("A");
+  n->kind = CDD_FFI_NODE_STRUCT;
+  n->fields_count = 1;
+  n->fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  n->fields[0].type.ref_name = strdup("B");
+
+  /* Node 1: B */
+  n = &ir.nodes[1];
+  n->name = strdup("B");
+  n->kind = CDD_FFI_NODE_STRUCT;
+
+  /* Node 2: typedef T, depends on B */
+  n = &ir.nodes[2];
+  n->name = strdup("T");
+  n->kind = CDD_FFI_NODE_TYPEDEF;
+  n->return_or_base_type.ref_name = strdup("B");
+
+  /* Fail immediately in top-level loop */
+  g_cdd_ffi_ir_toposort_fail = 1;
+  rc = cdd_ffi_ir_topological_sort(&ir);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_ffi_ir_toposort_fail = 0;
+
+  /* Fail when struct A recurses into B */
+  g_cdd_ffi_ir_toposort_fail = 2;
+  rc = cdd_ffi_ir_topological_sort(&ir);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_ffi_ir_toposort_fail = 0;
+
+  /* Reorder to put T first, so T recurses into B and fails */
+  {
+    cdd_ffi_ir_node_t temp = ir.nodes[0];
+    ir.nodes[0] = ir.nodes[2];
+    ir.nodes[2] = temp;
+  }
+  g_cdd_ffi_ir_toposort_fail = 2;
+  rc = cdd_ffi_ir_topological_sort(&ir);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_ffi_ir_toposort_fail = 0;
+
+  cdd_ffi_ir_free(&ir);
+#endif
+  PASS();
+}
 
 TEST test_ffi_ir_c_toposort_oom(void) {
   cdd_ffi_ir_t ir = {0};
@@ -293,6 +352,7 @@ SUITE(cdd_ffi_ir_suite) {
   RUN_TEST(test_ffi_ir_free_partial);
   RUN_TEST(test_ffi_ir_toposort_complex);
   RUN_TEST(test_ffi_ir_c_toposort_oom);
+  RUN_TEST(test_ffi_ir_c_toposort_dfs_errors);
 }
 
 #ifdef __cplusplus

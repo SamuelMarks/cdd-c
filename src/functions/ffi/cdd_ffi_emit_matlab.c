@@ -14,7 +14,10 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s_mex.c", config->output_dir,
@@ -110,7 +113,10 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.m", config->output_dir,

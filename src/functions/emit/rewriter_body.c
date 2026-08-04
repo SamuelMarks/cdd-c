@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include <string.h>
 
 #include "functions/emit/patcher.h"
@@ -26,10 +27,6 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
                      const char *name,
                      const struct RefactoredFunction **_out_val) {
   size_t i;
-  if (!funcs || !name) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
   for (i = 0; i < func_count; ++i) {
     if (strcmp(funcs[i].name, name) == 0) {
       {
@@ -49,16 +46,16 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
  */
 static cdd_c_error_t extract_token_text(const struct Token *tok,
                                         char **_out_val) {
-  char *s = malloc(tok->length + 1);
+  char *s = C_CDD_MALLOC(tok->length + 1);
   if (!s) {
     *_out_val = NULL;
-    return 12;
+    return CDD_C_ERROR_MEMORY;
   }
   memcpy(s, tok->start, tok->length);
   s[tok->length] = '\0';
   {
     *_out_val = s;
-    return 12;
+    return CDD_C_SUCCESS;
   }
 }
 
@@ -126,10 +123,10 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = malloc(len + 1);
+  buf = C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = buf;
@@ -193,9 +190,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
         const struct Token *id_tok = &tokens->tokens[i];
         char *name_str = NULL;
         const struct RefactoredFunction *rf = NULL;
-        extract_token_text(id_tok, &name_str);
+        rc = extract_token_text(id_tok, &name_str);
+        if (rc != CDD_C_SUCCESS) {
+          patch_list_free(&patches);
+          return rc;
+        }
         find_refactored_func(funcs, func_count, name_str, &rf);
-        free(name_str);
+        C_CDD_FREE(name_str);
 
         if (rf) {
           /* Check if it's a function call lookup: ID + LPAREN */
@@ -281,23 +282,38 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   if (is_decl) {
                     {
                       char *tmp = NULL;
-                      c_cdd_strdup("; rc =", &tmp);
-                      patch_list_add(&patches, eq_idx, eq_idx + 1, tmp);
+                      rc = c_cdd_strdup("; rc =", &tmp);
+                      if (rc != CDD_C_SUCCESS)
+                        goto cleanup;
+                      rc = patch_list_add(&patches, eq_idx, eq_idx + 1, tmp);
+
+                      if (rc != CDD_C_SUCCESS)
+                        goto cleanup;
                     };
                   } else {
                     {
                       char *tmp = NULL;
-                      c_cdd_strdup("rc =", &tmp);
-                      patch_list_add(&patches, lhs_start, eq_idx + 1, tmp);
+                      rc = c_cdd_strdup("rc =", &tmp);
+                      if (rc != CDD_C_SUCCESS)
+                        goto cleanup;
+                      rc = patch_list_add(&patches, lhs_start, eq_idx + 1, tmp);
+
+                      if (rc != CDD_C_SUCCESS)
+                        goto cleanup;
                     };
                   }
 
                   /* Append arg */
                   {
-                    char *arg_append = malloc(strlen(lhs_name) + 10);
-                    /* Check if empty args */
+                    char *arg_append;
                     int is_empty = 1;
                     size_t a;
+                    arg_append = C_CDD_MALLOC(strlen(lhs_name) + 10);
+                    if (!arg_append) {
+                      rc = CDD_C_ERROR_MEMORY;
+                      goto cleanup;
+                    }
+                    /* Check if empty args */
                     for (a = lparen + 1; a < rparen; a++)
                       if (tokens->tokens[a].kind != TOKEN_WHITESPACE)
                         is_empty = 0;
@@ -316,18 +332,26 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 #else
                       sprintf(arg_append, ", &%s", lhs_name);
 #endif
-                    patch_list_add(&patches, rparen, rparen, arg_append);
+                    rc = patch_list_add(&patches, rparen, rparen, arg_append);
+
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup;
                   }
 
                   /* Append check */
                   find_semicolon(tokens, rparen, &semi);
                   if (semi < tokens->size) {
                     char *tmp = NULL;
-                    c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
-                    patch_list_add(&patches, semi + 1, semi + 1, tmp);
+                    rc = c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup;
+                    rc = patch_list_add(&patches, semi + 1, semi + 1, tmp);
+
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup;
                   };
 
-                  free(lhs_name);
+                  C_CDD_FREE(lhs_name);
                   injected_rc = 1;
                 }
               }
@@ -340,15 +364,25 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               size_t semi;
               {
                 char *tmp = NULL;
-                c_cdd_strdup("rc = ", &tmp);
-                patch_list_add(&patches, i, i, tmp);
+                rc = c_cdd_strdup("rc = ", &tmp);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = patch_list_add(&patches, i, i, tmp);
+
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
               };
               find_semicolon(tokens, next, &semi);
               if (semi < tokens->size) {
                 {
                   char *tmp = NULL;
-                  c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
-                  patch_list_add(&patches, semi + 1, semi + 1, tmp);
+                  rc = c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
+                  if (rc != CDD_C_SUCCESS)
+                    goto cleanup;
+                  rc = patch_list_add(&patches, semi + 1, semi + 1, tmp);
+
+                  if (rc != CDD_C_SUCCESS)
+                    goto cleanup;
                 };
               }
               injected_rc = 1;
@@ -372,17 +406,16 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 #endif
 
               /* Extract original args */
-              join_tokens_range(tokens, lparen + 1, rparen, &call_args);
+              rc = join_tokens_range(tokens, lparen + 1, rparen, &call_args);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
 
               /* Prepare injection */
-#ifdef HAVE_ASPRINTF
-              asprintf(&injection,
-                       "%s %s; rc = %s(%s%s&%s); if (rc != 0) "
-                       "return rc;\n  ",
-                       rf->original_return_type, tmp_var, rf->name, call_args,
-                       (strlen(call_args) > 0 ? ", " : ""), tmp_var);
-#else
-              injection = malloc(1024);
+              injection = C_CDD_MALLOC(1024);
+              if (!injection) {
+                rc = CDD_C_ERROR_MEMORY;
+                goto cleanup;
+              }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(injection, 1024,
                         "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
@@ -395,19 +428,26 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       "rc;\n  ",
                       rf->original_return_type, tmp_var, rf->name, call_args,
                       (strlen(call_args) > 0 ? ", " : ""), tmp_var);
-#endif
+
 #endif
               /* Inject before statement */
-              patch_list_add(&patches, stmt_start, stmt_start, injection);
+              rc = patch_list_add(&patches, stmt_start, stmt_start, injection);
 
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
               /* Replace call with var */
               {
                 char *tmp = NULL;
-                c_cdd_strdup(tmp_var, &tmp);
-                patch_list_add(&patches, i, rparen + 1, tmp);
+                rc = c_cdd_strdup(tmp_var, &tmp);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = patch_list_add(&patches, i, rparen + 1, tmp);
+
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
               };
 
-              free(call_args);
+              C_CDD_FREE(call_args);
               injected_rc = 1;
             }
           }
@@ -430,8 +470,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               tokens->tokens[next].kind == TOKEN_SEMICOLON) {
             {
               char *tmp = NULL;
-              c_cdd_strdup("return 0", &tmp);
-              patch_list_add(&patches, i, next, tmp);
+              rc = c_cdd_strdup("return 0", &tmp);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              rc = patch_list_add(&patches, i, next, tmp);
+
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
             };
           }
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
@@ -453,23 +498,20 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
             }
 
             if (contains_alloc) {
-              /* Transform: return malloc(...) -> { Type _safe_ret =
-               * malloc(...); if(!_safe_ret) return CDD_C_ERROR_MEMORY; *out =
-               * _safe_ret; return CDD_C_SUCCESS; } */
+              /* Transform: return C_CDD_MALLOC(...) -> { Type _safe_ret =
+               * C_CDD_MALLOC(...); if(!_safe_ret) return CDD_C_ERROR_MEMORY;
+               * *out = _safe_ret; return CDD_C_SUCCESS; } */
               /* Extract expr between return (i) and semi (inclusive of nothing,
                * wait range excludes return kw) */
               char *expr = NULL;
               char *replacement = NULL;
               join_tokens_range(tokens, i + 1, semi, &expr);
 
-#ifdef HAVE_ASPRINTF
-              asprintf(&replacement,
-                       "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
-                       "_safe_ret; return %s; }",
-                       transform->return_type, expr, transform->error_code,
-                       transform->arg_name, transform->success_code);
-#else
-              replacement = malloc(strlen(expr) + 256);
+              replacement = C_CDD_MALLOC(strlen(expr) + 256);
+              if (!replacement) {
+                rc = CDD_C_ERROR_MEMORY;
+                goto cleanup;
+              }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(replacement, strlen(expr) + 256,
                         "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
@@ -482,22 +524,35 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       "_safe_ret; return %s; }",
                       transform->return_type, expr, transform->error_code,
                       transform->arg_name, transform->success_code);
-#endif
+
 #endif
               /* Replace entire statement "return ...;" */
-              patch_list_add(&patches, i, semi + 1, replacement);
-              free(expr);
+              rc = patch_list_add(&patches, i, semi + 1, replacement);
+
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
+              C_CDD_FREE(expr);
             } else {
               /* Replace return val; -> *out = val; return CDD_C_SUCCESS; */
               {
                 char *tmp = NULL;
-                c_cdd_strdup("*out =", &tmp);
-                patch_list_add(&patches, i, i + 1, tmp);
+                rc = c_cdd_strdup("*out =", &tmp);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = patch_list_add(&patches, i, i + 1, tmp);
+
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
               };
               {
                 char *tmp = NULL;
-                c_cdd_strdup("; return CDD_C_SUCCESS;", &tmp);
-                patch_list_add(&patches, semi, semi + 1, tmp);
+                rc = c_cdd_strdup("; return CDD_C_SUCCESS;", &tmp);
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
+                rc = patch_list_add(&patches, semi, semi + 1, tmp);
+
+                if (rc != CDD_C_SUCCESS)
+                  goto cleanup;
               };
             }
           }
@@ -527,8 +582,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
         if (!has_ret) {
           {
             char *tmp = NULL;
-            c_cdd_strdup(" return CDD_C_SUCCESS; ", &tmp);
-            patch_list_add(&patches, last, last, tmp);
+            rc = c_cdd_strdup(" return CDD_C_SUCCESS; ", &tmp);
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
+            rc = patch_list_add(&patches, last, last, tmp);
+
+            if (rc != CDD_C_SUCCESS)
+              goto cleanup;
           };
         }
       }
@@ -543,8 +603,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
     if (k < tokens->size) {
       {
         char *tmp = NULL;
-        c_cdd_strdup("\n  cdd_c_error_t rc = CDD_C_SUCCESS;", &tmp);
-        patch_list_add(&patches, k + 1, k + 1, tmp);
+        rc = c_cdd_strdup("\n  cdd_c_error_t rc = CDD_C_SUCCESS;", &tmp);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+        rc = patch_list_add(&patches, k + 1, k + 1, tmp);
+
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       };
     }
   }
@@ -552,6 +617,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   /* 6. Execute Patching */
   rc = patch_list_apply(&patches, tokens, out_code);
 
+cleanup:
   patch_list_free(&patches);
   return rc;
 }

@@ -76,8 +76,9 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = config->library_name ? config->library_name : "mylib";
-  module_name = config->module_name ? config->module_name : "bindings";
+  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  module_name =
+      (config && config->module_name) ? config->module_name : "bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.v", config->output_dir,

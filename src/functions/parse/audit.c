@@ -22,8 +22,9 @@
 
 /* clang-format on */
 
-C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-    int g_cdd_fail_alloc_audit = 0;
+C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
+C_CDD_EXPORT int g_cdd_audit_fail_tokenize = 0;
+C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -129,22 +130,32 @@ static cdd_c_error_t add_violation(struct AuditStats *stats,
 #endif
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
-        int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].allocator_name = NULL;
     else
-      list->items[list->size].allocator_name =
-          allocator ? strdup(allocator) : NULL;
+      list->items[list->size].allocator_name = strdup(allocator);
   }
 #else
-  list->items[list->size].allocator_name = allocator ? strdup(allocator) : NULL;
+  list->items[list->size].allocator_name = strdup(allocator);
 #endif
 
-  if (!list->items[list->size].file_path ||
-      (var_name && !list->items[list->size].variable_name) ||
-      (allocator && !list->items[list->size].allocator_name)) {
+  if (!list->items[list->size].file_path) {
     /* Handle partial alloc failure */
+    printf("PARTIAL ALLOC FAILURE\n");
+    free(list->items[list->size].file_path);
+    free(list->items[list->size].variable_name);
+    free(list->items[list->size].allocator_name);
+    return CDD_C_ERROR_MEMORY;
+  }
+  if (var_name && !list->items[list->size].variable_name) {
+    printf("PARTIAL ALLOC FAILURE\n");
+    free(list->items[list->size].file_path);
+    free(list->items[list->size].variable_name);
+    free(list->items[list->size].allocator_name);
+    return CDD_C_ERROR_MEMORY;
+  }
+  if (!list->items[list->size].allocator_name) {
     printf("PARTIAL ALLOC FAILURE\n");
     free(list->items[list->size].file_path);
     free(list->items[list->size].variable_name);
@@ -187,8 +198,6 @@ static void get_line_col(const char *content, const uint8_t *token_ptr,
 static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
-  if (!out_is_source)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_source = 0;
   dot = strrchr(path, '.');
   if (!dot)
@@ -205,8 +214,6 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
                                             int *out_count) {
   size_t i;
   int count = 0;
-  if (!out_count)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
@@ -222,12 +229,23 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
         const char *name = (const char *)tokens->tokens[j].start;
         size_t len = tokens->tokens[j].length;
 
-        if ((len == 6 && strncmp(name, "malloc", 6) == 0) ||
-            (len == 6 && strncmp(name, "calloc", 6) == 0) ||
-            (len == 7 && strncmp(name, "realloc", 7) == 0) ||
-            (len == 6 && strncmp(name, "strdup", 6) == 0) ||
-            (len == 7 && strncmp(name, "strndup", 7) == 0)) {
-          count++;
+        if (len == 6) {
+          if (strncmp(name, "malloc", 6) == 0) {
+            count++;
+          }
+          if (strncmp(name, "calloc", 6) == 0) {
+            count++;
+          }
+          if (strncmp(name, "strdup", 6) == 0) {
+            count++;
+          }
+        } else if (len == 7) {
+          if (strncmp(name, "realloc", 7) == 0) {
+            count++;
+          }
+          if (strncmp(name, "strndup", 7) == 0) {
+            count++;
+          }
         }
       }
     }
@@ -265,32 +283,48 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   }
 
   /* Tokenize */
-  if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
-    free_token_list(tokens);
-    free(content);
-    return CDD_C_SUCCESS; /* Tokenization fail - skip */
+  {
+    int tok_rc = tokenize(az_span_create_from_str(content), &tokens);
+#ifdef CDD_BUILD_TESTS
+    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+    if (g_cdd_audit_fail_tokenize)
+      tok_rc = 1;
+#endif
+    if (tok_rc != 0) {
+      free_token_list(tokens);
+      free(content);
+      return CDD_C_SUCCESS; /* Tokenization fail - skip */
+    }
   }
 
   /* Analyze */
-  if (find_allocations(tokens, &sites) == 0) {
-    stats->files_scanned++;
+  {
+    int find_rc = find_allocations(tokens, &sites);
+#ifdef CDD_BUILD_TESTS
+    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+    if (g_cdd_audit_fail_find)
+      find_rc = 1;
+#endif
+    if (find_rc == 0) {
+      stats->files_scanned++;
 
-    for (i = 0; i < sites.size; ++i) {
-      if (sites.sites[i].is_checked) {
-        stats->allocations_checked++;
-      } else {
-        size_t line, col;
-        /* Calculate line/col for the violation */
-        const struct Token *tok = &tokens->tokens[sites.sites[i].token_index];
-        get_line_col(content, tok->start, &line, &col);
+      for (i = 0; i < sites.size; ++i) {
+        if (sites.sites[i].is_checked) {
+          stats->allocations_checked++;
+        } else {
+          size_t line, col;
+          /* Calculate line/col for the violation */
+          const struct Token *tok = &tokens->tokens[sites.sites[i].token_index];
+          get_line_col(content, tok->start, &line, &col);
 
-        /* Add to details */
-        printf("var_name=%s\n",
-               sites.sites[i].var_name ? sites.sites[i].var_name : "NULL");
-        add_violation(stats, path, line, col, sites.sites[i].var_name,
-                      sites.sites[i].spec->name);
+          /* Add to details */
+          printf("var_name=%s\n",
+                 sites.sites[i].var_name ? sites.sites[i].var_name : "NULL");
+          add_violation(stats, path, line, col, sites.sites[i].var_name,
+                        sites.sites[i].spec->name);
 
-        stats->allocations_unchecked++;
+          stats->allocations_unchecked++;
+        }
       }
     }
   }

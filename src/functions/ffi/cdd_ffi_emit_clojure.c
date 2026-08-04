@@ -1,3 +1,6 @@
+#ifdef CDD_BUILD_TESTS
+extern volatile int g_fail_io_after;
+#endif
 /* clang-format off */
 #include "cdd_ffi_emit_clojure.h"
 
@@ -56,14 +59,16 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
-  const char *module_name =
-      config->module_name ? config->module_name : "bindings";
+  const char *lib_name;
+  const char *module_name;
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
+
+  lib_name = config->library_name ? config->library_name : "mylib";
+  module_name = config->module_name ? config->module_name : "bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.clj", config->output_dir,
@@ -152,8 +157,7 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
     }
   }
 
-  if (f)
-    fclose(f);
+  fclose(f);
   f = NULL;
 
   /* Write deps.edn snippet */
@@ -163,6 +167,12 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/deps.edn", config->output_dir);
   f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 556) {
+    fclose(f);
+    f = NULL;
+  }
+#endif
   if (f) {
 #endif
     fprintf(f, "{:deps {net.java.dev.jna/jna {:mvn/version \"5.13.0\"}}}\n");

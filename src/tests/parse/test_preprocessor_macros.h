@@ -360,10 +360,76 @@ TEST test_pp_define_variadic_gcc(void) {
 /**
  * @brief Preprocessor macros test suite.
  */
+
+TEST test_macro_evaluator_uncovered(void) {
+  struct PreprocessorContext ctx;
+  cdd_macro_eval_result_t res;
+  int rc;
+  struct MacroDef def;
+
+  pp_context_init(&ctx);
+
+  /* float + int */
+  rc = cdd_macro_evaluate(&ctx, "1.5 + 2", &res);
+  ASSERT_EQ(0, rc);
+
+  /* escaped string */
+  rc = cdd_macro_evaluate(&ctx, "\"foo\\\"bar\"", &res);
+  ASSERT_EQ(0, rc);
+
+  /* unary plus */
+  rc = cdd_macro_evaluate(&ctx, "+5", &res);
+  ASSERT_EQ(0, rc);
+
+  /* equal error */
+  rc = cdd_macro_evaluate(&ctx, "1 = 2", &res);
+  ASSERT_NEQ(0, rc);
+
+  /* recursive error */
+  def.name = "BAD";
+  def.value = "1 = 2";
+  def.is_function_like = 0;
+  def.arg_count = 0;
+  def.args = NULL;
+
+  ctx.macros = &def;
+  ctx.macro_count = 1;
+
+  rc = cdd_macro_evaluate(&ctx, "BAD", &res);
+  ASSERT_NEQ(0, rc);
+
+  ctx.macros = NULL;
+  ctx.macro_count = 0;
+
+  /* OOM handlers in lexer */
+  g_cdd_alloc_fail = 1;
+  rc = cdd_macro_evaluate(&ctx, "123U", &res);
+  g_cdd_alloc_fail = 0;
+
+  g_cdd_alloc_fail = 1;
+  rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
+  g_cdd_alloc_fail = 0;
+
+  rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "   ", &res);
+  ASSERT_NEQ(0, rc);
+
+  g_cdd_alloc_fail = 1;
+  rc = cdd_macro_evaluate(&ctx, "ABC", &res);
+  g_cdd_alloc_fail = 0;
+
+  pp_context_free(&ctx);
+  PASS();
+}
+
 SUITE(preprocessor_macros_suite) {
+
   RUN_TEST(test_macro_evaluator_basic);
   RUN_TEST(test_macro_evaluator_all_ops);
   RUN_TEST(test_macro_evaluator_errors);
+  RUN_TEST(test_macro_evaluator_uncovered);
   RUN_TEST(test_pp_define_object_like);
   RUN_TEST(test_pp_define_function_like);
   RUN_TEST(test_pp_define_variadic_standard);

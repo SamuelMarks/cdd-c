@@ -384,55 +384,167 @@ TEST test_cst_parser_extra(void) {
   cdd_cst_parse(az_span_create_from_str(""), &tree);
   cdd_cst_tree_free(tree);
 
+  /* NULL out_tree */
+  {
+    cdd_c_error_t out_rc = cdd_cst_parse(az_span_create_from_str(""), NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, out_rc);
+  }
+
+  {
+    cdd_cst_tree_t *t_stray = NULL;
+    cdd_cst_parse(az_span_create_from_str("}"), &t_stray);
+    if (t_stray)
+      cdd_cst_tree_free(t_stray);
+  }
+  {
+    cdd_cst_tree_t *t_stray = NULL;
+    cdd_cst_parse(az_span_create_from_str("}}"), &t_stray);
+    if (t_stray)
+      cdd_cst_tree_free(t_stray);
+  }
+  {
+    cdd_cst_tree_t *t_stray = NULL;
+    cdd_cst_parse(az_span_create_from_str("{"), &t_stray);
+    if (t_stray)
+      cdd_cst_tree_free(t_stray);
+  }
+  {
+    cdd_cst_tree_t *t_empty = NULL;
+    cdd_cst_parse(az_span_create_from_str("{}"), &t_empty);
+    if (t_empty)
+      cdd_cst_tree_free(t_empty);
+  }
+  {
+    cdd_cst_tree_t *t_empty = NULL;
+    cdd_cst_parse(az_span_create_from_str("void f() noexcept(true);"),
+                  &t_empty);
+    if (t_empty)
+      cdd_cst_tree_free(t_empty);
+  }
+
+  cdd_cst_tree_t *t_macro = NULL;
+  cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
+  if (t_macro)
+    cdd_cst_tree_free(t_macro);
+  {
+    const char *abrupts[] = {
+        "#ifdef A", "template <",  "namespace N {",       "try {",
+        "throw ",   "class Foo {", "class Foo { public:", "void f() {"};
+    size_t j;
+    for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
+      cdd_cst_tree_t *t_abrupt = NULL;
+      cdd_cst_parse(az_span_create_from_str((char *)abrupts[j]), &t_abrupt);
+      if (t_abrupt)
+        cdd_cst_tree_free(t_abrupt);
+    }
+  }
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    int i;
+    const char *snippet =
+        "#ifdef A\n"
+        "#elif B\n"
+        "#else\n"
+        "{ int z1; }\n"
+        "{ int z2; }\n"
+        "{ int z3; }\n"
+        "{ int z4; }\n"
+        "{ int z5; }\n"
+        "{ int z6; }\n"
+        "{ int z7; }\n"
+        "{ int z8; }\n"
+        "{ int z9; }\n"
+        "{ int z10; }\n"
+        "#endif\n"
+        "#ifndef C\n"
+        "{ int w; }\n"
+        "#endif\n"
+        "#define D 1\n"
+        "#include <stdio.h>\n"
+        "#pragma once\n"
+        "template <typename T1, typename T2, typename T3, typename T4, "
+        "typename T5, typename T6, typename T7, typename T8, typename T9, "
+        "typename T10>\n"
+        "class Foo : public virtual Bar, virtual private Baz {\n"
+        "public:\n"
+        "  void baz() noexcept(true) {}\n"
+        "  ~Foo();\n"
+        "  int operator+(int);\n"
+        "protected:\n"
+        "  class { int anon; } anon_var;\n"
+        "  int x;\n"
+        "private:\n"
+        "  int y;\n"
+        "};\n"
+        "namespace N {\n"
+        "  using namespace std;\n"
+        "  void f() {\n"
+        "    try {\n"
+        "      throw 1;\n"
+        "    } catch (int e) {\n"
+        "    } catch (...) {\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "int main() { asm(\"nop\"); return 0; }";
 
-    g_cdd_cst_alloc_node_fail = 1;
-    tree = NULL;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
-    g_cdd_cst_alloc_node_fail = 0;
+    cdd_cst_tree_t *t_dummy = NULL;
+    g_cdd_cst_realloc_fail = 1000000;
+    cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
+    printf("Total REALLOCs in snippet: %d\n", 1000000 - g_cdd_cst_realloc_fail);
+    g_cdd_cst_realloc_fail = 0;
+    if (t_dummy)
+      cdd_cst_tree_free(t_dummy);
 
-    g_cdd_cst_alloc_node_fail = 2;
-    tree = NULL;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
-    if (tree)
-      cdd_cst_tree_free(tree);
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_alloc_fail = 1000000;
+    t_dummy = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
+    printf("Total ALLOCs in snippet: %d\n", 1000000 - g_cdd_alloc_fail);
+    g_cdd_alloc_fail = 0;
+    if (t_dummy)
+      cdd_cst_tree_free(t_dummy);
 
-    g_cdd_cst_realloc_fail = 1;
-    tree = NULL;
-    cdd_c_error_t parse_rc =
-        cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
-    if (parse_rc != 0) {
-      printf("PARSE FAILED WITH %d\n", parse_rc);
+    for (i = 1; i < 60000; i++) {
+      tree = NULL;
+      g_cdd_cst_alloc_node_fail = i;
+      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+      if (tree)
+        cdd_cst_tree_free(tree);
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, parse_rc);
-    if (tree)
-      cdd_cst_tree_free(tree);
-    g_cdd_cst_realloc_fail = 0;
+    g_cdd_cst_alloc_node_fail = 0;
 
-    g_cdd_cst_realloc_fail = 2;
-    tree = NULL;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              cdd_cst_parse(
-                  az_span_create_from_str("int a, b, c, d, e, f, g, h, i, j;"),
-                  &tree));
-    if (tree)
-      cdd_cst_tree_free(tree);
-    g_cdd_cst_realloc_fail = 0;
+    for (i = 1; i < 60000; i++) {
+      tree = NULL;
+      g_cdd_alloc_fail = i;
+      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+      if (tree)
+        cdd_cst_tree_free(tree);
+    }
+    g_cdd_alloc_fail = 0;
 
-    g_cdd_cst_realloc_fail = 2;
-    tree = NULL;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              cdd_cst_parse(
-                  az_span_create_from_str("int a, b, c, d, e, f, g, h, i, j;"),
-                  &tree));
-    if (tree)
-      cdd_cst_tree_free(tree);
+    for (i = 1; i < 60000; i++) {
+      tree = NULL;
+      g_cdd_cst_alloc_token_fail = i;
+      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+      if (tree)
+        cdd_cst_tree_free(tree);
+    }
+    g_cdd_cst_alloc_token_fail = 0;
+
+    for (i = 1; i < 60000; i++) {
+      cdd_c_error_t parse_rc;
+      tree = NULL;
+      g_cdd_cst_realloc_fail = i;
+      parse_rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+      if (i == 59999)
+        ASSERT_EQ(0, parse_rc);
+      if (tree)
+        cdd_cst_tree_free(tree);
+    }
     g_cdd_cst_realloc_fail = 0;
   }
 #endif

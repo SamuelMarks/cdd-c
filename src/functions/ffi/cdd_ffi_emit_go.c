@@ -109,7 +109,10 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.go", config->output_dir,
@@ -258,7 +261,7 @@ static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
 #endif
 
   fprintf(f, "module %s\n\n",
-          config->library_name ? config->library_name : "mylib");
+          (config && config->library_name) ? config->library_name : "mylib");
   fprintf(f, "go 1.20\n");
 
   fclose(f);

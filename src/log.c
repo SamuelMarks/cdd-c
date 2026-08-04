@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 /* clang-format on */
-void c_cdd_log_debug(const char *fmt, ...) {
+cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
 #ifdef DEBUG
   va_list args;
   va_start(args, fmt);
@@ -13,4 +13,5 @@ void c_cdd_log_debug(const char *fmt, ...) {
   /* Do nothing */
   (void)fmt;
 #endif
+  return CDD_C_SUCCESS;
 }

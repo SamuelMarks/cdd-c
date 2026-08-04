@@ -127,7 +127,16 @@ TEST test_weaver_inject_msvc_headers(void) {
   res = patch_list_init(&patches);
   ASSERT_EQ(0, res);
 
-  res = weaver_inject_msvc_headers(&patches, tokens, true, true);
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 0);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 0, 1);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 0, 0);
   ASSERT_EQ(0, res);
 
   res = patch_list_apply(&patches, tokens, &out_code);
@@ -287,7 +296,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
     struct PatchList patches2;
     struct CstNode nodes_oom[1];
     struct CstNodeList cst_oom = {0};
-    struct CstNode nodes2[3];
+    struct CstNode nodes2[4];
     struct CstNodeList cst2 = {0};
     int rc_t1;
 
@@ -305,17 +314,61 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
       int rc_wattr;
-      g_cdd_fail_alloc = 2001;
-      rc_wattr = weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
-      g_cdd_fail_alloc = 0;
+      int i;
+      for (i = 1; i <= 2; i++) {
+        g_cdd_alloc_fail = i;
+        rc_wattr =
+            weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
+        g_cdd_alloc_fail = 0;
+        if (rc_wattr != CDD_C_ERROR_MEMORY) {
+          printf("FAILED OOM test: i=%d rc_wattr=%d\n", i, rc_wattr);
+        }
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
+      }
+      g_cdd_alloc_fail = 0;
     }
 #endif
 
     /* non-gcc attribute to test branch */
     nodes_oom[0].kind = CST_NODE_FUNCTION;
+
+    /* OOM for c_cdd_strdup branches */
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_strdup_fail;
+      struct CstNode nodes_dup[3];
+      struct CstNodeList cst_dup = {0};
+      int j;
+
+      memset(nodes_dup, 0, sizeof(nodes_dup));
+      nodes_dup[0].kind = CST_NODE_GCC_ATTRIBUTE;
+      nodes_dup[0].start =
+          (const uint8_t *)"__attribute__((visibility(\"default\")))";
+      nodes_dup[0].length = strlen("__attribute__((visibility(\"default\")))");
+
+      nodes_dup[1].kind = CST_NODE_GCC_ATTRIBUTE;
+      nodes_dup[1].start = (const uint8_t *)"__attribute__((noreturn))";
+      nodes_dup[1].length = strlen("__attribute__((noreturn))");
+
+      nodes_dup[2].kind = CST_NODE_GCC_ATTRIBUTE;
+      nodes_dup[2].start =
+          (const uint8_t *)"__attribute__((format(printf, 1, 2)))";
+      nodes_dup[2].length = strlen("__attribute__((format(printf, 1, 2)))");
+
+      cst_dup.nodes = nodes_dup;
+      cst_dup.size = 3;
+      cst_dup.capacity = 3;
+
+      for (j = 1; j <= 3; j++) {
+        g_cdd_strdup_fail = j;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, weaver_translate_gcc_attributes(
+                                          &patches2, &tokens, &cst_dup));
+      }
+      g_cdd_strdup_fail = 0;
+    }
+#endif
 
     /* visibility without default */
     memset(nodes2, 0, sizeof(nodes2));
@@ -333,12 +386,19 @@ TEST test_weaver_translate_gcc_attributes(void) {
     nodes2[1].start_token = 2;
     nodes2[1].end_token = 3;
 
+    /* unused attribute */
+    nodes2[2].kind = CST_NODE_GCC_ATTRIBUTE;
+    nodes2[2].start = (const uint8_t *)"__attribute__((unused))";
+    nodes2[2].length = strlen("__attribute__((unused))");
+    nodes2[2].start_token = 4;
+    nodes2[2].end_token = 5;
+
     /* non-gcc attr */
-    nodes2[2].kind = CST_NODE_UNKNOWN;
+    nodes2[3].kind = CST_NODE_UNKNOWN;
 
     cst2.nodes = nodes2;
-    cst2.size = 3;
-    cst2.capacity = 3;
+    cst2.size = 4;
+    cst2.capacity = 4;
 
     rc_t1 = weaver_translate_gcc_attributes(&patches2, &tokens, &cst2);
     ASSERT_EQ(0, rc_t1);
@@ -361,7 +421,7 @@ TEST test_weaver_oom(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a;";
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   int r1, r2, r3, r6, r8;
 #endif
 
@@ -369,9 +429,9 @@ TEST test_weaver_oom(void) {
   tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
 
 #ifdef CDD_BUILD_TESTS
-  g_cdd_fail_alloc = 1;
+  g_cdd_alloc_fail = 1;
   r1 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
   {
@@ -379,9 +439,9 @@ TEST test_weaver_oom(void) {
     for (j = 1; j < 20; j++) {
       if (j == 2)
         j = 2000;
-      g_cdd_fail_alloc = j;
+      g_cdd_alloc_fail = j;
       r2 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
-      g_cdd_fail_alloc = 0;
+      g_cdd_alloc_fail = 0;
       if (r2 == 0)
         break;
       if (j == 2000)
@@ -394,9 +454,9 @@ TEST test_weaver_oom(void) {
     for (j = 1; j < 20; j++) {
       if (j == 2)
         j = 2000;
-      g_cdd_fail_alloc = j;
+      g_cdd_alloc_fail = j;
       r3 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", NULL);
-      g_cdd_fail_alloc = 0;
+      g_cdd_alloc_fail = 0;
       if (r3 == 0)
         break;
       if (j == 2000)
@@ -408,16 +468,16 @@ TEST test_weaver_oom(void) {
 
   /* deleted r5 */
 
-  g_cdd_fail_alloc = 1;
+  g_cdd_alloc_fail = 1;
   r6 = weaver_inject_msvc_headers(&patches, tl, 1, 1);
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r6);
 
   /* deleted r7 */
 
-  g_cdd_fail_alloc = 1;
+  g_cdd_alloc_fail = 1;
   r8 = weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", "sz", 0);
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r8);
 
   /* deleted r9 */
@@ -454,6 +514,130 @@ TEST test_weaver_oom(void) {
   PASS();
 }
 
+TEST test_weaver_cov(void) {
+  struct PatchList patches;
+  struct TokenList *tokens = NULL;
+  int res;
+  char *out_code = NULL;
+
+  /* Test # include with spaces and no trailing newline */
+  const char *src1 = "#    include <stdio.h>";
+  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_apply(&patches, tokens, &out_code);
+  ASSERT_EQ(0, res);
+
+  free(out_code);
+  patch_list_free(&patches);
+  free_token_list(tokens);
+
+  /* Test #ident that is not include */
+  const char *src2 = "#define X 1";
+  res = tokenize(az_span_create_from_str((char *)src2), &tokens);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_apply(&patches, tokens, &out_code);
+  ASSERT_EQ(0, res);
+
+  free(out_code);
+  patch_list_free(&patches);
+  free_token_list(tokens);
+
+  /* Test vla_to_alloca edge cases */
+  {
+    const char *src3 = "int a[5];";
+    res = tokenize(az_span_create_from_str((char *)src3), &tokens);
+    ASSERT_EQ(0, res);
+
+    res = patch_list_init(&patches);
+    ASSERT_EQ(0, res);
+
+    /* OOM inside weaver_vla_to_alloca */
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      g_cdd_alloc_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, weaver_vla_to_alloca(&patches, tokens, 0, 1,
+                                                         "int", "a", "5", 0));
+      g_cdd_alloc_fail = 0;
+    }
+#endif
+    patch_list_free(&patches);
+    free_token_list(tokens);
+  }
+
+  PASS();
+}
+
+TEST test_weaver_cov_more(void) {
+  struct PatchList patches;
+  struct TokenList *tokens = NULL;
+  int res;
+  char *out_code = NULL;
+
+  /* Test # at the end of file (covers j == tokens->size) */
+  const char *src1 = "#";
+  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_EQ(0, res);
+
+  patch_list_free(&patches);
+  free_token_list(tokens);
+
+  /* Test start_idx >= end_idx for vla_to_alloca */
+  res = tokenize(az_span_create_from_str("int a[5];"), &tokens);
+  patch_list_init(&patches);
+  res = weaver_vla_to_alloca(&patches, tokens, 1, 1, "int", "a", "5", 0);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, res);
+
+  /* Test end_idx > tokens->size */
+  res = weaver_vla_to_alloca(&patches, tokens, 0, 100, "int", "a", "5", 0);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, res);
+
+  patch_list_free(&patches);
+  free_token_list(tokens);
+
+  PASS();
+}
+
+TEST test_weaver_cov_even_more(void) {
+  struct PatchList patches;
+  struct TokenList *tokens = NULL;
+  int res;
+
+  /* Test # followed by non-identifier */
+  const char *src1 = "# 123";
+  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  ASSERT_EQ(0, res);
+
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
+
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_EQ(0, res);
+
+  patch_list_free(&patches);
+  free_token_list(tokens);
+  PASS();
+}
 SUITE(weaver_suite) {
   RUN_TEST(test_weaver_wrap_ifdef_basic);
   RUN_TEST(test_weaver_wrap_ifdef_else);
@@ -463,6 +647,9 @@ SUITE(weaver_suite) {
   RUN_TEST(test_weaver_translate_gcc_attributes);
   RUN_TEST(test_weaver_oom);
   RUN_TEST(test_weaver_oom);
+  RUN_TEST(test_weaver_cov);
+  RUN_TEST(test_weaver_cov_more);
+  RUN_TEST(test_weaver_cov_even_more);
 }
 
 #ifdef __cplusplus

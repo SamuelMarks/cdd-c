@@ -10,8 +10,6 @@
 
 static const char *get_rust_primitive(cdd_ffi_primitive_kind_t kind) {
   switch (kind) {
-  case CDD_FFI_KIND_VOID:
-    return "std::ffi::c_void";
   case CDD_FFI_KIND_BOOL:
     return "bool";
   case CDD_FFI_KIND_INT8:
@@ -92,6 +90,16 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   f = fopen(filepath, "w");
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -168,6 +176,16 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   f = fopen(filepath, "w");
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f)
     return CDD_C_ERROR_IO;
 
@@ -273,12 +291,22 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   f = fopen(filepath, "w");
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f)
     return CDD_C_ERROR_IO;
 
   fprintf(f, "[package]\n");
   fprintf(f, "name = \"%s-bindings\"\n",
-          config->library_name ? config->library_name : "libname");
+          (config && config->library_name) ? config->library_name : "libname");
   fprintf(f, "version = \"0.1.0\"\n");
   fprintf(f, "edition = \"2021\"\n\n");
   fprintf(f, "[dependencies]\n");
@@ -306,11 +334,21 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
   f = fopen(filepath, "w");
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      if (f)
+        fclose(f);
+      f = NULL;
+    }
+  }
+#endif
   if (!f)
     return CDD_C_ERROR_IO;
 
   fprintf(f, "use %s_bindings::*;\n\n",
-          config->library_name ? config->library_name : "libname");
+          (config && config->library_name) ? config->library_name : "libname");
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {
@@ -346,6 +384,8 @@ cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
   makedir(tests_dir);
 
   rc = emit_cargo_toml(config);
+  /* In tests we don't mock emit_sys_rs failing inside cdd_ffi_emit_rust if it
+   * already fails within emit_sys_rs */
   if (rc != 0)
     return rc;
 

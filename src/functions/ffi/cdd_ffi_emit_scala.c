@@ -17,13 +17,7 @@ static const char *map_scala_type(cdd_ffi_type_t *t) {
     if (t->kind == CDD_FFI_KIND_STRUCT_REF ||
         t->kind == CDD_FFI_KIND_TYPEDEF_REF ||
         t->kind == CDD_FFI_KIND_ENUM_REF) {
-      if (t->ref_name) {
-        /* This isn't perfect since we can't easily return Ptr[StructName]
-           dynamically from this static function, so we fallback to Ptr[Byte]
-           for arbitrary pointers unless we build a dynamic string, which we
-           avoid for simplicity here. */
-        return "Ptr[Byte]";
-      }
+      return "Ptr[Byte]";
     }
     return "Ptr[Byte]";
   }
@@ -75,8 +69,9 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
-  lib_name = config->library_name ? config->library_name : "mylib";
-  module_name = config->module_name ? config->module_name : "Bindings";
+  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  module_name =
+      (config && config->module_name) ? config->module_name : "Bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.scala", config->output_dir,

@@ -128,22 +128,27 @@ TEST test_audit_return_alloc(void) {
   makedir(root);
 
   asprintf(&f_ret, "%s%sret.c", root, PATH_SEP);
-  /* Detect return malloc(...) */
-  write_to_file(f_ret, "char* f() { return malloc(10); }");
+  /* Detect return allocs */
+  write_to_file(f_ret, "char* f1() { return malloc(10); }\n"
+                       "char* f2() { return calloc(1,1); }\n"
+                       "char* f3() { return realloc(p,10); }\n"
+                       "char* f4() { return strdup(\"a\"); }\n"
+                       "char* f5() { return foobar(); }\n"
+                       "char* f6() { return foobarr(); }\n");
 
   (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   ASSERT_EQ(1, stats.files_scanned);
-  ASSERT_EQ(1, stats.functions_returning_alloc);
+  ASSERT_EQ(4, stats.functions_returning_alloc);
   /* return malloc(...) is marked as Checked or ignored check logic depending on
      analysis? Actually find_allocations treats return stmt as alloc site.
      var_name is NULL for return statement.
      In current implementation, return statement allocs are added to sites but
      unchecked.
   */
-  ASSERT_EQ(1, stats.allocations_unchecked);
-  ASSERT_EQ(1, stats.violations.size);
+  ASSERT_EQ(4, stats.allocations_unchecked);
+  ASSERT_EQ(4, stats.violations.size);
   ASSERT(stats.violations.items[0].variable_name == NULL);
 
   audit_stats_free(&stats);
@@ -257,6 +262,11 @@ TEST test_audit_edge_cases(void) {
   asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP);
   write_to_file(f_bad_token, "char *s = \"unclosed");
 
+  /* Test file ending with return and whitespace to cover branch */
+  char *f_eof_ret = NULL;
+  asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP);
+  write_to_file(f_eof_ret, "void f() { return ");
+
   (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
@@ -273,22 +283,82 @@ TEST test_audit_edge_cases(void) {
   remove(f_unreadable);
   free(f_unreadable);
   remove(f_bad_token);
+  remove(f_eof_ret);
   rmdir(root);
   free(f_noext);
   free(d_dir_c);
   free(f_strndup);
   free(f_bad_token);
+  free(f_eof_ret);
   free(root);
   free(sys_tmp);
   g_fail_io_after = -1;
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+#endif
+
 TEST test_audit_extras(void) {
   struct AuditStats stats;
   char *json = NULL;
 
   (void)audit_stats_init(&stats);
+  /* test tokenize failing */
+  {
+    char *sys_tmp = NULL;
+    char *root = NULL;
+    char *f_tok = NULL;
+    struct AuditStats stats_tok;
+    (void)audit_stats_init(&stats_tok);
+    tempdir(&sys_tmp);
+    asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP, rand());
+    makedir(root);
+    asprintf(&f_tok, "%s%stok.c", root, PATH_SEP);
+    write_to_file(f_tok, "int a = 1;");
+
+#ifdef CDD_BUILD_TESTS
+    g_cdd_audit_fail_tokenize = 1;
+    audit_project(root, &stats_tok);
+    g_cdd_audit_fail_tokenize = 0;
+#endif
+
+    remove(f_tok);
+    rmdir(root);
+    C_CDD_FREE(f_tok);
+    C_CDD_FREE(root);
+    C_CDD_FREE(sys_tmp);
+    audit_stats_free(&stats_tok);
+  }
+
+  /* test find_allocations failing */
+  {
+    char *sys_tmp = NULL;
+    char *root = NULL;
+    char *f_find = NULL;
+    struct AuditStats stats_find;
+    (void)audit_stats_init(&stats_find);
+    tempdir(&sys_tmp);
+    asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP, rand());
+    makedir(root);
+    asprintf(&f_find, "%s%sfind.c", root, PATH_SEP);
+    write_to_file(f_find, "int a = 1;");
+
+#ifdef CDD_BUILD_TESTS
+    g_cdd_audit_fail_find = 1;
+    audit_project(root, &stats_find);
+    g_cdd_audit_fail_find = 0;
+#endif
+
+    remove(f_find);
+    rmdir(root);
+    C_CDD_FREE(f_find);
+    C_CDD_FREE(root);
+    C_CDD_FREE(sys_tmp);
+    audit_stats_free(&stats_find);
+  }
   /* test json output on empty violation list */
   audit_print_json(&stats, &json);
   ASSERT(json != NULL);

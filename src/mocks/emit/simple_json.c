@@ -14,7 +14,7 @@
 
 #if !defined(_WIN32) && !defined(__WIN32__) && !defined(__WINDOWS__)
 #ifndef strdup
-char *strdup(const char *s);
+char *C_CDD_STRDUP(const char *s);
 #endif
 #endif
 
@@ -31,7 +31,7 @@ char *strdup(const char *s);
  */
 static enum cdd_c_error quote_or_null(const char *s, char **s1) {
   if (s == NULL) {
-    *s1 = strdup("(null)");
+    *s1 = C_CDD_STRDUP("(null)");
     if (*s1 == NULL)
       return CDD_C_ERROR_MEMORY;
     return CDD_C_SUCCESS;
@@ -81,18 +81,18 @@ enum cdd_c_error Tank_to_str(const enum Tank tank, char **const str) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (tank) {
   case Tank_BIG:
-    *str = strdup("BIG");
+    *str = C_CDD_STRDUP("BIG");
     if (!*str)
       return CDD_C_ERROR_MEMORY;
     break;
   case Tank_SMALL:
-    *str = strdup("SMALL");
+    *str = C_CDD_STRDUP("SMALL");
     if (!*str)
       return CDD_C_ERROR_MEMORY;
     break;
   case Tank_UNKNOWN:
   default:
-    *str = strdup("UNKNOWN");
+    *str = C_CDD_STRDUP("UNKNOWN");
     if (!*str)
       return CDD_C_ERROR_MEMORY;
   }
@@ -169,7 +169,7 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
   if (haz_e_original->bzr == NULL) {
     (*haz_e_dest)->bzr = NULL;
   } else {
-    (*haz_e_dest)->bzr = strdup(haz_e_original->bzr);
+    (*haz_e_dest)->bzr = C_CDD_STRDUP(haz_e_original->bzr);
     if ((*haz_e_dest)->bzr == NULL) {
       C_CDD_FREE(*haz_e_dest);
       *haz_e_dest = NULL;
@@ -324,7 +324,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
 
   bzr_str = json_object_get_string(jsonObject, "bzr");
   if (bzr_str) {
-    new_haz->bzr = strdup(bzr_str);
+    new_haz->bzr = C_CDD_STRDUP(bzr_str);
     if (new_haz->bzr == NULL) {
       C_CDD_FREE(new_haz);
       return CDD_C_ERROR_MEMORY;
@@ -420,7 +420,7 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
   memset(new_foo, 0, sizeof(*new_foo));
 
   if (foo_e_original->bar != NULL) {
-    new_foo->bar = strdup(foo_e_original->bar);
+    new_foo->bar = C_CDD_STRDUP(foo_e_original->bar);
     if (new_foo->bar == NULL) {
       C_CDD_FREE(new_foo);
       return CDD_C_ERROR_MEMORY;
@@ -578,7 +578,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
 
   bar_str = json_object_get_string(jsonObject, "bar");
   if (bar_str) {
-    new_foo->bar = strdup(bar_str);
+    new_foo->bar = C_CDD_STRDUP(bar_str);
     if (new_foo->bar == NULL) {
       C_CDD_FREE(new_foo);
       return CDD_C_ERROR_MEMORY;

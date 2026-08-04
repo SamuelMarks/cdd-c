@@ -1,4 +1,5 @@
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "url_utils.h"
 #include <parson.h>
 #include <stdio.h>
@@ -27,16 +28,16 @@ cdd_c_error_t ApiError_cleanup(struct ApiError *err) {
   if (!err)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (err->type)
-    free(err->type);
+    C_CDD_FREE(err->type);
   if (err->title)
-    free(err->title);
+    C_CDD_FREE(err->title);
   if (err->detail)
-    free(err->detail);
+    C_CDD_FREE(err->detail);
   if (err->instance)
-    free(err->instance);
+    C_CDD_FREE(err->instance);
   if (err->raw_body)
-    free(err->raw_body);
-  free(err);
+    C_CDD_FREE(err->raw_body);
+  C_CDD_FREE(err);
   return CDD_C_SUCCESS;
 }
 
@@ -49,10 +50,10 @@ static cdd_c_error_t ApiError_from_json(const char *json,
   JSON_Object *obj;
   if (!json || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  *out = calloc(1, sizeof(struct ApiError));
+  *out = C_CDD_CALLOC(1, sizeof(struct ApiError));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
-  (*out)->raw_body = strdup(json);
+  (*out)->raw_body = C_CDD_STRDUP(json);
   root = json_parse_string(json);
   if (!root)
     return CDD_C_SUCCESS; /* Not JSON, return strict success but object only has
@@ -60,28 +61,28 @@ static cdd_c_error_t ApiError_from_json(const char *json,
   obj = json_value_get_object(root);
   if (obj) {
     if (json_object_has_value(obj, "type")) {
-      (*out)->type = strdup(json_object_get_string(obj, "type"));
+      (*out)->type = C_CDD_STRDUP(json_object_get_string(obj, "type"));
       if (!(*out)->type) {
         json_value_free(root);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (json_object_has_value(obj, "title")) {
-      (*out)->title = strdup(json_object_get_string(obj, "title"));
+      (*out)->title = C_CDD_STRDUP(json_object_get_string(obj, "title"));
       if (!(*out)->title) {
         json_value_free(root);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (json_object_has_value(obj, "detail")) {
-      (*out)->detail = strdup(json_object_get_string(obj, "detail"));
+      (*out)->detail = C_CDD_STRDUP(json_object_get_string(obj, "detail"));
       if (!(*out)->detail) {
         json_value_free(root);
         return CDD_C_ERROR_MEMORY;
       }
     }
     if (json_object_has_value(obj, "instance")) {
-      (*out)->instance = strdup(json_object_get_string(obj, "instance"));
+      (*out)->instance = C_CDD_STRDUP(json_object_get_string(obj, "instance"));
       if (!(*out)->instance) {
         json_value_free(root);
         return CDD_C_ERROR_MEMORY;
@@ -106,7 +107,7 @@ cdd_c_error_t api_init(struct HttpClient *client, const char *base_url) {
     base_url = default_url;
   }
   if (base_url) {
-    client->base_url = malloc(strlen(base_url) + 1);
+    client->base_url = C_CDD_MALLOC(strlen(base_url) + 1);
     if (!client->base_url)
       return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -214,7 +215,7 @@ cleanup:
   http_request_free(&req);
   if (res) {
     http_response_free(res);
-    free(res);
+    C_CDD_FREE(res);
   }
   return rc;
 }

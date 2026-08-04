@@ -7,6 +7,7 @@
 
 /* clang-format off */
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include "cdd_c_error.h"
 #include <string.h>
 #include <c_cdd_stdbool.h>

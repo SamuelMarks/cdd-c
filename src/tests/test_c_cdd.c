@@ -47,6 +47,9 @@ static FILE* cdd_test_tmpfile(void) {
 #include "test_cdd_api.h"
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_cst_printer.h"
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_alloc_fail;
+#endif
 #include "emit/test_codegen_build.h"
 #include "emit/test_codegen_client_body.h"
 #include "emit/test_codegen_client_sig.h"
@@ -272,6 +275,27 @@ int main(int argc, char **argv) {
   RUN_SUITE(root_array_suite);
   RUN_SUITE(codegen_sdk_tests_suite);
   RUN_SUITE(cst_parser_suite);
+  {
+    cdd_cst_tree_t *tree = NULL;
+    const char *snippet =
+        "#ifdef A\n#elif B\n#else\n{ int z1; }\n{ int z2; }\n{ int z3; }\n{ "
+        "int z4; }\n{ int z5; }\n{ int z6; }\n{ int z7; }\n{ int z8; }\n{ int "
+        "z9; }\n{ int z10; }\n#endif\n#ifndef C\n{ int w; }\n#endif\n#define D "
+        "1\n#include <stdio.h>\n#pragma once\ntemplate <typename T1, typename "
+        "T2, typename T3, typename T4, typename T5, typename T6, typename T7, "
+        "typename T8, typename T9, typename T10>\nclass Foo : public Bar, "
+        "private Baz {\npublic:\n  void baz() noexcept(true) {}\n  ~Foo();\n  "
+        "int operator+(int);\nprotected:\n  int x;\nprivate:\n  int "
+        "y;\n};\nnamespace N {\n  using namespace std;\n  void f() {\n    try "
+        "{\n      throw 1;\n    } catch (int e) {\n    } catch (...) {\n    "
+        "}\n  }\n}\nint main() { asm(\"nop\"); return 0; }\n";
+    cdd_c_error_t rc =
+        cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+    printf("PARSE RC = %d, num_children = %zu, capacity = %zu\n", rc,
+           tree->root->num_children, tree->root->capacity);
+    if (tree)
+      cdd_cst_tree_free(tree);
+  }
   RUN_SUITE(cdd_lexer_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return 0;

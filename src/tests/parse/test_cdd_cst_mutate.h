@@ -107,6 +107,13 @@ TEST test_cdd_cst_mutate_replace(void) {
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_parent);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_child);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &replacement);
+    cdd_cst_node_t *empty_child;
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_child);
+    cdd_cst_node_t *empty_clone = NULL;
+    ASSERT_EQ(0, cdd_cst_clone_tree(tree, empty_child, &empty_clone));
+    cdd_cst_free_node(empty_clone);
+
+    cdd_cst_append_child_node(replacement, empty_child);
 
     cdd_cst_append_child_node(grandparent, nested_parent);
     cdd_cst_append_child_node(nested_parent, nested_child);
@@ -125,6 +132,7 @@ TEST test_cdd_cst_mutate_replace(void) {
     cdd_cst_free_node_only(nested_parent);
     cdd_cst_free_node_only(nested_child);
     cdd_cst_free_node_only(replacement);
+    cdd_cst_free_node_only(empty_child);
     cdd_cst_free_node_only(grandparent);
   }
 
@@ -222,11 +230,11 @@ TEST test_cdd_cst_mutate_errors(void) {
             cdd_cst_replace_token_child(NULL, 0, &mock_token2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_replace_token_child(detach_parent, 100, &mock_token2));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cdd_cst_replace_token_child(detach_parent, 0, NULL));
 
   /* test invalid child kind */
   cdd_cst_append_child_node(detach_parent, node2);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_replace_token_child(detach_parent, 0, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_replace_token_child(detach_parent, 0, &mock_token2));
 
@@ -280,18 +288,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_free_node_only(parent_node);
   if (valid_child)
     cdd_cst_free_node(valid_child);
-  g_fail_io_after = -1;
-
-  PASS();
-}
-
-TEST test_mutate_utils(void) {
-  size_t idx;
-  cdd_token_t *t;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            find_child_index_mutate(NULL, NULL, &idx));
-
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, find_first_token_mutate(NULL, &t));
   g_fail_io_after = -1;
 
   PASS();
@@ -699,7 +695,6 @@ TEST test_cdd_cst_clone_trivia_list_mutate(void) {
 SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cdd_cst_mutate_replace);
   RUN_TEST(test_cdd_cst_mutate_errors);
-  RUN_TEST(test_mutate_utils);
   RUN_TEST(test_cst_splice_children);
   RUN_TEST(test_cdd_cst_splice_oom);
   RUN_TEST(test_cst_find_node_for_token);

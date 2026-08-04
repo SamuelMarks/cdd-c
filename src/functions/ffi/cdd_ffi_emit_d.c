@@ -74,9 +74,14 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
                              const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   char filepath[1024];
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
   const char *module_name =
-      config->module_name ? config->module_name : "bindings";
+      config
+          ? ((config && config->module_name) ? config->module_name : "bindings")
+          : "bindings";
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {

@@ -3,6 +3,7 @@
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
 #include "cdd_lexer.h"
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -464,8 +465,6 @@ static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_cst_alloc_token_fail;
 #endif
-  if (!out_str)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_str = NULL;
 #ifdef CDD_BUILD_TESTS
   if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
@@ -473,20 +472,17 @@ static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
 #endif
   if (!tree || !str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#if defined(_MSC_VER)
-  dup = _strdup(str);
-#else
-  dup = strdup(str);
-#endif
+
+  dup = C_CDD_STRDUP(str);
   if (!dup)
     return CDD_C_ERROR_MEMORY;
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
     char **new_pool =
-        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+        (char **)C_CDD_REALLOC(tree->string_pool, new_cap * sizeof(char *));
     if (!new_pool) {
-      free(dup);
+      C_CDD_FREE(dup);
       return CDD_C_ERROR_MEMORY;
     }
     tree->string_pool = new_pool;
@@ -696,7 +692,7 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
     t = NULL;
   else
 #endif
-    t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    t = (cdd_trivia_t *)C_CDD_CALLOC(1, sizeof(cdd_trivia_t));
 
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -704,7 +700,7 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
   }
   pool_rc = pool_string(tree, text, (const char **)&dup);
   if (pool_rc != CDD_C_SUCCESS) {
-    free(t);
+    C_CDD_FREE(t);
     return pool_rc;
   }
 
@@ -739,10 +735,6 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
     builder->error_state = rc;
     return rc;
   }
-  if (!trivia) {
-    builder->error_state = CDD_C_ERROR_MEMORY;
-    return CDD_C_ERROR_MEMORY;
-  }
 
   if (builder->target_node->num_children > 0) {
     cdd_cst_child_t *last =
@@ -770,15 +762,16 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
     cdd_c_error_t pool_rc = pool_string(builder->tree, buf, &pooled);
 
     if (pool_rc != CDD_C_SUCCESS) {
-      free(trivia);
+      C_CDD_FREE(trivia);
       return pool_rc;
     }
     rc = cdd_cst_bld_token(builder, CDD_TOKEN_OTHER, pooled);
     if (rc != CDD_C_SUCCESS) {
-      free(trivia);
+      C_CDD_FREE(trivia);
       return rc;
     }
-    free(trivia); /* since it became a real token via string pool mapping */
+    C_CDD_FREE(
+        trivia); /* since it became a real token via string pool mapping */
     return CDD_C_SUCCESS;
   }
 }
@@ -818,11 +811,7 @@ static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
     } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_token_t *t = NULL;
       cdd_c_error_t rc = get_last_token(node->children[i].val.node, &t);
-      if (rc != CDD_C_SUCCESS) {
-        if (rc != CDD_C_ERROR_NOT_FOUND) {
-          return rc;
-        }
-      } else if (t) {
+      if (rc == CDD_C_SUCCESS && t) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -839,7 +828,7 @@ cdd_c_error_t cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
   rc = get_first_token(node, &t);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
     return rc;
   if (t) {
     *out_trivia = t->leading_trivia;
@@ -856,7 +845,7 @@ cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
   rc = get_last_token(node, &t);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
     return rc;
   if (t) {
     *out_trivia = t->trailing_trivia;
@@ -867,27 +856,20 @@ cdd_c_error_t cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
 
 cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
                                       cdd_cst_node_t *target_node) {
-  cdd_trivia_t *lead;
-  cdd_trivia_t *trail;
+  cdd_trivia_t *lead = NULL;
+  cdd_trivia_t *trail = NULL;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
   cdd_c_error_t rc;
 
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = cdd_cst_extract_leading_trivia(source_node, &lead);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  rc = cdd_cst_extract_trailing_trivia(source_node, &trail);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
 
-  rc = get_first_token(target_node, &t_first);
-  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-    return rc;
-  rc = get_last_token(target_node, &t_last);
-  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
-    return rc;
+  cdd_cst_extract_leading_trivia(source_node, &lead);
+  cdd_cst_extract_trailing_trivia(source_node, &trail);
+
+  get_first_token(target_node, &t_first);
+  get_last_token(target_node, &t_last);
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
@@ -926,9 +908,7 @@ cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
     return (cdd_c_error_t)builder->error_state;
 
   /* transfer_trivia unbinds trivia from target and moves to replacement */
-  rc = cdd_cst_transfer_trivia(target_node, replacement_node);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
+  cdd_cst_transfer_trivia(target_node, replacement_node);
 
   /* utilize underlying replace mechanism which handles parent array swapping */
   rc = cdd_cst_replace_node(builder->tree, target_node, replacement_node);
@@ -959,10 +939,11 @@ cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
       children_wrappers = NULL;
     else
       children_wrappers =
-          (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
+          (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
   }
 #else
-  children_wrappers = (cdd_cst_child_t *)calloc(count, sizeof(cdd_cst_child_t));
+  children_wrappers =
+      (cdd_cst_child_t *)C_CDD_CALLOC(count, sizeof(cdd_cst_child_t));
 #endif
   if (!children_wrappers) {
     builder->error_state = CDD_C_ERROR_MEMORY;
@@ -977,7 +958,7 @@ cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   /* 0 elements to consume, we are just inserting them */
   rc = cdd_cst_splice_children(builder->tree, &parent, index, 0,
                                children_wrappers, count);
-  free(children_wrappers);
+  C_CDD_FREE(children_wrappers);
 
   if (rc != CDD_C_SUCCESS) {
     builder->error_state = rc;

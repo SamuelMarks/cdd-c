@@ -15,7 +15,7 @@ extern volatile int g_fail_io_after;
 
 static void lispify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
+  if (!c_name)
     return;
   while (c_name[i] && j < out_sz - 1) {
     if (c_name[i] == '_') {
@@ -151,8 +151,7 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
 
   if (g_fail_io_after == 555) {
-    if (asd_f)
-      fclose(asd_f);
+    fclose(asd_f);
     asd_f = NULL;
   }
 #endif

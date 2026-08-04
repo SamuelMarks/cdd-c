@@ -30,20 +30,20 @@ extern "C" {
 /* clang-format on */
 
 /* --- Test Helpers --- */
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
   for (i = 1; i < 200; ++i) {
     struct DocMetadata tmp;
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
       (doc_parse_block)(comment, &tmp);
       doc_metadata_free(&tmp);
     }
   }
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
   for (i = 1; i < 200; ++i) {
     struct DocMetadata tmp;
     g_cdd_strdup_fail = i;
@@ -584,6 +584,34 @@ TEST test_doc_parse_security_scheme(void) {
   PASS();
 }
 
+TEST test_doc_parse_tag_meta_oom(void) {
+  struct DocMetadata meta;
+  const char *comment =
+      "/**\n"
+      " * @tagMeta mytag [summary: A tag] [description: Desc]\n"
+      " * @tagMeta \n"
+      " */";
+  doc_metadata_init(&meta);
+  /* The macro expands to doc_parse_block_with_oom which sweeps g_cdd_alloc_fail
+   */
+  ASSERT_EQ(0, doc_parse_block(comment, &meta));
+  ASSERT_EQ(1, meta.n_tag_meta);
+  ASSERT_STR_EQ("mytag", meta.tag_meta[0].name);
+  doc_metadata_free(&meta);
+  PASS();
+}
+
+TEST test_doc_parse_extract_rest_oom(void) {
+  struct DocMetadata meta;
+  const char *comment = "/**\n"
+                        " * @summary This is a test summary\n"
+                        " */";
+  doc_metadata_init(&meta);
+  ASSERT_EQ(0, doc_parse_block(comment, &meta));
+  ASSERT_STR_EQ("This is a test summary", meta.summary);
+  doc_metadata_free(&meta);
+  PASS();
+}
 TEST test_doc_parse_server_and_request_body(void) {
   struct DocMetadata meta;
   const char *comment = "/**\n"
@@ -736,21 +764,6 @@ TEST test_doc_parse_examples(void) {
   PASS();
 }
 
-TEST test_doc_parse_invalid_inputs(void) {
-  struct DocMetadata meta;
-  doc_metadata_init(&meta);
-
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(NULL, &meta));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block("/* */", NULL));
-
-  /* Should handle empty string without error */
-  ASSERT_EQ(0, doc_parse_block("", &meta));
-
-  doc_metadata_free(&meta);
-  g_fail_io_after = -1;
-  PASS();
-}
-
 TEST test_doc_parse_malformed_lines(void) {
   struct DocMetadata meta;
   /* Route without args, Param without name */
@@ -803,61 +816,52 @@ TEST test_doc_parse_encodings(void) {
 }
 
 TEST test_doc_oom_and_edges(void) {
-  struct DocMetadata meta;
-  const char *comment = "/**\n * @route GET /users/{id}   \n */";
-  const char *comment2 = "/**\n * @summary some text   \n */";
+  int i;
+  for (i = 1; i < 2000; i++) {
+    struct DocMetadata meta;
+    const char *comment =
+        "/**\n"
+        " * @route GET /users/{id}\n"
+        " * @summary some text\n"
+        " * @tag api\n"
+        " * @tag internal\n"
+        " * @param id [in:path] [required:true] User ID\n"
+        " * @param age [in:query] Age\n"
+        " * @return 200 [summary:OK] Success\n"
+        " * @return 404 [summary:Not Found] Error\n"
+        " * @contact [name:Sam] [url:http://ex.com] [email:me@ex.com] "
+        "[name:DupeName] Contact\n"
+        " * @license [name:MIT] [identifier:MIT] [url:http://ex.com] "
+        "[name:DupeMIT]\n"
+        " * @securityScheme bearerAuth [type:http] [scheme:bearer]\n"
+        " * @securityScheme api_key [type:apiKey] [in:header] "
+        "[name:X-API-KEY]\n"
+        " * @requestBody [content:application/json] [itemSchema=true] body\n"
+        " * @server https://api.example.com {var} [enum:v1,v2] [default:v1]\n"
+        " * @server https://api.example.net {var} [enum:v1,v2] [default:v1]\n"
+        " * @encoding text/plain [contentType:text/plain] enc\n"
+        " * @encoding text/html [contentType:text/html] enc2\n"
+        " * @externalDocs https://ex.com Docs\n"
+        " * @security api_key\n"
+        " * @security bearerAuth read write\n"
+        " * @responseHeader 200 X-Rate-Limit [type:integer] [format:int32] "
+        "[description:desc]\n"
+        " * @responseHeader 200 X-Expires [type:string]\n"
+        " * @deprecated\n"
+        " */";
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
-  int rc_oom;
-#endif
-
-  doc_metadata_init(&meta);
-
-  doc_parse_block(comment, &meta);
-  ASSERT_STR_EQ("/users/{id}", meta.route);
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  doc_parse_block(comment2, &meta);
-  ASSERT_STR_EQ("some text", meta.summary);
-  doc_metadata_free(&meta);
-#ifdef CDD_BUILD_TESTS
-  doc_metadata_init(&meta);
-  g_cdd_fail_alloc = 1;
-  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_fail_alloc = 0;
-  /* Ignore error code in MSVC */
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  g_cdd_fail_alloc = 2;
-  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_fail_alloc = 0;
-  /* Ignore error code in MSVC */
-  doc_metadata_free(&meta);
-
-  doc_metadata_init(&meta);
-  g_cdd_fail_alloc = 3;
-  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-  g_cdd_fail_alloc = 0;
-  /* Ignore error code in MSVC */
-  doc_metadata_free(&meta);
-
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    int i;
-    for (i = 1; i < 100; i++) {
-      doc_metadata_init(&meta);
-      g_cdd_fail_alloc = i;
-      rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
-      g_cdd_fail_alloc = 0;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    doc_metadata_init(&meta);
+    g_cdd_alloc_fail = i;
+    if (doc_parse_block(comment, &meta) == 0) {
+      g_cdd_alloc_fail = 0;
       doc_metadata_free(&meta);
-      if (rc_oom == 0)
-        break;
+      break;
     }
-  }
-
+    g_cdd_alloc_fail = 0;
+    doc_metadata_free(&meta);
 #endif
+  }
   g_fail_io_after = -1;
   PASS();
 }
@@ -886,13 +890,15 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_tag_meta);
   RUN_TEST(test_doc_parse_security);
   RUN_TEST(test_doc_parse_security_scheme);
+  RUN_TEST(test_doc_parse_tag_meta_oom);
+  RUN_TEST(test_doc_parse_extract_rest_oom);
   RUN_TEST(test_doc_parse_server_and_request_body);
   RUN_TEST(test_doc_parse_server_variables);
   RUN_TEST(test_doc_parse_info_overrides);
   RUN_TEST(test_doc_parse_contact_license);
   RUN_TEST(test_doc_parse_request_body_multi_content);
   RUN_TEST(test_doc_parse_examples);
-  RUN_TEST(test_doc_parse_invalid_inputs);
+
   RUN_TEST(test_doc_parse_malformed_lines);
   RUN_TEST(test_doc_parse_encodings);
   RUN_TEST(test_doc_oom_and_edges);

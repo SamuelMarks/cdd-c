@@ -641,16 +641,18 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "int %s_debug(const struct %s *obj, FILE *fp) {\n",
-                        struct_name, struct_name));
-  CHECK_IO(FPRINTF_HOOK(fp, "  int rc = 0;\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "cdd_c_error_t %s_debug(const struct %s *obj, FILE *fp) {\n",
+      struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  int fprintf_rc = 0;\n  cdd_c_error_t rc = CDD_C_SUCCESS;\n"));
   CHECK_IO(
       FPRINTF_HOOK(fp, "  if (!fp) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
   CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) { return fprintf(fp, "
                             "\"(null)\\n\") < 0 ? -1 : 0; }\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"struct %s {\\n\");\n",
+  CHECK_IO(FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"struct %s {\\n\");\n",
                         struct_name));
-  CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
 
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  { size_t i;\n"));
@@ -662,65 +664,82 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     get_type_from_ref(sf->fields[i].ref, &r);
 
     if (strcmp(t, "string") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "  fprintf_rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s ? "
+          "obj->%s : \"(null)\");\n",
+          n, n, n));
       CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "  rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s ? "
-                       "obj->%s : \"(null)\");\n",
-                       n, n, n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: \");\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"  %s: \");\n", n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
       CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_debug(obj->%s, fp);\n", r, n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc != 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc != CDD_C_SUCCESS) return rc;\n"));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: [\\n\");\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"  %s: [\\n\");\n", n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
       CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "enum") == 0) {
         CHECK_IO(FPRINTF_HOOK(
-            fp, "    rc = fprintf(fp, \"    %%d\\n\", (int)obj->%s[i]);\n", n));
-      } else if (strcmp(r, "number") == 0) {
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "    rc = fprintf(fp, \"    %%f\\n\", (double)obj->%s[i]);\n",
+            fp,
+            "    fprintf_rc = fprintf(fp, \"    %%d\\n\", (int)obj->%s[i]);\n",
             n));
-      } else if (strcmp(r, "string") == 0) {
+      } else if (strcmp(r, "number") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp,
-                              "    rc = fprintf(fp, \"    \\\"%%s\\\"\\n\", "
-                              "obj->%s[i] ? obj->%s[i] : \"(null)\");\n",
-                              n, n));
+                              "    fprintf_rc = fprintf(fp, \"    %%f\\n\", "
+                              "(double)obj->%s[i]);\n",
+                              n));
+      } else if (strcmp(r, "string") == 0) {
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "    fprintf_rc = fprintf(fp, \"    \\\"%%s\\\"\\n\", "
+                         "obj->%s[i] ? obj->%s[i] : \"(null)\");\n",
+                         n, n));
       } else {
         CHECK_IO(
             FPRINTF_HOOK(fp, "    rc = %s_debug(obj->%s[i], fp);\n", r, n));
-        CHECK_IO(FPRINTF_HOOK(fp, "    if (rc != 0) return rc;\n"));
+        CHECK_IO(FPRINTF_HOOK(fp, "    if (rc != CDD_C_SUCCESS) return rc;\n"));
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "    if (rc < 0) return rc;\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "    if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
       CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  ]\\n\");\n"));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"  ]\\n\");\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     } else if (strcmp(t, "integer") == 0 || strcmp(t, "boolean") == 0 ||
                strcmp(t, "enum") == 0) {
       CHECK_IO(FPRINTF_HOOK(
-          fp, "  rc = fprintf(fp, \"  %s: %%d\\n\", (int)obj->%s);\n", n, n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+          fp, "  fprintf_rc = fprintf(fp, \"  %s: %%d\\n\", (int)obj->%s);\n",
+          n, n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     } else if (strcmp(t, "number") == 0) {
       CHECK_IO(FPRINTF_HOOK(
-          fp, "  rc = fprintf(fp, \"  %s: %%f\\n\", (double)obj->%s);\n", n,
+          fp,
+          "  fprintf_rc = fprintf(fp, \"  %s: %%f\\n\", (double)obj->%s);\n", n,
           n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
-    } else {
       CHECK_IO(
-          FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: (unknown)\\n\");\n", n));
-      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
+    } else {
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "  fprintf_rc = fprintf(fp, \"  %s: (unknown)\\n\");\n", n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (fprintf_rc < 0) return CDD_C_ERROR_IO;\n"));
     }
   }
 
   if (iter_needed)
     CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"}\\n\");\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  return rc < 0 ? rc : 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  fprintf_rc = fprintf(fp, \"}\\n\");\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  return fprintf_rc < 0 ? CDD_C_ERROR_IO : CDD_C_SUCCESS;\n}\n"));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
@@ -741,9 +760,9 @@ write_struct_display_func(FILE *fp, const char *struct_name,
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(FPRINTF_HOOK(fp,
-                        "int %s_display(const struct %s *obj, FILE *fp) {\n",
-                        struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "cdd_c_error_t %s_display(const struct %s *obj, FILE *fp) {\n",
+      struct_name, struct_name));
   CHECK_IO(FPRINTF_HOOK(fp, "  return %s_debug(obj, fp);\n}\n", struct_name));
 
   if (config && config->guard_macro)

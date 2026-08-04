@@ -1,3 +1,4 @@
+#include "c_cdd/memory.h"
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define _CRT_RAND_S
 #endif
@@ -217,7 +218,11 @@ cdd_c_error_t get_basename(const char *path, char **out) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!path || !*path) {
-    *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      *out = NULL;
+    } else {
+      *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
+    }
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -229,7 +234,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 
   /* Check if it was all separators (e.g. "///") -> returns "/" */
   if (p == path && (*p == '/' || *p == '\\')) {
-    *out = (char *)malloc(2);
+    *out = (char *)C_CDD_MALLOC(2);
     if (!*out)
       return CDD_C_ERROR_MEMORY;
     (*out)[0] = '/';
@@ -244,7 +249,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   }
 
   len = (size_t)(p - start_p) + 1;
-  ret = (char *)malloc(len + 1);
+  ret = (char *)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -272,7 +277,11 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!path || !*path) {
-    *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      *out = NULL;
+    } else {
+      *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
+    }
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -292,7 +301,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   if (p == path) {
     if (*p == '/' || *p == '\\') {
       len = 1; /* Root */
-      ret = (char *)malloc(2);
+      ret = (char *)C_CDD_MALLOC(2);
       if (!ret)
         return CDD_C_ERROR_MEMORY;
       ret[0] = '/';
@@ -301,7 +310,11 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
       return CDD_C_SUCCESS;
     } else {
       /* No separator found, e.g. "foo" -> "." */
-      *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
+      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+        *out = NULL;
+      } else {
+        *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
+      }
       return *out ? 0 : ENOMEM;
     }
   } else {
@@ -316,11 +329,15 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   }
 
   if (len == 0) {
-    *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      *out = NULL;
+    } else {
+      *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
+    }
     return *out ? 0 : ENOMEM;
   }
 
-  ret = (char *)malloc(len + 1);
+  ret = (char *)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -519,7 +536,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* If buffer handles huge files, standard capacity doubling is fine */
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
-      char *new_buffer = (char *)realloc(buffer, new_capacity);
+      char *new_buffer = (char *)C_CDD_REALLOC(buffer, new_capacity);
       if (!new_buffer) {
         free(buffer);
         return CDD_C_ERROR_MEMORY;
@@ -546,7 +563,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     buffer[total_read] = '\0';
   } else {
     /* Empty file case, allocate distinct empty string */
-    buffer = (char *)malloc(1);
+    buffer = (char *)C_CDD_MALLOC(1);
     if (!buffer) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -691,7 +708,11 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
+  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+    dup_path = NULL;
+  } else {
+    dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
+  }
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -760,6 +781,10 @@ cdd_c_error_t tempdir(char **out_path) {
   if (!env || *env == '\0')
     env = getenv("TEMP");
   if (env && *env != '\0') {
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      *out_path = NULL;
+      return CDD_C_ERROR_MEMORY;
+    }
     *out_path = (c_cdd_strdup(env, &_ast_strdup_5), _ast_strdup_5);
     return *out_path ? 0 : ENOMEM;
   }
@@ -770,7 +795,7 @@ cdd_c_error_t tempdir(char **out_path) {
     len = GetTempPathA(0, NULL);
     if (len == 0)
       return CDD_C_ERROR_IO;
-    *out_path = malloc(len + 1);
+    *out_path = C_CDD_MALLOC(len + 1);
     if (!*out_path)
       return CDD_C_ERROR_MEMORY;
     if (GetTempPathA(len + 1, *out_path) == 0) {
@@ -790,7 +815,11 @@ cdd_c_error_t tempdir(char **out_path) {
 #else
   {
 #ifdef P_tmpdir
-    *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      *out_path = NULL;
+    } else {
+      *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
+    }
 #else
     *out_path = (c_cdd_strdup("/tmp", &_ast_strdup_5), _ast_strdup_5);
 #endif
@@ -858,6 +887,10 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
         free(tmpdir_path);
         return err;
       }
+      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+        free(tmpdir_path);
+        return CDD_C_ERROR_MEMORY;
+      }
       if (asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, number,
                    suffix == NULL ? "" : suffix) == -1) {
@@ -871,6 +904,10 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
        * The assumption is arc4random is available in this env based on previous
        * context. */
       uint32_t number = (uint32_t)rand();
+      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+        free(tmpdir_path);
+        return CDD_C_ERROR_MEMORY;
+      }
       if (asprintf(&tmpfilename, "%s%c%s%lu%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, (unsigned long)number,
                    suffix == NULL ? "" : suffix) == -1) {

@@ -79,7 +79,10 @@ emit_haskell_file(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "MyLib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "MyLib")
+          : "MyLib";
   char module_name[256];
 
   to_camel_case(lib_name, module_name, sizeof(module_name));

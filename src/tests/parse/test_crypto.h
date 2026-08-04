@@ -93,6 +93,7 @@ TEST test_sha256_empty_string(void) {
   ASSERT_EQ(0, crypto_sha256(NULL, 0, digest));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256(NULL, 1, digest));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256("", 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, crypto_sha256(NULL, 0, NULL));
 
   ASSERT_EQ(0, crypto_sha256("", 0, digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
@@ -199,6 +200,12 @@ TEST test_hmac_empty_keys_or_data(void) {
   /* Null Output */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             crypto_hmac_sha256(key, strlen(key), data, strlen(data), NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(NULL, 0, data, strlen(data), NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(key, strlen(key), NULL, 0, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            crypto_hmac_sha256(NULL, 0, NULL, 0, NULL));
 
   /* Null Key logic varies by backend, but if key_len > 0 and key is null,
    * CDD_C_ERROR_INVALID_ARGUMENT */

@@ -127,7 +127,63 @@ TEST test_vcpkg_builder_extras(void) {
 /**
  * @brief Vcpkg integration test suite.
  */
+
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+#endif
+
+TEST test_vcpkg_builder_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct VcpkgManifestBuilder builder;
+  char *json = NULL;
+  const char *src = "#include <stdio.h>\n"
+                    "#ifndef _MSC_VER\n"
+                    "#include <pthread.h>\n"
+                    "#endif\n"
+                    "#include \"local.h\"\n"
+                    "#include <zlib.h>\n";
+
+  int i;
+  for (i = 1; i < 20; i++) {
+    g_cdd_alloc_fail = i;
+    int rc = vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj");
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      vcpkg_builder_free(&builder);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+
+  for (i = 1; i < 5; i++) {
+    vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj");
+    g_cdd_alloc_fail = i;
+    int rc = vcpkg_builder_add_dep(&builder, "pthreads");
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      vcpkg_builder_free(&builder);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    vcpkg_builder_free(&builder);
+  }
+
+  vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj");
+  vcpkg_builder_scan_source(&builder, src);
+  g_cdd_alloc_fail = 1;
+  int rc = vcpkg_builder_generate(&builder, &json);
+  g_cdd_alloc_fail = 0;
+  if (rc != CDD_C_ERROR_MEMORY) {
+    printf("GENERATE RC: %d\n", rc);
+  }
+  vcpkg_builder_free(&builder);
+
+#endif
+  PASS();
+}
+
 SUITE(vcpkg_integration_suite) {
+  RUN_TEST(test_vcpkg_builder_oom);
   RUN_TEST(test_vcpkg_builder_basic);
   RUN_TEST(test_vcpkg_builder_duplicate);
   RUN_TEST(test_vcpkg_builder_errors);

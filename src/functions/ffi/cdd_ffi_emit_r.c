@@ -52,7 +52,10 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.R", config->output_dir,

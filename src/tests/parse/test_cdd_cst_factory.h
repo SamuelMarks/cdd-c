@@ -235,6 +235,12 @@ TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_node_t *node = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
+  g_cdd_cst_alloc_token_fail = 2;
+  cdd_cst_parse_format(tree, &node, "int x;");
+  if (node) {
+    cdd_cst_free_node(node);
+    node = NULL;
+  }
   g_cdd_cst_alloc_token_fail = 1;
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");

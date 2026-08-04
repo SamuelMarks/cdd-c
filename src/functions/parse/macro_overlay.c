@@ -13,6 +13,11 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc = 0;
+C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc = 0;
+#endif
+
 /**
  * @brief Initializes a macro overlay list.
  *
@@ -55,13 +60,28 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
 static cdd_c_error_t list_add(struct MacroOverlayList *list,
                               const struct CstNode *node,
                               struct CstNodeList *expanded) {
-  if (!list || !node)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
-    struct MacroOverlayNode *new_arr = (struct MacroOverlayNode *)realloc(
+    struct MacroOverlayNode *new_arr;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
+      if (g_cdd_macro_overlay_fail_realloc == 1) {
+        new_arr = NULL;
+        g_cdd_macro_overlay_fail_realloc = 0;
+      } else {
+        if (g_cdd_macro_overlay_fail_realloc > 1) {
+          g_cdd_macro_overlay_fail_realloc--;
+        }
+        new_arr = (struct MacroOverlayNode *)realloc(
+            list->nodes, new_cap * sizeof(struct MacroOverlayNode));
+      }
+    }
+#else
+    new_arr = (struct MacroOverlayNode *)realloc(
         list->nodes, new_cap * sizeof(struct MacroOverlayNode));
+#endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -94,8 +114,22 @@ cdd_c_error_t cst_build_macro_overlay(const struct CstNodeList *cst,
     if (n->kind == CST_NODE_MACRO) {
       /* Create a dummy expanded list for now, since actual preprocessor
          evaluation is a complex step that requires building a full env. */
-      struct CstNodeList *dummy_expanded =
+      struct CstNodeList *dummy_expanded;
+#ifdef CDD_BUILD_TESTS
+      {
+        extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+        if (g_cdd_macro_overlay_fail_calloc) {
+          dummy_expanded = NULL;
+          g_cdd_macro_overlay_fail_calloc = 0;
+        } else {
+          dummy_expanded =
+              (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+        }
+      }
+#else
+      dummy_expanded =
           (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
+#endif
       if (!dummy_expanded) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

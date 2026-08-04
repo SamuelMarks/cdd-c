@@ -44,7 +44,12 @@ TEST test_cdd_cst_cfg_basic(void) {
   }
   ASSERT(func != NULL);
 
+  cdd_cst_node_t *dummy_node;
+  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+  cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
+  func->num_children--;
+  cdd_cst_free_node_only(dummy_node);
 
   ASSERT_EQ(0, rc);
   ASSERT(cfg != NULL);
@@ -88,9 +93,10 @@ TEST test_cdd_cst_cfg_oom(void) {
 #endif
 
   {
-    const char *long_src = "int main() { if(1){} if(1){} if(1){} if(1){} "
-                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
-                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} }";
+    const char *long_src =
+        "int main() { if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+        "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+        "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
     rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);
@@ -163,7 +169,12 @@ TEST test_cdd_cst_cfg_empty(void) {
   }
   ASSERT(func != NULL);
 
+  cdd_cst_node_t *dummy_node;
+  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+  cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
+  func->num_children--;
+  cdd_cst_free_node_only(dummy_node);
   ASSERT_EQ(0, rc);
   ASSERT(cfg != NULL);
 
@@ -201,7 +212,12 @@ TEST test_cdd_cst_cfg_no_return(void) {
   }
   ASSERT(func != NULL);
 
+  cdd_cst_node_t *dummy_node;
+  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+  cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
+  func->num_children--;
+  cdd_cst_free_node_only(dummy_node);
   ASSERT_EQ(0, rc);
   ASSERT(cfg != NULL);
 
@@ -233,7 +249,12 @@ TEST test_cdd_cst_cfg_extra(void) {
     int i;
     for (i = 1; i < 100; ++i) {
       g_cdd_cfg_alloc_fail = i;
+      cdd_cst_node_t *dummy_node;
+      cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+      cdd_cst_append_child_node(func, dummy_node);
       rc = cdd_cst_cfg_build(func, &cfg);
+      func->num_children--;
+      cdd_cst_free_node_only(dummy_node);
       if (rc == 0) {
         cdd_cst_cfg_free(cfg);
         break;
@@ -245,9 +266,10 @@ TEST test_cdd_cst_cfg_extra(void) {
 #endif
 
   {
-    const char *long_src = "int main() { if(1){} if(1){} if(1){} if(1){} "
-                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
-                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} }";
+    const char *long_src =
+        "int main() { if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+        "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+        "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
     rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);

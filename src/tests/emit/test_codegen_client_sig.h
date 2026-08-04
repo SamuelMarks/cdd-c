@@ -1,3 +1,4 @@
+#include "routes/emit/client_gen.h"
 /**
  * @file test_codegen_client_sig.h
  * @brief Unit tests for C Client Signature Generation.
@@ -842,7 +843,136 @@ TEST test_sig_header_param_string(void) {
   g_fail_io_after = -1;
   PASS();
 }
+
+TEST test_sig_header_param_json(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code = NULL;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  op.operation_id = "testHeaderJson";
+  op.n_parameters = 1;
+  op.parameters = &param;
+
+  param.name = "X-MyHeader";
+  param.in = OA_PARAM_IN_HEADER;
+  param.content_type = "application/json";
+
+  /* Test primitive JSON type */
+  param.type = "integer";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  /* Test primitive JSON array */
+  param.type = "array";
+  param.is_array = 1;
+  param.items_type = "integer";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  /* Test non-primitive object */
+  param.type = "object";
+  param.is_array = 0;
+  param.items_type = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  /* Test non-primitive array */
+  param.type = "array";
+  param.is_array = 1;
+  param.items_type = "MyType";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  /* Test ref */
+  param.type = NULL;
+  param.is_array = 0;
+  param.schema.ref_name = "MyType";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  /* Test inline object array */
+  param.type = "array";
+  param.is_array = 1;
+  param.schema.ref_name = NULL;
+  param.items_type = "object";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  ASSERT(code != NULL);
+  free(code);
+  code = NULL;
+
+  PASS();
+}
+TEST test_sig_media_type_branches(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_MediaType mt;
+  char *code = NULL;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+  memset(&mt, 0, sizeof(mt));
+
+  op.operation_id = "testMediaTypes";
+  op.n_parameters = 1;
+  op.parameters = &param;
+
+  param.name = "myParam";
+  param.in = OA_PARAM_IN_QUERY;
+
+  /* upper case testing */
+  param.content_type = "APPLICATION/JSON";
+  param.type = "object";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  /* text/plain */
+  param.content_type = "TEXT/PLAIN";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  /* application/xml */
+  param.content_type = "APPLICATION/XML";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  /* multipart/form-data */
+  param.content_type = "MULTIPART/FORM-DATA";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  /* application/x-www-form-urlencoded */
+  param.content_type = "APPLICATION/X-WWW-FORM-URLENCODED";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  /* default fallback */
+  param.content_type = "UNKNOWN/TYPE";
+  ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
+  free(code);
+  code = NULL;
+
+  PASS();
+}
 SUITE(client_sig_suite) {
+
   RUN_TEST(test_sig_simple_get);
   RUN_TEST(test_sig_verify_apierror);
   RUN_TEST(test_sig_grouped);
@@ -875,6 +1005,8 @@ SUITE(client_sig_suite) {
   RUN_TEST(test_sig_header_param_integer);
   RUN_TEST(test_sig_header_param_number);
   RUN_TEST(test_sig_header_param_boolean);
+  RUN_TEST(test_sig_header_param_json);
+  RUN_TEST(test_sig_media_type_branches);
 }
 
 #endif /* TEST_CODEGEN_CLIENT_SIG_H */

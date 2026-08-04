@@ -61,7 +61,10 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name = config->library_name ? config->library_name : "mylib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "mylib")
+          : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ml", config->output_dir,

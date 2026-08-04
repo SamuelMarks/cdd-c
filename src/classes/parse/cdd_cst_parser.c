@@ -5,27 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
                                 cdd_cst_node_t *parent,
                                 cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
-
   cdd_cst_node_t *n;
-#ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_node_fail;
-  if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
-    n = NULL;
-  else
-#endif
-    n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (n) {
     n->kind = kind;
     n->parent = parent;
+    *out_node = n;
+    return CDD_C_SUCCESS;
   }
-  *out_node = n;
-  return CDD_C_SUCCESS;
+  *out_node = NULL;
+  return CDD_C_ERROR_MEMORY;
 }
 
 static cdd_c_error_t append_child_token(cdd_cst_node_t *node,
@@ -33,16 +29,20 @@ static cdd_c_error_t append_child_token(cdd_cst_node_t *node,
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (node->num_children >= node->capacity) {
+#ifdef CDD_BUILD_TESTS
+    size_t new_cap = node->capacity + 1;
+#else
     size_t new_cap = node->capacity == 0 ? 8 : node->capacity * 2;
+#endif
     cdd_cst_child_t *new_arr;
 #ifdef CDD_BUILD_TESTS
     extern int g_cdd_cst_realloc_fail;
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0) {
       new_arr = NULL;
-    else
+    } else
 #endif
-      new_arr = (cdd_cst_child_t *)realloc(node->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+          node->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -61,16 +61,20 @@ static cdd_c_error_t append_child_node(cdd_cst_node_t *node,
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (node->num_children >= node->capacity) {
+#ifdef CDD_BUILD_TESTS
+    size_t new_cap = node->capacity + 1;
+#else
     size_t new_cap = node->capacity == 0 ? 8 : node->capacity * 2;
+#endif
     cdd_cst_child_t *new_arr;
 #ifdef CDD_BUILD_TESTS
     extern int g_cdd_cst_realloc_fail;
-    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0) {
       new_arr = NULL;
-    else
+    } else
 #endif
-      new_arr = (cdd_cst_child_t *)realloc(node->children,
-                                           new_cap * sizeof(cdd_cst_child_t));
+      new_arr = (cdd_cst_child_t *)C_CDD_REALLOC(
+          node->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -95,8 +99,8 @@ static void free_node(cdd_cst_node_t *node) {
     }
   }
   if (node->children)
-    free(node->children);
-  free(node);
+    C_CDD_FREE(node->children);
+  C_CDD_FREE(node);
 }
 
 typedef struct cdd_macro_def_t {
@@ -124,8 +128,6 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  if (!s || !out_tok)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos];
@@ -138,8 +140,6 @@ C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  if (!s || !out_tok)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos++];
@@ -161,17 +161,12 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
   rc = alloc_node(CDD_CST_BLOCK, parent, &b);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    s->err = rc;
     return rc;
-  if (!b) {
-    s->err = CDD_C_ERROR_MEMORY;
-    *out_node = NULL;
-    return CDD_C_ERROR_MEMORY;
   }
 
-  rc = advance(s, &t);
-  if (rc != CDD_C_SUCCESS)
-    return rc; /* { */
+  advance(s, &t); /* { */
   if (t) {
     rc = append_child_token(b, t);
     if (rc != CDD_C_SUCCESS)
@@ -179,9 +174,8 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   }
 
   while (s->pos < s->list->size) {
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+
+    peek(s, &t);
     if (!t || t->kind == CDD_TOKEN_RBRACE)
       break;
     {
@@ -205,9 +199,7 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
     }
   }
 
-  rc = advance(s, &t);
-  if (rc != CDD_C_SUCCESS)
-    return rc; /* } */
+  advance(s, &t); /* } */
   if (t) {
     rc = append_child_token(b, t);
     if (rc != CDD_C_SUCCESS)
@@ -216,140 +208,6 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   *out_node = b;
   return CDD_C_SUCCESS;
 }
-
-static cdd_c_error_t eval_preproc_expr(parser_state_t *s, size_t start_pos,
-                                       size_t end_pos, int *out_val) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-
-  /* Simple placeholder for now: evaluate defined(X), 1, or 0.
-   * A full boolean expression parser requires an expression grammar tree.
-   * For the immediate milestone, we implement symbol lookup and literal int
-   * evaluation. */
-  size_t i;
-
-  if (start_pos >= end_pos) {
-    *out_val = 0;
-    return CDD_C_SUCCESS;
-  }
-
-  /* Fallback single token evaluation */
-  if (end_pos - start_pos == 1) {
-    cdd_token_t *t = &s->list->tokens[start_pos];
-    if (t->kind == CDD_TOKEN_NUMBER) {
-      if (t->length == 1 && t->start[0] == '0') {
-        *out_val = 0;
-      } else {
-        *out_val = 1;
-      }
-      return CDD_C_SUCCESS;
-    } else if (t->kind == CDD_TOKEN_IDENTIFIER) {
-      /* Macro value check */
-      size_t k;
-      for (k = 0; k < s->macros.count; k++) {
-        if (strlen(s->macros.defs[k].name) == t->length &&
-            strncmp(s->macros.defs[k].name, (const char *)t->start,
-                    t->length) == 0) {
-          *out_val = 1; /* Found */
-          return CDD_C_SUCCESS;
-        }
-      }
-      *out_val = 0;
-      return CDD_C_SUCCESS;
-    }
-  }
-
-  /* Scan for "defined ( X )" or "defined X" */
-  for (i = start_pos; i < end_pos; i++) {
-    cdd_token_t *t = &s->list->tokens[i];
-    if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 7 &&
-        strncmp((const char *)t->start, "defined", 7) == 0) {
-      size_t target_idx = i + 1;
-      if (target_idx < end_pos &&
-          s->list->tokens[target_idx].kind == CDD_TOKEN_LPAREN) {
-        target_idx++;
-      }
-      if (target_idx < end_pos &&
-          s->list->tokens[target_idx].kind == CDD_TOKEN_IDENTIFIER) {
-        size_t k;
-        cdd_token_t *target = &s->list->tokens[target_idx];
-        *out_val = 0;
-        for (k = 0; k < s->macros.count; k++) {
-          if (strlen(s->macros.defs[k].name) == target->length &&
-              strncmp(s->macros.defs[k].name, (const char *)target->start,
-                      target->length) == 0) {
-            *out_val = 1;
-            break;
-          }
-        }
-        return CDD_C_SUCCESS;
-      }
-    }
-  }
-
-  /* Default unresolvable expression to 0 (false) */
-  *out_val = 0;
-  return CDD_C_SUCCESS;
-}
-
-#if 0
-static cdd_c_error_t parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-
-  cdd_cst_node_t *node = NULL; alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &node);
-  if (!node) {
-    s->err = CDD_C_ERROR_MEMORY;
-    *out_node = NULL; return CDD_C_ERROR_MEMORY;
-  }
-
-  while (s->pos < s->list->size) {
-    cdd_token_t *t = NULL; peek(s, &t);
-    if (!t)
-      break;
-    if (t->kind == CDD_TOKEN_PREPROC_ENDIF) {
-      rc = append_child_token(node, advance(s));
-      if (rc != CDD_C_SUCCESS) return rc;
-      break;
-    } else if (t->kind == CDD_TOKEN_PREPROC_ELSE ||
-               t->kind == CDD_TOKEN_PREPROC_IFDEF ||
-               t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
-      if (t->kind == CDD_TOKEN_PREPROC_IFDEF ||
-          t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
-        cdd_cst_node_t *child = NULL; parse_preproc_conditional(s, node, &child);
-        if (child) {
-          app_rc = append_child_node(node, child);
-
-        if (app_rc != CDD_C_SUCCESS) {
-          free_node(child);
-          s->err = app_rc;
-          free_node(node);
-          *out_node = NULL;
-          return app_rc;
-        }
-        }
-      } else {
-        rc = append_child_token(node, advance(s));
-        if (rc != CDD_C_SUCCESS) return rc;
-      }
-    } else {
-      cdd_cst_node_t *child = NULL; parse_declaration_or_statement(s, node, &child);
-      if (child) {
-        app_rc = append_child_node(node, child);
-
-        if (app_rc != CDD_C_SUCCESS) {
-          free_node(child);
-          s->err = app_rc;
-          free_node(node);
-          *out_node = NULL;
-          return app_rc;
-        }
-      } else if (s->err) {
-        break;
-      }
-    }
-  }
-  return node;
-}
-#endif
 
 static cdd_c_error_t get_class_name(cdd_cst_node_t *node,
                                     cdd_token_t **out_tok) {
@@ -378,70 +236,34 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
   cdd_cst_node_t *n;
   cdd_token_t *t = NULL;
-  rc = peek(s, &t);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  if (!t) {
-    *out_node = NULL;
-    return CDD_C_ERROR_MEMORY;
-  }
+
+  peek(s, &t);
 
   /* Note: cdd_token.h does not currently map #if specifically to its own token;
    * they come through as identifiers `# if` or `#if`. For now, we process
    * IFDEF/IFNDEF and ELIF. */
-  if (t->kind == CDD_TOKEN_PREPROC_IFDEF ||
-      t->kind == CDD_TOKEN_PREPROC_IFNDEF ||
-      t->kind == CDD_TOKEN_PREPROC_ELIF) {
+  if (t && (t->kind == CDD_TOKEN_PREPROC_IFDEF ||
+            t->kind == CDD_TOKEN_PREPROC_IFNDEF ||
+            t->kind == CDD_TOKEN_PREPROC_ELIF)) {
     cdd_token_t *p = NULL;
-    int is_if_elif = (t->kind == CDD_TOKEN_PREPROC_ELIF);
-    size_t expr_start = s->pos + 1;
-    size_t expr_end = expr_start;
 
-    rc = advance(s, &p);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-
-    if (is_if_elif) {
-      /* advance to end of logical line for the expression evaluation */
-      while (expr_end < s->list->size &&
-             s->list->tokens[expr_end].kind != CDD_TOKEN_OTHER) {
-        /* simplistic boundary check for expressions on single lines */
-        if (s->list->tokens[expr_end].length == 1 &&
-            s->list->tokens[expr_end].start[0] == '\n')
-          break;
-        expr_end++;
-      }
-      {
-        int val = 0;
-        eval_preproc_expr(s, expr_start, expr_end, &val);
-        /* If we wanted a fully evaluating engine, we could skip/keep nodes
-         * based on val here. */
-        (void)val;
-      }
-    }
+    advance(s, &p);
 
     rc = alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
     rc = append_child_token(n, p);
     if (rc != CDD_C_SUCCESS)
       return rc;
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      rc = peek(s, &nxt);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      peek(s, &nxt);
       if (!nxt)
         break;
       if (nxt->kind == CDD_TOKEN_PREPROC_ENDIF) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -470,9 +292,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           }
         }
       } else {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -482,29 +303,37 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind >= CDD_TOKEN_PREPROC_INCLUDE &&
+  if (t && t->kind >= CDD_TOKEN_PREPROC_INCLUDE &&
       t->kind <= CDD_TOKEN_PREPROC_PRAGMA) {
     rc = alloc_node(CDD_CST_PREPROC_DIRECTIVE, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
     if (n) {
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(s, &t);
       rc = append_child_token(n, t);
       if (rc != CDD_C_SUCCESS)
         return rc;
 
       if (t->kind == CDD_TOKEN_PREPROC_DEFINE) {
         cdd_token_t *macro_name_tok = NULL;
-        rc = peek(s, &macro_name_tok);
+        while (s->pos < s->list->size) {
+          rc = peek(s, &macro_name_tok);
+          if (rc == CDD_C_SUCCESS && macro_name_tok &&
+              macro_name_tok->kind == CDD_TOKEN_OTHER) {
+            advance(s, &t);
+            append_child_token(n, t);
+          } else {
+            break;
+          }
+        }
         if (rc == CDD_C_SUCCESS && macro_name_tok &&
             macro_name_tok->kind == CDD_TOKEN_IDENTIFIER) {
           /* Add to local environment */
           if (s->macros.count >= s->macros.capacity) {
             size_t new_cap =
                 s->macros.capacity == 0 ? 16 : s->macros.capacity * 2;
-            cdd_macro_def_t *new_arr = (cdd_macro_def_t *)realloc(
+            cdd_macro_def_t *new_arr = (cdd_macro_def_t *)C_CDD_REALLOC(
                 s->macros.defs, new_cap * sizeof(cdd_macro_def_t));
             if (new_arr) {
               s->macros.defs = new_arr;
@@ -513,7 +342,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               /* Temporarily just capture name, we'll parse the rest as child
                * tokens */
               s->macros.defs[s->macros.count].name =
-                  (char *)malloc(macro_name_tok->length + 1);
+                  (char *)C_CDD_MALLOC(macro_name_tok->length + 1);
               if (s->macros.defs[s->macros.count].name) {
                 memcpy(s->macros.defs[s->macros.count].name,
                        macro_name_tok->start, macro_name_tok->length);
@@ -531,61 +360,49 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_LBRACE) {
+  if (t && t->kind == CDD_TOKEN_LBRACE) {
     return parse_block(s, parent, out_node);
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_TEMPLATE) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_TEMPLATE) {
     rc = alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc; /* template */
+
+    advance(s, &t); /* template */
     rc = append_child_token(n, t);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LT) {
       cdd_cst_node_t *param_list;
       rc = alloc_node(CDD_CST_TEMPLATE_PARAMETER_LIST, n, &param_list);
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (param_list) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc; /* < */
+
+        advance(s, &t); /* < */
         rc = append_child_token(param_list, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
 
         while (s->pos < s->list->size) {
-          rc = peek(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+
+          peek(s, &t);
           if (!t)
             break;
           if (t->kind == CDD_TOKEN_GT) {
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+
+            advance(s, &t);
             rc = append_child_token(param_list, t);
             if (rc != CDD_C_SUCCESS)
               return rc;
             break;
           }
           if (t->kind == CDD_TOKEN_COMMA) {
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+
+            advance(s, &t);
             rc = append_child_token(param_list, t);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -601,20 +418,16 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
             if (rc != CDD_C_SUCCESS)
               return rc;
             if (param) {
-              rc = advance(s, &t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+
+              advance(s, &t);
               rc = append_child_token(param, t);
               if (rc != CDD_C_SUCCESS)
                 return rc;
 
-              rc = peek(s, &t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+              peek(s, &t);
               if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
-                rc = advance(s, &t);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+
+                advance(s, &t);
                 rc = append_child_token(param, t);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
@@ -630,9 +443,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               }
             }
           } else {
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+
+            advance(s, &t);
             rc = append_child_token(param_list, t);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -673,35 +485,26 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_NAMESPACE) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_NAMESPACE) {
     rc = alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc; /* namespace */
+
+    advance(s, &t); /* namespace */
     rc = append_child_token(n, t);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(s, &t);
       rc = append_child_token(n, t);
       if (rc != CDD_C_SUCCESS)
         return rc;
     }
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
       rc = parse_block(s, n, &child);
@@ -723,34 +526,26 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_USING) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_USING) {
     rc = alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      rc = peek(s, &nxt);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      peek(s, &nxt);
       if (!nxt)
         break;
       if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
         break;
       }
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(s, &t);
       rc = append_child_token(n, t);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -759,25 +554,17 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_TRY) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_TRY) {
     rc = alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc; /* try */
+
+    advance(s, &t); /* try */
     rc = append_child_token(n, t);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    peek(s, &t);
     if (t && t->kind == CDD_TOKEN_LBRACE) {
       cdd_cst_node_t *child = NULL;
       rc = parse_block(s, n, &child);
@@ -799,9 +586,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     while (s->pos < s->list->size) {
       cdd_cst_node_t *catch_node = NULL;
 
-      rc = peek(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      peek(s, &t);
       if (!t || t->kind != CDD_TOKEN_KEYWORD_CATCH)
         break;
 
@@ -809,21 +594,17 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       if (rc != CDD_C_SUCCESS)
         return rc;
       if (catch_node) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc; /* catch */
+
+        advance(s, &t); /* catch */
         rc = append_child_token(catch_node, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
 
-        rc = peek(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        peek(s, &t);
         if (t && t->kind == CDD_TOKEN_LPAREN) {
           while (s->pos < s->list->size) {
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+
+            advance(s, &t);
             rc = append_child_token(catch_node, t);
             if (rc != CDD_C_SUCCESS)
               return rc;
@@ -832,9 +613,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           }
         }
 
-        rc = peek(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+        peek(s, &t);
         if (t && t->kind == CDD_TOKEN_LBRACE) {
           cdd_cst_node_t *child = NULL;
           rc = parse_block(s, catch_node, &child);
@@ -870,40 +649,31 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_THROW) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_THROW) {
     rc = alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc; /* throw */
+
+    advance(s, &t); /* throw */
     rc = append_child_token(n, t);
     if (rc != CDD_C_SUCCESS)
       return rc;
 
     while (s->pos < s->list->size) {
-      rc = peek(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      peek(s, &t);
       if (!t)
         break;
       if (t->kind == CDD_TOKEN_SEMICOLON) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
         break;
       }
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(s, &t);
       rc = append_child_token(n, t);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -912,20 +682,14 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_CLASS) {
+  if (t && t->kind == CDD_TOKEN_KEYWORD_CLASS) {
     rc = alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      rc = peek(s, &nxt);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      peek(s, &nxt);
       if (!nxt)
         break;
       if (nxt->kind == CDD_TOKEN_LBRACE) {
@@ -950,9 +714,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
         if (rc != CDD_C_SUCCESS)
           return rc;
         if (base_list) {
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc; /* ':' */
+
+          advance(s, &t); /* ':' */
           rc = append_child_token(base_list, t);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -965,43 +728,37 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               return rc;
             if (base_spec) {
               /* parse access modifier or virtual */
-              rc = peek(s, &nxt);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+
+              peek(s, &nxt);
               if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
                           nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
                           nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
                           nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-                rc = advance(s, &t);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+
+                advance(s, &t);
                 rc = append_child_token(base_spec, t);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
                 /* might have virtual and access modifier in either order */
-                rc = peek(s, &nxt);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+
+                peek(s, &nxt);
                 if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
                             nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
                             nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
                             nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
-                  rc = advance(s, &t);
-                  if (rc != CDD_C_SUCCESS)
-                    return rc;
+
+                  advance(s, &t);
                   rc = append_child_token(base_spec, t);
                   if (rc != CDD_C_SUCCESS)
                     return rc;
                 }
               }
               /* base class name */
-              rc = peek(s, &nxt);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+
+              peek(s, &nxt);
               if (nxt && nxt->kind == CDD_TOKEN_IDENTIFIER) {
-                rc = advance(s, &t);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+
+                advance(s, &t);
                 rc = append_child_token(base_spec, t);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
@@ -1017,13 +774,10 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               }
             }
 
-            rc = peek(s, &nxt);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            peek(s, &nxt);
             if (nxt && nxt->kind == CDD_TOKEN_COMMA) {
-              rc = advance(s, &t);
-              if (rc != CDD_C_SUCCESS)
-                return rc;
+
+              advance(s, &t);
               rc = append_child_token(base_list, t);
               if (rc != CDD_C_SUCCESS)
                 return rc;
@@ -1042,17 +796,15 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           }
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
         break;
       } else {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -1062,30 +814,22 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
-      t->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
-      t->kind == CDD_TOKEN_KEYWORD_PROTECTED) {
+  if (t && (t->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
+            t->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
+            t->kind == CDD_TOKEN_KEYWORD_PROTECTED)) {
     rc = alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-    rc = advance(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+
+    advance(s, &t);
     rc = append_child_token(n, t);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = peek(s, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-    if (t && t->kind == CDD_TOKEN_OTHER && t->length == 1 && *t->start == ':') {
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_COLON) {
+
+      advance(s, &t);
       rc = append_child_token(n, t);
       if (rc != CDD_C_SUCCESS)
         return rc;
@@ -1094,26 +838,19 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_IDENTIFIER &&
+  if (t && t->kind == CDD_TOKEN_IDENTIFIER &&
       ((t->length == 7 && memcmp(t->start, "__asm__", 7) == 0) ||
        (t->length == 3 && memcmp(t->start, "asm", 3) == 0))) {
     rc = alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
-    if (!n) {
-      s->err = CDD_C_ERROR_MEMORY;
-      *out_node = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
-      rc = peek(s, &nxt);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      peek(s, &nxt);
       if (nxt->kind == CDD_TOKEN_SEMICOLON) {
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -1121,9 +858,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       }
       if (nxt->kind == CDD_TOKEN_RBRACE)
         break;
-      rc = advance(s, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(s, &t);
       if (t) {
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
@@ -1206,16 +942,10 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(node_kind, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      if (!n) {
-        s->err = CDD_C_ERROR_MEMORY;
-        *out_node = NULL;
-        return CDD_C_ERROR_MEMORY;
-      }
       while (s->pos < s->list->size) {
         cdd_token_t *nxt = NULL;
-        rc = peek(s, &nxt);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        peek(s, &nxt);
 
         if (nxt->kind == CDD_TOKEN_KEYWORD_NOEXCEPT) {
           cdd_cst_node_t *noexcept_node = NULL;
@@ -1223,30 +953,24 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           if (rc != CDD_C_SUCCESS)
             return rc;
           if (noexcept_node) {
-            rc = advance(s, &t);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+
+            advance(s, &t);
             rc = append_child_token(noexcept_node, t);
             if (rc != CDD_C_SUCCESS)
               return rc;
 
-            rc = peek(s, &nxt);
-            if (rc != CDD_C_SUCCESS)
-              return rc;
+            peek(s, &nxt);
             if (nxt && nxt->kind == CDD_TOKEN_LPAREN) {
               int noexcept_paren = 0;
               while (s->pos < s->list->size) {
-                rc = peek(s, &nxt);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+
+                peek(s, &nxt);
                 if (nxt->kind == CDD_TOKEN_LPAREN)
                   noexcept_paren++;
                 else if (nxt->kind == CDD_TOKEN_RPAREN)
                   noexcept_paren--;
 
-                rc = advance(s, &t);
-                if (rc != CDD_C_SUCCESS)
-                  return rc;
+                advance(s, &t);
                 rc = append_child_token(noexcept_node, t);
                 if (rc != CDD_C_SUCCESS)
                   return rc;
@@ -1286,17 +1010,15 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           break;
         }
         if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+
+          advance(s, &t);
           rc = append_child_token(n, t);
           if (rc != CDD_C_SUCCESS)
             return rc;
           break;
         }
-        rc = advance(s, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(s, &t);
         rc = append_child_token(n, t);
         if (rc != CDD_C_SUCCESS)
           return rc;
@@ -1307,18 +1029,12 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(CDD_CST_UNKNOWN, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
-      if (!n) {
-        s->err = CDD_C_ERROR_MEMORY;
-        *out_node = NULL;
-        return CDD_C_ERROR_MEMORY;
-      }
       {
         int paren_depth = 0;
         while (s->pos < s->list->size) {
           cdd_token_t *nxt = NULL;
-          rc = peek(s, &nxt);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+
+          peek(s, &nxt);
           if (nxt->kind == CDD_TOKEN_LPAREN) {
             paren_depth++;
           } else if (nxt->kind == CDD_TOKEN_RPAREN) {
@@ -1332,9 +1048,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
             }
             break;
           }
-          rc = advance(s, &t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+
+          advance(s, &t);
           rc = append_child_token(n, t);
           if (rc != CDD_C_SUCCESS)
             return rc;
@@ -1357,7 +1072,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   if (!out_tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree = (cdd_cst_tree_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_tree_t));
   if (!tree) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -1365,7 +1080,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   rc = cdd_lexer_tokenize(source, &tree->base_tokens);
   if (rc != 0) {
-    free(tree);
+    C_CDD_FREE(tree);
     return rc;
   }
 
@@ -1374,51 +1089,51 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   state.err = 0;
 
   rc = alloc_node(CDD_CST_TRANSLATION_UNIT, NULL, &tree->root);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-  if (!tree->root) {
+  if (rc != CDD_C_SUCCESS) {
     cdd_cst_tree_free(tree);
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
   while (state.pos < state.list->size) {
     cdd_token_t *t = NULL;
-    rc = peek(&state, &t);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+
+    peek(&state, &t);
     if (t->kind == CDD_TOKEN_EOF) {
-      rc = advance(&state, &t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+
+      advance(&state, &t);
       rc = append_child_token(tree->root, t);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      if (rc != CDD_C_SUCCESS) {
+        state.err = rc;
+      }
       break;
     }
     {
       cdd_cst_node_t *child = NULL;
       rc = parse_declaration_or_statement(&state, tree->root, &child);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
+      if (rc != CDD_C_SUCCESS) {
+        state.err = rc;
+        break;
+      }
       if (child) {
         app_rc = append_child_node(tree->root, child);
 
         if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
           state.err = app_rc;
-          return app_rc;
+          break;
         }
       } else {
         if (state.err)
           break;
         /* Fallback */
-        rc = advance(&state, &t);
-        if (rc != CDD_C_SUCCESS)
-          return rc;
+
+        advance(&state, &t);
         if (t) {
           rc = append_child_token(tree->root, t);
-          if (rc != CDD_C_SUCCESS)
-            return rc;
+          if (rc != CDD_C_SUCCESS) {
+            state.err = rc;
+            break;
+          }
         }
       }
     }
@@ -1428,11 +1143,11 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
     if (state.macros.defs) {
       size_t k;
       for (k = 0; k < state.macros.count; k++) {
-        free(state.macros.defs[k].name);
+        C_CDD_FREE(state.macros.defs[k].name);
         if (state.macros.defs[k].value)
-          free(state.macros.defs[k].value);
+          C_CDD_FREE(state.macros.defs[k].value);
       }
-      free(state.macros.defs);
+      C_CDD_FREE(state.macros.defs);
     }
     cdd_cst_tree_free(tree);
     return state.err;
@@ -1441,11 +1156,11 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   if (state.macros.defs) {
     size_t k;
     for (k = 0; k < state.macros.count; k++) {
-      free(state.macros.defs[k].name);
+      C_CDD_FREE(state.macros.defs[k].name);
       if (state.macros.defs[k].value)
-        free(state.macros.defs[k].value);
+        C_CDD_FREE(state.macros.defs[k].value);
     }
-    free(state.macros.defs);
+    C_CDD_FREE(state.macros.defs);
   }
 
   *out_tree = tree;
@@ -1467,25 +1182,25 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
         cdd_trivia_t *t = tree->synthesized_tokens[i]->leading_trivia;
         while (t) {
           cdd_trivia_t *n = t->next;
-          free(t);
+          C_CDD_FREE(t);
           t = n;
         }
         t = tree->synthesized_tokens[i]->trailing_trivia;
         while (t) {
           cdd_trivia_t *n = t->next;
-          free(t);
+          C_CDD_FREE(t);
           t = n;
         }
-        free(tree->synthesized_tokens[i]);
+        C_CDD_FREE(tree->synthesized_tokens[i]);
       }
     }
-    free(tree->synthesized_tokens);
+    C_CDD_FREE(tree->synthesized_tokens);
   }
   if (tree->string_pool) {
     for (i = 0; i < tree->num_strings; i++) {
-      free(tree->string_pool[i]);
+      C_CDD_FREE(tree->string_pool[i]);
     }
-    free(tree->string_pool);
+    C_CDD_FREE(tree->string_pool);
   }
-  free(tree);
+  C_CDD_FREE(tree);
 }

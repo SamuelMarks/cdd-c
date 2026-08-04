@@ -1,6 +1,7 @@
 #ifndef TEST_FFI_EMITTERS_H
 #define TEST_FFI_EMITTERS_H
 
+/* clang-format off */
 #include "ffi/cdd_ffi_ir.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
@@ -46,6 +47,7 @@
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
+/* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
@@ -255,6 +257,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[8].kind = CDD_FFI_NODE_TYPEDEF;
   ir->nodes[8].name = "MyTypedef";
   ir->nodes[8].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[8].return_or_base_type.pointer_depth = 1;
 
   /* node 9: Macro */
   ir->nodes[9].kind = CDD_FFI_NODE_MACRO;
@@ -396,7 +399,47 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[24].fields[2].type.pointer_depth = 1;
   ir->nodes[24].fields[2].intent = CDD_FFI_INTENT_OUT;
 
-  ir->nodes_count = 25;
+  /* node 25: Test NULL names */
+  ir->nodes[25].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[25].name = "test_null_names";
+  ir->nodes[25].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[25].fields_count = 4;
+  ir->nodes[25].fields[0].name = NULL;
+  ir->nodes[25].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[25].fields[0].type.ref_name = NULL;
+  ir->nodes[25].fields[1].name = "type"; /* test reserved keyword */
+  ir->nodes[25].fields[1].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[25].fields[1].type.ref_name = NULL;
+  ir->nodes[25].fields[2].name = "class"; /* test reserved keyword */
+  ir->nodes[25].fields[2].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[25].fields[3].name = "error"; /* test reserved keyword */
+  ir->nodes[25].fields[3].type.kind = CDD_FFI_KIND_INT32;
+
+  /* node 26: Test typedef with pointer_depth == 0 */
+  ir->nodes[26].kind = CDD_FFI_NODE_TYPEDEF;
+  ir->nodes[26].name = "TestTypedefZeroPtr";
+  ir->nodes[26].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[26].return_or_base_type.pointer_depth = 0;
+
+  /* node 27: Test INOUT and OUT intent with non-void return */
+  ir->nodes[27].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[27].name = "test_inout";
+  ir->nodes[27].return_or_base_type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[27].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+  ir->nodes[27].fields_count = 1;
+  ir->nodes[27].fields[0].name = "inout";
+  ir->nodes[27].fields[0].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[27].fields[0].type.pointer_depth = 1;
+  ir->nodes[27].fields[0].intent = CDD_FFI_INTENT_INOUT;
+  ir->nodes[27].fields[0].array_length_ref = "my_len";
+  ir->nodes[27].requires_gil_release = 1;
+
+  /* node 28: Test empty union */
+  ir->nodes[28].kind = CDD_FFI_NODE_UNION;
+  ir->nodes[28].name = "EmptyUnion";
+  ir->nodes[28].fields_count = 0;
+
+  ir->nodes_count = 29;
   ir->nodes_capacity = 30;
 
   return ir;
@@ -415,6 +458,9 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   free(ir->nodes[11].fields);
   free(ir->nodes[13].base_classes);
   free(ir->nodes[15].fields);
+  free(ir->nodes[24].fields);
+  free(ir->nodes[25].fields);
+  free(ir->nodes[27].fields);
   free(ir->nodes);
   free(ir);
 }
@@ -438,6 +484,9 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     config.module_name = NULL;                                                 \
     cdd_ffi_emit_##lang(ir, &config);                                          \
     config.module_name = "TestMod";                                            \
+    config.library_name = NULL;                                                \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+    config.library_name = "test_Lib_name";                                     \
                                                                                \
     for (i = 1; i <= 5; i++) {                                                 \
       g_fail_io_after = i;                                                     \
@@ -450,6 +499,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     g_fail_io_after = -1;                                                      \
                                                                                \
     cdd_ffi_emit_##lang(NULL, &config);                                        \
+    cdd_ffi_emit_##lang(ir, NULL);                                             \
                                                                                \
     config.output_dir = NULL;                                                  \
     cdd_ffi_emit_##lang(ir, &config);                                          \
@@ -468,6 +518,20 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     PASS();                                                                    \
   }
 
+TEST test_ffi_emit_ada_nulls(void) {
+  cdd_generate_bindings_config_t config = {0};
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(ir, NULL));
+
+  config.output_dir = "/does/not/exist/ever";
+  g_fail_io_after = 555;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(ir, &config));
+  g_fail_io_after = -1;
+  config.output_dir = "out";
+  free_dummy_ir(ir);
+  PASS();
+}
 TEST_EMITTER(ada)
 TEST_EMITTER(clojure)
 TEST_EMITTER(common_lisp)
@@ -511,6 +575,7 @@ TEST_EMITTER(webassembly)
 TEST_EMITTER(zig)
 
 SUITE(ffi_emitters_suite) {
+  RUN_TEST(test_ffi_emit_ada_nulls);
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
   RUN_TEST(test_ffi_emit_common_lisp);

@@ -64,8 +64,12 @@ cdd_c_error_t write_enum_declaration_h(FILE *hfile, const char *enum_name,
   CHECK_IO(fprintf(hfile, "  %s_UNKNOWN = 0,\n", enum_name));
   for (i = 0; i < sf->enum_members.size; ++i) {
     const char *member = sf->enum_members.members[i];
-    if (!member || strcmp(member, "UNKNOWN") == 0)
+    if (member == NULL) {
       continue;
+    }
+    if (strcmp(member, "UNKNOWN") == 0) {
+      continue;
+    }
     CHECK_IO(fprintf(hfile, "  %s_%s,\n", enum_name, member));
   }
   CHECK_IO(fprintf(hfile, "%s", "};\n\n"));
@@ -296,11 +300,13 @@ cdd_c_error_t write_struct_declaration_h(FILE *hfile, const char *struct_name,
                    "%s *, const struct %s *, int *out_eq);\n",
                    struct_name, struct_name, struct_name));
   CHECK_IO(fprintf(
-      hfile, "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n",
+      hfile,
+      "extern LIB_EXPORT cdd_c_error_t %s_debug(const struct %s *, FILE *);\n",
       struct_name, struct_name));
-  CHECK_IO(fprintf(
-      hfile, "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
-      struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT cdd_c_error_t %s_display(const struct %s "
+                   "*, FILE *);\n",
+                   struct_name, struct_name));
   CHECK_IO(fprintf(hfile, "struct json_object_t;\n"));
   CHECK_IO(
       fprintf(hfile,

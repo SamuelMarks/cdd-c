@@ -1,3 +1,4 @@
+int g_cdd_alloc_fail = 0;
 #include "cdd_c_error.h"
 /**
  * @file main.c

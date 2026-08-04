@@ -364,6 +364,7 @@ TEST test_ascii_wide_conversion(void) {
 #endif /* _MSC_VER */
 
 SUITE(fs_suite) {
+
   RUN_TEST(test_fs_fopen_error_from);
   RUN_TEST(test_fs_cp);
   RUN_TEST(test_get_basename);

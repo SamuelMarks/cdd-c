@@ -77,6 +77,94 @@ TEST test_scan_for_mixed_declarations_errors(void) {
  * @brief Declaration hoist test suite.
  */
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
+#endif
+
+static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
+  struct TokenList *tl = NULL;
+  int rc;
+  tokenize(az_span_create_from_str((char *)src), &tl);
+  rc = scan_for_mixed_declarations(tl, list);
+  free_token_list(tl);
+  return rc;
+}
+
+TEST test_decl_hoist_branches(void) {
+  struct HoistSiteList list;
+  (void)hoist_site_list_init(&list);
+
+  /* RBRACE with depth == 0 */
+  ASSERT_EQ(0, check_hoist("}", &list));
+
+  /* EOF immediately */
+  ASSERT_EQ(0, check_hoist("   ", &list));
+
+  /* Test basic type */
+  ASSERT_EQ(0, check_hoist("{ f(); int a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test struct */
+  ASSERT_EQ(0, check_hoist("{ f(); struct A a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test union */
+  ASSERT_EQ(0, check_hoist("{ f(); union A a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test enum */
+  ASSERT_EQ(0, check_hoist("{ f(); enum A a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test typedef (identifier followed by identifier) */
+  ASSERT_EQ(0, check_hoist("{ f(); MyType a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test typedef (identifier followed by star) */
+  ASSERT_EQ(0, check_hoist("{ f(); MyType *a; }", &list));
+  ASSERT_EQ(1, list.count);
+  hoist_site_list_free(&list);
+
+  /* Test typedef with EOF during lookahead */
+  ASSERT_EQ(0, check_hoist("{ f(); MyType", &list));
+  ASSERT_EQ(0, list.count);
+
+  /* Scan to end of statement hitting LBRACE / RBRACE */
+  ASSERT_EQ(0, check_hoist("{ f(); int a {", &list));
+  ASSERT_EQ(0, list.count);
+
+  ASSERT_EQ(0, check_hoist("{ f(); int a }", &list));
+  ASSERT_EQ(0, list.count);
+
+  /* Statement that does not start with identifier */
+  ASSERT_EQ(0, check_hoist("{ *p = 1; return; }", &list));
+  ASSERT_EQ(0, list.count);
+
+  hoist_site_list_free(&list);
+
+#ifdef CDD_BUILD_TESTS
+  /* OOM test */
+  g_cdd_fail_alloc_decl_hoist = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, check_hoist("{ f(); int a; }", &list));
+  g_cdd_fail_alloc_decl_hoist = 0;
+  hoist_site_list_free(&list);
+
+  /* OOM test > 1 */
+  g_cdd_fail_alloc_decl_hoist = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            check_hoist("{ f(); int a; int b; int c; int d; int e; }", &list));
+  g_cdd_fail_alloc_decl_hoist = 0;
+#endif
+
+  hoist_site_list_free(&list);
+  PASS();
+}
+
 TEST test_decl_hoist_edges(void) {
   struct HoistSiteList list = {0};
   struct TokenList *tl = NULL;
@@ -105,6 +193,7 @@ TEST test_decl_hoist_edges(void) {
 SUITE(decl_hoist_suite) {
   RUN_TEST(test_scan_for_mixed_declarations_basic);
   RUN_TEST(test_scan_for_mixed_declarations_errors);
+  RUN_TEST(test_decl_hoist_branches);
   RUN_TEST(test_decl_hoist_edges);
 }
 

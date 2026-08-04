@@ -45,7 +45,7 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = config->library_name ? config->library_name : "mylib";
+  lib_name = (config && config->library_name) ? config->library_name : "mylib";
 
   if (config->module_name) {
     CDD_SNPRINTF(erl_module_name, sizeof(erl_module_name), "%s",

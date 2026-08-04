@@ -1,3 +1,4 @@
+#include "c_cdd/memory.h"
 /* clang-format off */
 #include "macro_evaluator.h"
 #include <ctype.h>
@@ -54,7 +55,7 @@ typedef struct {
 
 static void free_tok(macro_tok_t *tok) {
   if ((tok->kind == TOK_STR || tok->kind == TOK_IDENT) && tok->str_val) {
-    free(tok->str_val);
+    C_CDD_FREE(tok->str_val);
     tok->str_val = NULL;
   }
 }
@@ -118,7 +119,7 @@ static void next_tok(macro_lexer_t *lex) {
 
       {
         size_t len = lex->pos - start;
-        char *buf = (char *)malloc(len + 1);
+        char *buf = (char *)C_CDD_MALLOC(len + 1);
         if (!buf) {
           lex->cur.kind = TOK_ERROR;
           return;
@@ -136,7 +137,7 @@ static void next_tok(macro_lexer_t *lex) {
           lex->cur.int_val = strtoll(buf, NULL, 0);
 #endif
         }
-        free(buf);
+        C_CDD_FREE(buf);
       }
       return;
     }
@@ -151,7 +152,7 @@ static void next_tok(macro_lexer_t *lex) {
       {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_IDENT;
-        lex->cur.str_val = (char *)malloc(len + 1);
+        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
         if (lex->cur.str_val) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
@@ -172,10 +173,12 @@ static void next_tok(macro_lexer_t *lex) {
       if (lex->pos < lex->len) {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_STR;
-        lex->cur.str_val = (char *)malloc(len + 1);
+        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
         if (lex->cur.str_val) {
           memcpy(lex->cur.str_val, lex->str + start, len);
           lex->cur.str_val[len] = '\0';
+        } else {
+          lex->cur.kind = TOK_ERROR;
         }
         lex->pos++;
       } else {
@@ -677,7 +680,7 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
 
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
   if (result && result->str_val) {
-    free(result->str_val);
+    C_CDD_FREE(result->str_val);
     result->str_val = NULL;
   }
 }

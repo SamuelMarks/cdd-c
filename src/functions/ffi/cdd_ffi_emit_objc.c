@@ -77,9 +77,14 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   FILE *m_file = NULL;
   char h_filepath[1024];
   char m_filepath[1024];
-  const char *lib_name = config->library_name ? config->library_name : "MyLib";
+  const char *lib_name =
+      config
+          ? ((config && config->library_name) ? config->library_name : "MyLib")
+          : "MyLib";
   const char *module_name =
-      config->module_name ? config->module_name : "Bindings";
+      config
+          ? ((config && config->module_name) ? config->module_name : "Bindings")
+          : "Bindings";
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
@@ -174,8 +179,10 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
               (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                strstr(arg_type, "NSString") != NULL);
 
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), node->fields[j].name,
+          CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
                       sizeof(arg_name_cap) - 1);
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 
@@ -239,8 +246,10 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
               (node->fields[j].type.kind == CDD_FFI_KIND_STRUCT_REF ||
                strstr(arg_type, "NSString") != NULL);
 
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           char arg_name_cap[256];
-          CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), node->fields[j].name,
+          CDD_STRNCPY(arg_name_cap, sizeof(arg_name_cap), arg_name,
                       sizeof(arg_name_cap) - 1);
           arg_name_cap[sizeof(arg_name_cap) - 1] = '\0';
 

@@ -44,13 +44,6 @@ static void *test_calloc(size_t count, size_t size) {
   }
   return calloc(count, size);
 }
-static char *test_strdup(const char *s) {
-  if (g_simple_json_fail_alloc > 0) {
-    g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
-  }
-  return strdup(s);
-}
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
@@ -102,8 +95,6 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
 }
 #define malloc test_malloc
 #define calloc test_calloc
-#undef strdup
-#define strdup test_strdup
 #undef c89stringutils_jasprintf
 #define c89stringutils_jasprintf test_jasprintf
 #endif

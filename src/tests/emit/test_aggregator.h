@@ -209,6 +209,105 @@ TEST test_aggregator_bad_args(void) {
   PASS();
 }
 
+/* OOM tracking */
+#ifdef CDD_BUILD_TESTS
+TEST test_aggregator_oom(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op = {0};
+  int i;
+
+  (void)openapi_spec_init(&spec);
+  dummy_op(&op, "op1");
+
+  /* Test path alloc failure */
+  extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
+  extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
+  extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
+
+  g_cdd_aggregator_fail_path_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            openapi_aggregator_add_operation(&spec, "/users", &op));
+  g_cdd_aggregator_fail_path_realloc = 0;
+
+  /* Test route strdup failure */
+  g_cdd_aggregator_fail_route_strdup = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            openapi_aggregator_add_operation(&spec, "/users", &op));
+  g_cdd_aggregator_fail_route_strdup = 0;
+
+  /* Test op alloc failure */
+  g_cdd_aggregator_fail_ops_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            openapi_aggregator_add_operation(&spec, "/users", &op));
+  g_cdd_aggregator_fail_ops_realloc = 0;
+
+  /* Test webhook add alloc failure */
+  g_cdd_aggregator_fail_path_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            openapi_aggregator_add_webhook_operation(&spec, "/users", &op));
+  g_cdd_aggregator_fail_path_realloc = 0;
+
+  /* Test webhook op alloc failure */
+  g_cdd_aggregator_fail_ops_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            openapi_aggregator_add_webhook_operation(&spec, "/users", &op));
+  g_cdd_aggregator_fail_ops_realloc = 0;
+
+  /* Clean up the dangling op */
+  free(op.operation_id);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_aggregator_webhook_additional(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op = {0};
+  (void)openapi_spec_init(&spec);
+  dummy_op(&op, "op1");
+  op.is_additional = 1;
+  ASSERT_EQ(0, openapi_aggregator_add_webhook_operation(&spec, "/hooks", &op));
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_aggregator_webhook_bad_args(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op = {0};
+  (void)openapi_spec_init(&spec);
+  dummy_op(&op, "op1");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_webhook_operation(NULL, "/hooks", &op));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_webhook_operation(&spec, NULL, &op));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_aggregator_add_webhook_operation(&spec, "/hooks", NULL));
+  free(op.operation_id);
+  openapi_spec_free(&spec);
+  PASS();
+}
+TEST test_aggregator_webhook_existing(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op1 = {0};
+  struct OpenAPI_Operation op2 = {0};
+  (void)openapi_spec_init(&spec);
+  dummy_op(&op1, "hook1");
+  dummy_op(&op2, "hook2");
+
+  /* Add first hook to create path */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            openapi_aggregator_add_webhook_operation(&spec, "/hooks", &op1));
+  /* Add second hook to trigger find branch */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            openapi_aggregator_add_webhook_operation(&spec, "/hooks", &op2));
+
+  ASSERT_EQ(1, spec.n_webhooks);
+  ASSERT_EQ(2, spec.webhooks[0].n_operations);
+
+  openapi_spec_free(&spec);
+  PASS();
+}
+#endif
+
 /**
  * @brief aggregator_suite
  */
@@ -219,6 +318,12 @@ SUITE(aggregator_suite) {
   RUN_TEST(test_aggregator_add_additional_operation);
   RUN_TEST(test_aggregator_add_webhook);
   RUN_TEST(test_aggregator_bad_args);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_aggregator_oom);
+  RUN_TEST(test_aggregator_webhook_additional);
+  RUN_TEST(test_aggregator_webhook_bad_args);
+  RUN_TEST(test_aggregator_webhook_existing);
+#endif
 }
 
 #ifdef __cplusplus

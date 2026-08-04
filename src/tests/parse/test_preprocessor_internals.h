@@ -1,10 +1,12 @@
 #ifndef TEST_PREPROCESSOR_INTERNALS_H
 #define TEST_PREPROCESSOR_INTERNALS_H
 
+/* clang-format off */
 #include <cdd_test_helpers/cdd_helpers.h>
 
 /* Include the C file to access static functions */
 #include "functions/parse/preprocessor.c"
+/* clang-format on */
 
 TEST test_preprocessor_internals(void) {
   char *out = (char *)0x1234;

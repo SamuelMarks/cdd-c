@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/memory.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -198,7 +199,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
     out = NULL;
   } else {
 #endif
-    out = (char *)malloc(len + 1);
+    out = (char *)C_CDD_MALLOC(len + 1);
 #ifdef CDD_BUILD_TESTS
   }
 #endif

@@ -44,13 +44,12 @@ static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
 #ifdef CDD_BUILD_TESTS
   {
     extern int g_cdd_mock_dlopen_success;
-    HMODULE h = g_cdd_mock_dlopen_success ? (HMODULE)1 : LoadLibraryA(win_name);
-    if (h) {
-      if (!g_cdd_mock_dlopen_success)
-        FreeLibrary(h);
+    if (g_cdd_mock_dlopen_success) {
       *out_avail = 1;
-      return CDD_C_SUCCESS;
+    } else {
+      *out_avail = 0;
     }
+    return CDD_C_SUCCESS;
   }
 #else
   {
@@ -66,14 +65,12 @@ static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
 #ifdef CDD_BUILD_TESTS
   {
     extern int g_cdd_mock_dlopen_success;
-    void *h =
-        g_cdd_mock_dlopen_success ? (void *)1 : dlopen(posix_name, RTLD_LAZY);
-    if (h) {
-      if (!g_cdd_mock_dlopen_success)
-        dlclose(h);
+    if (g_cdd_mock_dlopen_success) {
       *out_avail = 1;
-      return CDD_C_SUCCESS;
+    } else {
+      *out_avail = 0;
     }
+    return CDD_C_SUCCESS;
   }
 #else
   {

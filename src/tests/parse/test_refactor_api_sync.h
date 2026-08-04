@@ -194,7 +194,6 @@ SUITE(api_sync_suite) {
   RUN_TEST(test_sync_query_update);
   RUN_TEST(test_sync_header_update);
 #endif
-  RUN_TEST(test_sync_oom);
 }
 
 #ifdef __cplusplus

@@ -1,3 +1,4 @@
+#include "c_cdd/memory.h"
 /**
  * @file doc.c
  * @brief Implementation of the documentation comment parser.
@@ -67,17 +68,7 @@ static cdd_c_error_t extract_word(const char *str, const char *end,
     }
   }
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      res = NULL;
-    else
-      res = (char *)malloc(len + 1);
-  }
-#else
-  res = (char *)malloc(len + 1);
-#endif
+  res = (char *)C_CDD_MALLOC(len + 1);
   if (!res) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -116,17 +107,7 @@ static cdd_c_error_t extract_rest(const char *str, const char *end,
     return CDD_C_SUCCESS;
   }
 
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      res = NULL;
-    else
-      res = (char *)malloc(len + 1);
-  }
-#else
-  res = (char *)malloc(len + 1);
-#endif
+  res = (char *)C_CDD_MALLOC(len + 1);
   if (!res) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -146,9 +127,8 @@ static cdd_c_error_t extract_rest(const char *str, const char *end,
 static cdd_c_error_t add_tag(struct DocMetadata *out, const char *tag) {
   char *_ast_strdup_0 = NULL;
   char **new_tags;
-  if (!out || !tag || !*tag)
-    return CDD_C_SUCCESS;
-  new_tags = (char **)realloc(out->tags, (out->n_tags + 1) * sizeof(char *));
+  new_tags =
+      (char **)C_CDD_REALLOC(out->tags, (out->n_tags + 1) * sizeof(char *));
   if (!new_tags) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -169,7 +149,7 @@ static cdd_c_error_t add_tag_meta(struct DocMetadata *out,
   struct DocTagMeta *new_meta;
   if (!out || !meta || !meta->name || !*meta->name)
     return CDD_C_SUCCESS;
-  new_meta = (struct DocTagMeta *)realloc(
+  new_meta = (struct DocTagMeta *)C_CDD_REALLOC(
       out->tag_meta, (out->n_tag_meta + 1) * sizeof(struct DocTagMeta));
   if (!new_meta) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -215,9 +195,6 @@ static cdd_c_error_t parse_tags_line(const char *line, const char *end,
   char *cursor;
   int rc = 0;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   rest = (extract_rest(line, end, &_ast_extract_rest_2), _ast_extract_rest_2);
   if (!rest)
     return CDD_C_SUCCESS;
@@ -241,7 +218,7 @@ static cdd_c_error_t parse_tags_line(const char *line, const char *end,
     cursor = comma + 1;
   }
 
-  free(rest);
+  C_CDD_FREE(rest);
   return rc;
 }
 
@@ -290,9 +267,6 @@ static cdd_c_error_t parse_tag_meta_line(const char *line, const char *end,
   const char *cur = line;
   struct DocTagMeta meta;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   memset(&meta, 0, sizeof(meta));
   printf("LINE: %.*s\n", (int)(end - line), line);
 
@@ -309,7 +283,7 @@ static cdd_c_error_t parse_tag_meta_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -350,7 +324,7 @@ static cdd_c_error_t parse_tag_meta_line(const char *line, const char *end,
             meta.external_docs_description =
                 (c_cdd_strdup(val, &_ast_strdup_6), _ast_strdup_6);
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_12), _ast_skip_ws_12);
@@ -462,7 +436,7 @@ static cdd_c_error_t parse_optional_example_attr(const char *attr,
   if (!val || !*val)
     return CDD_C_ERROR_UNKNOWN;
   if (*out_example)
-    free(*out_example);
+    C_CDD_FREE(*out_example);
   *out_example = (c_cdd_strdup(val, &_ast_strdup_7), _ast_strdup_7);
   return *out_example ? 1 : ENOMEM;
 }
@@ -476,9 +450,6 @@ static cdd_c_error_t parse_deprecated_line(const char *line, const char *end,
   char *rest;
   int value = 1;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   out->deprecated_set = 1;
   rest = (extract_rest(line, end, &_ast_extract_rest_15), _ast_extract_rest_15);
   if (!rest) {
@@ -489,7 +460,7 @@ static cdd_c_error_t parse_deprecated_line(const char *line, const char *end,
     out->deprecated = value;
   else
     out->deprecated = 1;
-  free(rest);
+  C_CDD_FREE(rest);
   return CDD_C_SUCCESS;
 }
 
@@ -504,21 +475,18 @@ static cdd_c_error_t parse_external_docs_line(const char *line, const char *end,
   char *url;
   char *desc;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   url = (extract_word(cur, end, &cur, &_ast_extract_word_16),
          _ast_extract_word_16);
   if (!url)
     return CDD_C_SUCCESS;
 
   if (out->external_docs_url)
-    free(out->external_docs_url);
+    C_CDD_FREE(out->external_docs_url);
   out->external_docs_url = url;
 
   desc = (extract_rest(cur, end, &_ast_extract_rest_17), _ast_extract_rest_17);
   if (out->external_docs_description)
-    free(out->external_docs_description);
+    C_CDD_FREE(out->external_docs_description);
   out->external_docs_description = desc;
 
   return CDD_C_SUCCESS;
@@ -546,9 +514,6 @@ static cdd_c_error_t parse_contact_line(const char *line, const char *end,
   char *cursor;
   char *open;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   rest = (extract_rest(line, end, &_ast_extract_rest_18), _ast_extract_rest_18);
   if (!rest)
     return CDD_C_SUCCESS;
@@ -568,7 +533,7 @@ static cdd_c_error_t parse_contact_line(const char *line, const char *end,
                      _ast_trim_segment_20);
         if (val && *val) {
           if (name)
-            free(name);
+            C_CDD_FREE(name);
           name = (c_cdd_strdup(val, &_ast_strdup_8), _ast_strdup_8);
         }
       } else if (strncmp(attr, "url:", 4) == 0 ||
@@ -577,7 +542,7 @@ static cdd_c_error_t parse_contact_line(const char *line, const char *end,
                      _ast_trim_segment_21);
         if (val && *val) {
           if (url)
-            free(url);
+            C_CDD_FREE(url);
           url = (c_cdd_strdup(val, &_ast_strdup_9), _ast_strdup_9);
         }
       } else if (strncmp(attr, "email:", 6) == 0 ||
@@ -586,7 +551,7 @@ static cdd_c_error_t parse_contact_line(const char *line, const char *end,
                      _ast_trim_segment_22);
         if (val && *val) {
           if (email)
-            free(email);
+            C_CDD_FREE(email);
           email = (c_cdd_strdup(val, &_ast_strdup_10), _ast_strdup_10);
         }
       }
@@ -602,21 +567,21 @@ static cdd_c_error_t parse_contact_line(const char *line, const char *end,
       name = (c_cdd_strdup(trimmed, &_ast_strdup_11), _ast_strdup_11);
   }
 
-  free(rest);
+  C_CDD_FREE(rest);
 
   if (name) {
     if (out->contact_name)
-      free(out->contact_name);
+      C_CDD_FREE(out->contact_name);
     out->contact_name = name;
   }
   if (url) {
     if (out->contact_url)
-      free(out->contact_url);
+      C_CDD_FREE(out->contact_url);
     out->contact_url = url;
   }
   if (email) {
     if (out->contact_email)
-      free(out->contact_email);
+      C_CDD_FREE(out->contact_email);
     out->contact_email = email;
   }
 
@@ -645,9 +610,6 @@ static cdd_c_error_t parse_license_line(const char *line, const char *end,
   char *cursor;
   char *open;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   rest = (extract_rest(line, end, &_ast_extract_rest_24), _ast_extract_rest_24);
   if (!rest)
     return CDD_C_SUCCESS;
@@ -667,7 +629,7 @@ static cdd_c_error_t parse_license_line(const char *line, const char *end,
                      _ast_trim_segment_26);
         if (val && *val) {
           if (name)
-            free(name);
+            C_CDD_FREE(name);
           name = (c_cdd_strdup(val, &_ast_strdup_12), _ast_strdup_12);
         }
       } else if (strncmp(attr, "identifier:", 11) == 0 ||
@@ -676,7 +638,7 @@ static cdd_c_error_t parse_license_line(const char *line, const char *end,
                      _ast_trim_segment_27);
         if (val && *val) {
           if (identifier)
-            free(identifier);
+            C_CDD_FREE(identifier);
           identifier = (c_cdd_strdup(val, &_ast_strdup_13), _ast_strdup_13);
         }
       } else if (strncmp(attr, "url:", 4) == 0 ||
@@ -685,7 +647,7 @@ static cdd_c_error_t parse_license_line(const char *line, const char *end,
                      _ast_trim_segment_28);
         if (val && *val) {
           if (url)
-            free(url);
+            C_CDD_FREE(url);
           url = (c_cdd_strdup(val, &_ast_strdup_14), _ast_strdup_14);
         }
       }
@@ -701,34 +663,34 @@ static cdd_c_error_t parse_license_line(const char *line, const char *end,
       name = (c_cdd_strdup(trimmed, &_ast_strdup_15), _ast_strdup_15);
   }
 
-  free(rest);
+  C_CDD_FREE(rest);
 
   if (!name) {
     if (url)
-      free(url);
+      C_CDD_FREE(url);
     if (identifier)
-      free(identifier);
+      C_CDD_FREE(identifier);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (url && identifier) {
-    free(name);
-    free(url);
-    free(identifier);
+    C_CDD_FREE(name);
+    C_CDD_FREE(url);
+    C_CDD_FREE(identifier);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   if (out->license_name)
-    free(out->license_name);
+    C_CDD_FREE(out->license_name);
   out->license_name = name;
   if (url) {
     if (out->license_url)
-      free(out->license_url);
+      C_CDD_FREE(out->license_url);
     out->license_url = url;
   }
   if (identifier) {
     if (out->license_identifier)
-      free(out->license_identifier);
+      C_CDD_FREE(out->license_identifier);
     out->license_identifier = identifier;
   }
 
@@ -757,10 +719,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
   struct DocResponseHeader *h;
   const char *cur = line;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  new_headers = (struct DocResponseHeader *)realloc(
+  new_headers = (struct DocResponseHeader *)C_CDD_REALLOC(
       out->response_headers,
       (out->n_response_headers + 1) * sizeof(struct DocResponseHeader));
   if (!new_headers) {
@@ -779,7 +738,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
   h->name = (extract_word(cur, end, &cur, &_ast_extract_word_31),
              _ast_extract_word_31);
   if (!h->name) {
-    free(h->code);
+    C_CDD_FREE(h->code);
     h->code = NULL;
     return CDD_C_SUCCESS;
   }
@@ -793,14 +752,14 @@ static cdd_c_error_t parse_response_header_line(const char *line,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "type:", 5) == 0) {
           if (h->type)
-            free(h->type);
+            C_CDD_FREE(h->type);
           h->type = (c_cdd_strdup(attr + 5, &_ast_strdup_16), _ast_strdup_16);
         } else if (strncmp(attr, "format:", 7) == 0 ||
                    strncmp(attr, "format=", 7) == 0) {
@@ -808,7 +767,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
                        _ast_trim_segment_33);
           if (val && *val) {
             if (h->format)
-              free(h->format);
+              C_CDD_FREE(h->format);
             h->format = (c_cdd_strdup(val, &_ast_strdup_17), _ast_strdup_17);
           }
         } else if (strncmp(attr, "contentType:", 12) == 0 ||
@@ -817,7 +776,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
                        _ast_trim_segment_34);
           if (val && *val) {
             if (h->content_type)
-              free(h->content_type);
+              C_CDD_FREE(h->content_type);
             h->content_type =
                 (c_cdd_strdup(val, &_ast_strdup_18), _ast_strdup_18);
           }
@@ -827,18 +786,18 @@ static cdd_c_error_t parse_response_header_line(const char *line,
                        _ast_trim_segment_35);
           if (val && *val) {
             if (h->content_type)
-              free(h->content_type);
+              C_CDD_FREE(h->content_type);
             h->content_type =
                 (c_cdd_strdup(val, &_ast_strdup_19), _ast_strdup_19);
           }
         } else if (parse_optional_example_attr(attr, &h->example) == ENOMEM) {
-          free(attr);
+          C_CDD_FREE(attr);
           return CDD_C_ERROR_MEMORY;
         } else {
           (void)parse_optional_bool_attr(attr, "required", &h->required_set,
                                          &h->required);
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_36), _ast_skip_ws_36);
@@ -885,11 +844,8 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
   struct DocLink *link;
   const char *cur = line;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  new_links =
-      (struct DocLink *)realloc(out->links, (out->n_links + 1) * sizeof(*link));
+  new_links = (struct DocLink *)C_CDD_REALLOC(out->links, (out->n_links + 1) *
+                                                              sizeof(*link));
   if (!new_links) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -906,7 +862,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
   link->name = (extract_word(cur, end, &cur, &_ast_extract_word_39),
                 _ast_extract_word_39);
   if (!link->name) {
-    free(link->code);
+    C_CDD_FREE(link->code);
     link->code = NULL;
     return CDD_C_SUCCESS;
   }
@@ -920,7 +876,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -931,7 +887,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_41);
           if (val && *val) {
             if (link->operation_id)
-              free(link->operation_id);
+              C_CDD_FREE(link->operation_id);
             link->operation_id =
                 (c_cdd_strdup(val, &_ast_strdup_20), _ast_strdup_20);
           }
@@ -941,7 +897,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_42);
           if (val && *val) {
             if (link->operation_ref)
-              free(link->operation_ref);
+              C_CDD_FREE(link->operation_ref);
             link->operation_ref =
                 (c_cdd_strdup(val, &_ast_strdup_21), _ast_strdup_21);
           }
@@ -951,7 +907,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_43);
           if (val && *val) {
             if (link->parameters_json)
-              free(link->parameters_json);
+              C_CDD_FREE(link->parameters_json);
             link->parameters_json =
                 (c_cdd_strdup(val, &_ast_strdup_22), _ast_strdup_22);
           }
@@ -961,7 +917,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_44);
           if (val && *val) {
             if (link->request_body_json)
-              free(link->request_body_json);
+              C_CDD_FREE(link->request_body_json);
             link->request_body_json =
                 (c_cdd_strdup(val, &_ast_strdup_23), _ast_strdup_23);
           }
@@ -971,7 +927,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_45);
           if (val && *val) {
             if (link->summary)
-              free(link->summary);
+              C_CDD_FREE(link->summary);
             link->summary =
                 (c_cdd_strdup(val, &_ast_strdup_24), _ast_strdup_24);
           }
@@ -981,7 +937,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_46);
           if (val && *val) {
             if (link->server_url)
-              free(link->server_url);
+              C_CDD_FREE(link->server_url);
             link->server_url =
                 (c_cdd_strdup(val, &_ast_strdup_25), _ast_strdup_25);
           }
@@ -991,7 +947,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_47);
           if (val && *val) {
             if (link->server_name)
-              free(link->server_name);
+              C_CDD_FREE(link->server_name);
             link->server_name =
                 (c_cdd_strdup(val, &_ast_strdup_26), _ast_strdup_26);
           }
@@ -1001,7 +957,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_48);
           if (val && *val) {
             if (link->server_description)
-              free(link->server_description);
+              C_CDD_FREE(link->server_description);
             link->server_description =
                 (c_cdd_strdup(val, &_ast_strdup_27), _ast_strdup_27);
           }
@@ -1011,13 +967,13 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
                        _ast_trim_segment_49);
           if (val && *val) {
             if (link->description)
-              free(link->description);
+              C_CDD_FREE(link->description);
             link->description =
                 (c_cdd_strdup(val, &_ast_strdup_28), _ast_strdup_28);
           }
         }
 
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_50), _ast_skip_ws_50);
@@ -1056,243 +1012,243 @@ void doc_metadata_free(struct DocMetadata *meta) {
     return;
 
   if (meta->route)
-    free(meta->route);
+    C_CDD_FREE(meta->route);
   if (meta->verb)
-    free(meta->verb);
+    C_CDD_FREE(meta->verb);
   if (meta->operation_id)
-    free(meta->operation_id);
+    C_CDD_FREE(meta->operation_id);
   if (meta->json_schema_dialect)
-    free(meta->json_schema_dialect);
+    C_CDD_FREE(meta->json_schema_dialect);
   if (meta->summary)
-    free(meta->summary);
+    C_CDD_FREE(meta->summary);
   if (meta->description)
-    free(meta->description);
+    C_CDD_FREE(meta->description);
   if (meta->info_title)
-    free(meta->info_title);
+    C_CDD_FREE(meta->info_title);
   if (meta->info_version)
-    free(meta->info_version);
+    C_CDD_FREE(meta->info_version);
   if (meta->info_summary)
-    free(meta->info_summary);
+    C_CDD_FREE(meta->info_summary);
   if (meta->info_description)
-    free(meta->info_description);
+    C_CDD_FREE(meta->info_description);
   if (meta->terms_of_service)
-    free(meta->terms_of_service);
+    C_CDD_FREE(meta->terms_of_service);
   if (meta->contact_name)
-    free(meta->contact_name);
+    C_CDD_FREE(meta->contact_name);
   if (meta->contact_url)
-    free(meta->contact_url);
+    C_CDD_FREE(meta->contact_url);
   if (meta->contact_email)
-    free(meta->contact_email);
+    C_CDD_FREE(meta->contact_email);
   if (meta->license_name)
-    free(meta->license_name);
+    C_CDD_FREE(meta->license_name);
   if (meta->license_identifier)
-    free(meta->license_identifier);
+    C_CDD_FREE(meta->license_identifier);
   if (meta->license_url)
-    free(meta->license_url);
+    C_CDD_FREE(meta->license_url);
   if (meta->external_docs_url)
-    free(meta->external_docs_url);
+    C_CDD_FREE(meta->external_docs_url);
   if (meta->external_docs_description)
-    free(meta->external_docs_description);
+    C_CDD_FREE(meta->external_docs_description);
   if (meta->tags) {
     for (i = 0; i < meta->n_tags; ++i) {
-      free(meta->tags[i]);
+      C_CDD_FREE(meta->tags[i]);
     }
-    free(meta->tags);
+    C_CDD_FREE(meta->tags);
   }
 
   if (meta->params) {
     for (i = 0; i < meta->n_params; ++i) {
-      free(meta->params[i].name);
-      free(meta->params[i].in_loc);
-      free(meta->params[i].description);
+      C_CDD_FREE(meta->params[i].name);
+      C_CDD_FREE(meta->params[i].in_loc);
+      C_CDD_FREE(meta->params[i].description);
       if (meta->params[i].format)
-        free(meta->params[i].format);
+        C_CDD_FREE(meta->params[i].format);
       if (meta->params[i].content_type)
-        free(meta->params[i].content_type);
+        C_CDD_FREE(meta->params[i].content_type);
       if (meta->params[i].example)
-        free(meta->params[i].example);
+        C_CDD_FREE(meta->params[i].example);
     }
-    free(meta->params);
+    C_CDD_FREE(meta->params);
   }
 
   if (meta->returns) {
     for (i = 0; i < meta->n_returns; ++i) {
-      free(meta->returns[i].code);
+      C_CDD_FREE(meta->returns[i].code);
       if (meta->returns[i].summary)
-        free(meta->returns[i].summary);
-      free(meta->returns[i].description);
+        C_CDD_FREE(meta->returns[i].summary);
+      C_CDD_FREE(meta->returns[i].description);
       if (meta->returns[i].content_type)
-        free(meta->returns[i].content_type);
+        C_CDD_FREE(meta->returns[i].content_type);
       if (meta->returns[i].example)
-        free(meta->returns[i].example);
+        C_CDD_FREE(meta->returns[i].example);
     }
-    free(meta->returns);
+    C_CDD_FREE(meta->returns);
   }
 
   if (meta->response_headers) {
     for (i = 0; i < meta->n_response_headers; ++i) {
-      free(meta->response_headers[i].code);
-      free(meta->response_headers[i].name);
-      free(meta->response_headers[i].type);
+      C_CDD_FREE(meta->response_headers[i].code);
+      C_CDD_FREE(meta->response_headers[i].name);
+      C_CDD_FREE(meta->response_headers[i].type);
       if (meta->response_headers[i].format)
-        free(meta->response_headers[i].format);
+        C_CDD_FREE(meta->response_headers[i].format);
       if (meta->response_headers[i].content_type)
-        free(meta->response_headers[i].content_type);
-      free(meta->response_headers[i].description);
+        C_CDD_FREE(meta->response_headers[i].content_type);
+      C_CDD_FREE(meta->response_headers[i].description);
       if (meta->response_headers[i].example)
-        free(meta->response_headers[i].example);
+        C_CDD_FREE(meta->response_headers[i].example);
     }
-    free(meta->response_headers);
+    C_CDD_FREE(meta->response_headers);
   }
 
   if (meta->links) {
     for (i = 0; i < meta->n_links; ++i) {
       struct DocLink *link = &meta->links[i];
-      free(link->code);
-      free(link->name);
+      C_CDD_FREE(link->code);
+      C_CDD_FREE(link->name);
       if (link->operation_id)
-        free(link->operation_id);
+        C_CDD_FREE(link->operation_id);
       if (link->operation_ref)
-        free(link->operation_ref);
+        C_CDD_FREE(link->operation_ref);
       if (link->summary)
-        free(link->summary);
+        C_CDD_FREE(link->summary);
       if (link->description)
-        free(link->description);
+        C_CDD_FREE(link->description);
       if (link->parameters_json)
-        free(link->parameters_json);
+        C_CDD_FREE(link->parameters_json);
       if (link->request_body_json)
-        free(link->request_body_json);
+        C_CDD_FREE(link->request_body_json);
       if (link->server_url)
-        free(link->server_url);
+        C_CDD_FREE(link->server_url);
       if (link->server_name)
-        free(link->server_name);
+        C_CDD_FREE(link->server_name);
       if (link->server_description)
-        free(link->server_description);
+        C_CDD_FREE(link->server_description);
     }
-    free(meta->links);
+    C_CDD_FREE(meta->links);
   }
 
   if (meta->security) {
     for (i = 0; i < meta->n_security; ++i) {
       size_t s;
-      free(meta->security[i].scheme);
+      C_CDD_FREE(meta->security[i].scheme);
       if (meta->security[i].scopes) {
         for (s = 0; s < meta->security[i].n_scopes; ++s)
-          free(meta->security[i].scopes[s]);
-        free(meta->security[i].scopes);
+          C_CDD_FREE(meta->security[i].scopes[s]);
+        C_CDD_FREE(meta->security[i].scopes);
       }
     }
-    free(meta->security);
+    C_CDD_FREE(meta->security);
   }
 
   if (meta->security_schemes) {
     for (i = 0; i < meta->n_security_schemes; ++i) {
       size_t f;
       struct DocSecurityScheme *sch = &meta->security_schemes[i];
-      free(sch->name);
+      C_CDD_FREE(sch->name);
       if (sch->description)
-        free(sch->description);
+        C_CDD_FREE(sch->description);
       if (sch->scheme)
-        free(sch->scheme);
+        C_CDD_FREE(sch->scheme);
       if (sch->bearer_format)
-        free(sch->bearer_format);
+        C_CDD_FREE(sch->bearer_format);
       if (sch->param_name)
-        free(sch->param_name);
+        C_CDD_FREE(sch->param_name);
       if (sch->open_id_connect_url)
-        free(sch->open_id_connect_url);
+        C_CDD_FREE(sch->open_id_connect_url);
       if (sch->oauth2_metadata_url)
-        free(sch->oauth2_metadata_url);
+        C_CDD_FREE(sch->oauth2_metadata_url);
       if (sch->flows) {
         for (f = 0; f < sch->n_flows; ++f) {
           size_t s;
           struct DocOAuthFlow *flow = &sch->flows[f];
           if (flow->authorization_url)
-            free(flow->authorization_url);
+            C_CDD_FREE(flow->authorization_url);
           if (flow->token_url)
-            free(flow->token_url);
+            C_CDD_FREE(flow->token_url);
           if (flow->refresh_url)
-            free(flow->refresh_url);
+            C_CDD_FREE(flow->refresh_url);
           if (flow->device_authorization_url)
-            free(flow->device_authorization_url);
+            C_CDD_FREE(flow->device_authorization_url);
           if (flow->scopes) {
             for (s = 0; s < flow->n_scopes; ++s) {
-              free(flow->scopes[s].name);
+              C_CDD_FREE(flow->scopes[s].name);
               if (flow->scopes[s].description)
-                free(flow->scopes[s].description);
+                C_CDD_FREE(flow->scopes[s].description);
             }
-            free(flow->scopes);
+            C_CDD_FREE(flow->scopes);
           }
         }
-        free(sch->flows);
+        C_CDD_FREE(sch->flows);
       }
     }
-    free(meta->security_schemes);
+    C_CDD_FREE(meta->security_schemes);
   }
 
   if (meta->servers) {
     for (i = 0; i < meta->n_servers; ++i) {
       size_t v;
-      free(meta->servers[i].url);
-      free(meta->servers[i].name);
-      free(meta->servers[i].description);
+      C_CDD_FREE(meta->servers[i].url);
+      C_CDD_FREE(meta->servers[i].name);
+      C_CDD_FREE(meta->servers[i].description);
       if (meta->servers[i].variables) {
         for (v = 0; v < meta->servers[i].n_variables; ++v) {
           size_t e;
           struct DocServerVar *var = &meta->servers[i].variables[v];
-          free(var->name);
-          free(var->default_value);
+          C_CDD_FREE(var->name);
+          C_CDD_FREE(var->default_value);
           if (var->description)
-            free(var->description);
+            C_CDD_FREE(var->description);
           if (var->enum_values) {
             for (e = 0; e < var->n_enum_values; ++e) {
-              free(var->enum_values[e]);
+              C_CDD_FREE(var->enum_values[e]);
             }
-            free(var->enum_values);
+            C_CDD_FREE(var->enum_values);
           }
         }
-        free(meta->servers[i].variables);
+        C_CDD_FREE(meta->servers[i].variables);
       }
     }
-    free(meta->servers);
+    C_CDD_FREE(meta->servers);
   }
 
   if (meta->request_bodies) {
     for (i = 0; i < meta->n_request_bodies; ++i) {
-      free(meta->request_bodies[i].content_type);
-      free(meta->request_bodies[i].description);
+      C_CDD_FREE(meta->request_bodies[i].content_type);
+      C_CDD_FREE(meta->request_bodies[i].description);
       if (meta->request_bodies[i].example)
-        free(meta->request_bodies[i].example);
+        C_CDD_FREE(meta->request_bodies[i].example);
     }
-    free(meta->request_bodies);
+    C_CDD_FREE(meta->request_bodies);
   }
 
   if (meta->encodings) {
     for (i = 0; i < meta->n_encodings; ++i) {
       if (meta->encodings[i].name)
-        free(meta->encodings[i].name);
+        C_CDD_FREE(meta->encodings[i].name);
       if (meta->encodings[i].content_type)
-        free(meta->encodings[i].content_type);
+        C_CDD_FREE(meta->encodings[i].content_type);
     }
-    free(meta->encodings);
+    C_CDD_FREE(meta->encodings);
   }
 
   if (meta->tag_meta) {
     for (i = 0; i < meta->n_tag_meta; ++i) {
-      free(meta->tag_meta[i].name);
-      free(meta->tag_meta[i].summary);
-      free(meta->tag_meta[i].description);
-      free(meta->tag_meta[i].parent);
-      free(meta->tag_meta[i].kind);
-      free(meta->tag_meta[i].external_docs_url);
-      free(meta->tag_meta[i].external_docs_description);
+      C_CDD_FREE(meta->tag_meta[i].name);
+      C_CDD_FREE(meta->tag_meta[i].summary);
+      C_CDD_FREE(meta->tag_meta[i].description);
+      C_CDD_FREE(meta->tag_meta[i].parent);
+      C_CDD_FREE(meta->tag_meta[i].kind);
+      C_CDD_FREE(meta->tag_meta[i].external_docs_url);
+      C_CDD_FREE(meta->tag_meta[i].external_docs_description);
     }
-    free(meta->tag_meta);
+    C_CDD_FREE(meta->tag_meta);
   }
 
   if (meta->request_body_description)
-    free(meta->request_body_description);
+    C_CDD_FREE(meta->request_body_description);
   if (meta->request_body_content_type)
-    free(meta->request_body_content_type);
+    C_CDD_FREE(meta->request_body_content_type);
 
   memset(meta, 0, sizeof(*meta));
 }
@@ -1315,7 +1271,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
   const char *cur = line;
 
   /* Realloc array */
-  new_params = (struct DocParam *)realloc(
+  new_params = (struct DocParam *)C_CDD_REALLOC(
       out->params, (out->n_params + 1) * sizeof(struct DocParam));
   if (!new_params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -1344,7 +1300,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
       /* Extract content inside [] */
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -1355,7 +1311,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
           p->required = 1;
         } else if (strncmp(attr, "contentType:", 12) == 0) {
           if (p->content_type)
-            free(p->content_type);
+            C_CDD_FREE(p->content_type);
           p->content_type =
               (c_cdd_strdup(attr + 12, &_ast_strdup_30), _ast_strdup_30);
         } else if (strncmp(attr, "format:", 7) == 0 ||
@@ -1364,7 +1320,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
                        _ast_trim_segment_54);
           if (val && *val) {
             if (p->format)
-              free(p->format);
+              C_CDD_FREE(p->format);
             p->format = (c_cdd_strdup(val, &_ast_strdup_31), _ast_strdup_31);
           }
         } else if (strncmp(attr, "style:", 6) == 0) {
@@ -1390,11 +1346,11 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
           (void)parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
                                          &p->deprecated);
           if (parse_optional_example_attr(attr, &p->example) == ENOMEM) {
-            free(attr);
+            C_CDD_FREE(attr);
             return CDD_C_ERROR_MEMORY;
           }
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_55), _ast_skip_ws_55);
@@ -1428,7 +1384,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
   struct DocResponse *r;
   const char *cur = line;
 
-  new_resps = (struct DocResponse *)realloc(
+  new_resps = (struct DocResponse *)C_CDD_REALLOC(
       out->returns, (out->n_returns + 1) * sizeof(struct DocResponse));
   if (!new_resps) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -1455,7 +1411,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -1466,7 +1422,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
                        _ast_trim_segment_59);
           if (val && *val) {
             if (r->content_type)
-              free(r->content_type);
+              C_CDD_FREE(r->content_type);
             r->content_type =
                 (c_cdd_strdup(val, &_ast_strdup_32), _ast_strdup_32);
           }
@@ -1476,7 +1432,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
                        _ast_trim_segment_60);
           if (val && *val) {
             if (r->summary)
-              free(r->summary);
+              C_CDD_FREE(r->summary);
             r->summary = (c_cdd_strdup(val, &_ast_strdup_33), _ast_strdup_33);
           }
         } else if (strcmp(attr, "itemSchema") == 0 ||
@@ -1484,10 +1440,10 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema=true") == 0) {
           r->item_schema = 1;
         } else if (parse_optional_example_attr(attr, &r->example) == ENOMEM) {
-          free(attr);
+          C_CDD_FREE(attr);
           return CDD_C_ERROR_MEMORY;
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_61), _ast_skip_ws_61);
@@ -1548,13 +1504,13 @@ static cdd_c_error_t split_scopes(const char *input, char ***out_scopes,
 #endif
       continue;
     }
-    new_scopes = (char **)realloc(scopes, (n + 1) * sizeof(char *));
+    new_scopes = (char **)C_CDD_REALLOC(scopes, (n + 1) * sizeof(char *));
     if (!new_scopes) {
       size_t i;
       for (i = 0; i < n; ++i)
-        free(scopes[i]);
-      free(scopes);
-      free(buf);
+        C_CDD_FREE(scopes[i]);
+      C_CDD_FREE(scopes);
+      C_CDD_FREE(buf);
       return CDD_C_ERROR_MEMORY;
     }
     scopes = new_scopes;
@@ -1562,9 +1518,9 @@ static cdd_c_error_t split_scopes(const char *input, char ***out_scopes,
     if (!scopes[n]) {
       size_t i;
       for (i = 0; i < n; ++i)
-        free(scopes[i]);
-      free(scopes);
-      free(buf);
+        C_CDD_FREE(scopes[i]);
+      C_CDD_FREE(scopes);
+      C_CDD_FREE(buf);
       return CDD_C_ERROR_MEMORY;
     }
     n++;
@@ -1575,7 +1531,7 @@ static cdd_c_error_t split_scopes(const char *input, char ***out_scopes,
 #endif
   }
 
-  free(buf);
+  C_CDD_FREE(buf);
   *out_scopes = scopes;
   *out_count = n;
   return CDD_C_SUCCESS;
@@ -1597,9 +1553,6 @@ static cdd_c_error_t parse_security_line(const char *line, const char *end,
   struct DocSecurityRequirement *req;
   int rc;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   scheme = (extract_word(cur, end, &cur, &_ast_extract_word_64),
             _ast_extract_word_64);
   if (!scheme)
@@ -1608,23 +1561,23 @@ static cdd_c_error_t parse_security_line(const char *line, const char *end,
   rest = (extract_rest(cur, end, &_ast_extract_rest_65), _ast_extract_rest_65);
   rc = split_scopes(rest, &scopes, &n_scopes);
   if (rc != 0) {
-    free(scheme);
+    C_CDD_FREE(scheme);
     if (rest)
-      free(rest);
+      C_CDD_FREE(rest);
     return rc;
   }
 
-  new_reqs = (struct DocSecurityRequirement *)realloc(
+  new_reqs = (struct DocSecurityRequirement *)C_CDD_REALLOC(
       out->security,
       (out->n_security + 1) * sizeof(struct DocSecurityRequirement));
   if (!new_reqs) {
     size_t i;
     for (i = 0; i < n_scopes; ++i)
-      free(scopes[i]);
-    free(scopes);
-    free(scheme);
+      C_CDD_FREE(scopes[i]);
+    C_CDD_FREE(scopes);
+    C_CDD_FREE(scheme);
     if (rest)
-      free(rest);
+      C_CDD_FREE(rest);
     return CDD_C_ERROR_MEMORY;
   }
   out->security = new_reqs;
@@ -1636,7 +1589,7 @@ static cdd_c_error_t parse_security_line(const char *line, const char *end,
   out->n_security++;
 
   if (rest)
-    free(rest);
+    C_CDD_FREE(rest);
   return CDD_C_SUCCESS;
 }
 
@@ -1760,11 +1713,12 @@ static cdd_c_error_t parse_oauth_scopes(const char *input,
   if (n == 0)
     return CDD_C_SUCCESS;
 
-  scopes = (struct DocOAuthScope *)calloc(n, sizeof(struct DocOAuthScope));
+  scopes =
+      (struct DocOAuthScope *)C_CDD_CALLOC(n, sizeof(struct DocOAuthScope));
   if (!scopes) {
     for (i = 0; i < n; ++i)
-      free(names[i]);
-    free(names);
+      C_CDD_FREE(names[i]);
+    C_CDD_FREE(names);
     return CDD_C_ERROR_MEMORY;
   }
 
@@ -1773,7 +1727,7 @@ static cdd_c_error_t parse_oauth_scopes(const char *input,
     scopes[i].description = NULL;
     names[i] = NULL;
   }
-  free(names);
+  C_CDD_FREE(names);
   *out = scopes;
   *out_count = n;
   return CDD_C_SUCCESS;
@@ -1820,10 +1774,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
   const char *cur = line;
   struct DocOAuthFlow *current_flow = NULL;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  new_schemes = (struct DocSecurityScheme *)realloc(
+  new_schemes = (struct DocSecurityScheme *)C_CDD_REALLOC(
       out->security_schemes,
       (out->n_security_schemes + 1) * sizeof(struct DocSecurityScheme));
   if (!new_schemes) {
@@ -1850,7 +1801,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -1867,7 +1818,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_70);
           if (val && *val) {
             if (scheme->description)
-              free(scheme->description);
+              C_CDD_FREE(scheme->description);
             scheme->description =
                 (c_cdd_strdup(val, &_ast_strdup_36), _ast_strdup_36);
           }
@@ -1877,7 +1828,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_71);
           if (val && *val) {
             if (scheme->scheme)
-              free(scheme->scheme);
+              C_CDD_FREE(scheme->scheme);
             scheme->scheme =
                 (c_cdd_strdup(val, &_ast_strdup_37), _ast_strdup_37);
           }
@@ -1887,7 +1838,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_72);
           if (val && *val) {
             if (scheme->bearer_format)
-              free(scheme->bearer_format);
+              C_CDD_FREE(scheme->bearer_format);
             scheme->bearer_format =
                 (c_cdd_strdup(val, &_ast_strdup_38), _ast_strdup_38);
           }
@@ -1897,7 +1848,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_73);
           if (val && *val) {
             if (scheme->param_name)
-              free(scheme->param_name);
+              C_CDD_FREE(scheme->param_name);
             scheme->param_name =
                 (c_cdd_strdup(val, &_ast_strdup_39), _ast_strdup_39);
           }
@@ -1914,7 +1865,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_76);
           if (val && *val) {
             if (scheme->open_id_connect_url)
-              free(scheme->open_id_connect_url);
+              C_CDD_FREE(scheme->open_id_connect_url);
             scheme->open_id_connect_url =
                 (c_cdd_strdup(val, &_ast_strdup_40), _ast_strdup_40);
           }
@@ -1924,7 +1875,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_77);
           if (val && *val) {
             if (scheme->oauth2_metadata_url)
-              free(scheme->oauth2_metadata_url);
+              C_CDD_FREE(scheme->oauth2_metadata_url);
             scheme->oauth2_metadata_url =
                 (c_cdd_strdup(val, &_ast_strdup_41), _ast_strdup_41);
           }
@@ -1937,9 +1888,10 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                                           &_ast_parse_oauth_flow_type_text_79),
                _ast_parse_oauth_flow_type_text_79);
           if (flow_type != DOC_OAUTH_FLOW_UNSET) {
-            struct DocOAuthFlow *new_flows = (struct DocOAuthFlow *)realloc(
-                scheme->flows,
-                (scheme->n_flows + 1) * sizeof(struct DocOAuthFlow));
+            struct DocOAuthFlow *new_flows =
+                (struct DocOAuthFlow *)C_CDD_REALLOC(
+                    scheme->flows,
+                    (scheme->n_flows + 1) * sizeof(struct DocOAuthFlow));
             if (new_flows) {
               scheme->flows = new_flows;
               current_flow = &scheme->flows[scheme->n_flows];
@@ -1956,7 +1908,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_80);
           if (current_flow && val && *val) {
             if (current_flow->authorization_url)
-              free(current_flow->authorization_url);
+              C_CDD_FREE(current_flow->authorization_url);
             current_flow->authorization_url =
                 (c_cdd_strdup(val, &_ast_strdup_42), _ast_strdup_42);
           }
@@ -1966,7 +1918,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_81);
           if (current_flow && val && *val) {
             if (current_flow->token_url)
-              free(current_flow->token_url);
+              C_CDD_FREE(current_flow->token_url);
             current_flow->token_url =
                 (c_cdd_strdup(val, &_ast_strdup_43), _ast_strdup_43);
           }
@@ -1976,7 +1928,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_82);
           if (current_flow && val && *val) {
             if (current_flow->refresh_url)
-              free(current_flow->refresh_url);
+              C_CDD_FREE(current_flow->refresh_url);
             current_flow->refresh_url =
                 (c_cdd_strdup(val, &_ast_strdup_44), _ast_strdup_44);
           }
@@ -1986,7 +1938,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
                        _ast_trim_segment_83);
           if (current_flow && val && *val) {
             if (current_flow->device_authorization_url)
-              free(current_flow->device_authorization_url);
+              C_CDD_FREE(current_flow->device_authorization_url);
             current_flow->device_authorization_url =
                 (c_cdd_strdup(val, &_ast_strdup_45), _ast_strdup_45);
           }
@@ -2000,10 +1952,10 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
             if (parse_oauth_scopes(val, &scopes, &n_scopes) == 0) {
               size_t i;
               for (i = 0; i < current_flow->n_scopes; ++i) {
-                free(current_flow->scopes[i].name);
-                free(current_flow->scopes[i].description);
+                C_CDD_FREE(current_flow->scopes[i].name);
+                C_CDD_FREE(current_flow->scopes[i].description);
               }
-              free(current_flow->scopes);
+              C_CDD_FREE(current_flow->scopes);
               current_flow->scopes = scopes;
               current_flow->n_scopes = n_scopes;
             }
@@ -2012,7 +1964,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
           (void)parse_optional_bool_attr(
               attr, "deprecated", &scheme->deprecated_set, &scheme->deprecated);
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_85), _ast_skip_ws_85);
@@ -2079,9 +2031,6 @@ static cdd_c_error_t parse_server_line(const char *line, const char *end,
   struct DocServer *new_servers;
   struct DocServer *srv;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   url = (extract_word(cur, end, &cur, &_ast_extract_word_86),
          _ast_extract_word_86);
   if (!url)
@@ -2132,16 +2081,16 @@ static cdd_c_error_t parse_server_line(const char *line, const char *end,
     }
   }
 
-  new_servers = (struct DocServer *)realloc(
+  new_servers = (struct DocServer *)C_CDD_REALLOC(
       out->servers, (out->n_servers + 1) * sizeof(struct DocServer));
   if (!new_servers) {
-    free(url);
+    C_CDD_FREE(url);
     if (name)
-      free(name);
+      C_CDD_FREE(name);
     if (desc)
-      free(desc);
+      C_CDD_FREE(desc);
     if (rest)
-      free(rest);
+      C_CDD_FREE(rest);
     return CDD_C_ERROR_MEMORY;
   }
   out->servers = new_servers;
@@ -2153,7 +2102,7 @@ static cdd_c_error_t parse_server_line(const char *line, const char *end,
   out->n_servers++;
 
   if (rest)
-    free(rest);
+    C_CDD_FREE(rest);
   return CDD_C_SUCCESS;
 }
 
@@ -2190,7 +2139,7 @@ static cdd_c_error_t split_enum_values(const char *input, char ***out_vals,
       buf[i] = ',';
   }
   rc = split_scopes(buf, out_vals, out_count);
-  free(buf);
+  C_CDD_FREE(buf);
   return rc;
 }
 
@@ -2232,7 +2181,7 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -2243,7 +2192,7 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
                        _ast_trim_segment_95);
           if (val && *val) {
             if (default_value)
-              free(default_value);
+              C_CDD_FREE(default_value);
             default_value =
                 (c_cdd_strdup(val, &_ast_strdup_50), _ast_strdup_50);
           }
@@ -2253,7 +2202,7 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
                        _ast_trim_segment_96);
           if (val && *val) {
             if (enum_raw)
-              free(enum_raw);
+              C_CDD_FREE(enum_raw);
             enum_raw = (c_cdd_strdup(val, &_ast_strdup_51), _ast_strdup_51);
           }
         } else if (strncmp(attr, "description:", 12) == 0 ||
@@ -2262,11 +2211,11 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
                        _ast_trim_segment_97);
           if (val && *val) {
             if (description)
-              free(description);
+              C_CDD_FREE(description);
             description = (c_cdd_strdup(val, &_ast_strdup_52), _ast_strdup_52);
           }
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_98), _ast_skip_ws_98);
@@ -2281,31 +2230,31 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
     if (rest && *rest) {
       description = rest;
     } else if (rest) {
-      free(rest);
+      C_CDD_FREE(rest);
     }
   }
 
   if (!default_value) {
-    free(name);
+    C_CDD_FREE(name);
     if (description)
-      free(description);
+      C_CDD_FREE(description);
     if (enum_raw)
-      free(enum_raw);
+      C_CDD_FREE(enum_raw);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   {
     struct DocServer *srv = &out->servers[out->n_servers - 1];
-    struct DocServerVar *new_vars = (struct DocServerVar *)realloc(
+    struct DocServerVar *new_vars = (struct DocServerVar *)C_CDD_REALLOC(
         srv->variables, (srv->n_variables + 1) * sizeof(struct DocServerVar));
     struct DocServerVar *var;
     if (!new_vars) {
-      free(name);
-      free(default_value);
+      C_CDD_FREE(name);
+      C_CDD_FREE(default_value);
       if (description)
-        free(description);
+        C_CDD_FREE(description);
       if (enum_raw)
-        free(enum_raw);
+        C_CDD_FREE(enum_raw);
       return CDD_C_ERROR_MEMORY;
     }
     srv->variables = new_vars;
@@ -2317,10 +2266,10 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
     if (enum_raw) {
       if (split_enum_values(enum_raw, &var->enum_values, &var->n_enum_values) !=
           0) {
-        free(enum_raw);
+        C_CDD_FREE(enum_raw);
         return CDD_C_ERROR_MEMORY;
       }
-      free(enum_raw);
+      C_CDD_FREE(enum_raw);
     }
     srv->n_variables++;
   }
@@ -2345,10 +2294,7 @@ static cdd_c_error_t parse_encoding_line(const char *line, const char *end,
   struct DocEncoding *new_arr;
   struct DocEncoding *entry;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  new_arr = (struct DocEncoding *)realloc(
+  new_arr = (struct DocEncoding *)C_CDD_REALLOC(
       out->encodings, (out->n_encodings + 1) * sizeof(struct DocEncoding));
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -2413,7 +2359,7 @@ static cdd_c_error_t parse_encoding_line(const char *line, const char *end,
                                          &entry->allow_reserved_set,
                                          &entry->allow_reserved);
         }
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_106), _ast_skip_ws_106);
@@ -2449,9 +2395,6 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
   int required_val = 0;
   int item_schema = 0;
 
-  if (!out)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   cur = (skip_ws(cur, &_ast_skip_ws_107), _ast_skip_ws_107);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
@@ -2461,7 +2404,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)malloc(inner_len + 1);
+      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -2474,7 +2417,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
                        _ast_trim_segment_108);
           if (val && *val) {
             if (content_type)
-              free(content_type);
+              C_CDD_FREE(content_type);
             content_type = (c_cdd_strdup(val, &_ast_strdup_54), _ast_strdup_54);
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
@@ -2483,7 +2426,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
                        _ast_trim_segment_109);
           if (val && *val) {
             if (content_type)
-              free(content_type);
+              C_CDD_FREE(content_type);
             content_type = (c_cdd_strdup(val, &_ast_strdup_55), _ast_strdup_55);
           }
         } else if (strcmp(attr, "itemSchema") == 0 ||
@@ -2491,15 +2434,15 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema=true") == 0) {
           item_schema = 1;
         } else if (parse_optional_example_attr(attr, &example) == ENOMEM) {
-          free(attr);
+          C_CDD_FREE(attr);
           if (content_type)
-            free(content_type);
+            C_CDD_FREE(content_type);
           if (example)
-            free(example);
+            C_CDD_FREE(example);
           return CDD_C_ERROR_MEMORY;
         }
 
-        free(attr);
+        C_CDD_FREE(attr);
       }
       cur = close_bracket + 1;
       cur = (skip_ws(cur, &_ast_skip_ws_110), _ast_skip_ws_110);
@@ -2511,16 +2454,16 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
   description =
       (extract_rest(cur, end, &_ast_extract_rest_111), _ast_extract_rest_111);
 
-  new_arr = (struct DocRequestBody *)realloc(out->request_bodies,
-                                             (out->n_request_bodies + 1) *
-                                                 sizeof(struct DocRequestBody));
+  new_arr = (struct DocRequestBody *)C_CDD_REALLOC(
+      out->request_bodies,
+      (out->n_request_bodies + 1) * sizeof(struct DocRequestBody));
   if (!new_arr) {
     if (content_type)
-      free(content_type);
+      C_CDD_FREE(content_type);
     if (description)
-      free(description);
+      C_CDD_FREE(description);
     if (example)
-      free(example);
+      C_CDD_FREE(example);
     return CDD_C_ERROR_MEMORY;
   }
   out->request_bodies = new_arr;
@@ -2539,7 +2482,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
 
   if (entry->content_type) {
     if (out->request_body_content_type)
-      free(out->request_body_content_type);
+      C_CDD_FREE(out->request_body_content_type);
     out->request_body_content_type =
         (c_cdd_strdup(entry->content_type, &_ast_strdup_56), _ast_strdup_56);
     if (!out->request_body_content_type) {
@@ -2549,7 +2492,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
   }
   if (entry->description) {
     if (out->request_body_description)
-      free(out->request_body_description);
+      C_CDD_FREE(out->request_body_description);
     out->request_body_description =
         (c_cdd_strdup(entry->description, &_ast_strdup_57), _ast_strdup_57);
     if (!out->request_body_description) {
@@ -2580,12 +2523,12 @@ static cdd_c_error_t parse_route_line(const char *line, const char *end,
   if (word1[0] == '/') {
     /* No verb specified */
     if (out->route)
-      free(out->route);
+      C_CDD_FREE(out->route);
     out->route = word1;
   } else {
     /* Assume verb */
     if (out->verb)
-      free(out->verb);
+      C_CDD_FREE(out->verb);
     out->verb = word1;
 
     /* Next word should be path */
@@ -2593,7 +2536,7 @@ static cdd_c_error_t parse_route_line(const char *line, const char *end,
              _ast_extract_word_113);
     if (word2) {
       if (out->route)
-        free(out->route);
+        C_CDD_FREE(out->route);
       out->route = word2;
     }
   }
@@ -2677,7 +2620,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
 
       {
         size_t cmd_len = (size_t)(cmd_end - cmd_start);
-        cmd = (char *)malloc(cmd_len + 1);
+        cmd = (char *)C_CDD_MALLOC(cmd_len + 1);
         if (!cmd) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
@@ -2705,21 +2648,21 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
           rc = parse_link_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "summary") == 0 || strcmp(cmd, "brief") == 0) {
           if (out->summary)
-            free(out->summary);
+            C_CDD_FREE(out->summary);
           out->summary =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_114),
                _ast_extract_rest_114);
         } else if (strcmp(cmd, "operationId") == 0 ||
                    strcmp(cmd, "operationid") == 0) {
           if (out->operation_id)
-            free(out->operation_id);
+            C_CDD_FREE(out->operation_id);
           out->operation_id =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_115),
                _ast_extract_rest_115);
         } else if (strcmp(cmd, "description") == 0 ||
                    strcmp(cmd, "details") == 0) {
           if (out->description)
-            free(out->description);
+            C_CDD_FREE(out->description);
           out->description =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_116),
                _ast_extract_rest_116);
@@ -2756,42 +2699,42 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
         } else if (strcmp(cmd, "jsonSchemaDialect") == 0 ||
                    strcmp(cmd, "jsonschemadialect") == 0) {
           if (out->json_schema_dialect)
-            free(out->json_schema_dialect);
+            C_CDD_FREE(out->json_schema_dialect);
           out->json_schema_dialect =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_117),
                _ast_extract_rest_117);
         } else if (strcmp(cmd, "infoTitle") == 0 ||
                    strcmp(cmd, "infotitle") == 0) {
           if (out->info_title)
-            free(out->info_title);
+            C_CDD_FREE(out->info_title);
           out->info_title =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_118),
                _ast_extract_rest_118);
         } else if (strcmp(cmd, "infoVersion") == 0 ||
                    strcmp(cmd, "infoversion") == 0) {
           if (out->info_version)
-            free(out->info_version);
+            C_CDD_FREE(out->info_version);
           out->info_version =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_119),
                _ast_extract_rest_119);
         } else if (strcmp(cmd, "infoSummary") == 0 ||
                    strcmp(cmd, "infosummary") == 0) {
           if (out->info_summary)
-            free(out->info_summary);
+            C_CDD_FREE(out->info_summary);
           out->info_summary =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_120),
                _ast_extract_rest_120);
         } else if (strcmp(cmd, "infoDescription") == 0 ||
                    strcmp(cmd, "infodescription") == 0) {
           if (out->info_description)
-            free(out->info_description);
+            C_CDD_FREE(out->info_description);
           out->info_description =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_121),
                _ast_extract_rest_121);
         } else if (strcmp(cmd, "termsOfService") == 0 ||
                    strcmp(cmd, "termsofservice") == 0) {
           if (out->terms_of_service)
-            free(out->terms_of_service);
+            C_CDD_FREE(out->terms_of_service);
           out->terms_of_service =
               (extract_rest(cmd_end, line_end, &_ast_extract_rest_122),
                _ast_extract_rest_122);
@@ -2801,7 +2744,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
           rc = parse_license_line(cmd_end, line_end, out);
         }
 
-        free(cmd);
+        C_CDD_FREE(cmd);
         if (rc != 0)
           goto cleanup;
       }

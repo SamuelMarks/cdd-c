@@ -1,9 +1,11 @@
 #ifndef TEST_CODE2SCHEMA_OOM_H
 #define TEST_CODE2SCHEMA_OOM_H
 
+/* clang-format off */
 #include "classes/parse/code2schema.h"
 #include <greatest.h>
 #include <parson.h>
+/* clang-format on */
 
 static int g_malloc_fail_at = -1;
 static void *mock_malloc(size_t sz) {

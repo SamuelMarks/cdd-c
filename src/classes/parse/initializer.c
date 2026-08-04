@@ -14,6 +14,7 @@
 #include "classes/parse/initializer.h"
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 /* --- Helper: Token Joiner --- */
@@ -37,7 +38,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
     }
   }
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -88,13 +89,13 @@ void init_list_free(struct InitList *list) {
   if (list->items) {
     for (i = 0; i < list->count; ++i) {
       if (list->items[i].designator)
-        free(list->items[i].designator);
+        C_CDD_FREE(list->items[i].designator);
       if (list->items[i].value) {
         init_value_free(list->items[i].value);
-        free(list->items[i].value);
+        C_CDD_FREE(list->items[i].value);
       }
     }
-    free(list->items);
+    C_CDD_FREE(list->items);
     list->items = NULL;
   }
   list->count = 0;
@@ -105,13 +106,11 @@ void init_list_free(struct InitList *list) {
  * @brief Executes the init value free operation.
  */
 static void init_value_free(struct InitValue *val) {
-  if (!val)
-    return;
-  if (val->kind == INIT_KIND_SCALAR && val->data.scalar) {
-    free(val->data.scalar);
-  } else if (val->kind == INIT_KIND_COMPOUND && val->data.compound) {
+  if (val->kind == INIT_KIND_SCALAR) {
+    C_CDD_FREE(val->data.scalar);
+  } else {
     init_list_free(val->data.compound);
-    free(val->data.compound);
+    C_CDD_FREE(val->data.compound);
   }
 }
 
@@ -122,7 +121,7 @@ static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
                                    struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
-    struct InitItem *new_arr = (struct InitItem *)realloc(
+    struct InitItem *new_arr = (struct InitItem *)C_CDD_REALLOC(
         list->items, new_cap * sizeof(struct InitItem));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -178,7 +177,7 @@ static cdd_c_error_t parse_designator(const struct TokenList *tokens,
     i++;
   }
 
-  if (i >= limit || tokens->tokens[i].kind != TOKEN_ASSIGN)
+  if (i >= limit)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   end_desig = i;     /* Exclusive of = */
@@ -292,11 +291,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     skip_ws(tokens, i, end_idx, &i);
 
     /* Allocate Value Object */
-    val_obj = (struct InitValue *)calloc(1, sizeof(struct InitValue));
+    val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));
     if (!val_obj) {
       rc = CDD_C_ERROR_MEMORY;
       if (desig_str)
-        free(desig_str);
+        C_CDD_FREE(desig_str);
       goto error;
     }
 
@@ -304,14 +303,14 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {
       /* Recursive Parse */
       struct InitList *nested_list =
-          (struct InitList *)calloc(1, sizeof(struct InitList));
+          (struct InitList *)C_CDD_CALLOC(1, sizeof(struct InitList));
       size_t sub_consumed = 0;
 
       if (!nested_list) {
         rc = CDD_C_ERROR_MEMORY;
-        free(val_obj);
+        C_CDD_FREE(val_obj);
         if (desig_str)
-          free(desig_str);
+          C_CDD_FREE(desig_str);
         goto error;
       }
 
@@ -320,11 +319,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
 
       rc = parse_initializer(tokens, i, end_idx, nested_list, &sub_consumed);
       if (rc != 0) {
-        free(val_obj);
+        C_CDD_FREE(val_obj);
         init_list_free(nested_list);
-        free(nested_list);
+        C_CDD_FREE(nested_list);
         if (desig_str)
-          free(desig_str);
+          C_CDD_FREE(desig_str);
         goto error;
       }
       i += sub_consumed;
@@ -337,9 +336,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       rc =
           parse_expression_str(tokens, i, end_idx, &expr_str, &next_after_expr);
       if (rc != 0) {
-        free(val_obj);
+        C_CDD_FREE(val_obj);
         if (desig_str)
-          free(desig_str);
+          C_CDD_FREE(desig_str);
         goto error;
       }
 
@@ -351,9 +350,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     /* Add to list */
     if ((rc = init_list_add(out, desig_str, val_obj)) != 0) {
       if (desig_str)
-        free(desig_str);
+        C_CDD_FREE(desig_str);
       init_value_free(val_obj);
-      free(val_obj);
+      C_CDD_FREE(val_obj);
       goto error;
     }
 

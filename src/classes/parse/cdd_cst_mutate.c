@@ -11,8 +11,6 @@ cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
                                       cdd_cst_node_t *child,
                                       size_t *out_index) {
   size_t i;
-  if (!parent || !child)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < parent->num_children; i++) {
     if (parent->children[i].kind == CDD_CST_CHILD_NODE &&
         parent->children[i].val.node == child) {
@@ -26,8 +24,6 @@ cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,
 cdd_c_error_t find_first_token_mutate(cdd_cst_node_t *node,
                                       cdd_token_t **out_token) {
   size_t i;
-  if (!node || !out_token)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_token = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {

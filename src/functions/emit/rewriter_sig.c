@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include <string.h>
 
 #include <c89stringutils_string_extras.h>
@@ -25,7 +26,6 @@
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define strdup _strdup
 #endif
 #else
 #include <errno.h>
@@ -63,19 +63,19 @@ static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
 /**
  * @brief Free ParsedSig resources.
  */
-static void parsed_sig_free(struct ParsedSig *sig) {
+static void parsed_sig_C_CDD_FREE(struct ParsedSig *sig) {
   if (sig->attributes)
-    free(sig->attributes);
+    C_CDD_FREE(sig->attributes);
   if (sig->storage)
-    free(sig->storage);
+    C_CDD_FREE(sig->storage);
   if (sig->ret_type)
-    free(sig->ret_type);
+    C_CDD_FREE(sig->ret_type);
   if (sig->name)
-    free(sig->name);
+    C_CDD_FREE(sig->name);
   if (sig->args)
-    free(sig->args);
+    C_CDD_FREE(sig->args);
   if (sig->k_r_decls)
-    free(sig->k_r_decls);
+    C_CDD_FREE(sig->k_r_decls);
 }
 
 /**
@@ -89,7 +89,7 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
   char *p;
 
   if (start >= end) {
-    *out = strdup("");
+    *out = C_CDD_STRDUP("");
     return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
@@ -97,7 +97,7 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -124,11 +124,6 @@ static cdd_c_error_t is_storage_specifier(const struct Token *tok) {
   case TOKEN_KEYWORD_NORETURN:
   case TOKEN_KEYWORD_THREAD_LOCAL:
     return CDD_C_ERROR_UNKNOWN;
-  case TOKEN_IDENTIFIER: /* Check extensions like __inline */
-    if (tok->length == 8 &&
-        strncmp((const char *)tok->start, "__inline", 8) == 0)
-      return CDD_C_ERROR_UNKNOWN;
-    return CDD_C_SUCCESS;
   default:
     return CDD_C_SUCCESS;
   }
@@ -305,7 +300,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
         if (rc)
           goto cleanup;
       } else {
-        sig.storage = strdup("");
+        sig.storage = C_CDD_STRDUP("");
+        if (!sig.storage) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
       }
     }
   }
@@ -363,7 +362,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     if (rc)
       goto cleanup;
   } else {
-    sig.ret_type = strdup("int ");
+    sig.ret_type = C_CDD_STRDUP("int ");
+    if (!sig.ret_type) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup;
+    }
   }
 
   sig.is_void_ret = check_is_void(tokens, storage_end_idx, type_end_idx);
@@ -382,7 +385,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     if (lparen_idx + 1 < rparen) {
       rc = join_tokens(tokens, lparen_idx + 1, rparen, &sig.args);
     } else {
-      sig.args = strdup("");
+      sig.args = C_CDD_STRDUP("");
+      if (!sig.args) {
+        rc = CDD_C_ERROR_MEMORY;
+        goto cleanup;
+      }
     }
     if (rc)
       goto cleanup;
@@ -406,13 +413,9 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 
     if (sig.is_void_ret) {
       /* Case: void f(...) -> int f(...) ... */
-#ifdef HAVE_ASPRINTF
-      asprintf(out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
-               sig.args, k_r_suffix);
-#else
       size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
                    strlen(sig.args) + strlen(k_r_suffix) + 20;
-      *out_code = malloc(len);
+      *out_code = C_CDD_MALLOC(len);
       if (!*out_code) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
@@ -424,7 +427,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 #else
       sprintf(*out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
               sig.args, k_r_suffix);
-#endif
+
 #endif
     } else {
       /* Case: Type f(...) -> int f(..., Type *out) */
@@ -438,52 +441,56 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
         /* f(a) int a; -> f(a, out) int a; Type *out; */
         if (args_is_empty) {
           /* f() -> f(out) */
-#ifdef HAVE_ASPRINTF
-          asprintf(&new_args, "out");
-#else
-          new_args = strdup("out");
-#endif
+          new_args = C_CDD_STRDUP("out");
+          if (!new_args) {
+            rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
+
         } else {
           /* f(a) -> f(a, out) */
-#ifdef HAVE_ASPRINTF
-          asprintf(&new_args, "%s, out", sig.args);
-#else
-          new_args = malloc(strlen(sig.args) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.args) + 10);
+          if (!new_args) {
+            rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.args) + 10, "%s, out", sig.args);
 #else
           sprintf(new_args, "%s, out", sig.args);
-#endif
+
 #endif
         }
       } else {
         /* Standard Prototype Logic */
         if (args_is_empty) {
-#ifdef HAVE_ASPRINTF
-          asprintf(&new_args, "%s *out", sig.ret_type);
-#else
-          new_args = malloc(strlen(sig.ret_type) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.ret_type) + 10);
+          if (!new_args) {
+            rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.ret_type) + 10, "%s *out",
                     sig.ret_type);
 #else
           sprintf(new_args, "%s *out", sig.ret_type);
-#endif
+
 #endif
         } else {
-#ifdef HAVE_ASPRINTF
-          asprintf(&new_args, "%s, %s *out", sig.args, sig.ret_type);
-#else
-          new_args = malloc(strlen(sig.args) + strlen(sig.ret_type) + 10);
+          new_args = C_CDD_MALLOC(strlen(sig.args) + strlen(sig.ret_type) + 10);
+          if (!new_args) {
+            rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(new_args, strlen(sig.args) + strlen(sig.ret_type) + 10,
                     "%s, %s *out", sig.args, sig.ret_type);
 #else
           sprintf(new_args, "%s, %s *out", sig.args, sig.ret_type);
-#endif
+
 #endif
         }
       }
@@ -494,20 +501,15 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       }
 
       /* Assemble final string */
-#ifdef HAVE_ASPRINTF
-      if (sig.k_r_decls) {
-        asprintf(out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
-                 sig.name, new_args, k_r_suffix, sig.ret_type);
-      } else {
-        asprintf(out_code, "%s%sint %s(%s)", prefix, sig.storage, sig.name,
-                 new_args);
-      }
-#else
       {
         size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
                      strlen(new_args) + strlen(k_r_suffix) +
                      strlen(sig.ret_type) + 20;
-        *out_code = malloc(len);
+        *out_code = C_CDD_MALLOC(len);
+        if (!*out_code) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
         if (sig.k_r_decls) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -516,7 +518,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 #else
           sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
                   sig.name, new_args, k_r_suffix, sig.ret_type);
-#endif
+
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -529,11 +531,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
         }
       }
 #endif
-      free(new_args);
-    }
-  }
+          C_CDD_FREE(new_args);
+        }
+      }
 
-cleanup:
-  parsed_sig_free(&sig);
-  return rc;
-}
+    cleanup:
+      parsed_sig_C_CDD_FREE(&sig);
+      return rc;
+    }

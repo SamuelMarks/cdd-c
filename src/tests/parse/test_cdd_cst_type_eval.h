@@ -11,6 +11,8 @@ extern "C" {
 #endif
 /* clang-format off */
 #include "c_cdd_export.h"
+#include "c_cdd/memory.h"
+
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_scope.h"
 #include "classes/parse/cdd_cst_type_eval.h"
@@ -141,10 +143,16 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
       }
     }
     ASSERT(decl3 != NULL);
+    rc = cdd_cst_eval_alignof(env, decl3, CDD_CST_ABI_LP64, &align);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
+
     rc = cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &size);
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
               rc); /* "unsigned long long int" is not in the
        hardcoded primitive map but tests loop coverage */
+
+    rc = cdd_cst_eval_alignof(env, decl3, CDD_CST_ABI_LP64, &align);
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
     cdd_cst_tree_free(tree3);
   }
 
@@ -307,7 +315,6 @@ TEST test_type_eval_branches(void) {
   cdd_token_t tok3 = {0};
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
   int rc;
 #endif
 
@@ -339,13 +346,13 @@ TEST test_type_eval_branches(void) {
 
   /* Test OOM */
 #ifdef CDD_BUILD_TESTS
-  g_cdd_cst_alloc_token_fail = 1;
+  g_cdd_alloc_fail = 1;
   rc = cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz);
   if (rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_MEMORY) { /* passed */
   } else {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
-  g_cdd_cst_alloc_token_fail = 0;
+  g_cdd_alloc_fail = 0;
 #endif
 
   /* Test NULL env */

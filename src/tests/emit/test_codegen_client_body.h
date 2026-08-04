@@ -3689,7 +3689,9 @@ TEST test_body_header_param_boolean(void) {
   g_fail_io_after = -1;
   PASS();
 }
+
 SUITE(client_body_suite) {
+
   RUN_TEST(test_client_body_verb_mapping);
   RUN_TEST(test_client_body_mapped_err_code);
   RUN_TEST(test_client_body_media_type_matching);

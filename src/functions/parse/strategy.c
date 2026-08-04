@@ -12,7 +12,12 @@
 #include "functions/parse/str.h" /* For string duplication utilities if specific needed */
 #include "functions/parse/strategy.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_fail_asprintf = 0;
+#endif
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */
@@ -47,24 +52,12 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
   size_t len = 0;
   size_t i;
   char *buf, *p;
-  if (!out_val)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_val = NULL;
-
-  if (start >= end) {
-    char *empty = (char *)malloc(1);
-    if (empty) {
-      *empty = '\0';
-      *out_val = empty;
-      return CDD_C_SUCCESS;
-    }
-    return CDD_C_ERROR_MEMORY;
-  }
 
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)C_CDD_MALLOC(len + 1);
   if (!buf) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -89,11 +82,18 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                                        const size_t semi_idx,
                                        struct PatchList *patches) {
 
-  size_t call_idx = site->token_index;
+  size_t call_idx;
   size_t lparen_idx;
   size_t assign_op_idx = 0;
   size_t stmt_start = 0;
   int is_self_assign = 0;
+
+  if (!tokens || !site || !patches)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  call_idx = site->token_index;
+  if (call_idx >= tokens->size)
+    return CDD_C_SUCCESS;
 
   if (!site->var_name)
     return CDD_C_SUCCESS;
@@ -108,9 +108,13 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
         break;
       }
       /* Boundary check to stop search */
-      if (tokens->tokens[i].kind == TOKEN_SEMICOLON ||
-          tokens->tokens[i].kind == TOKEN_LBRACE ||
-          tokens->tokens[i].kind == TOKEN_RBRACE) {
+      if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+        break;
+      }
+      if (tokens->tokens[i].kind == TOKEN_LBRACE) {
+        break;
+      }
+      if (tokens->tokens[i].kind == TOKEN_RBRACE) {
         break;
       }
     }
@@ -123,9 +127,13 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
   stmt_start = assign_op_idx;
   while (stmt_start > 0) {
     size_t prev = stmt_start - 1;
-    if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
-        tokens->tokens[prev].kind == TOKEN_LBRACE ||
-        tokens->tokens[prev].kind == TOKEN_RBRACE) {
+    if (tokens->tokens[prev].kind == TOKEN_SEMICOLON) {
+      break;
+    }
+    if (tokens->tokens[prev].kind == TOKEN_LBRACE) {
+      break;
+    }
+    if (tokens->tokens[prev].kind == TOKEN_RBRACE) {
       break;
     }
     stmt_start--;
@@ -184,19 +192,30 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     /* However, strict C89 doesn't have it. We assume project provides it via
      * c89stringutils. */
 #ifdef HAVE_ASPRINTF
-    if (asprintf(&replacement,
-                 "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-                 "_safe_tmp; }",
-                 call_expr, DEFAULT_ERROR_CODE, site->var_name) == -1) {
-      free(call_expr);
-      return CDD_C_ERROR_MEMORY;
+    {
+      int asprintf_rc =
+          asprintf(&replacement,
+                   "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                   "_safe_tmp; }",
+                   call_expr, DEFAULT_ERROR_CODE, site->var_name);
+#ifdef CDD_BUILD_TESTS
+      extern C_CDD_EXPORT int g_cdd_fail_asprintf;
+      if (g_cdd_fail_asprintf) {
+        free(replacement);
+        asprintf_rc = -1;
+      }
+#endif
+      if (asprintf_rc == -1) {
+        free(call_expr);
+        return CDD_C_ERROR_MEMORY;
+      }
     }
 #else
     /* Fallback logic or assume HAVE_ASPRINTF is defined by build system */
     /* This sample assumes HAVE_ASPRINTF */
     {
       size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
-      replacement = (char *)malloc(replacement_len);
+      replacement = (char *)C_CDD_MALLOC(replacement_len);
       if (replacement) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         sprintf_s(replacement, replacement_len,
@@ -235,7 +254,11 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
                               const struct AllocationSiteList *allocs,
                               struct PatchList *patches) {
   size_t i;
-  if (!tokens || !allocs || !patches)
+  if (!tokens)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!allocs)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!patches)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   for (i = 0; i < allocs->size; ++i) {
@@ -268,8 +291,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     /* We inject AFTER the semicolon */
     if (site->spec->check_style == CHECK_PTR_NULL) {
       /* " if (!var) { return CDD_C_ERROR_MEMORY; }" */
-      size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -283,8 +306,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 #endif
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
-      size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -298,8 +321,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 #endif
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
-      size_t len = strlen(site->var_name) + 40;
-      injection = (char *)malloc(len);
+      size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
+      injection = (char *)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

@@ -490,6 +490,77 @@ TEST test_parse_declarator_edge_cases(void) {
   PASS();
 }
 
+TEST test_parse_declarator_uncovered(void) {
+  struct TokenList *tl = setup_tokens("(");
+  int is_grouping = 0;
+  struct DeclInfo info;
+
+  /* is_grouping_paren: i >= limit */
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
+  ASSERT_EQ(0, is_grouping);
+  free_token_list(tl);
+
+  /* skip_group: limit reached */
+  tl = setup_tokens("(");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* typeof with unmatched paren */
+  tl = setup_tokens("typeof");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+  tl = setup_tokens("struct");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+  tl = setup_tokens("typeof((x))");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+  tl = setup_tokens("struct { struct { int a; } b; }");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+  tl = setup_tokens("typeof( x");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* struct body skip edge case */
+  tl = setup_tokens("struct { x");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* skip_ws_back hit limit and is space */
+  tl = setup_tokens(" x");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  /* pivot best_pivot logic edge case */
+  tl = setup_tokens("void ((x))");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("void ((x)())");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, tl->size, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, decl_info_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(NULL, 0, 0, &info));
+
+  tl = setup_tokens("");
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_declaration(tl, 0, 0, NULL));
+  free_token_list(tl);
+
+  PASS();
+}
+
 SUITE(declarator_parser_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return;
@@ -514,6 +585,7 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_declarator_more_edge_cases);
   RUN_TEST(test_parse_declarator_empty_array);
   RUN_TEST(test_parse_declarator_just_x);
+  RUN_TEST(test_parse_declarator_uncovered);
 }
 
 #ifdef __cplusplus

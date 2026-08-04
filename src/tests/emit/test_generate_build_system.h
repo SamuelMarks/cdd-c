@@ -150,6 +150,30 @@ TEST test_gen_build_system_bad_args(void) {
   PASS();
 }
 
+TEST test_build_system_oom2(void) {
+  int i;
+  int rc;
+
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  for (i = 1; i <= 20; i++) {
+    g_cdd_fail_alloc = i;
+    rc = generate_cmake_project("test_build_dir", "MyProject", 1);
+    if (rc == CDD_C_SUCCESS) {
+      break;
+    }
+  }
+  g_cdd_fail_alloc = 0;
+#endif
+
+  rc = generate_cmake_project("test_build_dir", "MyProject", 1);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  remove("test_build_dir/src/CMakeLists.txt");
+  remove("test_build_dir/CMakeLists.txt");
+  PASS();
+}
+
 TEST test_gen_cmake_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             generate_cmake_project("out", NULL, 0));
@@ -193,6 +217,34 @@ TEST test_gen_cmake_bad_makedirs(void) {
   PASS();
 }
 
+TEST test_build_system_io_failure(void) {
+  int i;
+  int rc;
+  const char *out_file = "test_build_dir/CMakeLists.txt";
+  const char *src_file = "test_build_dir/src/CMakeLists.txt";
+
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_fail_io_after;
+
+  for (i = 0; i <= 400; i++) {
+    g_fail_io_after = i;
+    rc = generate_cmake_project("test_build_dir", "MyProject", 1);
+    if (rc == CDD_C_SUCCESS) {
+      break;
+    }
+    ASSERT(rc != CDD_C_SUCCESS);
+  }
+  g_fail_io_after = -1;
+#endif
+
+  rc = generate_cmake_project("test_build_dir", "MyProject", 1);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  remove(src_file);
+  remove(out_file);
+  PASS();
+}
+
 TEST test_gen_build_system_cli_args_tests(void) {
   char *argv[] = {"cmake", "test_build_dir_tests", "CLIProjWithTests", "test"};
   int rc = generate_build_system_main(4, argv);
@@ -217,10 +269,72 @@ TEST test_gen_build_system_cli_args_fail(void) {
   PASS();
 }
 
+TEST test_gen_cmake_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern C_CDD_EXPORT int g_cdd_strdup_fail;
+  int i;
+  makedirs("test_build_dir_oom");
+  for (i = 1; i <= 2; i++) {
+    g_cdd_alloc_fail = i;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              generate_cmake_project("test_build_dir_oom", "Proj", 0));
+  }
+  g_cdd_alloc_fail = 0;
+
+  chdir("test_build_dir_oom");
+  for (i = 1; i <= 1; i++) {
+    g_cdd_strdup_fail = i;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
+  }
+  g_cdd_strdup_fail = 0;
+
+  for (i = 1; i <= 1; i++) {
+    g_cdd_alloc_fail = i;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
+  }
+  g_cdd_alloc_fail = 0;
+  remove("src/CMakeLists.txt");
+  remove("CMakeLists.txt");
+  chdir("..");
+#endif
+  remove("test_build_dir_oom/src/CMakeLists.txt");
+  remove("test_build_dir_oom/CMakeLists.txt");
+  PASS();
+}
+
+TEST test_gen_cmake_io_fail(void) {
+  int i;
+  makedirs("test_build_dir_io");
+  for (i = 0; i <= 1; i++) {
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              generate_cmake_project("test_build_dir_io", "Proj", 0));
+  }
+  g_fail_io_after = -1;
+
+  chdir("test_build_dir_io");
+  for (i = 0; i <= 1; i++) {
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    ASSERT_EQ(CDD_C_ERROR_IO, generate_cmake_project(NULL, "Proj", 0));
+  }
+  g_fail_io_after = -1;
+  remove("src/CMakeLists.txt");
+  remove("CMakeLists.txt");
+  chdir("..");
+  remove("test_build_dir_io/src/CMakeLists.txt");
+  remove("test_build_dir_io/CMakeLists.txt");
+  PASS();
+}
+
 /**
  * @brief generate_build_system_suite
  */
 SUITE(generate_build_system_suite) {
+  RUN_TEST(test_build_system_oom2);
+  RUN_TEST(test_build_system_io_failure);
   RUN_TEST(test_gen_cmake_basic);
   RUN_TEST(test_gen_cmake_with_tests);
   RUN_TEST(test_gen_build_system_cli_args);
@@ -230,6 +344,8 @@ SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_cmake_bad_makedirs);
   RUN_TEST(test_gen_build_system_cli_args_tests);
   RUN_TEST(test_gen_build_system_cli_args_fail);
+  RUN_TEST(test_gen_cmake_oom);
+  RUN_TEST(test_gen_cmake_io_fail);
 }
 
 #ifdef __cplusplus

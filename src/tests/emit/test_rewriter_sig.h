@@ -332,7 +332,39 @@ TEST test_rewrite_oom(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+#endif
+
+TEST test_rewrite_sig_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 40; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    const az_span source = az_span_create_from_str("int f(int a);");
+    tokenize(source, &tl);
+
+    g_cdd_alloc_fail = i;
+    int rc = rewrite_signature(tl, &out_code);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == CDD_C_SUCCESS) {
+      if (out_code)
+        free(out_code);
+      free_token_list(tl);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
 SUITE(rewriter_sig_suite) {
+  RUN_TEST(test_rewrite_sig_oom);
   RUN_TEST(test_rewrite_oom);
   RUN_TEST(test_rewrite_failures);
   RUN_TEST(test_rewrite_void_ret);

@@ -99,6 +99,14 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
   /* Null arg */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_macros(NULL, &config));
 
+  /* Null root */
+  {
+    cdd_cst_tree_t empty_tree;
+    memset(&empty_tree, 0, sizeof(empty_tree));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_transform_macros(&empty_tree, &config));
+  }
+
   for (k = 1; k < 500; k++) {
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
@@ -138,8 +146,27 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_query_err_fail;
+
+    /* Fail on FOO */
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    g_cdd_query_err_fail = 1;
+    rc = cdd_transform_macros(tree, &config);
+    g_cdd_query_err_fail = 0;
+    cdd_cst_tree_free(tree);
+
+    /* Fail on STRINGIFY (no FOO in code) */
+    tree = NULL;
+    cdd_cst_parse(az_span_create_from_str("STRINGIFY(hello); CONCAT(4, 2);"),
+                  &tree);
+    g_cdd_query_err_fail = 1;
+    rc = cdd_transform_macros(tree, &config);
+    g_cdd_query_err_fail = 0;
+    cdd_cst_tree_free(tree);
+
+    /* Fail on CONCAT (no FOO, no STRINGIFY in code) */
+    tree = NULL;
+    cdd_cst_parse(az_span_create_from_str("CONCAT(4, 2);"), &tree);
     g_cdd_query_err_fail = 1;
     rc = cdd_transform_macros(tree, &config);
     g_cdd_query_err_fail = 0;

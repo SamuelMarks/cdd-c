@@ -293,6 +293,14 @@ endif ()
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
+endif()
+
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
+endif()
+
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)
 
 
@@ -311,7 +319,7 @@ target_include_directories(
 
 # Dependencies
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
+target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
 if (C_CDD_USE_LIBCURL)
     if(NOT TARGET CURL::libcurl)
         if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)

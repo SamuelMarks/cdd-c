@@ -299,10 +299,10 @@ TEST test_patcher_oom(void) {
     int i;
     struct TokenList tl2;
     memset(&tl2, 0, sizeof(tl2));
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    g_cdd_fail_alloc = 1000;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&list));
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     patch_list_init(&list);
     /* fill it up to trigger realloc */
@@ -314,9 +314,9 @@ TEST test_patcher_oom(void) {
       for (j = 1; j < 50; j++) {
         char *tmp = strdup("b");
         int rc;
-        g_cdd_fail_alloc = j;
+        g_cdd_alloc_fail = j;
         rc = patch_list_add(&list, 0, 1, tmp);
-        g_cdd_fail_alloc = 0;
+        g_cdd_alloc_fail = 0;
         if (rc == 0)
           break;
       }
@@ -326,9 +326,9 @@ TEST test_patcher_oom(void) {
       char *out_code = NULL;
       int j;
       for (j = 1; j < 50; j++) {
-        g_cdd_fail_alloc = j;
+        g_cdd_alloc_fail = j;
         int rc = patch_list_apply(&list, &tl2, &out_code);
-        g_cdd_fail_alloc = 0;
+        g_cdd_alloc_fail = 0;
         if (out_code) {
           free(out_code);
           out_code = NULL;
@@ -379,10 +379,10 @@ TEST test_patcher_oom(void) {
           if (j == 9)
             my_alloc = 3000;
 
-          g_cdd_fail_alloc = my_alloc;
+          g_cdd_alloc_fail = my_alloc;
           rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
           (void)rc;
-          g_cdd_fail_alloc = 0;
+          g_cdd_alloc_fail = 0;
           if (out_oom) {
             free(out_oom);
             out_oom = NULL;
@@ -1025,11 +1025,11 @@ TEST test_patcher_oom(void) {
             my_alloc = 3000;
           if (j == 90)
             my_alloc = 3000;
-          g_cdd_fail_alloc = my_alloc;
+          g_cdd_alloc_fail = my_alloc;
 
           rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
           (void)rc;
-          g_cdd_fail_alloc = 0;
+          g_cdd_alloc_fail = 0;
           if (out_oom) {
             free(out_oom);
             out_oom = NULL;
@@ -1052,33 +1052,82 @@ TEST test_patcher_invalid(void) {
   char *res_huge = NULL;
   struct PatchList pl3;
   struct TokenList tl_empty;
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
-#endif
+  int i;
+  int rc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             patch_list_add(NULL, 0, 1, strdup("a")));
+
+  /* Test patch_list_init allocation failure */
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&pl2));
+  patch_list_free(&pl2); /* This covers list->patches == NULL */
+  g_cdd_alloc_fail = 0;
+
+  /* Test patch_list_add with text == NULL */
+  patch_list_init(&pl2);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_add(&pl2, 0, 1, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_add(NULL, 0, 1, NULL));
+
+  /* Trigger capacity == 0 branch false in patch_list_add */
+  patch_list_add(&pl2, 0, 1, strdup("1"));
+  patch_list_add(&pl2, 0, 1, strdup("2"));
+  patch_list_add(&pl2, 0, 1, strdup("3"));
+  patch_list_add(&pl2, 0, 1, strdup("4"));
+  patch_list_add(&pl2, 0, 1, strdup("5"));
+  patch_list_add(&pl2, 0, 1, strdup("6"));
+  patch_list_add(&pl2, 0, 1, strdup("7"));
+  patch_list_add(&pl2, 0, 1, strdup("8"));
+
+  /* Trigger C_CDD_REALLOC failure when capacity > 0 */
+  g_cdd_alloc_fail = 1;
+  rc = patch_list_add(&pl2, 0, 1, strdup("9_fail"));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
+  /* Test patch_list_sort edge cases */
+  ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl2)); /* Size is 8 > 1 */
 
   patch_list_init(&pl2);
 
   memset(huge_str, 'x', 1999);
   huge_str[1999] = '\0';
 
+  for (i = 0; i < 8; i++) {
+    patch_list_add(&pl2, 0, 1, strdup("test"));
+  }
+
+  g_cdd_alloc_fail = 1;
+  char *dummy = malloc(5);
+  strcpy(dummy, "test");
+  rc = patch_list_add(&pl2, 0, 1, dummy);
+  printf("DEBUG: rc=%d\n", rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
   patch_list_add(&pl2, 0, 1, strdup(huge_str));
+  patch_list_add(&pl2, 2, 3, strdup(huge_str));
 
   setup_patch_tokens(huge_str, &tl_huge);
 
-  /* ignore */
-  free(res_huge);
+  for (i = 1; i <= 20; i++) {
+    res_huge = NULL;
+    g_cdd_alloc_fail = i;
+    rc = patch_list_apply(&pl2, tl_huge, &res_huge);
+    if (res_huge) {
+      free(res_huge);
+    }
+    if (rc == 0) {
+      break; /* We have exhausted all allocation failure paths */
+    }
+    printf("DEBUG: rc=%d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+  g_cdd_alloc_fail = 0;
 
-#ifdef CDD_BUILD_TESTS
-  res_huge = NULL;
-  /* ignore */
-
-  g_cdd_fail_alloc = 0;
-#endif
   patch_list_init(&pl3);
-
   res_huge = NULL;
   ASSERT_EQ(0, patch_list_apply(&pl3, tl_huge, &res_huge));
   if (res_huge) {
@@ -1086,30 +1135,71 @@ TEST test_patcher_invalid(void) {
     res_huge = NULL;
   }
 
-#ifdef CDD_BUILD_TESTS
-  res_huge = NULL;
-  g_cdd_fail_alloc =
-      2; /* second alloc! first alloc is output=malloc(out_cap) */
   memset(&tl_empty, 0, sizeof(tl_empty));
-  /* ignore */
-  g_cdd_fail_alloc = 0;
-#endif
 
-  /* Trigger realloc failure in patch_list_apply for original token content */
-#ifdef CDD_BUILD_TESTS
-  res_huge = NULL;
-  g_cdd_fail_alloc = 2000; /* first alloc, because it reset! */
-  /* ignore */
-  g_cdd_fail_alloc = 0;
-#endif
-
-  free(res_huge);
-
-  patch_list_free(&pl3);
   patch_list_free(&pl2);
-  free_token_list(tl_huge);
-  g_fail_io_after = -1;
+  patch_list_free(&pl3);
+  if (tl_huge) {
+    free_token_list(tl_huge);
+  }
+  PASS();
+}
 
+TEST test_patcher_cov(void) {
+  struct PatchList pl;
+  char *out = NULL;
+  struct TokenList *tl = NULL;
+
+  /* test patch_list_sort with NULL patches */
+  pl.patches = NULL;
+  pl.size = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl));
+
+  /* test patch_list_sort with size <= 1 */
+  pl.patches = (struct Patch *)1;
+  pl.size = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl));
+
+  /* test patch_list_apply OOM in copy original token content loop */
+  patch_list_init(&pl);
+  tokenize(az_span_create_from_str("int a;"), &tl);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_apply(&pl, tl, &out));
+    g_cdd_alloc_fail = 0;
+  }
+#endif
+
+  patch_list_free(&pl);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_patcher_cov_extra(void) {
+  struct PatchList pl;
+  char *out = NULL;
+  struct TokenList *tl = NULL;
+
+  patch_list_init(&pl);
+  tokenize(az_span_create_from_str("int"), &tl); /* 1 token */
+
+  /* Patch 0: replaces token 0 up to 3 (which exceeds size 1), making
+   * current_token = 3 */
+  patch_list_add(&pl, 0, 3, strdup("replacement"));
+
+  /* Patch 1: starts at 0, overlaps, but since outer loop terminates it's
+   * evaluated in the trailing loop */
+  patch_list_add(&pl, 0, 1, strdup("overlapped"));
+
+  ASSERT_EQ(CDD_C_SUCCESS, patch_list_apply(&pl, tl, &out));
+
+  if (out)
+    free(out);
+  patch_list_free(&pl);
+  free_token_list(tl);
   PASS();
 }
 
@@ -1124,6 +1214,8 @@ SUITE(text_patcher_suite) {
   RUN_TEST(test_patch_append_end);
   RUN_TEST(test_patcher_oom);
   RUN_TEST(test_patcher_invalid);
+  RUN_TEST(test_patcher_cov);
+  RUN_TEST(test_patcher_cov_extra);
 }
 
 #ifdef __cplusplus

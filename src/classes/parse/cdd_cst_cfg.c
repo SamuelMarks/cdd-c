@@ -27,7 +27,7 @@ static cdd_c_error_t alloc_block(cdd_cst_cfg_t *cfg,
   block->kind = kind;
 
   if (cfg->num_blocks >= cfg->capacity) {
-    size_t new_cap = cfg->capacity == 0 ? 16 : cfg->capacity * 2;
+    size_t new_cap = cfg->capacity == 0 ? 2 : cfg->capacity * 2;
     cdd_cst_cfg_block_t **new_arr;
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
@@ -145,10 +145,6 @@ static cdd_c_error_t walk_function_body(cdd_cst_cfg_t *cfg,
   rc = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &current);
   if (rc != CDD_C_SUCCESS)
     return rc;
-  if (!current) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
 
   rc = add_edge(cfg->entry_block, current, 0, 0);
   if (rc != CDD_C_SUCCESS)
@@ -209,11 +205,6 @@ cdd_c_error_t cdd_cst_cfg_build(cdd_cst_node_t *function_node,
     return rc;
   }
 
-  if (!cfg->entry_block || !cfg->exit_block) {
-    cdd_cst_cfg_free(cfg);
-    return CDD_C_ERROR_MEMORY;
-  }
-
   rc = walk_function_body(cfg, function_node);
   if (rc != CDD_C_SUCCESS) {
     cdd_cst_cfg_free(cfg);
@@ -231,23 +222,21 @@ void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
 
   for (i = 0; i < cfg->num_blocks; i++) {
     cdd_cst_cfg_block_t *block = cfg->blocks[i];
-    if (block) {
-      cdd_cst_cfg_edge_t *edge = block->successors;
-      while (edge) {
-        cdd_cst_cfg_edge_t *next = edge->next;
-        free(edge);
-        edge = next;
-      }
-      edge = block->predecessors;
-      while (edge) {
-        cdd_cst_cfg_edge_t *next = edge->next;
-        free(edge);
-        edge = next;
-      }
-      if (block->statements)
-        free(block->statements);
-      free(block);
+    cdd_cst_cfg_edge_t *edge = block->successors;
+    while (edge) {
+      cdd_cst_cfg_edge_t *next = edge->next;
+      free(edge);
+      edge = next;
     }
+    edge = block->predecessors;
+    while (edge) {
+      cdd_cst_cfg_edge_t *next = edge->next;
+      free(edge);
+      edge = next;
+    }
+    if (block->statements)
+      free(block->statements);
+    free(block);
   }
 
   if (cfg->blocks)

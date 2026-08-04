@@ -698,6 +698,94 @@ TEST test_cdd_cst_builder_oom(void) {
   g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 
+  g_cdd_cst_alloc_token_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_open(&b));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  g_cdd_cst_alloc_token_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  b.indent_level = 2;
+  g_cdd_cst_alloc_token_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  b.indent_level = 2;
+  g_cdd_cst_alloc_token_fail = 3;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  b.indent_level = 2;
+  g_cdd_cst_alloc_token_fail = 4;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  g_cdd_alloc_fail = 1;
+  {
+    cdd_c_error_t int_rc = cdd_cst_bld_int(&b, 10);
+    if (int_rc != CDD_C_ERROR_MEMORY) {
+      fprintf(stderr, "EXPECTED CDD_C_ERROR_MEMORY, GOT %d\n", int_rc);
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, int_rc);
+  }
+  g_cdd_alloc_fail = 0;
+  b.error_state = 0;
+
+  g_cdd_alloc_fail = 3;
+  tree->string_capacity = tree->num_strings;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_cst_bld_block_comment(&b, "test_realloc_fail"));
+  g_cdd_alloc_fail = 0;
+  b.error_state = 0;
+
+  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "foo");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_block_comment(&b, "test1"));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_bld_block_comment(&b, "test2"));
+
+  {
+    int i;
+    for (i = 1; i < 20; i++) {
+      b.error_state = 0;
+      g_cdd_alloc_fail = i;
+      cdd_cst_bld_snippet(&b, "int x;");
+    }
+  }
+  g_cdd_alloc_fail = 0;
+  b.error_state = 0;
+
+  {
+    int i;
+    for (i = 1; i < 20; i++) {
+      b.error_state = 0;
+      g_cdd_alloc_fail = i;
+      cdd_cst_quote(&b, "%s", "foo");
+    }
+  }
+  g_cdd_alloc_fail = 0;
+  b.error_state = 0;
+
+  g_cdd_cst_realloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_quote(&b, "%n", root));
+  g_cdd_cst_realloc_fail = 0;
+  b.error_state = 0;
+
+  {
+    int i;
+    for (i = 1; i < 20; i++) {
+      b.error_state = 0;
+      g_cdd_alloc_fail = i;
+      cdd_cst_quote(&b, "int x;");
+    }
+  }
+  g_cdd_alloc_fail = 0;
+  b.error_state = 0;
+
   cdd_cst_tree_free(tree);
 #endif
   g_fail_io_after = -1;
@@ -707,6 +795,7 @@ TEST test_cdd_cst_builder_oom(void) {
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #endif
 
 TEST test_cdd_cst_builder_punct_all(void) {
@@ -1055,6 +1144,138 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   b.error_state = 0;
 
+  /* Snippet test for trivia loops */
+  {
+    cdd_cst_node_t *n1 = NULL;
+    cdd_cst_node_t *n2 = NULL;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+
+    b.target_node = n1;
+    cdd_cst_bld_snippet(
+        &b,
+        "/* l1a */ /* l1b */ /* l1c */ int x /* t1a */ /* t1b */ /* t1c */;");
+
+    b.target_node = n2;
+    cdd_cst_bld_snippet(
+        &b,
+        "/* l2a */ /* l2b */ /* l2c */ int y /* t2a */ /* t2b */ /* t2c */;");
+
+    rc = cdd_cst_transfer_trivia(n1, n2);
+    ASSERT_EQ(0, rc);
+  }
+  {
+    cdd_trivia_t *lead = NULL;
+    rc = cdd_cst_extract_leading_trivia(NULL, &lead);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_extract_trailing_trivia(NULL, &lead);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  }
+
+  /* Test trailing trivia transfer where replacement already has trailing trivia
+   */
+  {
+    cdd_cst_node_t *target_with_trail = NULL;
+    cdd_cst_node_t *replacement_with_trail = NULL;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &target_with_trail);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &replacement_with_trail);
+
+    b.target_node = target_with_trail;
+    cdd_cst_bld_block_comment(&b, "lead1a");
+    cdd_cst_bld_block_comment(&b, "lead1b");
+    cdd_cst_bld_block_comment(&b, "lead1c");
+    cdd_cst_bld_block_comment(&b, "lead1d");
+
+    /* Test comment after a node */
+    {
+      cdd_cst_node_t *n1 = NULL;
+      cdd_cst_node_t *n2 = NULL;
+      cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+      cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+
+      b.target_node = n1;
+      rc = cdd_cst_append_child_node(n1, n2);
+      ASSERT_EQ(0, rc);
+      rc = cdd_cst_bld_block_comment(&b, "comment_after_node");
+      ASSERT_EQ(0, rc);
+
+      /* Let's also do a block comment on a token with 3 existing trailing
+       * trivias */
+      cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "tok_for_trail");
+      cdd_cst_bld_block_comment(&b, "trail1");
+      cdd_cst_bld_block_comment(&b, "trail2");
+      cdd_cst_bld_block_comment(&b, "trail3");
+      cdd_cst_bld_block_comment(&b, "trail4");
+    }
+    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "t1");
+    /* Attach trailing trivia explicitly */
+    {
+      cdd_token_t *t =
+          target_with_trail->children[target_with_trail->num_children - 1]
+              .val.token;
+      if (t) {
+        cdd_trivia_t *tr1 = calloc(1, sizeof(cdd_trivia_t));
+        cdd_trivia_t *tr2 = calloc(1, sizeof(cdd_trivia_t));
+        cdd_trivia_t *tr3 = calloc(1, sizeof(cdd_trivia_t));
+        tr1->next = tr2;
+        tr2->next = tr3;
+        t->trailing_trivia = tr1;
+      }
+    }
+
+    b.target_node = replacement_with_trail;
+    cdd_cst_bld_block_comment(&b, "lead2a");
+    cdd_cst_bld_block_comment(&b, "lead2b");
+    cdd_cst_bld_block_comment(&b, "lead2c");
+    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "r1");
+    {
+      cdd_token_t *t = replacement_with_trail
+                           ->children[replacement_with_trail->num_children - 1]
+                           .val.token;
+      if (t) {
+        cdd_trivia_t *tr1 = calloc(1, sizeof(cdd_trivia_t));
+        cdd_trivia_t *tr2 = calloc(1, sizeof(cdd_trivia_t));
+        cdd_trivia_t *tr3 = calloc(1, sizeof(cdd_trivia_t));
+        tr1->next = tr2;
+        tr2->next = tr3;
+        t->trailing_trivia = tr1;
+      }
+    }
+
+    /* We also need to add them to root so they have parents */
+    cdd_cst_append_child_node(tree->root, target_with_trail);
+
+    rc = cdd_cst_replace_node_preserve_trivia(&b, target_with_trail,
+                                              replacement_with_trail);
+    ASSERT_EQ(0, rc);
+  }
+
+  /* Test empty nodes in trivia extraction */
+  {
+    cdd_cst_node_t *parent_node = NULL;
+    cdd_cst_node_t *empty_node1 = NULL;
+    cdd_cst_node_t *empty_node2 = NULL;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node1);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node2);
+
+    cdd_cst_append_child_node(parent_node, empty_node1);
+    b.target_node = parent_node;
+    cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "mid");
+    cdd_cst_append_child_node(parent_node, empty_node2);
+
+    /* Extraction should skip empty_node1/2 and find mid */
+    {
+      cdd_trivia_t *lead = NULL;
+      cdd_trivia_t *trail = NULL;
+      cdd_cst_extract_leading_trivia(parent_node, &lead);
+      cdd_cst_extract_trailing_trivia(parent_node, &trail);
+    }
+  }
+  rc = cdd_cst_replace_node_preserve_trivia(&b, tree->root, new_node);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  b.error_state = 0;
+
   /* cdd_cst_bld_children */
 #ifdef CDD_BUILD_TESTS
   {
@@ -1067,8 +1288,21 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     g_cdd_cst_alloc_token_fail = 0;
     b.error_state = 0;
+
+    g_cdd_alloc_fail = 1;
+    rc = cdd_cst_splice_nodes(&b, node, 0, &new_node, 1);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_alloc_fail = 0;
+    b.error_state = 0;
+
+    g_cdd_cst_realloc_fail = 1;
+    rc = cdd_cst_splice_nodes(&b, node, 0, &new_node, 1);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_cst_realloc_fail = 0;
+    b.error_state = 0;
   }
 #endif
+
   b.error_state = CDD_C_ERROR_UNKNOWN;
   rc = cdd_cst_splice_nodes(&b, node, 0, &new_node, 1);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);

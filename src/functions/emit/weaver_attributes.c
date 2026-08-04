@@ -15,6 +15,7 @@
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
 #include "functions/emit/weaver_attributes.h"
+#include "c_cdd/memory.h"
 #include "c_cdd/log.h"
 /* clang-format on */
 
@@ -31,18 +32,7 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
       char *replacement = NULL;
       /* Extract text from tokens directly */
       size_t len = node->length;
-      char *attr_text = NULL;
-#ifdef CDD_BUILD_TESTS
-      {
-        extern C_CDD_EXPORT int g_cdd_fail_alloc;
-        if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-          attr_text = NULL;
-        else
-          attr_text = (char *)malloc(len + 1);
-      }
-#else
-      attr_text = (char *)malloc(len + 1);
-#endif
+      char *attr_text = (char *)C_CDD_MALLOC(len + 1);
       if (!attr_text) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -57,36 +47,57 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
         /* To fully do packed, we need to know the struct scope. */
       } else if (strstr(attr_text, "visibility") &&
                  strstr(attr_text, "default")) {
-        c_cdd_strdup("#if "
-                     "defined(_MSC_VER)\n__declspec(dllexport)\n#else\n__"
-                     "attribute__((visibility(\"default\")))\n#endif\n",
-                     &replacement);
+        int r =
+            c_cdd_strdup("#if "
+                         "defined(_MSC_VER)\n__declspec(dllexport)\n#else\n__"
+                         "attribute__((visibility(\"default\")))\n#endif\n",
+                         &replacement);
+        /* LCOV_EXCL_START */
+        if (r != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr_text);
+          return r;
+        }
+        /* LCOV_EXCL_STOP */
       } else if (strstr(attr_text, "unused")) {
         /* Unused variables are usually handled by (void)var; but as an
          * attribute it can be tricky. */
       } else if (strstr(attr_text, "noreturn")) {
-        c_cdd_strdup("#if "
-                     "defined(_MSC_VER)\n__declspec(noreturn)\n#else\n__"
-                     "attribute__((noreturn))\n#endif\n",
-                     &replacement);
+        int r =
+            c_cdd_strdup("#if "
+                         "defined(_MSC_VER)\n__declspec(noreturn)\n#else\n__"
+                         "attribute__((noreturn))\n#endif\n",
+                         &replacement);
+        /* LCOV_EXCL_START */
+        if (r != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr_text);
+          return r;
+        }
+        /* LCOV_EXCL_STOP */
       } else if (strstr(attr_text, "format") && strstr(attr_text, "printf")) {
-        c_cdd_strdup("#if "
-                     "defined(_MSC_VER)\n_Printf_format_string_\n#else\n__"
-                     "attribute__((format(printf)))\n#endif\n",
-                     &replacement);
+        int r =
+            c_cdd_strdup("#if "
+                         "defined(_MSC_VER)\n_Printf_format_string_\n#else\n__"
+                         "attribute__((format(printf)))\n#endif\n",
+                         &replacement);
+        /* LCOV_EXCL_START */
+        if (r != CDD_C_SUCCESS) {
+          C_CDD_FREE(attr_text);
+          return r;
+        }
+        /* LCOV_EXCL_STOP */
       }
 
       if (replacement) {
         int rc = patch_list_add(patches, node->start_token, node->end_token,
                                 replacement);
-        printf("weaver_attr patch_list_add rc=%d\n", rc);
-        printf("patch_list_add rc=%d\n", rc);
+        /* LCOV_EXCL_START */
         if (rc != 0) {
-          free(attr_text);
+          C_CDD_FREE(attr_text);
           return rc;
         }
+        /* LCOV_EXCL_STOP */
       }
-      free(attr_text);
+      C_CDD_FREE(attr_text);
     }
   }
 

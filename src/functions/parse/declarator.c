@@ -40,7 +40,7 @@ extern int g_io_calls;
 
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t) - 1)
 #endif
 
 C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
@@ -414,15 +414,12 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
   if (!tokens || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (decl_info_init(out_info) != CDD_C_SUCCESS)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  (void)decl_info_init(out_info);
 
   /* 1. Find Pivot */
   find_pivot(tokens, start, end, &is_abstract, &pivot);
 
   if (!is_abstract) {
-    if (pivot >= end)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
     if (!out_info->identifier) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

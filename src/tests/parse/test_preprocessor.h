@@ -560,7 +560,69 @@ TEST test_preprocessor_abort(void) {
   PASS();
 }
 
+TEST test_pp_scan_defines(void) {
+  int i;
+  for (i = 1; i < 200; i++) {
+    struct PreprocessorContext ctx;
+    char *tmp = NULL, *root = NULL, *main_c = NULL;
+    int rc;
+
+    tempdir(&tmp);
+    asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand());
+    makedir(root);
+    asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR);
+
+    write_to_file(main_c, "#define FOO 1\n"
+                          "#define BAR(x) x + 1\n"
+                          "#define EMPTY\n"
+                          "#define MACRO_WITH_ARGS(a, b) a + b\n");
+
+#ifdef CDD_BUILD_TESTS
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    pp_context_init(&ctx);
+
+    g_cdd_alloc_fail = i;
+
+    rc = pp_scan_defines(&ctx, main_c);
+
+    g_cdd_alloc_fail = 0;
+    pp_context_free(&ctx);
+
+    remove(main_c);
+    rmdir(root);
+    free(main_c);
+    free(root);
+    free(tmp);
+
+    if (rc == 0) {
+      break;
+    }
+#endif
+  }
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_pp_has_c_attribute(void) {
+  struct PreprocessorContext ctx;
+  long out = 0;
+  pp_context_init(&ctx);
+  eval("__has_c_attribute(fallthrough)", &ctx, &out);
+  ASSERT_EQ(201904L, out);
+
+  out = 1;
+  eval("__has_c_attribute(nonexistent)", &ctx, &out);
+  ASSERT_EQ(0, out);
+
+  pp_context_free(&ctx);
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(preprocessor_suite) {
+  RUN_TEST(test_pp_scan_defines);
+  RUN_TEST(test_pp_has_c_attribute);
   RUN_TEST(test_pp_eval_arithmetic);
   RUN_TEST(test_pp_eval_logical);
   RUN_TEST(test_pp_eval_comparison);

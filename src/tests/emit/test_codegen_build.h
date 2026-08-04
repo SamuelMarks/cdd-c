@@ -112,9 +112,86 @@ TEST test_cbuild_basic_output(void) {
  * @brief test_cbuild_unsupported
  * @return TEST
  */
+
 TEST test_cbuild_unsupported(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
   struct CodegenBuildConfig config;
+  const char *sources[] = {"client.c", "models.c"};
+
+  memset(&config, 0, sizeof(config));
+  config.project_name = "PetStore";
+  config.target_name = "petstore_lib";
+  config.src_files = sources;
+  config.src_count = 2;
+  config.build_shared_libs = 1;
+
+  /* Test branch where src_files is NOT NULL but src_count is 0 */
+  config.src_files = sources;
+  config.src_count = 0;
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(0, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+  fclose(tmp);
+  config.src_count = 2; /* restore */
+
+  /* Test branch where src_files is NULL but src_count is > 0 */
+  config.src_files = NULL;
+  config.src_count = 2;
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+  fclose(tmp);
+
+  /* Test type != BUILD_SYS_CMAKE */
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
+  fclose(tmp);
+
+  /* Test config->src_files == NULL */
+  memset(&config, 0, sizeof(config));
+  config.project_name = "PetStore";
+  config.target_name = "petstore_lib";
+  config.src_files = NULL;
+  config.src_count = 2;
+  config.build_shared_libs = 1;
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+  fclose(tmp);
+
+  /* Test type != BUILD_SYS_CMAKE */
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
+  fclose(tmp);
+
+  /* Test type == BUILD_SYS_MESON */
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
+  fclose(tmp);
+
+  /* Test type == BUILD_SYS_MAKEFILE */
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
+  fclose(tmp);
+
+  /* Test type == 999 (default) */
+  tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM,
+            codegen_build_generate((enum CodegenBuildSystem)999, tmp, &config));
+  fclose(tmp);
+
+  tmp = tmpfile();
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
@@ -133,78 +210,48 @@ TEST test_cbuild_unsupported(void) {
   PASS();
 }
 
-TEST test_build_system_oom(void) {
-  /* Using generate_cmake_project directly */
-#ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fprintf_fail;
-  int i;
-  int rc;
-  for (i = 1; i < 200; i++) {
-    g_cdd_fprintf_fail = i;
-
-    rc = generate_cmake_project("test_build_sys_out", "Proj", 1);
-    g_cdd_fprintf_fail = 0;
-    if (rc == 0)
-      break;
-  }
-  remove("test_build_sys_out/CMakeLists.txt");
-
-#endif
-
-  ASSERT_EQ(0, generate_cmake_project("test_build_sys_out", "Proj", 0));
-  remove("test_build_sys_out/CMakeLists.txt");
-
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    int rc_fp2;
-    int rc_fp;
-    g_cdd_fail_alloc = 1111;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              generate_cmake_project("test_build_sys_out", "Proj", 0));
-    g_cdd_fail_alloc = 0;
-
-    g_cdd_fail_alloc = 2222;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
-    g_cdd_fail_alloc = 0;
-
-    ASSERT_EQ(0, generate_cmake_project(NULL, "Proj", 0));
-    remove("CMakeLists.txt");
-
-    /* Test fopen failure */
-
-    g_cdd_fail_alloc = 4444;
-    ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
-    g_cdd_fail_alloc = 0;
-
-    g_cdd_fail_alloc = 3334;
-    rc_fp2 = generate_cmake_project(NULL, "Proj", 0);
-    g_cdd_fail_alloc = 0;
-    ASSERT(rc_fp2 != 0);
-
-    g_cdd_fail_alloc = 4445;
-    ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
-    g_cdd_fail_alloc = 0;
-
-    g_cdd_fail_alloc = 3333;
-    rc_fp = generate_cmake_project(NULL, "Proj", 0);
-    g_cdd_fail_alloc = 0;
-    ASSERT(rc_fp != 0);
-  }
-#endif
-  g_fail_io_after = -1;
-
-  PASS();
-}
-
 /**
  * @brief codegen_build_suite
  */
+TEST test_cbuild_io_failure(void) {
+  FILE *tmp;
+  struct CodegenBuildConfig config;
+  const char *sources[] = {"client.c", "models.c"};
+  int i;
+  int rc;
+  extern C_CDD_EXPORT int g_fail_io_after;
+
+  memset(&config, 0, sizeof(config));
+  config.project_name = "PetStore";
+  config.target_name = "petstore_lib";
+  config.src_files = sources;
+  config.src_count = 2;
+  config.build_shared_libs = 1;
+
+  for (i = 0; i <= 60; i++) {
+    tmp = fopen("test_cbuild_dummy.txt", "w");
+    ASSERT(tmp);
+
+    g_fail_io_after = i;
+    rc = codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config);
+    if (rc == CDD_C_SUCCESS) {
+      fclose(tmp);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    fclose(tmp);
+  }
+  g_fail_io_after = -1;
+
+  remove("test_cbuild_dummy.txt");
+  PASS();
+}
+
 SUITE(codegen_build_suite) {
+  RUN_TEST(test_cbuild_io_failure);
   RUN_TEST(test_cbuild_null_args);
   RUN_TEST(test_cbuild_basic_output);
   RUN_TEST(test_cbuild_unsupported);
-  RUN_TEST(test_build_system_oom);
 }
 
 #ifdef __cplusplus

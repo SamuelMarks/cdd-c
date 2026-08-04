@@ -1,8 +1,10 @@
 #ifndef TEST_CLI_C2OPENAPI_H
 #define TEST_CLI_C2OPENAPI_H
 
+/* clang-format off */
 #include "routes/parse/cli.h"
 #include <greatest.h>
+/* clang-format on */
 
 TEST test_c2openapi_cli_main_invalid_args(void) {
   char *argv1[] = {"c2openapi"};
@@ -11,7 +13,7 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 }
 
 TEST test_c2openapi_cli_main_valid_args(void) {
-  char *argv1[] = {"c2openapi", "../src/tests/mocks", "out.json"};
+  char *argv1[] = {"c2openapi", "src/tests/mocks", "out.json"};
   int rc = c2openapi_cli_main(3, argv1);
   if (rc != CDD_C_SUCCESS)
     printf("test_c2openapi_cli_main_valid_args failed with %d\n", rc);
@@ -22,12 +24,12 @@ TEST test_c2openapi_cli_main_valid_args(void) {
 TEST test_c2openapi_cli_main_valid_args_with_options(void) {
   char *argv1[] = {"c2openapi",
                    "--base",
-                   "../src/tests/mocks/emit/simple.schema.json",
+                   "src/tests/mocks/emit/simple.schema.json",
                    "--self",
                    "http://example.com/api",
                    "--dialect",
                    "http://example.com/dialect",
-                   "../src/tests/mocks",
+                   "src/tests/mocks",
                    "out2.json"};
   int rc = c2openapi_cli_main(9, argv1);
   if (rc != CDD_C_SUCCESS)
@@ -51,7 +53,7 @@ TEST test_to_docs_json_cli_main_no_input(void) {
 
 TEST test_to_docs_json_cli_main_valid(void) {
   char *argv1[] = {"to_docs_json", "-i",
-                   "../src/tests/mocks/emit/simple.schema.json", "--no-imports",
+                   "src/tests/mocks/emit/simple.schema.json", "--no-imports",
                    "--no-wrapping"};
   int rc = to_docs_json_cli_main(5, argv1);
   if (rc != CDD_C_SUCCESS)
@@ -73,7 +75,7 @@ TEST test_generate_bindings_cli_main_help(void) {
 }
 
 TEST test_c2openapi_cli_main_doc_tags(void) {
-  FILE *f = fopen("../src/tests/mocks/parse/test_doc_tags.c", "w");
+  FILE *f = fopen("src/tests/mocks/parse/test_doc_tags.c", "w");
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @tagMeta TestTag1\n");
@@ -98,13 +100,13 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
     fclose(f);
-    char *argv2[] = {"c2openapi", "../src/tests/mocks/parse/test_doc_tags.c",
+    char *argv2[] = {"c2openapi", "src/tests/mocks/parse/test_doc_tags.c",
                      "out3.json"};
     c2openapi_cli_main(3, argv2);
-    remove("../src/tests/mocks/parse/test_doc_tags.c");
+    remove("src/tests/mocks/parse/test_doc_tags.c");
     remove("out3.json");
   }
-  f = fopen("../src/tests/mocks/parse/test_doc_tags_invalid2.c", "w");
+  f = fopen("src/tests/mocks/parse/test_doc_tags_invalid2.c", "w");
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth14 [type:apiKey] [in:invalid]\n");
@@ -112,13 +114,13 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, "void my_func(void) {}\n");
     fclose(f);
     char *argv2[] = {"c2openapi",
-                     "../src/tests/mocks/parse/test_doc_tags_invalid2.c",
+                     "src/tests/mocks/parse/test_doc_tags_invalid2.c",
                      "out52.json"};
     c2openapi_cli_main(3, argv2);
-    remove("../src/tests/mocks/parse/test_doc_tags_invalid2.c");
+    remove("src/tests/mocks/parse/test_doc_tags_invalid2.c");
     remove("out52.json");
   }
-  f = fopen("../src/tests/mocks/parse/test_doc_tags_oauth.c", "w");
+  f = fopen("src/tests/mocks/parse/test_doc_tags_oauth.c", "w");
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth3 [type:oauth2] [flow:implicit] "
@@ -146,14 +148,13 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
     fclose(f);
-    char *argv2[] = {"c2openapi",
-                     "../src/tests/mocks/parse/test_doc_tags_oauth.c",
+    char *argv2[] = {"c2openapi", "src/tests/mocks/parse/test_doc_tags_oauth.c",
                      "out4.json"};
     c2openapi_cli_main(3, argv2);
-    remove("../src/tests/mocks/parse/test_doc_tags_oauth.c");
+    remove("src/tests/mocks/parse/test_doc_tags_oauth.c");
     remove("out4.json");
   }
-  f = fopen("../src/tests/mocks/parse/test_doc_tags_invalid.c", "w");
+  f = fopen("src/tests/mocks/parse/test_doc_tags_invalid.c", "w");
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth6 [type:invalid]\n");
@@ -163,13 +164,13 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, "void my_func(void) {}\n");
     fclose(f);
     char *argv2[] = {"c2openapi",
-                     "../src/tests/mocks/parse/test_doc_tags_invalid.c",
+                     "src/tests/mocks/parse/test_doc_tags_invalid.c",
                      "out5.json"};
     c2openapi_cli_main(3, argv2);
-    remove("../src/tests/mocks/parse/test_doc_tags_invalid.c");
+    remove("src/tests/mocks/parse/test_doc_tags_invalid.c");
     remove("out5.json");
   }
-  f = fopen("../src/tests/mocks/parse/test_doc_tags_oauth_merge.c", "w");
+  f = fopen("src/tests/mocks/parse/test_doc_tags_oauth_merge.c", "w");
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f,
@@ -190,10 +191,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, "void my_func(void) {}\n");
     fclose(f);
     char *argv2[] = {"c2openapi",
-                     "../src/tests/mocks/parse/test_doc_tags_oauth_merge.c",
+                     "src/tests/mocks/parse/test_doc_tags_oauth_merge.c",
                      "out6.json"};
     c2openapi_cli_main(3, argv2);
-    remove("../src/tests/mocks/parse/test_doc_tags_oauth_merge.c");
+    remove("src/tests/mocks/parse/test_doc_tags_oauth_merge.c");
     remove("out6.json");
   }
   PASS();

@@ -73,6 +73,28 @@ TEST test_propagate_void_stmt(void) {
  * @brief test_propagate_ptr_assignment
  * @return TEST
  */
+TEST test_propagate_ptr_assignment2(void) {
+  const char *input = ""
+                      "void f() { char *s; s=my_strdup(\"a\"); }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {
+      {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
+  int rc;
+
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
+  ASSERT_EQ(0, rc);
+
+  printf("OUTPUT4: \"%s\"\n", output);
+  fflush(stdout);
+
+  ASSERT(strstr(output, "rc =my_strdup(\"a\", &s);") != NULL ||
+         strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
+  ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
+
+  free(output);
+  g_fail_io_after = -1;
+  PASS();
+}
 TEST test_propagate_ptr_assignment(void) {
   const char *input = ""
                       "void f() { char *s; s = my_strdup(\"a\"); }";
@@ -322,10 +344,195 @@ TEST test_propagate_nested_parens(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+#endif
+
+TEST test_rewrite_body_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 40; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    struct AllocationSiteList sites = {0};
+    const az_span source = az_span_create_from_str(
+        "int f() { int a = 1; void *p = malloc(1); return 0; }");
+    tokenize(source, &tl);
+    find_allocations(tl, &sites);
+
+    g_cdd_alloc_fail = i;
+    int rc = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == CDD_C_SUCCESS) {
+      if (out_code)
+        free(out_code);
+      free_token_list(tl);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
+TEST test_rewrite_body_funcs_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 150; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    struct AllocationSiteList sites = {0};
+    const az_span source = az_span_create_from_str(
+        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+    struct RefactoredFunction funcs[] = {
+        {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
+        {"inner", REF_PTR_TO_INT_OUT, "char *"}};
+
+    tokenize(source, &tl);
+    find_allocations(tl, &sites);
+
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = i;
+    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == CDD_C_SUCCESS) {
+      if (out_code)
+        free(out_code);
+      free_token_list(tl);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
+
+TEST test_rewrite_body_funcs_oom_strdup(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 200; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    struct AllocationSiteList sites = {0};
+    const az_span source = az_span_create_from_str(
+        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+    struct RefactoredFunction funcs[] = {
+        {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
+        {"inner", REF_PTR_TO_INT_OUT, "char *"}};
+
+    tokenize(source, &tl);
+    find_allocations(tl, &sites);
+
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    g_cdd_strdup_fail = i;
+    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    g_cdd_strdup_fail = 0;
+
+    if (rc == CDD_C_SUCCESS) {
+      if (out_code)
+        free(out_code);
+      free_token_list(tl);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
+TEST test_rewrite_body_funcs_oom_assignment(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 50; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    struct AllocationSiteList sites = {0};
+    const az_span source =
+        az_span_create_from_str("void f() { char *s; s=my_strdup(\"c\"); }");
+    struct RefactoredFunction funcs[] = {
+        {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
+
+    tokenize(source, &tl);
+    find_allocations(tl, &sites);
+
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = i;
+    int rc = rewrite_body(tl, &sites, funcs, 1, NULL, &out_code);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == CDD_C_SUCCESS) {
+      if (out_code)
+        free(out_code);
+      free_token_list(tl);
+      break;
+    }
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
+TEST test_rewrite_body_funcs_oom_debug(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  for (i = 1; i < 50; i++) {
+    char *out_code = NULL;
+    struct TokenList *tl = NULL;
+    struct AllocationSiteList sites = {0};
+    const az_span source = az_span_create_from_str(
+        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+    struct RefactoredFunction funcs[] = {
+        {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
+        {"inner", REF_PTR_TO_INT_OUT, "char *"}};
+
+    tokenize(source, &tl);
+    find_allocations(tl, &sites);
+
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = i;
+    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == CDD_C_ERROR_MEMORY) {
+      /* Good, failed as expected */
+    } else {
+      /* printf("i=%d rc=%d\n", i, rc); */
+    }
+
+    if (out_code)
+      free(out_code);
+    free_token_list(tl);
+  }
+#endif
+  PASS();
+}
 SUITE(rewriter_body_suite) {
+  RUN_TEST(test_rewrite_body_funcs_oom);
+  RUN_TEST(test_rewrite_body_funcs_oom_strdup);
+  RUN_TEST(test_rewrite_body_funcs_oom_assignment);
+  RUN_TEST(test_rewrite_body_funcs_oom_debug);
+  RUN_TEST(test_rewrite_body_oom);
+  RUN_TEST(test_rewriter_body_bounds);
+  RUN_TEST(test_rewrite_body_funcs_oom_strdup);
+  RUN_TEST(test_rewrite_body_funcs_oom_assignment);
+  RUN_TEST(test_rewrite_body_funcs_oom_debug);
   RUN_TEST(test_rewriter_body_bounds);
   RUN_TEST(test_propagate_void_stmt);
   RUN_TEST(test_propagate_ptr_assignment);
+  RUN_TEST(test_propagate_ptr_assignment2);
   RUN_TEST(test_propagate_ptr_declaration);
   RUN_TEST(test_propagate_nested_hoisting);
   RUN_TEST(test_integration_safety_and_prop);

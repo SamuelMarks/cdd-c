@@ -40,7 +40,9 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   if (g_crypto_fail_mdctx_new)
     return CDD_C_ERROR_MEMORY;
 
-  if ((!data && data_len > 0) || !out_digest)
+  if (!data && data_len > 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!out_digest)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   CC_SHA256(data, (CC_LONG)data_len, out_digest);
   return CDD_C_SUCCESS;
@@ -58,7 +60,11 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
   if (g_crypto_fail_hmac || g_crypto_fail_hmac_len)
     return CDD_C_ERROR_IO;
 
-  if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
+  if (!key && key_len > 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!data && data_len > 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!out_mac)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (key_len == 0) {
     static const unsigned char zero_pad[16] = {0};

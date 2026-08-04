@@ -25,6 +25,7 @@
 #include "functions/parse/str.h" /* For string duplication and utilities */
 #include "functions/parse/tokenizer.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 /* --- Type Definitions Logic --- */
@@ -51,20 +52,20 @@ void type_def_list_free(struct TypeDefList *list) {
   if (list->items) {
     for (i = 0; i < list->size; ++i) {
       if (list->items[i].name)
-        free(list->items[i].name);
+        C_CDD_FREE(list->items[i].name);
       if (list->items[i].kind == KIND_ENUM) {
         if (list->items[i].details.enum_members) {
           enum_members_free(list->items[i].details.enum_members);
-          free(list->items[i].details.enum_members);
+          C_CDD_FREE(list->items[i].details.enum_members);
         }
       } else {
         if (list->items[i].details.struct_fields) {
           struct_fields_free(list->items[i].details.struct_fields);
-          free(list->items[i].details.struct_fields);
+          C_CDD_FREE(list->items[i].details.struct_fields);
         }
       }
     }
-    free(list->items);
+    C_CDD_FREE(list->items);
     list->items = NULL;
   }
   list->size = 0;
@@ -81,7 +82,7 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
 
   if (list->size >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct TypeDefinition *new_items = (struct TypeDefinition *)realloc(
+    struct TypeDefinition *new_items = (struct TypeDefinition *)C_CDD_REALLOC(
         list->items, new_cap * sizeof(struct TypeDefinition));
     if (!new_items) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -139,10 +140,6 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   if (!fp) {
     if (errno == ENOENT)
       return CDD_C_ERROR_NOT_FOUND;
-    if (errno == ENOMEM)
-      return CDD_C_ERROR_MEMORY;
-    if (errno == EINVAL)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     return CDD_C_ERROR_IO;
   }
 
@@ -200,24 +197,22 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               while (n_len > 0 && isspace((unsigned char)name_start[n_len - 1]))
                 n_len--;
 
-              if (n_len > 0 && n_len < sizeof(current_name)) {
-                memcpy(current_name, name_start, n_len);
-                current_name[n_len] = '\0';
-              } else
-                current_name[0] = 0;
+              memcpy(current_name, name_start, n_len);
+              current_name[n_len] = '\0';
             } else {
               current_name[0] = 0;
             }
 
             if (is_enum) {
-              curr_em = (struct EnumMembers *)calloc(1, sizeof(*curr_em));
+              curr_em = (struct EnumMembers *)C_CDD_CALLOC(1, sizeof(*curr_em));
               if (!curr_em || enum_members_init(curr_em) != 0) {
                 rc = CDD_C_ERROR_MEMORY;
                 break;
               }
               state = ST_ENUM;
             } else {
-              curr_sf = (struct StructFields *)calloc(1, sizeof(*curr_sf));
+              curr_sf =
+                  (struct StructFields *)C_CDD_CALLOC(1, sizeof(*curr_sf));
               if (!curr_sf || struct_fields_init(curr_sf) != 0) {
                 rc = CDD_C_ERROR_MEMORY;
                 break;
@@ -247,7 +242,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
         /* Parse Member string in p (up to terminator) */
         /* For enums on one line: "A, B" */
-        if (state == ST_ENUM && curr_em && *p) {
+        if (state == ST_ENUM && *p) {
           char *copy = NULL;
           c_cdd_strdup(p, &copy);
           if (copy) {
@@ -272,9 +267,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               tok = strtok_r(NULL, ",", &ctx);
 #endif
             }
-            free(copy);
+            C_CDD_FREE(copy);
           }
-        } else if (state == ST_STRUCT && curr_sf) {
+        } else if (state == ST_STRUCT) {
           if (*p) {
             /* Support multiple fields on same line separated by semicolon */
             char *copy = NULL;
@@ -299,7 +294,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 tok = strtok_r(NULL, ";", &ctx);
 #endif
               }
-              free(copy);
+              C_CDD_FREE(copy);
             }
           }
         }
@@ -308,23 +303,29 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           /* Definition Ended */
           if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
-              if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0)
+              if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0) {
+                enum_members_free(curr_em);
+                C_CDD_FREE(curr_em);
                 rc = CDD_C_ERROR_MEMORY;
+              }
               curr_em = NULL;
             } else {
-              if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0)
+              if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0) {
+                struct_fields_free(curr_sf);
+                C_CDD_FREE(curr_sf);
                 rc = CDD_C_ERROR_MEMORY;
+              }
               curr_sf = NULL;
             }
           } else {
             if (curr_em) {
               enum_members_free(curr_em);
-              free(curr_em);
+              C_CDD_FREE(curr_em);
               curr_em = NULL;
             }
             if (curr_sf) {
               struct_fields_free(curr_sf);
-              free(curr_sf);
+              C_CDD_FREE(curr_sf);
               curr_sf = NULL;
             }
           }
@@ -343,14 +344,13 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   /* Cleanup leftovers */
   if (curr_em) {
     enum_members_free(curr_em);
-    free(curr_em);
+    C_CDD_FREE(curr_em);
   }
   if (curr_sf) {
     struct_fields_free(curr_sf);
-    free(curr_sf);
+    C_CDD_FREE(curr_sf);
   }
-  if (fp)
-    fclose(fp);
+  fclose(fp);
   return rc;
 }
 
@@ -377,14 +377,12 @@ void func_sig_list_free(struct FuncSigList *list) {
     return;
   if (list->items) {
     for (i = 0; i < list->size; ++i) {
-      if (list->items[i].name)
-        free(list->items[i].name);
-      if (list->items[i].sig)
-        free(list->items[i].sig);
+      C_CDD_FREE(list->items[i].name);
+      C_CDD_FREE(list->items[i].sig);
       if (list->items[i].doc)
-        free(list->items[i].doc);
+        C_CDD_FREE(list->items[i].doc);
     }
-    free(list->items);
+    C_CDD_FREE(list->items);
     list->items = NULL;
   }
   list->size = 0;
@@ -401,15 +399,10 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   size_t i;
   char *buf, *p;
 
-  if (start >= end || !tokens) {
-    c_cdd_strdup("", _out_val);
-    return CDD_C_SUCCESS;
-  }
-
   for (i = start; i < end; i++)
     total_len += tokens->tokens[i].length;
 
-  buf = (char *)malloc(total_len + 1);
+  buf = (char *)C_CDD_MALLOC(total_len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -440,10 +433,13 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
   if (!source_code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tl)) != 0)
-    return rc;
-  if ((rc = parse_tokens(tl, &cst)) != 0) {
-    free_token_list(tl);
+  rc = tokenize(az_span_create_from_str((char *)source_code), &tl);
+  if (rc == 0) {
+    rc = parse_tokens(tl, &cst);
+  }
+  if (rc != 0) {
+    if (tl)
+      free_token_list(tl);
     return rc;
   }
 
@@ -498,8 +494,9 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
 
         if (out->size >= out->capacity) {
           size_t c = (out->capacity == 0) ? 8 : out->capacity * 2;
-          struct FuncSignature *new_items = (struct FuncSignature *)realloc(
-              out->items, c * sizeof(struct FuncSignature));
+          struct FuncSignature *new_items =
+              (struct FuncSignature *)C_CDD_REALLOC(
+                  out->items, c * sizeof(struct FuncSignature));
           if (!new_items) {
             rc = CDD_C_ERROR_MEMORY;
             goto cleanup;
@@ -522,6 +519,12 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
         out->items[out->size].is_variadic = is_variadic;
 
         if (!out->items[out->size].name || !out->items[out->size].sig) {
+          if (out->items[out->size].name)
+            C_CDD_FREE(out->items[out->size].name);
+          if (out->items[out->size].sig)
+            C_CDD_FREE(out->items[out->size].sig);
+          if (out->items[out->size].doc)
+            C_CDD_FREE(out->items[out->size].doc);
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }

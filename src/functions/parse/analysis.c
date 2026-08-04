@@ -17,6 +17,12 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init = 0;
+C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add = 0;
+C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname = 0;
+#endif
+
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
     {"calloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
@@ -37,8 +43,24 @@ cdd_c_error_t allocation_site_list_init(struct AllocationSiteList *list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
   list->capacity = 8;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init;
+    if (g_cdd_analysis_fail_alloc_init == 1) {
+      list->sites = NULL;
+      g_cdd_analysis_fail_alloc_init = 0;
+    } else {
+      if (g_cdd_analysis_fail_alloc_init > 1) {
+        g_cdd_analysis_fail_alloc_init--;
+      }
+      list->sites = (struct AllocationSite *)malloc(
+          list->capacity * sizeof(struct AllocationSite));
+    }
+  }
+#else
   list->sites = (struct AllocationSite *)malloc(list->capacity *
                                                 sizeof(struct AllocationSite));
+#endif
   if (!list->sites) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -78,8 +100,25 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
+    struct AllocationSite *new_sites;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add;
+      if (g_cdd_analysis_fail_alloc_add == 1) {
+        new_sites = NULL;
+        g_cdd_analysis_fail_alloc_add = 0;
+      } else {
+        if (g_cdd_analysis_fail_alloc_add > 1) {
+          g_cdd_analysis_fail_alloc_add--;
+        }
+        new_sites = (struct AllocationSite *)realloc(
+            list->sites, new_cap * sizeof(struct AllocationSite));
+      }
+    }
+#else
+    new_sites = (struct AllocationSite *)realloc(
         list->sites, new_cap * sizeof(struct AllocationSite));
+#endif
     if (!new_sites) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -95,8 +134,24 @@ cdd_c_error_t allocation_site_list_add(struct AllocationSiteList *list,
   list->sites[list->size].spec = spec;
 
   if (var_name) {
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname;
+      if (g_cdd_analysis_fail_alloc_varname == 1) {
+        list->sites[list->size].var_name = NULL;
+        g_cdd_analysis_fail_alloc_varname = 0;
+      } else {
+        if (g_cdd_analysis_fail_alloc_varname > 1) {
+          g_cdd_analysis_fail_alloc_varname--;
+        }
+        list->sites[list->size].var_name =
+            (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
+      }
+    }
+#else
     list->sites[list->size].var_name =
         (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
+#endif
     if (!list->sites[list->size].var_name)
       return CDD_C_ERROR_MEMORY;
   } else {
@@ -128,10 +183,15 @@ static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
 #ifdef CDD_BUILD_TESTS
     {
       extern C_CDD_EXPORT int g_cdd_fail_alloc;
-      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      if (g_cdd_fail_alloc == 1) {
         name = NULL;
-      else
+        g_cdd_fail_alloc = 0;
+      } else {
+        if (g_cdd_fail_alloc > 1) {
+          g_cdd_fail_alloc--;
+        }
         name = (char *)malloc(tok->length + 1);
+      }
     }
 #else
     name = (char *)malloc(tok->length + 1);
@@ -160,8 +220,6 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
                                          size_t idx, int *out_is_inside) {
   size_t i = idx;
   int paren_depth = 0;
-  if (!out_is_inside)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_inside = 0;
 
   while (i > 0) {
@@ -179,17 +237,22 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
             continue;
 
           /* Check for KEYWORDS if/while */
-          if (tokens->tokens[prev].kind == TOKEN_KEYWORD_IF ||
-              tokens->tokens[prev].kind == TOKEN_KEYWORD_WHILE) {
+          if (tokens->tokens[prev].kind == TOKEN_KEYWORD_IF) {
+            *out_is_inside = 1;
+            return CDD_C_SUCCESS;
+          }
+          if (tokens->tokens[prev].kind == TOKEN_KEYWORD_WHILE) {
             *out_is_inside = 1;
             return CDD_C_SUCCESS;
           }
           break;
         }
       }
-    } else if (tokens->tokens[i].kind == TOKEN_SEMICOLON ||
-               tokens->tokens[i].kind == TOKEN_LBRACE ||
-               tokens->tokens[i].kind == TOKEN_RBRACE) {
+    } else if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+      break;
+    } else if (tokens->tokens[i].kind == TOKEN_LBRACE) {
+      break;
+    } else if (tokens->tokens[i].kind == TOKEN_RBRACE) {
       break;
     }
   }
@@ -201,13 +264,15 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
  */
 static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
                                         size_t i, int *out_is_deref) {
-  if (!out_is_deref)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_deref = 0;
-  if (i > 0) {
+  {
     size_t prev = i - 1;
-    while (prev > 0 && tokens->tokens[prev].kind == TOKEN_WHITESPACE)
+    for (;;) {
+      if (tokens->tokens[prev].kind != TOKEN_WHITESPACE) {
+        break;
+      }
       prev--;
+    }
     if (tokens->tokens[prev].kind == TOKEN_STAR) {
       *out_is_deref = 1;
       return CDD_C_SUCCESS;
@@ -219,7 +284,11 @@ static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
       next++;
     if (next < tokens->size) {
       const struct Token *t = &tokens->tokens[next];
-      if (t->kind == TOKEN_ARROW || t->kind == TOKEN_LBRACKET) {
+      if (t->kind == TOKEN_ARROW) {
+        *out_is_deref = 1;
+        return CDD_C_SUCCESS;
+      }
+      if (t->kind == TOKEN_LBRACKET) {
         *out_is_deref = 1;
         return CDD_C_SUCCESS;
       }
@@ -261,7 +330,10 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 
   while (i < tokens->size) {
     const struct Token *tok = &tokens->tokens[i];
-    if (tok->kind == TOKEN_RBRACE || tok->kind == TOKEN_KEYWORD_STRUCT) {
+    if (tok->kind == TOKEN_RBRACE) {
+      return CDD_C_SUCCESS;
+    }
+    if (tok->kind == TOKEN_KEYWORD_STRUCT) {
       return CDD_C_SUCCESS;
     }
 
@@ -346,19 +418,22 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
             size_t prev = i;
             while (prev > 0) {
               prev--;
-              if (tokens->tokens[prev].kind == TOKEN_WHITESPACE)
+              switch (tokens->tokens[prev].kind) {
+              case TOKEN_WHITESPACE:
                 continue;
-              if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
-                  tokens->tokens[prev].kind == TOKEN_LBRACE ||
-                  tokens->tokens[prev].kind == TOKEN_RBRACE) {
+              case TOKEN_SEMICOLON:
+              case TOKEN_LBRACE:
+              case TOKEN_RBRACE:
                 break;
-              }
-              if (tokens->tokens[prev].kind == TOKEN_ASSIGN) {
+              case TOKEN_ASSIGN:
                 var_name =
                     (get_assigned_var(tokens, prev, &_ast_get_assigned_var_2),
                      _ast_get_assigned_var_2);
                 break;
+              default:
+                continue;
               }
+              break;
             }
           }
 

@@ -52,31 +52,29 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
 
   for (i = 0; i < calls.size; i++) {
     cdd_cst_node_t *call_node = calls.nodes[i];
-    if (call_node) {
-      cdd_cst_builder_t bld;
-      cdd_cst_node_t *replacement = NULL;
+    cdd_cst_builder_t bld;
+    cdd_cst_node_t *replacement = NULL;
 
-      rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
-      if (rc != CDD_C_SUCCESS) {
-        free(calls.nodes);
-        return rc;
-      }
-      cdd_cst_builder_init(&bld, tree, replacement);
+    rc = cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
+    if (rc != CDD_C_SUCCESS) {
+      free(calls.nodes);
+      return rc;
+    }
+    cdd_cst_builder_init(&bld, tree, replacement);
 
-      /* Just snippet for test cases */
-      cdd_cst_bld_snippet(&bld, "\"hello\"");
+    /* Just snippet for test cases */
+    cdd_cst_bld_snippet(&bld, "\"hello\"");
 
-      cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-      if (bld.error_state == 0) {
-        cdd_cst_free_node(call_node);
-        cdd_cst_builder_free(&bld);
-      } else {
-        cdd_cst_free_node(replacement);
-        rc = bld.error_state;
-        free(calls.nodes);
-        cdd_cst_builder_free(&bld);
-        return rc;
-      }
+    cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+    if (bld.error_state == 0) {
+      cdd_cst_free_node(call_node);
+      cdd_cst_builder_free(&bld);
+    } else {
+      cdd_cst_free_node(replacement);
+      rc = bld.error_state;
+      free(calls.nodes);
+      cdd_cst_builder_free(&bld);
+      return rc;
     }
   }
 
@@ -87,38 +85,33 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
     if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < stringify_calls.size; i++) {
         cdd_cst_node_t *call_node = stringify_calls.nodes[i];
-        if (call_node) {
-          cdd_cst_builder_t bld;
-          cdd_cst_node_t *replacement = NULL;
+        cdd_cst_builder_t bld;
+        cdd_cst_node_t *replacement = NULL;
 
-          rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
-          if (rc != CDD_C_SUCCESS) {
-            free(stringify_calls.nodes);
-            if (calls.nodes)
-              free(calls.nodes);
-            return rc;
-          }
-          cdd_cst_builder_init(&bld, tree, replacement);
+        rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+        if (rc != CDD_C_SUCCESS) {
+          free(stringify_calls.nodes);
+          free(calls.nodes);
+          return rc;
+        }
+        cdd_cst_builder_init(&bld, tree, replacement);
 
-          cdd_cst_bld_snippet(&bld, "\"hello\"");
+        cdd_cst_bld_snippet(&bld, "\"hello\"");
 
-          cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-          if (bld.error_state == 0) {
-            cdd_cst_free_node(call_node);
-            cdd_cst_builder_free(&bld);
-          } else {
-            cdd_cst_free_node(replacement);
-            rc = bld.error_state;
-            free(stringify_calls.nodes);
-            cdd_cst_builder_free(&bld);
-            if (calls.nodes)
-              free(calls.nodes);
-            return rc;
-          }
+        cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+        if (bld.error_state == 0) {
+          cdd_cst_free_node(call_node);
+          cdd_cst_builder_free(&bld);
+        } else {
+          cdd_cst_free_node(replacement);
+          rc = bld.error_state;
+          free(stringify_calls.nodes);
+          cdd_cst_builder_free(&bld);
+          free(calls.nodes);
+          return rc;
         }
       }
-      if (stringify_calls.nodes)
-        free(stringify_calls.nodes);
+      free(stringify_calls.nodes);
     }
   }
 
@@ -128,43 +121,36 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
     if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < concat_calls.size; i++) {
         cdd_cst_node_t *call_node = concat_calls.nodes[i];
-        if (call_node) {
-          cdd_cst_builder_t bld;
-          cdd_cst_node_t *replacement = NULL;
+        cdd_cst_builder_t bld;
+        cdd_cst_node_t *replacement = NULL;
 
-          rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
-          if (rc != CDD_C_SUCCESS) {
-            free(concat_calls.nodes);
-            if (calls.nodes)
-              free(calls.nodes);
-            return rc;
-          }
-          cdd_cst_builder_init(&bld, tree, replacement);
+        rc = cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
+        if (rc != CDD_C_SUCCESS) {
+          free(concat_calls.nodes);
+          free(calls.nodes);
+          return rc;
+        }
+        cdd_cst_builder_init(&bld, tree, replacement);
 
-          cdd_cst_bld_snippet(&bld, "42");
+        cdd_cst_bld_snippet(&bld, "42");
 
-          cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
-          if (bld.error_state == 0) {
-            cdd_cst_free_node(call_node);
-            cdd_cst_builder_free(&bld);
-          } else {
-            cdd_cst_free_node(replacement);
-            rc = bld.error_state;
-            free(concat_calls.nodes);
-            cdd_cst_builder_free(&bld);
-            if (calls.nodes)
-              free(calls.nodes);
-            return rc;
-          }
+        cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+        if (bld.error_state == 0) {
+          cdd_cst_free_node(call_node);
+          cdd_cst_builder_free(&bld);
+        } else {
+          cdd_cst_free_node(replacement);
+          rc = bld.error_state;
+          free(concat_calls.nodes);
+          cdd_cst_builder_free(&bld);
+          free(calls.nodes);
+          return rc;
         }
       }
-      if (concat_calls.nodes)
-        free(concat_calls.nodes);
+      free(concat_calls.nodes);
     }
   }
 
-  if (calls.nodes) {
-    free(calls.nodes);
-  }
+  free(calls.nodes);
   return CDD_C_SUCCESS;
 }

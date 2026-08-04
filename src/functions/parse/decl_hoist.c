@@ -13,6 +13,10 @@
 #include "functions/parse/decl_hoist.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist = 0;
+#endif
+
 /**
  * @brief Initializes a hoist site list.
  *
@@ -45,8 +49,6 @@ void hoist_site_list_free(struct HoistSiteList *list) {
  */
 static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
                                            int *out_is_basic) {
-  if (!out_is_basic)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
@@ -112,36 +114,43 @@ cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
       /* Identify if this statement is a declaration */
       int is_basic = 0;
       is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
-      if (is_basic || tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
-          tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
-          tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM) {
+      if (is_basic) {
+        is_decl = 1;
+      } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT) {
+        is_decl = 1;
+      } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_UNION) {
+        is_decl = 1;
+      } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM) {
         is_decl = 1;
       } else if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
         /* Typedef assumption */
         size_t look = i + 1;
-        while (look < tokens->size &&
-               tokens->tokens[look].kind == TOKEN_WHITESPACE)
+        for (;;) {
+          if (look >= tokens->size)
+            break;
+          if (tokens->tokens[look].kind != TOKEN_WHITESPACE)
+            break;
           look++;
-        if (look < tokens->size &&
-            (tokens->tokens[look].kind == TOKEN_IDENTIFIER ||
-             tokens->tokens[look].kind == TOKEN_STAR)) {
-          /* Exception for labels and macros, but simple heuristic: */
-          is_decl = 1;
         }
-        /* Further disambiguation: if it's an assignment or function call, it's
-         * not a decl unless it was a type */
-        /* Let's be slightly conservative: if look is an identifier, assume
-         * declaration for now */
+        if (look < tokens->size) {
+          if (tokens->tokens[look].kind == TOKEN_IDENTIFIER) {
+            is_decl = 1;
+          } else if (tokens->tokens[look].kind == TOKEN_STAR) {
+            is_decl = 1;
+          }
+        }
       }
 
       /* Scan to end of statement (semicolon) */
-      while (i < tokens->size && tokens->tokens[i].kind != TOKEN_SEMICOLON &&
-             tokens->tokens[i].kind != TOKEN_LBRACE &&
-             tokens->tokens[i].kind != TOKEN_RBRACE) {
-        /* Refine is_decl: if we see an assignment operator `=` without having
-         * seen a valid type/ident combo, it might just be an expression */
-        /* For this simplistic scanner, we rely on the initial
-         * keyword/identifier scan */
+      for (;;) {
+        if (i >= tokens->size)
+          break;
+        if (tokens->tokens[i].kind == TOKEN_SEMICOLON)
+          break;
+        if (tokens->tokens[i].kind == TOKEN_LBRACE)
+          break;
+        if (tokens->tokens[i].kind == TOKEN_RBRACE)
+          break;
         i++;
       }
 
@@ -154,8 +163,24 @@ cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
             if (list->count >= list->capacity) {
               struct HoistSite *new_sites;
               list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
+#ifdef CDD_BUILD_TESTS
+              {
+                extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
+                if (g_cdd_fail_alloc_decl_hoist == 1) {
+                  new_sites = NULL;
+                  g_cdd_fail_alloc_decl_hoist = 0;
+                } else {
+                  if (g_cdd_fail_alloc_decl_hoist > 1) {
+                    g_cdd_fail_alloc_decl_hoist--;
+                  }
+                  new_sites = (struct HoistSite *)realloc(
+                      list->sites, list->capacity * sizeof(struct HoistSite));
+                }
+              }
+#else
               new_sites = (struct HoistSite *)realloc(
                   list->sites, list->capacity * sizeof(struct HoistSite));
+#endif
               if (!new_sites)
                 return CDD_C_ERROR_MEMORY;
               list->sites = new_sites;

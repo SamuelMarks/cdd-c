@@ -307,7 +307,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 TEST test_code2schema_oom(void) {
   int i;
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 200; ++i) {
     g_malloc_calls = 0;
     g_malloc_fail_at = i;
     json_set_allocation_functions(mock_malloc, mock_free);
@@ -317,33 +317,78 @@ TEST test_code2schema_oom(void) {
       JSON_Value *schemas_val = json_value_init_object();
       JSON_Object *schemas_obj = json_value_get_object(schemas_val);
 
-      struct_fields_init(&sf);
-      struct_fields_add(&sf, "field1", "string", NULL, NULL, NULL);
-      struct_fields_add(&sf, "field2", "array", "integer", NULL, NULL);
+      if (schemas_obj) {
+        struct_fields_init(&sf);
+        struct_fields_add(&sf, "field1", "string", NULL, NULL, NULL);
+        struct_fields_add(&sf, "field2", "array", "integer", NULL, NULL);
 
-      write_struct_to_json_schema(schemas_obj, "TestOOM", &sf);
+        write_struct_to_json_schema(schemas_obj, "TestOOM", &sf);
 
-      json_value_free(schemas_val);
-      struct_fields_free(&sf);
+        struct_fields_free(&sf);
+      }
+      if (schemas_val)
+        json_value_free(schemas_val);
+    }
+
+    {
+      const char *test_file = "test_oom_union.h";
+      const char *out_file = "test_oom_union_out.json";
+      FILE *f = fopen(test_file, "w");
+      if (f) {
+        fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
+        fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
+        fprintf(f, "enum Color { RED, GREEN, BLUE };\n");
+        fclose(f);
+      }
+
+      const char *argv[2];
+      argv[0] = test_file;
+      argv[1] = out_file;
+      code2schema_main(2, (char **)argv);
+
+      remove(test_file);
+      remove(out_file);
     }
 
     json_set_allocation_functions(malloc, free);
   }
-  for (i = 1; i < 20; ++i) {
+  for (i = 1; i < 50; ++i) {
     g_cdd_strdup_fail = i;
     {
       struct StructFields sf;
       JSON_Value *schemas_val = json_value_init_object();
       JSON_Object *schemas_obj = json_value_get_object(schemas_val);
 
-      struct_fields_init(&sf);
-      struct_fields_add(&sf, "field1", "string", NULL, NULL, NULL);
-      struct_fields_add(&sf, "field2", "array", "integer", NULL, NULL);
+      if (schemas_obj) {
+        struct_fields_init(&sf);
+        struct_fields_add(&sf, "field1", "string", NULL, NULL, NULL);
+        struct_fields_add(&sf, "field2", "array", "integer", NULL, NULL);
 
-      write_struct_to_json_schema(schemas_obj, "TestOOM", &sf);
+        write_struct_to_json_schema(schemas_obj, "TestOOM", &sf);
+        struct_fields_free(&sf);
+      }
+      if (schemas_val)
+        json_value_free(schemas_val);
+    }
 
-      json_value_free(schemas_val);
-      struct_fields_free(&sf);
+    {
+      const char *test_file = "test_oom_union.h";
+      const char *out_file = "test_oom_union_out.json";
+      FILE *f = fopen(test_file, "w");
+      if (f) {
+        fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
+        fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
+        fprintf(f, "enum Color { RED, GREEN, BLUE };\n");
+        fclose(f);
+      }
+
+      const char *argv[2];
+      argv[0] = test_file;
+      argv[1] = out_file;
+      code2schema_main(2, (char **)argv);
+
+      remove(test_file);
+      remove(out_file);
     }
   }
   g_cdd_strdup_fail = 0;
@@ -1029,26 +1074,21 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
 }
 
 TEST test_code2schema_utils(void) {
-
   char **s_arr;
   char **s_src;
-
   char **s_copied = NULL;
   size_t s_count = 0;
-
   JSON_Value *val;
   JSON_Array *arr;
-
   char **union_types = NULL;
   size_t count = 0;
   const char *primary = NULL;
   int nullable = 0;
 
   ASSERT_EQ(0,
-
             parse_type_union_array_code2schema(NULL, NULL, NULL, NULL, NULL));
-
   free_string_array_code2schema(NULL, 0);
+
   s_arr = (char **)malloc(sizeof(char *) * 2);
   s_arr[0] = strdup("test");
   s_arr[1] = strdup("test2");
@@ -1059,42 +1099,100 @@ TEST test_code2schema_utils(void) {
   s_src[1] = strdup("bar");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-
             copy_string_array_code2schema(NULL, NULL, NULL, 0));
+
+  ASSERT_EQ(0, copy_string_array_code2schema(&s_copied, &s_count, NULL, 0));
+  ASSERT_EQ(0, s_count);
 
   ASSERT_EQ(0, copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
   ASSERT(s_copied != NULL);
   ASSERT_EQ(2, s_count);
   free_string_array_code2schema(s_copied, 2);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
+    g_cdd_alloc_fail = 0;
+
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
+    g_cdd_strdup_fail = 0;
+  }
+#endif
+
   free_string_array_code2schema(s_src, 2);
 
   val = json_value_init_array();
   arr = json_value_get_array(val);
-
   ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
-
                                                   &primary, &nullable));
 
   json_array_append_null(arr);
   ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
-
                                                   &primary, &nullable));
 
   json_array_append_string(arr, "null");
   ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
-
                                                   &primary, &nullable));
-
   ASSERT_STR_EQ("null", primary);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              parse_type_union_array_code2schema(arr, &union_types, &count,
+                                                 &primary, &nullable));
+    g_cdd_alloc_fail = 0;
+
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              parse_type_union_array_code2schema(arr, &union_types, &count,
+                                                 &primary, &nullable));
+    g_cdd_strdup_fail = 0;
+  }
+#endif
 
   json_value_free(val);
   if (union_types)
     free_string_array_code2schema(union_types, count);
+
   g_fail_io_after = -1;
+  PASS();
+}
+TEST test_code2schema_union(void) {
+  const char *test_file = "test_union.h";
+  const char *out_file = "test_union_out.json";
+  FILE *f = fopen(test_file, "w");
+  const char *argv[2];
+  argv[0] = test_file;
+  argv[1] = out_file;
+
+  if (f) {
+    fprintf(f, "union MyUnion {\n"
+               "  int a;\n"
+               "  float b;\n"
+               "  char* c;\n"
+               "  struct Point p;\n"
+               "  union Nested u;\n"
+               "};\n");
+    fclose(f);
+  }
+
+  ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, (char **)argv));
+  remove(test_file);
+  remove(out_file);
   PASS();
 }
 
 SUITE(code2schema_suite) {
+  RUN_TEST(test_code2schema_union);
   RUN_TEST(test_code2schema_utils);
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);

@@ -52,7 +52,9 @@ extern "C" {
 #define NO_DISCARD __attribute__((warn_unused_result))
 #elif defined(_MSC_VER) && _MSC_VER >= 1700
 /* MSVC (Requires SAL) */
+/* clang-format off */
 #include <sal.h>
+/* clang-format on */
 #define NO_DISCARD _Check_return_
 #else
 /* Fallback for unsupported compilers */

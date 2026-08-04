@@ -34,6 +34,10 @@ static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
   return (size_t)-1;
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
+#endif
+
 /**
  * @brief DFS function for topological sorting.
  * @param ctx The sort context.
@@ -42,6 +46,14 @@ static size_t find_node_index(cdd_ffi_ir_t *ir, const char *name) {
 static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
   cdd_ffi_ir_node_t *node;
   size_t i;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_ffi_ir_toposort_fail > 0) {
+    if (--g_cdd_ffi_ir_toposort_fail == 0) {
+      return CDD_C_ERROR_MEMORY;
+    }
+  }
+#endif
 
   if (ctx->visited[node_idx] == 1) {
     /* Cycle detected, handle by ignoring for now to emit what we can,
@@ -102,6 +114,7 @@ static cdd_c_error_t toposort_dfs(toposort_ctx_t *ctx, size_t node_idx) {
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail = 0;
 C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail = 0;
+C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail = 0;
 #endif
 
 cdd_c_error_t cdd_ffi_ir_topological_sort(cdd_ffi_ir_t *ir) {

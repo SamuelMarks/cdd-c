@@ -273,7 +273,9 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   struct_fields_init(&sf);
   enum_members_add(&sf.enum_members, "M1");
   enum_members_add(&sf.enum_members, "UNKNOWN");
-  enum_members_add(&sf.enum_members, NULL);
+  sf.enum_members.members[sf.enum_members.size] = NULL;
+  sf.enum_members
+      .size++; /* Intentionally leave one member NULL to test !member branch */
   cfg.enum_guard = "MY_GUARD";
 
   ASSERT(tmp);
@@ -292,6 +294,12 @@ TEST test_write_enum_declaration_h_io_fail(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
   }
+
+  g_fail_io_after = -1;
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "E", &sf, NULL));
+  cfg.enum_guard = NULL;
+  ASSERT_EQ(0, write_enum_declaration_h(tmp, "E", &sf, &cfg));
+
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -313,7 +321,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
   struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
-  struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
+  struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
   struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
   struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);
@@ -335,6 +343,23 @@ TEST test_write_struct_declaration_h_io_fail(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
   }
+
+  /* Empty struct test */
+  {
+    struct StructFields empty_sf;
+    int j;
+    struct_fields_init(&empty_sf);
+    for (j = 0; j < 5; j++) {
+      g_fail_io_after = j;
+      g_io_calls = 0;
+      rc = write_struct_declaration_h(tmp, "Empty", &empty_sf, &cfg);
+      if (rc == 0)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+    struct_fields_free(&empty_sf);
+  }
+
   fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
@@ -356,7 +381,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
   struct_fields_add(&sf, "e", "enum", "E", NULL, NULL);
-  struct_fields_add(&sf, "r", "struct", "R", NULL, NULL);
+  struct_fields_add(&sf, "r", "object", "R", NULL, NULL);
   struct_fields_add(&sf, "a_s", "array", "string", NULL, NULL);
   struct_fields_add(&sf, "a_i", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "a_n", "array", "number", NULL, NULL);

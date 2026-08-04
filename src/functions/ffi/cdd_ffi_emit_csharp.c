@@ -85,7 +85,8 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   char filepath[1024];
   size_t i, j;
   extern volatile int g_fail_io_after;
-  const char *libname = config->library_name ? config->library_name : "libname";
+  const char *libname =
+      (config && config->library_name) ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
   sprintf_s(filepath, sizeof(filepath), "%s\\Bindings.cs", config->output_dir);
@@ -245,7 +246,8 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
   char filepath[1024];
   size_t i;
   extern volatile int g_fail_io_after;
-  const char *libname = config->library_name ? config->library_name : "libname";
+  const char *libname =
+      (config && config->library_name) ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
   sprintf_s(filepath, sizeof(filepath), "%s\\BindingsTests.cs",
@@ -297,7 +299,8 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   FILE *f;
   char filepath[1024];
   extern volatile int g_fail_io_after;
-  const char *libname = config->library_name ? config->library_name : "libname";
+  const char *libname =
+      (config && config->library_name) ? config->library_name : "libname";
 
 #if defined(_MSC_VER)
   sprintf_s(filepath, sizeof(filepath), "%s\\%sBindings.csproj",

@@ -100,13 +100,82 @@ TEST test_macro_overlay_free_with_expanded(void) {
   expanded->capacity = 1;
 
   /* Manually add a node to hit the free_cst_node_list branch */
-  list.capacity = 1;
-  list.size = 1;
-  list.nodes = calloc(1, sizeof(struct MacroOverlayNode));
+  list.capacity = 2;
+  list.size = 2;
+  list.nodes = calloc(2, sizeof(struct MacroOverlayNode));
   list.nodes[0].expanded_ast = expanded;
+  list.nodes[1].expanded_ast = NULL;
 
   macro_overlay_list_free(&list);
   g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_macro_overlay_non_macro(void) {
+  struct MacroOverlayList list;
+  struct TokenList *tl = setup_tokens("int a;");
+  struct CstNodeList cst = {0};
+
+  (void)macro_overlay_list_init(&list);
+  cst.capacity = 1;
+  cst.size = 1;
+  cst.nodes = calloc(1, sizeof(struct CstNode));
+  cst.nodes[0].kind = CST_NODE_OTHER;
+
+  ASSERT_EQ(CDD_C_SUCCESS, cst_build_macro_overlay(&cst, tl, &list));
+
+  macro_overlay_list_free(&list);
+  free(cst.nodes);
+  free_token_list(tl);
+  PASS();
+}
+
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+#endif
+
+TEST test_macro_overlay_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct MacroOverlayList list;
+  struct TokenList *tl = setup_tokens("MACRO(1)");
+  struct CstNodeList cst = {0};
+
+  (void)macro_overlay_list_init(&list);
+  cst.capacity = 2;
+  cst.size = 2;
+  cst.nodes = calloc(2, sizeof(struct CstNode));
+  cst.nodes[0].kind = CST_NODE_MACRO;
+  cst.nodes[1].kind = CST_NODE_MACRO;
+
+  /* Test calloc fail */
+  g_cdd_macro_overlay_fail_calloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  g_cdd_macro_overlay_fail_calloc = 0;
+
+  /* Test realloc fail */
+  g_cdd_macro_overlay_fail_realloc = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  g_cdd_macro_overlay_fail_realloc = 0;
+
+  /* Test >1 realloc fail */
+  g_cdd_macro_overlay_fail_realloc = 2;
+  cst.capacity = 9;
+  cst.size = 9;
+  free(cst.nodes);
+  cst.nodes = calloc(9, sizeof(struct CstNode));
+  {
+    int i;
+    for (i = 0; i < 9; i++)
+      cst.nodes[i].kind = CST_NODE_MACRO;
+  }
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cst_build_macro_overlay(&cst, tl, &list));
+  g_cdd_macro_overlay_fail_realloc = 0;
+
+  macro_overlay_list_free(&list);
+  free(cst.nodes);
+  free_token_list(tl);
+#endif
   PASS();
 }
 
@@ -115,6 +184,8 @@ SUITE(macro_overlay_suite) {
   RUN_TEST(test_macro_overlay_null_args);
   RUN_TEST(test_macro_overlay_with_nodes);
   RUN_TEST(test_macro_overlay_free_with_expanded);
+  RUN_TEST(test_macro_overlay_non_macro);
+  RUN_TEST(test_macro_overlay_oom);
 }
 
 #ifdef __cplusplus

@@ -218,7 +218,13 @@ def is_predicate(name: str) -> bool:
     return (
         name.startswith("is_")
         or name.startswith("has_")
-        or name.startswith("tree_has_")
+        or "_is_" in name
+        or "_has_" in name
+        or "_all_" in name
+        or "_eq" in name
+        or "_ieq" in name
+        or name.endswith("_is")
+        or name.endswith("_has")
     )
 
 

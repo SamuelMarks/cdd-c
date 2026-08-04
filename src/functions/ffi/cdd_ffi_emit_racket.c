@@ -12,8 +12,6 @@
 
 static void racketify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!out_name || out_sz == 0)
-    return;
   if (!c_name) {
     out_name[0] = '\0';
     return;
@@ -121,7 +119,7 @@ cdd_ffi_emit_racket(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = config->library_name ? config->library_name : "mylib";
+  lib_name = (config && config->library_name) ? config->library_name : "mylib";
   racketify_name(lib_name, racket_lib_name, sizeof(racket_lib_name));
 
 #if defined(_MSC_VER)

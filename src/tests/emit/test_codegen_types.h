@@ -800,6 +800,101 @@ TEST test_types_exhaustive_io(void) {
   PASS();
 }
 
+TEST test_types_uncovered(void) {
+  struct StructFields sf;
+  struct CodegenTypesConfig config = {0};
+  FILE *tmp = tmpfile();
+
+  /* 1. Test meta with property names (to cover lines 341, 343) */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "obj2");
+    strcpy(f->type, "object");
+
+    sf.union_variants =
+        (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
+    sf.n_union_variants = 1;
+    sf.union_variants[0].n_property_names = 3;
+    sf.union_variants[0].property_names = (char **)calloc(3, sizeof(char *));
+    sf.union_variants[0].property_names[0] = strdup("a");
+    sf.union_variants[0].property_names[1] = NULL;
+    sf.union_variants[0].property_names[2] = strdup("b");
+  }
+
+  /* 2. Test union_is_anyof = 0 and (int_count > 1) */
+  sf.union_is_anyof = 0;
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "i1");
+    strcpy(f->type, "integer");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "i2");
+    strcpy(f->type, "integer");
+  }
+
+  /* 3. Test boolean count > 1 and null_count > 1 */
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "b1");
+    strcpy(f->type, "boolean");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "b2");
+    strcpy(f->type, "boolean");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "null1");
+    strcpy(f->type, "null");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "null2");
+    strcpy(f->type, "null");
+  }
+
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  write_union_from_json_func(tmp, "Union1", &sf, &config);
+
+  struct_fields_free(&sf);
+
+  /* 4. Test int_count == 0 && num_count > 0 and boolean count == 1 */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "n1");
+    strcpy(f->type, "number");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "b1");
+    strcpy(f->type, "boolean");
+  }
+
+  write_union_from_json_func(tmp, "Union2", &sf, &config);
+  struct_fields_free(&sf);
+
+  /* 5. Test root array string cleanup and object */
+  write_root_array_cleanup_func(tmp, "ArrStr", "string", NULL, &config);
+  write_root_array_to_json_func(tmp, "ArrStr", "string", NULL, &config);
+
+  write_root_array_cleanup_func(tmp, "ArrObj", "object", "MyObj", &config);
+  write_root_array_to_json_func(tmp, "ArrObj", "object", "MyObj", &config);
+
+  write_root_array_cleanup_func(tmp, "ArrInt", "integer", NULL, &config);
+  write_root_array_to_json_func(tmp, "ArrInt", "integer", NULL, &config);
+
+  write_root_array_cleanup_func(tmp, "ArrBool", "boolean", NULL, &config);
+  write_root_array_to_json_func(tmp, "ArrBool", "boolean", NULL, &config);
+
+  fclose(tmp);
+  PASS();
+}
+
 SUITE(codegen_types_suite) {
   RUN_TEST(test_types_exhaustive_io);
   RUN_TEST(test_write_union_to_json);
@@ -815,6 +910,7 @@ SUITE(codegen_types_suite) {
   RUN_TEST(test_union_guards);
   RUN_TEST(test_types_null_args);
   RUN_TEST(test_types_io_fail);
+  RUN_TEST(test_types_uncovered);
 }
 
 #ifdef __cplusplus

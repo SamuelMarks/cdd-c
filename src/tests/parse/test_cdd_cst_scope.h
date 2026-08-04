@@ -198,6 +198,9 @@ TEST test_cdd_cst_scope_tag(void) {
     int is_tag = 0;
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_VARIABLE, &is_tag));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_VARIABLE, NULL));
+
     ASSERT_EQ(0, is_tag);
   }
 
