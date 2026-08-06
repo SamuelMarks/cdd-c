@@ -252,13 +252,13 @@ endif()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-fprofile-arcs;-ftest-coverage>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:--coverage>>"
+
     )
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
 # Set the build directories

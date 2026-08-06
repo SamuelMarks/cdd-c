@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file json.c
  * @brief Implementation of JSON generation logic.
@@ -30,8 +32,6 @@
 #endif
 
 #ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_fail_io_after = -1;
-C_CDD_EXPORT int g_io_calls = 0;
 static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
