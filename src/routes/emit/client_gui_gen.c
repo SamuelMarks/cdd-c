@@ -5,6 +5,7 @@
 
 /* clang-format off */
 #include "c_cdd/safe_crt.h"
+#include "c_cdd/memory.h"
 #include "routes/emit/client_gui_gen.h"
 #include <errno.h>
 #include <stdio.h>
@@ -12,6 +13,22 @@
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#define FOPEN(path, mode)                                                      \
+  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
+       ? NULL                                                                  \
+       : fopen(path, mode))
+#define FOPEN_S(fp, path, mode)                                                \
+  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
+       ? (*(fp) = NULL, -1)                                                    \
+       : fopen_s(fp, path, mode))
+#else
+#define FOPEN(path, mode) fopen(path, mode)
+#define FOPEN_S(fp, path, mode) fopen_s(fp, path, mode)
+#endif
 
 #if defined(_MSC_VER)
 /** @brief SNPRINTF macro for MSVC */
@@ -38,7 +55,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = malloc(512);
+    char *src_dir = (char *)C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
@@ -49,33 +66,23 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                  base_name ? base_name : "generated_client");
     CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
                  base_name ? base_name : "generated_client");
-    free(src_dir);
+    C_CDD_FREE(src_dir);
     if (dir_name)
-      free(dir_name);
+      C_CDD_FREE(dir_name);
     if (base_name)
-      free(base_name);
+      C_CDD_FREE(base_name);
   }
 
 #if defined(_MSC_VER)
-  if (fopen_s(&fp_h, path_h, "w") != 0)
+  if (FOPEN_S(&fp_h, path_h, "w") != 0)
     fp_h = NULL;
-  if (fopen_s(&fp_c, path_c, "w") != 0)
+  if (FOPEN_S(&fp_c, path_c, "w") != 0)
     fp_c = NULL;
 #else
-  fp_h = fopen(path_h, "w");
-  fp_c = fopen(path_c, "w");
+  fp_h = FOPEN(path_h, "w");
+  fp_c = FOPEN(path_c, "w");
 #endif
 
-  if (!fp_h || !fp_c) {
-    if (fp_h)
-      fclose(fp_h);
-    if (fp_c)
-      fclose(fp_c);
-    return CDD_C_SUCCESS;
-  }
-
-  /* Duplicate check inside the original file; left as is to match logic but we
-   * don't strictly need it. */
   if (!fp_h || !fp_c) {
     if (fp_h)
       fclose(fp_h);
@@ -115,7 +122,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "#include \"%s_gui.h\"\n",
             base ? base : config->filename_base);
     if (base)
-      free(base);
+      C_CDD_FREE(base);
   }
   fprintf(fp_c, "#include <stdio.h>\n");
   fprintf(fp_c, "#include <stdlib.h>\n");
@@ -197,7 +204,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
-  fprintf(fp_c, "    free(res.body);\n");
+  fprintf(fp_c, "    C_CDD_FREE(res.body);\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  return rc;\n");
   fprintf(fp_c, "}\n");

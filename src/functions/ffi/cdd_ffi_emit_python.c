@@ -102,8 +102,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -119,7 +118,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   /* Basic dll loader */
   fprintf(f, "def _load_library():\n");
   fprintf(f, "    lib_name = '%s'\n",
-          (config && config->library_name) ? config->library_name : "libname");
+          (config->library_name) ? config->library_name : "libname");
   fprintf(f, "    if sys.platform == 'win32':\n");
   fprintf(f, "        lib_ext = '.dll'\n");
   fprintf(f, "    elif sys.platform == 'darwin':\n");
@@ -408,8 +407,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     {
       extern volatile int g_fail_io_after;
       if (g_fail_io_after == 2) {
-        if (fc)
-          fclose(fc);
+        fclose(fc);
         fc = NULL;
       }
     }
@@ -450,8 +448,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     {
       extern volatile int g_fail_io_after;
       if (g_fail_io_after == 3) {
-        if (f)
-          fclose(f);
+        fclose(f);
         f = NULL;
       }
     }

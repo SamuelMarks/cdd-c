@@ -14,10 +14,9 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
+  int is_first_func = 1;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s_mex.c", config->output_dir,
@@ -62,11 +61,12 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
-      if (i > 0) {
+      if (!is_first_func) {
         fprintf(f, "    else if (strcmp(func_name, \"%s\") == 0) {\n",
                 node->name);
       } else {
         fprintf(f, "    if (strcmp(func_name, \"%s\") == 0) {\n", node->name);
+        is_first_func = 0;
       }
 
       if (node->fields_count > 0) {
@@ -114,9 +114,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.m", config->output_dir,
@@ -132,6 +130,14 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     return CDD_C_ERROR_UNKNOWN;
   }
 #endif
+
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 2) {
+      fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
 
   fprintf(f, "classdef %s\n", lib_name);
   fprintf(f, "    %% Auto-generated MATLAB bindings for %s\n\n", lib_name);

@@ -17,16 +17,6 @@ static const char *map_nim_type(cdd_ffi_type_t *t) {
     if (t->kind == CDD_FFI_KIND_VOID) {
       return "pointer";
     }
-    if (t->kind == CDD_FFI_KIND_STRUCT_REF ||
-        t->kind == CDD_FFI_KIND_TYPEDEF_REF ||
-        t->kind == CDD_FFI_KIND_ENUM_REF) {
-      if (t->ref_name) {
-        /* Return pointer type for known structs, but string manipulation is
-           hard here, so we just return ptr type. A better way would be
-           returning "ptr structName" but for simplicity, we map to pointer. */
-        return "pointer";
-      }
-    }
     return "pointer";
   }
   switch (t->kind) {
@@ -71,13 +61,11 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      config ? ((config->library_name) ? config->library_name : "mylib")
+             : "mylib";
   const char *module_name =
-      config
-          ? ((config && config->module_name) ? config->module_name : "bindings")
-          : "bindings";
+      config ? ((config->module_name) ? config->module_name : "bindings")
+             : "bindings";
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
@@ -87,13 +75,37 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.nim", config->output_dir,
                module_name);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.nim", config->output_dir,
                module_name);
-  f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
+#endif
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -154,21 +166,47 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.nimble", config->output_dir,
                module_name);
-  if (fopen_s(&f, filepath, "w") == 0) {
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_IO;
+    }
+  }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.nimble", config->output_dir,
                module_name);
-  f = fopen(filepath, "w");
-  if (f) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
 #endif
-    fprintf(f, "version       = \"0.1.0\"\n");
-    fprintf(f, "author        = \"Auto-generated\"\n");
-    fprintf(f, "description   = \"Nim bindings for %s\"\n", lib_name);
-    fprintf(f, "license       = \"MIT\"\n");
-    fprintf(f, "srcDir        = \".\"\n");
-    fprintf(f, "requires \"nim >= 1.6.0\"\n");
-    fclose(f);
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
+  if (!f)
+    return CDD_C_ERROR_IO;
+#endif
+  fprintf(f, "version       = \"0.1.0\"\n");
+  fprintf(f, "author        = \"Auto-generated\"\n");
+  fprintf(f, "description   = \"Nim bindings for %s\"\n", lib_name);
+  fprintf(f, "license       = \"MIT\"\n");
+  fprintf(f, "srcDir        = \".\"\n");
+  fprintf(f, "requires \"nim >= 1.6.0\"\n");
+  fclose(f);
 
   return CDD_C_SUCCESS;
 }

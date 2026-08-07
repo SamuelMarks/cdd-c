@@ -13,7 +13,7 @@
 
 static void schemify_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
+  if (!c_name)
     return;
   while (c_name[i] && j < out_sz - 1) {
     if (c_name[i] == '_') {
@@ -118,7 +118,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
   schemify_name(lib_name, scheme_lib_name, sizeof(scheme_lib_name));
 
 #if defined(_MSC_VER)

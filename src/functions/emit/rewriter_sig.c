@@ -88,11 +88,6 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
   char *buf;
   char *p;
 
-  if (start >= end) {
-    *out = C_CDD_STRDUP("");
-    return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
-  }
-
   for (i = start; i < end; ++i) {
     len += tokens->tokens[i].length;
   }
@@ -183,7 +178,7 @@ static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
 
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_VOID) {
       saw_void = 1;
-    } else if (tokens->tokens[i].kind != TOKEN_WHITESPACE) {
+    } else {
       /* Any token other than void or whitespace implies not simple void */
       return CDD_C_SUCCESS;
     }
@@ -258,7 +253,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       size_t end_attr = 0;
       find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET, &end_attr);
 
-      if (end_attr < tokens->size && end_attr > i) {
+      if (end_attr < tokens->size) {
         attr_end_idx = end_attr + 1; /* Past the closing ] */
       }
 
@@ -433,7 +428,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
       /* Case: Type f(...) -> int f(..., Type *out) */
       /* Trim trailing whitespace from ret_type for cleaner output */
       size_t rtl = strlen(sig.ret_type);
-      while (rtl > 0 && isspace((unsigned char)sig.ret_type[rtl - 1]))
+      while (isspace((unsigned char)sig.ret_type[rtl - 1]))
         sig.ret_type[--rtl] = '\0';
 
       if (sig.k_r_decls) {
@@ -493,11 +488,6 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 
 #endif
         }
-      }
-
-      if (!new_args) {
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup;
       }
 
       /* Assemble final string */

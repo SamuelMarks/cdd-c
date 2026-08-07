@@ -94,8 +94,7 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -180,8 +179,7 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -295,8 +293,7 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -306,7 +303,7 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
 
   fprintf(f, "[package]\n");
   fprintf(f, "name = \"%s-bindings\"\n",
-          (config && config->library_name) ? config->library_name : "libname");
+          (config->library_name) ? config->library_name : "libname");
   fprintf(f, "version = \"0.1.0\"\n");
   fprintf(f, "edition = \"2021\"\n\n");
   fprintf(f, "[dependencies]\n");
@@ -338,8 +335,7 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -348,7 +344,7 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_IO;
 
   fprintf(f, "use %s_bindings::*;\n\n",
-          (config && config->library_name) ? config->library_name : "libname");
+          (config->library_name) ? config->library_name : "libname");
   for (i = 0; i < ir->nodes_count; i++) {
     cdd_ffi_ir_node_t *node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_STRUCT || node->kind == CDD_FFI_NODE_UNION) {

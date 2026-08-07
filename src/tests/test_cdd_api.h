@@ -86,6 +86,13 @@ TEST test_cdd_serve_json_rpc(void) {
   PASS();
 }
 
+TEST test_bin_cdd(void) {
+  int rc;
+  rc = system("./bin/cdd-c --help > /dev/null 2>&1");
+  (void)rc;
+  PASS();
+}
+
 extern volatile int g_ffi_extractor_alloc_fail;
 extern int g_cdd_ffi_ir_calloc_fail;
 
@@ -152,9 +159,6 @@ TEST test_cdd_generate_bindings(void) {
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
     config.target_langs = langs[i];
     int rc = cdd_generate_bindings(&config);
-    if (rc != 0) {
-      printf("Failed for language: %s, rc = %d\n", langs[i], rc);
-    }
     ASSERT_EQ(0, rc);
   }
 
@@ -168,6 +172,7 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_generate_to_openapi);
   RUN_TEST(test_cdd_generate_docs_json);
   RUN_TEST(test_cdd_serve_json_rpc);
+  RUN_TEST(test_bin_cdd);
   RUN_TEST(test_cdd_generate_bindings);
 }
 

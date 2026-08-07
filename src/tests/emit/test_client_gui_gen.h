@@ -70,7 +70,7 @@ TEST test_client_gui_gen_with_server(void) {
   memset(&spec, 0, sizeof(spec));
   spec.n_servers = 1;
   spec.servers =
-      (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
+      (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
   spec.servers[0].url = "https://api.example.com";
 
   memset(&config, 0, sizeof(config));
@@ -81,7 +81,7 @@ TEST test_client_gui_gen_with_server(void) {
 
   remove("src/test_gui2_gui.c");
   remove("src/test_gui2_gui.h");
-  free(spec.servers);
+  C_CDD_FREE(spec.servers);
   g_fail_io_after = -1;
 
   PASS();
@@ -115,6 +115,23 @@ TEST test_client_gui_gen_errors(void) {
   config.filename_base = NULL;
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  g_fail_io_after = -1;
+
+  config.filename_base = "test_gui";
+  g_cdd_alloc_fail = 1;
+  rc = openapi_client_gui_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  rc = openapi_client_gui_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_fail_io_after = -1;
+
+  g_io_calls = 0;
+  g_fail_io_after = 2;
+  rc = openapi_client_gui_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_fail_io_after = -1;
 
   PASS();

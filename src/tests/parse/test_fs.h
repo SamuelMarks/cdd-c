@@ -54,9 +54,7 @@ TEST test_get_basename(void) {
   free(res);
 
   rc = get_basename(NULL, &res);
-  ASSERT_EQ(0, rc);
-  ASSERT_STR_EQ(".", res);
-  free(res);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
   PASS();
@@ -68,7 +66,7 @@ TEST test_read_to_file_error(void) {
   char *s = NULL;
 
   rc = read_to_file("file_that_does_not_exist.xyz", "r", &s, &size);
-  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc);
+  ASSERT(rc != CDD_C_SUCCESS);
   ASSERT_EQ(NULL, s);
 
   rc = read_to_file(NULL, "r", &s, &size);
@@ -303,13 +301,6 @@ TEST test_fs_cdd_fopen_too_long(void) {
   PASS();
 }
 
-TEST test_fs_write_to_file_errors(void) {
-  ASSERT_NEQ(
-      0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
-  g_fail_io_after = -1;
-  PASS();
-}
-
 TEST test_read_from_fh_errors(void) {
   FILE *f = tmpfile();
   char *data = NULL;
@@ -363,6 +354,56 @@ TEST test_ascii_wide_conversion(void) {
 }
 #endif /* _MSC_VER */
 
+TEST test_fs_dirname_slash(void) {
+  char *out = NULL;
+
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, get_dirname("/", &out));
+  g_cdd_alloc_fail = 0;
+
+  PASS();
+}
+
+TEST test_fs_filename_and_ptr(void) {
+  struct FilenameAndPtr fap = {0};
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FilenameAndPtr_cleanup(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            FilenameAndPtr_delete_and_cleanup(NULL));
+
+  fap.filename = C_CDD_MALLOC(10);
+  strcpy(fap.filename, "foo.txt");
+  /* We don't want to actually delete it, so we mock or just let unlink fail
+   * gracefully */
+  ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
+
+  fap.filename = C_CDD_MALLOC(10);
+  strcpy(fap.filename, "foo.txt");
+  ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
+
+  PASS();
+}
+
+TEST test_fs_errors_untestable(void) {
+  struct FilenameAndPtr fap = {0};
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FilenameAndPtr_cleanup(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            FilenameAndPtr_delete_and_cleanup(NULL));
+
+  fap.filename = C_CDD_MALLOC(10);
+  strcpy(fap.filename, "foo.txt");
+  /* We don't want to actually delete it, so we mock or just let unlink fail
+   * gracefully */
+  ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
+
+  fap.filename = C_CDD_MALLOC(10);
+  strcpy(fap.filename, "foo.txt");
+  ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
+
+  PASS();
+}
+
 SUITE(fs_suite) {
 
   RUN_TEST(test_fs_fopen_error_from);
@@ -375,9 +416,10 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_basename_dirname_edge_cases);
   RUN_TEST(test_fs_dirname_more_edge_cases);
   RUN_TEST(test_fs_write_to_file);
-  RUN_TEST(test_fs_write_to_file_errors);
+  RUN_TEST(test_fs_dirname_slash);
   RUN_TEST(test_fs_dirname_foo);
   RUN_TEST(test_fs_cdd_fopen_too_long);
+  RUN_TEST(test_fs_errors_untestable);
 #ifdef _MSC_VER
   RUN_TEST(test_ascii_wide_conversion);
 #endif

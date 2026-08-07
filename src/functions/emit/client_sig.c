@@ -25,6 +25,27 @@
 #endif
 
 /** @brief CHECK_IO definition */
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((format(printf, 2, 3)))
+#endif
+    ;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define fprintf test_cdd_fprintf_hook
+#endif
+
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -36,10 +57,7 @@
  */
 static cdd_c_error_t map_type_to_c_arg(const char *oa_type,
                                        const char **_out_val) {
-  if (!oa_type) {
-    *_out_val = "const void *";
-    return CDD_C_SUCCESS;
-  }
+
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "int ";
     return CDD_C_SUCCESS;
@@ -110,18 +128,14 @@ static int media_type_has_prefix(const char *media_type, const char *prefix) {
   size_t i;
   size_t len;
   size_t pre_len;
-  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
-         _ast_media_type_base_len_0);
-  pre_len = strlen(prefix);
-  if (len < pre_len)
+  if (!media_type || !prefix)
     return 0;
+  pre_len = strlen(prefix);
+
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
     char b = prefix[i];
-    if (a >= 'A' && a <= 'Z')
-      a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
+
     if (a != b)
       return 0;
   }
@@ -137,19 +151,17 @@ static int media_type_has_suffix(const char *media_type, const char *suffix) {
   size_t len;
   size_t suf_len;
   size_t start;
+  if (!media_type || !suffix)
+    return 0;
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
          _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
-  if (len < suf_len)
-    return 0;
+
   start = len - suf_len;
   for (i = 0; i < suf_len; ++i) {
     char a = media_type[start + i];
     char b = suffix[i];
-    if (a >= 'A' && a <= 'Z')
-      a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
+
     if (a != b)
       return 0;
   }
@@ -164,8 +176,7 @@ static int media_type_ieq(const char *media_type, const char *expected) {
   size_t i;
   size_t len;
   size_t exp_len;
-  if (!media_type || !expected)
-    return 0;
+
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
          _ast_media_type_base_len_2);
   exp_len = strlen(expected);
@@ -174,10 +185,7 @@ static int media_type_ieq(const char *media_type, const char *expected) {
   for (i = 0; i < len; ++i) {
     char a = media_type[i];
     char b = expected[i];
-    if (a >= 'A' && a <= 'Z')
-      a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
+
     if (a != b)
       return 0;
   }
@@ -228,10 +236,7 @@ static cdd_c_error_t
 find_media_type(const struct OpenAPI_MediaType *mts, size_t n, const char *name,
                 const struct OpenAPI_MediaType **_out_val) {
   size_t i;
-  if (!mts || !name) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
       *_out_val = &mts[i];
@@ -278,18 +283,10 @@ static cdd_c_error_t media_type_is_binary(const char *media_type) {
  * @brief Executes the querystring param is form object operation.
  */
 static int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
-  if (!p)
-    return 0;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return 0;
-  if (!media_type_is_form(p->content_type))
-    return 0;
+
   if (p->schema.ref_name)
     return 1;
-  if (p->schema.inline_type && strcmp(p->schema.inline_type, "object") == 0)
-    return 1;
-  if (p->type && strcmp(p->type, "object") == 0)
-    return 1;
+
   return 0;
 }
 
@@ -297,12 +294,7 @@ static int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
  * @brief Executes the querystring param is json ref operation.
  */
 static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
-  if (!p)
-    return 0;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return 0;
-  if (!media_type_is_json(p->content_type))
-    return 0;
+
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return 0;
   return p->schema.ref_name != NULL;
@@ -315,10 +307,7 @@ static cdd_c_error_t
 querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
                                       const char **_out_val) {
   const char *type = NULL;
-  if (!p) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -357,10 +346,7 @@ static cdd_c_error_t
 querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
                                        const char **_out_val) {
   const char *item_type = NULL;
-  if (!p) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -400,10 +386,7 @@ static cdd_c_error_t
 querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
                                       const char **_out_val) {
   const char *item_type = NULL;
-  if (!p) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -447,10 +430,7 @@ static cdd_c_error_t
 querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
                                      const char **_out_val) {
   const char *type = NULL;
-  if (!p) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+
   if (p->in != OA_PARAM_IN_QUERYSTRING) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -491,10 +471,7 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
  */
 static cdd_c_error_t map_array_item_type(const char *oa_type,
                                          const char **_out_val) {
-  if (!oa_type) {
-    *_out_val = "const void *";
-    return CDD_C_SUCCESS;
-  }
+
   if (strcmp(oa_type, "integer") == 0) {
     *_out_val = "const int *";
     return CDD_C_SUCCESS;
@@ -784,7 +761,8 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
   const char *ctx_type =
       (config && config->ctx_type) ? config->ctx_type : "struct HttpClient *";
   const char *prefix = (config && config->prefix) ? config->prefix : "";
-  const char *func_name = op->operation_id ? op->operation_id : "unnamed_op";
+
+  const char *func_name;
   const struct OpenAPI_SchemaRef *success_schema;
   int success_is_binary;
   const char *group =
@@ -793,6 +771,7 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
 
   if (!fp || !op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  func_name = op->operation_id ? op->operation_id : "unnamed_op";
 
   /* Construct function name: [Group_][Prefix][OpName] */
   CHECK_IO(fprintf(fp, "int "));

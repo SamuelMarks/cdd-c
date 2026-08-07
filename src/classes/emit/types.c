@@ -431,7 +431,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
     const char *t = sf->fields[i].type;
     if (sf->union_variants && i < sf->n_union_variants)
       jtype = sf->union_variants[i].json_type;
-    if (jtype == UNION_JSON_UNKNOWN && t) {
+    if (jtype == UNION_JSON_UNKNOWN) {
       if (strcmp(t, "object") == 0)
         jtype = UNION_JSON_OBJECT;
       else if (strcmp(t, "string") == 0 || strcmp(t, "enum") == 0)
@@ -698,7 +698,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
                        "          return CDD_C_SUCCESS; }\n"
                        "      }\n",
                        union_name, union_name, union_name, name, name));
-    } else if (int_count == 0 && num_count > 0) {
+    } else if (int_count == 0) {
       const char *name = sf->fields[num_idx].name;
       /* LCOV_EXCL_START */
       CHECK_IO(

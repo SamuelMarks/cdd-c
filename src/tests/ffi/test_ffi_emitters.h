@@ -55,7 +55,7 @@ extern "C" {
 
 static cdd_ffi_ir_t *create_dummy_ir(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
-  ir->nodes = (cdd_ffi_ir_node_t *)calloc(30, sizeof(cdd_ffi_ir_node_t));
+  ir->nodes = (cdd_ffi_ir_node_t *)calloc(35, sizeof(cdd_ffi_ir_node_t));
 
   /* node 0: Struct with all types */
   ir->nodes[0].kind = CDD_FFI_NODE_STRUCT;
@@ -141,6 +141,13 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[0].fields[28].type.pointer_depth = 1;
   ir->nodes[0].fields[28].type.is_const = 1;
 
+  ir->nodes[0].fields[29].name = "f_enum_ref_ptr";
+  ir->nodes[0].fields[29].type.kind = CDD_FFI_KIND_ENUM_REF;
+  ir->nodes[0].fields[29].type.ref_name = "OtherEnum";
+  ir->nodes[0].fields[29].type.pointer_depth = 1;
+
+  ir->nodes[0].fields_count = 30;
+
   /* node 1: Enum */
   ir->nodes[1].kind = CDD_FFI_NODE_ENUM;
   ir->nodes[1].name = "TestEnum";
@@ -198,7 +205,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[6].return_or_base_type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[6].fields = (cdd_ffi_field_t *)calloc(17, sizeof(cdd_ffi_field_t));
   ir->nodes[6].fields_count = 17;
-  ir->nodes[6].fields[0].name = "interface";
+  ir->nodes[6].fields[0].name = NULL;
   ir->nodes[6].fields[0].type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[6].fields[1].name = "type";
   ir->nodes[6].fields[1].type.kind = CDD_FFI_KIND_BOOL;
@@ -237,8 +244,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 7: Null ref_name field */
   ir->nodes[7].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[7].name = "BadStruct";
-  ir->nodes[7].fields = (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
-  ir->nodes[7].fields_count = 3;
+  ir->nodes[7].fields = (cdd_ffi_field_t *)calloc(5, sizeof(cdd_ffi_field_t));
+  ir->nodes[7].fields_count = 5;
   ir->nodes[7].fields[0].name = NULL;
   ir->nodes[7].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir->nodes[7].fields[0].type.ref_name = NULL;
@@ -251,6 +258,14 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[7].fields[2].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
   ir->nodes[7].fields[2].type.ref_name = NULL;
   ir->nodes[7].fields[2].type.pointer_depth = 0;
+  ir->nodes[7].fields[3].name = "f_bad4";
+  ir->nodes[7].fields[3].type.kind = CDD_FFI_KIND_ENUM_REF;
+  ir->nodes[7].fields[3].type.ref_name = "OtherEnum";
+  ir->nodes[7].fields[3].type.pointer_depth = 1;
+  ir->nodes[7].fields[4].name = "f_bad5";
+  ir->nodes[7].fields[4].type.kind = CDD_FFI_KIND_TYPEDEF_REF;
+  ir->nodes[7].fields[4].type.ref_name = "OtherTypedef";
+  ir->nodes[7].fields[4].type.pointer_depth = 1;
   ir->nodes[7].fields[0].type.ref_name = NULL;
 
   /* node 8: Typedef */
@@ -266,7 +281,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 10: Trampoline struct */
   ir->nodes[10].kind = CDD_FFI_NODE_STRUCT;
   ir->nodes[10].name = "TestClass_Trampoline";
-  ir->nodes[10].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[10].fields = (cdd_ffi_field_t *)calloc(5, sizeof(cdd_ffi_field_t));
   ir->nodes[10].fields_count = 4;
   ir->nodes[10].fields[0].name = "ctx";
   ir->nodes[10].fields[1].name = "cb_AddRef";
@@ -310,8 +325,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[15].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[15].name = "test_func_out_inout_var";
   ir->nodes[15].return_or_base_type.kind = CDD_FFI_KIND_VOID;
-  ir->nodes[15].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
-  ir->nodes[15].fields_count = 4;
+  ir->nodes[15].fields = (cdd_ffi_field_t *)calloc(7, sizeof(cdd_ffi_field_t));
+  ir->nodes[15].fields_count = 7;
   ir->nodes[15].is_variadic = 1;
   ir->nodes[15].fields[0].name = "out_arg";
   ir->nodes[15].fields[0].type.kind = CDD_FFI_KIND_INT32;
@@ -325,10 +340,22 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[15].fields[2].name = "string_out";
   ir->nodes[15].fields[2].type.kind = CDD_FFI_KIND_INT8;
   ir->nodes[15].fields[2].type.pointer_depth = 2;
+  ir->nodes[15].fields[2].type.is_const = 1;
   ir->nodes[15].fields[2].intent = CDD_FFI_INTENT_OUT;
   ir->nodes[15].fields[3].name = "u8_ptr_arg";
   ir->nodes[15].fields[3].type.kind = CDD_FFI_KIND_UINT8;
   ir->nodes[15].fields[3].type.pointer_depth = 1;
+  ir->nodes[15].fields[4].name = "struct_ptr_null";
+  ir->nodes[15].fields[4].type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[15].fields[4].type.ref_name = NULL;
+  ir->nodes[15].fields[4].type.pointer_depth = 1;
+  ir->nodes[15].fields[5].name = NULL;
+  ir->nodes[15].fields[5].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[15].fields[5].type.pointer_depth = 0;
+  ir->nodes[15].fields[5].intent = CDD_FFI_INTENT_OUT;
+  ir->nodes[15].fields[6].name = NULL;
+  ir->nodes[15].fields[6].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[15].fields[6].intent = 0;
 
   /* node 16: Function returning uint8* */
   ir->nodes[16].kind = CDD_FFI_NODE_FUNCTION;
@@ -402,7 +429,7 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 25: Test NULL names */
   ir->nodes[25].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[25].name = "test_null_names";
-  ir->nodes[25].fields = (cdd_ffi_field_t *)calloc(4, sizeof(cdd_ffi_field_t));
+  ir->nodes[25].fields = (cdd_ffi_field_t *)calloc(5, sizeof(cdd_ffi_field_t));
   ir->nodes[25].fields_count = 4;
   ir->nodes[25].fields[0].name = NULL;
   ir->nodes[25].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
@@ -425,22 +452,57 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[27].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[27].name = "test_inout";
   ir->nodes[27].return_or_base_type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[27].fields = (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
-  ir->nodes[27].fields_count = 1;
+  ir->nodes[27].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+  ir->nodes[27].fields_count = 2;
   ir->nodes[27].fields[0].name = "inout";
   ir->nodes[27].fields[0].type.kind = CDD_FFI_KIND_INT32;
-  ir->nodes[27].fields[0].type.pointer_depth = 1;
+  ir->nodes[27].fields[0].type.pointer_depth = 0;
   ir->nodes[27].fields[0].intent = CDD_FFI_INTENT_INOUT;
   ir->nodes[27].fields[0].array_length_ref = "my_len";
   ir->nodes[27].requires_gil_release = 1;
+  ir->nodes[27].fields[1].name = NULL;
+  ir->nodes[27].fields[1].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[27].fields[1].type.pointer_depth = 0;
+  ir->nodes[27].fields[1].intent = CDD_FFI_INTENT_OUT;
 
   /* node 28: Test empty union */
   ir->nodes[28].kind = CDD_FFI_NODE_UNION;
   ir->nodes[28].name = "EmptyUnion";
   ir->nodes[28].fields_count = 0;
 
-  ir->nodes_count = 29;
-  ir->nodes_capacity = 30;
+  /* node 29: function returning void */
+  ir->nodes[29].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[29].name = "FuncVoid";
+  ir->nodes[29].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+
+  /* node 30: function returning void* */
+  ir->nodes[30].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[30].name = "FuncVoidPtr";
+  ir->nodes[30].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[30].return_or_base_type.pointer_depth = 1;
+
+  /* node 31: function returning struct ref */
+  ir->nodes[31].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[31].name = "FuncStructRef";
+  ir->nodes[31].return_or_base_type.kind = CDD_FFI_KIND_STRUCT_REF;
+  ir->nodes[31].return_or_base_type.ref_name = "MyStruct";
+
+  /* node 32: function returning string (const int8 pointer) */
+  ir->nodes[32].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[32].name = "FuncString";
+  ir->nodes[32].return_or_base_type.kind = CDD_FFI_KIND_INT8;
+  ir->nodes[32].return_or_base_type.pointer_depth = 1;
+  ir->nodes[32].return_or_base_type.is_const = 1;
+
+  /* node 33: Variadic function with no input args */
+  ir->nodes[33].kind = CDD_FFI_NODE_FUNCTION;
+  ir->nodes[33].name = "FuncVarEmpty";
+  ir->nodes[33].return_or_base_type.kind = CDD_FFI_KIND_VOID;
+  ir->nodes[33].is_variadic = 1;
+  ir->nodes[33].fields_count = 0;
+
+  ir->nodes_count = 34;
+  ir->nodes_capacity = 35;
 
   return ir;
 }
@@ -478,6 +540,10 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
                                                                                \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
+    config.output_dir = NULL;                                                  \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+    config.output_dir = "build/test_out_dir";                                  \
+                                                                               \
     config.input = NULL;                                                       \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
@@ -501,13 +567,35 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     cdd_ffi_emit_##lang(NULL, &config);                                        \
     cdd_ffi_emit_##lang(ir, NULL);                                             \
                                                                                \
-    config.output_dir = NULL;                                                  \
+    config.output_dir = "/does/not/exist/ever";                                \
+    for (i = 1; i <= 3; i++) {                                                 \
+      g_fail_io_after = i;                                                     \
+      cdd_ffi_emit_##lang(ir, &config);                                        \
+    }                                                                          \
+    g_fail_io_after = 555;                                                     \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+    g_fail_io_after = -1;                                                      \
+                                                                               \
+    config.output_dir = "/dev/null/invalid_dir";                               \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
     config.output_dir = "/dev/null/invalid_dir";                               \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
     config.output_dir = "build/test_out_dir";                                  \
+    config.library_name =                                                      \
+        "ThisIsAVeryLongLibraryNameThatWillExceedTheTwoHundredAndFiftySixChar" \
+        "acterLimitWhenConvertedToSnakeCaseBecauseItHasSoManyCapitalLettersWh" \
+        "ichAddsUnderscoresAndWeJustNeedItToBeReallyLongSoWeWillRepeatItThisI" \
+        "sAVeryLongLibraryNameThatWillExceedTheTwoHundredAndFiftySixCharacter" \
+        "LimitWhenConvertedToSnakeCaseBecauseItHasSoManyCapitalLettersWhichAd" \
+        "dsUnderscoresAndWeJustNeedItToBeReallyLongSoWeWillRepeatItThisIsAVer" \
+        "yLongLibraryNameThatWillExceedTheTwoHundredAndFiftySixCharacterLimit" \
+        "WhenConvertedToSnakeCaseBecauseItHasSoManyCapitalLettersWhichAddsUnd" \
+        "erscoresAndWeJustNeedItToBeReallyLongSoWeWillRepeatIt";               \
+    cdd_ffi_emit_##lang(ir, &config);                                          \
+    config.library_name = "test_Lib_name";                                     \
+                                                                               \
     ir->nodes[0].fields_count = 0;                                             \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
@@ -518,20 +606,6 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     PASS();                                                                    \
   }
 
-TEST test_ffi_emit_ada_nulls(void) {
-  cdd_generate_bindings_config_t config = {0};
-  cdd_ffi_ir_t *ir = create_dummy_ir();
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(NULL, &config));
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(ir, NULL));
-
-  config.output_dir = "/does/not/exist/ever";
-  g_fail_io_after = 555;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_emit_ada(ir, &config));
-  g_fail_io_after = -1;
-  config.output_dir = "out";
-  free_dummy_ir(ir);
-  PASS();
-}
 TEST_EMITTER(ada)
 TEST_EMITTER(clojure)
 TEST_EMITTER(common_lisp)
@@ -574,8 +648,185 @@ TEST_EMITTER(vlang)
 TEST_EMITTER(webassembly)
 TEST_EMITTER(zig)
 
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
+
+TEST test_ffi_emit_java_pom_dir(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+
+#ifdef _WIN32
+  _mkdir("test_pom_dir");
+  _mkdir("test_pom_dir/pom.xml");
+#else
+  mkdir("test_pom_dir", 0777);
+  mkdir("test_pom_dir/pom.xml", 0777);
+#endif
+
+  config.output_dir = "test_pom_dir";
+  cdd_ffi_emit_java(&ir, &config);
+
+#ifdef _WIN32
+  _rmdir("test_pom_dir/pom.xml");
+  _rmdir("test_pom_dir");
+#else
+  rmdir("test_pom_dir/pom.xml");
+  rmdir("test_pom_dir");
+#endif
+
+  PASS();
+}
+
+TEST test_ffi_emit_matlab_m_dir(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+
+#ifdef _WIN32
+  _mkdir("test_m_dir");
+  _mkdir("test_m_dir/mylib.m");
+#else
+  mkdir("test_m_dir", 0777);
+  mkdir("test_m_dir/mylib.m", 0777);
+#endif
+
+  config.output_dir = "test_m_dir";
+  cdd_ffi_emit_matlab(&ir, &config);
+
+#ifdef _WIN32
+  _rmdir("test_m_dir/mylib.m");
+  _rmdir("test_m_dir");
+#else
+  rmdir("test_m_dir/mylib.m");
+  rmdir("test_m_dir");
+#endif
+
+  PASS();
+}
+
+TEST test_ffi_emit_napi_dir(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+
+#ifdef _WIN32
+  _mkdir("test_napi_dir");
+  _mkdir("test_napi_dir/test_test_Lib_name.js");
+  _mkdir("test_napi_dir/binding.gyp");
+#else
+  mkdir("test_napi_dir", 0777);
+  mkdir("test_napi_dir/test_test_Lib_name.js", 0777);
+  mkdir("test_napi_dir/binding.gyp", 0777);
+#endif
+
+  config.output_dir = "test_napi_dir";
+  config.library_name = "test_Lib_name";
+  config.generate_tests = 1;
+  cdd_ffi_emit_napi(&ir, &config);
+
+#ifdef _WIN32
+  _rmdir("test_napi_dir/binding.gyp");
+  _rmdir("test_napi_dir/test_test_Lib_name.js");
+  _rmdir("test_napi_dir");
+#else
+  rmdir("test_napi_dir/binding.gyp");
+  rmdir("test_napi_dir/test_test_Lib_name.js");
+  rmdir("test_napi_dir");
+#endif
+
+  PASS();
+}
+
+TEST test_ffi_emit_objc_dir(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+  int rc;
+
+#ifdef _WIN32
+  _mkdir("test_objc_dir");
+  _mkdir("test_objc_dir/Bindings.m");
+#else
+  mkdir("test_objc_dir_new", 0777);
+  mkdir("test_objc_dir_new/Bindings.m", 0777);
+#endif
+
+  config.output_dir = "test_objc_dir_new";
+  config.library_name = "MyLib";
+  rc = cdd_ffi_emit_objc(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+#ifdef _WIN32
+  remove("test_objc_dir_new/Bindings.h");
+  _rmdir("test_objc_dir_new/Bindings.m");
+  _rmdir("test_objc_dir_new");
+#else
+  remove("test_objc_dir_new/Bindings.h");
+  rmdir("test_objc_dir_new/Bindings.m");
+  rmdir("test_objc_dir_new");
+#endif
+
+  PASS();
+}
+
+TEST test_ffi_emit_perl_dir(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+  int rc;
+
+#ifdef _WIN32
+  _mkdir("test_perl_dir");
+  _mkdir("test_perl_dir/Bindings.xs");
+  _mkdir("test_perl_dir/Makefile.PL");
+  _mkdir("test_perl_dir/typemap");
+#else
+  mkdir("test_perl_dir", 0777);
+  mkdir("test_perl_dir/Bindings.xs", 0777);
+#endif
+
+  config.output_dir = "test_perl_dir";
+  config.module_name = "Bindings";
+  rc = cdd_ffi_emit_perl(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+#ifdef _WIN32
+  _rmdir("test_perl_dir/Bindings.xs");
+  _mkdir("test_perl_dir/Makefile.PL");
+#else
+  rmdir("test_perl_dir/Bindings.xs");
+  mkdir("test_perl_dir/Makefile.PL", 0777);
+#endif
+  rc = cdd_ffi_emit_perl(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+#ifdef _WIN32
+  _rmdir("test_perl_dir/Makefile.PL");
+  _mkdir("test_perl_dir/typemap");
+#else
+  rmdir("test_perl_dir/Makefile.PL");
+  mkdir("test_perl_dir/typemap", 0777);
+#endif
+  rc = cdd_ffi_emit_perl(&ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+#ifdef _WIN32
+  remove("test_perl_dir/Bindings.pm");
+  remove("test_perl_dir/Bindings.xs");
+  remove("test_perl_dir/Makefile.PL");
+  _rmdir("test_perl_dir/typemap");
+  _rmdir("test_perl_dir");
+#else
+  remove("test_perl_dir/Bindings.pm");
+  remove("test_perl_dir/Bindings.xs");
+  remove("test_perl_dir/Makefile.PL");
+  rmdir("test_perl_dir/typemap");
+  rmdir("test_perl_dir");
+#endif
+
+  PASS();
+}
+
 SUITE(ffi_emitters_suite) {
-  RUN_TEST(test_ffi_emit_ada_nulls);
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
   RUN_TEST(test_ffi_emit_common_lisp);
@@ -593,16 +844,21 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_groovy);
   RUN_TEST(test_ffi_emit_haskell);
   RUN_TEST(test_ffi_emit_java);
+  RUN_TEST(test_ffi_emit_java_pom_dir);
   RUN_TEST(test_ffi_emit_julia);
   RUN_TEST(test_ffi_emit_kotlin);
   RUN_TEST(test_ffi_emit_lua);
   RUN_TEST(test_ffi_emit_matlab);
+  RUN_TEST(test_ffi_emit_matlab_m_dir);
   RUN_TEST(test_ffi_emit_napi);
+  RUN_TEST(test_ffi_emit_napi_dir);
   RUN_TEST(test_ffi_emit_nim);
   RUN_TEST(test_ffi_emit_objc);
+  RUN_TEST(test_ffi_emit_objc_dir);
   RUN_TEST(test_ffi_emit_ocaml);
   RUN_TEST(test_ffi_emit_odin);
   RUN_TEST(test_ffi_emit_perl);
+  RUN_TEST(test_ffi_emit_perl_dir);
   RUN_TEST(test_ffi_emit_php);
   RUN_TEST(test_ffi_emit_python);
   RUN_TEST(test_ffi_emit_racket);

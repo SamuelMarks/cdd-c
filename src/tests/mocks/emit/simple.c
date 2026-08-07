@@ -5,6 +5,8 @@
 /* clang-format on */
 
 cdd_c_error_t Haz_cleanup(struct Haz *const haz) {
+  if (!haz)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   free(haz);
   return CDD_C_SUCCESS;
 }

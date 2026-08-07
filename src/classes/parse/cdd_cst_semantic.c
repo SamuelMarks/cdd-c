@@ -7,12 +7,6 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_scope_enter_fails = 0;
-C_CDD_EXPORT int g_cdd_scope_leave_fails = 0;
-C_CDD_EXPORT int g_cdd_scope_add_fails = 0;
-#endif
-
 static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
                                         const char **out_name) {
   size_t i;
@@ -40,12 +34,8 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = extract_identifier(node->children[i].val.node, out_name);
-      if (rc == CDD_C_SUCCESS) {
-        return CDD_C_SUCCESS;
-      }
-      if (rc != CDD_C_ERROR_NOT_FOUND) {
+      if (rc != CDD_C_ERROR_NOT_FOUND)
         return rc;
-      }
     }
   }
 
@@ -62,28 +52,16 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 
   switch (node->kind) {
   case CDD_CST_BLOCK:
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_scope_enter_fails)
-      return CDD_C_ERROR_MEMORY;
-#endif
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
     if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   case CDD_CST_FUNCTION_DEFINITION:
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_scope_enter_fails)
-      return CDD_C_ERROR_MEMORY;
-#endif
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION);
     if (rc != CDD_C_SUCCESS)
       return rc;
     break;
   case CDD_CST_NAMESPACE_DECLARATION:
-#ifdef CDD_BUILD_TESTS
-    if (g_cdd_scope_enter_fails)
-      return CDD_C_ERROR_MEMORY;
-#endif
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_NAMESPACE);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -94,14 +72,8 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
     rc = extract_identifier(node, &name);
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
-    if (rc == CDD_C_SUCCESS && name) {
+    if (rc == CDD_C_SUCCESS) {
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
-#ifdef CDD_BUILD_TESTS
-      if (g_cdd_scope_add_fails) {
-        C_CDD_FREE((void *)name);
-        return CDD_C_ERROR_MEMORY;
-      }
-#endif
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
       C_CDD_FREE((void *)name);
       if (rc != CDD_C_SUCCESS)
@@ -114,14 +86,8 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
     rc = extract_identifier(node, &name);
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
-    if (rc == CDD_C_SUCCESS && name) {
+    if (rc == CDD_C_SUCCESS) {
       /* Assuming Struct tag for simplicity */
-#ifdef CDD_BUILD_TESTS
-      if (g_cdd_scope_add_fails) {
-        C_CDD_FREE((void *)name);
-        return CDD_C_ERROR_MEMORY;
-      }
-#endif
       rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_STRUCT_TAG, node);
       C_CDD_FREE((void *)name);
       if (rc != CDD_C_SUCCESS)
@@ -145,11 +111,17 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
   case CDD_CST_BLOCK:
   case CDD_CST_FUNCTION_DEFINITION:
   case CDD_CST_NAMESPACE_DECLARATION:
+
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_scope_leave_fails)
-      return CDD_C_ERROR_MEMORY;
+  {
+    extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
+    if (g_cdd_semantic_leave_fail) {
+      env->current_scope = NULL;
+    }
+  }
 #endif
     rc = cdd_cst_scope_leave(env);
+
     if (rc != CDD_C_SUCCESS)
       return rc;
     break;
@@ -159,6 +131,10 @@ static cdd_c_error_t analyze_node(cdd_cst_scope_env_t *env,
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_semantic_leave_fail = 0;
+#endif
 
 cdd_c_error_t cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
                                           cdd_cst_scope_env_t **out_env) {

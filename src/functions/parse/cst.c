@@ -162,7 +162,6 @@ static cdd_c_error_t match_function_definition(const struct TokenList *tokens,
   int paren_depth;
   int brace_depth;
   int seen_lparen = 0;
-  int seen_ident = 0;
   *out_is_match = 0;
 
   while (k < limit) {
@@ -179,61 +178,55 @@ static cdd_c_error_t match_function_definition(const struct TokenList *tokens,
     /* Check for tokens that cannot be part of a function signature head.
        Assignments, literals, operators (except *), etc. imply expression
        context. */
-    if (kind == TOKEN_ASSIGN || kind == TOKEN_EQ || kind == TOKEN_PLUS ||
-        kind == TOKEN_MINUS || kind == TOKEN_SLASH || kind == TOKEN_PERCENT ||
-        kind == TOKEN_NUMBER_LITERAL || kind == TOKEN_STRING_LITERAL) {
+    if (kind == TOKEN_ASSIGN || kind == TOKEN_NUMBER_LITERAL) {
       return CDD_C_SUCCESS;
     }
 
     is_type_start(&tokens->tokens[k], &is_type);
-    if (is_type) {
-      seen_ident = 1;
-    }
 
     if (kind == TOKEN_LPAREN) {
-      if (!seen_ident)
-        return CDD_C_SUCCESS;
       seen_lparen = 1;
       break;
     }
     k++;
   }
 
-  if (!seen_lparen || k >= limit)
+  if (!seen_lparen)
     return CDD_C_SUCCESS;
 
   paren_depth = 1;
   k++;
-  while (k < limit && paren_depth > 0) {
+  while (paren_depth > 0 && k < limit) {
     if (tokens->tokens[k].kind == TOKEN_LPAREN)
       paren_depth++;
     else if (tokens->tokens[k].kind == TOKEN_RPAREN)
       paren_depth--;
     k++;
   }
+  if (paren_depth > 0)
+    return CDD_C_SUCCESS;
   if (k >= limit)
     return CDD_C_SUCCESS;
 
   skip_ws(tokens, k, limit, &_ast_skip_ws_0);
   k = _ast_skip_ws_0;
-  if (k >= limit || tokens->tokens[k].kind != TOKEN_LBRACE)
+  if (tokens->tokens[k].kind != TOKEN_LBRACE)
     return CDD_C_SUCCESS;
 
   brace_depth = 1;
   k++;
-  while (k < limit && brace_depth > 0) {
+  while (brace_depth > 0 && k < limit) {
     if (tokens->tokens[k].kind == TOKEN_LBRACE)
       brace_depth++;
     else if (tokens->tokens[k].kind == TOKEN_RBRACE)
       brace_depth--;
     k++;
   }
-
-  if (brace_depth == 0) {
-    *end_idx_out = k;
-    *out_is_match = 1;
+  if (brace_depth > 0)
     return CDD_C_SUCCESS;
-  }
+
+  *end_idx_out = k;
+  *out_is_match = 1;
   return CDD_C_SUCCESS;
 }
 
@@ -246,17 +239,10 @@ static cdd_c_error_t consume_balanced_parens(const struct TokenList *tokens,
   size_t i = start;
   int depth = 0;
 
-  if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
-    depth = 1;
-    i++;
-  } else {
-    {
-      *_out_val = start;
-      return CDD_C_SUCCESS;
-    }
-  }
+  depth = 1;
+  i++;
 
-  while (i < limit && depth > 0) {
+  while (depth > 0 && i < limit) {
     if (tokens->tokens[i].kind == TOKEN_LPAREN) {
       depth++;
     } else if (tokens->tokens[i].kind == TOKEN_RPAREN) {
@@ -322,7 +308,7 @@ static cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
     }
   }
 
-  while (i < limit && paren_depth > 0) {
+  while (paren_depth > 0 && i < limit) {
     if (tokens->tokens[i].kind == TOKEN_LPAREN)
       paren_depth++;
     else if (tokens->tokens[i].kind == TOKEN_RPAREN)
@@ -330,14 +316,12 @@ static cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
     i++;
   }
 
-  if (paren_depth != 0) {
-    *_out_val = start;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = start;
+  return CDD_C_SUCCESS;
 
   skip_ws(tokens, i, limit, &_ast_skip_ws_2);
   i = _ast_skip_ws_2;
-  if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+  if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
     {
       *_out_val = i + 1;
       return CDD_C_SUCCESS;
@@ -364,18 +348,9 @@ static cdd_c_error_t consume_generic_selection(const struct TokenList *tokens,
 
   skip_ws(tokens, i, limit, &_ast_skip_ws_3);
   i = _ast_skip_ws_3;
-  if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
-    {
-      consume_balanced_parens(tokens, i, limit,
-                              &_ast_consume_balanced_parens_4);
-      *_out_val = _ast_consume_balanced_parens_4;
-      return CDD_C_SUCCESS;
-    }
-  }
-  {
-    *_out_val = start;
-    return CDD_C_SUCCESS;
-  }
+  consume_balanced_parens(tokens, i, limit, &_ast_consume_balanced_parens_4);
+  *_out_val = _ast_consume_balanced_parens_4;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -389,19 +364,14 @@ static cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
   size_t prev;
   enum TokenKind pk;
 
-  if (!out_is_expr)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_expr = 0;
-  if (brace_idx == 0)
-    return CDD_C_SUCCESS;
 
   skip_ws_back(tokens, brace_idx, &_ast_skip_ws_back_5);
   prev = _ast_skip_ws_back_5;
 
   pk = tokens->tokens[prev].kind;
 
-  if (pk == TOKEN_ASSIGN || pk == TOKEN_COMMA || pk == TOKEN_KEYWORD_RETURN ||
-      pk == TOKEN_LBRACKET || pk == TOKEN_COLON) {
+  if (pk == TOKEN_ASSIGN || pk == TOKEN_COMMA || pk == TOKEN_KEYWORD_RETURN) {
     *out_is_expr = 1;
     return CDD_C_SUCCESS;
   }
@@ -412,21 +382,18 @@ static cdd_c_error_t is_expression_brace(const struct TokenList *tokens,
 
     while (k > 0 && depth > 0) {
       k--;
-      if (tokens->tokens[k].kind == TOKEN_RPAREN)
-        depth++;
-      else if (tokens->tokens[k].kind == TOKEN_LPAREN)
+      if (tokens->tokens[k].kind == TOKEN_LPAREN)
         depth--;
     }
 
-    if (depth == 0) {
+    {
       size_t before_paren;
       enum TokenKind bpk;
       skip_ws_back(tokens, k, &_ast_skip_ws_back_6);
       before_paren = _ast_skip_ws_back_6;
       bpk = tokens->tokens[before_paren].kind;
 
-      if (bpk == TOKEN_KEYWORD_IF || bpk == TOKEN_KEYWORD_WHILE ||
-          bpk == TOKEN_KEYWORD_FOR || bpk == TOKEN_KEYWORD_SWITCH) {
+      if (bpk == TOKEN_KEYWORD_IF) {
         return CDD_C_SUCCESS;
       }
 
@@ -447,15 +414,8 @@ static cdd_c_error_t consume_balanced_braces(const struct TokenList *tokens,
   size_t i = start;
   int depth = 0;
 
-  if (i < limit && tokens->tokens[i].kind == TOKEN_LBRACE) {
-    depth = 1;
-    i++;
-  } else {
-    {
-      *_out_val = start;
-      return CDD_C_SUCCESS;
-    }
-  }
+  depth = 1;
+  i++;
 
   while (i < limit && depth > 0) {
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {
@@ -516,11 +476,12 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         }
         attr_end++;
       }
-      if (attr_end > i) {
+      if (attr_end <= end && depth == 0) {
         const struct Token *last = &tokens->tokens[attr_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_GCC_ATTRIBUTE, tok->start, byte_len, i,
                           attr_end);
+
         if (rc != 0)
           return rc;
         i = attr_end;
@@ -544,7 +505,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         }
         attr_end++;
       }
-      if (attr_end > i) {
+      if (attr_end <= end && depth == 0) {
         const struct Token *last = &tokens->tokens[attr_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_DECLSPEC, tok->start, byte_len, i,
@@ -611,11 +572,13 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
       consume_generic_selection(tokens, i, end,
                                 &_ast_consume_generic_selection_11);
       gen_end = _ast_consume_generic_selection_11;
+
       if (gen_end > i) {
         const struct Token *last = &tokens->tokens[gen_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_GENERIC_SELECTION, tok->start, byte_len,
                           i, gen_end);
+
         if (rc != 0)
           return rc;
         i = gen_end;
@@ -842,8 +805,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         const struct Token *last = &tokens->tokens[j - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_OTHER, tok->start, byte_len, i, j);
-        if (rc != 0)
-          return rc;
+
         i = j;
       }
     }

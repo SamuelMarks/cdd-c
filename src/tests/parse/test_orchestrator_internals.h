@@ -14,6 +14,15 @@ int g_force_find_allocations_fail = 0;
 static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
                                            struct AllocationSiteList *out);
 
+int g_force_parse_tokens_fail = 0;
+#define parse_tokens mock_parse_tokens
+static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
+                                       struct CstNodeList *out);
+
+int g_force_tokenize_fail = 0;
+#define tokenize mock_tokenize
+static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list);
+
 #include "functions/parse/orchestrator.c"
 /* clang-format on */
 
@@ -25,6 +34,24 @@ static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
   if (g_force_find_allocations_fail)
     return CDD_C_ERROR_MEMORY;
   return find_allocations(tokens, out);
+}
+
+#undef parse_tokens
+extern cdd_c_error_t parse_tokens(const struct TokenList *tokens,
+                                  struct CstNodeList *out);
+static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
+                                       struct CstNodeList *out) {
+  if (g_force_parse_tokens_fail)
+    return CDD_C_ERROR_MEMORY;
+  return parse_tokens(tokens, out);
+}
+
+#undef tokenize
+extern cdd_c_error_t tokenize(az_span code, struct TokenList **out_list);
+static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list) {
+  if (g_force_tokenize_fail)
+    return CDD_C_ERROR_MEMORY;
+  return tokenize(code, out_list);
 }
 
 TEST test_orchestrator_internals(void) {
@@ -48,9 +75,48 @@ TEST test_orchestrator_internals(void) {
             find_token_in_range(tl, 0, tl->size, TOKEN_LPAREN, &out));
   ASSERT_EQ(tl->size, out);
 
-  /* Test extract_func_name not found */
+  /* Test find_token_in_range start >= end */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            find_token_in_range(tl, tl->size, tl->size, TOKEN_LPAREN, &out));
+  ASSERT_EQ(tl->size, out);
+
+  /* Test extract_func_name not found (no lparen) */
   ASSERT_EQ(CDD_C_SUCCESS, extract_func_name(tl, 0, tl->size, &name));
   ASSERT_EQ(NULL, name);
+
+  {
+    struct TokenList *tl_paren = NULL;
+    tokenize(AZ_SPAN_FROM_STR("()"), &tl_paren);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              extract_func_name(tl_paren, 0, tl_paren->size, &name));
+    ASSERT_EQ(NULL, name);
+    free_token_list(tl_paren);
+  }
+
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    struct TokenList *tl_paren = NULL;
+    tokenize(AZ_SPAN_FROM_STR("foo()"), &tl_paren);
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              extract_func_name(tl_paren, 0, tl_paren->size, &name));
+    ASSERT_EQ(NULL, name);
+    g_cdd_alloc_fail = 0;
+    free_token_list(tl_paren);
+  }
+
+  /* Test join_tokens_str allocation failure */
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    struct TokenList *tl_paren = NULL;
+    tokenize(AZ_SPAN_FROM_STR("void foo()"), &tl_paren);
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              join_tokens_str(tl_paren, 0, tl_paren->size, &name));
+    ASSERT_EQ(NULL, name);
+    g_cdd_alloc_fail = 0;
+    free_token_list(tl_paren);
+  }
 
   free_token_list(tl);
 
@@ -80,10 +146,32 @@ TEST test_orchestrator_internals(void) {
   /* Test orchestrate_fix errors */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             internal_orchestrate_fix(NULL, &out_fix));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            internal_orchestrate_fix("void A() {}", NULL));
+
+  g_force_parse_tokens_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            internal_orchestrate_fix("void A() {}", &out_fix));
+  g_force_parse_tokens_fail = 0;
+
+  g_force_tokenize_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            internal_orchestrate_fix("void A() {}", &out_fix));
+  g_force_tokenize_fail = 0;
+
+  g_force_find_allocations_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            internal_orchestrate_fix("void A() {}", &out_fix));
+  g_force_find_allocations_fail = 0;
 
   /* Test fix_code_main usage */
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, internal_fix_code_main(0, NULL));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, internal_fix_code_main(3, argv3));
+
+  {
+    char *argv_dir[1] = {"."};
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, internal_fix_code_main(1, argv_dir));
+  }
 
   /* Test is_c_source */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, is_c_source("a.c", NULL));
@@ -92,6 +180,43 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback not a source */
   ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback("ignore.txt", &ctx));
+
+  /* Test fix_file_callback read failure */
+  g_fail_io_after = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback("does_not_exist.c", &ctx));
+  g_fail_io_after = -1;
+
+  /* Test fix_file_callback write failure */
+  {
+    const char *test_file = "test_orchestrator_internals.c";
+    FILE *f;
+    ctx.single_output_file = NULL;
+    f = fopen(test_file, "w");
+    if (f) {
+      fputs("void A() { malloc(1); }", f);
+      fclose(f);
+      g_fail_io_after = 1;
+      ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback(test_file, &ctx));
+      g_fail_io_after = -1;
+      remove(test_file);
+    }
+  }
+
+  /* Test fix_file_callback orchestrator failure */
+  {
+    const char *test_file = "test_orchestrator_internals2.c";
+    FILE *f;
+    ctx.single_output_file = NULL;
+    f = fopen(test_file, "w");
+    if (f) {
+      fputs("void A() { malloc(1); }", f);
+      fclose(f);
+      g_force_parse_tokens_fail = 1;
+      ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback(test_file, &ctx));
+      g_force_parse_tokens_fail = 0;
+      remove(test_file);
+    }
+  }
 
   /* Graph errors */
   g.nodes = NULL;

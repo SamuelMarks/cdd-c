@@ -156,9 +156,23 @@ TEST test_orchestrator_preserves_structs(void) {
 
 TEST test_orchestrator_edge_cases(void) {
   char *out = NULL;
+  int rc;
+
+  /* Invalid arguments */
+  rc = orchestrate_fix(NULL, &out);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  rc = orchestrate_fix("void A() {}", NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   /* Invalid syntax cases that might hit fallbacks or error paths */
   orchestrate_fix("void A { malloc(1); }", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* No name found - whitespace only before paren */
+  orchestrate_fix("void \n  () { malloc(1); }", &out);
   if (out) {
     free(out);
     out = NULL;
@@ -170,36 +184,197 @@ TEST test_orchestrator_edge_cases(void) {
     out = NULL;
   }
 
+  /* Only identifier, no lparen */
+  orchestrate_fix("void A", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* Empty parens directly at start */
+  orchestrate_fix("() { malloc(1); }", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* Duplicate edge case */
+  orchestrate_fix("void A() { malloc(1); }\n"
+                  "void B() { A(); A(); A(); }",
+                  &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* Duplicate refactor mark via multiple call paths */
+  orchestrate_fix("void A() { malloc(1); }\n"
+                  "void B() { A(); }\n"
+                  "void C() { A(); }\n"
+                  "void D() { B(); C(); }",
+                  &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* No memory allocation within body */
+  orchestrate_fix("void A() {}", &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* Multiple allocations to trigger array reallocation in local_allocs.sites */
+  orchestrate_fix("void A() {\n"
+                  "malloc(1);\n"
+                  "malloc(1);\n"
+                  "malloc(1);\n"
+                  "malloc(1);\n"
+                  "malloc(1);\n"
+                  "}",
+                  &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* A lot of callers to trigger array reallocation in callee->callers */
+  orchestrate_fix("void A() { malloc(1); }\n"
+                  "void B0() { A(); }\n"
+                  "void B1() { A(); }\n"
+                  "void B2() { A(); }\n"
+                  "void B3() { A(); }\n"
+                  "void B4() { A(); }",
+                  &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
     int i;
-    for (i = 1; i < 100; ++i) {
-      g_cdd_fail_alloc = i;
-      orchestrate_fix("void A() { malloc(1); }\n"
-                      "void B() {\n"
-                      "      A(); }",
-                      &out);
+    for (i = 1; i < 20000; ++i) {
+      int rc;
+      g_cdd_alloc_fail = i;
+      rc = orchestrate_fix("void A() { malloc(1); }\n"
+                           "void B() { A(); }\n"
+                           "void C() { A(); }\n"
+                           "void D() { A(); }\n"
+                           "void E() { A(); }\n"
+                           "void F() { A(); }\n"
+                           "void G() { A(); }\n"
+                           "void H() { A(); }\n"
+                           "void I() { A(); }\n"
+                           "int main() { A(); return 0; }",
+                           &out);
       if (out) {
         free(out);
         out = NULL;
+      }
+      if (rc == CDD_C_SUCCESS) {
+        break;
       }
     }
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
-    for (i = 1; i < 100; ++i) {
+    for (i = 1; i < 20000; ++i) {
+      int rc;
       g_cdd_strdup_fail = i;
-      orchestrate_fix("void A() { malloc(1); }\n"
-                      "void B() {\n"
-                      "      A(); }",
-                      &out);
+      rc = orchestrate_fix("void A() { malloc(1); }\n"
+                           "void B() { A(); }\n"
+                           "void C() { A(); }\n"
+                           "void D() { A(); }\n"
+                           "void E() { A(); }\n"
+                           "void F() { A(); }\n"
+                           "void G() { A(); }\n"
+                           "void H() { A(); }\n"
+                           "void I() { A(); }\n"
+                           "int main() { A(); return 0; }",
+                           &out);
       if (out) {
         free(out);
         out = NULL;
       }
+      if (rc == CDD_C_SUCCESS)
+        break;
     }
     g_cdd_strdup_fail = 0;
+
+    for (i = 1; i < 20000; ++i) {
+      int rc;
+      g_cdd_cst_alloc_node_fail = i;
+      rc = orchestrate_fix("void A() { malloc(1); }\n"
+                           "void B() { A(); }\n"
+                           "void C() { A(); }\n"
+                           "void D() { A(); }\n"
+                           "void E() { A(); }\n"
+                           "void F() { A(); }\n"
+                           "void G() { A(); }\n"
+                           "void H() { A(); }\n"
+                           "void I() { A(); }\n"
+                           "int main() { A(); return 0; }",
+                           &out);
+      if (out) {
+        free(out);
+        out = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cst_alloc_node_fail = 0;
+
+    for (i = 1; i < 20000; ++i) {
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+      g_cdd_cst_alloc_token_fail = i;
+      rc = orchestrate_fix("void A() { malloc(1); }\n"
+                           "void B() { A(); }\n"
+                           "void C() { A(); }\n"
+                           "void D() { A(); }\n"
+                           "void E() { A(); }\n"
+                           "void F() { A(); }\n"
+                           "void G() { A(); }\n"
+                           "void H() { A(); }\n"
+                           "void I() { A(); }\n"
+                           "int main() { A(); return 0; }",
+                           &out);
+      if (out) {
+        free(out);
+        out = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cst_alloc_token_fail = 0;
+
+    for (i = 1; i < 20000; ++i) {
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+      g_cdd_cst_realloc_fail = i;
+      rc = orchestrate_fix("void A() { malloc(1); }\n"
+                           "void B() { A(); }\n"
+                           "void C() { A(); }\n"
+                           "void D() { A(); }\n"
+                           "void E() { A(); }\n"
+                           "void F() { A(); }\n"
+                           "void G() { A(); }\n"
+                           "void H() { A(); }\n"
+                           "void I() { A(); }\n"
+                           "int main() { A(); return 0; }",
+                           &out);
+      if (out) {
+        free(out);
+        out = NULL;
+      }
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+    g_cdd_cst_realloc_fail = 0;
   }
 #endif
 

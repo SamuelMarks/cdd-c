@@ -984,9 +984,7 @@ TEST test_schema_codegen_main_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
   rc = schema2code_main(2, argv_bad2);
-  ASSERT_EQ(0, rc);
-  remove("(null).h");
-  remove("(null).c");
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 
   rc = schema2code_main(2, argv_bad3);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);

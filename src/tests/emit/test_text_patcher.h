@@ -253,18 +253,22 @@ TEST test_patch_append_end(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  char huge_str[3000];
 
   ASSERT(tl);
   patch_list_init(&pl);
 
+  memset(huge_str, 'A', 2999);
+  huge_str[2999] = '\0';
+
   /* Append after end. Token list size is 1. Insert at index 1 (end) */
-  rc = patch_list_add(
-      &pl, 1, 1, (c_cdd_strdup(" appended", &_ast_strdup_8), _ast_strdup_8));
+  rc = patch_list_add(&pl, 1, 1,
+                      (c_cdd_strdup(huge_str, &_ast_strdup_8), _ast_strdup_8));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
   ASSERT_EQ(0, rc);
-  ASSERT_STR_EQ("End appended", result);
+  ASSERT_STR_EQ(huge_str, result + 3); /* End is 3 chars */
 
   free(result);
   patch_list_free(&pl);
@@ -1203,7 +1207,107 @@ TEST test_patcher_cov_extra(void) {
   PASS();
 }
 
+TEST test_patcher_oom_original_token_copy(void) {
+  struct PatchList list;
+  struct TokenList *tl = NULL;
+  const char *src = "int a = 5; int b = 6; int c = 7;";
+  int res;
+  char *out_code = NULL;
+  int i;
+
+  res = patch_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, res);
+
+  res = tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, res);
+
+  /* Add a patch so patch loop logic applies */
+  patch_list_add(&list, 2, 3, C_CDD_STRDUP("patched_value"));
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    /* Try failing allocations for the token copying block. We try a range. */
+    for (i = 1; i < 20; i++) {
+      g_cdd_alloc_fail = i;
+      res = patch_list_apply(&list, tl, &out_code);
+      g_cdd_alloc_fail = 0;
+      if (res == CDD_C_SUCCESS) {
+        free(out_code);
+        break;
+      }
+    }
+  }
+#endif
+
+  patch_list_free(&list);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_patcher_oom_no_patches(void) {
+  struct PatchList list;
+  struct TokenList *tl = NULL;
+  const char *src =
+      "int "
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA = 5;";
+  int res;
+  char *out_code = NULL;
+  int i;
+
+  res = patch_list_init(&list);
+  res = tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    for (i = 1; i < 5; i++) {
+      g_cdd_alloc_fail = i;
+      res = patch_list_apply(&list, tl, &out_code);
+      g_cdd_alloc_fail = 0;
+      if (res == CDD_C_SUCCESS) {
+        free(out_code);
+        break;
+      }
+    }
+  }
+#endif
+
+  patch_list_free(&list);
+  free_token_list(tl);
+  PASS();
+}
+
 SUITE(text_patcher_suite) {
+  RUN_TEST(test_patcher_oom_no_patches);
+  RUN_TEST(test_patcher_oom_original_token_copy);
   RUN_TEST(test_patch_bounds);
   RUN_TEST(test_patch_init_free);
   RUN_TEST(test_patch_basic_replacement);

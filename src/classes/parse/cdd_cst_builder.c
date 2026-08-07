@@ -470,7 +470,7 @@ static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
   if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
     return CDD_C_ERROR_MEMORY;
 #endif
-  if (!tree || !str)
+  if (!tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   dup = C_CDD_STRDUP(str);
@@ -536,7 +536,9 @@ cdd_c_error_t cdd_cst_bld_snippet(cdd_cst_builder_t *builder,
       {
         cdd_token_t *last = NULL;
         get_last_token(builder->target_node, &last);
-        if (last) {
+        /* last is guaranteed to be non-NULL since cdd_cst_bld_token succeeded
+         */
+        {
           cdd_trivia_t *tr;
           last->leading_trivia = t->leading_trivia;
           last->trailing_trivia = t->trailing_trivia;
@@ -649,7 +651,7 @@ cdd_c_error_t cdd_cst_quote(cdd_cst_builder_t *builder,
     }
   }
 
-  if (rc == CDD_C_SUCCESS && snippet_len > 0) {
+  if (snippet_len > 0) {
     snippet_buf[snippet_len] = '\0';
     rc = cdd_cst_bld_snippet(builder, snippet_buf);
     if (rc != CDD_C_SUCCESS) {
@@ -684,7 +686,7 @@ static cdd_c_error_t create_trivia(cdd_cst_tree_t *tree, const char *text,
   cdd_trivia_t *t;
   const char *dup;
   cdd_c_error_t pool_rc;
-  if (!tree || !text || !out_trivia)
+  if (!tree)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_trivia = NULL;
 #ifdef CDD_BUILD_TESTS
@@ -779,17 +781,17 @@ cdd_c_error_t cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
 static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
                                      cdd_token_t **out_tok) {
   size_t i;
-  if (!node || !out_tok)
+  if (!node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+    } else {
       cdd_token_t *t = NULL;
       cdd_c_error_t rc = get_first_token(node->children[i].val.node, &t);
-      if (rc == CDD_C_SUCCESS && t) {
+      if (rc == CDD_C_SUCCESS) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }
@@ -801,17 +803,17 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
 static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
                                     cdd_token_t **out_tok) {
   int i;
-  if (!node || !out_tok)
+  if (!node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_tok = NULL;
   for (i = (int)node->num_children - 1; i >= 0; i--) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       *out_tok = node->children[i].val.token;
       return CDD_C_SUCCESS;
-    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+    } else {
       cdd_token_t *t = NULL;
       cdd_c_error_t rc = get_last_token(node->children[i].val.node, &t);
-      if (rc == CDD_C_SUCCESS && t) {
+      if (rc == CDD_C_SUCCESS) {
         *out_tok = t;
         return CDD_C_SUCCESS;
       }

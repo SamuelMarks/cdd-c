@@ -216,10 +216,144 @@ TEST test_cli_gen_full(void) {
 /**
  * @brief cli_gen_suite
  */
+
+/**
+ * @brief test_cli_gen_malloc_fail
+ * @return TEST
+ */
+TEST test_cli_gen_malloc_fail(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+  int i;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&config, 0, sizeof(config));
+  config.filename_base = "test_cli";
+
+  for (i = 1; i < 5; i++) {
+    g_cdd_alloc_fail = i;
+    rc = openapi_cli_generate(&spec, &config);
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+
+  PASS();
+}
+
+TEST test_cli_gen_partial(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+
+  memset(&spec, 0, sizeof(spec));
+  spec.openapi_version = "3.1.0";
+  spec.info.title = "Partial API";
+  spec.info.version = "1.0.0";
+
+  spec.info.contact.url = "https://support.example.com";
+  spec.info.license.name = "MIT";
+
+  spec.n_servers = 2;
+  spec.servers = (struct OpenAPI_Server *)calloc(2, sizeof(*spec.servers));
+  spec.servers[0].variables = NULL;
+  spec.servers[1].variables = (void *)1;
+
+  spec.n_paths = 1;
+  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(*spec.paths));
+  spec.paths[0].route = "/partial";
+  spec.paths[0].n_operations = 3;
+  spec.paths[0].operations =
+      (struct OpenAPI_Operation *)calloc(3, sizeof(*spec.paths[0].operations));
+  spec.paths[0].operations[0].method = "get";
+  spec.paths[0].operations[0].operation_id = "partial_op";
+  spec.paths[0].operations[0].n_parameters = 1;
+  spec.paths[0].operations[0].parameters =
+      (struct OpenAPI_Parameter *)calloc(1, sizeof(struct OpenAPI_Parameter));
+  spec.paths[0].operations[0].n_responses = 1;
+  spec.paths[0].operations[0].responses =
+      (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
+  spec.paths[0].operations[0].responses[0].code = "200";
+  spec.paths[0].operations[0].security_set = 1;
+  spec.paths[0].operations[0].n_security = 1;
+  spec.paths[0].operations[0].security =
+      (struct OpenAPI_SecurityRequirementSet *)calloc(
+          1, sizeof(struct OpenAPI_SecurityRequirementSet));
+
+  spec.paths[0].operations[1].method = "post";
+  spec.paths[0].operations[1].operation_id = "empty_op";
+  spec.paths[0].operations[1].n_parameters = 0;
+  spec.paths[0].operations[1].n_responses = 1;
+  spec.paths[0].operations[1].responses =
+      (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
+  spec.paths[0].operations[1].responses[0].code = "200";
+
+  spec.paths[0].operations[2].method = "put";
+  spec.paths[0].operations[2].operation_id = NULL;
+  spec.paths[0].operations[2].summary = "should_not_print";
+  spec.paths[0].operations[2].n_parameters = 0;
+  spec.paths[0].operations[2].n_responses = 1;
+  spec.paths[0].operations[2].responses =
+      (struct OpenAPI_Response *)calloc(1, sizeof(struct OpenAPI_Response));
+  spec.paths[0].operations[2].responses[0].code = "200";
+
+  spec.security_schemes = NULL;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = "test_cli_partial";
+
+  rc = openapi_cli_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  remove("src/test_cli_partial_cli.c");
+  free(spec.paths[0].operations[0].security);
+  free(spec.paths[0].operations[0].responses);
+  free(spec.paths[0].operations[0].parameters);
+  free(spec.paths[0].operations[1].responses);
+  free(spec.paths[0].operations[2].responses);
+  free(spec.servers);
+  free(spec.paths[0].operations);
+  free(spec.paths);
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_cli_gen_partial2(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+
+  memset(&spec, 0, sizeof(spec));
+  spec.openapi_version = "3.1.0";
+  spec.info.title = "Partial API 2";
+  spec.info.version = "1.0.0";
+
+  spec.info.contact.email = "support@example.com";
+  spec.info.license.identifier = "MIT-id";
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = "test_cli_partial2";
+
+  rc = openapi_cli_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  remove("src/test_cli_partial2_cli.c");
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
 SUITE(cli_gen_suite) {
   RUN_TEST(test_cli_gen_basic);
   RUN_TEST(test_cli_gen_fail_open);
   RUN_TEST(test_cli_gen_full);
+  RUN_TEST(test_cli_gen_partial);
+  RUN_TEST(test_cli_gen_partial2);
+  RUN_TEST(test_cli_gen_malloc_fail);
 }
 
 #ifdef __cplusplus

@@ -60,11 +60,10 @@ cdd_ffi_emit_crystal(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      config ? ((config->library_name) ? config->library_name : "mylib")
+             : "mylib";
   const char *module_name =
-      config ? ((config && config->module_name) ? config->module_name : "MyLib")
+      config ? ((config->module_name) ? config->module_name : "MyLib")
              : "MyLib";
   size_t i, j;
 

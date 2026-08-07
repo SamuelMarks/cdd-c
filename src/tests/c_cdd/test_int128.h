@@ -323,7 +323,54 @@ TEST test_cdd_math_div_by_zero(void) {
   PASS();
 }
 
+TEST test_cdd_math_div_large_den(void) {
+  cdd_uint128_t u1 = cdd_make_uint128(5, 0);
+  cdd_uint128_t u2 = cdd_make_uint128(2, 0);
+  cdd_uint128_t uout;
+  cdd_uint128_t urem;
+
+  cdd_uint128_div(u1, u2, &uout);
+  ASSERT_EQ(0, uout.high);
+  ASSERT_EQ(2, uout.low);
+
+  cdd_uint128_mod(u1, u2, &urem);
+  ASSERT_EQ(1, urem.high);
+  ASSERT_EQ(0, urem.low);
+
+  cdd_uint128_divmod(u1, u2, &uout, &urem);
+  ASSERT_EQ(0, uout.high);
+  ASSERT_EQ(2, uout.low);
+  ASSERT_EQ(1, urem.high);
+  ASSERT_EQ(0, urem.low);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_cdd_math_div_branch_coverage(void) {
+  /* Cover r.high > den.high */
+  cdd_uint128_t u1 = cdd_make_uint128(0x0FFFFFFFFFFFFFFFULL, 0);
+  cdd_uint128_t u2 = cdd_make_uint128(0x0000000000000002ULL, 0);
+  cdd_uint128_t uout;
+  cdd_uint128_div(u1, u2, &uout);
+
+  /* Cover r.high == den.high && r.low < den.low */
+  u1 = cdd_make_uint128(0, 5);
+  u2 = cdd_make_uint128(0, 10);
+  cdd_uint128_div(u1, u2, &uout);
+
+  /* Another edge case for divmod */
+  u1 = cdd_make_uint128(10, 5);
+  u2 = cdd_make_uint128(10, 10);
+  cdd_uint128_div(u1, u2, &uout);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(c_cdd_int128_suite) {
+  RUN_TEST(test_cdd_math_div_branch_coverage);
+  RUN_TEST(test_cdd_math_div_large_den);
   RUN_TEST(test_cdd_make_uint128);
   RUN_TEST(test_cdd_make_int128);
   RUN_TEST(test_cdd_math_add_sub);

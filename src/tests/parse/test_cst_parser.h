@@ -23,13 +23,15 @@ extern "C" {
 /* clang-format on */
 
 /* Helper to create a fake token list for testing */
-static void make_simple_token_list(struct TokenList *tl) {
+static int make_simple_token_list(struct TokenList *tl) {
   static const char code[] = "struct MyStruct { }";
   tl->size = 0;
   tl->capacity = 4;
-  tl->tokens = (struct Token *)malloc(sizeof(struct Token) * tl->capacity);
-  if (!tl->tokens)
-    return;
+  tl->tokens =
+      (struct Token *)C_CDD_MALLOC(sizeof(struct Token) * tl->capacity);
+  if (tl->tokens == NULL) {
+    return -1;
+  }
 
   tl->tokens[0].kind = TOKEN_KEYWORD_STRUCT;
   tl->tokens[0].start = (const uint8_t *)code;
@@ -48,6 +50,7 @@ static void make_simple_token_list(struct TokenList *tl) {
   tl->tokens[3].length = 1;
 
   tl->size = 4;
+  return 0;
 }
 
 TEST add_node_basic(void) {
@@ -73,24 +76,67 @@ TEST add_node_basic(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
 TEST parse_tokens_basic(void) {
   struct TokenList *tokens =
-      (struct TokenList *)malloc(sizeof(struct TokenList));
+      (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
   struct CstNodeList cst_nodes = {NULL, 0, 0};
   struct CstNodeList copy_nodes = {NULL, 0, 0};
 
-  if (!tokens)
-    FAILm("Memory allocation failed");
+  ASSERT_NEQ(NULL, tokens);
   memset(tokens, 0, sizeof(*tokens));
 
-  make_simple_token_list(tokens);
-  if (!tokens->tokens) {
-    free(tokens);
-    FAILm("Setup failed");
-  }
+  ASSERT_EQ(0, make_simple_token_list(tokens));
+  ASSERT(tokens->tokens != NULL);
 
   ASSERT_EQ(0, parse_tokens(tokens, &cst_nodes));
   ASSERT_GT(cst_nodes.size, 0);
@@ -101,7 +147,6 @@ TEST parse_tokens_basic(void) {
     for (i = 0; i < cst_nodes.size; i++) {
       if (cst_nodes.nodes[i].kind == CST_NODE_STRUCT) {
         found_struct = 1;
-        break;
       }
     }
     ASSERT(found_struct);
@@ -117,6 +162,53 @@ TEST parse_tokens_basic(void) {
 
   free_token_list(tokens);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -128,6 +220,116 @@ TEST parse_tokens_empty(void) {
   ASSERT(cst_nodes.nodes == NULL);
   free_cst_node_list(&cst_nodes);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
+  PASS();
+}
+
+TEST parse_tokens_oom_make(void) {
+  struct TokenList *tokens;
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_alloc_fail;
+  tokens = (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
+  ASSERT_NEQ(NULL, tokens);
+  memset(tokens, 0, sizeof(*tokens));
+
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(-1, make_simple_token_list(tokens));
+  g_cdd_alloc_fail = 0;
+  C_CDD_FREE(tokens);
+#endif
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -137,6 +339,53 @@ TEST parse_tokens_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(NULL, &cst_nodes));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, parse_tokens(&tokens, NULL));
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -153,6 +402,53 @@ TEST parse_tokens_forward_declaration(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -169,6 +465,53 @@ TEST parse_tokens_anonymous_struct(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -194,6 +537,53 @@ TEST parse_tokens_struct_variable_declaration(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -212,6 +602,53 @@ TEST parse_simple_array_init(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -230,6 +667,53 @@ TEST parse_compound_literal(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -258,6 +742,53 @@ TEST parse_control_block_split(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -277,6 +808,53 @@ TEST parse_nested_compound_literal(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -294,6 +872,53 @@ TEST parse_return_compound(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -345,6 +970,53 @@ TEST parse_c11_generic(void) {
   free_token_list(tl);
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -370,6 +1042,53 @@ TEST test_cst_find_first(void) {
 
   free_cst_node_list(&list);
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -393,14 +1112,12 @@ TEST test_cst_parser_extra(void) {
   {
     cdd_cst_tree_t *t_stray = NULL;
     cdd_cst_parse(az_span_create_from_str("}"), &t_stray);
-    if (t_stray)
-      cdd_cst_tree_free(t_stray);
+    cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
     cdd_cst_parse(az_span_create_from_str("}}"), &t_stray);
-    if (t_stray)
-      cdd_cst_tree_free(t_stray);
+    cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_stray = NULL;
@@ -428,8 +1145,10 @@ TEST test_cst_parser_extra(void) {
     cdd_cst_tree_free(t_macro);
   {
     const char *abrupts[] = {
-        "#ifdef A", "template <",  "namespace N {",       "try {",
-        "throw ",   "class Foo {", "class Foo { public:", "void f() {"};
+        "#ifdef A",  "template",    "template <",   "template <class",
+        "namespace", "namespace N", "namespace N;", "namespace N {",
+        "try {",     "throw ",      "class Foo {",  "class Foo { public:",
+        "void f() {"};
     size_t j;
     for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
       cdd_cst_tree_t *t_abrupt = NULL;
@@ -463,9 +1182,31 @@ TEST test_cst_parser_extra(void) {
         "#ifndef C\n"
         "{ int w; }\n"
         "#endif\n"
-        "#define D 1\n"
+        "#define D1 1;\n"
+        "#define D2 2;\n"
+        "#define D3 3;\n"
+        "#define D4 4;\n"
+        "#define D5 5;\n"
+        "#define D6 6;\n"
+        "#define D7 7;\n"
+        "#define D8 8;\n"
+        "#define D9 9;\n"
+        "#define D10 10;\n"
+        "#define D11 11;\n"
+        "#define D12 12;\n"
+        "#define D13 13;\n"
+        "#define D14 14;\n"
+        "#define D15 15;\n"
+        "#define D16 16;\n"
+        "#define D17 17;\n"
+        "#define D18 18;\n"
+        "#define D19 19;\n"
         "#include <stdio.h>\n"
         "#pragma once\n"
+        "#unknown_directive\n"
+        "[[nodiscard]] struct AttributedStruct { int x; };\n"
+        "[[nodiscard]] class AttributedClass { int x; };\n"
+        "template class Foo;\n"
         "template <typename T1, typename T2, typename T3, typename T4, "
         "typename T5, typename T6, typename T7, typename T8, typename T9, "
         "typename T10>\n"
@@ -502,53 +1243,121 @@ TEST test_cst_parser_extra(void) {
 
     g_cdd_alloc_fail = 1000000;
     t_dummy = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
-    printf("Total ALLOCs in snippet: %d\n", 1000000 - g_cdd_alloc_fail);
+    {
+      int debug_rc =
+          cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
+      printf("Total ALLOCs in snippet: %d, RC=%d\n", 1000000 - g_cdd_alloc_fail,
+             debug_rc);
+    }
     g_cdd_alloc_fail = 0;
     if (t_dummy)
       cdd_cst_tree_free(t_dummy);
 
-    for (i = 1; i < 60000; i++) {
-      tree = NULL;
-      g_cdd_cst_alloc_node_fail = i;
-      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-      if (tree)
-        cdd_cst_tree_free(tree);
-    }
-    g_cdd_cst_alloc_node_fail = 0;
+    {
+      extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
+      g_cdd_cst_parser_fast_grow = 1;
 
-    for (i = 1; i < 60000; i++) {
-      tree = NULL;
-      g_cdd_alloc_fail = i;
-      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-      if (tree)
-        cdd_cst_tree_free(tree);
-    }
-    g_cdd_alloc_fail = 0;
+      for (i = 1; i < 60000; i++) {
+        cdd_c_error_t rc;
+        tree = NULL;
+        g_cdd_cst_alloc_node_fail = i;
+        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        if (tree)
+          cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cst_alloc_node_fail = 0;
 
-    for (i = 1; i < 60000; i++) {
-      tree = NULL;
-      g_cdd_cst_alloc_token_fail = i;
-      cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-      if (tree)
-        cdd_cst_tree_free(tree);
-    }
-    g_cdd_cst_alloc_token_fail = 0;
+      for (i = 1; i < 60000; i++) {
+        cdd_c_error_t rc;
+        tree = NULL;
+        g_cdd_alloc_fail = i;
+        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        if (tree)
+          cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_alloc_fail = 0;
 
-    for (i = 1; i < 60000; i++) {
-      cdd_c_error_t parse_rc;
-      tree = NULL;
-      g_cdd_cst_realloc_fail = i;
-      parse_rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-      if (i == 59999)
-        ASSERT_EQ(0, parse_rc);
-      if (tree)
-        cdd_cst_tree_free(tree);
+      for (i = 1; i < 60000; i++) {
+        cdd_c_error_t rc;
+        tree = NULL;
+        g_cdd_cst_alloc_token_fail = i;
+        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        if (tree)
+          cdd_cst_tree_free(tree);
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cst_alloc_token_fail = 0;
+
+      for (i = 1; i < 60000; i++) {
+        cdd_c_error_t parse_rc;
+        tree = NULL;
+        g_cdd_cst_realloc_fail = i;
+        parse_rc =
+            cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        if (tree)
+          cdd_cst_tree_free(tree);
+        if (parse_rc == CDD_C_SUCCESS)
+          break;
+      }
+      g_cdd_cst_realloc_fail = 0;
+
+      g_cdd_cst_parser_fast_grow = 0;
     }
-    g_cdd_cst_realloc_fail = 0;
   }
 #endif
   g_fail_io_after = -1;
+
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
 
   PASS();
 }
@@ -584,6 +1393,53 @@ TEST parse_tokens_oom(void) {
   }
 #endif
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -591,6 +1447,239 @@ TEST test_cst_branches(void) {
   struct CstNode *out_node_ptr = NULL;
   ASSERT_EQ(0, cst_find_first(NULL, 0, &out_node_ptr));
   g_fail_io_after = -1;
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
+  PASS();
+}
+
+TEST test_parse_tokens_attributes(void) {
+  struct TokenList *tl = NULL, *tl2 = NULL, *tl3 = NULL, *tl4 = NULL,
+                   *tl5 = NULL;
+  struct CstNodeList cst = {0};
+  tokenize(az_span_create_from_str("[[nodiscard]] int x;"), &tl);
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl);
+
+  tokenize(az_span_create_from_str("__attribute__((unused)) int x;"), &tl5);
+  ASSERT_EQ(0, parse_tokens(tl5, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl5);
+
+  tokenize(az_span_create_from_str("[[unknown_attr(1, 2, 3)]] void f() {}"),
+           &tl2);
+  ASSERT_EQ(0, parse_tokens(tl2, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl2);
+
+  tokenize(az_span_create_from_str("[["), &tl3);
+  ASSERT_EQ(0, parse_tokens(tl3, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl3);
+
+  tokenize(az_span_create_from_str("[[unknown_attr[1]]] void f() {}"), &tl4);
+  {
+    struct TokenList *tl = NULL;
+    struct CstNodeList cst = {0};
+    tokenize(az_span_create_from_str("__attribute__((always_inline))"), &tl);
+    ASSERT_EQ(0, parse_tokens(tl, &cst));
+    free_cst_node_list(&cst);
+    free_token_list(tl);
+  }
+  {
+    struct TokenList *tl = NULL;
+    struct CstNodeList cst = {0};
+    tokenize(az_span_create_from_str("__declspec(dllexport)"), &tl);
+    ASSERT_EQ(0, parse_tokens(tl, &cst));
+    free_cst_node_list(&cst);
+    free_token_list(tl);
+
+    tokenize(az_span_create_from_str("__declspec(align(16)) int x;"), &tl);
+    ASSERT_EQ(0, parse_tokens(tl, &cst));
+    free_cst_node_list(&cst);
+    free_token_list(tl);
+  }
+
+  ASSERT_EQ(0, parse_tokens(tl4, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl4);
+
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
+  PASS();
+}
+TEST test_parse_tokens_static_assert(void) {
+  struct TokenList *tl = NULL, *tl2 = NULL, *tl3 = NULL, *tl4 = NULL,
+                   *tl5 = NULL;
+  struct CstNodeList cst = {0};
+  tokenize(az_span_create_from_str("_Static_assert(1 == 1, \"msg\");"), &tl);
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl);
+
+  tokenize(az_span_create_from_str("_Static_assert(1 == 1);"), &tl2);
+  ASSERT_EQ(0, parse_tokens(tl2, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl2);
+
+  tokenize(az_span_create_from_str("_Static_assert"), &tl3);
+  ASSERT_EQ(0, parse_tokens(tl3, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl3);
+
+  tokenize(az_span_create_from_str("_Static_assert((1 == 1), \"msg\");"), &tl4);
+  ASSERT_EQ(0, parse_tokens(tl4, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl4);
+
+  tokenize(az_span_create_from_str("_Static_assert(1 == 1)"), &tl5);
+  ASSERT_EQ(0, parse_tokens(tl5, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl5);
+
+  struct TokenList *tl6 = NULL;
+  tokenize(az_span_create_from_str("_Static_assert(1 == 1;"), &tl6);
+  ASSERT_EQ(0, parse_tokens(tl6, &cst));
+  free_cst_node_list(&cst);
+  free_token_list(tl6);
+
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str(
+                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                   "[[nodiscard]] int y; } }"),
+               &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+  {
+    int i;
+    for (i = 1; i < 500; i++) {
+      struct TokenList *tl_oom = NULL;
+      struct CstNodeList cst_oom = {0};
+      int rc;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(
+          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
+                                  "U { int b; }; _Generic((1), int: 1);"),
+          &tl_oom);
+      g_cdd_alloc_fail = i;
+      rc = parse_tokens(tl_oom, &cst_oom);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        free_token_list(tl_oom);
+        free_cst_node_list(&cst_oom);
+        break;
+      }
+      free_token_list(tl_oom);
+      free_cst_node_list(&cst_oom);
+    }
+  }
+
   PASS();
 }
 
@@ -598,12 +1687,16 @@ SUITE(cst_parser_suite) {
   RUN_TEST(test_cst_parser_extra);
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
+  RUN_TEST(parse_tokens_oom_make);
+  RUN_TEST(parse_tokens_oom);
   RUN_TEST(parse_tokens_empty);
   RUN_TEST(parse_tokens_null_args);
   RUN_TEST(parse_tokens_forward_declaration);
   RUN_TEST(parse_tokens_anonymous_struct);
+  RUN_TEST(test_parse_tokens_attributes);
+  RUN_TEST(test_parse_tokens_static_assert);
+
   RUN_TEST(parse_tokens_struct_variable_declaration);
-  RUN_TEST(parse_tokens_oom);
   RUN_TEST(test_cst_branches);
 
   RUN_TEST(parse_simple_array_init);

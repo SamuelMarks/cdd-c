@@ -80,9 +80,7 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "MyLib")
-          : "MyLib";
+      (config->library_name) ? config->library_name : "MyLib";
   char class_name[256];
 
   to_camel_case(lib_name, class_name, sizeof(class_name));
@@ -431,7 +429,7 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   fprintf(f, "    <modelVersion>4.0.0</modelVersion>\n");
   fprintf(f, "    <groupId>com.cdd</groupId>\n");
   fprintf(f, "    <artifactId>%s</artifactId>\n",
-          (config && config->library_name) ? config->library_name : "mylib");
+          (config->library_name) ? config->library_name : "mylib");
   fprintf(f, "    <version>1.0-SNAPSHOT</version>\n");
   fprintf(f, "    <dependencies>\n");
   fprintf(f, "        <dependency>\n");

@@ -69,9 +69,8 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
-  module_name =
-      (config && config->module_name) ? config->module_name : "Bindings";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
+  module_name = (config->module_name) ? config->module_name : "Bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.scala", config->output_dir,

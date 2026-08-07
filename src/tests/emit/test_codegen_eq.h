@@ -14,13 +14,34 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/codegen.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static FILE *mock_tmpfile_eq(void) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+    return NULL;
+  return tmpfile();
+}
+static long mock_ftell_eq(FILE *stream) {
+  if (g_fail_io_after == 999)
+    return 0;
+  return ftell(stream);
+}
+#define TMPFILE mock_tmpfile_eq
+#define FTELL mock_ftell_eq
+#else
+#define TMPFILE tmpfile
+#define FTELL ftell
+#endif
 
 /* Helper to generate code and return as string buffer */
 static cdd_c_error_t generate_eq_code(const char *struct_name,
                                       struct StructFields *sf,
                                       char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   long sz;
   char *content = NULL;
 
@@ -38,14 +59,14 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
   }
 
   fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
+  sz = FTELL(tmp);
   rewind(tmp);
 
   if (sz > 0) {
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
     fread(content, 1, sz, tmp);
   } else {
-    content = strdup("");
+    content = C_CDD_STRDUP("");
   }
 
   fclose(tmp);
@@ -240,7 +261,35 @@ TEST test_eq_array_object(void) {
 /**
  * @brief codegen_eq_suite
  */
+
+TEST test_eq_errors(void) {
+  char *_out = NULL;
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
+
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  ASSERT_EQ(NULL, _out);
+
+  g_io_calls = 0;
+  g_fail_io_after = 2;
+  ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  ASSERT_EQ(NULL, _out);
+
+  g_fail_io_after = 999;
+  ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  ASSERT_STR_EQ("", _out);
+  C_CDD_FREE(_out);
+  g_fail_io_after = -1;
+
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_eq_suite) {
+  RUN_TEST(test_eq_errors);
   RUN_TEST(test_eq_primitive);
   RUN_TEST(test_eq_string);
   RUN_TEST(test_eq_recursive_object);

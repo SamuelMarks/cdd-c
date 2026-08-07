@@ -62,8 +62,9 @@ TEST test_foo_cleanup_with_null_haz(void) {
   if (foo) {
     foo->bar = NULL;
     foo->can = 0;
-    foo->haz = NULL;  /* Haz is null */
-    Foo_cleanup(foo); /* Should call Haz_cleanup(NULL) */
+    foo->haz = NULL; /* Haz is null */
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Foo_cleanup(foo));
   }
   PASS();
 }

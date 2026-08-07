@@ -173,11 +173,11 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
     f = NULL;
   }
 #endif
-  if (f) {
+  if (!f)
+    return CDD_C_ERROR_IO;
 #endif
     fprintf(f, "{:deps {net.java.dev.jna/jna {:mvn/version \"5.13.0\"}}}\n");
     fclose(f);
-  }
 
-  return CDD_C_SUCCESS;
-}
+    return CDD_C_SUCCESS;
+  }

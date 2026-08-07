@@ -20,17 +20,6 @@ static const char *map_d_type(cdd_ffi_type_t *t) {
     if (t->kind == CDD_FFI_KIND_VOID) {
       return "void*";
     }
-    if (t->kind == CDD_FFI_KIND_STRUCT_REF ||
-        t->kind == CDD_FFI_KIND_TYPEDEF_REF ||
-        t->kind == CDD_FFI_KIND_ENUM_REF) {
-      if (t->ref_name) {
-        /* simplistic mapping for pointers to known structs */
-        /* note: we'd ideally return %s* mapped to a buffer, but this is static
-         */
-        return "void*"; /* TODO: handle struct pointers more cleanly if needed
-                         */
-      }
-    }
     return "void*";
   }
   switch (t->kind) {
@@ -75,13 +64,11 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      config ? ((config->library_name) ? config->library_name : "mylib")
+             : "mylib";
   const char *module_name =
-      config
-          ? ((config && config->module_name) ? config->module_name : "bindings")
-          : "bindings";
+      config ? ((config->module_name) ? config->module_name : "bindings")
+             : "bindings";
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
@@ -91,13 +78,37 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.d", config->output_dir,
                module_name);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.d", config->output_dir,
                module_name);
-  f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
+#endif
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -158,22 +169,48 @@ cdd_c_error_t cdd_ffi_emit_d(cdd_ffi_ir_t *ir,
   /* Generate dub.json */
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\dub.json", config->output_dir);
-  if (fopen_s(&f, filepath, "w") == 0) {
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_IO;
+    }
+  }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/dub.json", config->output_dir);
-  f = fopen(filepath, "w");
-  if (f) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
 #endif
-    fprintf(f, "{\n");
-    fprintf(f, "  \"name\": \"%s\",\n", module_name);
-    fprintf(f, "  \"description\": \"Auto-generated D bindings for %s\",\n",
-            lib_name);
-    fprintf(f, "  \"targetType\": \"library\",\n");
-    fprintf(f, "  \"sourcePaths\": [ \".\" ],\n");
-    fprintf(f, "  \"libs\": [ \"%s\" ]\n", lib_name);
-    fprintf(f, "}\n");
-    fclose(f);
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
+  if (!f)
+    return CDD_C_ERROR_IO;
+#endif
+  fprintf(f, "{\n");
+  fprintf(f, "  \"name\": \"%s\",\n", module_name);
+  fprintf(f, "  \"description\": \"Auto-generated D bindings for %s\",\n",
+          lib_name);
+  fprintf(f, "  \"targetType\": \"library\",\n");
+  fprintf(f, "  \"sourcePaths\": [ \".\" ],\n");
+  fprintf(f, "  \"libs\": [ \"%s\" ]\n", lib_name);
+  fprintf(f, "}\n");
+  fclose(f);
 
   return CDD_C_SUCCESS;
 }

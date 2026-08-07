@@ -61,21 +61,42 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   size_t i, j;
-  const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+  const char *lib_name = config->library_name ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.ml", config->output_dir,
                lib_name);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ml", config->output_dir,
                lib_name);
-  f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
+#endif
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

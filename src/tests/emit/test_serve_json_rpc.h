@@ -154,7 +154,8 @@ TEST test_serve_mcp_stdio_main(void) {
 
   /* Create a temporary file and redirect stdin to it */
   FILE *tmp = tmpfile();
-  if (tmp) {
+  ASSERT_NEQ(NULL, tmp);
+  {
     int old_stdin = dup(fileno(stdin));
     int old_stdout = dup(fileno(stdout));
     FILE *devnull = fopen("/dev/null", "w");
@@ -237,9 +238,6 @@ TEST test_serve_mcp_stdio_main(void) {
     fclose(tmp);
     if (devnull)
       fclose(devnull);
-    ASSERT_EQ(0, rc);
-  } else {
-    rc = serve_mcp_stdio_main(argc, argv);
     ASSERT_EQ(0, rc);
   }
 

@@ -157,3 +157,4 @@ target_include_directories(
         PRIVATE
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
 )
+add_test(NAME test_cdd_c_help COMMAND cdd-c --help)

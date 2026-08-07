@@ -562,6 +562,8 @@ add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
+
+add_test(NAME test_cdd_c_help COMMAND "${EXEC_NAME}" --help)
 endif()
 endif()
 

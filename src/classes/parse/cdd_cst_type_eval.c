@@ -7,9 +7,14 @@
 #include "c_cdd/memory.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_type_eval_ptr_fail = 0;
+#endif
+
 cdd_c_error_t cdd_cst_eval_primitive_type(const char *type_name,
                                           enum cdd_cst_abi_model_t abi,
                                           cdd_cst_type_info_t *out_info) {
+  C_CDD_LOG_DEBUG("eval_primitive_type called with: %s\n", type_name);
   if (!type_name || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -168,7 +173,17 @@ cdd_c_error_t cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env,
   }
 
   if (is_pointer) {
+
     rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
+      if (g_cdd_type_eval_ptr_fail) {
+        rc = CDD_C_ERROR_MEMORY;
+      }
+    }
+#endif
+
     if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(name);
       *out_size = 0;
@@ -208,7 +223,17 @@ cdd_c_error_t cdd_cst_eval_alignof(cdd_cst_scope_env_t *env,
   }
 
   if (is_pointer) {
+
     rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
+      if (g_cdd_type_eval_ptr_fail) {
+        rc = CDD_C_ERROR_MEMORY;
+      }
+    }
+#endif
+
     if (rc != CDD_C_SUCCESS) {
       C_CDD_FREE(name);
       *out_align = 0;

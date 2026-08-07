@@ -173,26 +173,46 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
               end_inc++;
             }
 
-            if (end_inc > k) {
+            {
               const char *inc_start = (const char *)tokens->tokens[k].start;
               const char *inc_end =
                   (const char *)tokens->tokens[end_inc - 1].start +
                   tokens->tokens[end_inc - 1].length;
               size_t inc_len = (size_t)(inc_end - inc_start);
               char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
-              if (inc_str) {
-                memcpy(inc_str, inc_start, inc_len);
-                inc_str[inc_len] = '\0';
-
-                if (strstr(inc_str, "pthread.h"))
-                  vcpkg_builder_add_dep(builder, "pthreads");
-                if (strstr(inc_str, "dirent.h"))
-                  vcpkg_builder_add_dep(builder, "dirent");
-                if (strstr(inc_str, "zlib.h"))
-                  vcpkg_builder_add_dep(builder, "zlib");
-
-                C_CDD_FREE(inc_str);
+              if (!inc_str) {
+                free_token_list(tokens);
+                return CDD_C_ERROR_MEMORY;
               }
+              memcpy(inc_str, inc_start, inc_len);
+              inc_str[inc_len] = '\0';
+
+              if (strstr(inc_str, "pthread.h")) {
+                cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "pthreads");
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(inc_str);
+                  free_token_list(tokens);
+                  return rc;
+                }
+              }
+              if (strstr(inc_str, "dirent.h")) {
+                cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "dirent");
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(inc_str);
+                  free_token_list(tokens);
+                  return rc;
+                }
+              }
+              if (strstr(inc_str, "zlib.h")) {
+                cdd_c_error_t rc = vcpkg_builder_add_dep(builder, "zlib");
+                if (rc != CDD_C_SUCCESS) {
+                  C_CDD_FREE(inc_str);
+                  free_token_list(tokens);
+                  return rc;
+                }
+              }
+
+              C_CDD_FREE(inc_str);
             }
           }
         }
@@ -269,11 +289,22 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  len += _snprintf_s(json + len, cap - len, _TRUNCATE, "}\\n");
+  len += _snprintf_s(json + len, cap - len, _TRUNCATE, "}\n");
 #else
-  len += CDD_SNPRINTF(json + len, cap - len, "}\\n");
+  len += CDD_SNPRINTF(json + len, cap - len, "}\n");
 #endif
 
   *out_json = json;
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+cdd_c_error_t test_vcpkg_my_strdup_errors(void) {
+  char *out = NULL;
+  cdd_c_error_t err1 = my_strdup(NULL, &out);
+  cdd_c_error_t err2 = my_strdup("a", NULL);
+  return (cdd_c_error_t)((err1 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err2 ^ CDD_C_ERROR_INVALID_ARGUMENT));
+}
+#endif

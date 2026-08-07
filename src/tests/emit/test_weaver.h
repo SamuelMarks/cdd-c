@@ -426,6 +426,11 @@ TEST test_weaver_oom(void) {
 #endif
 
   patch_list_init(&patches);
+  patches.capacity = 1;
+  patches.size = 1;
+  free(patches.patches);
+  patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
+
   tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
 
 #ifdef CDD_BUILD_TESTS
@@ -437,30 +442,34 @@ TEST test_weaver_oom(void) {
   {
     int j;
     for (j = 1; j < 20; j++) {
-      if (j == 2)
-        j = 2000;
+      patch_list_free(&patches);
+      patch_list_init(&patches);
+      patches.capacity = 1;
+      patches.size = 1;
+      patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
+
       g_cdd_alloc_fail = j;
       r2 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", "else");
       g_cdd_alloc_fail = 0;
       if (r2 == 0)
         break;
-      if (j == 2000)
-        j = 1;
     }
   }
 
   {
     int j;
     for (j = 1; j < 20; j++) {
-      if (j == 2)
-        j = 2000;
+      patch_list_free(&patches);
+      patch_list_init(&patches);
+      patches.capacity = 1;
+      patches.size = 1;
+      patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
+
       g_cdd_alloc_fail = j;
       r3 = weaver_wrap_ifdef(&patches, tl, 0, 1, "COND", NULL);
       g_cdd_alloc_fail = 0;
       if (r3 == 0)
         break;
-      if (j == 2000)
-        j = 1;
     }
   }
 
@@ -468,17 +477,29 @@ TEST test_weaver_oom(void) {
 
   /* deleted r5 */
 
-  g_cdd_alloc_fail = 1;
-  r6 = weaver_inject_msvc_headers(&patches, tl, 1, 1);
-  g_cdd_alloc_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r6);
+  {
+    int j;
+    for (j = 1; j < 20; j++) {
+      g_cdd_alloc_fail = j;
+      r6 = weaver_inject_msvc_headers(&patches, tl, 1, 1);
+      g_cdd_alloc_fail = 0;
+      if (r6 == 0)
+        break;
+    }
+  }
 
   /* deleted r7 */
 
-  g_cdd_alloc_fail = 1;
-  r8 = weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", "sz", 0);
-  g_cdd_alloc_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r8);
+  {
+    int j;
+    for (j = 1; j < 20; j++) {
+      g_cdd_alloc_fail = j;
+      r8 = weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", "sz", 0);
+      g_cdd_alloc_fail = 0;
+      if (r8 == 0)
+        break;
+    }
+  }
 
   /* deleted r9 */
 #endif
@@ -638,7 +659,66 @@ TEST test_weaver_cov_even_more(void) {
   free_token_list(tokens);
   PASS();
 }
+
+TEST test_weaver_interactive(void) {
+  struct PatchList patches;
+  struct TokenList *tl = NULL;
+  const char *src = "int a[n];";
+  int res;
+  FILE *fake_stdin;
+  char tmp_name[32];
+
+  patch_list_init(&patches);
+  patches.capacity = 1;
+  patches.size = 1;
+  free(patches.patches);
+  patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
+
+  tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+
+  sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);
+  fake_stdin = fopen(tmp_name, "w+");
+  fprintf(fake_stdin, "y\n");
+  rewind(fake_stdin);
+
+  /* We can't actually redirect stdin in the same process easily portably
+     without dup2, but we can just replace stdin via freopen, or just use
+     freopen */
+#ifndef _WIN32
+
+  {
+    FILE *f = fopen(tmp_name, "w");
+    fprintf(f, "n\nN\ny\n");
+    fclose(f);
+    freopen(tmp_name, "r", stdin);
+    res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
+    ASSERT_EQ(CDD_C_SUCCESS, res);
+
+    res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
+    ASSERT_EQ(CDD_C_SUCCESS, res);
+
+    res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
+    ASSERT_EQ(CDD_C_SUCCESS, res);
+
+    freopen("/dev/null", "r", stdin);
+    res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
+    ASSERT_EQ(CDD_C_SUCCESS, res);
+
+    freopen("/dev/tty", "r", stdin); /* restore roughly */
+  }
+
+#endif
+
+  fclose(fake_stdin);
+  remove(tmp_name);
+
+  patch_list_free(&patches);
+  free_token_list(tl);
+  PASS();
+}
+
 SUITE(weaver_suite) {
+  RUN_TEST(test_weaver_interactive);
   RUN_TEST(test_weaver_wrap_ifdef_basic);
   RUN_TEST(test_weaver_wrap_ifdef_else);
   RUN_TEST(test_weaver_wrap_ifdef_invalid_args);

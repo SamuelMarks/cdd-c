@@ -15,8 +15,6 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[] = {"c2openapi", "src/tests/mocks", "out.json"};
   int rc = c2openapi_cli_main(3, argv1);
-  if (rc != CDD_C_SUCCESS)
-    printf("test_c2openapi_cli_main_valid_args failed with %d\n", rc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
@@ -32,9 +30,6 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "src/tests/mocks",
                    "out2.json"};
   int rc = c2openapi_cli_main(9, argv1);
-  if (rc != CDD_C_SUCCESS)
-    printf("test_c2openapi_cli_main_valid_args_with_options failed with %d\n",
-           rc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
@@ -56,8 +51,6 @@ TEST test_to_docs_json_cli_main_valid(void) {
                    "src/tests/mocks/emit/simple.schema.json", "--no-imports",
                    "--no-wrapping"};
   int rc = to_docs_json_cli_main(5, argv1);
-  if (rc != CDD_C_SUCCESS)
-    printf("test_to_docs_json_cli_main_valid failed with %d\n", rc);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }

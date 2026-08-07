@@ -7,6 +7,7 @@
 #include "c_cdd/log.h"
 #include "c_str_span.h"
 #include "cdd_cst_transform.h"
+#include "c_cdd/memory.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include <errno.h>
@@ -38,7 +39,7 @@ process_file(const char *filepath,
   fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  str = (char *)malloc((size_t)fsize + 1);
+  str = (char *)C_CDD_MALLOC((size_t)fsize + 1);
   if (!str) {
     fclose(f);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -51,7 +52,7 @@ process_file(const char *filepath,
   rc = cdd_cst_parse(az_span_create_from_str(str), &tree);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error parsing %s\n", filepath);
-    free(str);
+    C_CDD_FREE(str);
     return rc;
   }
 
@@ -59,7 +60,7 @@ process_file(const char *filepath,
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error transforming %s\n", filepath);
     cdd_cst_tree_free(tree);
-    free(str);
+    C_CDD_FREE(str);
     return rc;
   }
 
@@ -67,7 +68,7 @@ process_file(const char *filepath,
   cdd_cst_tree_free(tree);
   if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Error emitting %s\n", filepath);
-    free(str);
+    C_CDD_FREE(str);
     return rc;
   }
 
@@ -89,8 +90,8 @@ process_file(const char *filepath,
         out_f = fopen(filepath, "wb");
         if (!out_f) {
           fprintf(stderr, "Error opening %s for writing\n", filepath);
-          free(str);
-          free(out);
+          C_CDD_FREE(str);
+          C_CDD_FREE(out);
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         fwrite(out, 1, strlen(out), out_f);
@@ -103,8 +104,8 @@ process_file(const char *filepath,
     }
   }
 
-  free(str);
-  free(out);
+  C_CDD_FREE(str);
+  C_CDD_FREE(out);
   return rc;
 }
 

@@ -1,3 +1,6 @@
+#ifndef CDD_BUILD_TESTS
+#define CDD_BUILD_TESTS
+#endif
 #include "cdd_c_error.h"
 /**
  * @file cdd_helpers.c
@@ -12,6 +15,48 @@
 #include "cdd_helpers.h"
 /* clang-format on */
 #include <errno.h>
+
+#include "c_cdd_export.h"
+C_CDD_EXPORT int g_cdd_helpers_fopen_err = 0;
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+
+static FILE *mock_fopen(const char *path, const char *mode) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
+    errno = g_cdd_helpers_fopen_err;
+    return NULL;
+  }
+  return fopen(path, mode);
+}
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+static int mock_fopen_s(FILE **fh, const char *path, const char *mode) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
+    *fh = NULL;
+    return g_cdd_helpers_fopen_err;
+  }
+  return fopen_s(fh, path, mode);
+}
+#endif
+
+#define FOPEN_S mock_fopen_s
+#define FOPEN mock_fopen
+#define FPUTS(str, stream)                                                     \
+  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
+       ? -1                                                                    \
+       : fputs(str, stream))
+#define FCLOSE(stream)                                                         \
+  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) ? -1              \
+                                                             : fclose(stream))
+#else
+#define FOPEN_S fopen_s
+#define FOPEN fopen
+#define FPUTS fputs
+#define FCLOSE fclose
+#endif
 
 /**
  * @brief Logs a precondition failure to stderr.
@@ -39,7 +84,7 @@ cdd_c_error_t write_to_file(const char *const filename,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err;
-    err = fopen_s(&fh, filename, "w");
+    err = FOPEN_S(&fh, filename, "w");
     if (err != 0 || fh == NULL) {
       if (err == ENOENT)
         return CDD_C_ERROR_NOT_FOUND;
@@ -52,9 +97,9 @@ cdd_c_error_t write_to_file(const char *const filename,
   }
 #else
 #if defined(_MSC_VER)
-  fopen_s(&fh, filename, "w");
+  FOPEN_S(&fh, filename, "w");
 #else
-  fh = fopen(filename, "w");
+  fh = FOPEN(filename, "w");
 #endif
   if (fh == NULL) {
     if (errno == ENOENT)
@@ -67,12 +112,12 @@ cdd_c_error_t write_to_file(const char *const filename,
   }
 #endif
 
-  if (fputs(contents, fh) < 0) {
+  if (FPUTS(contents, fh) < 0) {
     fprintf(stderr, "Failure to write to %s\n", filename);
     rc = CDD_C_ERROR_IO;
   }
 
-  if (fclose(fh) != 0) {
+  if (FCLOSE(fh) != 0) {
     rc = CDD_C_ERROR_IO;
   }
 

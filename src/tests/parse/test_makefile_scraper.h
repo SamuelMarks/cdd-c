@@ -27,8 +27,8 @@ TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
   const char *makefile = "CC=gcc\n"
-                         "CFLAGS=-I./include -DDEBUG=1\n"
-                         "SRCS=main.c util.c";
+                         "CFLAGS=-I./include -DDEBUG=1 -I -D a b\n"
+                         "SRCS=main.c util.c main.c .c";
 
   (void)build_info_init(&info);
   ASSERT_EQ(0, scrape_makefile(&info, makefile));
@@ -56,9 +56,22 @@ TEST test_scrape_makefile_basic(void) {
 
   free(cmake_str);
   build_info_free(&info);
+
+  /* Test empty cmake generation */
+  (void)build_info_init(&info);
+  ASSERT_EQ(0, scrape_makefile(&info, "SRCS=main.c"));
+  ASSERT_EQ(0, build_info_to_cmake(&info, "my_proj_empty", &cmake_str));
+  ASSERT(cmake_str != NULL);
+  free(cmake_str);
+  build_info_free(&info);
+
   g_fail_io_after = -1;
   PASS();
 }
+
+#ifdef CDD_BUILD_TESTS
+extern cdd_c_error_t test_my_strdup_errors(void);
+#endif
 
 /**
  * @brief Tests error handling of the scraper APIs.
@@ -70,6 +83,13 @@ TEST test_scrape_errors(void) {
   char *cmake_str = NULL;
 
   (void)build_info_init(&info);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, build_info_init(NULL));
+  build_info_free(NULL);
+
+#ifdef CDD_BUILD_TESTS
+  ASSERT_EQ(CDD_C_SUCCESS, test_my_strdup_errors());
+#endif
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(NULL, "Makefile"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scrape_makefile(&info, NULL));
@@ -178,10 +198,18 @@ TEST test_build_info_to_cmake_oom(void) {
   build_info_init(&info);
   scrape_makefile(&info, makefile);
 
-  g_cdd_alloc_fail = 1;
-  int rc = build_info_to_cmake(&info, "my_proj", &cmake_str);
-  g_cdd_alloc_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  int i;
+  for (i = 1; i < 5; i++) {
+    g_cdd_alloc_fail = i;
+    int rc = build_info_to_cmake(&info, "my_proj", &cmake_str);
+    g_cdd_alloc_fail = 0;
+    if (rc == CDD_C_SUCCESS) {
+      free(cmake_str);
+      cmake_str = NULL;
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   build_info_free(&info);
 #endif
   PASS();

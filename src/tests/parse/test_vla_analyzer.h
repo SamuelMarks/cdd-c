@@ -35,7 +35,11 @@ TEST test_scan_for_vlas_basic(void) {
   const char *src = "void func(int n) {\n"
                     "  int normal[10];\n"
                     "  char vla[n];\n"
+                    "  int multi[n], b;\n"
                     "  struct S s_vla[n * 2];\n"
+                    "  union U u_vla[n];\n"
+                    "  enum E e_vla[n];\n"
+                    "  int const c_vla[n];\n"
                     "}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
@@ -43,7 +47,7 @@ TEST test_scan_for_vlas_basic(void) {
 
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
 
-  ASSERT_EQ(2, list.count);
+  ASSERT_EQ(5, list.count);
 
   ASSERT_STR_EQ("char", list.sites[0].type_str);
   ASSERT_STR_EQ("vla", list.sites[0].var_name);
@@ -52,6 +56,18 @@ TEST test_scan_for_vlas_basic(void) {
   ASSERT_STR_EQ("struct S", list.sites[1].type_str);
   ASSERT_STR_EQ("s_vla", list.sites[1].var_name);
   ASSERT_STR_EQ("n * 2", list.sites[1].size_expr);
+
+  ASSERT_STR_EQ("union U", list.sites[2].type_str);
+  ASSERT_STR_EQ("u_vla", list.sites[2].var_name);
+  ASSERT_STR_EQ("n", list.sites[2].size_expr);
+
+  ASSERT_STR_EQ("enum E", list.sites[3].type_str);
+  ASSERT_STR_EQ("e_vla", list.sites[3].var_name);
+  ASSERT_STR_EQ("n", list.sites[3].size_expr);
+
+  ASSERT_STR_EQ("int const", list.sites[4].type_str);
+  ASSERT_STR_EQ("c_vla", list.sites[4].var_name);
+  ASSERT_STR_EQ("n", list.sites[4].size_expr);
 
   vla_site_list_free(&list);
   free_token_list(tokens);
@@ -192,6 +208,61 @@ TEST test_scan_for_vlas_edge_cases(void) {
   (void)vla_site_list_init(&list);
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
   ASSERT_EQ(6, list.count);
+  vla_site_list_free(&list);
+  free_token_list(tokens);
+  tokens = NULL;
+
+  /* Abrupt endings to hit i < tokens->size branches */
+  const char *abrupt_cases[] = {"struct", "union",    "enum",     "struct S",
+                                "const",  "int",      "int a",    "int a   ",
+                                "int *",  "int a[",   "int a[n",  "int a[10",
+                                "MyType", "MyType *", "int a[n]", "int a[n]  "};
+  size_t i;
+  for (i = 0; i < sizeof(abrupt_cases) / sizeof(abrupt_cases[0]); i++) {
+    ASSERT_EQ(
+        0, tokenize(az_span_create_from_str((char *)abrupt_cases[i]), &tokens));
+    (void)vla_site_list_init(&list);
+    ASSERT_EQ(0, scan_for_vlas(tokens, &list));
+    vla_site_list_free(&list);
+    free_token_list(tokens);
+    tokens = NULL;
+  }
+
+  /* Mock a token list WITHOUT an EOF token to hit out-of-bounds branches */
+  struct TokenList mock_tokens = {0};
+  struct Token mock_toks[4];
+
+  /* Test 1: Ends with WHITESPACE */
+  mock_toks[0].kind = TOKEN_KEYWORD_INT;
+  mock_toks[1].kind = TOKEN_IDENTIFIER;
+  mock_toks[1].start = (const uint8_t *)"a";
+  mock_toks[1].length = 1;
+  mock_toks[2].kind = TOKEN_WHITESPACE;
+  mock_tokens.tokens = mock_toks;
+  mock_tokens.size = 3;
+  mock_tokens.capacity = 4;
+  (void)vla_site_list_init(&list);
+  scan_for_vlas(&mock_tokens, &list);
+  vla_site_list_free(&list);
+
+  /* Test 2: Ends exactly at identifier */
+  mock_tokens.size = 2; /* INT, IDENTIFIER */
+  (void)vla_site_list_init(&list);
+  scan_for_vlas(&mock_tokens, &list);
+  vla_site_list_free(&list);
+
+  /* Test 3: Ends with LBRACKET */
+  mock_toks[2].kind = TOKEN_LBRACKET;
+  mock_tokens.size = 3;
+  (void)vla_site_list_init(&list);
+  scan_for_vlas(&mock_tokens, &list);
+  vla_site_list_free(&list);
+
+  /* Test 4: Semicolon, LBRACE, RBRACE to hit line 209-211 */
+  ASSERT_EQ(
+      0, tokenize(az_span_create_from_str("int a[; int a[{ int a[}"), &tokens));
+  (void)vla_site_list_init(&list);
+  scan_for_vlas(tokens, &list);
   vla_site_list_free(&list);
   free_token_list(tokens);
   tokens = NULL;

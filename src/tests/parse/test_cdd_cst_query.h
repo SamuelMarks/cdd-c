@@ -684,6 +684,14 @@ TEST test_query_call_expr_coverage(void) {
   g_cdd_alloc_fail = 0;
   if (res.nodes)
     free(res.nodes);
+
+  memset(&res, 0, sizeof(res));
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_cst_find_nodes_by_type(&dummy_tu, CDD_CST_CALL_EXPR, &res));
+  g_cdd_alloc_fail = 0;
+  if (res.nodes)
+    free(res.nodes);
 #endif
   g_fail_io_after = -1;
 

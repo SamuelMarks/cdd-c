@@ -28,12 +28,13 @@ TEST test_server_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
-  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
+  spec.paths =
+      (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
   spec.paths[0].route = "/test/route";
 
   spec.paths[0].n_operations = 9;
-  spec.paths[0].operations =
-      (struct OpenAPI_Operation *)calloc(9, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
+      9, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
   spec.paths[0].operations[0].operation_id = "doGet";
@@ -62,11 +63,43 @@ TEST test_server_gen_basic(void) {
   spec.paths[0].operations[8].verb =
       (enum OpenAPI_Verb)999; /* Unknown verb triggers default branch */
   spec.paths[0].operations[8].operation_id = "doUnknown";
+  spec.info.description = "Test Desc";
+  spec.info.contact.name = "Test Contact";
+  spec.info.license.name = "Test License";
+  spec.n_servers = 1;
+  spec.servers =
+      (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
+  spec.servers[0].url = "http://test";
 
-  spec.paths[0].operations[1].n_req_body_media_types = 1;
+  spec.paths[0].operations[0].description = "Test Op Desc";
+  spec.paths[0].operations[0].n_parameters = 1;
+  spec.paths[0].operations[0].parameters =
+      (struct OpenAPI_Parameter *)C_CDD_CALLOC(
+          1, sizeof(struct OpenAPI_Parameter));
+  spec.paths[0].operations[0].parameters[0].name = "param1";
+  spec.paths[0].operations[0].parameters[0].in = OA_PARAM_IN_QUERY;
+  spec.paths[0].operations[0].parameters[0].description = "Test Param Desc";
+
+  spec.paths[0].operations[0].deprecated = 1;
+  spec.paths[0].operations[0].req_body.content_schema =
+      (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+          1, sizeof(struct OpenAPI_SchemaRef));
+  spec.paths[0].operations[0].req_body.ref = "TestRef";
+
+  spec.paths[0].operations[1].req_body.ref_name = "TestRefName";
+
+  spec.paths[0].operations[0].n_responses = 1;
+  spec.paths[0].operations[0].n_callbacks = 1;
+  spec.paths[0].operations[0].security =
+      (struct OpenAPI_SecurityRequirementSet *)C_CDD_CALLOC(
+          1, sizeof(struct OpenAPI_SecurityRequirementSet));
+
+  spec.paths[0].operations[1].n_req_body_media_types = 2;
   spec.paths[0].operations[1].req_body_media_types =
-      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
-  spec.paths[0].operations[1].req_body_media_types[0].name =
+      (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+          2, sizeof(struct OpenAPI_MediaType));
+  spec.paths[0].operations[1].req_body_media_types[0].name = "application/json";
+  spec.paths[0].operations[1].req_body_media_types[1].name =
       "application/x-www-form-urlencoded";
 
   memset(&config, 0, sizeof(config));
@@ -96,10 +129,22 @@ TEST test_server_gen_basic(void) {
   }
 
   remove("src/test_server_server.c");
-  free(spec.paths[0].operations[1].req_body_media_types);
-  free(spec.paths[0].operations);
-  free(spec.paths);
+  C_CDD_FREE(spec.paths[0].operations[1].req_body_media_types);
+
+  C_CDD_FREE(spec.servers);
+  C_CDD_FREE(spec.paths[0].operations[0].parameters);
+  C_CDD_FREE(spec.paths[0].operations[0].req_body.content_schema);
+  C_CDD_FREE(spec.paths[0].operations[0].security);
+  C_CDD_FREE(spec.paths[0].operations);
+
+  C_CDD_FREE(spec.paths);
   g_fail_io_after = -1;
+
+  g_cdd_alloc_fail = 1;
+  config.filename_base = "test_server";
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
 
   PASS();
 }
@@ -120,6 +165,12 @@ TEST test_server_gen_fail_open(void) {
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
   g_fail_io_after = -1;
+
+  g_cdd_alloc_fail = 1;
+  config.filename_base = "test_server";
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
 
   PASS();
 }

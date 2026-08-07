@@ -334,3 +334,14 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
   *out_cmake = buf;
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+cdd_c_error_t test_my_strdup_errors(void);
+cdd_c_error_t test_my_strdup_errors(void) {
+  char *out = NULL;
+  cdd_c_error_t err1 = my_strdup(NULL, &out);
+  cdd_c_error_t err2 = my_strdup("a", NULL);
+  return (cdd_c_error_t)((err1 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err2 ^ CDD_C_ERROR_INVALID_ARGUMENT));
+}
+#endif

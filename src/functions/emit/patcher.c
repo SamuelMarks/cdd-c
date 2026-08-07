@@ -23,10 +23,23 @@
 /**
  * @brief Executes the patch list init operation.
  */
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_patcher_test_cap_1 = 0;
+#endif
+
 cdd_c_error_t patch_list_init(struct PatchList *list) {
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
+#ifdef CDD_BUILD_TESTS
+  printf("patcher.c: &g_patcher_test_cap_1 = %p, val = %d\n",
+         &g_patcher_test_cap_1, g_patcher_test_cap_1);
+  if (g_patcher_test_cap_1) {
+    list->capacity = 0;
+    list->patches = NULL;
+    return CDD_C_SUCCESS;
+  }
+#endif
   list->capacity = 8;
   list->patches =
       (struct Patch *)C_CDD_CALLOC(list->capacity, sizeof(struct Patch));
@@ -69,10 +82,18 @@ cdd_c_error_t patch_list_add(struct PatchList *list, const size_t start_idx,
   }
 
   if (list->size >= list->capacity) {
+#ifdef CDD_BUILD_TESTS
+    const size_t new_cap =
+        g_patcher_test_cap_1 ? (list->capacity + 1)
+                             : ((list->capacity == 0) ? 8 : list->capacity * 2);
+#else
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
+#endif
     struct Patch *new_arr;
     new_arr = (struct Patch *)C_CDD_REALLOC(list->patches,
                                             new_cap * sizeof(struct Patch));
+    if (g_patcher_test_cap_1)
+      printf("ALLOCATING PATCH list->capacity=%zu\n", list->capacity);
     if (!new_arr) {
       C_CDD_FREE(text); /* Prevent leak on alloc failure */
       return CDD_C_ERROR_MEMORY;
@@ -151,13 +172,13 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-        /* LCOV_EXCL_START */
         tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        printf("After REALLOC: g_cdd=%d, tmp=%p\n", g_cdd_alloc_fail, tmp);
         if (!tmp) {
+          printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }
-        /* LCOV_EXCL_STOP */
         output = tmp;
       }
 
@@ -190,13 +211,13 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
-        /* LCOV_EXCL_START */
         tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        printf("After REALLOC: g_cdd=%d, tmp=%p\n", g_cdd_alloc_fail, tmp);
         if (!tmp) {
+          printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }
-        /* LCOV_EXCL_STOP */
         output = tmp;
       }
 
@@ -217,13 +238,11 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
     while (out_len + text_len + 1 > out_cap) {
       char *tmp;
       out_cap = out_cap * 2 + text_len;
-      /* LCOV_EXCL_START */
       tmp = (char *)C_CDD_REALLOC(output, out_cap);
       if (!tmp) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;
       }
-      /* LCOV_EXCL_STOP */
       output = tmp;
     }
     memcpy(output + out_len, p->text, text_len);

@@ -249,6 +249,27 @@ TEST test_integration_fix_dir_error_no_flag(void) {
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
   }
 
+  {
+    char *argv[1];
+    argv[0] = "integ_in.c"; /* File */
+    write_to_file("integ_in.c", "void f(){}");
+    rc = fix_code_main(1, argv);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    remove("integ_in.c");
+  }
+
+  {
+    char *argv[1];
+    rc = fix_code_main(0, argv);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  }
+
+  {
+    char *argv[3];
+    rc = fix_code_main(3, argv);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  }
+
   rmdir(root);
   free(root);
   free(sys_tmp);

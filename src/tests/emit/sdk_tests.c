@@ -6,6 +6,7 @@
 
 /* clang-format off */
 #include "c_cdd/safe_crt.h"
+#include <stdarg.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +15,24 @@
 #include "tests/emit/sdk_tests.h"
 
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int mock_fprintf(FILE *fp, const char *fmt, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, fmt);
+  ret = vfprintf(fp, fmt, args);
+  va_end(args);
+  return ret;
+}
+#define FPRINTF mock_fprintf
+#else
+#define FPRINTF fprintf
+#endif
 
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \
@@ -26,9 +45,9 @@ static cdd_c_error_t write_test_operation(FILE *fp,
                                           const struct OpenAPI_Operation *op,
                                           const struct SdkTestsConfig *config) {
   size_t i;
-  CHECK_IO(fprintf(fp, "\nTEST test_%s(void) {\n", op->operation_id));
-  CHECK_IO(fprintf(fp, "  struct HttpClient client;\n"));
-  CHECK_IO(fprintf(fp, "  int rc;\n"));
+  CHECK_IO(FPRINTF(fp, "\nTEST test_%s(void) {\n", op->operation_id));
+  CHECK_IO(FPRINTF(fp, "  struct HttpClient client;\n"));
+  CHECK_IO(FPRINTF(fp, "  int rc;\n"));
 
   /* Construct Arguments logic */
   /* For simplicity, declare variables for required args with placeholder values
@@ -36,26 +55,26 @@ static cdd_c_error_t write_test_operation(FILE *fp,
   for (i = 0; i < op->n_parameters; ++i) {
     const struct OpenAPI_Parameter *p = &op->parameters[i];
     if (strcmp(p->type, "integer") == 0) {
-      CHECK_IO(fprintf(fp, "  const int %s = 1;\n", p->name));
+      CHECK_IO(FPRINTF(fp, "  const int %s = 1;\n", p->name));
     } else if (strcmp(p->type, "boolean") == 0) {
-      CHECK_IO(fprintf(fp, "  const int %s = 1;\n", p->name));
+      CHECK_IO(FPRINTF(fp, "  const int %s = 1;\n", p->name));
     } else if (strcmp(p->type, "string") == 0) {
-      CHECK_IO(fprintf(fp, "  const char *%s = \"test\";\n", p->name));
+      CHECK_IO(FPRINTF(fp, "  const char *%s = \"test\";\n", p->name));
     }
   }
 
   /* Request Body */
   if (op->req_body.ref_name) {
     CHECK_IO(
-        fprintf(fp, "  struct %s *req_body = NULL;\n", op->req_body.ref_name));
+        FPRINTF(fp, "  struct %s *req_body = NULL;\n", op->req_body.ref_name));
     if (!op->req_body.is_array) {
-      CHECK_IO(fprintf(fp, "  /* Assume %s_default works */\n",
+      CHECK_IO(FPRINTF(fp, "  /* Assume %s_default works */\n",
                        op->req_body.ref_name));
       CHECK_IO(
-          fprintf(fp, "  %s_default(&req_body);\n", op->req_body.ref_name));
+          FPRINTF(fp, "  %s_default(&req_body);\n", op->req_body.ref_name));
     } else {
       /* Array body stub */
-      CHECK_IO(fprintf(fp, "  /* Array body stub */\n"));
+      CHECK_IO(FPRINTF(fp, "  /* Array body stub */\n"));
     }
   }
 
@@ -74,13 +93,13 @@ static cdd_c_error_t write_test_operation(FILE *fp,
     }
 
     if (has_output) {
-      CHECK_IO(fprintf(fp, "  struct %s *res_out = NULL;\n", res_type));
+      CHECK_IO(FPRINTF(fp, "  struct %s *res_out = NULL;\n", res_type));
     }
 
     /* Client Init */
-    CHECK_IO(fprintf(fp, "  rc = %sinit(&client, \"%s\");\n",
+    CHECK_IO(FPRINTF(fp, "  rc = %sinit(&client, \"%s\");\n",
                      config->func_prefix, config->mock_server_url));
-    CHECK_IO(fprintf(fp, "  ASSERT_EQ(0, rc);\n"));
+    CHECK_IO(FPRINTF(fp, "  ASSERT_EQ(0, rc);\n"));
 
     /* Call */
     {
@@ -91,48 +110,48 @@ static cdd_c_error_t write_test_operation(FILE *fp,
       } else {
         CDD_SNPRINTF(group_buf, sizeof(group_buf), "Default");
       }
-      CHECK_IO(fprintf(fp, "  rc = %s_%s%s(&client", group_buf,
+      CHECK_IO(FPRINTF(fp, "  rc = %s_%s%s(&client", group_buf,
                        config->func_prefix, op->operation_id));
     }
 
     /* Args */
     for (i = 0; i < op->n_parameters; ++i) {
-      CHECK_IO(fprintf(fp, ", %s", op->parameters[i].name));
+      CHECK_IO(FPRINTF(fp, ", %s", op->parameters[i].name));
       if (op->parameters[i].is_array) {
-        CHECK_IO(fprintf(fp, ", 0")); /* len */
+        CHECK_IO(FPRINTF(fp, ", 0")); /* len */
       }
     }
     if (op->req_body.ref_name) {
       if (op->req_body.is_array) {
-        CHECK_IO(fprintf(fp, ", NULL, 0"));
+        CHECK_IO(FPRINTF(fp, ", NULL, 0"));
       } else {
-        CHECK_IO(fprintf(fp, ", req_body"));
+        CHECK_IO(FPRINTF(fp, ", req_body"));
       }
     }
     if (has_output) {
-      CHECK_IO(fprintf(fp, ", &res_out"));
+      CHECK_IO(FPRINTF(fp, ", &res_out"));
     }
-    CHECK_IO(fprintf(fp, ", NULL")); /* api_error */
+    CHECK_IO(FPRINTF(fp, ", NULL")); /* api_error */
 
-    CHECK_IO(fprintf(fp, ");\n"));
-    CHECK_IO(fprintf(
+    CHECK_IO(FPRINTF(fp, ");\n"));
+    CHECK_IO(FPRINTF(
         fp, "  /* Check Result - Mock server returns 200 OK text usually, so "
             "parse might fail unless mock matches model */\n"));
-    CHECK_IO(fprintf(fp,
+    CHECK_IO(FPRINTF(fp,
                      "  /* ASSERT_EQ(0, rc); Intentionally commented out as "
                      "mock server returns generic OK currently */\n"));
 
     /* Cleanup */
-    CHECK_IO(fprintf(fp, "  %scleanup(&client);\n", config->func_prefix));
+    CHECK_IO(FPRINTF(fp, "  %scleanup(&client);\n", config->func_prefix));
     if (has_output) {
-      CHECK_IO(fprintf(fp, "  %s_cleanup(res_out);\n", res_type));
+      CHECK_IO(FPRINTF(fp, "  %s_cleanup(res_out);\n", res_type));
     }
     if (op->req_body.ref_name && !op->req_body.is_array) {
-      CHECK_IO(fprintf(fp, "  %s_cleanup(req_body);\n", op->req_body.ref_name));
+      CHECK_IO(FPRINTF(fp, "  %s_cleanup(req_body);\n", op->req_body.ref_name));
     }
   }
 
-  CHECK_IO(fprintf(fp, "  PASS();\n}\n"));
+  CHECK_IO(FPRINTF(fp, "  PASS();\n}\n"));
   return 0;
 }
 
@@ -146,7 +165,7 @@ cdd_c_error_t codegen_sdk_tests_generate(FILE *fp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Header */
-  CHECK_IO(fprintf(fp,
+  CHECK_IO(FPRINTF(fp,
                    "#include <greatest.h>\n"
                    "#include <stdlib.h>\n"
                    "#include <string.h>\n"
@@ -154,7 +173,7 @@ cdd_c_error_t codegen_sdk_tests_generate(FILE *fp,
                    "#include \"%s\"\n\n",
                    config->client_header));
 
-  CHECK_IO(fprintf(
+  CHECK_IO(FPRINTF(
       fp, "GREATEST_MAIN_DEFS();\n"
           "#if defined(_MSC_VER)\n#pragma warning(disable: 4551)\n#endif\n\n"));
 
@@ -167,20 +186,20 @@ cdd_c_error_t codegen_sdk_tests_generate(FILE *fp,
   }
 
   /* Runner */
-  CHECK_IO(fprintf(fp, "\nSUITE(sdk_suite) {\n"));
+  CHECK_IO(FPRINTF(fp, "\nSUITE(sdk_suite) {\n"));
   for (i = 0; i < spec->n_paths; ++i) {
     for (j = 0; j < spec->paths[i].n_operations; ++j) {
-      CHECK_IO(fprintf(fp, "  RUN_TEST(test_%s);\n",
+      CHECK_IO(FPRINTF(fp, "  RUN_TEST(test_%s);\n",
                        spec->paths[i].operations[j].operation_id));
     }
   }
-  CHECK_IO(fprintf(fp, "}\n\n"));
+  CHECK_IO(FPRINTF(fp, "}\n\n"));
 
-  CHECK_IO(fprintf(fp, ""
+  CHECK_IO(FPRINTF(fp, ""
                        "int main(int argc, char **argv) {\n"));
-  CHECK_IO(fprintf(fp, "  GREATEST_MAIN_BEGIN();\n"));
-  CHECK_IO(fprintf(fp, "  RUN_SUITE(sdk_suite);\n"));
-  CHECK_IO(fprintf(fp, "  GREATEST_MAIN_END();\n}\n"));
+  CHECK_IO(FPRINTF(fp, "  GREATEST_MAIN_BEGIN();\n"));
+  CHECK_IO(FPRINTF(fp, "  RUN_SUITE(sdk_suite);\n"));
+  CHECK_IO(FPRINTF(fp, "  GREATEST_MAIN_END();\n}\n"));
 
   return 0;
 }

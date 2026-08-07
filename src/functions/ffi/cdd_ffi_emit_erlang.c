@@ -13,11 +13,9 @@
 
 static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  if (!c_name || !out_name || out_sz == 0)
-    return;
-  while (c_name[i] && j < out_sz - 1) {
+  while (c_name[i] && j < out_sz - 2) {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
-      if (j < out_sz - 2 && c_name[i - 1] != '_') {
+      if (c_name[i - 1] != '_') {
         out_name[j++] = '_';
       }
     }
@@ -45,7 +43,7 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
 
   if (config->module_name) {
     CDD_SNPRINTF(erl_module_name, sizeof(erl_module_name), "%s",
@@ -57,25 +55,75 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_nif.c",
                config->output_dir, lib_name);
-  if (fopen_s(&c_f, c_filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&c_f, c_filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
+
   CDD_SNPRINTF(erl_filepath, sizeof(erl_filepath), "%s\\%s.erl",
                config->output_dir, erl_module_name);
-  if (fopen_s(&erl_f, erl_filepath, "w") != 0) {
-    fclose(c_f);
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&erl_f, erl_filepath, "w");
+    }
+    if (err != 0) {
+      fclose(c_f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_nif.c",
                config->output_dir, lib_name);
-  c_f = fopen(c_filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      c_f = NULL;
+    } else
+#endif
+    {
+      c_f = fopen(c_filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!c_f) {
     return CDD_C_ERROR_UNKNOWN;
   }
+
   CDD_SNPRINTF(erl_filepath, sizeof(erl_filepath), "%s/%s.erl",
                config->output_dir, erl_module_name);
-  erl_f = fopen(erl_filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      erl_f = NULL;
+    } else
+#endif
+    {
+      erl_f = fopen(erl_filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!erl_f) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;

@@ -12,6 +12,7 @@
 #include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
+#include "c_cdd/memory.h"
 #include "c_str_span.h"
 #include <errno.h>
 #include <string.h>
@@ -31,24 +32,44 @@
 extern volatile int g_fail_io_after;
 C_CDD_EXPORT volatile int g_extern_c_top_node_fail = 0;
 C_CDD_EXPORT volatile int g_extern_c_bot_node_fail = 0;
+C_CDD_EXPORT volatile int g_extern_c_helper_fail = 0;
 #endif
 
-static int is_global_wrapper(cdd_cst_node_t *node) {
+static cdd_c_error_t is_global_wrapper(cdd_cst_node_t *node,
+                                       int *out_is_global) {
+#ifdef CDD_BUILD_TESTS
+  if (g_extern_c_helper_fail == -1)
+    return CDD_C_ERROR_MEMORY;
+#endif
+
   while (node != NULL) {
     if (node->kind == CDD_CST_DECLARATION ||
         node->kind == CDD_CST_FUNCTION_DEFINITION ||
         node->kind == CDD_CST_STATEMENT || node->kind == CDD_CST_EXPRESSION ||
         node->kind == CDD_CST_BLOCK ||
         node->kind == CDD_CST_CLASS_DECLARATION) {
-      return 0;
+      *out_is_global = 0;
+      return CDD_C_SUCCESS;
     }
     node = node->parent;
   }
-  return 1;
+  *out_is_global = 1;
+  return CDD_C_SUCCESS;
 }
 
-static int tree_has_decl(cdd_cst_node_t *node) {
+static cdd_c_error_t tree_has_decl(cdd_cst_node_t *node, int *out_has_decl) {
   size_t i;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_extern_c_helper_fail > 0) {
+    if (--g_extern_c_helper_fail == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
+
+  *out_has_decl = 0;
+
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *child = node->children[i].val.node;
@@ -58,22 +79,27 @@ static int tree_has_decl(cdd_cst_node_t *node) {
       k = child->kind;
       if (k == CDD_CST_DECLARATION || k == CDD_CST_FUNCTION_DEFINITION ||
           k == CDD_CST_STATEMENT) {
-        return 1;
+        *out_has_decl = 1;
+        return CDD_C_SUCCESS;
       }
       if (k == CDD_CST_UNKNOWN) {
         if (child->num_children > 0 &&
             child->children[0].kind == CDD_CST_CHILD_TOKEN) {
           cdd_token_t *tk = child->children[0].val.token;
           if (tk->kind != CDD_TOKEN_OTHER && tk->kind != CDD_TOKEN_EOF) {
-            return 1;
+            *out_has_decl = 1;
+            return CDD_C_SUCCESS;
           }
         }
       }
-      if (tree_has_decl(child))
-        return 1;
+      rc = tree_has_decl(child, out_has_decl);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+      if (*out_has_decl)
+        return CDD_C_SUCCESS;
     }
   }
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
@@ -92,7 +118,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Verify there are actual C declarations to wrap */
-  has_decl = tree_has_decl(tree->root);
+  rc = tree_has_decl(tree->root, &has_decl);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (!has_decl)
     return CDD_C_SUCCESS;
 
@@ -101,8 +129,14 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_CONDITIONAL, &res);
   if (rc == 0) {
     for (i = 0; i < res.size; i++) {
+      int is_global = 0;
       cdd_cst_node_t *dir = res.nodes[i];
-      if (is_global_wrapper(dir) && dir->num_children > 0 &&
+      rc = is_global_wrapper(dir, &is_global);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(res.nodes);
+        return rc;
+      }
+      if (is_global && dir->num_children > 0 &&
           dir->children[0].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = dir->children[0].val.token;
         if (tok->kind == CDD_TOKEN_PREPROC_IFDEF) {
@@ -118,7 +152,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   if (!found_cpp) {
@@ -126,8 +160,14 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
     if (rc == 0) {
       for (i = 0; i < res.size; i++) {
+        int is_global = 0;
         cdd_cst_node_t *dir = res.nodes[i];
-        if (is_global_wrapper(dir) && dir->num_children > 0 &&
+        rc = is_global_wrapper(dir, &is_global);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(res.nodes);
+          return rc;
+        }
+        if (is_global && dir->num_children > 0 &&
             dir->children[0].kind == CDD_CST_CHILD_TOKEN) {
           cdd_token_t *tok = dir->children[0].val.token;
           if (tok->kind == CDD_TOKEN_PREPROC_IFDEF) {
@@ -157,7 +197,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
           }
         }
       }
-      free(res.nodes);
+      C_CDD_FREE(res.nodes);
     }
   }
 
@@ -239,7 +279,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     int in_extern_c = 0;
     size_t j;
     cdd_cst_node_t *top_node =
-        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+        (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+    if (!top_node)
+      return CDD_C_ERROR_MEMORY;
     if (top_node) {
       top_node->kind = CDD_CST_UNKNOWN;
       cdd_cst_builder_init(&bld, tree, top_node);
@@ -293,9 +335,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
             if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
               /* Late include found! Close before it, open after it. */
               cdd_cst_node_t *close_node =
-                  (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                  (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
               cdd_cst_node_t *reopen_node =
-                  (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                  (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
               if (close_node && reopen_node && in_extern_c) {
                 close_node->kind = CDD_CST_UNKNOWN;
                 cdd_cst_builder_init(&bld, tree, close_node);
@@ -318,8 +360,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
                                                   reopen_node);
                 if (rc != CDD_C_SUCCESS) {
                   if (reopen_node->children)
-                    free(reopen_node->children);
-                  free(reopen_node);
+                    C_CDD_FREE(reopen_node->children);
+                  C_CDD_FREE(reopen_node);
                   return rc;
                 }
                 j += 2; /* skip the include node AND the reopen node we just
@@ -344,7 +386,9 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   {
     cdd_cst_builder_t bld;
     cdd_cst_node_t *bot_node =
-        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+        (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
+    if (!bot_node)
+      return CDD_C_ERROR_MEMORY;
     if (bot_node) {
       bot_node->kind = CDD_CST_UNKNOWN;
       cdd_cst_builder_init(&bld, tree, bot_node);

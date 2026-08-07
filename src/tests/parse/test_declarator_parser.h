@@ -108,7 +108,7 @@ TEST test_parse_ptr(void) {
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
-  const char *code = "int * const volatile p";
+  const char *code = "int * const volatile restrict p";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -561,6 +561,45 @@ TEST test_parse_declarator_uncovered(void) {
   PASS();
 }
 
+TEST test_parse_declarator_uncovered_2(void) {
+  struct DeclInfo info;
+  struct TokenList *tl;
+  int is_grouping = 0;
+
+  decl_info_init(&info);
+  tl = setup_tokens("/* a */ /* b */");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("(^)");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
+  ASSERT_EQ(1, is_grouping);
+  free_token_list(tl);
+
+  tl = setup_tokens("([])");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
+  ASSERT_EQ(1, is_grouping);
+  free_token_list(tl);
+
+  tl = setup_tokens("()");
+  ASSERT_EQ(CDD_C_SUCCESS, is_grouping_paren(tl, 0, tl->size, &is_grouping));
+  ASSERT_EQ(0, is_grouping);
+  free_token_list(tl);
+
+  tl = setup_tokens("union U");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  tl = setup_tokens("enum E");
+  ASSERT_EQ(CDD_C_SUCCESS, parse_declaration(tl, 0, 2, &info));
+  decl_info_free(&info);
+  free_token_list(tl);
+
+  PASS();
+}
+
 SUITE(declarator_parser_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return;
@@ -586,6 +625,7 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_declarator_empty_array);
   RUN_TEST(test_parse_declarator_just_x);
   RUN_TEST(test_parse_declarator_uncovered);
+  RUN_TEST(test_parse_declarator_uncovered_2);
 }
 
 #ifdef __cplusplus

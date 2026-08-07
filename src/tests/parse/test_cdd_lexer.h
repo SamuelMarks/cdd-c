@@ -269,8 +269,6 @@ TEST test_cdd_lexer_oom(void) {
   rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
-  if (tl)
-    cdd_lexer_free_token_list(tl);
   tl = NULL;
 
   g_cdd_cst_alloc_token_fail = 4;
@@ -285,8 +283,6 @@ TEST test_cdd_lexer_oom(void) {
       &tl);
   g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t4);
-  if (tl)
-    cdd_lexer_free_token_list(tl);
   tl = NULL;
   g_fail_io_after = -1;
 
@@ -491,7 +487,37 @@ TEST test_lexer_branches(void) {
   PASS();
 }
 
+TEST test_lexer_oom_injected(void) {
+  cdd_token_list_t *tl = NULL;
+
+  extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
+  g_cdd_lexer_trivia_fail = 1;
+  int r1 = cdd_lexer_tokenize(az_span_create((uint8_t *)"// trivia", 10), &tl);
+  g_cdd_lexer_trivia_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
+
+  g_cdd_lexer_trivia_fail = 1;
+  int r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)"   ", 3), &tl);
+  g_cdd_lexer_trivia_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
+
+  extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
+  g_cdd_lexer_id_fail = 1;
+  int r3 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+  g_cdd_lexer_id_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
+
+  extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
+  g_cdd_lexer_id2_fail = 1;
+  int r4 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+  g_cdd_lexer_id2_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
+
+  PASS();
+}
+
 SUITE(cdd_lexer_suite) {
+  RUN_TEST(test_lexer_oom_injected);
   RUN_TEST(test_lexer_branches);
   RUN_TEST(test_cdd_lexer_basic);
   RUN_TEST(test_cdd_lexer_empty);

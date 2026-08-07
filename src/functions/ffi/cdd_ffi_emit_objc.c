@@ -66,9 +66,7 @@ static const char *map_objc_type(cdd_ffi_type_t *t, int is_return) {
 }
 
 static void capitalize_first(char *str) {
-  if (str && str[0]) {
-    str[0] = (char)toupper((unsigned char)str[0]);
-  }
+  str[0] = (char)toupper((unsigned char)str[0]);
 }
 
 cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
@@ -77,19 +75,16 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   FILE *m_file = NULL;
   char h_filepath[1024];
   char m_filepath[1024];
-  const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "MyLib")
-          : "MyLib";
-  const char *module_name =
-      config
-          ? ((config && config->module_name) ? config->module_name : "Bindings")
-          : "Bindings";
+  const char *lib_name;
+  const char *module_name;
   size_t i, j;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
+
+  lib_name = (config->library_name) ? config->library_name : "MyLib";
+  module_name = (config->module_name) ? config->module_name : "Bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(h_filepath, sizeof(h_filepath), "%s\\%s.h", config->output_dir,
@@ -112,8 +107,20 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   m_file = fopen(m_filepath, "w");
   if (!m_file) {
+    printf("Failed to open %s\n", m_filepath);
     fclose(h_file);
     return CDD_C_ERROR_UNKNOWN;
+  } else {
+    printf("Successfully opened %s (which is weird if it's a directory)\n",
+           m_filepath);
+  }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 2) {
+      fclose(m_file);
+      fclose(h_file);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #endif
 

@@ -76,7 +76,7 @@ static void next_tok(macro_lexer_t *lex) {
     char c = lex->str[lex->pos];
     char nc = (lex->pos + 1 < lex->len) ? lex->str[lex->pos + 1] : '\0';
 
-    if (isdigit((unsigned char)c) || (c == '.' && isdigit((unsigned char)nc))) {
+    if (isdigit((unsigned char)c) || c == '.') {
       size_t start = lex->pos;
       int is_float = 0;
       int is_hex = 0;
@@ -100,8 +100,7 @@ static void next_tok(macro_lexer_t *lex) {
           } else if (ch == 'e' || ch == 'E') {
             is_float = 1;
             lex->pos++;
-            if (lex->pos < lex->len &&
-                (lex->str[lex->pos] == '+' || lex->str[lex->pos] == '-'))
+            if (lex->str[lex->pos] == '+' || lex->str[lex->pos] == '-')
               lex->pos++;
           } else
             break;
@@ -153,12 +152,12 @@ static void next_tok(macro_lexer_t *lex) {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_IDENT;
         lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
-        if (lex->cur.str_val) {
-          memcpy(lex->cur.str_val, lex->str + start, len);
-          lex->cur.str_val[len] = '\0';
-        } else {
+        if (!lex->cur.str_val) {
           lex->cur.kind = TOK_ERROR;
+          return;
         }
+        memcpy(lex->cur.str_val, lex->str + start, len);
+        lex->cur.str_val[len] = '\0';
       }
       return;
     }
@@ -174,12 +173,12 @@ static void next_tok(macro_lexer_t *lex) {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_STR;
         lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
-        if (lex->cur.str_val) {
-          memcpy(lex->cur.str_val, lex->str + start, len);
-          lex->cur.str_val[len] = '\0';
-        } else {
+        if (!lex->cur.str_val) {
           lex->cur.kind = TOK_ERROR;
+          return;
         }
+        memcpy(lex->cur.str_val, lex->str + start, len);
+        lex->cur.str_val[len] = '\0';
         lex->pos++;
       } else {
         lex->cur.kind = TOK_ERROR;
@@ -371,8 +370,7 @@ static cdd_macro_eval_result_t parse_bitwise_or(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_bitwise_xor(p);
-    if (p->err || left.type != MACRO_EVAL_TYPE_INT ||
-        right.type != MACRO_EVAL_TYPE_INT) {
+    if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
       p->err = 1;
       return make_err();
     }
@@ -387,8 +385,7 @@ static cdd_macro_eval_result_t parse_bitwise_xor(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_bitwise_and(p);
-    if (p->err || left.type != MACRO_EVAL_TYPE_INT ||
-        right.type != MACRO_EVAL_TYPE_INT) {
+    if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
       p->err = 1;
       return make_err();
     }
@@ -403,8 +400,7 @@ static cdd_macro_eval_result_t parse_bitwise_and(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_equality(p);
-    if (p->err || left.type != MACRO_EVAL_TYPE_INT ||
-        right.type != MACRO_EVAL_TYPE_INT) {
+    if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
       p->err = 1;
       return make_err();
     }
@@ -475,8 +471,7 @@ static cdd_macro_eval_result_t parse_shift(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_additive(p);
-    if (p->err || left.type != MACRO_EVAL_TYPE_INT ||
-        right.type != MACRO_EVAL_TYPE_INT) {
+    if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
       p->err = 1;
       return make_err();
     }
@@ -524,8 +519,7 @@ static cdd_macro_eval_result_t parse_multiplicative(parser_t *p) {
     if (p->err)
       return make_err();
     if (op == TOK_PERCENT) {
-      if (left.type != MACRO_EVAL_TYPE_INT ||
-          right.type != MACRO_EVAL_TYPE_INT || right.int_val == 0) {
+      if (left.type != MACRO_EVAL_TYPE_INT || right.int_val == 0) {
         p->err = 1;
         return make_err();
       }
@@ -563,7 +557,7 @@ static cdd_macro_eval_result_t parse_unary(parser_t *p) {
     r = parse_unary(p);
     if (r.type == MACRO_EVAL_TYPE_INT)
       r.int_val = -r.int_val;
-    else if (r.type == MACRO_EVAL_TYPE_FLOAT)
+    else
       r.float_val = -r.float_val;
     return r;
   }
@@ -584,7 +578,7 @@ static cdd_macro_eval_result_t parse_unary(parser_t *p) {
     r = parse_unary(p);
     if (r.type == MACRO_EVAL_TYPE_INT)
       r.int_val = !r.int_val;
-    else if (r.type == MACRO_EVAL_TYPE_FLOAT)
+    else
       r.int_val = !r.float_val;
     r.type = MACRO_EVAL_TYPE_INT;
     return r;
@@ -607,7 +601,7 @@ static cdd_macro_eval_result_t parse_primary(parser_t *p) {
   } else if (p->lex.cur.kind == TOK_IDENT) {
     /* macro reference */
     struct MacroDef *def = NULL;
-    if (p->ctx && p->lex.cur.str_val) {
+    {
       size_t i;
       for (i = 0; i < p->ctx->macro_count; i++) {
         if (strcmp(p->ctx->macros[i].name, p->lex.cur.str_val) == 0) {
@@ -616,7 +610,7 @@ static cdd_macro_eval_result_t parse_primary(parser_t *p) {
         }
       }
     }
-    if (def && def->value && !def->is_function_like) {
+    if (def) {
       cdd_macro_eval_result_t ref_res;
       if (cdd_macro_evaluate(p->ctx, def->value, &ref_res) == 0) {
         r = ref_res;
@@ -648,7 +642,7 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
   parser_t p;
   cdd_macro_eval_result_t r;
 
-  if (!ctx || !expression || !out_result)
+  if (!ctx || !expression)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   p.ctx = ctx;
@@ -679,7 +673,7 @@ cdd_c_error_t cdd_macro_evaluate(struct PreprocessorContext *ctx,
 }
 
 void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
-  if (result && result->str_val) {
+  if (result->str_val) {
     C_CDD_FREE(result->str_val);
     result->str_val = NULL;
   }

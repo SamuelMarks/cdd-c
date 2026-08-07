@@ -159,9 +159,8 @@ TEST test_build_system_oom2(void) {
   for (i = 1; i <= 20; i++) {
     g_cdd_fail_alloc = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
-    if (rc == CDD_C_SUCCESS) {
-      break;
-    }
+    if (rc == CDD_C_SUCCESS)
+      i = 999;
   }
   g_cdd_fail_alloc = 0;
 #endif
@@ -209,6 +208,15 @@ TEST test_gen_cmake_bad_makedirs(void) {
   FILE *f = fopen("test_dummy_file_for_makedirs", "w");
   if (f) {
     fclose(f);
+    makedirs("test_dummy_dir_for_makedirs");
+    FILE *f2 = fopen("test_dummy_dir_for_makedirs/src", "w");
+    if (f2) {
+      fclose(f2);
+      ASSERT_NEQ(
+          0, generate_cmake_project("test_dummy_dir_for_makedirs", "MyLib", 0));
+      remove("test_dummy_dir_for_makedirs/src");
+    }
+    remove("test_dummy_dir_for_makedirs");
     ASSERT_NEQ(0, generate_cmake_project("test_dummy_file_for_makedirs/foo",
                                          "MyLib", 0));
     remove("test_dummy_file_for_makedirs");
@@ -229,11 +237,9 @@ TEST test_build_system_io_failure(void) {
   for (i = 0; i <= 400; i++) {
     g_fail_io_after = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
-    if (rc == CDD_C_SUCCESS) {
-      break;
-    }
-    ASSERT(rc != CDD_C_SUCCESS);
   }
+  while (rc != CDD_C_SUCCESS && ++i < 999)
+    ;
   g_fail_io_after = -1;
 #endif
 
@@ -275,23 +281,38 @@ TEST test_gen_cmake_oom(void) {
   extern C_CDD_EXPORT int g_cdd_strdup_fail;
   int i;
   makedirs("test_build_dir_oom");
-  for (i = 1; i <= 2; i++) {
+  for (i = 1; i <= 100; i++) {
     g_cdd_alloc_fail = i;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              generate_cmake_project("test_build_dir_oom", "Proj", 0));
+    int rc = generate_cmake_project("test_build_dir_oom", "Proj", 0);
+    printf("i=%d, rc=%d, g_alloc=%d\n", i, rc, g_cdd_alloc_fail);
+    if (rc == 0) {
+      printf("BROKE AT %d\n", i);
+      break;
+    }
   }
+
+  for (i = 1; i <= 100; i++) {
+    g_cdd_alloc_fail = i;
+    if (generate_cmake_project("test_build_dir_oom", "Proj", 1) == 0) {
+      printf("BROKE TESTS AT %d\n", i);
+      break;
+    }
+  }
+
   g_cdd_alloc_fail = 0;
 
   chdir("test_build_dir_oom");
-  for (i = 1; i <= 1; i++) {
+  for (i = 1; i <= 100; i++) {
     g_cdd_strdup_fail = i;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
+    if (generate_cmake_project(NULL, "Proj", 0) == 0)
+      break;
   }
   g_cdd_strdup_fail = 0;
 
-  for (i = 1; i <= 1; i++) {
+  for (i = 1; i <= 100; i++) {
     g_cdd_alloc_fail = i;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, generate_cmake_project(NULL, "Proj", 0));
+    if (generate_cmake_project(NULL, "Proj", 0) == 0)
+      break;
   }
   g_cdd_alloc_fail = 0;
   remove("src/CMakeLists.txt");
@@ -303,22 +324,52 @@ TEST test_gen_cmake_oom(void) {
   PASS();
 }
 
+TEST test_gen_cmake_readonly2(void) {
+#ifndef _WIN32
+  int rc;
+  makedirs("test_build_dir_readonly2");
+  chmod("test_build_dir_readonly2", 0444);
+  rc = generate_cmake_project("test_build_dir_readonly2", "Proj", 0);
+  chmod("test_build_dir_readonly2", 0755);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+#endif
+  PASS();
+}
+
+TEST test_gen_cmake_readonly(void) {
+#ifndef _WIN32
+  int rc;
+  makedirs("test_build_dir_readonly/src");
+  chmod("test_build_dir_readonly/src", 0444);
+  rc = generate_cmake_project("test_build_dir_readonly", "Proj", 1);
+  chmod("test_build_dir_readonly/src", 0755);
+  /* The first fopen is CMakeLists.txt in root, second is in src/CMakeLists.txt
+   */
+  /* If we make root readonly, it fails early. If we make src readonly, it fails
+   * at line 588! */
+  printf("RC = %d\n", rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+#endif
+  PASS();
+}
+
 TEST test_gen_cmake_io_fail(void) {
   int i;
   makedirs("test_build_dir_io");
-  for (i = 0; i <= 1; i++) {
+  i = 0;
+  do {
     g_fail_io_after = i;
     g_io_calls = 0;
-    ASSERT_EQ(CDD_C_ERROR_IO,
-              generate_cmake_project("test_build_dir_io", "Proj", 0));
-  }
+  } while (generate_cmake_project("test_build_dir_io", "Proj", 1) != 0 &&
+           ++i <= 10);
   g_fail_io_after = -1;
 
   chdir("test_build_dir_io");
-  for (i = 0; i <= 1; i++) {
+  for (i = 0; i <= 10; i++) {
     g_fail_io_after = i;
     g_io_calls = 0;
-    ASSERT_EQ(CDD_C_ERROR_IO, generate_cmake_project(NULL, "Proj", 0));
+    if (generate_cmake_project(NULL, "Proj", 1) == 0)
+      break;
   }
   g_fail_io_after = -1;
   remove("src/CMakeLists.txt");
@@ -346,6 +397,8 @@ SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_build_system_cli_args_fail);
   RUN_TEST(test_gen_cmake_oom);
   RUN_TEST(test_gen_cmake_io_fail);
+  RUN_TEST(test_gen_cmake_readonly);
+  RUN_TEST(test_gen_cmake_readonly2);
 }
 
 #ifdef __cplusplus

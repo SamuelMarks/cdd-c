@@ -174,23 +174,15 @@ static void free_decl_type(struct DeclType *t) {
   if (!t)
     return;
   free_decl_type(t->inner);
-  switch (t->kind) {
-  case DECL_BASE:
+  if (t->kind == DECL_BASE) {
     if (t->data.base.name)
       free(t->data.base.name);
-    break;
-  case DECL_PTR:
+  } else if (t->kind == DECL_PTR) {
     if (t->data.ptr.qualifiers)
       free(t->data.ptr.qualifiers);
-    break;
-  case DECL_ARRAY:
+  } else if (t->kind == DECL_ARRAY) {
     if (t->data.array.size_expr)
       free(t->data.array.size_expr);
-    break;
-  case DECL_FUNC:
-    if (t->data.func.args_str)
-      free(t->data.func.args_str);
-    break;
   }
   free(t);
 }
@@ -284,10 +276,10 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
         k == TOKEN_KEYWORD_ENUM) {
       size_t j;
       skip_ws(tokens, i + 1, end, &j);
-      if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
+      if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         skip_ws(tokens, j + 1, end, &j);
       }
-      if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
+      if (tokens->tokens[j].kind == TOKEN_LBRACE) {
         skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
       }
@@ -296,7 +288,7 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
     else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
       size_t j;
       skip_ws(tokens, i + 1, end, &j);
-      if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
+      if (tokens->tokens[j].kind == TOKEN_LPAREN) {
         /* _Atomic(int) ... */
         skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
@@ -318,23 +310,19 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
         continue;
       }
     } else if (k == TOKEN_RPAREN) {
-      if (current_depth > best_depth) {
-        best_depth = current_depth;
-        best_pivot = i;
-      }
+      best_depth = current_depth;
+      best_pivot = i;
       current_depth--;
     } else if (k == TOKEN_LBRACKET) {
-      if (current_depth > best_depth) {
-        best_depth = current_depth;
-        best_pivot = i;
-      }
+      best_depth = current_depth;
+      best_pivot = i;
       skip_group(tokens, i, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &i);
       continue;
     }
     i++;
   }
 
-  if (best_pivot == end && best_depth == -1) {
+  if (best_pivot == end) {
     {
       *_out_val = end;
       return CDD_C_SUCCESS;
@@ -363,17 +351,17 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
         k == TOKEN_KEYWORD_ENUM) {
       size_t j;
       skip_ws(tokens, i + 1, end, &j);
-      if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
+      if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         skip_ws(tokens, j + 1, end, &j);
       }
-      if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
+      if (tokens->tokens[j].kind == TOKEN_LBRACE) {
         skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
       }
     } else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
       size_t j;
       skip_ws(tokens, i + 1, end, &j);
-      if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
+      if (tokens->tokens[j].kind == TOKEN_LPAREN) {
         skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
       }
@@ -492,7 +480,7 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
       size_t qual_end = (left != SIZE_MAX) ? left + 1 : 0;
       size_t qual_start = qual_end;
 
-      while (left != SIZE_MAX && left >= left_limit && left < end) {
+      while (left != SIZE_MAX && left >= left_limit) {
         enum TokenKind k = tokens->tokens[left].kind;
 
         if (k == TOKEN_STAR) {
@@ -525,8 +513,7 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
     }
 
     /* Phase Unnest: Handle Grouping Parens */
-    if (left != SIZE_MAX && left >= left_limit && left < end && right < end &&
-        tokens->tokens[left].kind == TOKEN_LPAREN) {
+    if (left != SIZE_MAX && tokens->tokens[left].kind == TOKEN_LPAREN) {
       skip_ws_back(tokens, left, left_limit, &left);
       skip_ws(tokens, right + 1, end, &right);
     } else {
@@ -543,7 +530,7 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
       goto error;
     }
 
-    if (left != SIZE_MAX && left < end && left >= left_limit) {
+    if (left != SIZE_MAX) {
       join_tokens_range(tokens, left_limit, left + 1, &node->data.base.name);
     } else {
       c_cdd_strdup("int", &node->data.base.name); /* Implicit or error */

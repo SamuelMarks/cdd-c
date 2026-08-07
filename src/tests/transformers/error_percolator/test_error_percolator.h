@@ -288,6 +288,115 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   PASS();
 }
 
+TEST test_cdd_transform_percolate_errors_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  const char *code = "int my_func0() { return 0; }\n"
+                     "int trailing_call0() { my_func0(); return 0; }\n"
+                     "int my_func1() { return 0; }\n"
+                     "int trailing_call1() { my_func1(); return 0; }\n"
+                     "int my_func2() { return 0; }\n"
+                     "int trailing_call2() { my_func2(); return 0; }\n"
+                     "int my_func3() { return 0; }\n"
+                     "int trailing_call3() { my_func3(); return 0; }\n"
+                     "int my_func4() { return 0; }\n"
+                     "int trailing_call4() { my_func4(); return 0; }\n"
+                     "int my_func5() { return 0; }\n"
+                     "int trailing_call5() { my_func5(); return 0; }\n"
+                     "int my_func6() { return 0; }\n"
+                     "int trailing_call6() { my_func6(); return 0; }\n"
+                     "int my_func7() { return 0; }\n"
+                     "int trailing_call7() { my_func7(); return 0; }\n"
+                     "int my_func8() { return 0; }\n"
+                     "int trailing_call8() { my_func8(); return 0; }\n"
+                     "int my_func9() { return 0; }\n"
+                     "int trailing_call9() { my_func9(); return 0; }\n"
+                     "int my_func10() { return 0; }\n"
+                     "int trailing_call10() { my_func10(); return 0; }\n"
+                     "int my_func11() { return 0; }\n"
+                     "int trailing_call11() { my_func11(); return 0; }\n"
+                     "int my_func12() { return 0; }\n"
+                     "int trailing_call12() { my_func12(); return 0; }\n"
+                     "int my_func13() { return 0; }\n"
+                     "int trailing_call13() { my_func13(); return 0; }\n"
+                     "int my_func14() { return 0; }\n"
+                     "int trailing_call14() { my_func14(); return 0; }\n"
+                     "int my_func15() { return 0; }\n"
+                     "int trailing_call15() { my_func15(); return 0; }\n"
+                     "int my_func16() { return 0; }\n"
+                     "int trailing_call16() { my_func16(); return 0; }\n"
+                     "int my_func17() { return 0; }\n"
+                     "int trailing_call17() { my_func17(); return 0; }\n"
+                     "int my_func18() { return 0; }\n"
+                     "int trailing_call18() { my_func18(); return 0; }\n"
+                     "int my_func19() { return 0; }\n"
+                     "int trailing_call19() { my_func19(); return 0; }\n"
+                     "int my_func20() { return 0; }\n"
+                     "int trailing_call20() { my_func20(); return 0; }\n"
+                     "int my_func21() { return 0; }\n"
+                     "int trailing_call21() { my_func21(); return 0; }\n"
+                     "int my_func22() { return 0; }\n"
+                     "int trailing_call22() { my_func22(); return 0; }\n"
+                     "int my_func23() { return 0; }\n"
+                     "int trailing_call23() { my_func23(); return 0; }\n"
+                     "int my_func24() { return 0; }\n"
+                     "int trailing_call24() { my_func24(); return 0; }\n"
+                     "int my_func25() { return 0; }\n"
+                     "int trailing_call25() { my_func25(); return 0; }\n"
+                     "int my_func26() { return 0; }\n"
+                     "int trailing_call26() { my_func26(); return 0; }\n"
+                     "int my_func27() { return 0; }\n"
+                     "int trailing_call27() { my_func27(); return 0; }\n"
+                     "int my_func28() { return 0; }\n"
+                     "int trailing_call28() { my_func28(); return 0; }\n"
+                     "int my_func29() { return 0; }\n"
+                     "int trailing_call29() { my_func29(); return 0; }\n"
+                     "int my_func30() { return 0; }\n"
+                     "int trailing_call30() { my_func30(); return 0; }\n"
+                     "int my_func31() { return 0; }\n"
+                     "int trailing_call31() { my_func31(); return 0; }\n"
+                     "int my_func32() { return 0; }\n"
+                     "int trailing_call32() { my_func32(); return 0; }\n"
+                     "int my_func33() { return 0; }\n"
+                     "int trailing_call33() { my_func33(); return 0; }\n";
+  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  int i;
+  for (i = 1; i < 2000; i++) {
+    cdd_cst_tree_t *tree = NULL;
+    int rc;
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    ASSERT_EQ(0, rc);
+
+    cdd_cst_query_result_t res_test;
+    rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
+                                    &res_test);
+    if (rc == 0) {
+      printf("Found %zu functions at i=%d\n", res_test.size, i);
+      /*
+      for (size_t k = 0; k < res_test.size; k++) {
+         printf("Func %zu\n", k);
+      }
+      */
+      C_CDD_FREE(res_test.nodes);
+    }
+
+    g_cdd_alloc_fail = i;
+    rc = cdd_transform_percolate_errors(tree, &config);
+    if (rc == CDD_C_SUCCESS) {
+      printf("OOM loop success at i=%d, alloc_fail remaining: %d, rc=%d\n", i,
+             g_cdd_alloc_fail, rc);
+      break;
+    }
+    printf("OOM loop i=%d failed with rc=%d\n", i, rc);
+    g_cdd_alloc_fail = 0;
+
+    cdd_cst_tree_free(tree);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+  g_cdd_alloc_fail = 0;
+#endif
+  PASS();
+}
+
 /**
  * @brief Error percolator transformer test suite.
  */
@@ -296,6 +405,7 @@ SUITE(transformer_error_percolator_suite) {
   RUN_TEST(test_cdd_transform_percolate_errors_complex);
   RUN_TEST(test_cdd_transform_percolate_errors_edge_cases);
   RUN_TEST(test_cdd_transform_percolate_errors_bld_fail);
+  RUN_TEST(test_cdd_transform_percolate_errors_oom);
 }
 
 #ifdef __cplusplus

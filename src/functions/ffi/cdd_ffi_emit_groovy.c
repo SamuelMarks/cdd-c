@@ -57,11 +57,10 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   char filepath[1024];
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      config ? ((config->library_name) ? config->library_name : "mylib")
+             : "mylib";
   const char *module_name =
-      config ? ((config && config->module_name) ? config->module_name : "MyLib")
+      config ? ((config->module_name) ? config->module_name : "MyLib")
              : "MyLib";
   size_t i, j;
 
@@ -72,13 +71,37 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.groovy", config->output_dir,
                module_name);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.groovy", config->output_dir,
                module_name);
-  f = fopen(filepath, "w");
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
+#endif
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -139,22 +162,48 @@ cdd_ffi_emit_groovy(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%sSpec.groovy",
                config->output_dir, module_name);
-  if (fopen_s(&f, filepath, "w") == 0) {
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_IO;
+    }
+  }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%sSpec.groovy",
                config->output_dir, module_name);
-  f = fopen(filepath, "w");
-  if (f) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      f = NULL;
+    } else
 #endif
-    fprintf(f, "import spock.lang.Specification\n\n");
-    fprintf(f, "class %sSpec extends Specification {\n", module_name);
-    fprintf(f, "    def \"Library can be loaded\"() {\n");
-    fprintf(f, "        expect:\n");
-    fprintf(f, "        %s.INSTANCE != null\n", module_name);
-    fprintf(f, "    }\n");
-    fprintf(f, "}\n");
-    fclose(f);
+    {
+      f = fopen(filepath, "w");
+    }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
+  if (!f)
+    return CDD_C_ERROR_IO;
+#endif
+  fprintf(f, "import spock.lang.Specification\n\n");
+  fprintf(f, "class %sSpec extends Specification {\n", module_name);
+  fprintf(f, "    def \"Library can be loaded\"() {\n");
+  fprintf(f, "        expect:\n");
+  fprintf(f, "        %s.INSTANCE != null\n", module_name);
+  fprintf(f, "    }\n");
+  fprintf(f, "}\n");
+  fclose(f);
 
   return CDD_C_SUCCESS;
 }

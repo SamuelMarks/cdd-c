@@ -271,7 +271,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                 while (n > lhs_start) {
                   n--;
                   if (tokens->tokens[n].kind == TOKEN_IDENTIFIER) {
-                    extract_token_text(&tokens->tokens[n], &lhs_name);
+                    rc = extract_token_text(&tokens->tokens[n], &lhs_name);
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup;
                     break;
                   }
                 }
@@ -505,10 +507,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                * wait range excludes return kw) */
               char *expr = NULL;
               char *replacement = NULL;
-              join_tokens_range(tokens, i + 1, semi, &expr);
+              rc = join_tokens_range(tokens, i + 1, semi, &expr);
+              if (rc != CDD_C_SUCCESS)
+                goto cleanup;
 
-              replacement = C_CDD_MALLOC(strlen(expr) + 256);
+              replacement = (char *)C_CDD_MALLOC(strlen(expr) + 256);
               if (!replacement) {
+                C_CDD_FREE(expr);
                 rc = CDD_C_ERROR_MEMORY;
                 goto cleanup;
               }

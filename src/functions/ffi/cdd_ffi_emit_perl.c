@@ -169,8 +169,8 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
-  module_name = (config && config->module_name) ? config->module_name : "MyLib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
+  module_name = (config->module_name) ? config->module_name : "MyLib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.pm", config->output_dir,
@@ -213,6 +213,14 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;
   }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 2) {
+      fclose(xs_f);
+      fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
+  }
   CDD_SNPRINTF(make_filepath, sizeof(make_filepath), "%s/Makefile.PL",
                config->output_dir);
   make_f = fopen(make_filepath, "w");
@@ -220,6 +228,15 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(f);
     fclose(xs_f);
     return CDD_C_ERROR_UNKNOWN;
+  }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 3) {
+      fclose(make_f);
+      fclose(xs_f);
+      fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
   CDD_SNPRINTF(typemap_filepath, sizeof(typemap_filepath), "%s/typemap",
                config->output_dir);
@@ -229,6 +246,16 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(xs_f);
     fclose(make_f);
     return CDD_C_ERROR_UNKNOWN;
+  }
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after == 4) {
+      fclose(typemap_f);
+      fclose(make_f);
+      fclose(xs_f);
+      fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #endif
 

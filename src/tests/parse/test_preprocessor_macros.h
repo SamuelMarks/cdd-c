@@ -43,6 +43,12 @@ TEST test_macro_evaluator_basic(void) {
   cdd_macro_eval_result_free(&res);
 
   /* Test 2: Bitwise and shifts */
+  rc = cdd_macro_evaluate(&ctx, "1.5 << 3", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1.5 & 3", &res);
+  ASSERT_NEQ(0, rc);
+
   rc = cdd_macro_evaluate(&ctx, "(1 << 3) | 2", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
@@ -50,7 +56,13 @@ TEST test_macro_evaluator_basic(void) {
   cdd_macro_eval_result_free(&res);
 
   /* Test 3: Logical operations */
-  rc = cdd_macro_evaluate(&ctx, "1 && (0 || !0)", &res);
+  rc = cdd_macro_evaluate(&ctx, "1.5 && 0 && (0 || !0.0)", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(0, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "1.5 && 2.5 && (0.0 || !0.0)", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
   ASSERT_EQ(1, res.int_val);
@@ -104,7 +116,7 @@ TEST test_macro_evaluator_all_ops(void) {
 
   /* Floats: Lexing floats, exponents, hex, negate float, divide, relational on
    * floats, float multiply */
-  rc = cdd_macro_evaluate(&ctx, "0x10 + 1.5e1 - 5.0 / 2.0 * 1.5", &res);
+  rc = cdd_macro_evaluate(&ctx, "0x10 + 0X20 + 1.5e1 - 5.0 / 2.0 * 1.5", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(MACRO_EVAL_TYPE_FLOAT, res.type);
   cdd_macro_eval_result_free(&res);
@@ -117,11 +129,16 @@ TEST test_macro_evaluator_all_ops(void) {
   ASSERT_EQ(1, res.int_val);
   cdd_macro_eval_result_free(&res);
 
-  rc = cdd_macro_evaluate(&ctx, "-1.5 + .5 + 1. + 1e-1", &res);
+  rc = cdd_macro_evaluate(&ctx, "-1.5f + .5L + 1.u + 1e+1F + 1El + 1U", &res);
   ASSERT_EQ(0, rc);
   cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "!1.5", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(0, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "!1", &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, res.int_val);
   cdd_macro_eval_result_free(&res);
@@ -143,6 +160,9 @@ TEST test_macro_evaluator_errors(void) {
   pp_context_init(&ctx);
 
   rc = cdd_macro_evaluate(NULL, "1", &res);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
+  rc = cdd_macro_evaluate(&ctx, NULL, &res);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
 
   rc = cdd_macro_evaluate(&ctx, "1 / 0", &res);
@@ -181,14 +201,28 @@ TEST test_macro_evaluator_errors(void) {
   rc = cdd_macro_evaluate(&ctx, "1 & ", &res);
   ASSERT_NEQ(0, rc);
 
-  rc = cdd_macro_evaluate(&ctx, "1 ^ ", &res);
+  rc = cdd_macro_evaluate(&ctx, "1.5 ^ 2", &res);
+  ASSERT_NEQ(0, rc);
+  rc = cdd_macro_evaluate(&ctx, "2 ^ 1.5", &res);
+  ASSERT_NEQ(0, rc);
   ASSERT_NEQ(0, rc);
 
-  rc = cdd_macro_evaluate(&ctx, "1 | ", &res);
+  rc = cdd_macro_evaluate(&ctx, "1.5 | 2", &res);
+  ASSERT_NEQ(0, rc);
+  rc = cdd_macro_evaluate(&ctx, "2 | 1.5", &res);
+  ASSERT_NEQ(0, rc);
   ASSERT_NEQ(0, rc);
 
   rc = cdd_macro_evaluate(&ctx, "1 && ", &res);
   ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "1.5 || 0", &res);
+  ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
+
+  rc = cdd_macro_evaluate(&ctx, "0 || 1.5", &res);
+  ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
 
   rc = cdd_macro_evaluate(&ctx, "1 || ", &res);
   ASSERT_NEQ(0, rc);
@@ -202,7 +236,7 @@ TEST test_macro_evaluator_errors(void) {
   rc = cdd_macro_evaluate(&ctx, "\"unterminated", &res);
   ASSERT_NEQ(0, rc);
 
-  rc = cdd_macro_evaluate(&ctx, "1.5e", &res);
+  rc = cdd_macro_evaluate(&ctx, "1.5e-", &res);
   ASSERT_EQ(0, rc);
 
   pp_context_free(&ctx);

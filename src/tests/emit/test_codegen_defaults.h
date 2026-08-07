@@ -14,7 +14,36 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/codegen.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static FILE *mock_tmpfile_def(void) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+    return NULL;
+  return tmpfile();
+}
+static long mock_ftell_def(FILE *stream) {
+  if (g_fail_io_after == 999)
+    return 0;
+  return ftell(stream);
+}
+static size_t mock_fread_def(void *ptr, size_t size, size_t nitems,
+                             FILE *stream) {
+  if (g_fail_io_after == 998)
+    return 0;
+  return fread(ptr, size, nitems, stream);
+}
+#define TMPFILE mock_tmpfile_def
+#define FTELL mock_ftell_def
+#define FREAD mock_fread_def
+#else
+#define TMPFILE tmpfile
+#define FTELL ftell
+#define FREAD fread
+#endif
 
 #ifdef _WIN32
 #else
@@ -24,7 +53,7 @@ extern "C" {
 static cdd_c_error_t generate_def_code(const char *struct_name,
                                        struct StructFields *sf,
                                        char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   long sz;
   char *content = NULL;
 
@@ -42,12 +71,12 @@ static cdd_c_error_t generate_def_code(const char *struct_name,
   }
 
   fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
+  sz = FTELL(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   if (sz > 0)
-    fread(content, 1, sz, tmp);
+    FREAD(content, 1, (size_t)sz, tmp);
 
   fclose(tmp);
   {
@@ -77,7 +106,7 @@ TEST test_default_primitive(void) {
   ASSERT(strstr(code, "(*out)->x = 42;"));
   ASSERT(strstr(code, "(*out)->flag = 1;"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -110,7 +139,7 @@ TEST test_default_string(void) {
   ASSERT(strstr(code, "if (!(*out)->s) { StrS_cleanup(*out); *out=NULL; return "
                       "CDD_C_ERROR_MEMORY; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -138,7 +167,7 @@ TEST test_default_enum(void) {
       code,
       "if (rc != 0) { EnumStruct_cleanup(*out); *out=NULL; return rc; }"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -164,7 +193,7 @@ TEST test_default_no_defaults(void) {
   ASSERT(strstr(code, "calloc(1, sizeof(**out))"));
   ASSERT(strstr(code, "(*out)->x = ") == NULL);
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -192,7 +221,7 @@ TEST test_default_nullptr(void) {
   ASSERT(strstr(code, "(*out)->ptr_val = NULL;"));
   ASSERT(strstr(code, "(*out)->str_ptr = NULL;"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -223,7 +252,7 @@ TEST test_default_binary_literal(void) {
   ASSERT(strstr(code, "(*out)->bin_val = 5;"));
   ASSERT(strstr(code, "(*out)->bin_cap = 3;"));
 
-  free(code);
+  C_CDD_FREE(code);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -234,7 +263,7 @@ TEST test_default_binary_literal(void) {
  */
 
 TEST test_write_forward_decl_bounds(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(NULL, "X"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(tmp, NULL));
@@ -245,7 +274,7 @@ TEST test_write_forward_decl_bounds(void) {
 }
 
 TEST test_write_forward_decl_io_fail(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   int rc;
   (void)rc;
   g_fail_io_after = 0;
@@ -264,7 +293,7 @@ TEST test_write_forward_decl_io_fail(void) {
 TEST test_write_enum_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   int rc;
   (void)rc;
   g_fail_io_after = 0;
@@ -309,7 +338,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
 TEST test_write_struct_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   int rc;
   (void)rc;
   g_fail_io_after = 0;
@@ -369,7 +398,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
 TEST test_write_union_declaration_h_io_fail(void) {
   struct StructFields sf;
   struct CodegenConfig cfg;
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   int rc;
   (void)rc;
   g_fail_io_after = 0;
@@ -410,7 +439,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
 }
 
 TEST test_codegen_h_bounds(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = TMPFILE();
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
@@ -444,7 +473,35 @@ TEST test_codegen_h_bounds(void) {
   PASS();
 }
 
+TEST test_def_errors(void) {
+  char *_out = NULL;
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
+
+  g_io_calls = 0;
+  g_fail_io_after = 1; /* TMPFILE fails */
+  ASSERT_EQ(0, generate_def_code("Prim", &sf, &_out));
+  ASSERT_EQ(NULL, _out);
+
+  g_io_calls = 0;
+  g_fail_io_after = 2; /* write_struct_default_func fails */
+  ASSERT_EQ(0, generate_def_code("Prim", &sf, &_out));
+  ASSERT_EQ(NULL, _out);
+
+  g_fail_io_after = 999; /* FTELL returns 0 */
+  ASSERT_EQ(0, generate_def_code("Prim", &sf, &_out));
+  ASSERT_NEQ(NULL, _out);
+  ASSERT_EQ(0, strlen(_out));
+  C_CDD_FREE(_out);
+
+  g_fail_io_after = -1;
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_defaults_suite) {
+  RUN_TEST(test_def_errors);
   RUN_TEST(test_default_primitive);
   RUN_TEST(test_default_string);
   RUN_TEST(test_default_enum);

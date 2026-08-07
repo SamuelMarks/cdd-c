@@ -370,7 +370,39 @@ TEST test_schema2tests_output_in_current_dir(void) {
   PASS();
 }
 
+TEST test_schema2tests_io_fails(void) {
+  char *argv[] = {"schema_io.json", "header.h", "out_dir_io/test_io.h"};
+  const char *const schema_content =
+      "{\"$defs\": {"
+      "\"E\":{\"type\":\"string\",\"enum\":[\"X\"]},"
+      "\"S\":{\"type\":\"object\",\"properties\":{\"foo\":{\"type\":\"string\"}"
+      "}},"
+      "\"E2\":{\"type\":\"string\",\"enum\":[\"Y\", \"Z\"]}"
+      "}}";
+  int i;
+  ASSERT_EQ(0, write_to_file(argv[0], schema_content));
+
+  for (i = 0; i < 60; i++) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    jsonschema2tests_main(3, argv);
+  }
+  g_fail_io_after = -1;
+
+  for (i = 1; i < 60; i++) {
+    g_cdd_alloc_fail = i;
+    jsonschema2tests_main(3, argv);
+  }
+  g_cdd_alloc_fail = 0;
+
+  remove(argv[0]);
+  remove(argv[2]);
+  remove("test_main.c");
+  PASS();
+}
+
 SUITE(schema2tests_suite) {
+  RUN_TEST(test_schema2tests_io_fails);
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

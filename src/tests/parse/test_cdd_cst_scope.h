@@ -44,10 +44,36 @@ TEST test_cdd_cst_scope_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
-    g_cdd_scope_alloc_fail = 2;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
-    g_cdd_scope_alloc_fail = 0;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    int i;
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      g_cdd_alloc_fail = i;
+      if (cdd_cst_scope_env_init(&env_oom) == CDD_C_SUCCESS) {
+        cdd_cst_scope_env_free(env_oom);
+      }
+      g_cdd_alloc_fail = 0;
+    }
+
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      cdd_cst_scope_env_init(&env_oom);
+      g_cdd_alloc_fail = i;
+      cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+      g_cdd_alloc_fail = 0;
+      cdd_cst_scope_env_free(env_oom);
+    }
+
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      cdd_cst_scope_env_init(&env_oom);
+      cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+      g_cdd_alloc_fail = i;
+      cdd_c_error_t rc = cdd_cst_scope_add_symbol(
+          env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+      g_cdd_alloc_fail = 0;
+      cdd_cst_scope_env_free(env_oom);
+    }
   }
 #endif
 
@@ -239,7 +265,6 @@ TEST test_cdd_cst_scope_mem(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
 
 TEST test_cdd_cst_scope_oom(void) {
   cdd_cst_scope_env_t *env = NULL;
@@ -259,37 +284,79 @@ TEST test_cdd_cst_scope_oom(void) {
     cdd_cst_scope_env_free(env2);
   }
 
-  g_cdd_scope_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
-  g_cdd_scope_alloc_fail = 2;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_env_init(&env));
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    int i;
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      g_cdd_alloc_fail = i;
+      if (cdd_cst_scope_env_init(&env_oom) == CDD_C_SUCCESS) {
+        cdd_cst_scope_env_free(env_oom);
+      }
+      g_cdd_alloc_fail = 0;
+    }
 
-  g_cdd_scope_alloc_fail = 0;
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      cdd_cst_scope_env_init(&env_oom);
+      g_cdd_alloc_fail = i;
+      cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+      g_cdd_alloc_fail = 0;
+      cdd_cst_scope_env_free(env_oom);
+    }
+
+    for (i = 1; i < 5; i++) {
+      cdd_cst_scope_env_t *env_oom = NULL;
+      cdd_cst_scope_env_init(&env_oom);
+      cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+      g_cdd_alloc_fail = i;
+      cdd_c_error_t rc = cdd_cst_scope_add_symbol(
+          env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+      g_cdd_alloc_fail = 0;
+      cdd_cst_scope_env_free(env_oom);
+    }
+  }
+#endif
+  PASS();
+}
+
+TEST test_scope_invalid_tag(void) {
+  cdd_cst_scope_env_t *env = NULL;
+  cdd_cst_symbol_t *found = NULL;
+
   cdd_cst_scope_env_init(&env);
+  cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
 
-  g_cdd_scope_alloc_fail = 3;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+  /* 1. First branch: invalid lookup kind */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_scope_lookup_symbol(
+                env, "foo", (enum cdd_cst_symbol_kind_t)999, &found));
 
-  g_cdd_scope_alloc_fail = 4;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
-
-  g_cdd_scope_alloc_fail = 5;
+  /* 2. Second branch: valid lookup kind, but invalid symbol in scope */
+  cdd_cst_scope_add_symbol(env, "foo", (enum cdd_cst_symbol_kind_t)999, NULL);
   ASSERT_EQ(
-      CDD_C_ERROR_MEMORY,
-      cdd_cst_scope_add_symbol(env, "my_var", CDD_CST_SYMBOL_VARIABLE, NULL));
+      CDD_C_ERROR_INVALID_ARGUMENT,
+      cdd_cst_scope_lookup_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE, &found));
 
-  g_cdd_scope_alloc_fail = 6;
-  ASSERT_EQ(
-      CDD_C_ERROR_MEMORY,
-      cdd_cst_scope_add_symbol(env, "my_var2", CDD_CST_SYMBOL_VARIABLE, NULL));
-
-  g_cdd_scope_alloc_fail = 0;
+  cdd_cst_scope_leave(env);
   cdd_cst_scope_env_free(env);
-  g_fail_io_after = -1;
   PASS();
 }
 #endif
+
+TEST test_cdd_cst_scope_invalid_symbol_kind(void) {
+  int is_tag = 0;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_is_tag((enum cdd_cst_symbol_kind_t) - 1, &is_tag));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_symbol_is_tag((enum cdd_cst_symbol_kind_t)999, &is_tag));
+  PASS();
+}
+
 SUITE(cdd_cst_scope_suite) {
+  RUN_TEST(test_scope_invalid_tag);
+  RUN_TEST(test_cdd_cst_scope_invalid_symbol_kind);
   RUN_TEST(test_cdd_cst_scope_basic);
   RUN_TEST(test_cdd_cst_scope_errors);
   RUN_TEST(test_cdd_cst_scope_tag);

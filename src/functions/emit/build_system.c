@@ -461,13 +461,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
 
     len = strlen(output_path) + strlen(filename) + 2;
     /* Fixed C99 warning */
-    /* LCOV_EXCL_START */
     full_path = C_CDD_MALLOC(len);
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
     if (!full_path) {
-      /* LCOV_EXCL_STOP */
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -477,16 +472,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
 #endif
   } else {
     /* Fixed C99 warning */
-    /* LCOV_EXCL_START */
     if (c_cdd_strdup(filename, &full_path) != CDD_C_SUCCESS) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
-    }
-    /* LCOV_EXCL_STOP */
-    /* LCOV_EXCL_START */
-    if (!full_path) {
-      /* LCOV_EXCL_STOP */
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
   }
@@ -498,9 +484,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   fp = fopen(full_path, "w");
 #endif
 
-  /* LCOV_EXCL_START */
   if (!fp) {
-    /* LCOV_EXCL_STOP */
     rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     C_CDD_FREE(full_path);
     return rc;
@@ -542,16 +526,13 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     char *src_dir = NULL;
     char *src_cmake = NULL;
     if (output_path) {
-      /* LCOV_EXCL_START */
       src_dir = C_CDD_MALLOC(strlen(output_path) + 5);
       if (!src_dir) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      /* LCOV_EXCL_STOP */
       sprintf(src_dir, "%s/src", output_path);
       rc = makedirs(src_dir);
-      /* LCOV_EXCL_START */
       if (rc != 0) {
         goto cleanup_src;
       }
@@ -561,17 +542,13 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      /* LCOV_EXCL_STOP */
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     } else {
-      /* LCOV_EXCL_START */
       if (c_cdd_strdup("src", &src_dir) != CDD_C_SUCCESS) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      /* LCOV_EXCL_STOP */
       rc = makedirs(src_dir);
-      /* LCOV_EXCL_START */
       if (rc != 0) {
         goto cleanup_src;
       }
@@ -581,7 +558,6 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      /* LCOV_EXCL_STOP */
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     }
 
@@ -591,9 +567,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
       rc = write_cmake_content(fp, project_name, has_tests);
       fclose(fp);
     } else {
-      /* LCOV_EXCL_START */
       rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
-      /* LCOV_EXCL_STOP */
     }
     C_CDD_FREE(src_dir);
     C_CDD_FREE(src_cmake);

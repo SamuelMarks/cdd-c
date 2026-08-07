@@ -92,51 +92,81 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
-  module_name =
-      (config && config->module_name) ? config->module_name : "MyLibBindings";
+  lib_name = config->library_name ? config->library_name : "mylib";
+  module_name = config->module_name ? config->module_name : "MyLibBindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\Bindings.fs",
                config->output_dir);
-  if (g_fail_io_after == 1) {
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&f, filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
+
   CDD_SNPRINTF(proj_filepath, sizeof(proj_filepath), "%s\\%s.fsproj",
                config->output_dir, module_name);
-  if (g_fail_io_after == 2) {
-    fclose(f);
-    return CDD_C_ERROR_UNKNOWN;
-  }
-  if (fopen_s(&proj_f, proj_filepath, "w") != 0) {
-    fclose(f);
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&proj_f, proj_filepath, "w");
+    }
+    if (err != 0) {
+      fclose(f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/Bindings.fs",
                config->output_dir);
-  f = fopen(filepath, "w");
-  if (g_fail_io_after == 1) {
-    if (f) {
-      fclose(f);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
+    } else
+#endif
+    {
+      f = fopen(filepath, "w");
     }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
+
   CDD_SNPRINTF(proj_filepath, sizeof(proj_filepath), "%s/%s.fsproj",
                config->output_dir, module_name);
-  proj_f = fopen(proj_filepath, "w");
-  if (g_fail_io_after == 2) {
-    if (proj_f) {
-      fclose(proj_f);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       proj_f = NULL;
+    } else
+#endif
+    {
+      proj_f = fopen(proj_filepath, "w");
     }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
   if (!proj_f) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;

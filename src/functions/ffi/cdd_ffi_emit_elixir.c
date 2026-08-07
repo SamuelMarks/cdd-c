@@ -27,15 +27,13 @@ static void elixirify_name(const char *c_name, char *out_name, size_t out_sz) {
 
 static void snake_case_name(const char *c_name, char *out_name, size_t out_sz) {
   size_t i = 0, j = 0;
-  while (c_name[i] && j < out_sz - 1) {
+  while (c_name[i] && j < out_sz - 2) {
     if (isupper((unsigned char)c_name[i]) && i > 0) {
-      if (j < out_sz - 2 && c_name[i - 1] != '_') { /* LCOV_EXCL_BR_LINE */
+      if (c_name[i - 1] != '_') {
         out_name[j++] = '_';
       }
-      out_name[j++] = (char)tolower((unsigned char)c_name[i]);
-    } else {
-      out_name[j++] = (char)tolower((unsigned char)c_name[i]);
     }
+    out_name[j++] = (char)tolower((unsigned char)c_name[i]);
     i++;
   }
   out_name[j] = '\0';
@@ -54,13 +52,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   cdd_ffi_ir_node_t *node;
   char snake_node_name[256];
   int has_functions = 0;
-  extern volatile int g_fail_io_after;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
 
   if (config->module_name) {
     CDD_SNPRINTF(elixir_module_name, sizeof(elixir_module_name), "%s",
@@ -72,46 +69,75 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_nif.c",
                config->output_dir, lib_name);
-  if (g_fail_io_after == 1) { /* LCOV_EXCL_BR_LINE */
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&c_f, c_filepath, "w");
+    }
+    if (err != 0) {
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
-  if (fopen_s(&c_f, c_filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
+
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s\\%s.ex",
                config->output_dir, elixir_module_name);
-  if (g_fail_io_after == 2) { /* LCOV_EXCL_BR_LINE */
-    fclose(c_f);
-    return CDD_C_ERROR_UNKNOWN;
-  }
-  if (fopen_s(&ex_f, ex_filepath, "w") != 0) {
-    fclose(c_f);
-    return CDD_C_ERROR_UNKNOWN;
+  {
+    int err = 0;
+#ifdef CDD_BUILD_TESTS
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
+      err = 1;
+    } else
+#endif
+    {
+      err = fopen_s(&ex_f, ex_filepath, "w");
+    }
+    if (err != 0) {
+      fclose(c_f);
+      return CDD_C_ERROR_UNKNOWN;
+    }
   }
 #else
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_nif.c",
                config->output_dir, lib_name);
-  c_f = fopen(c_filepath, "w");
-  if (g_fail_io_after == 1) { /* LCOV_EXCL_BR_LINE */
-    if (c_f) {                /* LCOV_EXCL_BR_LINE */
-      fclose(c_f);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       c_f = NULL;
+    } else
+#endif
+    {
+      c_f = fopen(c_filepath, "w");
     }
+#ifdef CDD_BUILD_TESTS
   }
+#endif
   if (!c_f) {
     return CDD_C_ERROR_UNKNOWN;
   }
+
   CDD_SNPRINTF(ex_filepath, sizeof(ex_filepath), "%s/%s.ex", config->output_dir,
-               elixir_module_name); /* LCOV_EXCL_BR_LINE */
-  ex_f = fopen(ex_filepath, "w");
-  /* LCOV_EXCL_BR_START */
-  if (g_fail_io_after == 2) {
-    if (ex_f) {
-      fclose(ex_f);
+               elixir_module_name);
+#ifdef CDD_BUILD_TESTS
+  {
+    extern volatile int g_fail_io_after;
+    if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       ex_f = NULL;
+    } else
+#endif
+    {
+      ex_f = fopen(ex_filepath, "w");
     }
+#ifdef CDD_BUILD_TESTS
   }
-  /* LCOV_EXCL_BR_STOP */
+#endif
   if (!ex_f) {
     fclose(c_f);
     return CDD_C_ERROR_UNKNOWN;

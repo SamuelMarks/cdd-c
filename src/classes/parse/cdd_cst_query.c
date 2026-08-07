@@ -126,14 +126,6 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
       out_result->capacity = 0;
       return rc;
     }
-    if (ctx.err != CDD_C_SUCCESS) {
-      if (out_result->nodes)
-        C_CDD_FREE(out_result->nodes);
-      out_result->nodes = NULL;
-      out_result->size = 0;
-      out_result->capacity = 0;
-      return ctx.err;
-    }
   }
 
   return CDD_C_SUCCESS;
@@ -253,14 +245,6 @@ cdd_cst_find_function_calls_named(cdd_cst_node_t *root, const char *func_name,
       out_result->size = 0;
       out_result->capacity = 0;
       return rc;
-    }
-    if (ctx.err != CDD_C_SUCCESS) {
-      if (out_result->nodes)
-        C_CDD_FREE(out_result->nodes);
-      out_result->nodes = NULL;
-      out_result->size = 0;
-      out_result->capacity = 0;
-      return ctx.err;
     }
   }
 

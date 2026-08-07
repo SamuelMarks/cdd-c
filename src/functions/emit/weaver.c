@@ -49,12 +49,10 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
 #endif
 
   res = patch_list_add(patches, start_idx, start_idx, ifdef_str);
-  /* LCOV_EXCL_START */
   if (res != 0) {
     /* patch_list_add frees on failure */
     return res;
   }
-  /* LCOV_EXCL_STOP */
 
   /* Construct `#else
 <false_code>
@@ -65,13 +63,11 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
     endif_len =
         strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 20;
 
-    /* LCOV_EXCL_START */
     endif_str = (char *)C_CDD_MALLOC(endif_len);
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
     }
-    /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
 #else
@@ -80,13 +76,11 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
   } else {
     endif_len = strlen("#endif\\n") + 20;
 
-    /* LCOV_EXCL_START */
     endif_str = (char *)C_CDD_MALLOC(endif_len);
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
     }
-    /* LCOV_EXCL_STOP */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
@@ -95,12 +89,10 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
   }
 
   res = patch_list_add(patches, end_idx, end_idx, endif_str);
-  /* LCOV_EXCL_START */
   if (res != 0) {
     /* patch_list_add frees on failure */
     return res;
   }
-  /* LCOV_EXCL_STOP */
 
   return CDD_C_SUCCESS;
 }
@@ -132,9 +124,7 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
     if (tokens->tokens[i].kind == TOKEN_HASH) {
       size_t j = i + 1;
       while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE) {
-        /* LCOV_EXCL_START */
         j++;
-        /* LCOV_EXCL_STOP */
       }
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_include = 0;
@@ -169,20 +159,16 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
       j++;
     }
     if (j == tokens->size) {
-      /* LCOV_EXCL_START */
       insert_idx = tokens->size;
-      /* LCOV_EXCL_STOP */
     }
   }
 
   len = 256;
 
-  /* LCOV_EXCL_START */
   str = (char *)C_CDD_MALLOC(len);
   if (!str) {
     return CDD_C_ERROR_MEMORY;
   }
-  /* LCOV_EXCL_STOP */
   str[0] = '\0';
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -212,10 +198,8 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
   }
   if (include_windows_h) {
     if (!include_winsock2_h) {
-      /* LCOV_EXCL_START */
       strcat(str, "#ifndef WIN32_LEAN_AND_MEAN\n#define "
                   "WIN32_LEAN_AND_MEAN\n#endif \\n ");
-      /* LCOV_EXCL_STOP */
     }
     strcat(str, "#ifndef NOMINMAX\n#define NOMINMAX\n#endif \\n ");
     strcat(str, "\\n");
@@ -244,7 +228,6 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
-  /* LCOV_EXCL_START */
   if (interactive) {
     char user_input[16];
     printf("\nInteractive Review:\\n");
@@ -261,7 +244,6 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
       }
     }
   }
-  /* LCOV_EXCL_STOP */
 
   /* Calculate length:
    * type_str + " *" + var_name + " = (" + type_str + " *)_alloca((" +
@@ -270,12 +252,10 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
   len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
         strlen(size_expr) + 11 + strlen(type_str) + 4 + 100;
 
-  /* LCOV_EXCL_START */
   str = (char *)C_CDD_MALLOC(len);
   if (!str) {
     return CDD_C_ERROR_MEMORY;
   }
-  /* LCOV_EXCL_STOP */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(str, len, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,

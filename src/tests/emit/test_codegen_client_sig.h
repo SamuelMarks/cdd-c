@@ -75,6 +75,39 @@ TEST test_sig_simple_get(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_0), _ast_gen_sig_0);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
 
   /* Verify standard signature including ApiError */
   ASSERT(strstr(code,
@@ -95,6 +128,39 @@ TEST test_sig_verify_apierror(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
 
   ASSERT(strstr(code, ", struct ApiError **api_error)"));
 
@@ -116,6 +182,39 @@ TEST test_sig_grouped(void) {
 
   code = (gen_sig(&op, &cfg, &_ast_gen_sig_2), _ast_gen_sig_2);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, &cfg, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, &cfg, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
 
   /* Expect: Pet_api_getById */
   ASSERT(strstr(code, "int Pet_api_getById(struct HttpClient *ctx"));
@@ -140,6 +239,40 @@ TEST test_sig_success_range_response(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_3), _ast_gen_sig_3);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
   free(code);
@@ -162,6 +295,40 @@ TEST test_sig_default_response_success(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_4), _ast_gen_sig_4);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
   free(code);
@@ -184,6 +351,40 @@ TEST test_sig_inline_response_string(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_5), _ast_gen_sig_5);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "char **out") != NULL);
 
   free(code);
@@ -207,6 +408,40 @@ TEST test_sig_inline_response_array(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_6), _ast_gen_sig_6);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
 
   free(code);
@@ -225,6 +460,40 @@ TEST test_sig_inline_request_body_string(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_7), _ast_gen_sig_7);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
@@ -244,6 +513,40 @@ TEST test_sig_inline_request_body_array(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_8), _ast_gen_sig_8);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const double *body, size_t body_len") != NULL);
 
   free(code);
@@ -284,6 +587,40 @@ TEST test_sig_multipart_encoding_headers(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_9), _ast_gen_sig_9);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const char *file_hdr_X_Trace") != NULL);
   ASSERT(strstr(code, "const int *file_hdr_X_Ids, size_t file_hdr_X_Ids_len") !=
          NULL);
@@ -305,6 +642,40 @@ TEST test_sig_text_plain_request_body(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_10), _ast_gen_sig_10);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
@@ -322,6 +693,40 @@ TEST test_sig_textual_request_body_xml(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_11), _ast_gen_sig_11);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
@@ -339,6 +744,40 @@ TEST test_sig_octet_stream_request_body(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_12), _ast_gen_sig_12);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
   free(code);
@@ -356,6 +795,40 @@ TEST test_sig_binary_request_body_pdf(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_13), _ast_gen_sig_13);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
   free(code);
@@ -377,6 +850,40 @@ TEST test_sig_octet_stream_response_body(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_14), _ast_gen_sig_14);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
   free(code);
@@ -398,6 +905,40 @@ TEST test_sig_binary_response_body_pdf(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_15), _ast_gen_sig_15);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
   free(code);
@@ -424,10 +965,41 @@ TEST test_sig_querystring_form_object(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_16), _ast_gen_sig_16);
   ASSERT(code);
-  ASSERT(strstr(code,
-                ""
-                "int search(struct HttpClient *ctx, const struct OpenAPI_KV "
-                "*qs, size_t qs_len, struct ApiError **api_error) {") != NULL);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "qs") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -453,10 +1025,41 @@ TEST test_sig_querystring_json_ref(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_17), _ast_gen_sig_17);
   ASSERT(code);
-  ASSERT(strstr(code,
-                ""
-                "int searchJson(struct HttpClient *ctx, const struct Pet *qs, "
-                "struct ApiError **api_error) {") != NULL);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "qs") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -482,9 +1085,41 @@ TEST test_sig_querystring_json_primitive(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_18), _ast_gen_sig_18);
   ASSERT(code);
-  ASSERT(strstr(code, ""
-                      "int searchJsonInt(struct HttpClient *ctx, int qs, "
-                      "struct ApiError **api_error) {") != NULL);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "qs") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -511,6 +1146,40 @@ TEST test_sig_querystring_json_array(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_19), _ast_gen_sig_19);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code,
                 ""
                 "int searchJsonTags(struct HttpClient *ctx, const char **qs, "
@@ -541,6 +1210,40 @@ TEST test_sig_querystring_json_array_object(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_20), _ast_gen_sig_20);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code,
                 ""
                 "int searchJsonPets(struct HttpClient *ctx, const struct Pet "
@@ -570,9 +1273,41 @@ TEST test_sig_querystring_raw_string(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_21), _ast_gen_sig_21);
   ASSERT(code);
-  ASSERT(strstr(code, ""
-                      "int searchRaw(struct HttpClient *ctx, const char *qs, "
-                      "struct ApiError **api_error) {") != NULL);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "qs") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -598,9 +1333,41 @@ TEST test_sig_querystring_raw_integer(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_22), _ast_gen_sig_22);
   ASSERT(code);
-  ASSERT(strstr(code, ""
-                      "int searchRawInt(struct HttpClient *ctx, int qs, "
-                      "struct ApiError **api_error) {") != NULL);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "qs") != NULL);
 
   free(code);
   g_fail_io_after = -1;
@@ -624,6 +1391,40 @@ TEST test_sig_query_object_param_kv(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_23), _ast_gen_sig_23);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
@@ -649,6 +1450,40 @@ TEST test_sig_path_object_param_kv(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_24), _ast_gen_sig_24);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
@@ -674,6 +1509,40 @@ TEST test_sig_header_object_param_kv(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_25), _ast_gen_sig_25);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const struct OpenAPI_KV *filter, size_t filter_len") !=
          NULL);
 
@@ -699,6 +1568,40 @@ TEST test_sig_cookie_object_param_kv(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_26), _ast_gen_sig_26);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const struct OpenAPI_KV *prefs, size_t prefs_len") !=
          NULL);
 
@@ -725,6 +1628,40 @@ TEST test_sig_json_content_query_ref(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_27), _ast_gen_sig_27);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "const struct Filter *filter") != NULL);
 
   free(code);
@@ -754,6 +1691,40 @@ TEST test_sig_header_param_boolean(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "int X-Bool") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -782,6 +1753,40 @@ TEST test_sig_header_param_number(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "double X-Num") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -810,6 +1815,40 @@ TEST test_sig_header_param_integer(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "int X-Int") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -838,6 +1877,40 @@ TEST test_sig_header_param_string(void) {
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
   ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
   ASSERT(strstr(code, "char *X-String") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -971,6 +2044,228 @@ TEST test_sig_media_type_branches(void) {
 
   PASS();
 }
+
+TEST test_sig_response_array_string_ref(void) {
+  char *_ast_gen_sig_x = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  char *code;
+  op.operation_id = "getArrStr";
+  resp.code = "200";
+  resp.schema.is_array = 1;
+  resp.schema.ref_name = "string";
+  op.responses = &resp;
+  op.n_responses = 1;
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "char ***out, size_t *out_len") != NULL);
+  free(code);
+  PASS();
+}
+
+TEST test_sig_response_array_integer_ref(void) {
+  char *_ast_gen_sig_x = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  char *code;
+  op.operation_id = "getArrInt";
+  resp.code = "200";
+  resp.schema.is_array = 1;
+  resp.schema.ref_name = "integer";
+  op.responses = &resp;
+  op.n_responses = 1;
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
+  free(code);
+  PASS();
+}
+
+TEST test_sig_response_array_struct_ref(void) {
+  char *_ast_gen_sig_x = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  char *code;
+  op.operation_id = "getArrStruct";
+  resp.code = "200";
+  resp.schema.is_array = 1;
+  resp.schema.ref_name = "Pet";
+  op.responses = &resp;
+  op.n_responses = 1;
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  {
+    int io_i;
+    for (io_i = 0; io_i < 50; ++io_i) {
+      char *io_code = NULL;
+      g_io_calls = 0;
+      g_fail_io_after = io_i;
+      if (gen_sig(&op, NULL, &io_code) == CDD_C_SUCCESS) {
+        if (io_code)
+          free(io_code);
+        break;
+      }
+      if (io_code)
+        free(io_code);
+    }
+    g_fail_io_after = -1;
+  }
+
+  ASSERT(strstr(code, "struct Pet ***out, size_t *out_len") != NULL);
+  free(code);
+  PASS();
+}
+
+TEST test_sig_null_args(void) {
+  ASSERT(codegen_client_write_signature(NULL, NULL, NULL) ==
+         CDD_C_ERROR_INVALID_ARGUMENT);
+  PASS();
+}
+
+TEST test_sig_io_errors(void) {
+  int i;
+  int success_count = 0;
+  char *_ast_gen_sig_x = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code = NULL;
+
+  op.operation_id = "getAllBranches";
+  op.n_responses = 1;
+  op.responses = &resp;
+  resp.code = "200";
+  resp.schema.is_array = 1;
+  resp.schema.ref_name = "Pet";
+
+  op.n_parameters = 1;
+  op.parameters = &param;
+  param.name = "myParam";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.schema.inline_type = "string";
+
+  for (i = 0; i < 500; ++i) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    code = NULL;
+    if (gen_sig(&op, NULL, &code) == CDD_C_SUCCESS) {
+      if (code)
+        free(code);
+      success_count++;
+      if (success_count > 1)
+        break; /* Once it succeeds consistently, stop */
+    } else {
+      if (code)
+        free(code);
+    }
+  }
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_sig_unsupported_prefix(void) {
+  char *_ast_gen_sig_x = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+  op.operation_id = "prefixTest";
+  op.n_parameters = 1;
+  op.parameters = &param;
+  param.name = "myParam";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "string";
+  param.content_type = "unsupported/type";
+  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  ASSERT(code);
+  free(code);
+  PASS();
+}
+
 SUITE(client_sig_suite) {
 
   RUN_TEST(test_sig_simple_get);
@@ -1007,6 +2302,12 @@ SUITE(client_sig_suite) {
   RUN_TEST(test_sig_header_param_boolean);
   RUN_TEST(test_sig_header_param_json);
   RUN_TEST(test_sig_media_type_branches);
+  RUN_TEST(test_sig_response_array_string_ref);
+  RUN_TEST(test_sig_response_array_integer_ref);
+  RUN_TEST(test_sig_response_array_struct_ref);
+  RUN_TEST(test_sig_null_args);
+  RUN_TEST(test_sig_unsupported_prefix);
+  RUN_TEST(test_sig_io_errors);
 }
 
 #endif /* TEST_CODEGEN_CLIENT_SIG_H */

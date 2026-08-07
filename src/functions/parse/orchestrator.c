@@ -184,7 +184,9 @@ static cdd_c_error_t join_tokens_str(const struct TokenList *tokens,
   size_t i;
   char *buf, *p;
   if (start >= end) {
-    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
+    cdd_c_error_t rc = c_cdd_strdup("", _out_val);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     return CDD_C_SUCCESS;
   }
   for (i = start; i < end; ++i)
@@ -272,10 +274,11 @@ static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
 static cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
                                     const char *name) {
   char *_ast_strdup_1 = NULL;
+  cdd_c_error_t rc;
   g->nodes[idx].node_idx = idx;
-  g->nodes[idx].name = (c_cdd_strdup(name, &_ast_strdup_1), _ast_strdup_1);
-  if (!g->nodes[idx].name)
-    return CDD_C_ERROR_MEMORY;
+  rc = c_cdd_strdup(name, &g->nodes[idx].name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   g->nodes[idx].callers = NULL;
   g->nodes[idx].num_callers = 0;
   g->nodes[idx].alloc_callers = 0;
@@ -449,11 +452,15 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
                                  &_ast_find_token_in_range_3),
              _ast_find_token_in_range_3);
 
-        name = (extract_func_name(tokens, start_idx, fn->body_start,
-                                  &_ast_extract_func_name_4),
-                _ast_extract_func_name_4);
-        if (!name)
-          name = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
+        rc = extract_func_name(tokens, start_idx, fn->body_start, &name);
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
+
+        if (!name) {
+          rc = c_cdd_strdup("", &name);
+          if (rc != CDD_C_SUCCESS)
+            goto cleanup;
+        }
 
         rc = graph_add_node(&graph, f_idx, name);
         C_CDD_FREE(name);
@@ -551,9 +558,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
     /* Reconstruct file node by node */
     size_t f_idx = 0;
     size_t current_tok_offset = 0;
-    output = (c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3);
-    if (!output) {
-      rc = CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup("", &output);
+    if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
 
@@ -614,10 +620,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
                     allocs.sites[k].token_index < end_idx) {
                   struct AllocationSite site = allocs.sites[k];
                   site.token_index -= node->body_start; /* Relativize */
-                  if (site.var_name)
-                    site.var_name =
-                        (c_cdd_strdup(site.var_name, &_ast_strdup_4),
-                         _ast_strdup_4);
+                  if (site.var_name) {
+                    rc = c_cdd_strdup(site.var_name, &site.var_name);
+                    if (rc != CDD_C_SUCCESS)
+                      goto cleanup;
+                  }
                   if (local_allocs.size >= local_allocs.capacity) {
                     struct AllocationSite *new_sites;
                     size_t nc = local_allocs.capacity == 0

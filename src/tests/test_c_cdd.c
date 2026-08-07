@@ -132,6 +132,7 @@ extern int g_cdd_alloc_fail;
 #include "parse/test_refactor.h"
 #include "parse/test_refactor_api_sync.h"
 #include "parse/test_refactor_orchestrator.h"
+#include "parse/test_orchestrator_internals.h"
 #include "parse/test_schema_constraints.h"
 #include "parse/test_schema_enum_required.h"
 #include "parse/test_simple_json.h"
@@ -159,6 +160,7 @@ extern int g_cdd_alloc_fail;
 /* #include "parse/test_c2openapi_schema.h" */
 #include "parse/test_c_mapping.h"
 #include "parse/test_doc_parser.h"
+#include "cdd_test_helpers/test_mock_server.h"
 /* #include "parse/test_integration_c2openapi.h" */
 #include "parse/test_macro_overlay.h"
 #include "parse/test_main.h"
@@ -180,6 +182,37 @@ TEST test_cdd_helpers(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_to_file(NULL, NULL));
   ASSERT_NEQ(CDD_C_SUCCESS,
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
+
+  extern int g_cdd_helpers_fopen_err;
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  g_cdd_helpers_fopen_err = ENOMEM;
+  {
+    cdd_c_error_t rc = write_to_file("test_helpers.txt", "abc");
+    printf("write_to_file ENOMEM test got: %d, g_io_calls: %d, errno: %d\n", rc,
+           g_io_calls, errno);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  g_cdd_helpers_fopen_err = EINVAL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            write_to_file("test_helpers.txt", "abc"));
+
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  g_cdd_helpers_fopen_err = EIO;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, write_to_file("test_helpers.txt", "abc"));
+
+  g_io_calls = 0;
+  g_fail_io_after = 2; /* FPUTS fails */
+  ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
+
+  g_io_calls = 0;
+  g_fail_io_after = 3; /* FCLOSE fails */
+  ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -381,6 +414,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(project_audit_suite);
   RUN_SUITE(api_sync_suite);
   RUN_SUITE(refactor_orchestrator_suite);
+  RUN_SUITE(orchestrator_internals_suite);
   RUN_SUITE(refactor_suite);
   RUN_SUITE(rewriter_body_suite);
   RUN_SUITE(rewriter_sig_suite);
@@ -419,6 +453,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(main_suite);
   RUN_SUITE(cli_gen_suite);
   RUN_SUITE(cdd_helpers_suite);
+  RUN_SUITE(mock_server_suite);
   RUN_SUITE(client_gui_gen_suite);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return 0;

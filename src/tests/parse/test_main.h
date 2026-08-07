@@ -103,6 +103,29 @@ TEST test_main_subcommands(void) {
       "-o",    "build/test_out_dir_3"};
   char *argv_serve_json_rpc[] = {"cdd-c", "serve_json_rpc"};
   char *argv_transformer[] = {"cdd-c", "transformer", "--help"};
+  char *argv_standardize_gnu[] = {"cdd-c", "standardize-gnu", "--help"};
+  char *argv_code2schema_err[] = {"cdd-c", "code2schema", "invalid"};
+  char *argv_bind[] = {"cdd-c", "bind", "--help"};
+  char *argv_generate_build_err[] = {"cdd-c", "generate_build_system",
+                                     "invalid"};
+  char *argv_schema2code_err[] = {"cdd-c", "schema2code", "invalid"};
+  char *argv_serve_json_rpc_err[] = {"cdd-c", "serve_json_rpc", "invalid"};
+  char *argv_mcp[] = {"cdd-c", "mcp"};
+  char *argv_openapi2client[] = {"cdd-c", "openapi2client", "--help"};
+  char *argv_audit_err[] = {"cdd-c", "audit", "invalid"};
+
+  /* empty.h and valid_schema.json were created in cdd-c root */
+  char *argv_c2openapi_help[] = {"cdd-c", "c2openapi", "../empty_dir",
+                                 "out.json"};
+  char *argv_code2schema_help[] = {"cdd-c", "code2schema", "../empty.h",
+                                   "out.json"};
+  char *argv_schema2code_help[] = {"cdd-c", "schema2code",
+                                   "../valid_schema.json", "prefix"};
+  char *argv_to_openapi_help[] = {"cdd-c", "to_openapi", "--help"};
+  char *argv_from_openapi_help[] = {"cdd-c", "from_openapi", "--help"};
+  char *argv_audit_help[] = {"cdd-c", "audit", "../empty_dir"};
+  char *argv_generate_build_help[] = {"cdd-c", "generate_build_system",
+                                      "--help"};
 
   cdd_main(4, argv_c2openapi);
   cdd_main(4, argv_code2schema);
@@ -113,8 +136,35 @@ TEST test_main_subcommands(void) {
   cdd_main(4, argv_to_openapi);
   cdd_main(4, argv_to_docs);
   cdd_main(7, argv_from_openapi);
-  cdd_main(2, argv_serve_json_rpc);
   cdd_main(3, argv_transformer);
+  cdd_main(3, argv_standardize_gnu);
+  cdd_main(3, argv_code2schema_err);
+  cdd_main(3, argv_bind);
+  cdd_main(3, argv_generate_build_err);
+  cdd_main(3, argv_schema2code_err);
+  cdd_main(3, argv_serve_json_rpc_err);
+  cdd_main(3, argv_openapi2client);
+  cdd_main(3, argv_audit_err);
+
+  cdd_main(3, argv_c2openapi_help);
+  cdd_main(3, argv_code2schema_help);
+  cdd_main(3, argv_schema2code_help);
+  cdd_main(3, argv_to_openapi_help);
+  cdd_main(3, argv_from_openapi_help);
+  cdd_main(3, argv_audit_help);
+  cdd_main(3, argv_generate_build_help);
+
+  /* Close stdin or redirect to /dev/null so mcp does not block waiting for
+   * input */
+#if defined(_WIN32)
+  (void)freopen("NUL", "r", stdin);
+#else
+  (void)freopen("/dev/null", "r", stdin);
+#endif
+
+  cdd_main(2, argv_mcp);
+  cdd_main(2, argv_serve_json_rpc);
+
   g_fail_io_after = -1;
 
   PASS();
@@ -239,7 +289,10 @@ TEST test_bin_cdd_executable(void) {
   /* Run the actual executable to cover bin_cdd.c's main() */
   /* The tests might be run from build dir or root dir, so we check both */
   int rc;
-  rc = system("./bin/cdd-c --help > /dev/null 2>&1");
+  rc = system("build_coverage/bin/cdd-c --help > /dev/null 2>&1");
+  if (rc != 0) {
+    rc = system("./bin/cdd-c --help > /dev/null 2>&1");
+  }
   if (rc != 0) {
     rc = system("../bin/cdd-c --help > /dev/null 2>&1");
   }

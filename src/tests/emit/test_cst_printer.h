@@ -48,12 +48,10 @@ TEST test_cst_print_exact(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   rc = fopen_s(&f, "test_cst_print.txt", "wb+");
-  if (rc != 0)
-    FAILm("Could not open file");
+  ASSERT_EQ(0, rc);
 #else
   f = fopen("test_cst_print.txt", "wb+");
-  if (!f)
-    FAILm("Could not open file");
+  ASSERT_NEQ(NULL, f);
 #endif
 
   rc = cst_print_tokens_exact(tokens, f);

@@ -1,3 +1,5 @@
+
+#include "c_cdd/memory.h"
 /**
  * @file schema2tests.c
  * @brief Implementation of test generation logic.
@@ -7,17 +9,87 @@
 /* clang-format off */
 #include <ctype.h>
 #include <errno.h>
+
+
 #include <stdio.h>
+#include <stdarg.h>
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int mock_fprintf(FILE *fp, const char *fmt, ...) {
+    int ret;
+    va_list args;
+    if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) return -1;
+    va_start(args, fmt);
+    ret = vfprintf(fp, fmt, args);
+    va_end(args);
+    return ret;
+}
+#define FPRINTF mock_fprintf
+#else
+#define FPRINTF fprintf
+#endif
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
+#define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
+#else
+#define FOPEN(path, mode) fopen(path, mode)
+#define FOPEN_S(fp, path, mode) fopen_s(fp, path, mode)
+#endif
+
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_alloc_fail;
+static int mock_asprintf(char **strp, const char *fmt, ...) {
+    int ret;
+    va_list args;
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
+    va_start(args, fmt);
+    ret = vasprintf(strp, fmt, args);
+    va_end(args);
+    return ret;
+}
+#define ASPRINTF mock_asprintf
+#else
+#define ASPRINTF asprintf
+#endif
+
+
 #include <stdlib.h>
 #include <string.h>
 
 #include <parson.h>
 
 #include "functions/parse/fs.h"
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_alloc_fail;
+static int mock_get_dirname(const char *path, char **dir) {
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
+    return get_dirname(path, dir);
+}
+static int mock_makedirs(const char *path) {
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
+    return makedirs(path);
+}
+#define GET_DIRNAME mock_get_dirname
+#define MAKEDIRS mock_makedirs
+#else
+#define GET_DIRNAME get_dirname
+#define MAKEDIRS makedirs
+#endif
+
+
+
 #include "tests/emit/schema2tests.h"
 
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+
 #include <stdio.h>
+
 #else
 #include <c89stringutils_string_extras.h>
 #endif
@@ -67,9 +139,9 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
   char c_enum_name[128];
   to_c_ident(c_enum_name, sizeof(c_enum_name), enum_name);
 
-  if (fprintf(f, "/* Test enum %s to_str/from_str */\n", enum_name) < 0)
+  if (FPRINTF(f, "/* Test enum %s to_str/from_str */\n", enum_name) < 0)
     return CDD_C_ERROR_IO;
-  if (fprintf(f,
+  if (FPRINTF(f,
               "TEST test_%s_to_str_from_str(void) {\n"
               "  char *str = NULL;\n"
               "  enum %s val;\n"
@@ -85,11 +157,11 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
       continue;
     to_c_ident(c_val, sizeof(c_val), val);
 
-    if (fprintf(f,
+    if (FPRINTF(f,
                 "  rc = %s_to_str(%s_%s, &str);\n"
                 "  ASSERT_EQ(0, rc);\n"
                 "  ASSERT_STR_EQ(\"%s\", str);\n"
-                "  free(str);\n\n",
+                "  C_CDD_FREE(str);\n\n",
                 enum_name, enum_name, c_val, val) < 0)
       return CDD_C_ERROR_IO;
   }
@@ -102,7 +174,7 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
       continue;
     to_c_ident(c_val, sizeof(c_val), val);
 
-    if (fprintf(f,
+    if (FPRINTF(f,
                 "  rc = %s_from_str(\"%s\", &val);\n"
                 "  ASSERT_EQ(0, rc);\n"
                 "  ASSERT_EQ(%s_%s, val);\n\n",
@@ -111,14 +183,14 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
   }
 
   /* Test from_str unknown string */
-  if (fprintf(f,
+  if (FPRINTF(f,
               "  rc = %s_from_str(\"INVALID\", &val);\n"
               "  ASSERT_EQ(0, rc);\n"
               "  ASSERT_EQ(%s_UNKNOWN, val);\n\n",
               enum_name, enum_name) < 0)
     return CDD_C_ERROR_IO;
 
-  if (fputs("  PASS();\n}\n", f) < 0)
+  if (FPRINTF(f, "%s", "  PASS();\n}\n") < 0)
     return CDD_C_ERROR_IO;
 
   return 0;
@@ -131,7 +203,7 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
   (void)schema_obj;
   to_c_ident(c_struct_name, sizeof(c_struct_name), struct_name);
 
-  if (fprintf(f,
+  if (FPRINTF(f,
               "/* Test %s default / deepcopy / eq / cleanup */\n"
               "TEST test_%s_default_deepcopy_eq_cleanup(void) {\n"
               "  struct %s *obj0 = NULL;\n"
@@ -154,7 +226,7 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
     return CDD_C_ERROR_IO;
 
   /* Add JSON roundtrip test */
-  if (fprintf(f,
+  if (FPRINTF(f,
               "TEST test_%s_json_roundtrip(void) {\n"
               "  struct %s *obj_in = NULL;\n"
               "  struct %s *obj_out = NULL;\n"
@@ -175,7 +247,7 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
               "\n"
               "  ASSERT(%s_eq(obj_in, obj_out));\n"
               "\n"
-              "  free(json_str);\n"
+              "  C_CDD_FREE(json_str);\n"
               "  %s_cleanup(obj_in);\n"
               "  %s_cleanup(obj_out);\n"
               "\n"
@@ -240,29 +312,29 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
     {
       /* Refactored: get_dirname returns allocated string or error code */
       char *output_dir = NULL;
-      rc = get_dirname(output_file, &output_dir);
+      rc = GET_DIRNAME(output_file, &output_dir);
       if (rc != 0) {
         fprintf(stderr, "Failed to get dirname of output file: %s (rc %d)\n",
                 output_file, rc);
         json_value_free(root_val);
         return rc;
       }
-      rc = makedirs(output_dir);
+      rc = MAKEDIRS(output_dir);
       if (rc != 0) {
         fprintf(stderr, "Failed to create output directory: %s (rc %d)\n",
                 output_dir, rc);
-        free(output_dir);
+        C_CDD_FREE(output_dir);
         json_value_free(root_val);
         return rc;
       }
-      free(output_dir);
+      C_CDD_FREE(output_dir);
     }
 
     /* Output file */
     {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      errno_t err = fopen_s(&f, output_file, "w");
+      errno_t err = FOPEN_S(&f, output_file, "w");
       if (err != 0 || f == NULL) {
         fprintf(stderr, "Failed to open output file %s\n", output_file);
         json_value_free(root_val);
@@ -270,7 +342,7 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
       }
 #else
 #if defined(_MSC_VER)
-      fopen_s(&f, output_file, "w");
+      FOPEN_S(&f, output_file, "w");
 #else
       f = fopen(output_file, "w");
 #endif
@@ -292,10 +364,10 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
           return rc;
         }
         to_c_ident(sanitized, sizeof(sanitized), base);
-        free(base);
+        C_CDD_FREE(base);
       }
 
-      fprintf(f,
+      FPRINTF(f,
               "#ifndef %s_TESTS_H\n"
               "#define %s_TESTS_H\n"
               "/* Auto-generated test source from JSON Schema %s */\n\n"
@@ -304,12 +376,12 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
               "#include <greatest.h>\n\n",
               sanitized, sanitized, schema_file);
 
-      fprintf(f, "#include \"%s\"\n", header_to_test);
+      FPRINTF(f, "#include \"%s\"\n", header_to_test);
 
       /* include headers referenced by schema names */
       {
         char *output_dir = NULL;
-        rc = get_dirname(output_file, &output_dir);
+        rc = GET_DIRNAME(output_file, &output_dir);
         if (rc == 0) {
           const size_t count = json_object_get_count(schemas_obj);
           size_t i;
@@ -322,30 +394,30 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
               char *path_to_check = NULL;
               char *include_name = NULL;
 
-              if (asprintf(&include_name, "%s.h", sanitized_name) == -1)
+              if (ASPRINTF(&include_name, "%s.h", sanitized_name) == -1)
                 continue;
 
               if (strcmp(output_dir, ".") != 0) {
-                if (asprintf(&path_to_check, "%s%s%s", output_dir, PATH_SEP,
+                if (ASPRINTF(&path_to_check, "%s%s%s", output_dir, PATH_SEP,
                              include_name) == -1) {
-                  free(include_name);
+                  C_CDD_FREE(include_name);
                   continue;
                 }
               } else {
-                path_to_check = strdup(include_name);
+                path_to_check = C_CDD_STRDUP(include_name);
               }
 
               if (path_to_check && access(path_to_check, F_OK) == 0) {
-                fprintf(f, "#include \"%s\"\n", include_name);
+                FPRINTF(f, "#include \"%s\"\n", include_name);
               }
-              free(path_to_check);
-              free(include_name);
+              C_CDD_FREE(path_to_check);
+              C_CDD_FREE(include_name);
             }
           }
-          free(output_dir);
+          C_CDD_FREE(output_dir);
         }
       }
-      fprintf(f, "\n");
+      FPRINTF(f, "\n");
 
       /* Generate test functions for enums and structs */
       {
@@ -379,9 +451,9 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       /* Write suites and main runner */
 
-      fprintf(f, "/* Test suites */\n");
+      FPRINTF(f, "/* Test suites */\n");
 
-      fprintf(f, "SUITE(enums_suite) {\n");
+      FPRINTF(f, "SUITE(enums_suite) {\n");
 
       /* Add enum test calls */
       {
@@ -406,15 +478,15 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
             if (enum_arr != NULL) {
               char sanitized0[128];
               to_c_ident(sanitized0, sizeof(sanitized0), schema_name);
-              fprintf(f, "  RUN_TEST(test_%s_to_str_from_str);\n", sanitized0);
+              FPRINTF(f, "  RUN_TEST(test_%s_to_str_from_str);\n", sanitized0);
             }
           }
         }
       }
 
-      fprintf(f, "}\n\n");
+      FPRINTF(f, "}\n\n");
 
-      fprintf(f, "SUITE(structs_suite) {\n");
+      FPRINTF(f, "SUITE(structs_suite) {\n");
 
       /* Add struct test calls */
       {
@@ -436,14 +508,14 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
           if (strcmp(type_str, "object") == 0) {
             char sanitized0[128];
             to_c_ident(sanitized0, sizeof(sanitized0), schema_name);
-            fprintf(f, "  RUN_TEST(test_%s_default_deepcopy_eq_cleanup);\n",
+            FPRINTF(f, "  RUN_TEST(test_%s_default_deepcopy_eq_cleanup);\n",
                     sanitized0);
-            fprintf(f, "  RUN_TEST(test_%s_json_roundtrip);\n", sanitized0);
+            FPRINTF(f, "  RUN_TEST(test_%s_json_roundtrip);\n", sanitized0);
           }
         }
       }
 
-      fprintf(f, "}\n\n#endif /* !%s_TESTS_H */\n", sanitized);
+      FPRINTF(f, "}\n\n#endif /* !%s_TESTS_H */\n", sanitized);
 
       fclose(f);
     }
@@ -454,15 +526,15 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
       /* Refactor test main generation */
       char *output_dir = NULL;
       char *p = NULL;
-      rc = get_dirname(output_file, &output_dir);
+      rc = GET_DIRNAME(output_file, &output_dir);
       if (rc != 0)
         return rc;
 
-      if (asprintf(&p, "%s%s%s", output_dir, PATH_SEP, "test_main.c") == -1) {
-        free(output_dir);
+      if (ASPRINTF(&p, "%s%s%s", output_dir, PATH_SEP, "test_main.c") == -1) {
+        C_CDD_FREE(output_dir);
         return CDD_C_ERROR_MEMORY;
       }
-      free(output_dir);
+      C_CDD_FREE(output_dir);
 
       {
         FILE *f0;
@@ -471,18 +543,18 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         errno_t err = fopen_s(&f0, p, "w");
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
-          free(p);
+          C_CDD_FREE(p);
           return CDD_C_ERROR_UNKNOWN;
         }
 #else
 #if defined(_MSC_VER)
         fopen_s(&f0, p, "w");
 #else
-        f0 = fopen(p, "w");
+        f0 = FOPEN(p, "w");
 #endif
         if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);
-          free(p);
+          C_CDD_FREE(p);
           return CDD_C_ERROR_UNKNOWN;
         }
 #endif
@@ -504,7 +576,7 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
                     "  GREATEST_MAIN_END();\n"
                     "}\n",
                     base);
-            free(base);
+            C_CDD_FREE(base);
           } else {
             fprintf(stderr, "Failed to determine basename for %s\n",
                     output_file);
@@ -513,7 +585,7 @@ cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         fclose(f0);
         printf("Test runner generated and written to:\t%s\n", p);
       }
-      free(p);
+      C_CDD_FREE(p);
     }
 
     printf("Tests generated and written to:\t\t\t%s\n", output_file);

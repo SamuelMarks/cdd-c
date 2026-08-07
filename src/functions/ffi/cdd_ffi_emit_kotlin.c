@@ -13,9 +13,7 @@ emit_kotlin_def(cdd_ffi_ir_t *ir,
   char filepath[1024];
   FILE *f = NULL;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
   (void)ir; /* The def file just points to the header for cinterop to do the
                heavy lifting */

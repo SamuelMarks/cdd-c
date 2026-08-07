@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 /* clang-format on */
 
@@ -252,7 +253,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           if (inc_str) {
             cdd_cst_builder_t bld;
             cdd_cst_node_t *wrap_node =
-                (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
             if (wrap_node) {
               wrap_node->kind = CDD_CST_UNKNOWN;
               cdd_cst_builder_init(&bld, tree, wrap_node);
@@ -274,8 +275,8 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                 cdd_cst_replace_node(tree, dir, wrap_node);
                 cdd_cst_free_node(dir);
               } else {
-                free(wrap_node->children);
-                free(wrap_node);
+                C_CDD_FREE(wrap_node->children);
+                C_CDD_FREE(wrap_node);
               }
               cdd_cst_builder_free(&bld);
             }
@@ -283,7 +284,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
         }
       }
     }
-    free(res.nodes);
+    C_CDD_FREE(res.nodes);
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
@@ -298,7 +299,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
       /* Inject dependencies at the top of the translation unit */
       cdd_cst_builder_t bld;
       cdd_cst_node_t *deps_node =
-          (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+          (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
       if (deps_node) {
         deps_node->kind = CDD_CST_UNKNOWN;
         cdd_cst_builder_init(&bld, tree, deps_node);
@@ -325,14 +326,14 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           rc = cdd_cst_insert_child_node_at(tree->root, 0, deps_node);
 #endif
           if (rc != CDD_C_SUCCESS) {
-            free(deps_node->children);
-            free(deps_node);
+            C_CDD_FREE(deps_node->children);
+            C_CDD_FREE(deps_node);
             cdd_cst_builder_free(&bld);
             return rc;
           }
         } else {
-          free(deps_node->children);
-          free(deps_node);
+          C_CDD_FREE(deps_node->children);
+          C_CDD_FREE(deps_node);
         }
         cdd_cst_builder_free(&bld);
       }

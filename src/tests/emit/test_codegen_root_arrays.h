@@ -20,6 +20,35 @@ extern "C" {
 
 #include "classes/emit/types.h"
 /* clang-format on */
+#include "c_cdd/memory.h"
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+static FILE *mock_tmpfile_ra(void) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+    return NULL;
+  return tmpfile();
+}
+static long mock_ftell_ra(FILE *stream) {
+  if (g_fail_io_after == 999)
+    return 0;
+  return ftell(stream);
+}
+static size_t mock_fread_ra(void *ptr, size_t size, size_t nitems,
+                            FILE *stream) {
+  if (g_fail_io_after == 998)
+    return 0;
+  return fread(ptr, size, nitems, stream);
+}
+#define TMPFILE mock_tmpfile_ra
+#define FTELL mock_ftell_ra
+#define FREAD mock_fread_ra
+#else
+#define TMPFILE tmpfile
+#define FTELL ftell
+#define FREAD fread
+#endif
 
 /* Helper to capture output. Updated signature to match codegen_types functions.
  */
@@ -32,7 +61,7 @@ static cdd_c_error_t generate_ra_code(
   char *content = NULL;
   cdd_c_error_t rc;
 
-  tmp = tmpfile();
+  tmp = TMPFILE();
   if (!tmp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -43,20 +72,20 @@ static cdd_c_error_t generate_ra_code(
   }
 
   fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
+  sz = FTELL(tmp);
   if (sz <= 0) {
     fclose(tmp);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   if (!content) {
     fclose(tmp);
     return CDD_C_ERROR_MEMORY;
   }
-  if (fread(content, 1, sz, tmp) != (size_t)sz) {
-    free(content);
+  if (FREAD(content, 1, (size_t)sz, tmp) != (size_t)sz) {
+    C_CDD_FREE(content);
     fclose(tmp);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -176,7 +205,42 @@ TEST test_root_array_cleanup(void) {
   PASS();
 }
 
+TEST test_root_arrays_errors(void) {
+  char *_out = NULL;
+
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_ra_code(write_root_array_from_json_func, "MyArr", "string",
+                             NULL, &_out));
+
+  g_io_calls = 0;
+  g_fail_io_after = 2; /* fn fails (write_root_array_from_json_func) */
+  ASSERT_EQ(CDD_C_ERROR_IO, generate_ra_code(write_root_array_from_json_func,
+                                             "MyArr", "string", NULL, &_out));
+
+  g_fail_io_after = 999;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_ra_code(write_root_array_from_json_func, "MyArr", "string",
+                             NULL, &_out));
+
+  g_fail_io_after = 998;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            generate_ra_code(write_root_array_from_json_func, "MyArr", "string",
+                             NULL, &_out));
+
+  g_fail_io_after = -1;
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            generate_ra_code(write_root_array_from_json_func, "MyArr", "string",
+                             NULL, &_out));
+  g_cdd_alloc_fail = 0;
+
+  PASS();
+}
+
 SUITE(root_array_suite) {
+  RUN_TEST(test_root_arrays_errors);
   RUN_TEST(test_root_int_array_from_json);
   RUN_TEST(test_root_string_array_from_json);
   RUN_TEST(test_root_obj_array_from_json);

@@ -8,6 +8,7 @@
 #include "cli_gen.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd/memory.h"
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
@@ -30,20 +31,17 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = malloc(512);
+    char *src_dir = C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     get_dirname(config->filename_base, &dir_name);
     get_basename(config->filename_base, &base_name);
-    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    sprintf(src_dir, "%s/src", dir_name);
     makedirs(src_dir);
-    CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir,
-                 base_name ? base_name : "generated_client");
-    free(src_dir);
-    if (dir_name)
-      free(dir_name);
-    if (base_name)
-      free(base_name);
+    CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir, base_name);
+    C_CDD_FREE(src_dir);
+    C_CDD_FREE(dir_name);
+    C_CDD_FREE(base_name);
   }
 #if defined(_MSC_VER)
   if (fopen_s(&fp, path, "w") != 0)
@@ -62,14 +60,14 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "/* Generated CLI from OpenAPI Specification */\n\n");
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
+#include "c_cdd/memory.h"
   fprintf(fp, "#include <string.h>\n");
   fprintf(fp, "#include <parson.h>\n ");
   {
     char *base = NULL;
     get_basename(config->filename_base, &base);
-    fprintf(fp, "#include \"%s.h\"\n\n", base ? base : config->filename_base);
-    if (base)
-      free(base);
+    fprintf(fp, "#include \"%s.h\"\n\n", base);
+    C_CDD_FREE(base);
   }
 
   /* Info Object details */
@@ -242,7 +240,7 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "          printf(\",\\\"result\\\":{\\\"tools\\\":%%s}}\\n\", "
               "tools_str);\n");
   fprintf(fp, "          json_free_serialized_string(tools_str);\n");
-  fprintf(fp, "          json_value_free(tools_val);\n");
+  fprintf(fp, "          json_value_C_CDD_FREE(tools_val);\n");
   fprintf(fp, "          fflush(stdout);\n");
   fprintf(fp, "        } else if (strcmp(method, \"tools/call\") == 0) {\n");
   fprintf(fp, "          JSON_Object *params = json_object_get_object(req_obj, "
@@ -278,7 +276,7 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
               "{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"%%s\\\"}]}}\\n\", "
               "out_result ? out_result : \"Error executing tool\");\n");
   fprintf(fp, "          }\n");
-  fprintf(fp, "          if (out_result) free(out_result);\n");
+  fprintf(fp, "          if (out_result) C_CDD_FREE(out_result);\n");
   fprintf(fp, "          fflush(stdout);\n");
   fprintf(fp,
           "        } else if (strcmp(method, \"resources/list\") == 0) {\n");
@@ -297,7 +295,7 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           "          printf(\",\\\"result\\\":{\\\"resources\\\":%%s}}\\n\", "
           "res_str);\n");
   fprintf(fp, "          json_free_serialized_string(res_str);\n");
-  fprintf(fp, "          json_value_free(res_val);\n");
+  fprintf(fp, "          json_value_C_CDD_FREE(res_val);\n");
   fprintf(fp, "          fflush(stdout);\n");
   fprintf(fp,
           "        } else if (strcmp(method, \"resources/read\") == 0) {\n");
@@ -321,11 +319,11 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
           "          printf(\",\\\"result\\\":{\\\"contents\\\":%%s}}\\n\", "
           "res_str);\n");
   fprintf(fp, "          json_free_serialized_string(res_str);\n");
-  fprintf(fp, "          json_value_free(res_val);\n");
+  fprintf(fp, "          json_value_C_CDD_FREE(res_val);\n");
   fprintf(fp, "          fflush(stdout);\n");
   fprintf(fp, "        }\n");
   fprintf(fp, "      }\n");
-  fprintf(fp, "      json_value_free(req_val);\n");
+  fprintf(fp, "      json_value_C_CDD_FREE(req_val);\n");
   fprintf(fp, "    }\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n");
   fprintf(fp, "  }\n\n");

@@ -13,9 +13,7 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s_napi.c", config->output_dir,
@@ -223,23 +221,19 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
     CDD_SNPRINTF(filepath_test, sizeof(filepath_test), "%s\\test_%s.js",
                  config->output_dir,
-                 (config && config->library_name) ? config->library_name
-                                                  : "mylib");
+                 (config->library_name) ? config->library_name : "mylib");
     fopen_s(&ft, filepath_test, "w");
 #else
     CDD_SNPRINTF(filepath_test, sizeof(filepath_test), "%s/test_%s.js",
                  config->output_dir,
-                 (config && config->library_name) ? config->library_name
-                                                  : "mylib");
+                 (config->library_name) ? config->library_name : "mylib");
     ft = fopen(filepath_test, "w");
 #endif
     if (ft) {
       fprintf(ft, "// Auto-generated tests for %s\n",
-              (config && config->library_name) ? config->library_name
-                                               : "mylib");
+              (config->library_name) ? config->library_name : "mylib");
       fprintf(ft, "const lib = require('./build/Release/%s.node');\n\n",
-              (config && config->library_name) ? config->library_name
-                                               : "mylib");
+              (config->library_name) ? config->library_name : "mylib");
       for (i = 0; i < ir->nodes_count; i++) {
         cdd_ffi_ir_node_t *node = &ir->nodes[i];
         if (node->kind == CDD_FFI_NODE_FUNCTION) {
@@ -269,9 +263,7 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\binding.gyp",

@@ -82,9 +82,7 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
   char module_name[256];
 
   to_camel_case(lib_name, module_name, sizeof(module_name));
@@ -107,8 +105,7 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
-      if (f)
-        fclose(f);
+      fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
   }
@@ -202,8 +199,7 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     {
       extern volatile int g_fail_io_after;
       if (g_fail_io_after == 2) {
-        if (fc)
-          fclose(fc);
+        fclose(fc);
         fc = NULL;
       }
     }
@@ -247,8 +243,7 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     {
       extern volatile int g_fail_io_after;
       if (g_fail_io_after == 3) {
-        if (f)
-          fclose(f);
+        fclose(f);
         f = NULL;
       }
     }

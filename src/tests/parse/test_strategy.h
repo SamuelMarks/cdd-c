@@ -397,6 +397,12 @@ TEST test_strategy_edge_cases(void) {
     site.token_index = 0;
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(tl, &site, 0, &patches));
 
+    /* Hit SEMICOLON */
+    tokenize(az_span_create_from_str("; realloc(p, 10);"), &tl);
+    site.token_index = find_token_index(tl, "realloc");
+    ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(
+                                 tl, &site, site.token_index + 5, &patches));
+
     /* Hit LBRACE */
     tokenize(az_span_create_from_str("{ realloc(p, 10);"), &tl);
     site.token_index = find_token_index(tl, "realloc");

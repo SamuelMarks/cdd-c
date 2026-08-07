@@ -14,16 +14,6 @@ static const char *map_vlang_type(cdd_ffi_type_t *t) {
     if (t->kind == CDD_FFI_KIND_INT8 || t->kind == CDD_FFI_KIND_UINT8) {
       return "&char";
     }
-    if (t->kind == CDD_FFI_KIND_STRUCT_REF ||
-        t->kind == CDD_FFI_KIND_TYPEDEF_REF ||
-        t->kind == CDD_FFI_KIND_ENUM_REF) {
-      if (t->ref_name) {
-        /* In V, pointers to C structs are mapped as `&C.StructName`
-           We can't easily format dynamic strings here, so returning `voidptr`
-           is a safe fallback for general pointers. */
-        return "voidptr";
-      }
-    }
     return "voidptr";
   }
   switch (t->kind) {
@@ -76,9 +66,8 @@ cdd_c_error_t cdd_ffi_emit_vlang(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
-  module_name =
-      (config && config->module_name) ? config->module_name : "bindings";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
+  module_name = (config->module_name) ? config->module_name : "bindings";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.v", config->output_dir,

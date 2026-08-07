@@ -594,6 +594,65 @@ TEST test_cdd_cst_parser_errors(void) {
     cdd_cst_tree_free(tree);
   tree = NULL;
 
+  /* Not a function due to rbrace */
+  cdd_cst_parse(az_span_create_from_str("} func() {"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Not a function: expression with parens and then semicolon */
+  cdd_cst_parse(az_span_create_from_str("int x = (1);"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("int arr[] = {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("x = {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("return {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("int x = (1) {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("int x(1) {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("int x(1) : 1 {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str("int x, {1};"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Not a function: unmatched parens */
+  cdd_cst_parse(az_span_create_from_str("int x = (1;"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  /* Not a function: function call */
+  cdd_cst_parse(az_span_create_from_str("func();"), &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
   /* Template without params */
   cdd_cst_parse(az_span_create_from_str("template < > class X;"), &tree);
   if (tree)

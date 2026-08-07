@@ -454,7 +454,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
 
       {
         size_t k = start_idx;
-        while (k < end_idx) {
+        for (;;) {
           if (tl->tokens[k].kind == TOKEN_LBRACE) {
             sig_end_idx = k;
             break;
@@ -464,15 +464,13 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
           }
           if (tl->tokens[k].kind == TOKEN_LPAREN && !found_name) {
             size_t n = k;
-            while (n > start_idx) {
+            do {
               n--;
-              if (tl->tokens[n].kind == TOKEN_WHITESPACE)
-                continue;
-              if (tl->tokens[n].kind == TOKEN_IDENTIFIER) {
-                name_idx = n;
-                found_name = 1;
-              }
-              break;
+            } while (n > start_idx && tl->tokens[n].kind == TOKEN_WHITESPACE);
+
+            if (tl->tokens[n].kind == TOKEN_IDENTIFIER) {
+              name_idx = n;
+              found_name = 1;
             }
           }
           k++;

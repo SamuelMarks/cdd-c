@@ -139,7 +139,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(idl_filepath, sizeof(idl_filepath), "%s\\%s.idl",
@@ -174,8 +174,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (cpp_f)
-        fclose(cpp_f);
+      fclose(cpp_f);
       cpp_f = NULL;
     }
   }
@@ -191,8 +190,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (ts_f)
-        fclose(ts_f);
+      fclose(ts_f);
       ts_f = NULL;
     }
   }

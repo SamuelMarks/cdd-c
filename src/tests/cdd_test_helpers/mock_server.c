@@ -11,6 +11,7 @@
 
 /* clang-format off */
 #include "mock_server.h"
+extern int g_accept_fail;
 
 #include <errno.h>
 #include <stdio.h>
@@ -73,6 +74,7 @@ static int cond_wait(cond_t *c, mutex_t *m) {
 static void close_socket(socket_t s) { closesocket(s); }
 
 static int platform_init(void) {
+  if (g_accept_fail == 998) return -1;
   WSADATA wsa;
   return WSAStartup(MAKEWORD(2, 2), &wsa);
 }
@@ -113,16 +115,104 @@ static void mutex_unlock(mutex_t *m) { pthread_mutex_unlock(m); }
 
 static void cond_init(cond_t *c) { pthread_cond_init(c, NULL); }
 static void cond_signal(cond_t *c) { pthread_cond_signal(c); }
-static int cond_wait(cond_t *c, mutex_t *m) { return pthread_cond_wait(c, m); }
+#define cond_wait(c, m)                                                        \
+  (g_accept_fail == 999 ? (server->running = 0, 0) : pthread_cond_wait(c, m))
 
 static void close_socket(socket_t s) { close(s); }
 
-static int platform_init(void) { return 0; }
+static int platform_init(void) {
+  if (g_accept_fail == 998)
+    return -1;
+  return 0;
+}
 static cdd_c_error_t platform_cleanup(void) { return CDD_C_SUCCESS; }
 
 #endif
 
+#include "c_cdd_export.h"
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+C_CDD_EXPORT int g_socket_fail = 0;
+C_CDD_EXPORT int g_bind_fail = 0;
+C_CDD_EXPORT int g_listen_fail = 0;
+C_CDD_EXPORT int g_getsockname_fail = 0;
+C_CDD_EXPORT int g_pthread_create_fail = 0;
+C_CDD_EXPORT int g_accept_fail = 0;
+
+static socket_t mock_socket(int domain, int type, int protocol) {
+  if (g_socket_fail)
+    return INVALID_SOCK;
+  return socket(domain, type, protocol);
+}
+static int mock_bind(socket_t sockfd, const struct sockaddr *addr,
+                     int addrlen) {
+  if (g_bind_fail)
+    return SOCK_ERROR;
+  return bind(sockfd, addr, addrlen);
+}
+static int mock_listen(socket_t sockfd, int backlog) {
+  if (g_listen_fail)
+    return SOCK_ERROR;
+  return listen(sockfd, backlog);
+}
+static int mock_getsockname(socket_t sockfd, struct sockaddr *addr,
+                            void *addrlen) {
+  if (g_getsockname_fail)
+    return SOCK_ERROR;
+#if defined(_WIN32)
+  return getsockname(sockfd, addr, (int *)addrlen);
+#else
+  return getsockname(sockfd, addr, (socklen_t *)addrlen);
+#endif
+}
+#if defined(_WIN32)
+static uintptr_t mock_beginthreadex(void *security, unsigned stack_size,
+                                    unsigned(__stdcall *start_address)(void *),
+                                    void *arglist, unsigned initflag,
+                                    unsigned *thrdaddr) {
+  if (g_pthread_create_fail)
+    return 0;
+  return _beginthreadex(security, stack_size, start_address, arglist, initflag,
+                        thrdaddr);
+}
+#define BEGIN_THREAD mock_beginthreadex
+#else
+static int mock_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                               void *(*start_routine)(void *), void *arg) {
+  if (g_pthread_create_fail)
+    return 1;
+  return pthread_create(thread, attr, start_routine, arg);
+}
+#define PTHREAD_CREATE mock_pthread_create
+#endif
+
+static socket_t mock_accept(socket_t sockfd, struct sockaddr *addr,
+                            void *addrlen) {
+  if (g_accept_fail && --g_accept_fail == 0)
+    return INVALID_SOCK;
+#if defined(_WIN32)
+  return accept(sockfd, addr, (int *)addrlen);
+#else
+  return accept(sockfd, addr, (socklen_t *)addrlen);
+#endif
+}
+
+#undef socket
+#define socket mock_socket
+#undef bind
+#define bind mock_bind
+#undef listen
+#define listen mock_listen
+#undef getsockname
+#define getsockname mock_getsockname
+#undef accept
+#define accept mock_accept
+#undef calloc
+#define calloc(count, size) (g_cdd_alloc_fail ? NULL : calloc(count, size))
+#undef malloc
+#define malloc(size) (g_cdd_alloc_fail ? NULL : malloc(size))
+
 /* --- Internal Structure --- */
+extern int g_accept_fail;
 
 /** \brief mock */
 struct MockServer_ {
@@ -216,16 +306,16 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 
 cdd_c_error_t mock_server_init(MockServerPtr *out) {
   struct MockServer_ *s;
+  if (!out)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (platform_init() != 0) {
-    if (out)
-      *out = NULL;
+    *out = NULL;
     return CDD_C_ERROR_UNKNOWN;
   }
 
   s = (struct MockServer_ *)calloc(1, sizeof(struct MockServer_));
   if (!s) {
-    if (out)
-      *out = NULL;
+    *out = NULL;
     return CDD_C_ERROR_UNKNOWN;
   }
 
@@ -326,14 +416,14 @@ cdd_c_error_t mock_server_start(MockServerPtr server) {
 
 #if defined(_WIN32)
   server->thread =
-      (HANDLE)_beginthreadex(NULL, 0, server_thread_func, server, 0, NULL);
+      (HANDLE)BEGIN_THREAD(NULL, 0, server_thread_func, server, 0, NULL);
   if (server->thread == 0) {
     server->running = 0;
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;
   }
 #else
-  if (pthread_create(&server->thread, NULL, server_thread_func, server) != 0) {
+  if (PTHREAD_CREATE(&server->thread, NULL, server_thread_func, server) != 0) {
     server->running = 0;
     close_socket(server->server_fd);
     return CDD_C_ERROR_UNKNOWN;

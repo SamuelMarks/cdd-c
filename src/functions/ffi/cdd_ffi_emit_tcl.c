@@ -25,7 +25,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
 
-  lib_name = (config && config->library_name) ? config->library_name : "mylib";
+  lib_name = (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s\\%s_tcl.c",
@@ -53,8 +53,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (pkg_f)
-        fclose(pkg_f);
+      fclose(pkg_f);
       pkg_f = NULL;
     }
   }

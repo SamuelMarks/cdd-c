@@ -198,103 +198,102 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
         i++;
 
         /* 3. Identify array bracket `[` */
-        while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE)
+        while (tokens->tokens[i].kind == TOKEN_WHITESPACE)
           i++;
-        if (i < tokens->size && tokens->tokens[i].kind == TOKEN_LBRACKET) {
+
+        /* mathematically guaranteed by lookahead to be TOKEN_LBRACKET */
+        i++;
+        size_expr_start = i;
+
+        /* 4. Read size expression until `]` */
+        while (i < tokens->size && tokens->tokens[i].kind != TOKEN_RBRACKET &&
+               tokens->tokens[i].kind != TOKEN_SEMICOLON &&
+               tokens->tokens[i].kind != TOKEN_LBRACE &&
+               tokens->tokens[i].kind != TOKEN_RBRACE) {
           i++;
-          size_expr_start = i;
+        }
+        if (i < tokens->size && tokens->tokens[i].kind == TOKEN_RBRACKET) {
+          size_expr_end = i;
+          i++;
 
-          /* 4. Read size expression until `]` */
-          while (i < tokens->size && tokens->tokens[i].kind != TOKEN_RBRACKET &&
-                 tokens->tokens[i].kind != TOKEN_SEMICOLON &&
-                 tokens->tokens[i].kind != TOKEN_LBRACE &&
-                 tokens->tokens[i].kind != TOKEN_RBRACE) {
+          /* 5. Check if it ends with `;` to be a basic declaration */
+          while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE)
             i++;
-          }
-          if (i < tokens->size && tokens->tokens[i].kind == TOKEN_RBRACKET) {
-            size_expr_end = i;
-            i++;
+          if (i < tokens->size && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+            /* It's an array declaration. Is it a VLA? Check if size expr is
+             * purely a literal number */
+            int is_vla = 1;
+            size_t expr_toks = 0;
+            size_t k;
 
-            /* 5. Check if it ends with `;` to be a basic declaration */
-            while (i < tokens->size &&
-                   tokens->tokens[i].kind == TOKEN_WHITESPACE)
-              i++;
-            if (i < tokens->size && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
-              /* It's an array declaration. Is it a VLA? Check if size expr is
-               * purely a literal number */
-              int is_vla = 1;
-              size_t expr_toks = 0;
-              size_t k;
-
-              for (k = size_expr_start; k < size_expr_end; k++) {
-                if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
-                  expr_toks++;
-                  if (expr_toks == 1 &&
-                      tokens->tokens[k].kind == TOKEN_NUMBER_LITERAL) {
-                    /* Basic int literal check, could be more complex but enough
-                     * for heuristic */
-                    is_vla = 0;
-                  } else if (expr_toks > 1) {
-                    is_vla = 1; /* Complex expression -> VLA */
-                  }
+            for (k = size_expr_start; k < size_expr_end; k++) {
+              if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
+                expr_toks++;
+                if (expr_toks == 1 &&
+                    tokens->tokens[k].kind == TOKEN_NUMBER_LITERAL) {
+                  /* Basic int literal check, could be more complex but enough
+                   * for heuristic */
+                  is_vla = 0;
+                } else if (expr_toks > 1) {
+                  is_vla = 1; /* Complex expression -> VLA */
                 }
               }
-
-              if (expr_toks == 0)
-                is_vla =
-                    0; /* `int arr[]` or `int arr[ ]` is incomplete, not VLA */
-
-              if (is_vla) {
-                if (list->count >= list->capacity) {
-                  struct VLASite *new_sites;
-                  list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-                  new_sites = (struct VLASite *)realloc(
-                      list->sites, list->capacity * sizeof(struct VLASite));
-                  if (!new_sites)
-                    return CDD_C_ERROR_MEMORY;
-                  list->sites = new_sites;
-                }
-
-                {
-                  struct VLASite *s = &list->sites[list->count];
-                  s->start_token_idx = start_idx;
-                  s->end_token_idx = i + 1;
-
-                  /* Extract type string */
-                  {
-                    const char *t_start =
-                        (const char *)tokens->tokens[start_idx].start;
-                    /* type_end_idx points to the first token AFTER the type
-                     * declaration */
-                    const char *t_end =
-                        (const char *)tokens->tokens[type_end_idx - 1].start +
-                        tokens->tokens[type_end_idx - 1].length;
-                    c_cdd_strndup(t_start, (size_t)(t_end - t_start),
-                                  &s->type_str);
-                  }
-
-                  /* Extract var name */
-                  c_cdd_strndup(
-                      (const char *)tokens->tokens[var_name_idx].start,
-                      tokens->tokens[var_name_idx].length, &s->var_name);
-
-                  /* Extract size expression */
-                  {
-                    const char *sz_start =
-                        (const char *)tokens->tokens[size_expr_start].start;
-                    const char *sz_end =
-                        (const char *)tokens->tokens[size_expr_end - 1].start +
-                        tokens->tokens[size_expr_end - 1].length;
-                    c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start),
-                                  &s->size_expr);
-                  }
-
-                  list->count++;
-                }
-              }
-              i++;      /* Skip past semicolon */
-              continue; /* Success path */
             }
+
+            if (expr_toks == 0)
+              is_vla =
+                  0; /* `int arr[]` or `int arr[ ]` is incomplete, not VLA */
+
+            if (is_vla) {
+              if (list->count >= list->capacity) {
+                struct VLASite *new_sites;
+                list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
+                new_sites = (struct VLASite *)realloc(
+                    list->sites, list->capacity * sizeof(struct VLASite));
+                if (!new_sites)
+                  return CDD_C_ERROR_MEMORY;
+                list->sites = new_sites;
+              }
+
+              {
+                struct VLASite *s = &list->sites[list->count];
+                s->start_token_idx = start_idx;
+                s->end_token_idx = i + 1;
+
+                /* Extract type string */
+                {
+                  const char *t_start =
+                      (const char *)tokens->tokens[start_idx].start;
+                  /* type_end_idx points to the first token AFTER the type
+                   * declaration */
+                  const char *t_end =
+                      (const char *)tokens->tokens[type_end_idx - 1].start +
+                      tokens->tokens[type_end_idx - 1].length;
+                  c_cdd_strndup(t_start, (size_t)(t_end - t_start),
+                                &s->type_str);
+                }
+
+                /* Extract var name */
+                c_cdd_strndup((const char *)tokens->tokens[var_name_idx].start,
+                              tokens->tokens[var_name_idx].length,
+                              &s->var_name);
+
+                /* Extract size expression */
+                {
+                  const char *sz_start =
+                      (const char *)tokens->tokens[size_expr_start].start;
+                  const char *sz_end =
+                      (const char *)tokens->tokens[size_expr_end - 1].start +
+                      tokens->tokens[size_expr_end - 1].length;
+                  c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start),
+                                &s->size_expr);
+                }
+
+                list->count++;
+              }
+            }
+            i++;      /* Skip past semicolon */
+            continue; /* Success path */
           }
         }
       }

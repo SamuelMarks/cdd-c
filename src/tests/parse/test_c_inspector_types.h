@@ -144,6 +144,34 @@ TEST test_inspector_nulls(void) {
   list.items[0].details.struct_fields->size = 1;
   list.items[0].details.struct_fields->capacity = 1;
   type_def_list_free(&list);
+  /* 3. Hit capacity logic and k < end_idx without LBRACE */
+  {
+    struct FuncSigList sig_list;
+    func_sig_list_init(&sig_list);
+    c_inspector_extract_signatures(
+        "void f1() {} void f2() {} void f3() {} void f4() {} void f5() {} "
+        "void f6() {} void f7() {} void f8() {} void f9() {} void f10() {}"
+        "void proto(int a);",
+        &sig_list);
+    func_sig_list_free(&sig_list);
+  }
+
+  /* 4. Hit n > start_idx false condition */
+  {
+    struct FuncSigList sig_list;
+    func_sig_list_init(&sig_list);
+    c_inspector_extract_signatures("(){}", &sig_list);
+    func_sig_list_free(&sig_list);
+  }
+
+  /* 5. Another attempt for n > start_idx */
+  {
+    struct FuncSigList sig_list;
+    func_sig_list_init(&sig_list);
+    c_inspector_extract_signatures(" ( ) {}", &sig_list);
+    func_sig_list_free(&sig_list);
+  }
+
   g_fail_io_after = -1;
 
   PASS();

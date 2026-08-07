@@ -101,7 +101,7 @@ emit_dart_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   size_t i, j;
   /* LCOV_EXCL_BR_START */
   const char *lib_name =
-      (config && config->library_name) ? config->library_name : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
   /* LCOV_EXCL_BR_STOP */
 
 #if defined(_MSC_VER)

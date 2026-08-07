@@ -63,9 +63,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "MyLib")
-          : "MyLib";
+      (config->library_name) ? config->library_name : "MyLib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.swift", config->output_dir,
@@ -81,8 +79,7 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }
@@ -184,9 +181,7 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "MyLib")
-          : "MyLib";
+      (config->library_name) ? config->library_name : "MyLib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\module.modulemap",
@@ -202,8 +197,7 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f)
-        fclose(f);
+      fclose(f);
       f = NULL;
     }
   }

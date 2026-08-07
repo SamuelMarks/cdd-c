@@ -596,7 +596,7 @@ TEST test_types_exhaustive_io(void) {
 
   sf.union_is_anyof = 0;
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -604,9 +604,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -614,9 +616,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -624,9 +628,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -634,9 +640,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -644,9 +652,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -654,9 +664,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -664,9 +676,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -674,9 +688,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -684,9 +700,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -694,9 +712,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -704,9 +724,11 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -714,8 +736,10 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -723,10 +747,12 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   sf.union_is_anyof = 1;
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -734,10 +760,12 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   sf.union_discriminator[0] = '\0';
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -745,6 +773,8 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   struct_fields_free(&sf);
@@ -753,7 +783,7 @@ TEST test_types_exhaustive_io(void) {
   strcpy(sf.union_discriminator, "type");
   sf.union_variants = NULL;
   sf.n_union_variants = 0;
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -761,6 +791,8 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   struct_fields_free(&sf);
@@ -778,12 +810,14 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   free(sf.union_discriminator);
   sf.union_discriminator = NULL;
   sf.union_variants = NULL;
-  for (i = 0; i < 800; ++i) {
+  for (i = 0; i < 2000; ++i) {
     FILE *tmp = tmpfile();
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -791,6 +825,8 @@ TEST test_types_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    if (i == 1999)
+      printf("WARNING: Loop reached 2000!\n");
   }
 
   g_fail_io_after = -1;
@@ -801,6 +837,7 @@ TEST test_types_exhaustive_io(void) {
 }
 
 TEST test_types_uncovered(void) {
+  int i, rc;
   struct StructFields sf;
   struct CodegenTypesConfig config = {0};
   FILE *tmp = tmpfile();
@@ -856,13 +893,73 @@ TEST test_types_uncovered(void) {
     strcpy(f->name, "null2");
     strcpy(f->type, "null");
   }
+  struct_fields_add(&sf, "obj3", "object", "Object", NULL, NULL);
+  struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "s2", "string", NULL, NULL, NULL);
 
-  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
-  write_union_from_json_func(tmp, "Union1", &sf, &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_jsonObject_func(t, "Union1", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union1", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
 
   struct_fields_free(&sf);
 
-  /* 4. Test int_count == 0 && num_count > 0 and boolean count == 1 */
+  /* 3.5 Test string count > 1 */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "s1");
+    strcpy(f->type, "string");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "s2");
+    strcpy(f->type, "string");
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union_Strings", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  struct_fields_free(&sf);
+
+  /* 3.6 Test string count == 1 */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "s1");
+    strcpy(f->type, "string");
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union_String_1", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  struct_fields_free(&sf);
+
+  /* 4. Test int_count == 0 && num_count == 1 and boolean count == 1 */
   struct_fields_init(&sf);
   {
     struct StructField *f = &sf.fields[sf.size++];
@@ -875,21 +972,277 @@ TEST test_types_uncovered(void) {
     strcpy(f->type, "boolean");
   }
 
-  write_union_from_json_func(tmp, "Union2", &sf, &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union2", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  struct_fields_free(&sf);
+
+  /* 4.2. Test num_count > 1 */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "n1");
+    strcpy(f->type, "number");
+  }
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "n2");
+    strcpy(f->type, "number");
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union2_5", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  struct_fields_free(&sf);
+
+  /* 4.5. Test exactly one integer to hit line 687 */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "i1");
+    strcpy(f->type, "integer");
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union3", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  struct_fields_free(&sf);
+
+  /* 4.6. Test NO ints and NO numbers to hit line 701 false branch */
+  struct_fields_init(&sf);
+  {
+    struct StructField *f = &sf.fields[sf.size++];
+    strcpy(f->name, "b3");
+    strcpy(f->type, "boolean");
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_union_from_json_func(t, "Union4", &sf, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
   struct_fields_free(&sf);
 
   /* 5. Test root array string cleanup and object */
-  write_root_array_cleanup_func(tmp, "ArrStr", "string", NULL, &config);
-  write_root_array_to_json_func(tmp, "ArrStr", "string", NULL, &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_cleanup_func(t, "ArrStr", "string", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_to_json_func(t, "ArrStr", "string", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_from_json_func(t, "ArrStr", "string", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
 
-  write_root_array_cleanup_func(tmp, "ArrObj", "object", "MyObj", &config);
-  write_root_array_to_json_func(tmp, "ArrObj", "object", "MyObj", &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_cleanup_func(t, "ArrObj", "object", "MyObj", &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_to_json_func(t, "ArrObj", "object", "MyObj", &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_from_json_func(t, "ArrObj", "object", "MyObj",
+                                         &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
 
-  write_root_array_cleanup_func(tmp, "ArrInt", "integer", NULL, &config);
-  write_root_array_to_json_func(tmp, "ArrInt", "integer", NULL, &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_cleanup_func(t, "ArrInt", "integer", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_to_json_func(t, "ArrInt", "integer", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_from_json_func(t, "ArrInt", "integer", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
 
-  write_root_array_cleanup_func(tmp, "ArrBool", "boolean", NULL, &config);
-  write_root_array_to_json_func(tmp, "ArrBool", "boolean", NULL, &config);
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_cleanup_func(t, "ArrBool", "boolean", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_root_array_to_json_func(t, "ArrBool", "boolean", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 2000; ++i) {
+    FILE *t = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc =
+        write_root_array_from_json_func(t, "ArrBool", "boolean", NULL, &config);
+    fclose(t);
+    if (rc == 0)
+      break;
+  }
+  /* 6. Exhaustive IO for write_union_from_json_func with single array of
+   * various types */
+  {
+    int t_idx;
+    const char *arr_types[] = {"integer", "number",  "string", "object",
+                               "boolean", "unknown", "enum"};
+    const char *arr_refs[] = {NULL, NULL, NULL,    "ObjType",
+                              NULL, NULL, "MyEnum"};
+    for (t_idx = 0; t_idx < 7; ++t_idx) {
+      struct_fields_init(&sf);
+      struct_fields_add(&sf, "arr", "array", arr_types[t_idx], arr_refs[t_idx],
+                        NULL);
+
+      for (i = 0; i < 2000; ++i) {
+        FILE *t = tmpfile();
+        g_fail_io_after = i;
+        g_io_calls = 0;
+        rc = write_union_from_json_func(t, "UnionArr", &sf, &config);
+        fclose(t);
+        if (rc == 0)
+          break;
+      }
+      struct_fields_free(&sf);
+    }
+  }
+
+  g_fail_io_after = -1;
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_types_edge_cases_no_io(void) {
+  struct StructFields sf;
+  struct CodegenTypesConfig config = {0};
+  FILE *tmp = tmpfile();
+
+  /* Cover sf.union_variants && i < sf->n_union_variants where i >=
+   * n_union_variants */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "obj1", "object", "Obj1", NULL, NULL);
+  struct_fields_add(&sf, "obj2", "object", "Obj2", NULL, NULL);
+
+  sf.union_discriminator = strdup("type");
+  sf.union_variants =
+      (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
+  sf.n_union_variants =
+      1; /* sf.size is 2, so i=1 will fail i < sf->n_union_variants */
+  sf.union_variants[0].disc_value = strdup("obj1");
+
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+
+  struct_fields_free(&sf);
+
+  /* Cover jtype == UNION_JSON_UNKNOWN && t where t == NULL */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "null_type", NULL, NULL, NULL, NULL);
+  sf.union_is_anyof = 0;
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  struct_fields_free(&sf);
+
+  /* Cover num_count > 1 when int_count <= 1 AND !union_is_anyof */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "n1", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "n2", "number", NULL, NULL, NULL);
+  sf.union_is_anyof = 0;
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  struct_fields_free(&sf);
+
+  /* Cover string_count > 1 false when !union_is_anyof */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "s1", "string", NULL, NULL, NULL);
+  sf.union_is_anyof = 0;
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  struct_fields_free(&sf);
+
+  /* Cover int_count == 0 && num_count == 0 fallback */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "b1", "boolean", NULL, NULL, NULL);
+  sf.union_is_anyof = 0;
+  write_union_from_jsonObject_func(tmp, "Union1", &sf, &config);
+  struct_fields_free(&sf);
+
+  /* Cover strcmp(type, "null") == 0 false branch */
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "unk1", "unknown", NULL, NULL, NULL);
+  write_union_to_json_func(tmp, "Union1", &sf, &config);
+  struct_fields_free(&sf);
 
   fclose(tmp);
   PASS();
@@ -911,6 +1264,7 @@ SUITE(codegen_types_suite) {
   RUN_TEST(test_types_null_args);
   RUN_TEST(test_types_io_fail);
   RUN_TEST(test_types_uncovered);
+  RUN_TEST(test_types_edge_cases_no_io);
 }
 
 #ifdef __cplusplus

@@ -199,8 +199,9 @@ cdd_c_error_t fs_is_directory(const char *path, int *out_is_dir) {
   *out_is_dir = 0;
   if (!path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (c_stat_func(path, &st) != 0)
+  if (c_stat_func(path, &st) != 0) {
     return CDD_C_SUCCESS; /* Not an error to not exist, just not a dir */
+  }
   *out_is_dir = IS_DIR(st.st_mode);
   return CDD_C_SUCCESS;
 }
@@ -214,15 +215,10 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   size_t len;
   char *ret;
 
-  if (out == NULL)
+  if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
   if (!path || !*path) {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-      *out = NULL;
-    } else {
-      *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
-    }
+    *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -273,15 +269,11 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   size_t len;
   char *ret;
 
-  if (out == NULL)
+  if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (!path || !*path) {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-      *out = NULL;
-    } else {
-      *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
-    }
+    *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -310,11 +302,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
       return CDD_C_SUCCESS;
     } else {
       /* No separator found, e.g. "foo" -> "." */
-      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-        *out = NULL;
-      } else {
-        *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
-      }
+      *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
       return *out ? 0 : ENOMEM;
     }
   } else {
@@ -329,11 +317,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   }
 
   if (len == 0) {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-      *out = NULL;
-    } else {
-      *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
-    }
+    *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
     return *out ? 0 : ENOMEM;
   }
 
@@ -454,8 +438,10 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
   FILE *f = NULL;
   int internal_rc = 0;
 
-  if (!path || !mode || !out_data || !out_size)
+  if (!path || !mode || !out_data || !out_size) {
+    fprintf(stderr, "read_to_file returning INVALID_ARGUMENT\n");
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
 
   *out_data = NULL;
   *out_size = 0;
@@ -538,7 +524,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
       char *new_buffer = (char *)C_CDD_REALLOC(buffer, new_capacity);
       if (!new_buffer) {
-        free(buffer);
+        C_CDD_FREE(buffer);
         return CDD_C_ERROR_MEMORY;
       }
       buffer = new_buffer;
@@ -554,7 +540,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
      */
     if (rc == 0)
       rc = CDD_C_ERROR_IO;
-    free(buffer);
+    C_CDD_FREE(buffer);
     return rc;
   }
 
@@ -708,11 +694,7 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-    dup_path = NULL;
-  } else {
-    dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
-  }
+  dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -734,7 +716,7 @@ cdd_c_error_t makedirs(const char *path) {
       *p = '\0';
       rc = maybe_mkdir(dup_path);
       if (rc != 0) {
-        free(dup_path);
+        C_CDD_FREE(dup_path);
         return rc;
       }
       *p = PATH_SEP_C;
@@ -742,7 +724,7 @@ cdd_c_error_t makedirs(const char *path) {
   }
 
   rc = maybe_mkdir(dup_path);
-  free(dup_path);
+  C_CDD_FREE(dup_path);
   return rc;
 }
 
@@ -772,19 +754,12 @@ cdd_c_error_t tempdir(char **out_path) {
   char *_ast_strdup_5 = NULL;
   const char *env;
 
-  if (!out_path)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-
   env = getenv("TMPDIR");
   if (!env || *env == '\0')
     env = getenv("TMP");
   if (!env || *env == '\0')
     env = getenv("TEMP");
   if (env && *env != '\0') {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-      *out_path = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
     *out_path = (c_cdd_strdup(env, &_ast_strdup_5), _ast_strdup_5);
     return *out_path ? 0 : ENOMEM;
   }
@@ -799,7 +774,7 @@ cdd_c_error_t tempdir(char **out_path) {
     if (!*out_path)
       return CDD_C_ERROR_MEMORY;
     if (GetTempPathA(len + 1, *out_path) == 0) {
-      free(*out_path);
+      C_CDD_FREE(*out_path);
       *out_path = NULL;
       return CDD_C_ERROR_IO;
     }
@@ -815,11 +790,7 @@ cdd_c_error_t tempdir(char **out_path) {
 #else
   {
 #ifdef P_tmpdir
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-      *out_path = NULL;
-    } else {
-      *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
-    }
+    *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
 #else
     *out_path = (c_cdd_strdup("/tmp", &_ast_strdup_5), _ast_strdup_5);
 #endif
@@ -832,14 +803,14 @@ cdd_c_error_t tempdir(char **out_path) {
  * @brief Executes the FilenameAndPtr cleanup operation.
  */
 cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
-  if (file == NULL)
+  if (!file)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->fh) {
     fclose(file->fh);
     file->fh = NULL;
   }
   if (file->filename) {
-    free(file->filename);
+    C_CDD_FREE(file->filename);
     file->filename = NULL;
   }
   return CDD_C_SUCCESS;
@@ -849,7 +820,7 @@ cdd_c_error_t FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
  * @brief Executes the FilenameAndPtr delete and cleanup operation.
  */
 cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
-  if (file == NULL)
+  if (!file)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (file->filename) {
     /* Ideally we unlink before freeing memory */
@@ -884,17 +855,17 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       unsigned int number;
       errno_t err = rand_s(&number);
       if (err) {
-        free(tmpdir_path);
+        C_CDD_FREE(tmpdir_path);
         return err;
       }
       if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-        free(tmpdir_path);
+        C_CDD_FREE(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
       if (asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, number,
                    suffix == NULL ? "" : suffix) == -1) {
-        free(tmpdir_path);
+        C_CDD_FREE(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -905,13 +876,13 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
        * context. */
       uint32_t number = (uint32_t)rand();
       if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
-        free(tmpdir_path);
+        C_CDD_FREE(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
       if (asprintf(&tmpfilename, "%s%c%s%lu%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, (unsigned long)number,
                    suffix == NULL ? "" : suffix) == -1) {
-        free(tmpdir_path);
+        C_CDD_FREE(tmpdir_path);
         return CDD_C_ERROR_MEMORY;
       }
     }
@@ -923,7 +894,7 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       errno_t err = fopen_s(&file->fh, tmpfilename, mode);
       if (err != 0 || file->fh == NULL) {
-        free(tmpfilename);
+        C_CDD_FREE(tmpfilename);
         /* Try next iteration */
         continue;
       }
@@ -954,19 +925,19 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #endif
 #endif
       if (!file->fh) {
-        free(tmpfilename);
+        C_CDD_FREE(tmpfilename);
         continue;
       }
 #endif
       /* Success */
       file->filename = tmpfilename;
-      free(tmpdir_path);
+      C_CDD_FREE(tmpdir_path);
       return CDD_C_SUCCESS;
     }
-    free(tmpfilename);
+    C_CDD_FREE(tmpfilename);
   }
 
-  free(tmpdir_path);
+  C_CDD_FREE(tmpdir_path);
   return CDD_C_ERROR_IO; /* Or simple general failure */
 }
 
@@ -1051,7 +1022,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
       } else {
         rc = cb(full_path, user_data);
       }
-      free(full_path);
+      C_CDD_FREE(full_path);
 
       if (rc != 0) {
         _findclose(handle);
@@ -1096,7 +1067,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
         /* Failed to stat? Skip or warning. */
       }
 
-      free(full_path);
+      C_CDD_FREE(full_path);
 
       if (rc != 0) {
         closedir(d);

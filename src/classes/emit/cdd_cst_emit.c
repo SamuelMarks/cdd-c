@@ -55,7 +55,7 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
       new_cap = next_cap;
     }
 #ifdef CDD_BUILD_TESTS
-    if (g_cdd_cst_emit_realloc_fail) {
+    if (g_cdd_cst_emit_realloc_fail && --g_cdd_cst_emit_realloc_fail == 0) {
       new_buf = NULL;
     } else {
 #endif

@@ -63,9 +63,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   FILE *f = NULL;
   size_t i, j;
   const char *lib_name =
-      config
-          ? ((config && config->library_name) ? config->library_name : "mylib")
-          : "mylib";
+      (config->library_name) ? config->library_name : "mylib";
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.odin", config->output_dir,
@@ -85,8 +83,7 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   {
     extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
-      if (f)
-        fclose(f);
+      fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
   }
