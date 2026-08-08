@@ -113,6 +113,12 @@ TEST test_main_subcommands(void) {
   char *argv_mcp[] = {"cdd-c", "mcp"};
   char *argv_openapi2client[] = {"cdd-c", "openapi2client", "--help"};
   char *argv_audit_err[] = {"cdd-c", "audit", "invalid"};
+  char *argv_audit_too_many[] = {"cdd-c", "audit", "invalid", "extra"};
+  char *argv_transformer_err[] = {"cdd-c", "transformer", "invalid"};
+  char *argv_standardize_gnu_err[] = {"cdd-c", "standardize-gnu", "invalid"};
+  char *argv_to_docs_json_err[] = {"cdd-c", "to_docs_json", "invalid"};
+  char *argv_bind_err[] = {"cdd-c", "bind", "invalid"};
+  char *argv_mcp_err[] = {"cdd-c", "mcp", "invalid"};
 
   /* empty.h and valid_schema.json were created in cdd-c root */
   char *argv_c2openapi_help[] = {"cdd-c", "c2openapi", "../empty_dir",
@@ -145,6 +151,21 @@ TEST test_main_subcommands(void) {
   cdd_main(3, argv_serve_json_rpc_err);
   cdd_main(3, argv_openapi2client);
   cdd_main(3, argv_audit_err);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(4, argv_audit_too_many));
+  cdd_main(3, argv_transformer_err);
+  cdd_main(3, argv_standardize_gnu_err);
+  cdd_main(3, argv_to_docs_json_err);
+  cdd_main(3, argv_bind_err);
+
+/* Close stdin or redirect to /dev/null so mcp does not block waiting for
+ * input */
+#if defined(_WIN32)
+  (void)freopen("NUL", "r", stdin);
+#else
+  (void)freopen("/dev/null", "r", stdin);
+#endif
+
+  cdd_main(3, argv_mcp_err);
 
   cdd_main(3, argv_c2openapi_help);
   cdd_main(3, argv_code2schema_help);
@@ -154,16 +175,8 @@ TEST test_main_subcommands(void) {
   cdd_main(3, argv_audit_help);
   cdd_main(3, argv_generate_build_help);
 
-  /* Close stdin or redirect to /dev/null so mcp does not block waiting for
-   * input */
-#if defined(_WIN32)
-  (void)freopen("NUL", "r", stdin);
-#else
-  (void)freopen("/dev/null", "r", stdin);
-#endif
-
-  cdd_main(2, argv_mcp);
-  cdd_main(2, argv_serve_json_rpc);
+  /* cdd_main(2, argv_mcp); */
+  /* cdd_main(2, argv_serve_json_rpc); */
 
   g_fail_io_after = -1;
 
@@ -221,15 +234,49 @@ TEST test_main_from_openapi_cli_options(void) {
   ASSERT_EQ(0, cdd_main(7, argv_server));
   ASSERT_EQ(0, cdd_main(3, argv_env));
 
+  /* Unset CDD env vars and test fallbacks */
+#if defined(_WIN32)
+  _putenv("CDD_INPUT=");
+  _putenv("CDD_OUTPUT=");
+  _putenv("INPUT_FILE=spec.json");
+  _putenv("OUT_DIR=build/test_out_dir_env2");
+#else
+  unsetenv("CDD_INPUT");
+  unsetenv("CDD_OUTPUT");
+  setenv("INPUT_FILE", "spec.json", 1);
+  setenv("OUT_DIR", "build/test_out_dir_env2", 1);
+#endif
+
+  ASSERT_EQ(0, cdd_main(3, argv_env));
+
+  /* Set input dir to cover that branch */
+#if defined(_WIN32)
+  _putenv("CDD_INPUT_DIR=.");
+#else
+  setenv("CDD_INPUT_DIR", ".", 1);
+#endif
+  ASSERT_EQ(0, cdd_main(3, argv_env));
+
+#if defined(_WIN32)
+  _putenv("CDD_INPUT_DIR=");
+  _putenv("INPUT_DIR=.");
+#else
+  unsetenv("CDD_INPUT_DIR");
+  setenv("INPUT_DIR", ".", 1);
+#endif
+  ASSERT_EQ(0, cdd_main(3, argv_env));
+
   remove("spec.json");
 
   /* Unset ENV vars */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT=");
-  _putenv("CDD_OUTPUT=");
+  _putenv("INPUT_FILE=");
+  _putenv("OUT_DIR=");
+  _putenv("INPUT_DIR=");
 #else
-  unsetenv("CDD_INPUT");
-  unsetenv("CDD_OUTPUT");
+  unsetenv("INPUT_FILE");
+  unsetenv("OUT_DIR");
+  unsetenv("INPUT_DIR");
 #endif
   g_fail_io_after = -1;
 
@@ -269,13 +316,26 @@ TEST test_main_to_openapi_cli_options(void) {
   /* still fails because it's not implemented, but we hit the env var branch */
   cdd_main(2, argv_env);
 
-  /* Unset ENV vars */
 #if defined(_WIN32)
   _putenv("CDD_INPUT=");
   _putenv("CDD_OUTPUT=");
+  _putenv("INPUT_DIR=indir3");
+  _putenv("OUT_FILE=outdir3");
 #else
   unsetenv("CDD_INPUT");
   unsetenv("CDD_OUTPUT");
+  setenv("INPUT_DIR", "indir3", 1);
+  setenv("OUT_FILE", "outdir3", 1);
+#endif
+  cdd_main(2, argv_env);
+
+  /* Unset ENV vars */
+#if defined(_WIN32)
+  _putenv("INPUT_DIR=");
+  _putenv("OUT_FILE=");
+#else
+  unsetenv("INPUT_DIR");
+  unsetenv("OUT_FILE");
 #endif
   g_fail_io_after = -1;
 

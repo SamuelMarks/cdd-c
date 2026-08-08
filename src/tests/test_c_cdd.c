@@ -51,6 +51,17 @@ static FILE* cdd_test_tmpfile(void) {
 extern int g_cdd_alloc_fail;
 #endif
 #include "emit/test_codegen_build.h"
+
+#include <stdio.h>
+extern int g_fail_io_after;
+static FILE *mock_tmpfile_fuzzer(void) {
+    if (g_fail_io_after >= 0) {
+        return fopen("/dev/null", "w+b");
+    }
+    return tmpfile();
+}
+#define tmpfile mock_tmpfile_fuzzer
+
 #include "emit/test_codegen_client_body.h"
 #include "emit/test_codegen_client_sig.h"
 #include "emit/test_codegen_defaults.h"
@@ -280,7 +291,23 @@ int main(int argc, char **argv) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   return 0;
 #endif
-  RUN_SUITE(client_body_suite);
+
+  {
+    int io_fail;
+    for (io_fail = -1; io_fail < 3000; io_fail += (io_fail == -1 ? 2 : 1)) {
+      extern int g_fail_io_after;
+      extern int g_io_calls;
+      g_io_calls = 0;
+      g_fail_io_after = io_fail;
+      RUN_SUITE(client_body_suite);
+      if (io_fail != -1 && g_io_calls < io_fail)
+        break;
+    }
+    extern int g_fail_io_after;
+    g_fail_io_after = -1;
+    RUN_SUITE(client_body_suite);
+  }
+
   RUN_SUITE(client_sig_suite);
   RUN_SUITE(codegen_defaults_suite);
   RUN_SUITE(codegen_enum_suite);

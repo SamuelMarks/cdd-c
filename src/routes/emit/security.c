@@ -86,7 +86,9 @@ static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
   if (strcmp(req_scheme, scheme_name) == 0)
     return CDD_C_ERROR_UNKNOWN;
   if (strncmp(req_scheme, prefix, prefix_len) == 0) {
-    return strcmp(req_scheme + prefix_len, scheme_name) == 0;
+    return strcmp(req_scheme + prefix_len, scheme_name) == 0
+               ? CDD_C_ERROR_UNKNOWN
+               : CDD_C_SUCCESS;
   }
   hash = strchr(req_scheme, '#');
   if (!hash || strncmp(hash, prefix, prefix_len) != 0)
@@ -96,7 +98,8 @@ static cdd_c_error_t scheme_ref_matches_name(const char *req_scheme,
   if (!ref_base_matches_self_uri(spec->self_uri, req_scheme,
                                  (size_t)(hash - req_scheme)))
     return CDD_C_SUCCESS;
-  return strcmp(hash + prefix_len, scheme_name) == 0;
+  return strcmp(hash + prefix_len, scheme_name) == 0 ? CDD_C_ERROR_UNKNOWN
+                                                     : CDD_C_SUCCESS;
 }
 
 /**

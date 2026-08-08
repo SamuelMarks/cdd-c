@@ -80,21 +80,17 @@ cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
-#ifdef CDD_BUILD_TESTS
-    {
-      extern C_CDD_EXPORT int g_cdd_fail_alloc;
-      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-        new_arr = NULL;
-      else
-        new_arr = (struct CstNode *)C_CDD_REALLOC(
-            list->nodes, new_cap * sizeof(struct CstNode));
-    }
-#else
     new_arr = (struct CstNode *)C_CDD_REALLOC(list->nodes,
                                               new_cap * sizeof(struct CstNode));
-#endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;

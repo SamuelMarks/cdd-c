@@ -35,6 +35,7 @@ def is_test_function(name: str) -> bool:
         return False
     return (
         name == "main"
+        or name == "mexFunction"
         or name == "openapi_type_to_c_orm_type"
         or name == "openapi_type_to_c_type"
         or name.endswith("_impl")

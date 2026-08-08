@@ -76,6 +76,8 @@ TEST test_body_basic_get(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_0), _ast_gen_body_0);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
 
   /* Check error init */
@@ -113,6 +115,8 @@ TEST test_body_base_url_override(void) {
   code = (gen_body(&op, &spec, "/pets", "\"https://override.example.com\"",
                    &_ast_gen_body_1),
           _ast_gen_body_1);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "\"https://override.example.com\"") != NULL);
 
@@ -142,6 +146,8 @@ TEST test_body_options_verb(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_2), _ast_gen_body_2);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_OPTIONS;") != NULL);
 
@@ -171,6 +177,8 @@ TEST test_body_trace_verb(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_3), _ast_gen_body_3);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_TRACE;") != NULL);
 
@@ -200,6 +208,8 @@ TEST test_body_query_verb(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_4), _ast_gen_body_4);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_QUERY;") != NULL);
 
@@ -231,6 +241,8 @@ TEST test_body_additional_connect_method(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_5), _ast_gen_body_5);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.method = HTTP_CONNECT;") != NULL);
 
@@ -271,6 +283,8 @@ TEST test_body_querystring_param(void) {
 
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
@@ -281,30 +295,40 @@ TEST test_body_querystring_param(void) {
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
@@ -334,6 +358,8 @@ TEST test_body_inline_response_string(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_7), _ast_gen_body_7);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "json_value_get_string") != NULL);
   ASSERT(strstr(code, "strdup(") != NULL);
@@ -366,6 +392,8 @@ TEST test_body_inline_response_array_number(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_8), _ast_gen_body_8);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "json_array_get_count") != NULL);
   ASSERT(strstr(code, "json_array_get_number") != NULL);
@@ -398,6 +426,8 @@ TEST test_body_inline_request_body_string(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_9), _ast_gen_body_9);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_string") != NULL);
   ASSERT(strstr(code, "json_serialize_to_string") != NULL);
@@ -431,6 +461,8 @@ TEST test_body_inline_request_body_string_json_params(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_10), _ast_gen_body_10);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_string") != NULL);
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
@@ -464,6 +496,8 @@ TEST test_body_inline_request_body_array(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_11), _ast_gen_body_11);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "json_value_init_array") != NULL);
   ASSERT(strstr(code, "json_array_append_number") != NULL);
@@ -490,6 +524,8 @@ TEST test_body_textual_request_body_xml(void) {
 
   code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
           _ast_gen_body_12);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)req_body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/xml\"") != NULL);
@@ -517,6 +553,8 @@ TEST test_body_binary_request_body_pdf(void) {
 
   code =
       (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);
@@ -560,6 +598,8 @@ TEST test_body_header_array_param(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Ids") != NULL);
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-Ids\", joined)") !=
@@ -571,24 +611,32 @@ TEST test_body_header_array_param(void) {
   /* Test string array */
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test number array */
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test boolean array */
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test unsupported array */
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
@@ -630,6 +678,8 @@ TEST test_body_header_object_param(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_15), _ast_gen_body_15);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Filter") != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &X-Filter[i]") != NULL);
@@ -675,6 +725,8 @@ TEST test_body_header_json_param_ref(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Filter") != NULL);
   ASSERT(strstr(code, "Filter_to_json") != NULL);
@@ -688,26 +740,36 @@ TEST test_body_header_json_param_ref(void) {
   param.is_array = 1;
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
@@ -716,54 +778,72 @@ TEST test_body_header_json_param_ref(void) {
   param.type = "object";
   param.schema.ref_name = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON array (no is_array flag) */
   param.type = "array";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive string */
   param.type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive integer */
   param.type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive number */
   param.type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive boolean */
   param.type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON primitive unsupported */
   param.type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON missing type */
   param.type = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   /* Test JSON unknown type */
   param.type = "unknown";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
@@ -802,6 +882,8 @@ TEST test_body_header_number_param(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_17), _ast_gen_body_17);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Rate") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Rate)") != NULL);
@@ -844,6 +926,8 @@ TEST test_body_cookie_param(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Cookie Parameters") != NULL);
   ASSERT(
@@ -855,26 +939,36 @@ TEST test_body_cookie_param(void) {
   param.is_array = 1;
   param.items_type = "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
   param.items_type = "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   free(code);
 
@@ -917,6 +1011,8 @@ TEST test_body_cookie_param_number_array(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_19), _ast_gen_body_19);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Cookie Parameters") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", weights[i])") != NULL);
@@ -964,6 +1060,8 @@ TEST test_body_cookie_param_array_explode_false(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_20), _ast_gen_body_20);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "joined_len") != NULL);
   ASSERT(strstr(code, "joined[joined_len++] = ','") != NULL);
@@ -1008,6 +1106,8 @@ TEST test_body_cookie_param_object_form(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_21), _ast_gen_body_21);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &prefs[i]") != NULL);
   ASSERT(strstr(code, "url_encode(") != NULL);
@@ -1054,6 +1154,8 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_22), _ast_gen_body_22);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "url_encode_allow_reserved") != NULL);
   ASSERT(
@@ -1109,6 +1211,8 @@ TEST test_body_security_query_api_key(void) {
   spec.security_set = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_23), _ast_gen_body_23);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   printf("\n--- SEC QUERY KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "struct UrlQueryParams qp") != NULL);
@@ -1162,6 +1266,8 @@ TEST test_body_security_cookie_api_key(void) {
   spec.security_set = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_24), _ast_gen_body_24);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   printf("\n--- SEC COOKIE KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "cookie_str") != NULL);
@@ -1211,6 +1317,8 @@ TEST test_body_form_urlencoded(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
           _ast_gen_body_25);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
   ASSERT(strstr(code, "url_query_build_form(&form_qp, &form_body)") != NULL);
@@ -1261,6 +1369,8 @@ TEST test_body_form_urlencoded_with_params(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
           _ast_gen_body_26);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
   ASSERT(strstr(code, "url_query_build_form(&form_qp, &form_body)") != NULL);
@@ -1312,6 +1422,8 @@ TEST test_body_form_urlencoded_object_fields(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
           _ast_gen_body_27);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
   ASSERT(strstr(code, "Pet_to_json(req_body->pets[i]") != NULL);
@@ -1384,6 +1496,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_28),
           _ast_gen_body_28);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "url_query_add(&form_qp, \"color\"") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
@@ -1455,6 +1569,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_29),
           _ast_gen_body_29);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "openapi_kv_join_form") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"filter\"") != NULL);
@@ -1527,6 +1643,8 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_30),
           _ast_gen_body_30);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "filter[color]") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
@@ -1584,6 +1702,8 @@ TEST test_body_multipart_primitives_and_arrays(void) {
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
           _ast_gen_body_31);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\"") != NULL);
@@ -1638,6 +1758,8 @@ TEST test_body_multipart_object_fields(void) {
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
           _ast_gen_body_32);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
   ASSERT(strstr(code, "Pet_to_json(req_body->pets[i]") != NULL);
@@ -1701,6 +1823,8 @@ TEST test_body_multipart_encoding_content_type(void) {
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_33),
           _ast_gen_body_33);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\", NULL, "
@@ -1761,6 +1885,8 @@ TEST test_body_multipart_encoding_content_type_list(void) {
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_34),
           _ast_gen_body_34);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "\"image/png\"") != NULL);
@@ -1833,6 +1959,8 @@ TEST test_body_multipart_encoding_headers(void) {
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_35),
           _ast_gen_body_35);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "http_request_add_part_header_last(&req, \"X-Trace\", "
                       "title_hdr_X_Trace") != NULL);
@@ -1867,6 +1995,8 @@ TEST test_body_response_range_success(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_36), _ast_gen_body_36);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
@@ -1898,6 +2028,8 @@ TEST test_body_default_response_success(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_37), _ast_gen_body_37);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "Pet_from_json") != NULL);
@@ -1930,6 +2062,8 @@ TEST test_body_text_plain_response_string(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_38), _ast_gen_body_38);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
@@ -1962,6 +2096,8 @@ TEST test_body_text_plain_response_range(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_39), _ast_gen_body_39);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "status_code >= 200") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
@@ -1994,6 +2130,8 @@ TEST test_body_text_plain_response_default(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_40), _ast_gen_body_40);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "default response") != NULL);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
@@ -2026,6 +2164,8 @@ TEST test_body_textual_response_xml(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_41), _ast_gen_body_41);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
   ASSERT(strstr(code, "*out = tmp") != NULL);
@@ -2057,6 +2197,8 @@ TEST test_body_binary_response_pdf(void) {
   op.n_responses = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_42), _ast_gen_body_42);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "unsigned char *tmp") != NULL);
   ASSERT(strstr(code, "*out_len = res->body_len") != NULL);
@@ -3597,6 +3739,8 @@ TEST test_body_header_param_string(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h1), _ast_gen_body_h1);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"X-String\", X-String)") !=
@@ -3627,6 +3771,8 @@ TEST test_body_header_param_integer(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h2), _ast_gen_body_h2);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", X-Int);") != NULL);
   free(code);
@@ -3655,6 +3801,8 @@ TEST test_body_header_param_number(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h3), _ast_gen_body_h3);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Num);") != NULL);
   free(code);
@@ -3683,6 +3831,8 @@ TEST test_body_header_param_boolean(void) {
   op.n_parameters = 1;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_h4), _ast_gen_body_h4);
+  if (g_fail_io_after >= 0 && !code)
+    PASS();
   ASSERT(code);
   ASSERT(strstr(code, "X-Bool ? \"true\" : \"false\"") != NULL);
   free(code);
@@ -3690,7 +3840,720 @@ TEST test_body_header_param_boolean(void) {
   PASS();
 }
 
+TEST test_client_body_all_primitive_types(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 3000; ++io_fail) {
+    if (g_io_calls > 0 && g_io_calls < io_fail)
+      break;
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    FILE *fp = tmpfile();
+    int rc;
+
+    memset(&spec, 0, sizeof(spec));
+    memset(&op, 0, sizeof(op));
+
+    op.method = "put";
+    op.verb = OA_VERB_PUT;
+    op.operation_id = "testPrimitives";
+    op.n_parameters = 21;
+    op.parameters = calloc(21, sizeof(*op.parameters));
+    op.parameters[0].in = OA_PARAM_IN_HEADER;
+    op.parameters[0].name = "X-Num";
+    op.parameters[0].type = "number";
+    op.parameters[0].required = 1;
+    op.parameters[1].in = OA_PARAM_IN_HEADER;
+    op.parameters[1].name = "X-Bool";
+    op.parameters[1].type = "boolean";
+    op.parameters[1].required = 0;
+    op.parameters[2].in = OA_PARAM_IN_PATH;
+    op.parameters[2].name = "pNum";
+    op.parameters[2].type = "number";
+    op.parameters[2].required = 1;
+    op.parameters[3].in = OA_PARAM_IN_PATH;
+    op.parameters[3].name = "pBool";
+    op.parameters[3].type = "boolean";
+    op.parameters[3].required = 1;
+    op.parameters[4].in = OA_PARAM_IN_QUERY;
+    op.parameters[4].name = "qNum";
+    op.parameters[4].type = "number";
+    op.parameters[4].required = 0;
+    op.parameters[4].style = OA_STYLE_FORM;
+    op.parameters[4].explode = 1;
+    op.parameters[4].explode_set = 1;
+    op.parameters[5].in = OA_PARAM_IN_QUERY;
+    op.parameters[5].name = "qBool";
+    op.parameters[5].type = "boolean";
+    op.parameters[5].required = 1;
+    op.parameters[5].style = OA_STYLE_FORM;
+    op.parameters[5].explode = 1;
+    op.parameters[5].explode_set = 1;
+    op.parameters[6].in = OA_PARAM_IN_COOKIE;
+    op.parameters[6].name = "cNum";
+    op.parameters[6].type = "number";
+    op.parameters[6].required = 0;
+    op.parameters[7].in = OA_PARAM_IN_COOKIE;
+    op.parameters[7].name = "cBool";
+    op.parameters[7].type = "boolean";
+    op.parameters[7].required = 1;
+    op.parameters[8].in = OA_PARAM_IN_QUERY;
+    op.parameters[8].name = "qArrNum";
+    op.parameters[8].type = "array";
+    op.parameters[8].items_type = "number";
+    op.parameters[8].style = OA_STYLE_FORM;
+    op.parameters[8].explode = 1;
+    op.parameters[8].explode_set = 1;
+    op.parameters[8].is_array = 1;
+    op.parameters[9].in = OA_PARAM_IN_QUERY;
+    op.parameters[9].name = "qArrBool";
+    op.parameters[9].type = "array";
+    op.parameters[9].items_type = "boolean";
+    op.parameters[9].style = OA_STYLE_FORM;
+    op.parameters[9].explode = 1;
+    op.parameters[9].explode_set = 1;
+    op.parameters[9].is_array = 1;
+    op.parameters[10].in = OA_PARAM_IN_QUERY;
+    op.parameters[10].name = "qArrInt";
+    op.parameters[10].type = "array";
+    op.parameters[10].items_type = "integer";
+    op.parameters[10].style = OA_STYLE_FORM;
+    op.parameters[10].explode = 1;
+    op.parameters[10].explode_set = 1;
+    op.parameters[10].is_array = 1;
+    op.parameters[11].in = OA_PARAM_IN_QUERY;
+    op.parameters[11].name = "qArrStr";
+    op.parameters[11].type = "array";
+    op.parameters[11].items_type = "string";
+    op.parameters[11].style = OA_STYLE_FORM;
+    op.parameters[11].explode = 1;
+    op.parameters[11].explode_set = 1;
+    op.parameters[11].is_array = 1;
+    op.parameters[12].in = OA_PARAM_IN_HEADER;
+    op.parameters[12].name = "hArrNum";
+    op.parameters[12].type = "array";
+    op.parameters[12].items_type = "number";
+    op.parameters[12].is_array = 1;
+    op.parameters[13].in = OA_PARAM_IN_COOKIE;
+    op.parameters[13].name = "cArrNum";
+    op.parameters[13].type = "array";
+    op.parameters[13].items_type = "number";
+    op.parameters[13].is_array = 1;
+    op.parameters[14].in = OA_PARAM_IN_HEADER;
+    op.parameters[14].name = "hArrJson";
+    op.parameters[14].type = "array";
+    op.parameters[14].items_type = "object";
+    op.parameters[14].content_type = "application/json";
+    op.parameters[14].is_array = 1;
+    op.parameters[15].in = OA_PARAM_IN_QUERY;
+    op.parameters[15].name = "qObjNoExp";
+    op.parameters[15].type = "object";
+    op.parameters[15].style = OA_STYLE_FORM;
+    op.parameters[15].explode = 0;
+    op.parameters[15].explode_set = 1;
+    op.parameters[16].in = OA_PARAM_IN_QUERY;
+    op.parameters[16].name = "qArrIntEnc";
+    op.parameters[16].type = "array";
+    op.parameters[16].items_type = "integer";
+    op.parameters[16].style = OA_STYLE_FORM;
+    op.parameters[16].explode = 0;
+    op.parameters[16].explode_set = 1;
+    op.parameters[16].is_array = 1;
+    op.parameters[17].in = OA_PARAM_IN_QUERY;
+    op.parameters[17].name = "qArrNumEnc";
+    op.parameters[17].type = "array";
+    op.parameters[17].items_type = "number";
+    op.parameters[17].style = OA_STYLE_FORM;
+    op.parameters[17].explode = 0;
+    op.parameters[17].explode_set = 1;
+    op.parameters[17].is_array = 1;
+    op.parameters[18].in = OA_PARAM_IN_QUERY;
+    op.parameters[18].name = "qArrBoolEnc";
+    op.parameters[18].type = "array";
+    op.parameters[18].items_type = "boolean";
+    op.parameters[18].style = OA_STYLE_FORM;
+    op.parameters[18].explode = 0;
+    op.parameters[18].explode_set = 1;
+    op.parameters[18].is_array = 1;
+    op.parameters[19].in = OA_PARAM_IN_HEADER;
+    op.parameters[19].name = "hObjNoExp";
+    op.parameters[19].type = "object";
+    op.parameters[19].style = OA_STYLE_FORM;
+    op.parameters[19].explode = 0;
+    op.parameters[19].explode_set = 1;
+    op.parameters[20].in = OA_PARAM_IN_COOKIE;
+    op.parameters[20].name = "cObjNoExp";
+    op.parameters[20].type = "object";
+    op.parameters[20].style = OA_STYLE_FORM;
+    op.parameters[20].explode = 0;
+    op.parameters[20].explode_set = 1;
+
+    op.req_body.is_array = 1;
+    op.req_body.inline_type = "number";
+    op.req_body.content_type = "application/json";
+
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc =
+        codegen_client_write_body(fp, &op, &spec, "/path/{pNum}/{pBool}", NULL);
+    g_fail_io_after = -1;
+
+    free(op.parameters);
+    fclose(fp);
+    if (rc == CDD_C_SUCCESS)
+      break;
+  }
+  PASS();
+}
+
+TEST test_client_body_inline_response_types(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 3000; ++io_fail) {
+    if (g_io_calls > 0 && g_io_calls < io_fail)
+      break;
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    struct OpenAPI_Response resp = {0};
+    FILE *fp;
+    int rc;
+    int all_success = 1;
+
+    // integer response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.inline_type = "integer";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // boolean response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.inline_type = "boolean";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // number response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.inline_type = "number";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // string response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.inline_type = "string";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // array of boolean response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.is_array = 1;
+    resp.schema.inline_type = "boolean";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // array of string response
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.is_array = 1;
+    resp.schema.inline_type = "string";
+    op.n_responses = 1;
+    op.responses = &resp;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // invalid response inline type
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = "200";
+    resp.schema.inline_type = "invalid_type";
+    op.responses = &resp;
+    op.n_responses = 1;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body_media_types);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    if (all_success)
+      break;
+  }
+  PASS();
+}
+
+TEST test_client_body_inline_types(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 3000; ++io_fail) {
+    if (g_io_calls > 0 && g_io_calls < io_fail)
+      break;
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    FILE *fp;
+    int rc;
+    int all_success = 1;
+
+    // integer
+    memset(&op, 0, sizeof(op));
+    op.req_body.inline_type = "integer";
+    op.req_body.content_type = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // boolean
+    memset(&op, 0, sizeof(op));
+    op.req_body.inline_type = "boolean";
+    op.req_body.content_type = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // number
+    memset(&op, 0, sizeof(op));
+    op.req_body.inline_type = "number";
+    op.req_body.content_type = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // array of integer
+    memset(&op, 0, sizeof(op));
+    op.req_body.is_array = 1;
+    op.req_body.inline_type = "integer";
+    op.req_body.content_type = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    // array of boolean
+    memset(&op, 0, sizeof(op));
+    op.req_body.is_array = 1;
+    op.req_body.inline_type = "boolean";
+    op.req_body.content_type = "application/json";
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+
+    if (all_success)
+      break;
+  }
+  PASS();
+}
+
+TEST test_client_body_form_types(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 3000; ++io_fail) {
+    if (g_io_calls > 0 && g_io_calls < io_fail)
+      break;
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    FILE *fp;
+    int rc;
+    int all_success = 1;
+
+    memset(&op, 0, sizeof(op));
+    op.req_body.content_type = "application/x-www-form-urlencoded";
+    op.req_body.n_multipart_fields = 4;
+    op.req_body.multipart_fields =
+        calloc(4, sizeof(*op.req_body.multipart_fields));
+    op.req_body.multipart_fields[0].name = "fStr";
+    op.req_body.multipart_fields[0].type = "string";
+    op.req_body.multipart_fields[1].name = "fInt";
+    op.req_body.multipart_fields[1].type = "integer";
+    op.req_body.multipart_fields[2].name = "fNum";
+    op.req_body.multipart_fields[2].type = "number";
+    op.req_body.multipart_fields[3].name = "fBool";
+    op.req_body.multipart_fields[3].type = "boolean";
+
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body.multipart_fields);
+
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+    if (all_success)
+      break;
+  }
+  PASS();
+}
+
+TEST test_client_body_multipart_types(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 3000; ++io_fail) {
+    if (g_io_calls > 0 && g_io_calls < io_fail)
+      break;
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    FILE *fp;
+    int rc;
+    int all_success = 1;
+
+    memset(&op, 0, sizeof(op));
+    op.req_body.content_type = "multipart/form-data";
+    op.req_body.n_multipart_fields = 4;
+    op.req_body.multipart_fields =
+        calloc(4, sizeof(*op.req_body.multipart_fields));
+    op.req_body.multipart_fields[0].name = "mStr";
+    op.req_body.multipart_fields[0].type = "string";
+    op.req_body.multipart_fields[1].name = "mInt";
+    op.req_body.multipart_fields[1].type = "integer";
+    op.req_body.multipart_fields[2].name = "mNum";
+    op.req_body.multipart_fields[2].type = "number";
+    op.req_body.multipart_fields[3].name = "mBool";
+    op.req_body.multipart_fields[3].type = "boolean";
+
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+    free(op.req_body.multipart_fields);
+
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+    if (all_success)
+      break;
+  }
+  PASS();
+}
+
+TEST test_client_body_form_mega(void) {
+  int io_fail;
+  for (io_fail = 0; io_fail < 5000; ++io_fail) {
+    extern int g_fail_io_after;
+    extern int g_io_calls;
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    FILE *fp;
+    int rc;
+    int all_success = 1;
+
+    memset(&op, 0, sizeof(op));
+    memset(&spec, 0, sizeof(spec));
+
+    op.req_body.content_type = "application/x-www-form-urlencoded";
+    op.req_body.ref_name = "MockFormSchema";
+
+    spec.n_defined_schemas = 5;
+    spec.defined_schema_names = calloc(5, sizeof(char *));
+    c_cdd_strdup("MockFormSchema", &spec.defined_schema_names[0]);
+    c_cdd_strdup("ObjType1", &spec.defined_schema_names[1]);
+    c_cdd_strdup("ObjType2", &spec.defined_schema_names[2]);
+    c_cdd_strdup("ObjType3", &spec.defined_schema_names[3]);
+    c_cdd_strdup("ObjType4", &spec.defined_schema_names[4]);
+
+    spec.defined_schemas = calloc(5, sizeof(struct StructFields));
+
+    // Main schema
+    spec.defined_schemas[0].size = 11;
+    spec.defined_schemas[0].fields = calloc(11, sizeof(struct StructField));
+    strcpy(spec.defined_schemas[0].fields[0].name, "fArrStrRsv");
+    strcpy(spec.defined_schemas[0].fields[0].type, "array");
+    strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+    strcpy(spec.defined_schemas[0].fields[1].name, "fObjExp");
+    strcpy(spec.defined_schemas[0].fields[1].type, "object");
+    strcpy(spec.defined_schemas[0].fields[1].ref, "ObjType1");
+    strcpy(spec.defined_schemas[0].fields[2].name, "fObjNoExp");
+    strcpy(spec.defined_schemas[0].fields[2].type, "object");
+    strcpy(spec.defined_schemas[0].fields[2].ref, "ObjType2");
+    strcpy(spec.defined_schemas[0].fields[3].name, "fObjSpace");
+    strcpy(spec.defined_schemas[0].fields[3].type, "object");
+    strcpy(spec.defined_schemas[0].fields[3].ref, "ObjType3");
+    strcpy(spec.defined_schemas[0].fields[4].name, "fObjPipe");
+    strcpy(spec.defined_schemas[0].fields[4].type, "object");
+    strcpy(spec.defined_schemas[0].fields[4].ref, "ObjType4");
+    strcpy(spec.defined_schemas[0].fields[5].name, "fArrInt");
+    strcpy(spec.defined_schemas[0].fields[5].type, "array");
+    strcpy(spec.defined_schemas[0].fields[5].ref, "integer");
+    strcpy(spec.defined_schemas[0].fields[6].name, "fFormArrInt");
+    strcpy(spec.defined_schemas[0].fields[6].type, "array");
+    strcpy(spec.defined_schemas[0].fields[6].ref, "integer");
+    strcpy(spec.defined_schemas[0].fields[7].name, "fFormArrNum");
+    strcpy(spec.defined_schemas[0].fields[7].type, "array");
+    strcpy(spec.defined_schemas[0].fields[7].ref, "number");
+    strcpy(spec.defined_schemas[0].fields[8].name, "fFormArrBool");
+    strcpy(spec.defined_schemas[0].fields[8].type, "array");
+    strcpy(spec.defined_schemas[0].fields[8].ref, "boolean");
+    strcpy(spec.defined_schemas[0].fields[9].name, "fArrNum");
+    strcpy(spec.defined_schemas[0].fields[9].type, "array");
+    strcpy(spec.defined_schemas[0].fields[9].ref, "number");
+    strcpy(spec.defined_schemas[0].fields[10].name, "fArrBool");
+    strcpy(spec.defined_schemas[0].fields[10].type, "array");
+    strcpy(spec.defined_schemas[0].fields[10].ref, "boolean");
+
+    // ObjType1 (explode=1)
+    spec.defined_schemas[1].size = 4;
+    spec.defined_schemas[1].fields = calloc(4, sizeof(struct StructField));
+    strcpy(spec.defined_schemas[1].fields[0].name, "s");
+    strcpy(spec.defined_schemas[1].fields[0].type, "string");
+    strcpy(spec.defined_schemas[1].fields[1].name, "i");
+    strcpy(spec.defined_schemas[1].fields[1].type, "integer");
+    strcpy(spec.defined_schemas[1].fields[2].name, "n");
+    strcpy(spec.defined_schemas[1].fields[2].type, "number");
+    strcpy(spec.defined_schemas[1].fields[3].name, "b");
+    strcpy(spec.defined_schemas[1].fields[3].type, "boolean");
+
+    // ObjType2 (explode=0)
+    spec.defined_schemas[2].size = 4;
+    spec.defined_schemas[2].fields = calloc(4, sizeof(struct StructField));
+    strcpy(spec.defined_schemas[2].fields[0].name, "s");
+    strcpy(spec.defined_schemas[2].fields[0].type, "string");
+    strcpy(spec.defined_schemas[2].fields[1].name, "i");
+    strcpy(spec.defined_schemas[2].fields[1].type, "integer");
+    strcpy(spec.defined_schemas[2].fields[2].name, "n");
+    strcpy(spec.defined_schemas[2].fields[2].type, "number");
+    strcpy(spec.defined_schemas[2].fields[3].name, "b");
+    strcpy(spec.defined_schemas[2].fields[3].type, "boolean");
+
+    // ObjType3 (spaceDelimited)
+    spec.defined_schemas[3].size = 4;
+    spec.defined_schemas[3].fields = calloc(4, sizeof(struct StructField));
+    strcpy(spec.defined_schemas[3].fields[0].name, "s");
+    strcpy(spec.defined_schemas[3].fields[0].type, "string");
+    strcpy(spec.defined_schemas[3].fields[1].name, "i");
+    strcpy(spec.defined_schemas[3].fields[1].type, "integer");
+    strcpy(spec.defined_schemas[3].fields[2].name, "n");
+    strcpy(spec.defined_schemas[3].fields[2].type, "number");
+    strcpy(spec.defined_schemas[3].fields[3].name, "b");
+    strcpy(spec.defined_schemas[3].fields[3].type, "boolean");
+
+    // ObjType4 (pipeDelimited)
+    spec.defined_schemas[4].size = 4;
+    spec.defined_schemas[4].fields = calloc(4, sizeof(struct StructField));
+    strcpy(spec.defined_schemas[4].fields[0].name, "s");
+    strcpy(spec.defined_schemas[4].fields[0].type, "string");
+    strcpy(spec.defined_schemas[4].fields[1].name, "i");
+    strcpy(spec.defined_schemas[4].fields[1].type, "integer");
+    strcpy(spec.defined_schemas[4].fields[2].name, "n");
+    strcpy(spec.defined_schemas[4].fields[2].type, "number");
+    strcpy(spec.defined_schemas[4].fields[3].name, "b");
+    strcpy(spec.defined_schemas[4].fields[3].type, "boolean");
+
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
+    op.req_body_media_types[0].n_encoding = 11;
+    op.req_body_media_types[0].encoding =
+        calloc(11, sizeof(struct OpenAPI_Encoding));
+
+    op.req_body_media_types[0].encoding[0].name = "fArrStrRsv";
+    op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[0].style_set = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved = 1;
+    op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
+
+    op.req_body_media_types[0].encoding[1].name = "fObjExp";
+    op.req_body_media_types[0].encoding[1].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[1].style_set = 1;
+    op.req_body_media_types[0].encoding[1].explode = 1;
+    op.req_body_media_types[0].encoding[1].explode_set = 1;
+    op.req_body_media_types[0].encoding[1].allow_reserved = 1;
+    op.req_body_media_types[0].encoding[1].allow_reserved_set = 1;
+
+    op.req_body_media_types[0].encoding[2].name = "fObjNoExp";
+    op.req_body_media_types[0].encoding[2].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[2].style_set = 1;
+    op.req_body_media_types[0].encoding[2].explode = 0;
+    op.req_body_media_types[0].encoding[2].explode_set = 1;
+
+    op.req_body_media_types[0].encoding[3].name = "fObjSpace";
+    op.req_body_media_types[0].encoding[3].style = OA_STYLE_SPACE_DELIMITED;
+    op.req_body_media_types[0].encoding[3].style_set = 1;
+
+    op.req_body_media_types[0].encoding[4].name = "fObjPipe";
+    op.req_body_media_types[0].encoding[4].style = OA_STYLE_PIPE_DELIMITED;
+    op.req_body_media_types[0].encoding[4].style_set = 1;
+
+    op.req_body_media_types[0].encoding[5].name = "fArrInt";
+    op.req_body_media_types[0].encoding[5].style = OA_STYLE_SPACE_DELIMITED;
+    op.req_body_media_types[0].encoding[5].style_set = 1;
+
+    op.req_body_media_types[0].encoding[6].name = "fFormArrInt";
+    op.req_body_media_types[0].encoding[6].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[6].style_set = 1;
+    op.req_body_media_types[0].encoding[6].explode = 1;
+    op.req_body_media_types[0].encoding[6].explode_set = 1;
+
+    op.req_body_media_types[0].encoding[7].name = "fFormArrNum";
+    op.req_body_media_types[0].encoding[7].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[7].style_set = 1;
+    op.req_body_media_types[0].encoding[7].explode = 1;
+    op.req_body_media_types[0].encoding[7].explode_set = 1;
+
+    op.req_body_media_types[0].encoding[8].name = "fFormArrBool";
+    op.req_body_media_types[0].encoding[8].style = OA_STYLE_FORM;
+    op.req_body_media_types[0].encoding[8].style_set = 1;
+    op.req_body_media_types[0].encoding[8].explode = 1;
+    op.req_body_media_types[0].encoding[8].explode_set = 1;
+
+    op.req_body_media_types[0].encoding[9].name = "fArrNum";
+    op.req_body_media_types[0].encoding[9].style = OA_STYLE_SPACE_DELIMITED;
+    op.req_body_media_types[0].encoding[9].style_set = 1;
+
+    op.req_body_media_types[0].encoding[10].name = "fArrBool";
+    op.req_body_media_types[0].encoding[10].style = OA_STYLE_SPACE_DELIMITED;
+    op.req_body_media_types[0].encoding[10].style_set = 1;
+
+    fp = tmpfile();
+    g_io_calls = 0;
+    g_fail_io_after = io_fail;
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    g_fail_io_after = -1;
+    fclose(fp);
+
+    free(spec.defined_schemas[0].fields);
+    free(spec.defined_schemas[1].fields);
+    free(spec.defined_schemas[2].fields);
+    free(spec.defined_schemas[3].fields);
+    free(spec.defined_schemas[4].fields);
+    free(spec.defined_schemas);
+    free(spec.defined_schema_names[0]);
+    free(spec.defined_schema_names[1]);
+    free(spec.defined_schema_names[2]);
+    free(spec.defined_schema_names[3]);
+    free(spec.defined_schema_names[4]);
+    free(spec.defined_schema_names);
+    free(op.req_body_media_types[0].encoding);
+    free(op.req_body_media_types);
+
+    if (rc != CDD_C_SUCCESS)
+      all_success = 0;
+    if (all_success)
+      break;
+  }
+  PASS();
+}
 SUITE(client_body_suite) {
+  RUN_TEST(test_client_body_all_primitive_types);
+  RUN_TEST(test_client_body_inline_response_types);
+  RUN_TEST(test_client_body_inline_types);
+  RUN_TEST(test_client_body_form_types);
+  RUN_TEST(test_client_body_multipart_types);
+  RUN_TEST(test_client_body_form_mega);
 
   RUN_TEST(test_client_body_verb_mapping);
   RUN_TEST(test_client_body_mapped_err_code);

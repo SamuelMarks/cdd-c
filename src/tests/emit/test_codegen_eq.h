@@ -278,6 +278,7 @@ TEST test_eq_errors(void) {
   ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
   ASSERT_EQ(NULL, _out);
 
+  g_io_calls = 0;
   g_fail_io_after = 999;
   ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
   ASSERT_STR_EQ("", _out);

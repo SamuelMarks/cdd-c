@@ -10,6 +10,10 @@ extern "C" {
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#if defined(_WIN32)
+#include <direct.h>
+#endif
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "routes/emit/client_gen.h"
@@ -178,7 +182,107 @@ TEST test_server_gen_fail_open(void) {
 /**
  * @brief server_gen_suite
  */
+
+TEST test_server_gen_null_args(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  memset(&spec, 0, sizeof(spec));
+  memset(&config, 0, sizeof(config));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_server_generate(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_server_generate(&spec, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_server_generate(&spec, &config));
+  PASS();
+}
+
+TEST test_server_gen_test_fopen_fail(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&config, 0, sizeof(config));
+  config.filename_base = "test_server";
+
+/* create directory so test file fopen fails */
+#if defined(_WIN32)
+  _mkdir("test_test_server_server.c");
+#else
+  mkdir("test_test_server_server.c", 0777);
+#endif
+
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+#if defined(_WIN32)
+  _rmdir("test_test_server_server.c");
+#else
+  rmdir("test_test_server_server.c");
+#endif
+
+  PASS();
+}
+
+TEST test_server_gen_branches(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&config, 0, sizeof(config));
+  config.filename_base = "test_server_branches";
+
+  spec.n_paths = 1;
+  spec.paths =
+      (struct OpenAPI_Path *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Path));
+  spec.paths[0].route = "/test/route";
+  spec.paths[0].n_operations = 1;
+  spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
+      1, sizeof(struct OpenAPI_Operation));
+
+  spec.paths[0].operations[0].verb = OA_VERB_GET;
+  spec.paths[0].operations[0].operation_id = "doGetBranches";
+  spec.paths[0].operations[0].summary = "MySummary";
+  spec.paths[0].operations[0].n_parameters = 2;
+  spec.paths[0].operations[0].parameters =
+      (struct OpenAPI_Parameter *)C_CDD_CALLOC(
+          2, sizeof(struct OpenAPI_Parameter));
+  spec.paths[0].operations[0].parameters[0].name = "p1";
+  spec.paths[0].operations[0].parameters[0].in = OA_PARAM_IN_HEADER;
+  spec.paths[0].operations[0].parameters[1].name = "p2";
+  spec.paths[0].operations[0].parameters[1].in = OA_PARAM_IN_QUERY;
+  spec.paths[0].operations[0].parameters[1].description = NULL;
+
+  spec.paths[0].operations[0].req_body.content_schema =
+      (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+          1, sizeof(struct OpenAPI_SchemaRef));
+  spec.paths[0].operations[0].req_body.ref = NULL; /* trigger inline */
+
+  spec.n_servers = 1;
+  spec.servers =
+      (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
+  spec.servers[0].url = NULL;
+
+  spec.info.title = "A";
+  spec.info.version = "1";
+
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  C_CDD_FREE(spec.servers);
+  C_CDD_FREE(spec.paths[0].operations[0].parameters);
+  C_CDD_FREE(spec.paths[0].operations[0].req_body.content_schema);
+  C_CDD_FREE(spec.paths[0].operations);
+  C_CDD_FREE(spec.paths);
+
+  PASS();
+}
 SUITE(server_gen_suite) {
+  RUN_TEST(test_server_gen_null_args);
+  RUN_TEST(test_server_gen_test_fopen_fail);
+  RUN_TEST(test_server_gen_branches);
   RUN_TEST(test_server_gen_basic);
   RUN_TEST(test_server_gen_fail_open);
 }

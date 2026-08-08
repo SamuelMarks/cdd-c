@@ -168,34 +168,96 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  /* Check token repl fail */
+  /* Test all possible allocation failures to cover wrap_node and deps_node NULL
+   * branches */
   {
-    const char *fails[] = {"strcasecmp(\"a\");",
-                           "strncasecmp(\"a\", \"b\", 1);",
-                           "strdup(\"a\");",
-                           "ssize_t s;",
-                           "__builtin_expect(1, 1);",
-                           "off_t o;",
-                           "pid_t p;",
-                           "mode_t m;",
-                           "open(1);",
-                           "close(2);",
-                           "read(3);",
-                           "write(4);",
-                           "fileno(5);",
-                           "unlink(6);",
-                           "mkdir(7);",
-                           "rmdir(8);",
-                           "getcwd(9);",
-                           "snprintf(10);",
-                           "strtok_r(11);",
-                           "isnan(12);"};
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    int fail_idx;
+    for (fail_idx = 1; fail_idx < 30; fail_idx++) {
+      cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+      g_cdd_alloc_fail = fail_idx;
+      cdd_transform_msvc(tree, &config);
+      g_cdd_alloc_fail = 0;
+      cdd_cst_tree_free(tree);
+      tree = NULL;
+    }
+  }
+
+  /* Check false branches for memcmp and should_skip logic */
+  {
+    const char *misc =
+        "#include <stdio.h>\n"
+        "#define strdup\n"
+        "void f() {\n"
+        "  struct A *p; p->strdup = 1;\n"
+        "  abcdefghij(); /* 10 chars, not strcasecmp */\n"
+        "  abcdefghijk(); /* 11 chars, not strncasecmp */\n"
+        "  abcdef(); /* 6 chars, not strdup/fileno/unlink/getcwd */\n"
+        "  abcdefg(); /* 7 chars, not ssize_t */\n"
+        "  abcdefghijklmnop(); /* 16 chars, not __builtin_expect */\n"
+        "  abcde(); /* 5 chars, not off_t/pid_t/close/mkdir/rmdir/isnan */\n"
+        "  abcd(); /* 4 chars, not open/read/write */\n"
+        "  abcdefgh(); /* 8 chars, not snprintf/strtok_r */\n"
+        "  ssize_t(1);\n"
+        "  return *mkdir;\n"
+        "}\n"
+        "struct open;\n"
+        "union close;\n"
+        "enum read;\n"
+        "int *write;\n"
+        "struct X *mkdir;\n"
+        "union Y *rmdir;\n"
+        "enum Z *getcwd;\n";
+    cdd_cst_parse(az_span_create_from_str((char *)misc), &tree);
+    rc = cdd_transform_msvc(tree, &config);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+
+  /* Check NULL prev_prev_token */
+  {
+    const char *misc2 = "* strdup;";
+    cdd_cst_parse(az_span_create_from_str((char *)misc2), &tree);
+    rc = cdd_transform_msvc(tree, &config);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    cdd_cst_tree_free(tree);
+    tree = NULL;
+  }
+  {
+    const char *fails[] = {"void f() { strcasecmp(\"a\"); }",
+                           "void f() { strncasecmp(\"a\", \"b\", 1); }",
+                           "void f() { strdup(\"a\"); }",
+                           "void f() { ssize_t s; }",
+                           "void f() { __builtin_expect(1, 1); }",
+                           "void f() { off_t o; }",
+                           "void f() { pid_t p; }",
+                           "void f() { mode_t m; }",
+                           "void f() { open(1); }",
+                           "void f() { close(2); }",
+                           "void f() { read(3); }",
+                           "void f() { write(4); }",
+                           "void f() { fileno(5); }",
+                           "void f() { unlink(6); }",
+                           "void f() { mkdir(7); }",
+                           "void f() { rmdir(8); }",
+                           "void f() { getcwd(9); }",
+                           "void f() { snprintf(10); }",
+                           "void f() { strtok_r(11); }",
+                           "void f() { isnan(12); }"};
     size_t i;
     for (i = 0; i < sizeof(fails) / sizeof(fails[0]); i++) {
       extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-      cdd_cst_parse(az_span_create_from_str((char *)fails[i]), &tree);
+      int parse_rc =
+          cdd_cst_parse(az_span_create_from_str((char *)fails[i]), &tree);
+      if (parse_rc != 0 || tree == NULL) {
+        printf("PARSE FAILED FOR %s\n", fails[i]);
+      }
       g_cdd_cst_alloc_token_fail = 1;
       rc = cdd_transform_msvc(tree, &config);
+      if (rc != CDD_C_ERROR_MEMORY) {
+        printf("TRANSFORM DID NOT RETURN OOM FOR %s (rc=%d)\n", fails[i], rc);
+      }
       g_cdd_cst_alloc_token_fail = 0;
       cdd_cst_tree_free(tree);
       tree = NULL;

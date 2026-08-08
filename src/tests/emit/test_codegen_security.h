@@ -514,6 +514,7 @@ TEST test_ref_base_matches_self_uri(void) {
   ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("a", "a", 0));
   ASSERT_EQ(CDD_C_SUCCESS,
             ref_base_matches_self_uri_test("./self", "abself", 6));
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("././", "abc", 3));
 
   ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test("", "a", 1));
   ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(".a", "a", 1));
@@ -553,10 +554,12 @@ TEST test_scheme_ref_matches_name(void) {
   ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(NULL, "a", &spec));
   ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test("a", NULL, &spec));
 
-  ASSERT_EQ(1, scheme_ref_matches_name_test("#/components/securitySchemes/abc",
-                                            "abc", &spec));
-  ASSERT_EQ(0, scheme_ref_matches_name_test("#/components/securitySchemes/def",
-                                            "abc", &spec));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            scheme_ref_matches_name_test("#/components/securitySchemes/abc",
+                                         "abc", &spec));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            scheme_ref_matches_name_test("#/components/securitySchemes/def",
+                                         "abc", &spec));
 
   ASSERT_EQ(CDD_C_SUCCESS,
             scheme_ref_matches_name_test(
@@ -566,8 +569,9 @@ TEST test_scheme_ref_matches_name(void) {
                 "http://x#/components/securitySchemes/abc", "abc", &spec));
 
   spec.self_uri = "http://x";
-  ASSERT_EQ(1, scheme_ref_matches_name_test(
-                   "http://x#/components/securitySchemes/abc", "abc", &spec));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            scheme_ref_matches_name_test(
+                "http://x#/components/securitySchemes/abc", "abc", &spec));
 
   spec.self_uri = "http://y";
   ASSERT_EQ(CDD_C_SUCCESS,

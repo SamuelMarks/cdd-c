@@ -31,6 +31,9 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   FILE *fp = NULL;
   size_t i, j, k;
 
+  if (!spec || !config || !config->filename_base)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   {
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = (char *)C_CDD_MALLOC(512);

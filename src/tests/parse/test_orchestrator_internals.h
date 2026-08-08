@@ -226,3 +226,6 @@ TEST test_orchestrator_internals(void) {
 SUITE(orchestrator_internals_suite) { RUN_TEST(test_orchestrator_internals); }
 
 #endif /* TEST_ORCHESTRATOR_INTERNALS_H */
+
+#undef orchestrate_fix
+#undef fix_code_main

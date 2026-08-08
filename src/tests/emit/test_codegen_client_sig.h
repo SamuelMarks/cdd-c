@@ -2230,6 +2230,8 @@ TEST test_sig_io_errors(void) {
   param.schema.inline_type = "string";
 
   for (i = 0; i < 500; ++i) {
+    if (g_io_calls > 0 && g_io_calls < i)
+      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     code = NULL;

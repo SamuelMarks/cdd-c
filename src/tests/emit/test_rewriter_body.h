@@ -8,6 +8,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+extern C_CDD_EXPORT int g_patcher_test_cap_1;
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,7 @@ TEST test_propagate_void_stmt(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -75,16 +76,20 @@ TEST test_propagate_void_stmt(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -95,10 +100,14 @@ TEST test_propagate_void_stmt(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -107,7 +116,7 @@ TEST test_propagate_void_stmt(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -117,16 +126,20 @@ TEST test_propagate_void_stmt(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -136,10 +149,14 @@ TEST test_propagate_void_stmt(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -176,7 +193,7 @@ TEST test_propagate_ptr_assignment2(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -187,16 +204,20 @@ TEST test_propagate_ptr_assignment2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -207,10 +228,14 @@ TEST test_propagate_ptr_assignment2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -219,7 +244,7 @@ TEST test_propagate_ptr_assignment2(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -229,16 +254,20 @@ TEST test_propagate_ptr_assignment2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -248,10 +277,14 @@ TEST test_propagate_ptr_assignment2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -272,7 +305,7 @@ TEST test_propagate_ptr_assignment(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  /* s = my_strdup("a") -> rc = my_strdup("a", &s); if(rc) ... */
+  /* s = my_strdup(\"a\") -> rc = my_strdup("a", &s); if(rc) ... */
   ASSERT(strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
@@ -280,7 +313,7 @@ TEST test_propagate_ptr_assignment(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -291,16 +324,20 @@ TEST test_propagate_ptr_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -311,10 +348,14 @@ TEST test_propagate_ptr_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -323,7 +364,7 @@ TEST test_propagate_ptr_assignment(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -333,16 +374,20 @@ TEST test_propagate_ptr_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -352,10 +397,14 @@ TEST test_propagate_ptr_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -390,7 +439,7 @@ TEST test_propagate_ptr_declaration(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -401,16 +450,20 @@ TEST test_propagate_ptr_declaration(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -421,10 +474,14 @@ TEST test_propagate_ptr_declaration(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -433,7 +490,7 @@ TEST test_propagate_ptr_declaration(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -443,16 +500,20 @@ TEST test_propagate_ptr_declaration(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -462,10 +523,14 @@ TEST test_propagate_ptr_declaration(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -499,7 +564,7 @@ TEST test_propagate_nested_hoisting(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -510,16 +575,20 @@ TEST test_propagate_nested_hoisting(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -530,10 +599,14 @@ TEST test_propagate_nested_hoisting(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -542,7 +615,7 @@ TEST test_propagate_nested_hoisting(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -552,16 +625,20 @@ TEST test_propagate_nested_hoisting(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -571,10 +648,14 @@ TEST test_propagate_nested_hoisting(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -612,7 +693,7 @@ TEST test_integration_safety_and_prop(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -623,16 +704,20 @@ TEST test_integration_safety_and_prop(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -643,10 +728,14 @@ TEST test_integration_safety_and_prop(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -655,7 +744,7 @@ TEST test_integration_safety_and_prop(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -665,16 +754,20 @@ TEST test_integration_safety_and_prop(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -684,10 +777,14 @@ TEST test_integration_safety_and_prop(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -723,7 +820,7 @@ TEST test_realloc_safety_injection(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -734,16 +831,20 @@ TEST test_realloc_safety_injection(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -754,10 +855,14 @@ TEST test_realloc_safety_injection(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -766,7 +871,7 @@ TEST test_realloc_safety_injection(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -776,16 +881,20 @@ TEST test_realloc_safety_injection(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -795,10 +904,14 @@ TEST test_realloc_safety_injection(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -821,7 +934,7 @@ TEST test_rewriter_body_bounds(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -832,16 +945,20 @@ TEST test_rewriter_body_bounds(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -852,10 +969,14 @@ TEST test_rewriter_body_bounds(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -864,7 +985,7 @@ TEST test_rewriter_body_bounds(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -874,16 +995,20 @@ TEST test_rewriter_body_bounds(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -893,10 +1018,14 @@ TEST test_rewriter_body_bounds(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -950,7 +1079,7 @@ TEST test_rewriter_body_oom(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -961,16 +1090,20 @@ TEST test_rewriter_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -981,10 +1114,14 @@ TEST test_rewriter_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -993,7 +1130,7 @@ TEST test_rewriter_body_oom(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1003,16 +1140,20 @@ TEST test_rewriter_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1022,10 +1163,14 @@ TEST test_rewriter_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1049,7 +1194,7 @@ TEST test_rewriter_body_bounds2(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1060,16 +1205,20 @@ TEST test_rewriter_body_bounds2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1080,10 +1229,14 @@ TEST test_rewriter_body_bounds2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1092,7 +1245,7 @@ TEST test_rewriter_body_bounds2(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1102,16 +1255,20 @@ TEST test_rewriter_body_bounds2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1121,10 +1278,14 @@ TEST test_rewriter_body_bounds2(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1152,7 +1313,7 @@ TEST test_propagate_void_stmt_return(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1163,16 +1324,20 @@ TEST test_propagate_void_stmt_return(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1183,10 +1348,14 @@ TEST test_propagate_void_stmt_return(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1195,7 +1364,7 @@ TEST test_propagate_void_stmt_return(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1205,16 +1374,20 @@ TEST test_propagate_void_stmt_return(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1224,10 +1397,14 @@ TEST test_propagate_void_stmt_return(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1255,7 +1432,7 @@ TEST test_propagate_void_stmt_transform(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1266,16 +1443,20 @@ TEST test_propagate_void_stmt_transform(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1286,10 +1467,14 @@ TEST test_propagate_void_stmt_transform(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1298,7 +1483,7 @@ TEST test_propagate_void_stmt_transform(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1308,16 +1493,20 @@ TEST test_propagate_void_stmt_transform(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1327,10 +1516,14 @@ TEST test_propagate_void_stmt_transform(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1359,7 +1552,7 @@ TEST test_propagate_nested_parens(void) {
   g_fail_io_after = -1;
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1370,16 +1563,20 @@ TEST test_propagate_nested_parens(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1390,10 +1587,14 @@ TEST test_propagate_nested_parens(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1402,7 +1603,7 @@ TEST test_propagate_nested_parens(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1412,16 +1613,20 @@ TEST test_propagate_nested_parens(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1431,10 +1636,14 @@ TEST test_propagate_nested_parens(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1462,8 +1671,10 @@ TEST test_rewrite_body_oom(void) {
     find_allocations(tl, &sites);
 
     g_cdd_alloc_fail = i;
+    g_patcher_test_cap_1 = 1;
     int rc = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
     g_cdd_alloc_fail = 0;
+    g_patcher_test_cap_1 = 0;
 
     if (rc == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
@@ -1477,7 +1688,7 @@ TEST test_rewrite_body_oom(void) {
 #endif
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1488,16 +1699,20 @@ TEST test_rewrite_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1508,10 +1723,14 @@ TEST test_rewrite_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1520,7 +1739,7 @@ TEST test_rewrite_body_oom(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1530,16 +1749,20 @@ TEST test_rewrite_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1549,10 +1772,14 @@ TEST test_rewrite_body_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1581,8 +1808,10 @@ TEST test_rewrite_body_funcs_oom(void) {
 
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
+    g_patcher_test_cap_1 = 1;
     int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
     g_cdd_alloc_fail = 0;
+    g_patcher_test_cap_1 = 0;
 
     if (rc == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
@@ -1596,7 +1825,7 @@ TEST test_rewrite_body_funcs_oom(void) {
 #endif
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1607,16 +1836,20 @@ TEST test_rewrite_body_funcs_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1627,10 +1860,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1639,7 +1876,7 @@ TEST test_rewrite_body_funcs_oom(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1649,16 +1886,20 @@ TEST test_rewrite_body_funcs_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1668,10 +1909,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1701,8 +1946,10 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
 
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
     g_cdd_strdup_fail = i;
+    g_patcher_test_cap_1 = 1;
     int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
     g_cdd_strdup_fail = 0;
+    g_patcher_test_cap_1 = 0;
 
     if (rc == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
@@ -1716,7 +1963,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
 #endif
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1727,16 +1974,20 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1747,10 +1998,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1759,7 +2014,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1769,16 +2024,20 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1788,10 +2047,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1818,8 +2081,10 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
 
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
+    g_patcher_test_cap_1 = 1;
     int rc = rewrite_body(tl, &sites, funcs, 1, NULL, &out_code);
     g_cdd_alloc_fail = 0;
+    g_patcher_test_cap_1 = 0;
 
     if (rc == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
@@ -1832,7 +2097,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
 #endif
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1843,16 +2108,20 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1863,10 +2132,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1875,7 +2148,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1885,16 +2158,20 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1904,10 +2181,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1936,8 +2217,10 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
 
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
+    g_patcher_test_cap_1 = 1;
     int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
     g_cdd_alloc_fail = 0;
+    g_patcher_test_cap_1 = 0;
 
     if (rc == CDD_C_ERROR_MEMORY) {
       /* Good, failed as expected */
@@ -1950,7 +2233,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
 #endif
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1961,16 +2244,20 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -1981,10 +2268,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -1993,7 +2284,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2003,16 +2294,20 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2022,10 +2317,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2038,7 +2337,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
 TEST test_rewrite_body_corner_cases(void) {
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "int y = my_func(x); int y = my_func(x); int y = "
                           "my_func(x); int y = my_func(x); "
@@ -2060,16 +2359,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "int y = my_func(x); int y = my_func(x); int y = "
                           "my_func(x); int y = my_func(x); "
@@ -2091,10 +2394,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2103,7 +2410,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "my_func(x); my_func(x); my_func(x); my_func(x); "
                           "my_func(x); my_func(x); my_func(x); my_func(x); "
@@ -2120,16 +2427,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "my_func(x); my_func(x); my_func(x); my_func(x); "
                           "my_func(x); my_func(x); my_func(x); my_func(x); "
@@ -2146,10 +2457,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2158,7 +2473,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] =
           "{"
           "z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; "
@@ -2176,16 +2491,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] =
           "{"
           "z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; "
@@ -2203,10 +2522,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2215,7 +2538,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "return malloc(1); return malloc(1); return "
                           "malloc(1); return malloc(1); "
@@ -2239,17 +2562,21 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "return malloc(1); return malloc(1); return "
                           "malloc(1); return malloc(1); "
@@ -2273,10 +2600,14 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
@@ -2286,7 +2617,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "return return return return return "
                           "return return return return return "
@@ -2301,16 +2632,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "return return return return return "
                           "return return return return return "
@@ -2325,10 +2660,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2337,7 +2676,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
@@ -2353,16 +2692,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{"
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
@@ -2378,10 +2721,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2390,7 +2737,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x)";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2401,16 +2748,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x)";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2421,10 +2772,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2433,7 +2788,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "void *p = malloc(1); return p;";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2446,17 +2801,21 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "void *p = malloc(1); return p;";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2469,10 +2828,14 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
@@ -2482,7 +2845,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2493,16 +2856,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2513,10 +2880,14 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
@@ -2525,7 +2896,7 @@ TEST test_rewrite_body_corner_cases(void) {
   }
   {
     int i;
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2535,16 +2906,20 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
     }
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
@@ -2554,14 +2929,77 @@ TEST test_rewrite_body_corner_cases(void) {
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
       rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc == CDD_C_SUCCESS)
         i = 999;
+    }
+  }
+
+  PASS();
+}
+
+TEST test_rewrite_body_corner_oom_2(void) {
+  const char *cases[] = {
+      "void f() { char *s = my_strdup(\"a\"); }",
+      "void f() { my_func(\"a\"); }", "void f() { return my_func(\"a\"); }",
+      "void f() { my_func(\"a\") }", "void f() { if (1) { return; } }"};
+  struct RefactoredFunction funcs[] = {
+      {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
+      {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
+  struct SignatureTransform t1 = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
+  struct SignatureTransform t2 = {TRANSFORM_RET_PTR_TO_ARG, "a", "b", "c", "d"};
+
+  int c;
+  for (c = 0; c < 5; ++c) {
+    int i;
+    for (i = 1; i < 50; ++i) {
+      struct TokenList *tl = NULL;
+      char *out_code = NULL;
+      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      tokenize(az_span_create_from_str((char *)cases[c]), &tl);
+      g_cdd_alloc_fail = i;
+      g_patcher_test_cap_1 = 1;
+      int rc = rewrite_body(tl, NULL, funcs, 2,
+                            c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+      g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
+      free_token_list(tl);
+      if (out_code)
+        C_CDD_FREE(out_code);
+      if (rc == CDD_C_SUCCESS) {
+        break;
+      }
+    }
+  }
+
+  for (c = 0; c < 5; ++c) {
+    int i;
+    for (i = 1; i < 50; ++i) {
+      struct TokenList *tl = NULL;
+      char *out_code = NULL;
+      extern C_CDD_EXPORT int g_cdd_strdup_fail;
+      tokenize(az_span_create_from_str((char *)cases[c]), &tl);
+      g_cdd_strdup_fail = i;
+      g_patcher_test_cap_1 = 1;
+      int rc = rewrite_body(tl, NULL, funcs, 2,
+                            c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+      g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
+      free_token_list(tl);
+      if (out_code)
+        C_CDD_FREE(out_code);
+      if (rc == CDD_C_SUCCESS) {
+        break;
+      }
     }
   }
 
@@ -2589,6 +3027,7 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_rewriter_body_bounds2);
   RUN_TEST(test_rewrite_body_corner_cases);
   RUN_TEST(test_rewriter_body_oom);
+  RUN_TEST(test_rewrite_body_corner_oom_2);
 
   RUN_TEST(test_propagate_void_stmt_return);
   RUN_TEST(test_propagate_void_stmt_transform);

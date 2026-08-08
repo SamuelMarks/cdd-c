@@ -29,6 +29,9 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   FILE *fp = NULL;
   size_t i, j, k;
 
+  if (!spec || !config || !config->filename_base)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   {
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = C_CDD_MALLOC(512);
@@ -62,7 +65,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdlib.h>\n");
 #include "c_cdd/memory.h"
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include <parson.h>\n ");
+  fprintf(fp, "#include <parson.h>\n");
+  fprintf(fp, "/* clang-format off */\n");
+  fprintf(fp, "#include \"cdd_c_error.h\"\n");
+  fprintf(fp, "/* clang-format on */\n");
   {
     char *base = NULL;
     get_basename(config->filename_base, &base);

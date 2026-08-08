@@ -83,6 +83,30 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
   }
 }
 
+static void run_io_loop(const struct OpenAPI_Operation *op, const char *tmpl,
+                        const struct OpenAPI_Parameter *params,
+                        size_t n_params) {
+  int i = 1;
+  while (1) {
+    char *code = NULL;
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    if (op) {
+      gen_query_code(op, &code);
+    } else {
+      gen_url_code(tmpl, params, n_params, &code);
+    }
+    if (code) {
+      free(code);
+      break;
+    }
+    i++;
+    if (i > 1000)
+      break;
+  }
+  g_fail_io_after = -1;
+}
+
 TEST test_query_gen_scalar(void) {
   char *_ast_gen_query_code_0 = NULL;
   struct OpenAPI_Operation op = {0};
@@ -102,6 +126,7 @@ TEST test_query_gen_scalar(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_0), _ast_gen_query_code_0);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
   /* Check scalar integer logic */
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", page)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"page\", num_buf)") != NULL);
@@ -129,6 +154,7 @@ TEST test_query_gen_scalar_number(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_1), _ast_gen_query_code_1);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratio)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ratio\", num_buf)") != NULL);
   free(code);
@@ -157,6 +183,7 @@ TEST test_query_gen_array_explode_int(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_2), _ast_gen_query_code_2);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   /* Loop */
   ASSERT(strstr(code, "for(i=0; i < ids_len; ++i)") != NULL);
@@ -190,6 +217,7 @@ TEST test_query_gen_array_explode_number(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_3), _ast_gen_query_code_3);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "for(i=0; i < ratios_len; ++i)") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratios[i])") != NULL);
@@ -221,6 +249,7 @@ TEST test_query_gen_array_explode_string(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_4), _ast_gen_query_code_4);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "for(i=0; i < tags_len; ++i)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", tags[i])") != NULL);
@@ -252,6 +281,7 @@ TEST test_query_gen_array_form_default_explode(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_5), _ast_gen_query_code_5);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "for(i=0; i < tags_len; ++i)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", tags[i])") != NULL);
@@ -280,6 +310,7 @@ TEST test_query_gen_querystring(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_6), _ast_gen_query_code_6);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
@@ -309,6 +340,7 @@ TEST test_query_gen_querystring_form_object(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_7), _ast_gen_query_code_7);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (form object)") != NULL);
   ASSERT(strstr(code, "url_query_build_form(&qp, &qs_form_body)") != NULL);
@@ -339,6 +371,7 @@ TEST test_query_gen_querystring_json_ref(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_8), _ast_gen_query_code_8);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json)") != NULL);
   ASSERT(strstr(code, "Pet_to_json(qs") != NULL);
@@ -369,6 +402,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_9), _ast_gen_query_code_9);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json primitive)") != NULL);
   ASSERT(strstr(code, "json_value_init_number") != NULL);
@@ -400,6 +434,7 @@ TEST test_query_gen_querystring_json_array(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_10), _ast_gen_query_code_10);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json array)") != NULL);
   ASSERT(strstr(code, "json_value_init_array") != NULL);
@@ -431,6 +466,7 @@ TEST test_query_gen_querystring_json_array_object(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_11), _ast_gen_query_code_11);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (json array objects)") != NULL);
   ASSERT(strstr(code, "Pet_to_json") != NULL);
@@ -462,6 +498,7 @@ TEST test_query_gen_querystring_raw_string(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_12), _ast_gen_query_code_12);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
   ASSERT(strstr(code, "url_encode(qs, &qs_enc)") != NULL);
@@ -492,6 +529,7 @@ TEST test_query_gen_querystring_raw_integer(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_13), _ast_gen_query_code_13);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf") != NULL);
@@ -525,6 +563,7 @@ TEST test_query_gen_array_form_explode_false(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_14), _ast_gen_query_code_14);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
   ASSERT(strstr(code, "joined[joined_len++] = ','") != NULL);
@@ -556,6 +595,7 @@ TEST test_query_gen_array_space_delimited(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_15), _ast_gen_query_code_15);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", joined)") != NULL);
@@ -587,6 +627,7 @@ TEST test_query_gen_array_pipe_delimited(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_16), _ast_gen_query_code_16);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", joined)") != NULL);
@@ -616,6 +657,7 @@ TEST test_query_gen_scalar_allow_reserved(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_17), _ast_gen_query_code_17);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "url_encode_allow_reserved") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", enc)") != NULL);
 
@@ -647,6 +689,7 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_18), _ast_gen_query_code_18);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(tags[i], &enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", enc)") != NULL);
@@ -676,6 +719,7 @@ TEST test_query_gen_object_form_explode(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_19), _ast_gen_query_code_19);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "for(i=0; i < filter_len; ++i)") != NULL);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &filter[i]") != NULL);
@@ -707,6 +751,7 @@ TEST test_query_gen_object_form_explode_false(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_20), _ast_gen_query_code_20);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "url_encode(kv_key, &key_enc)") != NULL);
   ASSERT(strstr(code, "url_encode(kv_raw, &val_enc)") != NULL);
@@ -737,6 +782,7 @@ TEST test_query_gen_object_deep_object(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_21), _ast_gen_query_code_21);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "asprintf(&deep_key") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, deep_key, kv_raw)") != NULL);
@@ -765,6 +811,7 @@ TEST test_query_gen_object_space_delimited(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_22), _ast_gen_query_code_22);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
@@ -793,6 +840,7 @@ TEST test_query_gen_object_pipe_delimited(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_23), _ast_gen_query_code_23);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
@@ -823,6 +871,7 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_24), _ast_gen_query_code_24);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(kv_key, &key_enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
@@ -857,6 +906,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_25), _ast_gen_query_code_25);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(raw, &enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
@@ -982,6 +1032,7 @@ TEST test_query_gen_json_content_ref(void) {
 
   code = (gen_query_code(&op, &_ast_gen_query_code_30), _ast_gen_query_code_30);
   ASSERT(code);
+  run_io_loop(&op, NULL, NULL, 0);
   ASSERT(strstr(code, "Query Parameter (json): filter") != NULL);
   ASSERT(strstr(code, "Filter_to_json") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\"") != NULL);
@@ -1028,6 +1079,95 @@ TEST test_querystring_param_null_checks(void) {
   ASSERT_EQ(NULL, out_val);
   g_fail_io_after = -1;
 
+  PASS();
+}
+
+TEST test_media_type_ieq_url_extra(void) {
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_form_url("APPLICATION/x-www-form-urlencoded"));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_form_url("application/x-www-form-urlencodex"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/jsox"));
+
+  /* querystring_param_json_array_item_type */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = "application/json";
+    p.schema.is_array = 1;
+
+    p.schema.inline_type = "boolean";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "boolean"));
+
+    p.schema.inline_type = "number";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "number"));
+
+    p.schema.inline_type = "invalid";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(NULL, out_val);
+
+    p.schema.inline_type = NULL;
+    p.items_type = "invalid";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(NULL, out_val);
+  }
+
+  /* querystring_param_json_array_item_type type array check */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = "application/json";
+    p.type = "array";
+    p.items_type = "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "string"));
+  }
+
+  /* Test via gen_query_code */
+  {
+    struct OpenAPI_Operation op = {0};
+    struct OpenAPI_Parameter p = {0};
+    char *out = NULL;
+
+    p.name = "qs";
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = "text/plain";
+    p.type = "boolean";
+    op.parameters = &p;
+    op.n_parameters = 1;
+    gen_query_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.type = "invalid";
+    gen_query_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.type = NULL;
+    p.schema.inline_type = "integer";
+    gen_query_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.content_type = "application/x-www-form-urlencoded";
+    gen_query_code(&op, &out);
+    if (out)
+      free(out);
+  }
   PASS();
 }
 
@@ -1102,8 +1242,38 @@ TEST test_codegen_url_coverage_extras(void) {
   PASS();
 }
 
+TEST test_codegen_url_io_errors(void) {
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code = NULL;
+  int i;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "page";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = "integer";
+  param.is_array = 0;
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  for (i = 1; i < 15; ++i) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    gen_query_code(&op, &code);
+    if (code) {
+      free(code);
+    }
+  }
+
+  g_fail_io_after = -1;
+  PASS();
+}
 SUITE(codegen_url_suite) {
+  RUN_TEST(test_codegen_url_io_errors);
   RUN_TEST(test_codegen_url_coverage_extras);
+  RUN_TEST(test_media_type_ieq_url_extra);
   /* Re-run original tests */
   /* (Omitted for brevity in this file update but would be here) */
   RUN_TEST(test_media_type_is_json_url);

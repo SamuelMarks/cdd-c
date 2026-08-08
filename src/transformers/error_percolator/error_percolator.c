@@ -877,13 +877,19 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               size_t brace_idx = 0;
               cdd_cst_node_t *body_parent = func;
 
-              /* Actually the '{' might be in the function tokens or in a body
-               * block */
-              /* Let's just insert decl after the first '{' and cleanup before
-               * the last '}' */
-              for (c_i = 0; c_i < func->num_children; c_i++) {
-                if (func->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
-                    func->children[c_i].val.token->kind == CDD_TOKEN_LBRACE) {
+              /* Look for a compound statement as the last child */
+              if (func->num_children > 0 &&
+                  func->children[func->num_children - 1].kind ==
+                      CDD_CST_CHILD_NODE &&
+                  func->children[func->num_children - 1].val.node->kind ==
+                      CDD_CST_BLOCK) {
+                body_parent = func->children[func->num_children - 1].val.node;
+              }
+
+              for (c_i = 0; c_i < body_parent->num_children; c_i++) {
+                if (body_parent->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
+                    body_parent->children[c_i].val.token->kind ==
+                        CDD_TOKEN_LBRACE) {
                   found_lbrace = 1;
                   brace_idx = c_i;
                   break;
@@ -896,9 +902,10 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                 func = body_parent;
               }
 
-              for (c_i = func->num_children; c_i-- > 0;) {
-                if (func->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
-                    func->children[c_i].val.token->kind == CDD_TOKEN_RBRACE) {
+              for (c_i = body_parent->num_children; c_i-- > 0;) {
+                if (body_parent->children[c_i].kind == CDD_CST_CHILD_TOKEN &&
+                    body_parent->children[c_i].val.token->kind ==
+                        CDD_TOKEN_RBRACE) {
                   brace_idx = c_i;
                   break;
                 }

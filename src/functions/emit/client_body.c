@@ -52,6 +52,14 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   return ret;
 }
 #define fprintf test_cdd_fprintf_hook
+
+static int test_cdd_fputs_hook(const char *s, FILE *stream) {
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  return fputs(s, stream);
+}
+#define fputs test_cdd_fputs_hook
+
 #endif
 
 #define CHECK_IO(x)                                                            \

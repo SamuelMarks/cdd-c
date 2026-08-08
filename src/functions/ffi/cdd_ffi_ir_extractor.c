@@ -610,6 +610,9 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
     }
   }
 
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
   if (rc == CDD_C_SUCCESS) {
     /* Extract Macros as Constants */
     struct PreprocessorContext pp_ctx;

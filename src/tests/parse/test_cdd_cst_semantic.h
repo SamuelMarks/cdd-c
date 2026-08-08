@@ -1057,7 +1057,39 @@ TEST test_cdd_cst_semantic_missing_branches_13(void) {
   PASS();
 }
 
+TEST test_cdd_cst_parser_oom_new(void) {
+  int i;
+  for (i = 1; i < 200; i++) {
+    cdd_cst_tree_t *tree = NULL;
+    const char *code = "namespace N {\n"
+                       "  class C : public B {\n"
+                       "  public:\n"
+                       "    C() noexcept(true) {}\n"
+                       "    ~C() {}\n"
+                       "    void operator+() {}\n"
+                       "  };\n"
+                       "  template<typename T> class Tmpl {};\n"
+                       "  void f() {\n"
+                       "    try { throw 1; } catch (...) {}\n"
+                       "  }\n"
+                       "}\n"
+                       "using namespace N;\n";
+
+    g_cdd_alloc_fail = i;
+    int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    g_cdd_alloc_fail = 0;
+
+    if (rc == 0) {
+      if (tree)
+        cdd_cst_tree_free(tree);
+      break;
+    }
+  }
+  PASS();
+}
+
 SUITE(cdd_cst_semantic_suite) {
+  RUN_TEST(test_cdd_cst_parser_oom_new);
   RUN_TEST(test_cdd_cst_semantic_extract_null);
   RUN_TEST(test_cdd_cst_semantic_scope_basic);
   RUN_TEST(test_cdd_cst_semantic_basic);

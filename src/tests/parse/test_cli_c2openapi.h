@@ -30,6 +30,11 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "src/tests/mocks",
                    "out2.json"};
   int rc = c2openapi_cli_main(9, argv1);
+  if (rc != CDD_C_SUCCESS) {
+    printf(
+        "test_c2openapi_cli_main_valid_args_with_options failed with rc=%d\n",
+        rc);
+  }
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }

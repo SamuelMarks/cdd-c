@@ -38,7 +38,7 @@ static cdd_c_error_t replace_msvc_identifiers(
       cdd_token_t *t = node->children[i].val.token;
       if (t->kind == CDD_TOKEN_IDENTIFIER) {
         int should_skip = 0;
-        if (prev_token && *prev_token) {
+        if (*prev_token) {
           enum cdd_token_kind_t pk = (*prev_token)->kind;
           if (pk == CDD_TOKEN_DOT || pk == CDD_TOKEN_ARROW ||
               pk == CDD_TOKEN_KEYWORD_STRUCT ||
@@ -51,7 +51,7 @@ static cdd_c_error_t replace_msvc_identifiers(
               pk == CDD_TOKEN_IDENTIFIER) {
             should_skip = 1;
           }
-          if (pk == CDD_TOKEN_STAR && prev_prev_token && *prev_prev_token) {
+          if (pk == CDD_TOKEN_STAR && *prev_prev_token) {
             enum cdd_token_kind_t ppk = (*prev_prev_token)->kind;
             if ((ppk >= CDD_TOKEN_KEYWORD_INT &&
                  ppk <= CDD_TOKEN_KEYWORD__ACCUM) ||
@@ -84,16 +84,14 @@ static cdd_c_error_t replace_msvc_identifiers(
                                       &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            if (needs_basetsd)
-              *needs_basetsd = 1;
+            *needs_basetsd = 1;
           } else if (t->length == 16 &&
                      memcmp(t->start, "__builtin_expect", 16) == 0) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER,
                                       "cdd_builtin_expect", &new_tok);
             if (rc != CDD_C_SUCCESS)
               return rc;
-            if (needs_expect)
-              *needs_expect = 1;
+            *needs_expect = 1;
           } else if (t->length == 5 && memcmp(t->start, "off_t", 5) == 0) {
             rc = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_off_t",
                                       &new_tok);
@@ -179,16 +177,14 @@ static cdd_c_error_t replace_msvc_identifiers(
           }
         }
       }
-      if (prev_token) {
-        if (prev_prev_token) {
-          *prev_prev_token = *prev_token;
-        }
-        *prev_token = t;
-      }
-    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      (void)replace_msvc_identifiers(tree, node->children[i].val.node,
-                                     prev_token, prev_prev_token, needs_basetsd,
-                                     needs_expect);
+      *prev_prev_token = *prev_token;
+      *prev_token = t;
+    } else {
+      rc = replace_msvc_identifiers(tree, node->children[i].val.node,
+                                    prev_token, prev_prev_token, needs_basetsd,
+                                    needs_expect);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
   }
   return CDD_C_SUCCESS;
@@ -222,8 +218,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   if (rc == 0) {
     for (i = 0; i < res.size; i++) {
       cdd_cst_node_t *dir = res.nodes[i];
-      if (dir->num_children > 0 &&
-          dir->children[0].kind == CDD_CST_CHILD_TOKEN) {
+      {
         cdd_token_t *tok = dir->children[0].val.token;
         if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE) {
           const char *inc_str = NULL;
@@ -292,8 +287,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
     cdd_token_t *prev = NULL, *prev_prev = NULL;
     int needs_basetsd = 0;
     int needs_expect = 0;
-    replace_msvc_identifiers(tree, tree->root, &prev, &prev_prev,
-                             &needs_basetsd, &needs_expect);
+    rc = replace_msvc_identifiers(tree, tree->root, &prev, &prev_prev,
+                                  &needs_basetsd, &needs_expect);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
 
     if (needs_basetsd || needs_expect) {
       /* Inject dependencies at the top of the translation unit */

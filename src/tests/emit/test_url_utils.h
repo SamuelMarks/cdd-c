@@ -829,7 +829,48 @@ TEST test_openapi_kv_join_form_all_skipped_oom(void) {
   PASS();
 }
 
+TEST test_url_query_build_form_empty_oom(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+  url_query_init(&qp);
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, url_query_build_form(&qp, &res));
+  g_fail_io_after = -1;
+  url_query_free(&qp);
+  PASS();
+}
+
+TEST test_url_query_build_empty_oom(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+  url_query_init(&qp);
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_cdd_strdup_fail = 1;
+  int rc = url_query_build(&qp, &res);
+  printf("url_query_build empty oom rc: %d\n", rc);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_fail_io_after = -1;
+  g_cdd_strdup_fail = -1;
+  url_query_free(&qp);
+  PASS();
+}
+
+TEST test_is_pct_encoded_branches(void) {
+  ASSERT_EQ(0, is_pct_encoded_test(""));
+  ASSERT_EQ(0, is_pct_encoded_test("%"));
+  ASSERT_EQ(0, is_pct_encoded_test("%1"));
+  ASSERT_EQ(0, is_pct_encoded_test("%G1"));
+  ASSERT_EQ(0, is_pct_encoded_test("%1G"));
+  ASSERT_EQ(1, is_pct_encoded_test("%1A"));
+  PASS();
+}
+
 SUITE(url_utils_suite) {
+  RUN_TEST(test_url_query_build_form_empty_oom);
+  RUN_TEST(test_url_query_build_empty_oom);
+  RUN_TEST(test_is_pct_encoded_branches);
 
   RUN_TEST(test_url_encode_all_null);
   RUN_TEST(test_url_encode_oom);

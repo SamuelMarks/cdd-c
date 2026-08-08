@@ -37,7 +37,7 @@
 #include <parson.h>
 /* clang-format on */
 
-static cdd_c_error_t print_version(void) {
+cdd_c_error_t print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
 
@@ -83,21 +83,6 @@ static cdd_c_error_t print_version(void) {
 }
 
 /**
- * @brief Helper to display error messages for failed commands.
- *
- * Only outputs an error message if the return code is non-zero.
- *
- * @param[in] rc The return code from the executed command
- * @param[in] command_name The name of the command that failed
- */
-static cdd_c_error_t print_error(int rc, const char *command_name) {
-  if (rc == 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
-  return CDD_C_SUCCESS;
-}
-
-/**
  * @brief Audits a target project directory for common code issues.
  *
  * Runs static analysis to find potential memory leaks or rule violations
@@ -108,7 +93,7 @@ static cdd_c_error_t print_error(int rc, const char *command_name) {
  * @param[in] argv Argument values containing the directory path
  * @return EXIT_SUCCESS or the error code from audit_project
  */
-static cdd_c_error_t handle_audit(int argc, char **argv) {
+cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
@@ -123,10 +108,10 @@ static cdd_c_error_t handle_audit(int argc, char **argv) {
  * @brief Displays CLI usage information and a list of available
  * commands.
  *
- * @param[in] prog_name The program executable name (usually argv[0])
+ * @param[in] program_name The program executable name (usually argv[0])
  */
-static cdd_c_error_t print_help(const char *prog_name) {
-  printf("Usage: %s [OPTIONS] <COMMAND>\n\n", prog_name);
+cdd_c_error_t print_help(const char *program_name) {
+  printf("Usage: %s [OPTIONS] <COMMAND>\n\n", program_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
        "[--no-installable-package] [--tests]");
@@ -440,6 +425,7 @@ cdd_c_error_t cdd_main(int argc, char **argv) {
     if (argc < 3)
       return CDD_C_ERROR_UNKNOWN;
     rc = handle_audit(argc - 2, argv + 2);
+    printf("handle_audit returned %d\n", rc);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;
     return CDD_C_SUCCESS;
@@ -521,11 +507,7 @@ cdd_c_error_t cdd_main(int argc, char **argv) {
 
 handle_err:
   if (rc != CDD_C_SUCCESS) {
-    {
-      cdd_c_error_t print_rc = print_error(rc, cmd);
-      if (print_rc != CDD_C_SUCCESS)
-        return print_rc;
-    }
+    fprintf(stderr, "Error executing '%s': code %d\n", cmd, rc);
     return rc;
   }
 

@@ -429,8 +429,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   /* node 25: Test NULL names */
   ir->nodes[25].kind = CDD_FFI_NODE_FUNCTION;
   ir->nodes[25].name = "test_null_names";
-  ir->nodes[25].fields = (cdd_ffi_field_t *)calloc(5, sizeof(cdd_ffi_field_t));
-  ir->nodes[25].fields_count = 4;
+  ir->nodes[25].fields = (cdd_ffi_field_t *)calloc(6, sizeof(cdd_ffi_field_t));
+  ir->nodes[25].fields_count = 5;
   ir->nodes[25].fields[0].name = NULL;
   ir->nodes[25].fields[0].type.kind = CDD_FFI_KIND_STRUCT_REF;
   ir->nodes[25].fields[0].type.ref_name = NULL;
@@ -441,6 +441,8 @@ static cdd_ffi_ir_t *create_dummy_ir(void) {
   ir->nodes[25].fields[2].type.kind = CDD_FFI_KIND_INT32;
   ir->nodes[25].fields[3].name = "error"; /* test reserved keyword */
   ir->nodes[25].fields[3].type.kind = CDD_FFI_KIND_INT32;
+  ir->nodes[25].fields[4].name = "interface"; /* test reserved keyword */
+  ir->nodes[25].fields[4].type.kind = CDD_FFI_KIND_INT32;
 
   /* node 26: Test typedef with pointer_depth == 0 */
   ir->nodes[26].kind = CDD_FFI_NODE_TYPEDEF;

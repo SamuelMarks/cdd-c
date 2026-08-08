@@ -815,6 +815,136 @@ TEST test_doc_parse_encodings(void) {
   PASS();
 }
 
+TEST test_doc_parse_dupes_and_extras(void) {
+  struct DocMetadata meta;
+  int rc;
+  const char *comment =
+      "/**\n"
+      " * @jsonSchemaDialect D1\n"
+      " * @jsonSchemaDialect D2\n"
+      " * @infoTitle T1\n"
+      " * @infoTitle T2\n"
+      " * @infoVersion V1\n"
+      " * @infoVersion V2\n"
+      " * @infoSummary S1\n"
+      " * @infoSummary S2\n"
+      " * @infoDescription D1\n"
+      " * @infoDescription D2\n"
+      " * @termsOfService TOS1\n"
+      " * @termsOfService TOS2\n"
+      " * @summary sum1\n"
+      " * @summary sum2\n"
+      " * @operationId id1\n"
+      " * @operationId id2\n"
+      " * @description desc1\n"
+      " * @description desc2\n"
+      " * @contact [name:N1] [url:U1] [email:E1] [name:N2] [url:U2] "
+      "[email:E2]\n"
+      " * @license [name:N1] [identifier:I1]\n"
+      " * @license [name:N2] [url:U2]\n"
+      " * @externalDocs ex1 desc1\n"
+      " * @externalDocs ex2 desc2\n"
+      " * @route /p1\n"
+      " * @route /p2\n"
+      " * @route GET /p3\n"
+      " * @route POST /p4\n"
+      " * @responseHeader 200 H1 [type:string] [format:f1] [contentType:c1] "
+      "[type:integer] [format:f2] [contentType:c2]\n"
+      " * @link 200 L1 [operationRef:r1] [parameters:p1] [requestBody:b1] "
+      "[summary:s1] [serverUrl:u1] [serverName:n1] [serverDescription:d1] "
+      "[description:d1] [operationRef:r2] [parameters:p2] [requestBody:b2] "
+      "[summary:s2] [serverUrl:u2] [serverName:n2] [serverDescription:d2] "
+      "[description:d2]\n"
+      " * @securityScheme oauth2 [type:oauth2] [description:d1] [scheme:s1] "
+      "[bearerFormat:b1] [name:n1] [openIdConnectUrl:u1] "
+      "[oauth2MetadataUrl:m1] [description:d2] [scheme:s2] [bearerFormat:b2] "
+      "[name:n2] [openIdConnectUrl:u2] [oauth2MetadataUrl:m2]\n"
+      " * @securityScheme oauth2 [flow:implicit] [authorizationUrl:a1] "
+      "[tokenUrl:t1] [refreshUrl:r1] [deviceAuthorizationUrl:d1] [scopes:s1] "
+      "[authorizationUrl:a2] [tokenUrl:t2] [refreshUrl:r2] "
+      "[deviceAuthorizationUrl:d2] [scopes:s2] \n"
+      " * @param p1 [type:t1] [format:f1] [contentType:c1] [type:t2] "
+      "[format:f2] [contentType:c2] [itemSchema=true]\n"
+      " * @return 200 [contentType:c1] [summary:s1] [itemSchema=true] "
+      "[contentType:c2] [summary:s2]\n"
+      " * @server https://a {v} [default:d1] [enum:e1|e2] [description:d1] "
+      "[default:d2] [enum:e3] [description:d2]\n"
+      " * @requestBody [contentType:c1] [content:c1_2] [example:e1] "
+      "[contentType:c2] [content:c2_2] [example:e2]\n"
+      " */";
+
+  doc_metadata_init(&meta);
+  rc = doc_parse_block(comment, &meta);
+  printf("rc = %d\n", rc);
+  ASSERT_EQ(0, rc);
+  doc_metadata_free(&meta);
+  PASS();
+}
+
+TEST test_doc_parse_equal_signs(void) {
+  struct DocMetadata meta;
+  int rc;
+  const char *comment =
+      "/**\n"
+
+      " * @license [name=N1] [identifier=I1]\n"
+      " * @license [name=N2] [url=U2]\n" /* wait, identifier and url will fail!
+                                          */
+      " * @contact [name=N1] [url=U1] [email=E1]\n"
+      " * @contact [name=N2] [url=U2] [email=E2]\n"
+      " * @responseHeader 200 H1 [type=string] [format=f1] [contentType=c1]\n"
+      " * @responseHeader 200 H1 [type=integer] [format=f2] [contentType=c2]\n"
+      " * @link 200 L1 [operationRef=r1] [parameters=p1] [requestBody=b1] "
+      "[summary=s1] [serverUrl=u1] [serverName=n1] [serverDescription=d1] "
+      "[description=d1]\n"
+      " * @securityScheme oauth2 [type=oauth2] [description=d1] [scheme=s1] "
+      "[bearerFormat=b1] [name=n1] [openIdConnectUrl=u1] "
+      "[oauth2MetadataUrl=m1]\n"
+      " * @securityScheme oauth2 [flow=implicit] [authorizationUrl=a1] "
+      "[tokenUrl=t1] [refreshUrl=r1] [deviceAuthorizationUrl=d1] [scopes=s1]\n"
+      " * @securityScheme oauth2 [flow=implicit] [authorizationUrl=a2] "
+      "[tokenUrl=t2] [refreshUrl=r2] [deviceAuthorizationUrl=d2] [scopes=s2]\n"
+      " * @param p1 [type=t1] [format=f1] [contentType=c1]\n"
+      " * @param p1 [type=t2] [format=f2] [contentType=c2]\n"
+      " * @return 200 [contentType=c1] [summary=s1] [itemSchema=true]\n"
+      " * @return 200 [contentType=c2] [summary=s2]\n"
+      " * @server https://a {v} [default=d1] [enum=e1|e2] [description=d1]\n"
+      " * @server https://a {v} [default=d2] [enum=e3] [description=d2]\n"
+      " * @requestBody [contentType=c1] [content=c1_2] [example=e1]\n"
+      " * @requestBody [contentType=c2] [content=c2_2] [example=e2]\n"
+      " * @deprecated\n"
+      " */";
+
+  doc_metadata_init(&meta);
+  rc = doc_parse_block(comment, &meta);
+  printf("test_doc_parse_equal_signs rc: %d\n", rc);
+  ASSERT_EQ(0, rc);
+  doc_metadata_free(&meta);
+  PASS();
+}
+
+TEST test_doc_parse_more_branches(void) {
+  struct DocMetadata meta;
+  int rc;
+  const char *comment = "/**\n"
+                        " * @securityScheme s1 [type:mutualTLS]\n"
+                        " * @securityScheme s2 [in:cookie]\n"
+                        " * @securityScheme s3 [flow:deviceAuthorization]\n"
+                        " * @securityScheme s4 [flow:clientCredentials]\n"
+                        " * @securityScheme s5 [flow:password]\n"
+                        " * @tagMeta tm1 [parent:]\n"
+                        " * @tagMeta tm2 [summary:]\n"
+                        " * @server url nameOnly\n"
+                        " * @server url [default:v] noNameOrDesc\n"
+                        " */";
+  doc_metadata_init(&meta);
+  rc = doc_parse_block(comment, &meta);
+  printf("rc = %d\n", rc);
+  ASSERT_EQ(0, rc);
+  doc_metadata_free(&meta);
+  PASS();
+}
+
 TEST test_doc_oom_and_edges(void) {
   int i;
   for (i = 1; i < 2000; i++) {
@@ -902,6 +1032,9 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_malformed_lines);
   RUN_TEST(test_doc_parse_encodings);
   RUN_TEST(test_doc_oom_and_edges);
+  RUN_TEST(test_doc_parse_dupes_and_extras);
+  RUN_TEST(test_doc_parse_more_branches);
+  RUN_TEST(test_doc_parse_equal_signs);
 }
 
 #ifdef __cplusplus

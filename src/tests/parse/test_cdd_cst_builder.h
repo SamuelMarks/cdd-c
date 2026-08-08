@@ -1457,6 +1457,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
       cdd_cst_extract_trailing_trivia(parent_node, &trail);
     }
   }
+  new_node = tree->root->children[0].val.node;
   rc = cdd_cst_replace_node_preserve_trivia(&b, tree->root, new_node);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   b.error_state = 0;

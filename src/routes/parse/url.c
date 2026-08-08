@@ -490,7 +490,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
 
   if (qp->count == 0) {
     *out_str = (c_cdd_strdup("", &_ast_strdup_4), _ast_strdup_4);
-    return *out_str ? 0 : ENOMEM;
+    return *out_str ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
   /* 1. Calculate Total Length */
