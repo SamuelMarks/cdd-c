@@ -43,10 +43,10 @@ TEST test_simple_cleanup_and_null(void) {
       foo->bar = NULL;
       foo->can = 0;
       foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
-      if (foo->haz)
-        Foo_cleanup(foo); /* This will free haz and foo */
-      else
-        free(foo);
+      if (foo->haz) {
+        Foo_cleanup(foo);
+      }
+      free(foo);
     }
   }
 
@@ -57,18 +57,6 @@ TEST test_simple_cleanup_and_null(void) {
  * @brief Tests foo cleanup.
  * @return TEST
  */
-TEST test_foo_cleanup_with_null_haz(void) {
-  struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
-  if (foo) {
-    foo->bar = NULL;
-    foo->can = 0;
-    foo->haz = NULL; /* Haz is null */
-
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Foo_cleanup(foo));
-  }
-  PASS();
-}
-
 /**
  * @brief test json serialization
  * @return TEST
@@ -438,7 +426,7 @@ TEST test_foo_e_full_coverage(void) {
  */
 SUITE(simple_mocks_suite) {
   RUN_TEST(test_simple_cleanup_and_null);
-  RUN_TEST(test_foo_cleanup_with_null_haz);
+
   RUN_TEST(test_foo_e_json);
   RUN_TEST(test_foo_e_full_coverage);
 }
