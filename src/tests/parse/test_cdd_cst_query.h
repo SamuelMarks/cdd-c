@@ -14,6 +14,7 @@ extern "C" {
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <greatest.h>
+#include "c_cdd/format_specifiers.h"
 #include <string.h>
 #include <stdlib.h>
 #include "classes/parse/cdd_cst_parser.h"
@@ -601,9 +602,9 @@ TEST test_query_call_expr_coverage(void) {
   g_cdd_query_err_fail = 1;
   {
     printf("DEBUG PRE: dummy_call.kind=%d, children[0].kind=%d, "
-           "id_node.kind=%d, tok.start=%.3s, tok.length=%zu\n",
-           dummy_call.kind, children[0].kind, id_node.kind, tok.start,
-           tok.length);
+           "id_node.kind=%d, tok.start=%.3s, tok.length=%" CDD_PRIz "\n",
+           dummy_call.kind, dummy_call.children[0].kind, id_node.kind,
+           tok.start, tok.length);
 
     int rc_res = cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
     printf("DEBUG: cdd_cst_find_function_calls_named returned %d "

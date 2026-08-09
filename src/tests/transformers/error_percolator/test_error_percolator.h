@@ -5,6 +5,7 @@
 /* #include "cdd_cst.h" */
 #include "cdd_cst_transform.h"
 #include "greatest.h"
+#include "c_cdd/format_specifiers.h"
 #include <errno.h>
 /* clang-format on */
 
@@ -370,10 +371,10 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
     rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
                                     &res_test);
     if (rc == 0) {
-      printf("Found %zu functions at i=%d\n", res_test.size, i);
+      printf("Found %" CDD_PRIz " functions at i=%d\n", res_test.size, i);
       /*
       for (size_t k = 0; k < res_test.size; k++) {
-         printf("Func %zu\n", k);
+         printf("Func %" CDD_PRIz "\n", k);
       }
       */
       C_CDD_FREE(res_test.nodes);

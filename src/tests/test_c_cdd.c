@@ -52,6 +52,7 @@
 #include <time.h>
 
 #include <greatest.h>
+#include "c_cdd/format_specifiers.h"
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 
@@ -322,8 +323,9 @@ int main(int argc, char **argv) {
         "}\n  }\n}\nint main() { asm(\"nop\"); return 0; }\n";
     cdd_c_error_t rc =
         cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-    printf("PARSE RC = %d, num_children = %zu, capacity = %zu\n", rc,
-           tree->root->num_children, tree->root->capacity);
+    printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
+           "\n",
+           rc, tree->root->num_children, tree->root->capacity);
     if (tree)
       cdd_cst_tree_free(tree);
   }

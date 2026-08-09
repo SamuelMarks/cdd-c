@@ -30,9 +30,15 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
   if (!code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  ASSERT_EQ(0, tokenize(source, &tl));
+  rc = tokenize(source, &tl);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  ASSERT_EQ(0, find_allocations(tl, &sites));
+  rc = find_allocations(tl, &sites);
+  if (rc != CDD_C_SUCCESS) {
+    free_token_list(tl);
+    return rc;
+  }
 
   rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);
 

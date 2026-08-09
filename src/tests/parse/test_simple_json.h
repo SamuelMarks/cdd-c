@@ -45,8 +45,9 @@ TEST test_simple_cleanup_and_null(void) {
       foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
       if (foo->haz) {
         Foo_cleanup(foo);
+      } else {
+        free(foo);
       }
-      free(foo);
     }
   }
 

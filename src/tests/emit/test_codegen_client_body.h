@@ -4021,7 +4021,7 @@ TEST test_client_body_inline_response_types(void) {
     int rc;
     int all_success = 1;
 
-    // integer response
+    /* integer response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4041,7 +4041,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // boolean response
+    /* boolean response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4061,7 +4061,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // number response
+    /* number response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4081,7 +4081,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // string response
+    /* string response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4101,7 +4101,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // array of boolean response
+    /* array of boolean response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4122,7 +4122,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // array of string response
+    /* array of string response */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4143,7 +4143,7 @@ TEST test_client_body_inline_response_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // invalid response inline type
+    /* invalid response inline type */
     memset(&op, 0, sizeof(op));
     memset(&resp, 0, sizeof(resp));
     resp.code = "200";
@@ -4182,7 +4182,7 @@ TEST test_client_body_inline_types(void) {
     int rc;
     int all_success = 1;
 
-    // integer
+    /* integer */
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "integer";
     op.req_body.content_type = "application/json";
@@ -4195,7 +4195,7 @@ TEST test_client_body_inline_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // boolean
+    /* boolean */
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "boolean";
     op.req_body.content_type = "application/json";
@@ -4208,7 +4208,7 @@ TEST test_client_body_inline_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // number
+    /* number */
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "number";
     op.req_body.content_type = "application/json";
@@ -4221,7 +4221,7 @@ TEST test_client_body_inline_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // array of integer
+    /* array of integer */
     memset(&op, 0, sizeof(op));
     op.req_body.is_array = 1;
     op.req_body.inline_type = "integer";
@@ -4235,7 +4235,7 @@ TEST test_client_body_inline_types(void) {
     if (rc != CDD_C_SUCCESS)
       all_success = 0;
 
-    // array of boolean
+    /* array of boolean */
     memset(&op, 0, sizeof(op));
     op.req_body.is_array = 1;
     op.req_body.inline_type = "boolean";
@@ -4368,7 +4368,7 @@ TEST test_client_body_form_mega(void) {
 
     spec.defined_schemas = calloc(5, sizeof(struct StructFields));
 
-    // Main schema
+    /* Main schema */
     spec.defined_schemas[0].size = 11;
     spec.defined_schemas[0].fields = calloc(11, sizeof(struct StructField));
     strcpy(spec.defined_schemas[0].fields[0].name, "fArrStrRsv");
@@ -4405,7 +4405,7 @@ TEST test_client_body_form_mega(void) {
     strcpy(spec.defined_schemas[0].fields[10].type, "array");
     strcpy(spec.defined_schemas[0].fields[10].ref, "boolean");
 
-    // ObjType1 (explode=1)
+    /* ObjType1 (explode=1) */
     spec.defined_schemas[1].size = 4;
     spec.defined_schemas[1].fields = calloc(4, sizeof(struct StructField));
     strcpy(spec.defined_schemas[1].fields[0].name, "s");
@@ -4417,7 +4417,7 @@ TEST test_client_body_form_mega(void) {
     strcpy(spec.defined_schemas[1].fields[3].name, "b");
     strcpy(spec.defined_schemas[1].fields[3].type, "boolean");
 
-    // ObjType2 (explode=0)
+    /* ObjType2 (explode=0) */
     spec.defined_schemas[2].size = 4;
     spec.defined_schemas[2].fields = calloc(4, sizeof(struct StructField));
     strcpy(spec.defined_schemas[2].fields[0].name, "s");
@@ -4429,7 +4429,7 @@ TEST test_client_body_form_mega(void) {
     strcpy(spec.defined_schemas[2].fields[3].name, "b");
     strcpy(spec.defined_schemas[2].fields[3].type, "boolean");
 
-    // ObjType3 (spaceDelimited)
+    /* ObjType3 (spaceDelimited) */
     spec.defined_schemas[3].size = 4;
     spec.defined_schemas[3].fields = calloc(4, sizeof(struct StructField));
     strcpy(spec.defined_schemas[3].fields[0].name, "s");
@@ -4441,7 +4441,7 @@ TEST test_client_body_form_mega(void) {
     strcpy(spec.defined_schemas[3].fields[3].name, "b");
     strcpy(spec.defined_schemas[3].fields[3].type, "boolean");
 
-    // ObjType4 (pipeDelimited)
+    /* ObjType4 (pipeDelimited) */
     spec.defined_schemas[4].size = 4;
     spec.defined_schemas[4].fields = calloc(4, sizeof(struct StructField));
     strcpy(spec.defined_schemas[4].fields[0].name, "s");

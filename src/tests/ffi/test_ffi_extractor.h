@@ -12,6 +12,7 @@
 #include "../../functions/ffi/cdd_ffi_emit_typescript.h"
 #include "../../functions/ffi/cdd_ffi_emit_napi.h"
 #include "../../functions/ffi/cdd_ffi_emit_java.h"
+#include "c_cdd/format_specifiers.h"
 #include "../../functions/ffi/cdd_ffi_emit_cpp.h"
 #include "../../functions/ffi/cdd_ffi_emit_go.h"
 #include "../../functions/ffi/cdd_ffi_emit_swift.h"
@@ -79,7 +80,7 @@ TEST test_ffi_ir_extract_exports_basic(void) {
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
 
   ASSERT_EQ(1, ir != NULL);
-  printf("IR nodes count: %lu\n", (unsigned long)ir->nodes_count);
+  printf("IR nodes count: %" CDD_PRIz "\n", ir->nodes_count);
   ASSERT_EQ(3, ir->nodes_count);
 
   {
@@ -134,7 +135,7 @@ TEST test_ffi_ir_extract_macros(void) {
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
 
   ASSERT_EQ(1, ir != NULL);
-  printf("IR nodes count for macros: %lu\n", (unsigned long)ir->nodes_count);
+  printf("IR nodes count for macros: %" CDD_PRIz "\n", ir->nodes_count);
   /* We expect 3 macros (PI, PORT, STRING_CONST) since FUNC_MACRO is
    * function-like */
   ASSERT_EQ(3, ir->nodes_count);
@@ -626,10 +627,10 @@ TEST test_ffi_ir_extract_array_out(void) {
   ASSERT_EQ(0, rc);
   {
     size_t i;
-    printf("test_ffi_ir_extract_array_out IR nodes count: %lu\n",
-           (unsigned long)ir->nodes_count);
+    printf("test_ffi_ir_extract_array_out IR nodes count: %" CDD_PRIz "\n",
+           ir->nodes_count);
     for (i = 0; i < ir->nodes_count; i++) {
-      printf("Node %lu: %s\n", (unsigned long)i, ir->nodes[i].name);
+      printf("Node %" CDD_PRIz ": %s\n", i, ir->nodes[i].name);
     }
   }
   ASSERT_EQ(1, ir->nodes_count);

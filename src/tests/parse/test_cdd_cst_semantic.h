@@ -513,7 +513,7 @@ TEST test_cdd_cst_semantic_missing_branches(void) {
     cdd_cst_node_t *ts = NULL, *id = NULL;
     cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
     tok->kind = CDD_TOKEN_IDENTIFIER;
-    tok->start = "Struct1";
+    tok->start = (const uint8_t *)"Struct1";
     tok->length = 7;
 
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &r2);
@@ -560,7 +560,7 @@ TEST test_cdd_cst_semantic_missing_branches_2(void) {
   cdd_cst_append_child_node(root, decl1);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "Var1";
+  tok1->start = (const uint8_t *)"Var1";
   tok1->length = 4;
   cdd_cst_append_child_token(id_node1, tok1);
   cdd_cst_append_child_node(decl1, id_node1);
@@ -569,7 +569,7 @@ TEST test_cdd_cst_semantic_missing_branches_2(void) {
   cdd_cst_append_child_node(root, decl2);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
   tok2->kind = CDD_TOKEN_IDENTIFIER;
-  tok2->start = "Type1";
+  tok2->start = (const uint8_t *)"Type1";
   tok2->length = 5;
   cdd_cst_append_child_token(id_node2, tok2);
   cdd_cst_append_child_node(decl2, id_node2);
@@ -639,7 +639,7 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
   cdd_cst_append_child_node(root, decl2);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
   tok2->kind = CDD_TOKEN_IDENTIFIER;
-  tok2->start = "Type1";
+  tok2->start = (const uint8_t *)"Type1";
   tok2->length = 5;
   cdd_cst_append_child_token(id_node2, tok2);
   cdd_cst_append_child_node(decl2, id_node2);
@@ -659,7 +659,7 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
   cdd_cst_append_child_node(root, decl3);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node3);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "Var2";
+  tok1->start = (const uint8_t *)"Var2";
   tok1->length = 4;
   cdd_cst_append_child_token(id_node3, tok1);
   /* Make a wrapper node so we recurse */
@@ -705,7 +705,7 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
   cdd_cst_append_child_node(root, decl1);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "Var3";
+  tok1->start = (const uint8_t *)"Var3";
   tok1->length = 4;
   cdd_cst_append_child_token(id_node1, tok1);
   cdd_cst_append_child_node(decl1, id_node1);
@@ -752,7 +752,7 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
   cdd_cst_append_child_node(root, decl1);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "Var3";
+  tok1->start = (const uint8_t *)"Var3";
   tok1->length = 4;
   cdd_cst_append_child_token(id_node1, tok1);
 
@@ -820,7 +820,7 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   cdd_token_t *tok1 = calloc(1, sizeof(cdd_token_t));
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "V";
+  tok1->start = (const uint8_t *)"V";
   tok1->length = 1;
   cdd_cst_append_child_token(id_node1, tok1);
   cdd_cst_append_child_node(decl1, id_node1);
@@ -865,7 +865,7 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
   cdd_cst_append_child_node(root, decl1);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "V7";
+  tok1->start = (const uint8_t *)"V7";
   tok1->length = 2;
   cdd_cst_append_child_token(id_node1, tok1);
   cdd_cst_append_child_node(decl1, id_node1);
@@ -893,7 +893,7 @@ TEST test_cdd_cst_semantic_missing_branches_8(void) {
   cdd_cst_alloc_node(CDD_CST_UNKNOWN, &child2);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node1);
   tok1->kind = CDD_TOKEN_IDENTIFIER;
-  tok1->start = "V8";
+  tok1->start = (const uint8_t *)"V8";
   tok1->length = 2;
   cdd_cst_append_child_token(id_node1, tok1);
   cdd_cst_append_child_node(child2, id_node1);
@@ -930,7 +930,7 @@ TEST test_cdd_cst_semantic_missing_branches_9(void) {
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
   cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
   tok->kind = CDD_TOKEN_IDENTIFIER;
-  tok->start = "V9";
+  tok->start = (const uint8_t *)"V9";
   tok->length = 2;
   cdd_cst_append_child_token(id_node, tok);
   cdd_cst_append_child_node(child2, id_node);
@@ -1037,7 +1037,7 @@ TEST test_cdd_cst_semantic_missing_branches_13(void) {
   cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl1);
   cdd_token_t *tok = calloc(1, sizeof(cdd_token_t));
   tok->kind = CDD_TOKEN_OTHER;
-  tok->start = "V13";
+  tok->start = (const uint8_t *)"V13";
   tok->length = 3;
   cdd_cst_append_child_token(decl1, tok);
 

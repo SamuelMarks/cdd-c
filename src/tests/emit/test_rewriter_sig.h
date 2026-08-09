@@ -239,8 +239,8 @@ TEST test_rewrite_name_comment(void) {
   char *output = NULL;
 
   tokenize(az_span_create_from_str("int f  ()"), &tl);
-  // tokens: int, space, f, space, space, (
-  // Make the space before ( a comment
+  /* tokens: int, space, f, space, space, ( */
+  /* Make the space before ( a comment */
   tl->tokens[3].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -257,7 +257,7 @@ TEST test_rewrite_all_ws_ret(void) {
   char *output = NULL;
 
   tokenize(az_span_create_from_str("void f()"), &tl);
-  tl->tokens[0].kind = TOKEN_WHITESPACE; // make 'void' whitespace
+  tl->tokens[0].kind = TOKEN_WHITESPACE; /* make 'void' whitespace */
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
@@ -279,7 +279,7 @@ TEST test_rewrite_leading_ws(void) {
   char *output = NULL;
 
   tokenize(az_span_create_from_str("int f()"), &tl);
-  // change 'int' to whitespace
+  /* change 'int' to whitespace */
   tl->tokens[0].kind = TOKEN_WHITESPACE;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -295,7 +295,7 @@ TEST test_rewrite_missing_cov(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  // Test is_void_args with TOKEN_COMMENT
+  /* Test is_void_args with TOKEN_COMMENT */
   tokenize(az_span_create_from_str("void f(void)"), &tl);
   tl->tokens[4].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -312,7 +312,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test has_meaningful_tokens with TOKEN_COMMENT
+  /* Test has_meaningful_tokens with TOKEN_COMMENT */
   tokenize(az_span_create_from_str("void f() int x;"), &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -321,7 +321,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test bounds
+  /* Test bounds */
   tokenize(az_span_create_from_str(" int f()"), &tl);
   tl->tokens[0].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -373,7 +373,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test empty parens
+  /* Test empty parens */
   tokenize(az_span_create_from_str("()"), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -396,7 +396,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test ret comment
+  /* Test ret comment */
   tokenize(az_span_create_from_str("void  f()"), &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -405,7 +405,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test kr comment
+  /* Test kr comment */
   tokenize(az_span_create_from_str("void f()  "), &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -414,7 +414,7 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  // Test no parens
+  /* Test no parens */
   ASSERT_NEQ(0, test_rewrite("void ()", "int ()"));
   ASSERT_NEQ(0, test_rewrite("void (int x)", "int (int x, int *out)"));
 
