@@ -37,9 +37,16 @@ extern C_CDD_EXPORT int g_pthread_create_fail;
 extern C_CDD_EXPORT int g_accept_fail;
 
 static int http_get(int port);
+#ifdef _WIN32
+#include <windows.h>
+#define USLEEP(x) Sleep((x) / 1000)
+#else
+#include <unistd.h>
+#define USLEEP(x) usleep(x)
+#endif
 static void *background_http_get(void *arg) {
   int port = *(int *)arg;
-  usleep(50000);
+  USLEEP(50000);
   http_get(port);
   return NULL;
 }
@@ -162,7 +169,7 @@ TEST test_mock_server_errors(void) {
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_init(&server));
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_start(server));
   g_accept_fail = 1;
-  usleep(50000);
+  USLEEP(50000);
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_destroy(server));
   g_accept_fail = 0;
 
@@ -182,7 +189,7 @@ TEST test_mock_server_errors(void) {
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_start(server));
   mock_server_get_port(server, &port);
   ASSERT_EQ(0, http_get(port));
-  usleep(150000);
+  USLEEP(150000);
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_destroy(server));
 
   /* Test second request replacing first */
@@ -190,9 +197,9 @@ TEST test_mock_server_errors(void) {
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_start(server));
   mock_server_get_port(server, &port);
   ASSERT_EQ(0, http_get(port));
-  usleep(150000);
+  USLEEP(150000);
   ASSERT_EQ(0, http_get(port));
-  usleep(150000);
+  USLEEP(150000);
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_destroy(server));
 
   /* Test platform_init failure */
@@ -208,6 +215,17 @@ TEST test_mock_server_errors(void) {
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_init(&server));
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_start(server));
   mock_server_get_port(server, &port);
+#if defined(_WIN32)
+  {
+    HANDLE hThread = CreateThread(
+        NULL, 0, (LPTHREAD_START_ROUTINE)background_http_get, &port, 0, NULL);
+    ASSERT_EQ(CDD_C_SUCCESS, mock_server_wait_for_request(server, &req));
+    ASSERT_NEQ(NULL, req.raw_header);
+    ASSERT_EQ(CDD_C_SUCCESS, mock_server_request_cleanup(&req));
+    WaitForSingleObject(hThread, INFINITE);
+    CloseHandle(hThread);
+  }
+#else
   {
     pthread_t th;
     pthread_create(&th, NULL, background_http_get, &port);
@@ -216,6 +234,7 @@ TEST test_mock_server_errors(void) {
     ASSERT_EQ(CDD_C_SUCCESS, mock_server_request_cleanup(&req));
     pthread_join(th, NULL);
   }
+#endif
   ASSERT_EQ(CDD_C_SUCCESS, mock_server_destroy(server));
 
   /* Test wait fallthrough */
@@ -229,10 +248,18 @@ TEST test_mock_server_errors(void) {
   PASS();
 }
 
+#ifndef _WIN32
+#ifndef _WIN32
 SUITE(mock_server_suite) {
   RUN_TEST(test_mock_server_basic);
   RUN_TEST(test_mock_server_errors);
 }
+#else
+SUITE(mock_server_suite) {}
+#endif
+#else
+SUITE(mock_server_suite) {}
+#endif
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_java.h"
 #include <stdio.h>
@@ -6,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_java_primitive(cdd_ffi_type_t type) {
@@ -101,7 +103,6 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #endif
 
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
@@ -413,7 +414,6 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
 #endif
 
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 2) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;

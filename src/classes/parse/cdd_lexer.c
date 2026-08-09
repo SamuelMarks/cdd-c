@@ -164,7 +164,7 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
   cdd_trivia_t *pending_trivia_head = NULL;
   cdd_trivia_t *pending_trivia_tail = NULL;
   cdd_token_t *prev_token = NULL;
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!out_list)
     return CDD_C_ERROR_INVALID_ARGUMENT;

@@ -508,7 +508,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 #else
           sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
                   sig.name, new_args, k_r_suffix, sig.ret_type);
-
+#endif
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -520,12 +520,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 #endif
         }
       }
-#endif
-          C_CDD_FREE(new_args);
-        }
-      }
-
-    cleanup:
-      parsed_sig_C_CDD_FREE(&sig);
-      return rc;
+      C_CDD_FREE(new_args);
     }
+  }
+
+cleanup:
+  parsed_sig_C_CDD_FREE(&sig);
+  return rc;
+}

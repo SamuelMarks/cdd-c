@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_ocaml.h"
 #include <stdio.h>
@@ -6,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_ocaml_type(cdd_ffi_type_t type) {
@@ -69,7 +71,6 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -86,7 +87,6 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
                lib_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else

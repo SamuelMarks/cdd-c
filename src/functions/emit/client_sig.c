@@ -124,9 +124,7 @@ static cdd_c_error_t media_type_base_len(const char *media_type,
  * @brief Executes the media type has prefix operation.
  */
 static int media_type_has_prefix(const char *media_type, const char *prefix) {
-  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
-  size_t len;
   size_t pre_len;
   if (!media_type || !prefix)
     return 0;

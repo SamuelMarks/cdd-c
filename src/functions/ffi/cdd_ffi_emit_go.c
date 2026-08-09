@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_go.h"
 #include <stdio.h>
@@ -117,7 +118,6 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -134,7 +134,6 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
                lib_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else
@@ -257,14 +256,12 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
   char filepath[1024];
   FILE *f = NULL;
-  extern volatile int g_fail_io_after;
 
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\go.mod", config->output_dir);
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -280,7 +277,6 @@ static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/go.mod", config->output_dir);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else

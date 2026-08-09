@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_csharp.h"
 #include "../parse/fs.h"
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_csharp_primitive(cdd_ffi_primitive_kind_t kind) {
@@ -81,10 +83,9 @@ static void emit_csharp_type(FILE *f, const cdd_ffi_type_t *type,
 static cdd_c_error_t
 emit_csharp_bindings(cdd_ffi_ir_t *ir,
                      const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
   size_t i, j;
-  extern volatile int g_fail_io_after;
   const char *libname =
       (config->library_name) ? config->library_name : "libname";
 
@@ -93,7 +94,6 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -110,7 +110,6 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
                config->output_dir);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else
@@ -261,10 +260,9 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
 static cdd_c_error_t
 emit_csharp_tests(cdd_ffi_ir_t *ir,
                   const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
   size_t i;
-  extern volatile int g_fail_io_after;
   const char *libname =
       (config->library_name) ? config->library_name : "libname";
 
@@ -274,7 +272,6 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -291,7 +288,6 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
                config->output_dir);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else
@@ -334,9 +330,8 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
 }
 
 static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
-  extern volatile int g_fail_io_after;
   const char *libname =
       (config->library_name) ? config->library_name : "libname";
 
@@ -346,7 +341,6 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -363,7 +357,6 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
                config->output_dir, libname);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else

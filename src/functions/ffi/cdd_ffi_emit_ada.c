@@ -1,5 +1,5 @@
-#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#ifdef CDD_BUILD_TESTS
 #endif
 /* clang-format off */
 #include "cdd_ffi_emit_ada.h"
@@ -10,6 +10,7 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* clang-format on */
 
 static const char *map_ada_type(cdd_ffi_type_t *t) {

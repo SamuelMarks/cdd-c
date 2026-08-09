@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_erlang.h"
 
@@ -58,7 +59,6 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -76,7 +76,6 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -94,7 +93,6 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
                config->output_dir, lib_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       c_f = NULL;
     } else
@@ -113,7 +111,6 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
                config->output_dir, erl_module_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       erl_f = NULL;
     } else

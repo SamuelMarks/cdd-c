@@ -862,8 +862,8 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   cdd_trivia_t *trail = NULL;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
-  cdd_c_error_t rc;
-
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -903,7 +903,8 @@ cdd_c_error_t
 cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
                                      cdd_cst_node_t *target_node,
                                      cdd_cst_node_t *replacement_node) {
-  cdd_c_error_t rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
   if (!builder || !target_node || !replacement_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)

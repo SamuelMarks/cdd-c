@@ -43,18 +43,20 @@ extern int g_io_calls;
 
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_alloc_fail;
+#include "c89stringutils_string_extras.h"
 static int mock_asprintf(char **strp, const char *fmt, ...) {
     int ret;
     va_list args;
     if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
     va_start(args, fmt);
-    ret = vasprintf(strp, fmt, args);
+    ret = c89stringutils_vasprintf(strp, fmt, args);
     va_end(args);
     return ret;
 }
 #define ASPRINTF mock_asprintf
 #else
-#define ASPRINTF asprintf
+#include "c89stringutils_string_extras.h"
+#define ASPRINTF c89stringutils_asprintf
 #endif
 
 
@@ -86,7 +88,7 @@ static int mock_makedirs(const char *path) {
 
 #include "tests/emit/schema2tests.h"
 
-#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+#if 1
 
 #include <stdio.h>
 

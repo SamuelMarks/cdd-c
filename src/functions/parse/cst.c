@@ -312,21 +312,14 @@ static cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
     i++;
   }
 
-  *_out_val = start;
-  return CDD_C_SUCCESS;
-
   skip_ws(tokens, i, limit, &_ast_skip_ws_2);
   i = _ast_skip_ws_2;
   if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
-    {
-      *_out_val = i + 1;
-      return CDD_C_SUCCESS;
-    }
-  }
-  {
-    *_out_val = start;
+    *_out_val = i + 1;
     return CDD_C_SUCCESS;
   }
+  *_out_val = start;
+  return CDD_C_SUCCESS;
 }
 
 /**

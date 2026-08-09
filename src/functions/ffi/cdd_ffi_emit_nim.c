@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_nim.h"
 
@@ -7,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* clang-format on */
 
 static const char *map_nim_type(cdd_ffi_type_t *t) {
@@ -78,7 +80,6 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -95,7 +96,6 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
                module_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else
@@ -169,7 +169,6 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -186,7 +185,6 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
                module_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else

@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_fsharp.h"
 
@@ -8,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* clang-format on */
 
 static void map_fsharp_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
@@ -86,7 +88,6 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   cdd_ffi_enum_variant_t *var;
   char type_str[256];
   char ret_type_str[256];
-  extern volatile int g_fail_io_after;
 
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
@@ -101,7 +102,6 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -119,7 +119,6 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -137,7 +136,6 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
                config->output_dir);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else
@@ -156,7 +154,6 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
                config->output_dir, module_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       proj_f = NULL;
     } else

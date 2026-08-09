@@ -158,8 +158,8 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
  */
 cdd_c_error_t patch_header_from_source(const char *header_path,
                                        const char *refactored_source) {
-  struct FuncSigList sigs;
-  struct PatchList patches;
+  struct FuncSigList sigs = {0};
+  struct PatchList patches = {0};
   struct TokenList *hdr_tokens = NULL;
   char *hdr_content = NULL;
   char *new_header = NULL;

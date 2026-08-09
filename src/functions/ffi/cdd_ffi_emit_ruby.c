@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_ruby.h"
 #include <stdio.h>
@@ -103,7 +104,6 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #endif
 
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
@@ -185,7 +185,7 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
   /* Generate Ruby C Extension wrapper (cdd_ruby_wrap.c) for GVL handling */
   {
-    FILE *fc;
+    FILE *fc = NULL;
     char filepath_c[1024];
 #if defined(_MSC_VER)
     sprintf_s(filepath_c, sizeof(filepath_c), "%s\\cdd_ruby_wrap.c",
@@ -197,7 +197,6 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     fc = fopen(filepath_c, "w");
 #endif
     {
-      extern volatile int g_fail_io_after;
       if (g_fail_io_after == 2) {
         fclose(fc);
         fc = NULL;
@@ -241,7 +240,6 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     f = fopen(filepath_test, "w");
 #endif
     {
-      extern volatile int g_fail_io_after;
       if (g_fail_io_after == 3) {
         fclose(f);
         f = NULL;

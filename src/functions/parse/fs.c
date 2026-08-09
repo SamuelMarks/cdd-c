@@ -1,4 +1,6 @@
+#define _CRT_RAND_S
 #include "c_cdd/memory.h"
+#include <stdlib.h>
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define _CRT_RAND_S
 #endif
@@ -16,7 +18,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/fs.h"

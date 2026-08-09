@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_elixir.h"
 
@@ -72,7 +73,6 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -90,7 +90,6 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -108,7 +107,6 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
                config->output_dir, lib_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       c_f = NULL;
     } else
@@ -127,7 +125,6 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
                elixir_module_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       ex_f = NULL;
     } else
@@ -148,6 +145,7 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
           lib_name);
   fprintf(c_f, "#include <erl_nif.h>\n");
   fprintf(c_f, "#include \"%s.h\"\n\n",
+
           lib_name); /* Assuming the main library header is lib_name.h */
 
   /* Generate Erlang resource type globals for structs */

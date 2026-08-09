@@ -83,7 +83,9 @@ static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
   }
 #endif
 #endif
+#ifndef CDD_BUILD_TESTS
   return CDD_C_SUCCESS;
+#endif
 }
 
 cdd_c_error_t check_libpq_available(int *out_avail) {

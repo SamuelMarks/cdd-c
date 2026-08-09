@@ -180,6 +180,7 @@ static cdd_c_error_t join_tokens_str(const struct TokenList *tokens,
                                      size_t start, size_t end,
                                      char **_out_val) {
   char *_ast_strdup_0 = NULL;
+  (void)_ast_strdup_0;
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -217,6 +218,7 @@ static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
                                               char **type_str) {
   size_t _ast_find_token_in_range_1 = 0;
   char *_ast_join_tokens_str_2 = NULL;
+  (void)_ast_join_tokens_str_2;
   size_t i;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_1),
@@ -274,6 +276,7 @@ static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
 static cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
                                     const char *name) {
   char *_ast_strdup_1 = NULL;
+  (void)_ast_strdup_1;
   cdd_c_error_t rc;
   g->nodes[idx].node_idx = idx;
   rc = c_cdd_strdup(name, &g->nodes[idx].name);
@@ -371,13 +374,21 @@ static cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
   size_t _ast_find_token_in_range_3 = 0;
   char *_ast_extract_func_name_4 = NULL;
+  (void)_ast_extract_func_name_4;
   char *_ast_join_tokens_str_5 = NULL;
+  (void)_ast_join_tokens_str_5;
   char *_ast_join_tokens_str_6 = NULL;
+  (void)_ast_join_tokens_str_6;
   char *_ast_join_tokens_str_7 = NULL;
+  (void)_ast_join_tokens_str_7;
   char *_ast_join_tokens_str_8 = NULL;
+  (void)_ast_join_tokens_str_8;
   char *_ast_strdup_2 = NULL;
+  (void)_ast_strdup_2;
   char *_ast_strdup_3 = NULL;
+  (void)_ast_strdup_3;
   char *_ast_strdup_4 = NULL;
+  (void)_ast_strdup_4;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   struct AllocationSiteList allocs = {0};

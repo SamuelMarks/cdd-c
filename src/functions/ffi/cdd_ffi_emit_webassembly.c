@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_webassembly.h"
 
@@ -172,7 +173,6 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   cpp_f = fopen(cpp_filepath, "w");
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(cpp_f);
       cpp_f = NULL;
@@ -188,7 +188,6 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   ts_f = fopen(ts_filepath, "w");
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(ts_f);
       ts_f = NULL;
@@ -250,6 +249,7 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   fprintf(cpp_f, "/* Auto-generated Emscripten C++ Glue for %s */\n", lib_name);
   fprintf(cpp_f, "#include <emscripten.h>\n");
   fprintf(cpp_f, "#include \"%s.h\"\n\n", lib_name);
+
   fprintf(cpp_f, "extern \"C\" {\n\n");
 
   for (i = 0; i < ir->nodes_count; i++) {

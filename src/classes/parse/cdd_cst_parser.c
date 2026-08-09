@@ -16,6 +16,7 @@ static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
                                 cdd_cst_node_t *parent,
                                 cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
   cdd_cst_node_t *n;
   n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (n) {
@@ -31,6 +32,7 @@ static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
 static cdd_c_error_t append_child_token(cdd_cst_node_t *node,
                                         cdd_token_t *tok) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
 
   if (node->num_children >= node->capacity) {
 #ifdef CDD_BUILD_TESTS
@@ -66,6 +68,7 @@ static cdd_c_error_t append_child_token(cdd_cst_node_t *node,
 static cdd_c_error_t append_child_node(cdd_cst_node_t *node,
                                        cdd_cst_node_t *child) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
 
   if (node->num_children >= node->capacity) {
 #ifdef CDD_BUILD_TESTS
@@ -125,6 +128,7 @@ typedef struct parser_state_t {
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
 
   *out_tok = NULL;
   if (s->pos < s->list->size) {
@@ -137,6 +141,7 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
 C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)rc;
 
   *out_tok = NULL;
   if (s->pos < s->list->size) {
@@ -972,7 +977,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       return CDD_C_SUCCESS;
     }
   }
-  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {

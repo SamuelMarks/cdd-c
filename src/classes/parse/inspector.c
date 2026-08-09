@@ -446,7 +446,6 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
   for (i = 0; i < cst.size; ++i) {
     if (cst.nodes[i].kind == CST_NODE_FUNCTION) {
       size_t start_idx = cst.nodes[i].start_token;
-      size_t end_idx = cst.nodes[i].end_token;
       size_t sig_end_idx = start_idx;
       size_t name_idx = 0;
       int found_name = 0;

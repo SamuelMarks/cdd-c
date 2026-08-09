@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_rust.h"
 #include "../parse/fs.h"
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_rust_primitive(cdd_ffi_primitive_kind_t kind) {
@@ -78,7 +80,7 @@ static void emit_rust_sys_type(FILE *f, const cdd_ffi_type_t *type,
 }
 
 static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
   size_t i, j;
 
@@ -92,7 +94,6 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;
@@ -163,7 +164,7 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 }
 
 static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
   size_t i;
 
@@ -177,7 +178,6 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;
@@ -278,7 +278,7 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 
 static cdd_c_error_t
 emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
 
 #if defined(_MSC_VER)
@@ -291,7 +291,6 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;
@@ -317,7 +316,7 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
 static cdd_c_error_t
 emit_integration_tests(cdd_ffi_ir_t *ir,
                        const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   char filepath[1024];
   size_t i;
 
@@ -333,7 +332,6 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;

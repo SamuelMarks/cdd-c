@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_r.h"
 #include <stdio.h>
@@ -6,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_r_type(cdd_ffi_type_t type) {
@@ -60,7 +62,6 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
   {
     int err = 0;
 #ifdef CDD_BUILD_TESTS
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       err = 1;
     } else
@@ -77,7 +78,6 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
                lib_name);
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       f = NULL;
     } else

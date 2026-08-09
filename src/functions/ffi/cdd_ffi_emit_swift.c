@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_swift.h"
 #include <stdio.h>
@@ -5,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "c_cdd/safe_crt.h"
+
 /* clang-format on */
 
 static const char *get_swift_type(cdd_ffi_type_t type) {
@@ -77,7 +79,6 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   f = fopen(filepath, "w");
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;
@@ -195,7 +196,6 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   f = fopen(filepath, "w");
 #ifdef CDD_BUILD_TESTS
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
       fclose(f);
       f = NULL;

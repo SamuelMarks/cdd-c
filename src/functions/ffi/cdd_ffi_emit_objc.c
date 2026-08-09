@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_objc.h"
 
@@ -8,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 /* clang-format on */
 
 static const char *map_objc_type(cdd_ffi_type_t *t, int is_return) {
@@ -115,7 +117,6 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
            m_filepath);
   }
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 2) {
       fclose(m_file);
       fclose(h_file);

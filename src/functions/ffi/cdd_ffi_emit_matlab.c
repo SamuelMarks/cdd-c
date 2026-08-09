@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "c_cdd/safe_crt.h"
 #include "cdd_ffi_emit_matlab.h"
@@ -132,7 +133,6 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #endif
 
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 2) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;

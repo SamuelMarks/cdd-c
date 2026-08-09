@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_perl.h"
 
@@ -214,7 +215,6 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 2) {
       fclose(xs_f);
       fclose(f);
@@ -230,7 +230,6 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 3) {
       fclose(make_f);
       fclose(xs_f);
@@ -248,7 +247,6 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     return CDD_C_ERROR_UNKNOWN;
   }
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 4) {
       fclose(typemap_f);
       fclose(make_f);

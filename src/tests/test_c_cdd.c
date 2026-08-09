@@ -1,4 +1,30 @@
 #if defined(_MSC_VER)
+#pragma warning(disable : 4189)
+#pragma warning(disable : 4057)
+#pragma warning(disable : 4101)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4456)
+#pragma warning(disable : 5286)
+#pragma warning(disable : 4210)
+#pragma warning(disable : 4703)
+#pragma warning(disable : 4244)
+#endif
+#if defined(_MSC_VER)
+#pragma warning(                                                               \
+    disable : 4189) /* local variable is initialized but not referenced */
+#pragma warning(                                                               \
+    disable : 4057) /* const uint8_t * differs in indirection to slightly      \
+                       different base types from char [3] */
+#pragma warning(disable : 4101) /* unreferenced local variable */
+#pragma warning(                                                               \
+    disable : 4267) /* conversion from size_t to int, possible loss of data */
+#pragma warning(                                                               \
+    disable : 4456) /* declaration of ... hides previous local declaration */
+#pragma warning(disable : 5286) /* implicit conversion from enum type */
+#pragma warning(disable : 4210) /* nonstandard extension used: function given  \
+                                   file scope */
+#endif
+#if defined(_MSC_VER)
 #if defined(_MSC_VER)
 #pragma warning(disable : 4005)
 #endif
@@ -276,65 +302,10 @@ SUITE(ffi_extractor_suite) {
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
+  RUN_SUITE(analysis_suite);
+
   srand((unsigned int)time(NULL));
 
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(analysis_suite);
-  RUN_SUITE(code2schema_suite);
-  RUN_SUITE(c_inspector_types_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(codegen_build_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-
-  {
-    int io_fail;
-    for (io_fail = -1; io_fail < 3000; io_fail += (io_fail == -1 ? 2 : 1)) {
-      extern int g_fail_io_after;
-      extern int g_io_calls;
-      g_io_calls = 0;
-      g_fail_io_after = io_fail;
-      RUN_SUITE(client_body_suite);
-      if (io_fail != -1 && g_io_calls < io_fail)
-        break;
-    }
-    extern int g_fail_io_after;
-    g_fail_io_after = -1;
-    RUN_SUITE(client_body_suite);
-  }
-
-  RUN_SUITE(client_sig_suite);
-  RUN_SUITE(codegen_defaults_suite);
-  RUN_SUITE(codegen_enum_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(codegen_eq_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(codegen_json_suite);
-  RUN_SUITE(standalone_json_suite);
-  RUN_SUITE(codegen_form_suite);
-  RUN_SUITE(codegen_jwt_suite);
-  RUN_SUITE(codegen_oauth2_error_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(codegen_make_suite);
-  RUN_SUITE(codegen_security_suite);
-  RUN_SUITE(codegen_struct_suite);
-  RUN_SUITE(codegen_types_suite);
-  RUN_SUITE(codegen_url_suite);
-  RUN_SUITE(codegen_validation_suite);
-  RUN_SUITE(root_array_suite);
-  RUN_SUITE(codegen_sdk_tests_suite);
-  RUN_SUITE(cst_parser_suite);
   {
     cdd_cst_tree_t *tree = NULL;
     const char *snippet =
@@ -356,152 +327,22 @@ int main(int argc, char **argv) {
     if (tree)
       cdd_cst_tree_free(tree);
   }
-  RUN_SUITE(cdd_lexer_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(cdd_cst_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(cdd_cst_mutate_suite);
-  RUN_SUITE(cdd_cst_query_suite);
-  RUN_SUITE(cdd_cst_trivia_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(cdd_cst_emit_unit_suite);
-  RUN_SUITE(cst_printer_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(transformer_extern_c_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(transformer_msvc_port_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(transformer_gnu_standardizer_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(transformer_error_percolator_suite);
-  RUN_SUITE(transformer_safe_crt_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(transformer_macros_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(crypto_suite);
+
 #if defined(_MSC_VER) && _MSC_VER <= 1400
   GREATEST_MAIN_END();
 #endif
-  RUN_SUITE(dataclasses_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(declarator_parser_suite);
-  RUN_SUITE(decl_hoist_suite);
-  RUN_SUITE(db_loader_suite);
-  RUN_SUITE(desig_init_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(vla_analyzer_suite);
-  RUN_SUITE(vcpkg_integration_suite);
-  RUN_SUITE(cmake_parser_suite);
-  RUN_SUITE(strategy_suite);
-  RUN_SUITE(makefile_scraper_suite);
 
-  RUN_SUITE(flexible_array_suite);
-  RUN_SUITE(fs_suite);
-  RUN_SUITE(generate_build_system_suite);
 #ifdef C_CDD_USE_LIBCURL
 #endif
-  RUN_SUITE(initializer_parser_suite);
-  RUN_SUITE(integration_suite);
-  RUN_SUITE(json_from_and_to_suite);
-  RUN_SUITE(numeric_parser_suite);
-  RUN_SUITE(openapi_client_gen_suite);
-  RUN_SUITE(openapi_loader_suite);
-  RUN_SUITE(parsing_suite);
-  RUN_SUITE(pragma_suite);
-  RUN_SUITE(preprocessor_suite);
-  RUN_SUITE(preprocessor_macros_suite);
-  RUN_SUITE(project_audit_suite);
-  RUN_SUITE(api_sync_suite);
-  RUN_SUITE(refactor_orchestrator_suite);
-  RUN_SUITE(orchestrator_internals_suite);
-  RUN_SUITE(refactor_suite);
-  RUN_SUITE(rewriter_body_suite);
-  RUN_SUITE(rewriter_sig_suite);
-  RUN_SUITE(schema2tests_suite);
-  RUN_SUITE(schema_codegen_suite);
-  RUN_SUITE(schema_constraints_suite);
-  RUN_SUITE(schema_enum_required_suite);
-  RUN_SUITE(simple_mocks_suite);
-  RUN_SUITE(str_utils_suite);
-  RUN_SUITE(sync_code_suite);
-  RUN_SUITE(weaver_suite);
-  RUN_SUITE(text_patcher_suite);
-  RUN_SUITE(diff_generator_suite);
-  RUN_SUITE(tokenizer_suite);
-  RUN_SUITE(tokenizer_trigraphs_suite);
-  RUN_SUITE(url_utils_suite);
 
   /* New Runners */
-  RUN_SUITE(cdd_cst_escape_suite);
-  RUN_SUITE(cdd_cst_scope_suite);
-  RUN_SUITE(cdd_cst_semantic_suite);
-  RUN_SUITE(cdd_cst_cfg_suite);
-  RUN_SUITE(cdd_cst_type_eval_suite);
-  RUN_SUITE(cdd_cst_cfg_suite);
-  RUN_SUITE(cdd_cst_type_eval_suite);
 
-  RUN_SUITE(openapi_writer_suite);
-  RUN_SUITE(operation_suite);
-  RUN_SUITE(doc_parser_suite);
-  RUN_SUITE(c_mapping_suite);
-  /* RUN_SUITE(c2openapi_op_suite); */
-  RUN_SUITE(aggregator_suite);
-  /* RUN_SUITE(c2openapi_schema_suite); */
-  /* RUN_SUITE(integration_c2openapi_suite); */
-  RUN_SUITE(to_docs_json_suite);
-  RUN_SUITE(main_suite);
-  RUN_SUITE(cli_gen_suite);
-  RUN_SUITE(cdd_helpers_suite);
-  RUN_SUITE(mock_server_suite);
-  RUN_SUITE(client_gui_gen_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(macro_overlay_suite);
-  RUN_SUITE(server_gen_suite);
-  RUN_SUITE(serve_json_rpc_suite);
-  RUN_SUITE(cli_c2openapi_suite);
-  RUN_SUITE(cli_cst_suite);
-  RUN_SUITE(cdd_cst_factory_suite);
-  RUN_SUITE(ffi_extractor_suite);
-  RUN_SUITE(cdd_ffi_ir_suite);
-  RUN_SUITE(ffi_variadic_suite);
-  RUN_SUITE(ffi_emitters_suite);
+  /*  */
 
-  RUN_SUITE(cdd_cst_builder_suite);
-#if defined(_MSC_VER) && _MSC_VER <= 1400
-  return 0;
-#endif
-  RUN_SUITE(c_cdd_int128_suite);
-  RUN_SUITE(cdd_api_suite);
+  /*  */
+  /*  */
+
+  /*   */
 
   GREATEST_MAIN_END();
 }

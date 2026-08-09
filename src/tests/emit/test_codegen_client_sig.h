@@ -1675,7 +1675,7 @@ TEST test_sig_header_param_boolean(void) {
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_0_uniq = NULL;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1689,7 +1689,7 @@ TEST test_sig_header_param_boolean(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -1737,7 +1737,7 @@ TEST test_sig_header_param_number(void) {
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_5_uniq = NULL;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1751,7 +1751,7 @@ TEST test_sig_header_param_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -1799,7 +1799,7 @@ TEST test_sig_header_param_integer(void) {
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_10_uniq = NULL;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1813,7 +1813,7 @@ TEST test_sig_header_param_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -1861,7 +1861,7 @@ TEST test_sig_header_param_string(void) {
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_15_uniq = NULL;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1875,7 +1875,7 @@ TEST test_sig_header_param_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -2046,7 +2046,7 @@ TEST test_sig_media_type_branches(void) {
 }
 
 TEST test_sig_response_array_string_ref(void) {
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_20_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2056,7 +2056,7 @@ TEST test_sig_response_array_string_ref(void) {
   resp.schema.ref_name = "string";
   op.responses = &resp;
   op.n_responses = 1;
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -2098,7 +2098,7 @@ TEST test_sig_response_array_string_ref(void) {
 }
 
 TEST test_sig_response_array_integer_ref(void) {
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_25_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2108,7 +2108,7 @@ TEST test_sig_response_array_integer_ref(void) {
   resp.schema.ref_name = "integer";
   op.responses = &resp;
   op.n_responses = 1;
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -2150,7 +2150,7 @@ TEST test_sig_response_array_integer_ref(void) {
 }
 
 TEST test_sig_response_array_struct_ref(void) {
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_30_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2160,7 +2160,7 @@ TEST test_sig_response_array_struct_ref(void) {
   resp.schema.ref_name = "Pet";
   op.responses = &resp;
   op.n_responses = 1;
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   {
     int io_i;
@@ -2210,7 +2210,7 @@ TEST test_sig_null_args(void) {
 TEST test_sig_io_errors(void) {
   int i;
   int success_count = 0;
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_35_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -2251,7 +2251,7 @@ TEST test_sig_io_errors(void) {
 }
 
 TEST test_sig_unsupported_prefix(void) {
-  char *_ast_gen_sig_x = NULL;
+  char *_ast_gen_sig_36_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -2262,7 +2262,7 @@ TEST test_sig_unsupported_prefix(void) {
   param.in = OA_PARAM_IN_QUERYSTRING;
   param.type = "string";
   param.content_type = "unsupported/type";
-  code = (gen_sig(&op, NULL, &_ast_gen_sig_x), _ast_gen_sig_x);
+  gen_sig(&op, NULL, &code);
   ASSERT(code);
   free(code);
   PASS();

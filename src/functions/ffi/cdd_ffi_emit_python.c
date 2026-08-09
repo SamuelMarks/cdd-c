@@ -1,3 +1,4 @@
+extern volatile int g_fail_io_after;
 /* clang-format off */
 #include "cdd_ffi_emit_python.h"
 #include <errno.h>
@@ -80,7 +81,7 @@ static void emit_type(FILE *f, const cdd_ffi_type_t *type) {
 enum cdd_c_error
 cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
-  FILE *f;
+  FILE *f = NULL;
   size_t i, j;
   char filepath[1024];
 
@@ -100,7 +101,6 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
 
   {
-    extern volatile int g_fail_io_after;
     if (g_fail_io_after == 1) {
       fclose(f);
       f = NULL;
@@ -394,7 +394,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 
   /* Generate Python C API Wrapper (cdd_python_wrap.c) for GIL handling */
   {
-    FILE *fc;
+    FILE *fc = NULL;
 #if defined(_MSC_VER)
     sprintf_s(filepath, sizeof(filepath), "%s\\cdd_python_wrap.c",
               config->output_dir);
@@ -405,7 +405,6 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     fc = fopen(filepath, "w");
 #endif
     {
-      extern volatile int g_fail_io_after;
       if (g_fail_io_after == 2) {
         fclose(fc);
         fc = NULL;
@@ -446,7 +445,6 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     f = fopen(filepath, "w");
 #endif
     {
-      extern volatile int g_fail_io_after;
       if (g_fail_io_after == 3) {
         fclose(f);
         f = NULL;
