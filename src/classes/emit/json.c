@@ -549,27 +549,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 #if defined(_MSC_VER)
             strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
-#if defined(_MSC_VER)
-            strncpy_s(pat, sizeof(pat), f->pattern, pl);
-#else
-#if defined(_MSC_VER)
-            strncpy_s(pat, sizeof(pat), f->pattern, pl);
-#else
-#if defined(_MSC_VER)
-            strncpy_s(pat, sizeof(pat), f->pattern, pl);
-#else
-#if defined(_MSC_VER)
-            strncpy_s(pat, sizeof(pat), f->pattern, pl);
-#else
-#if defined(_MSC_VER)
-            strncpy_s(pat, sizeof(pat), f->pattern, pl);
-#else
-            strncpy(pat, f->pattern, pl);
-#endif
-#endif
-#endif
-#endif
-#endif
+            memcpy(pat, f->pattern, pl);
 #endif
 #endif
             pat[pl] = 0;

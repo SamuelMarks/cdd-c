@@ -11,7 +11,7 @@ extern "C" {
 /**
  * @brief Global error enumeration for cdd-c project.
  */
-typedef NO_DISCARD enum cdd_c_error {
+typedef enum cdd_c_error {
   CDD_C_SUCCESS = 0,
   CDD_C_ERROR_MEMORY = 1,
   CDD_C_ERROR_INVALID_ARGUMENT = 2,

@@ -1662,34 +1662,16 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 /* If buf was "int *p", and we split at space, buf="int", name="*p". */
 /* If buf was "struct S* p", split at last space (' '), buf="struct S*",
  * name="p" */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
 #if defined(_MSC_VER)
   strncpy_s(type_raw, 63 + 1, buf, 63);
 #else
-#if defined(_MSC_VER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
-#if defined(_MSC_VER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
-#if defined(_MSC_VER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
-#if defined(_MSC_VER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
-#if defined(_MSC_VER)
-  strncpy_s(type_raw, 63 + 1, buf, 63);
-#else
-  strncpy(type_raw, buf, 63);
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+  {
+    size_t len = strlen(buf);
+    if (len > 63)
+      len = 63;
+    memcpy(type_raw, buf, len);
+    type_raw[len] = '\0';
+  }
 #endif
   /* Ensure we capture the pointer asterisk if it was on the type side */
   /* "struct S* p" -> type="struct S*" */

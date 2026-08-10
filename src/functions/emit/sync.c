@@ -283,7 +283,9 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
             /* Patch: Replace [start, end) with new signature */
             char *replacement;
 #ifdef HAVE_ASPRINTF
-            asprintf(&replacement, "%s", sigs.items[i].sig);
+            if (asprintf(&replacement, "%s", sigs.items[i].sig) < 0) {
+              replacement = NULL;
+            }
 #else
             /* Simple fallback wrapper */
             c_cdd_strdup(sigs.items[i].sig, &replacement);

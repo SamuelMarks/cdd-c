@@ -3447,7 +3447,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       const char *final_ct = content_type;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       char len_field[80];
@@ -3581,7 +3581,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
     } else if (strcmp(f->type, "string") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
@@ -3606,7 +3606,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
     } else if (strcmp(f->type, "integer") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
@@ -3636,7 +3636,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
     } else if (strcmp(f->type, "number") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
@@ -3666,7 +3666,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
     } else if (strcmp(f->type, "boolean") == 0) {
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
@@ -3698,7 +3698,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
       const char *final_ct = content_type;
-      char ct_buf[256];
+      char ct_buf[512];
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (!final_ct)

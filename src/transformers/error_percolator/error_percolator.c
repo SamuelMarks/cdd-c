@@ -18,6 +18,7 @@
 #include "c_cdd_export.h"
 #include "c_cdd/safe_crt.h"
 #include "c_cdd/memory.h"
+#include "c_cdd/format_specifiers.h"
 /* clang-format on */
 
 static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
@@ -26,7 +27,7 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                                         size_t num_modified) {
   size_t i;
   if (node == tree->root) {
-    printf("rewrite_call_sites on tree->root with %zu children\n",
+    printf("rewrite_call_sites on tree->root with %" CDD_PRIz " children\n",
            node->num_children);
   }
   for (i = 0; i < node->num_children; i++) {

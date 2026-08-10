@@ -66,9 +66,11 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #include "c_cdd/memory.h"
   fprintf(fp, "#include <string.h>\n");
   fprintf(fp, "#include <parson.h>\n");
-  fprintf(fp, "/* clang-format off */\n");
+  fprintf(fp, "/* clang-format "
+              "off */\n");
   fprintf(fp, "#include \"cdd_c_error.h\"\n");
-  fprintf(fp, "/* clang-format on */\n");
+  fprintf(fp, "/* clang-format "
+              "on */\n");
   {
     char *base = NULL;
     get_basename(config->filename_base, &base);

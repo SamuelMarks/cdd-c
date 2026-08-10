@@ -112,7 +112,7 @@ typedef struct stat c_stat;
  * @brief Error codes mapping to standard errno values where applicable,
  * or custom codes for `fopen` specific failures.
  */
-typedef NO_DISCARD enum FopenError {
+typedef enum FopenError {
   FOPEN_OK = 0,                       /**< No error */
   FOPEN_INVALID_PARAMETER = EINVAL,   /**< Invalid input parameters */
   FOPEN_TOO_MANY_OPEN_FILES = EMFILE, /**< Too many open files */

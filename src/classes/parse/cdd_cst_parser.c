@@ -16,8 +16,8 @@ static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
                                 cdd_cst_node_t *parent,
                                 cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  (void)rc;
   cdd_cst_node_t *n;
+  (void)rc;
   n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (n) {
     n->kind = kind;

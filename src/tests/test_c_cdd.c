@@ -87,6 +87,9 @@ static FILE *mock_tmpfile_fuzzer(void) {
     }
     return tmpfile();
 }
+#ifdef tmpfile
+#undef tmpfile
+#endif
 #define tmpfile mock_tmpfile_fuzzer
 
 #include "emit/test_codegen_client_body.h"

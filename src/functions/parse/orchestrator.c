@@ -180,10 +180,10 @@ static cdd_c_error_t join_tokens_str(const struct TokenList *tokens,
                                      size_t start, size_t end,
                                      char **_out_val) {
   char *_ast_strdup_0 = NULL;
-  (void)_ast_strdup_0;
   size_t len = 0;
   size_t i;
   char *buf, *p;
+  (void)_ast_strdup_0;
   if (start >= end) {
     cdd_c_error_t rc = c_cdd_strdup("", _out_val);
     if (rc != CDD_C_SUCCESS)
@@ -218,13 +218,13 @@ static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
                                               char **type_str) {
   size_t _ast_find_token_in_range_1 = 0;
   char *_ast_join_tokens_str_2 = NULL;
-  (void)_ast_join_tokens_str_2;
   size_t i;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_1),
                    _ast_find_token_in_range_1);
   size_t name_end_idx = 0;
 
+  (void)_ast_join_tokens_str_2;
   *is_ptr = 0;
   *is_void = 0;
   *type_str = NULL;
@@ -276,8 +276,8 @@ static cdd_c_error_t analyze_signature_tokens(const struct TokenList *tokens,
 static cdd_c_error_t graph_add_node(struct DependencyGraph *g, size_t idx,
                                     const char *name) {
   char *_ast_strdup_1 = NULL;
-  (void)_ast_strdup_1;
   cdd_c_error_t rc;
+  (void)_ast_strdup_1;
   g->nodes[idx].node_idx = idx;
   rc = c_cdd_strdup(name, &g->nodes[idx].name);
   if (rc != CDD_C_SUCCESS)
@@ -374,21 +374,13 @@ static cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
   size_t _ast_find_token_in_range_3 = 0;
   char *_ast_extract_func_name_4 = NULL;
-  (void)_ast_extract_func_name_4;
   char *_ast_join_tokens_str_5 = NULL;
-  (void)_ast_join_tokens_str_5;
   char *_ast_join_tokens_str_6 = NULL;
-  (void)_ast_join_tokens_str_6;
   char *_ast_join_tokens_str_7 = NULL;
-  (void)_ast_join_tokens_str_7;
   char *_ast_join_tokens_str_8 = NULL;
-  (void)_ast_join_tokens_str_8;
   char *_ast_strdup_2 = NULL;
-  (void)_ast_strdup_2;
   char *_ast_strdup_3 = NULL;
-  (void)_ast_strdup_3;
   char *_ast_strdup_4 = NULL;
-  (void)_ast_strdup_4;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   struct AllocationSiteList allocs = {0};
@@ -398,6 +390,15 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
   size_t i;
   size_t marked_count = 0;
   int rc = 0;
+
+  (void)_ast_extract_func_name_4;
+  (void)_ast_join_tokens_str_5;
+  (void)_ast_join_tokens_str_6;
+  (void)_ast_join_tokens_str_7;
+  (void)_ast_join_tokens_str_8;
+  (void)_ast_strdup_2;
+  (void)_ast_strdup_3;
+  (void)_ast_strdup_4;
 
   if (!source_code || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -656,7 +657,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
               if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
                                marked_count, &trans, &new_body) == 0) {
 #ifdef HAVE_ASPRINTF
-                asprintf(&segment, "%s %s", new_sig, new_body);
+                if (asprintf(&segment, "%s %s", new_sig, new_body) < 0) {
+                  segment = NULL;
+                }
 #else
                 char *buf =
                     C_CDD_MALLOC(strlen(new_sig) + strlen(new_body) + 2);
@@ -688,7 +691,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
         {
           char *joined;
 #ifdef HAVE_ASPRINTF
-          asprintf(&joined, "%s%s", output, segment);
+          if (asprintf(&joined, "%s%s", output, segment) < 0) {
+            joined = NULL;
+          }
 #else
           joined = C_CDD_MALLOC(strlen(output) + strlen(segment) + 1);
           if (joined) {
@@ -716,7 +721,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
                          _ast_join_tokens_str_8);
         char *joined;
 #ifdef HAVE_ASPRINTF
-        asprintf(&joined, "%s%s", output, content);
+        if (asprintf(&joined, "%s%s", output, content) < 0) {
+          joined = NULL;
+        }
 #else
         joined = C_CDD_MALLOC(strlen(output) + strlen(content) + 1);
         if (joined) {
