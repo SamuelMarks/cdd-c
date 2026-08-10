@@ -1,5 +1,6 @@
 /* Generated Server from OpenAPI Specification */
 
+/* clang-format off */
 #include <c_rest_request.h>
 #include <c_rest_response.h>
 #include <c_rest_router.h>
@@ -13,6 +14,8 @@
 /* Base URL:  */
 #include "c_orm_api.h"
 #include "c_orm_db.h"
+/* clang-format on */
+
 static c_orm_db_t *db_conn = NULL;
 /**
  * @brief Auto-generated code from OpenAPI specification

@@ -38,7 +38,7 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
           if (modified_funcs[m]->length == tok->length &&
               memcmp(modified_funcs[m]->start, tok->start, tok->length) == 0) {
 
-            //  call to %.*s\n", (int)tok->length, tok->start);
+            /* call to %.*s\n", (int)tok->length, tok->start); */
             int is_call = 0;
             int is_def = 0;
             size_t j;
@@ -306,7 +306,7 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
         }
       }
     } else if (node->children[i].kind ==
-               CDD_CST_CHILD_NODE) { //  into child %zu\n", i);
+               CDD_CST_CHILD_NODE) { /* into child %zu\n", i); */
       cdd_c_error_t rc_recurse = rewrite_call_sites(
           tree, node->children[i].val.node, modified_funcs, num_modified);
       if (rc_recurse != CDD_C_SUCCESS) {

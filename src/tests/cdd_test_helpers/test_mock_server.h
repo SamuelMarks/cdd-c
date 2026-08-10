@@ -38,7 +38,7 @@ extern C_CDD_EXPORT int g_accept_fail;
 
 static int http_get(int port);
 #ifdef _WIN32
-#include <windows.h>
+__declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 #define USLEEP(x) Sleep((x) / 1000)
 #else
 #include <unistd.h>
