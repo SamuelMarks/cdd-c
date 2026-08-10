@@ -162,7 +162,8 @@ TEST test_main_subcommands(void) {
 #if defined(_WIN32)
   (void)freopen("NUL", "r", stdin);
 #else
-  (void)freopen("/dev/null", "r", stdin);
+  if (freopen("/dev/null", "r", stdin)) {
+  }
 #endif
 
   cdd_main(3, argv_mcp_err);

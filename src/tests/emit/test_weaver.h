@@ -690,7 +690,8 @@ TEST test_weaver_interactive(void) {
     FILE *f = fopen(tmp_name, "w");
     fprintf(f, "n\nN\ny\n");
     fclose(f);
-    freopen(tmp_name, "r", stdin);
+    if (freopen(tmp_name, "r", stdin)) {
+    }
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
@@ -700,11 +701,13 @@ TEST test_weaver_interactive(void) {
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
-    freopen("/dev/null", "r", stdin);
+    if (freopen("/dev/null", "r", stdin)) {
+    }
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
-    freopen("/dev/tty", "r", stdin); /* restore roughly */
+    if (freopen("/dev/tty", "r", stdin)) {
+    } /* restore roughly */
   }
 
 #endif

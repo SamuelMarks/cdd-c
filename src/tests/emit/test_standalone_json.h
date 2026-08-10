@@ -86,7 +86,8 @@ TEST test_standalone_json_gen(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "MyStruct_parse_json"));
   ASSERT(strstr(content, "my_str"));

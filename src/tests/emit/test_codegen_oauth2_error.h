@@ -65,7 +65,8 @@ TEST test_oauth2_error_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "enum OAuth2ErrorErrorType"));
   ASSERT(strstr(content, "OAuth2Error_parse_oauth2_error"));
@@ -111,7 +112,8 @@ TEST test_oauth2_error_generation_non_string(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "enum OAuth2ErrorNonStringErrorType"));
   ASSERT(strstr(content, "OAuth2ErrorNonString_parse_oauth2_error"));

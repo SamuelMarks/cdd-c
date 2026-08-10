@@ -83,7 +83,8 @@ TEST test_to_docs_json_basic(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  freopen(TEMP_OUT_FILE, "w", stdout);
+  if (freopen(TEMP_OUT_FILE, "w", stdout)) {
+  }
 
   rc = to_docs_json_cli_main(3, argv);
 
@@ -143,7 +144,8 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  freopen(TEMP_OUT_FILE, "w", stdout);
+  if (freopen(TEMP_OUT_FILE, "w", stdout)) {
+  }
 
   rc = to_docs_json_cli_main(5, argv);
 

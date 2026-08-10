@@ -41,8 +41,17 @@ static size_t mock_fread_val(void *ptr, size_t size, size_t nitems,
     return 0;
   return fread(ptr, size, nitems, stream);
 }
+#ifdef TMPFILE
+#undef TMPFILE
+#endif
 #define TMPFILE mock_tmpfile_val
+#ifdef FTELL
+#undef FTELL
+#endif
 #define FTELL mock_ftell_val
+#ifdef FREAD
+#undef FREAD
+#endif
 #define FREAD mock_fread_val
 #else
 #define TMPFILE tmpfile

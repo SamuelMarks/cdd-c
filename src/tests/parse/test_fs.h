@@ -114,13 +114,16 @@ TEST test_walk_directory(void) {
     char *f1 = NULL;
     char *f2 = NULL;
 
-    asprintf(&sub, "%s%ssub", root, PATH_SEP);
+    if (asprintf(&sub, "%s%ssub", root, PATH_SEP)) {
+    }
     makedir(sub);
 
-    asprintf(&f1, "%s%sa.txt", root, PATH_SEP);
+    if (asprintf(&f1, "%s%sa.txt", root, PATH_SEP)) {
+    }
     write_to_file(f1, "a");
 
-    asprintf(&f2, "%s%sb.txt", sub, PATH_SEP);
+    if (asprintf(&f2, "%s%sb.txt", sub, PATH_SEP)) {
+    }
     write_to_file(f2, "b");
 
     rc = walk_directory(root, mock_walk_cb, &count);
@@ -146,7 +149,8 @@ TEST test_makedir_check(void) {
   char *t = NULL;
   char *p = NULL;
   tempdir(&t);
-  asprintf(&p, "%s%snewdir", t, PATH_SEP);
+  if (asprintf(&p, "%s%snewdir", t, PATH_SEP)) {
+  }
   ASSERT_EQ(0, makedir(p));
   rmdir(p);
   /* Don't try to remove system temp dir (t) */
@@ -259,7 +263,8 @@ TEST test_fs_write_to_file(void) {
   size_t sz = 0;
 
   tempdir(&tmp_dir);
-  asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C);
+  if (asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C)) {
+  }
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_write_to_file(NULL, "data"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_write_to_file(file_path, NULL));
@@ -420,6 +425,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_dirname_foo);
   RUN_TEST(test_fs_cdd_fopen_too_long);
   RUN_TEST(test_fs_errors_untestable);
+  RUN_TEST(test_fs_filename_and_ptr);
 #ifdef _MSC_VER
   RUN_TEST(test_ascii_wide_conversion);
 #endif

@@ -114,10 +114,12 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   {
     /* Tcl standard dictates Init function must match library name capitalized:
      * e.g., Mylib_Init */
-    char tcl_init_name[256];
+    char tcl_init_name[512];
     size_t len = strlen(lib_name);
 
-    strncpy(tcl_init_name, lib_name, len);
+    if (len >= sizeof(tcl_init_name))
+      len = sizeof(tcl_init_name) - 1;
+    memcpy(tcl_init_name, lib_name, len);
     tcl_init_name[len] = '\0';
     tcl_init_name[0] = (char)toupper((unsigned char)tcl_init_name[0]);
 

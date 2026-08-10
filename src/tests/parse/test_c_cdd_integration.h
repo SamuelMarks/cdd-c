@@ -138,7 +138,8 @@ TEST test_integration_recursive_fix(void) {
   int rc;
 
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedirs(root);
 
   {
@@ -148,17 +149,20 @@ TEST test_integration_recursive_fix(void) {
     char *content = NULL;
     size_t sz;
 
-    asprintf(&sub, "%s%ssub", root, PATH_SEP);
+    if (asprintf(&sub, "%s%ssub", root, PATH_SEP)) {
+    }
     makedirs(sub);
 
     /* File in root */
-    asprintf(&f1, "%s%sa.c", root, PATH_SEP);
+    if (asprintf(&f1, "%s%sa.c", root, PATH_SEP)) {
+    }
     /* Must provide variable 'p' for safety check to attach to */
     write_to_file(f1, ""
                       "void a() { void * p = (void *)malloc(1); }");
 
     /* File in sub */
-    asprintf(&f2, "%s%sb.c", sub, PATH_SEP);
+    if (asprintf(&f2, "%s%sb.c", sub, PATH_SEP)) {
+    }
     write_to_file(f2, ""
                       "void b() { void * p = (void *)malloc(1); }");
 
@@ -239,7 +243,8 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   int rc;
 
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%sfix_err_test_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%sfix_err_test_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedir(root);
 
   {
@@ -300,7 +305,9 @@ TEST test_end_to_end_project_lifecycle(void) {
 
   /* 1. Setup Project Environment */
   tempdir(&sys_tmp);
-  asprintf(&project_root, "%s%scdd_project_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&project_root, "%s%scdd_project_%d", sys_tmp, PATH_SEP,
+               rand())) {
+  }
   /* Use makedirs to safely handle existence/parent issues */
   if (makedirs(project_root) != 0) {
     free(sys_tmp);
@@ -308,7 +315,8 @@ TEST test_end_to_end_project_lifecycle(void) {
     FAILm("Failed to create project root");
   }
 
-  asprintf(&src_c, "%s%ssrc.c", project_root, PATH_SEP);
+  if (asprintf(&src_c, "%s%ssrc.c", project_root, PATH_SEP)) {
+  }
 
   /*
      Single file containing callee and caller.

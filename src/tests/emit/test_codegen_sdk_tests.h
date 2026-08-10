@@ -69,7 +69,8 @@ TEST test_gen_sdk_test_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)C_CDD_CALLOC(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Preamble check */
   ASSERT(strstr(content, "#include \"client.h\""));

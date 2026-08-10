@@ -85,14 +85,14 @@ TEST test_propagate_void_stmt(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -109,14 +109,14 @@ TEST test_propagate_void_stmt(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -126,7 +126,7 @@ TEST test_propagate_void_stmt(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -135,21 +135,21 @@ TEST test_propagate_void_stmt(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -158,14 +158,14 @@ TEST test_propagate_void_stmt(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -181,18 +181,18 @@ TEST test_propagate_ptr_assignment2(void) {
   const char *input = ""
                       "void f() { char *s; s=my_strdup(\"a\"); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {
+  struct RefactoredFunction funcs2[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc;
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
   printf("OUTPUT4: \"%s\"\n", output);
   fflush(stdout);
 
   ASSERT(strstr(output, "rc =my_strdup(\"a\", &s);") != NULL ||
-         strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
+         strstr(output, "rc2 = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
@@ -213,14 +213,14 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -237,14 +237,14 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -254,7 +254,7 @@ TEST test_propagate_ptr_assignment2(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -263,21 +263,21 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -286,14 +286,14 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -304,15 +304,15 @@ TEST test_propagate_ptr_assignment(void) {
   const char *input = ""
                       "void f() { char *s; s = my_strdup(\"a\"); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {
+  struct RefactoredFunction funcs2[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc;
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
-  /* s = my_strdup(\"a\") -> rc = my_strdup("a", &s); if(rc) ... */
-  ASSERT(strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
+  /* s = my_strdup(\"a\") -> rc2 = my_strdup("a", &s); if(rc) ... */
+  ASSERT(strstr(output, "rc2 = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
@@ -333,14 +333,14 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -357,14 +357,14 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -374,7 +374,7 @@ TEST test_propagate_ptr_assignment(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -383,21 +383,21 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -406,14 +406,14 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -429,17 +429,17 @@ TEST test_propagate_ptr_declaration(void) {
   const char *input = ""
                       "void f() { char *s = my_strdup(\"a\"); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {
+  struct RefactoredFunction funcs2[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc;
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
   /* char *s = ... -> char *s ; = my_strdup("a", &s); ... */
   /* Logic: split decl `char *s` and call */
   ASSERT(strstr(output, "char *s") != NULL);
-  ASSERT(strstr(output, "; rc = my_strdup(\"a\", &s);") != NULL);
+  ASSERT(strstr(output, "; rc2 = my_strdup(\"a\", &s);") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -459,14 +459,14 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -483,14 +483,14 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -500,7 +500,7 @@ TEST test_propagate_ptr_declaration(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -509,21 +509,21 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -532,14 +532,14 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -555,15 +555,16 @@ TEST test_propagate_nested_hoisting(void) {
   const char *input = ""
                       "void f() { outer(inner(\"x\")); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"inner", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc;
+  struct RefactoredFunction funcs2[] = {
+      {"inner", REF_PTR_TO_INT_OUT, "char *"}};
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
-  /* Should hoist: char *tmp; rc = inner("x", &tmp); if(rc)... outer(tmp); */
+  /* Should hoist: char *tmp; rc2 = inner("x", &tmp); if(rc)... outer(tmp); */
   ASSERT(strstr(output, "char * _tmp_cdd_0;") != NULL);
-  ASSERT(strstr(output, "rc = inner(\"x\", &_tmp_cdd_0);") != NULL);
+  ASSERT(strstr(output, "rc2 = inner(\"x\", &_tmp_cdd_0);") != NULL);
   ASSERT(strstr(output, "outer(_tmp_cdd_0);") != NULL);
 
   free(output);
@@ -584,14 +585,14 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -608,14 +609,14 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -625,7 +626,7 @@ TEST test_propagate_nested_hoisting(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -634,21 +635,21 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -657,14 +658,14 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -683,17 +684,17 @@ TEST test_integration_safety_and_prop(void) {
       ""
       "void f() { char * p = (char *)malloc(10); if(!p) return; do_work(); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
-  int rc;
+  struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
   printf("OUTPUT: %s\n", output);
-  ASSERT(strstr(output, "cdd_c_error_t rc = CDD_C_SUCCESS;") != NULL);
+  ASSERT(strstr(output, "cdd_c_error_t rc2 = CDD_C_SUCCESS;") != NULL);
   /* Malloc analysis finding check so no injection */
   /* do_work rewritten */
-  ASSERT(strstr(output, "rc = do_work();") != NULL);
+  ASSERT(strstr(output, "rc2 = do_work();") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -713,14 +714,14 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -737,14 +738,14 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -754,7 +755,7 @@ TEST test_integration_safety_and_prop(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -763,21 +764,21 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -786,14 +787,14 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -809,10 +810,10 @@ TEST test_realloc_safety_injection(void) {
   const char *input = ""
                       "void f() { char *p; p = realloc(p, 100); }";
   char *output = NULL;
-  int rc;
+  int rc2;
 
-  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, NULL, 0, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
   /* Should rewrite: p = realloc(p, 100); ->
      { void *_safe_tmp = realloc(p, 100); if (!_safe_tmp) return
@@ -840,14 +841,14 @@ TEST test_realloc_safety_injection(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -864,14 +865,14 @@ TEST test_realloc_safety_injection(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -881,7 +882,7 @@ TEST test_realloc_safety_injection(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -890,21 +891,21 @@ TEST test_realloc_safety_injection(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -913,14 +914,14 @@ TEST test_realloc_safety_injection(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -933,10 +934,10 @@ TEST test_realloc_safety_injection(void) {
  */
 
 TEST test_rewriter_body_bounds(void) {
-  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+  struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   char *output = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            run_body_rewrite(NULL, funcs, 1, NULL, &output));
+            run_body_rewrite(NULL, funcs2, 1, NULL, &output));
   g_fail_io_after = -1;
   {
     int i;
@@ -954,14 +955,14 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -978,14 +979,14 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -995,7 +996,7 @@ TEST test_rewriter_body_bounds(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1004,21 +1005,21 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1027,14 +1028,14 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1045,7 +1046,7 @@ TEST test_rewriter_body_bounds(void) {
 TEST test_rewriter_body_oom(void) {
   const char *input = "void f() { do_work(); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+  struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
@@ -1059,7 +1060,7 @@ TEST test_rewriter_body_oom(void) {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int rc_oom_rb1;
     g_cdd_fail_alloc = 1;
-    rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
+    rc_oom_rb1 = rewrite_body(tl, &sites, funcs2, 1, NULL, &output);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom_rb1);
     g_cdd_fail_alloc = 0;
 
@@ -1099,14 +1100,14 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1123,14 +1124,14 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1140,7 +1141,7 @@ TEST test_rewriter_body_oom(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1149,21 +1150,21 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1172,14 +1173,14 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1214,14 +1215,14 @@ TEST test_rewriter_body_bounds2(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1238,14 +1239,14 @@ TEST test_rewriter_body_bounds2(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1255,7 +1256,7 @@ TEST test_rewriter_body_bounds2(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1264,21 +1265,21 @@ TEST test_rewriter_body_bounds2(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1287,14 +1288,14 @@ TEST test_rewriter_body_bounds2(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1305,13 +1306,13 @@ TEST test_rewriter_body_bounds2(void) {
 TEST test_propagate_void_stmt_return(void) {
   const char *input = "void f() { do_work(); return ; }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"f", REF_VOID_TO_INT, NULL}};
+  struct RefactoredFunction funcs2[] = {{"f", REF_VOID_TO_INT, NULL}};
   struct SignatureTransform trans;
-  int rc;
+  int rc2;
   trans.type = TRANSFORM_VOID_TO_INT;
 
-  rc = run_body_rewrite(input, funcs, 1, &trans, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, &trans, &output);
+  ASSERT_EQ(0, rc2);
 
   ASSERT(strstr(output, "return 0;") != NULL);
 
@@ -1333,14 +1334,14 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1357,14 +1358,14 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1374,7 +1375,7 @@ TEST test_propagate_void_stmt_return(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1383,21 +1384,21 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1406,14 +1407,14 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1424,13 +1425,13 @@ TEST test_propagate_void_stmt_return(void) {
 TEST test_propagate_void_stmt_transform(void) {
   const char *input = "void f() { do_work(); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"f", REF_VOID_TO_INT, NULL}};
+  struct RefactoredFunction funcs2[] = {{"f", REF_VOID_TO_INT, NULL}};
   struct SignatureTransform trans;
-  int rc;
+  int rc2;
   trans.type = TRANSFORM_VOID_TO_INT;
 
-  rc = run_body_rewrite(input, funcs, 1, &trans, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, &trans, &output);
+  ASSERT_EQ(0, rc2);
 
   ASSERT(strstr(output, "return CDD_C_SUCCESS;") != NULL);
 
@@ -1452,14 +1453,14 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1476,14 +1477,14 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1493,7 +1494,7 @@ TEST test_propagate_void_stmt_transform(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1502,21 +1503,21 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1525,14 +1526,14 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1543,16 +1544,17 @@ TEST test_propagate_void_stmt_transform(void) {
 TEST test_propagate_nested_parens(void) {
   const char *input = "void f() { char* tmp; inner ((1 + 2)); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"inner", REF_PTR_TO_INT_OUT, "char *"}};
-  int rc;
+  struct RefactoredFunction funcs2[] = {
+      {"inner", REF_PTR_TO_INT_OUT, "char *"}};
+  int rc2;
 
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
+  rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
+  ASSERT_EQ(0, rc2);
 
-  ASSERT(strstr(output, "rc = inner((1 + 2));") != NULL ||
-         strstr(output, "rc = inner ((1 + 2));") != NULL ||
-         strstr(output, "rc = inner((1 + 2) , &tmp);") != NULL ||
-         strstr(output, "rc = inner ((1 + 2) , &tmp);") != NULL);
+  ASSERT(strstr(output, "rc2 = inner((1 + 2));") != NULL ||
+         strstr(output, "rc2 = inner ((1 + 2));") != NULL ||
+         strstr(output, "rc2 = inner((1 + 2) , &tmp);") != NULL ||
+         strstr(output, "rc2 = inner ((1 + 2) , &tmp);") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -1572,14 +1574,14 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1596,14 +1598,14 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1613,7 +1615,7 @@ TEST test_propagate_nested_parens(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1622,21 +1624,21 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1645,14 +1647,14 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1678,16 +1680,16 @@ TEST test_rewrite_body_oom(void) {
 
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
+    int rc2 = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
     g_cdd_alloc_fail = 0;
     g_patcher_test_cap_1 = 0;
 
-    if (rc == CDD_C_SUCCESS) {
+    if (rc2 == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
       free_token_list(tl);
       break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
     C_CDD_FREE(out_code);
     free_token_list(tl);
   }
@@ -1708,14 +1710,14 @@ TEST test_rewrite_body_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1732,14 +1734,14 @@ TEST test_rewrite_body_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1749,7 +1751,7 @@ TEST test_rewrite_body_oom(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1758,21 +1760,21 @@ TEST test_rewrite_body_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1781,14 +1783,14 @@ TEST test_rewrite_body_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1805,7 +1807,7 @@ TEST test_rewrite_body_funcs_oom(void) {
     const az_span source = az_span_create_from_str(
         "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
         "my_strdup(\"b\"); outer(inner(\"x\")); }");
-    struct RefactoredFunction funcs[] = {
+    struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
 
@@ -1815,16 +1817,16 @@ TEST test_rewrite_body_funcs_oom(void) {
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
     g_cdd_alloc_fail = 0;
     g_patcher_test_cap_1 = 0;
 
-    if (rc == CDD_C_SUCCESS) {
+    if (rc2 == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
       free_token_list(tl);
       break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
     C_CDD_FREE(out_code);
     free_token_list(tl);
   }
@@ -1845,14 +1847,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -1869,14 +1871,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1886,7 +1888,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1895,21 +1897,21 @@ TEST test_rewrite_body_funcs_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1918,14 +1920,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -1943,7 +1945,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
     const az_span source = az_span_create_from_str(
         "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
         "my_strdup(\"b\"); outer(inner(\"x\")); }");
-    struct RefactoredFunction funcs[] = {
+    struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
 
@@ -1953,16 +1955,16 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
     g_cdd_strdup_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
     g_cdd_strdup_fail = 0;
     g_patcher_test_cap_1 = 0;
 
-    if (rc == CDD_C_SUCCESS) {
+    if (rc2 == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
       free_token_list(tl);
       break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
     C_CDD_FREE(out_code);
     free_token_list(tl);
   }
@@ -1983,14 +1985,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2007,14 +2009,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2024,7 +2026,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2033,21 +2035,21 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2056,14 +2058,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2079,7 +2081,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
     struct AllocationSiteList sites = {0};
     const az_span source =
         az_span_create_from_str("void f() { char *s; s=my_strdup(\"c\"); }");
-    struct RefactoredFunction funcs[] = {
+    struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
 
     tokenize(source, &tl);
@@ -2088,11 +2090,11 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc = rewrite_body(tl, &sites, funcs, 1, NULL, &out_code);
+    int rc2 = rewrite_body(tl, &sites, funcs2, 1, NULL, &out_code);
     g_cdd_alloc_fail = 0;
     g_patcher_test_cap_1 = 0;
 
-    if (rc == CDD_C_SUCCESS) {
+    if (rc2 == CDD_C_SUCCESS) {
       C_CDD_FREE(out_code);
       free_token_list(tl);
       break;
@@ -2117,14 +2119,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2141,14 +2143,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2158,7 +2160,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2167,21 +2169,21 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2190,14 +2192,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2214,7 +2216,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
     const az_span source = az_span_create_from_str(
         "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
         "my_strdup(\"b\"); outer(inner(\"x\")); }");
-    struct RefactoredFunction funcs[] = {
+    struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
 
@@ -2224,11 +2226,11 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc = rewrite_body(tl, &sites, funcs, 2, NULL, &out_code);
+    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
     g_cdd_alloc_fail = 0;
     g_patcher_test_cap_1 = 0;
 
-    if (rc == CDD_C_ERROR_MEMORY) {
+    if (rc2 == CDD_C_ERROR_MEMORY) {
       /* Good, failed as expected */
     } else {
       /* printf("i=%d rc=%d\n", i, rc); */
@@ -2253,14 +2255,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2277,14 +2279,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2294,7 +2296,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2303,21 +2305,21 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2326,14 +2328,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2368,14 +2370,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2403,14 +2405,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2436,14 +2438,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2466,14 +2468,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2500,14 +2502,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2531,14 +2533,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2559,7 +2561,7 @@ TEST test_rewrite_body_corner_cases(void) {
                           "}";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct AllocationSiteList sites = {0};
       struct SignatureTransform t = {TRANSFORM_RET_PTR_TO_ARG, "a", "b", "c",
                                      "d"};
@@ -2571,7 +2573,7 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -2579,7 +2581,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2597,7 +2599,7 @@ TEST test_rewrite_body_corner_cases(void) {
                           "}";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct AllocationSiteList sites = {0};
       struct SignatureTransform t = {TRANSFORM_RET_PTR_TO_ARG, "a", "b", "c",
                                      "d"};
@@ -2609,7 +2611,7 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -2617,7 +2619,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2632,7 +2634,7 @@ TEST test_rewrite_body_corner_cases(void) {
                           "}";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2641,14 +2643,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2660,7 +2662,7 @@ TEST test_rewrite_body_corner_cases(void) {
                           "}";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2669,14 +2671,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2701,14 +2703,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2730,14 +2732,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2757,14 +2759,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2781,14 +2783,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2798,7 +2800,7 @@ TEST test_rewrite_body_corner_cases(void) {
       const char code[] = "void *p = malloc(1); return p;";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct AllocationSiteList sites = {0};
       struct SignatureTransform t = {TRANSFORM_RET_PTR_TO_ARG, "a", "b", "c",
                                      "d"};
@@ -2810,7 +2812,7 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -2818,14 +2820,14 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "void *p = malloc(1); return p;";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct AllocationSiteList sites = {0};
       struct SignatureTransform t = {TRANSFORM_RET_PTR_TO_ARG, "a", "b", "c",
                                      "d"};
@@ -2837,7 +2839,7 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -2845,7 +2847,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2865,14 +2867,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
@@ -2889,14 +2891,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, funcs, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2906,7 +2908,7 @@ TEST test_rewrite_body_corner_cases(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2915,21 +2917,21 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc;
+      int rc2;
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -2938,14 +2940,14 @@ TEST test_rewrite_body_corner_cases(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
+      rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
+      if (rc2 == CDD_C_SUCCESS)
         i = 999;
     }
   }
@@ -2958,7 +2960,7 @@ TEST test_rewrite_body_corner_oom_2(void) {
       "void f() { char *s = my_strdup(\"a\"); }",
       "void f() { my_func(\"a\"); }", "void f() { return my_func(\"a\"); }",
       "void f() { my_func(\"a\") }", "void f() { if (1) { return; } }"};
-  struct RefactoredFunction funcs[] = {
+  struct RefactoredFunction funcs2[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
       {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
   struct SignatureTransform t1 = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
@@ -2974,14 +2976,14 @@ TEST test_rewrite_body_corner_oom_2(void) {
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_alloc_fail = i;
       g_patcher_test_cap_1 = 1;
-      int rc = rewrite_body(tl, NULL, funcs, 2,
-                            c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+      int rc2 = rewrite_body(tl, NULL, funcs2, 2,
+                             c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl);
       if (out_code)
         C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
         break;
       }
     }
@@ -2996,14 +2998,14 @@ TEST test_rewrite_body_corner_oom_2(void) {
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      int rc = rewrite_body(tl, NULL, funcs, 2,
-                            c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+      int rc2 = rewrite_body(tl, NULL, funcs2, 2,
+                             c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
       free_token_list(tl);
       if (out_code)
         C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
         break;
       }
     }

@@ -42,7 +42,8 @@ TEST test_make_simple(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "project(test_client"));
   ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
@@ -78,7 +79,8 @@ TEST test_make_extra_sources(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "\"a.c\""));
   ASSERT(strstr(content, "\"b.c\""));

@@ -301,7 +301,8 @@ TEST test_gen_cmake_oom(void) {
 
   g_cdd_alloc_fail = 0;
 
-  chdir("test_build_dir_oom");
+  if (chdir("test_build_dir_oom")) {
+  }
   for (i = 1; i <= 100; i++) {
     g_cdd_strdup_fail = i;
     if (generate_cmake_project(NULL, "Proj", 0) == 0)
@@ -317,7 +318,8 @@ TEST test_gen_cmake_oom(void) {
   g_cdd_alloc_fail = 0;
   remove("src/CMakeLists.txt");
   remove("CMakeLists.txt");
-  chdir("..");
+  if (chdir("..")) {
+  }
 #endif
   remove("test_build_dir_oom/src/CMakeLists.txt");
   remove("test_build_dir_oom/CMakeLists.txt");
@@ -364,7 +366,8 @@ TEST test_gen_cmake_io_fail(void) {
            ++i <= 10);
   g_fail_io_after = -1;
 
-  chdir("test_build_dir_io");
+  if (chdir("test_build_dir_io")) {
+  }
   for (i = 0; i <= 10; i++) {
     g_fail_io_after = i;
     g_io_calls = 0;
@@ -374,7 +377,8 @@ TEST test_gen_cmake_io_fail(void) {
   g_fail_io_after = -1;
   remove("src/CMakeLists.txt");
   remove("CMakeLists.txt");
-  chdir("..");
+  if (chdir("..")) {
+  }
   remove("test_build_dir_io/src/CMakeLists.txt");
   remove("test_build_dir_io/CMakeLists.txt");
   PASS();

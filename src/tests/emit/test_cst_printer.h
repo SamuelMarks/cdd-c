@@ -74,7 +74,8 @@ TEST test_cst_print_exact(void) {
   }
 
   fseek(f, 0, SEEK_SET);
-  fread(buffer, 1, sizeof(buffer) - 1, f);
+  if (fread(buffer, 1, sizeof(buffer) - 1, f)) {
+  }
   fclose(f);
   remove("test_cst_print.txt");
 

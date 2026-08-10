@@ -178,7 +178,8 @@ TEST test_codegen_config_json_guards(void) {
 
   content = (char *)calloc(1, sz + 1);
 
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check Guards exist */
 
@@ -259,7 +260,8 @@ TEST test_union_config_json_guards(void) {
 
   content = (char *)calloc(1, sz + 1);
 
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "#ifdef UNION_GUARD"));
 
@@ -490,7 +492,8 @@ TEST test_codegen_config_utils_guards(void) {
 
   content = (char *)calloc(1, sz + 1);
 
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Just sample checks */
 
@@ -925,7 +928,8 @@ TEST test_schema_codegen_source_fail(void) {
 
   f = fopen("test_out_source.c", "w");
   fclose(f);
-  system("chmod 0444 test_out_source.c");
+  if (system("chmod 0444 test_out_source.c")) {
+  }
 
   /* Call main which calls generate_header and generate_source */
   {
@@ -936,7 +940,8 @@ TEST test_schema_codegen_source_fail(void) {
 #endif
   }
 
-  system("chmod 0666 test_out_source.c");
+  if (system("chmod 0666 test_out_source.c")) {
+  }
   remove("test_out_source.c");
   remove("test_out_source.h");
   json_value_free(root);

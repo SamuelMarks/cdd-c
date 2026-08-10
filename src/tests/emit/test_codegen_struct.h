@@ -51,7 +51,8 @@ TEST test_cleanup_generation(void) {
   rewind(tmp);
 
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
   ASSERT(strstr(content, "if (!obj) return;"));
@@ -85,7 +86,8 @@ TEST test_default_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
   /* Check literals injected */
@@ -120,7 +122,8 @@ TEST test_deepcopy_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
   ASSERT(strstr(content, "if (src->name) {"));
@@ -157,7 +160,8 @@ TEST test_eq_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
   ASSERT(strstr(content, "a->id != b->id"));
@@ -192,7 +196,8 @@ TEST test_guards_injection(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "#ifdef MY_GUARD"));
   ASSERT(strstr(content, "#endif /* MY_GUARD */"));
@@ -258,7 +263,8 @@ TEST test_struct_debug_func(void) {
   rewind(tmp);
 
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "TestStruct_debug"));
   ASSERT(strstr(content, "obj->id"));

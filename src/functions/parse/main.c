@@ -37,6 +37,10 @@
 #include <parson.h>
 /* clang-format on */
 
+cdd_c_error_t print_version(void);
+cdd_c_error_t handle_audit(int argc, char **argv);
+cdd_c_error_t print_help(const char *program_name);
+
 cdd_c_error_t print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");

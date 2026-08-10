@@ -68,7 +68,8 @@ TEST test_form_generation_basic(void) {
   rewind(tmp);
 
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "AuthRequest_url_encode_form"));
   ASSERT(strstr(content, "AuthRequest_to_form_urlencoded"));

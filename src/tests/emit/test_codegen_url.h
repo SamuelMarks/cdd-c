@@ -45,7 +45,8 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
   if (sz > 0)
-    fread(content, 1, sz, tmp);
+    if (fread(content, 1, sz, tmp)) {
+    }
   fclose(tmp);
   {
     *_out_val = content;
@@ -75,7 +76,8 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
   if (sz > 0)
-    fread(content, 1, sz, tmp);
+    if (fread(content, 1, sz, tmp)) {
+    }
   fclose(tmp);
   {
     *_out_val = content;

@@ -30,7 +30,13 @@ static long mock_ftell_eq(FILE *stream) {
     return 0;
   return ftell(stream);
 }
+#ifdef TMPFILE
+#undef TMPFILE
+#endif
 #define TMPFILE mock_tmpfile_eq
+#ifdef FTELL
+#undef FTELL
+#endif
 #define FTELL mock_ftell_eq
 #else
 #define TMPFILE tmpfile
@@ -64,7 +70,8 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
 
   if (sz > 0) {
     content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
-    fread(content, 1, sz, tmp);
+    if (fread(content, 1, sz, tmp)) {
+    }
   } else {
     content = C_CDD_STRDUP("");
   }

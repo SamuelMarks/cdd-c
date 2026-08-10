@@ -76,7 +76,7 @@ static void map_racket_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     break;
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
-      char racket_name[256];
+      char racket_name[512];
       racketify_name(t->ref_name, racket_name, sizeof(racket_name));
       CDD_SNPRINTF(out_type, out_sz, "_%s-pointer", racket_name);
     } else {
@@ -86,7 +86,7 @@ static void map_racket_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      char racket_name[256];
+      char racket_name[512];
       racketify_name(t->ref_name, racket_name, sizeof(racket_name));
       CDD_SNPRINTF(out_type, out_sz, "_%s", racket_name);
     } else {

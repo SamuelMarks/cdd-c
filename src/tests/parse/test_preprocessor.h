@@ -265,9 +265,11 @@ TEST test_pp_has_include(void) {
   char *h = NULL;
 
   tempdir(&tmp);
-  asprintf(&root, "%s%cpp_inc_%d", tmp, PATH_SEP_CHAR, rand());
+  if (asprintf(&root, "%s%cpp_inc_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
   makedir(root);
-  asprintf(&h, "%s%cheading.h", root, PATH_SEP_CHAR);
+  if (asprintf(&h, "%s%cheading.h", root, PATH_SEP_CHAR)) {
+  }
   write_to_file(h, "/* contents */");
 
   pp_context_init(&ctx);
@@ -303,10 +305,13 @@ TEST test_pp_embed_params_parsing(void) {
   tctx.last_params.limit = -1;
 
   tempdir(&tmp);
-  asprintf(&root, "%s%cpp_embp_%d", tmp, PATH_SEP_CHAR, rand());
+  if (asprintf(&root, "%s%cpp_embp_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
   makedir(root);
-  asprintf(&src, "%s%cmain.c", root, PATH_SEP_CHAR);
-  asprintf(&dat, "%s%cdata.bin", root, PATH_SEP_CHAR);
+  if (asprintf(&src, "%s%cmain.c", root, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&dat, "%s%cdata.bin", root, PATH_SEP_CHAR)) {
+  }
   write_to_file(dat, "123");
 
   write_to_file(
@@ -349,10 +354,13 @@ TEST test_pp_ifdef_skip(void) {
   int rc;
 
   tempdir(&tmp);
-  asprintf(&root, "%s%cpp_cond_%d", tmp, PATH_SEP_CHAR, rand());
+  if (asprintf(&root, "%s%cpp_cond_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
   makedir(root);
-  asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR);
-  asprintf(&header, "%s%cheader.h", root, PATH_SEP_CHAR);
+  if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&header, "%s%cheader.h", root, PATH_SEP_CHAR)) {
+  }
 
   write_to_file(header, "//");
   write_to_file(main_c,
@@ -385,11 +393,15 @@ TEST test_pp_if_else(void) {
   int rc;
 
   tempdir(&tmp);
-  asprintf(&root, "%s%cpp_else_%d", tmp, PATH_SEP_CHAR, rand());
+  if (asprintf(&root, "%s%cpp_else_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
   makedir(root);
-  asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR);
-  asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR);
-  asprintf(&h2, "%s%ch2.h", root, PATH_SEP_CHAR);
+  if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&h2, "%s%ch2.h", root, PATH_SEP_CHAR)) {
+  }
 
   write_to_file(h1, "");
   write_to_file(h2, "");
@@ -425,10 +437,13 @@ TEST test_pp_nested_if(void) {
   int rc;
 
   tempdir(&tmp);
-  asprintf(&root, "%s%cpp_nest_%d", tmp, PATH_SEP_CHAR, rand());
+  if (asprintf(&root, "%s%cpp_nest_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
   makedir(root);
-  asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR);
-  asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR);
+  if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&h1, "%s%ch1.h", root, PATH_SEP_CHAR)) {
+  }
 
   write_to_file(h1, "");
   write_to_file(main_c, "#if 1\n#if 0\n#include \"h1.h\"\n#elif 1\n#include "
@@ -522,11 +537,16 @@ TEST test_preprocessor_abort(void) {
   char *sys_file2 = NULL;
 
   tempdir(&tmp);
-  asprintf(&test_dir, "%s%cpp_abort_test_%d", tmp, PATH_SEP_CHAR, rand());
-  asprintf(&test_file, "%s%ctest.c", test_dir, PATH_SEP_CHAR);
-  asprintf(&sys_dir, "%s%cpp_abort_sys_%d", tmp, PATH_SEP_CHAR, rand());
-  asprintf(&sys_file1, "%s%cstdio.h", sys_dir, PATH_SEP_CHAR);
-  asprintf(&sys_file2, "%s%cstdlib.h", sys_dir, PATH_SEP_CHAR);
+  if (asprintf(&test_dir, "%s%cpp_abort_test_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
+  if (asprintf(&test_file, "%s%ctest.c", test_dir, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&sys_dir, "%s%cpp_abort_sys_%d", tmp, PATH_SEP_CHAR, rand())) {
+  }
+  if (asprintf(&sys_file1, "%s%cstdio.h", sys_dir, PATH_SEP_CHAR)) {
+  }
+  if (asprintf(&sys_file2, "%s%cstdlib.h", sys_dir, PATH_SEP_CHAR)) {
+  }
 
   makedir(test_dir);
   makedir(sys_dir);
@@ -568,9 +588,11 @@ TEST test_pp_scan_defines(void) {
     int rc;
 
     tempdir(&tmp);
-    asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand());
+    if (asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand())) {
+    }
     makedir(root);
-    asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR);
+    if (asprintf(&main_c, "%s%cmain.c", root, PATH_SEP_CHAR)) {
+    }
 
     write_to_file(main_c, "#define FOO 1\n"
                           "#define BAR(x) x + 1\n"

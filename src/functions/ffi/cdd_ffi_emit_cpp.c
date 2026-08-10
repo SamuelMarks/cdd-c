@@ -121,9 +121,14 @@ emit_cpp_hpp(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         fprintf(f, "}\n\n");
 
         /* Determine base class name */
-        strncpy(base_name, node->name,
-                strlen(node->name) - 11); /* strip _Trampoline */
-        base_name[strlen(node->name) - 11] = '\0';
+        {
+          size_t copy_len =
+              strlen(node->name) > 11 ? strlen(node->name) - 11 : 0;
+          if (copy_len > sizeof(base_name) - 1)
+            copy_len = sizeof(base_name) - 1;
+          memcpy(base_name, node->name, copy_len);
+          base_name[copy_len] = '\0';
+        }
 
         fprintf(f, "class %s_Impl : public ::%s {\n", node->name, base_name);
         fprintf(f, "private:\n");

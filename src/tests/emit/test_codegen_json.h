@@ -55,7 +55,8 @@ TEST test_json_to_plain(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check structure */
   ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"{\");"));
@@ -94,7 +95,8 @@ TEST test_json_from_plain(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check parson usage */
   ASSERT(strstr(content,
@@ -129,7 +131,8 @@ TEST test_json_recursive_obj(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check recursive call pattern */
   ASSERT(strstr(content, "rc = ChildType_to_json(obj->child, &s);"));
@@ -164,7 +167,8 @@ TEST test_json_array_logic(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check array loop extraction */
   ASSERT(strstr(content, "json_object_get_array(jsonObject, \"tags\")"));
@@ -289,7 +293,8 @@ TEST test_json_guards(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "#ifdef JSON_ENABLED"));
   ASSERT(strstr(content, "#endif /* JSON_ENABLED */"));
@@ -317,7 +322,8 @@ TEST test_struct_array_from_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content,
                 "cdd_c_error_t Data_array_from_json(const char *json_str, "
@@ -505,7 +511,8 @@ TEST test_standalone_json_func(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "Data_parse_json(char *json"));
   ASSERT(strstr(content, "(strcmp(key, \"id\") == 0)"));

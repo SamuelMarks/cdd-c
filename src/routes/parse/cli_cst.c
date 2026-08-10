@@ -45,8 +45,10 @@ process_file(const char *filepath,
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
-  fread(str, 1, (size_t)fsize, f);
-  str[fsize] = '\0';
+  {
+    size_t bytes = fread(str, 1, (size_t)fsize, f);
+    str[bytes] = '\0';
+  }
   fclose(f);
 
   rc = cdd_cst_parse(az_span_create_from_str(str), &tree);

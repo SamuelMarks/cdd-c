@@ -86,7 +86,8 @@ TEST test_enum_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "int MyEnum_to_str"));
   ASSERT(strstr(content, "int MyEnum_from_str"));

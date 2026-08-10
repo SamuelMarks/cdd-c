@@ -214,9 +214,11 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
     }
   }
 
-  fread(buf, 1, (size_t)size, f);
-  buf[size] = '\0';
-  *out_len = (size_t)size;
+  {
+    size_t bytes = fread(buf, 1, (size_t)size, f);
+    buf[bytes] = '\0';
+    *out_len = bytes;
+  }
   fclose(f);
   {
     *out_val = buf;

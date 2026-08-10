@@ -46,10 +46,12 @@ TEST test_audit_single_file(void) {
 
   /* Create explicit subdir to avoid walking /tmp */
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedir(root);
 
-  asprintf(&f_unchecked, "%s%sunchecked.c", root, PATH_SEP);
+  if (asprintf(&f_unchecked, "%s%sunchecked.c", root, PATH_SEP)) {
+  }
 
   /* Create file with 1 unchecked malloc and 1 checked malloc */
   /* Line 1: checked calloc */
@@ -92,10 +94,12 @@ TEST test_audit_ignored_files(void) {
   struct AuditStats stats;
 
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedir(root);
 
-  asprintf(&f_h, "%s%signored.h", root, PATH_SEP);
+  if (asprintf(&f_h, "%s%signored.h", root, PATH_SEP)) {
+  }
   /* Header file logic currently ignored by audit_project default filter */
   write_to_file(f_h, ""
                      "void f() { char * p = (char *)malloc(1); }");
@@ -124,10 +128,12 @@ TEST test_audit_return_alloc(void) {
   struct AuditStats stats;
 
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedir(root);
 
-  asprintf(&f_ret, "%s%sret.c", root, PATH_SEP);
+  if (asprintf(&f_ret, "%s%sret.c", root, PATH_SEP)) {
+  }
   /* Detect return allocs */
   write_to_file(f_ret, "char* f1() { return malloc(10); }\n"
                        "char* f2() { return calloc(1,1); }\n"
@@ -238,33 +244,40 @@ TEST test_audit_edge_cases(void) {
   struct AuditStats stats;
 
   tempdir(&sys_tmp);
-  asprintf(&root, "%s%saudit_edge_%d", sys_tmp, PATH_SEP, rand());
+  if (asprintf(&root, "%s%saudit_edge_%d", sys_tmp, PATH_SEP, rand())) {
+  }
   makedir(root);
 
   /* No extension file */
-  asprintf(&f_noext, "%s%snoextension", root, PATH_SEP);
+  if (asprintf(&f_noext, "%s%snoextension", root, PATH_SEP)) {
+  }
   write_to_file(f_noext, "int x = 0;");
 
   /* Directory ending in .c */
-  asprintf(&d_dir_c, "%s%sdir.c", root, PATH_SEP);
+  if (asprintf(&d_dir_c, "%s%sdir.c", root, PATH_SEP)) {
+  }
   makedir(d_dir_c);
 
   /* return strndup */
-  asprintf(&f_strndup, "%s%sstrndup_test.c", root, PATH_SEP);
+  if (asprintf(&f_strndup, "%s%sstrndup_test.c", root, PATH_SEP)) {
+  }
   write_to_file(f_strndup, "char* f() { return strndup(\"a\", 1); }");
 
   /* Unreadable file */
-  asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP);
+  if (asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP)) {
+  }
   write_to_file(f_unreadable, "int unreadable = 1;");
   chmod(f_unreadable, 0000);
 
   /* Tokenize failure: Unclosed string literal. */
-  asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP);
+  if (asprintf(&f_bad_token, "%s%sbad.c", root, PATH_SEP)) {
+  }
   write_to_file(f_bad_token, "char *s = \"unclosed");
 
   /* Test file ending with return and whitespace to cover branch */
   char *f_eof_ret = NULL;
-  asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP);
+  if (asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP)) {
+  }
   write_to_file(f_eof_ret, "void f() { return ");
 
   (void)audit_stats_init(&stats);
@@ -314,9 +327,12 @@ TEST test_audit_extras(void) {
     struct AuditStats stats_tok;
     (void)audit_stats_init(&stats_tok);
     tempdir(&sys_tmp);
-    asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP, rand());
+    if (asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP,
+                 rand())) {
+    }
     makedir(root);
-    asprintf(&f_tok, "%s%stok.c", root, PATH_SEP);
+    if (asprintf(&f_tok, "%s%stok.c", root, PATH_SEP)) {
+    }
     write_to_file(f_tok, "int a = 1;");
 
 #ifdef CDD_BUILD_TESTS
@@ -341,9 +357,12 @@ TEST test_audit_extras(void) {
     struct AuditStats stats_find;
     (void)audit_stats_init(&stats_find);
     tempdir(&sys_tmp);
-    asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP, rand());
+    if (asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP,
+                 rand())) {
+    }
     makedir(root);
-    asprintf(&f_find, "%s%sfind.c", root, PATH_SEP);
+    if (asprintf(&f_find, "%s%sfind.c", root, PATH_SEP)) {
+    }
     write_to_file(f_find, "int a = 1;");
 
 #ifdef CDD_BUILD_TESTS

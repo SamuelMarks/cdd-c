@@ -48,7 +48,8 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
 
   content = (char *)calloc(1, sz + 1);
   if (sz > 0)
-    fread(content, 1, sz, tmp);
+    if (fread(content, 1, sz, tmp)) {
+    }
 
   fclose(tmp);
   *_out_val = content;

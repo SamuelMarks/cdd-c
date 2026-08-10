@@ -78,7 +78,7 @@ static void map_lisp_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     break;
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
-      char lisp_name[256];
+      char lisp_name[512];
       lispify_name(t->ref_name, lisp_name, sizeof(lisp_name));
       CDD_SNPRINTF(out_type, out_sz, "(:struct %s)", lisp_name);
     } else {

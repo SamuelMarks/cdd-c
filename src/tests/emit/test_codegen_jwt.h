@@ -66,7 +66,8 @@ TEST test_jwt_generation(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
+  if (fread(content, 1, (size_t)sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "JwtPayload_from_jwt"));
   ASSERT(strstr(content, "cdd_c_base64url_decode"));

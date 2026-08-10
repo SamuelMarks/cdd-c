@@ -75,7 +75,7 @@ static void map_scheme_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
     break;
   case CDD_FFI_KIND_STRUCT_REF:
     if (t->ref_name) {
-      char scheme_name[256];
+      char scheme_name[512];
       schemify_name(t->ref_name, scheme_name, sizeof(scheme_name));
       CDD_SNPRINTF(out_type, out_sz, "(* %s)", scheme_name);
     } else {
@@ -85,7 +85,7 @@ static void map_scheme_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {
   case CDD_FFI_KIND_ENUM_REF:
   case CDD_FFI_KIND_TYPEDEF_REF:
     if (t->ref_name) {
-      char scheme_name[256];
+      char scheme_name[512];
       schemify_name(t->ref_name, scheme_name, sizeof(scheme_name));
       CDD_SNPRINTF(out_type, out_sz, "%s", scheme_name);
     } else {

@@ -84,7 +84,8 @@ TEST test_cbuild_basic_output(void) {
 
   content = (char *)calloc(1, sz + 1);
   ASSERT(content);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Verification */
   ASSERT(strstr(content, "project(PetStore C)"));

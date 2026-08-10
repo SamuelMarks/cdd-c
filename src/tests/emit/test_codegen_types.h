@@ -54,7 +54,8 @@ TEST test_write_union_to_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   /* Check for switch on tag */
   ASSERT(strstr(content, "switch (obj->tag)"));
@@ -95,7 +96,8 @@ TEST test_write_union_from_json_object(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
   ASSERT(strstr(content, "match_count"));
@@ -138,7 +140,8 @@ TEST test_write_union_from_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "json_parse_string"));
   ASSERT(strstr(content, "case JSONString"));
@@ -174,7 +177,8 @@ TEST test_write_union_array_to_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "case ArrU_vals:"));
   ASSERT(strstr(content, "obj->data.vals.n_vals"));
@@ -207,7 +211,8 @@ TEST test_write_union_array_from_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "case JSONArray"));
   ASSERT(strstr(content, "json_array_get_count"));
@@ -240,7 +245,8 @@ TEST test_write_union_array_cleanup(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "case ArrU_vals:"));
   ASSERT(strstr(content, "for (i = 0; i < obj->data.vals.n_vals"));
@@ -273,7 +279,8 @@ TEST test_write_union_cleanup_switch(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "switch (obj->tag)"));
   /* Integer should do nothing implicit */
@@ -306,7 +313,8 @@ TEST test_root_array_string_cleanup(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(
       strstr(content, "cdd_c_error_t StrArr_cleanup(char **in, size_t len)"));
@@ -336,7 +344,8 @@ TEST test_root_array_int_from_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "cdd_c_error_t IntArr_from_json(const char *json, "
                          "int **out, size_t *len)"));
@@ -366,7 +375,8 @@ TEST test_root_array_obj_to_json(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "Obj_to_json(in[i], &tmp)"));
   ASSERT(strstr(content, "c89stringutils_jasprintf(json_out, \"[\")"));
@@ -399,7 +409,8 @@ TEST test_union_guards(void) {
   sz = ftell(tmp);
   rewind(tmp);
   content = (char *)calloc(1, sz + 1);
-  fread(content, 1, sz, tmp);
+  if (fread(content, 1, sz, tmp)) {
+  }
 
   ASSERT(strstr(content, "#ifdef JSON_G"));
   ASSERT(strstr(content, "#endif /* JSON_G */"));
