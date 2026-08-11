@@ -7,6 +7,10 @@
 #include <greatest.h>
 
 int g_force_find_allocations_fail = 0;
+
+cdd_c_error_t internal_orchestrate_fix(const char *source_code, char **out_code);
+cdd_c_error_t internal_fix_code_main(int argc, char **argv);
+
 #define orchestrate_fix internal_orchestrate_fix
 #define fix_code_main internal_fix_code_main
 
@@ -60,7 +64,6 @@ TEST test_orchestrator_internals(void) {
   struct TokenList dst;
   size_t out = 0;
   char *name = NULL;
-  struct DependencyGraph g;
   struct FixWalkContext ctx = {0};
   char *argv3[] = {"1", "2", "3"};
   int is_src = 0;
@@ -219,7 +222,6 @@ TEST test_orchestrator_internals(void) {
   }
 
   /* Graph errors */
-  g.nodes = NULL;
   PASS();
 }
 
