@@ -299,8 +299,8 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
 }
 
 #ifdef CDD_BUILD_TESTS
-cdd_c_error_t test_vcpkg_my_strdup_errors(void);
-cdd_c_error_t test_vcpkg_my_strdup_errors(void) {
+C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+C_CDD_EXPORT cdd_c_error_t test_vcpkg_my_strdup_errors(void) {
   char *out = NULL;
   cdd_c_error_t err1 = my_strdup(NULL, &out);
   cdd_c_error_t err2 = my_strdup("a", NULL);

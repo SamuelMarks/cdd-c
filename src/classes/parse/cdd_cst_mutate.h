@@ -76,8 +76,8 @@ extern C_CDD_EXPORT cdd_c_error_t find_child_index_mutate(
 extern C_CDD_EXPORT cdd_c_error_t
 find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token);
 
-extern cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
-                                              cdd_trivia_t **out_trivia);
+extern C_CDD_EXPORT cdd_c_error_t
+clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia);
 
 extern cdd_c_error_t clone_token_mutate(cdd_token_t *tok,
                                         cdd_token_t **out_token);

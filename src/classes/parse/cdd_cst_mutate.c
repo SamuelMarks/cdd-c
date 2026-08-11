@@ -60,8 +60,8 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
-                                       cdd_trivia_t **out_trivia) {
+C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
+                                                    cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
   if (!out_trivia)

@@ -336,8 +336,8 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
 }
 
 #ifdef CDD_BUILD_TESTS
-cdd_c_error_t test_my_strdup_errors(void);
-cdd_c_error_t test_my_strdup_errors(void) {
+C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void);
+C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void) {
   char *out = NULL;
   cdd_c_error_t err1 = my_strdup(NULL, &out);
   cdd_c_error_t err2 = my_strdup("a", NULL);

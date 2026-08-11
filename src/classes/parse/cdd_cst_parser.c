@@ -9,7 +9,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-int g_cdd_cst_parser_fast_grow = 0;
+C_CDD_EXPORT int g_cdd_cst_parser_fast_grow = 0;
 #endif
 
 static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
