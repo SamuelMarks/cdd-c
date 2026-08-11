@@ -102,7 +102,11 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifndef _MSC_VER
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif /* _MSC_VER */
+#endif /* _MSC_VER */
 #endif
 #include "c_cdd/log.h"
 #endif

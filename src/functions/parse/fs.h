@@ -92,7 +92,11 @@ extern C_CDD_EXPORT cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifndef _MSC_VER
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif /* _MSC_VER */
+#endif /* _MSC_VER */
 #endif
 /* clang-format on */
 

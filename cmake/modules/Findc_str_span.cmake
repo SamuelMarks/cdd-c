@@ -26,7 +26,8 @@ if(NOT c_str_span_FOUND)
         if(NOT c_str_span_RESOLVED)
             FetchContent_Declare(
                     c_str_span
-                    URL "https://github.com/SamuelMarks/c-str-span/archive/refs/heads/master.tar.gz"
+                    GIT_REPOSITORY "https://github.com/SamuelMarks/c-str-span.git"
+                GIT_TAG "master"
             )
             set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
             FetchContent_MakeAvailable(c_str_span)

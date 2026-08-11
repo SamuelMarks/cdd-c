@@ -10,7 +10,15 @@ extern "C" {
 /* clang-format off */
 #include <stddef.h>
 #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1800) || defined(__GNUC__) || defined(__clang__)
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdbool.h>
+#else
+#include "msvc/stdbool.h"
+#endif /* _MSC_VER */
+#else
+#include "msvc/stdbool.h"
+#endif /* _MSC_VER */
 #else
 typedef size_t _c_cdd_bool;
 

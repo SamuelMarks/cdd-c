@@ -31,7 +31,9 @@
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif /* _MSC_VER */
 #endif
 #endif
 #endif

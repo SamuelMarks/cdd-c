@@ -148,10 +148,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp,
-                          "            FetchContent_Declare(parson URL "
-                          "https://github.com/SamuelMarks/parson/archive/refs/"
-                          "heads/master.tar.gz)\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
+              "\"https://github.com/SamuelMarks/parson.git\"\n"
+              "                                        GIT_TAG \"master\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
@@ -206,10 +206,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(fprintf(fp,
-                          "            FetchContent_Declare(c89stringutils URL "
-                          "https://github.com/offscale/c89stringutils/archive/"
-                          "refs/heads/master.tar.gz)\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp, "            FetchContent_Declare(c89stringutils GIT_REPOSITORY "
+              "\"https://github.com/offscale/c89stringutils.git\"\n"
+              "                                        GIT_TAG \"master\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
@@ -265,10 +265,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "            FetchContent_Declare(c_str_span URL "
-                      "https://github.com/SamuelMarks/c-str-span/archive/refs/"
-                      "heads/master.tar.gz)\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp, "            FetchContent_Declare(c_str_span GIT_REPOSITORY "
+              "\"https://github.com/SamuelMarks/c-str-span.git\"\n"
+              "                                        GIT_TAG \"master\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
@@ -324,10 +324,10 @@ static cdd_c_error_t write_cmake_content(FILE *fp, const char *project_name,
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        else()\n")))
     return CDD_C_ERROR_IO;
-  if (CHECK_IO_RC(
-          fprintf(fp, "            FetchContent_Declare(c-abstract-http URL "
-                      "https://github.com/SamuelMarks/c-abstract-http/archive/"
-                      "refs/heads/master.tar.gz)\n")))
+  if (CHECK_IO_RC(fprintf(
+          fp, "            FetchContent_Declare(c-abstract-http GIT_REPOSITORY "
+              "\"https://github.com/SamuelMarks/c-abstract-http.git\"\n"
+              "                                        GIT_TAG \"master\")\n")))
     return CDD_C_ERROR_IO;
   if (CHECK_IO_RC(fprintf(fp, "        endif()\n")))
     return CDD_C_ERROR_IO;
