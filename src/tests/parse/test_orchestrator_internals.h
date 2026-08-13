@@ -31,8 +31,9 @@ static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list);
 /* clang-format on */
 
 #undef find_allocations
-extern cdd_c_error_t find_allocations(const struct TokenList *tokens,
-                                      struct AllocationSiteList *out);
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT cdd_c_error_t find_allocations(
+    const struct TokenList *tokens, struct AllocationSiteList *out);
 static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
                                            struct AllocationSiteList *out) {
   if (g_force_find_allocations_fail)
@@ -41,8 +42,9 @@ static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
 }
 
 #undef parse_tokens
-extern cdd_c_error_t parse_tokens(const struct TokenList *tokens,
-                                  struct CstNodeList *out);
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT cdd_c_error_t parse_tokens(const struct TokenList *tokens,
+                                               struct CstNodeList *out);
 static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
                                        struct CstNodeList *out) {
   if (g_force_parse_tokens_fail)
@@ -51,7 +53,9 @@ static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
 }
 
 #undef tokenize
-extern cdd_c_error_t tokenize(az_span code, struct TokenList **out_list);
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT cdd_c_error_t tokenize(az_span code,
+                                           struct TokenList **out_list);
 static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list) {
   if (g_force_tokenize_fail)
     return CDD_C_ERROR_MEMORY;

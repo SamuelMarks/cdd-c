@@ -10,7 +10,9 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
-extern int g_cdd_alloc_fail;
+#include <c_cdd_export.h>
+
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #ifdef CDD_BUILD_TESTS
 #define C_CDD_MALLOC(sz)                                                       \
   ((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL : malloc(sz))

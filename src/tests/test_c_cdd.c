@@ -80,7 +80,8 @@ extern int g_cdd_alloc_fail;
 #include "emit/test_codegen_build.h"
 
 #include <stdio.h>
-extern int g_fail_io_after;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_fail_io_after;
 static FILE *mock_tmpfile_fuzzer(void) {
     if (g_fail_io_after >= 0) {
         return fopen("/dev/null", "w+b");
@@ -224,7 +225,8 @@ TEST test_cdd_helpers(void) {
   ASSERT_NEQ(CDD_C_SUCCESS,
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
 
-  extern int g_cdd_helpers_fopen_err;
+#include "cdd_test_helpers_export.h"
+  extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err;
   g_io_calls = 0;
   g_fail_io_after = 1;
   g_cdd_helpers_fopen_err = ENOMEM;

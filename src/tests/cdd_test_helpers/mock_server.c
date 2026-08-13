@@ -135,12 +135,13 @@ static cdd_c_error_t platform_cleanup(void) { return CDD_C_SUCCESS; }
 
 #include "c_cdd_export.h"
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
-C_CDD_EXPORT int g_socket_fail = 0;
-C_CDD_EXPORT int g_bind_fail = 0;
-C_CDD_EXPORT int g_listen_fail = 0;
-C_CDD_EXPORT int g_getsockname_fail = 0;
-C_CDD_EXPORT int g_pthread_create_fail = 0;
-C_CDD_EXPORT int g_accept_fail = 0;
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT int g_socket_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_bind_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_listen_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_getsockname_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_accept_fail = 0;
 
 static socket_t mock_socket(int domain, int type, int protocol) {
   if (g_socket_fail)

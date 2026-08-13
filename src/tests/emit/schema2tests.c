@@ -42,7 +42,8 @@ extern int g_io_calls;
 
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #include "c89stringutils_string_extras.h"
 static int mock_asprintf(char **strp, const char *fmt, ...) {
     int ret;
@@ -68,7 +69,8 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 #include "functions/parse/fs.h"
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 static int mock_get_dirname(const char *path, char **dir) {
     if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
     return get_dirname(path, dir);

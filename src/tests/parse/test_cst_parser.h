@@ -273,7 +273,8 @@ TEST parse_tokens_empty(void) {
 TEST parse_tokens_oom_make(void) {
   struct TokenList *tokens;
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_alloc_fail;
+#include <c_cdd_export.h>
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   tokens = (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
   ASSERT_NEQ(NULL, tokens);
   memset(tokens, 0, sizeof(*tokens));

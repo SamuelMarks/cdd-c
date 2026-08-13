@@ -40,7 +40,7 @@ extern int g_io_calls;
 
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
-#define SIZE_MAX ((size_t) - 1)
+#define SIZE_MAX ((size_t)-1)
 #endif
 
 C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,

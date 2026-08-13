@@ -1,3 +1,4 @@
+#include <c_cdd_export.h>
 int g_cdd_alloc_fail = 0;
 #include "cdd_c_error.h"
 /**

@@ -17,7 +17,8 @@
 #include <errno.h>
 
 #include "c_cdd_export.h"
-C_CDD_EXPORT int g_cdd_helpers_fopen_err = 0;
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err = 0;
 
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;

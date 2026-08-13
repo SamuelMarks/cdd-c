@@ -69,7 +69,8 @@ TEST test_cdd_cst_mutate_replace(void) {
       }
     }
 
-    extern int g_cdd_cst_realloc_fail;
+#include <c_cdd_export.h>
+    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
     for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
       tree->synthesized_capacity =
           tree->num_synthesized; /* force realloc on first token cloned */

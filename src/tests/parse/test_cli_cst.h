@@ -204,7 +204,8 @@ TEST test_cli_standardize_gnu(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #endif
 
 /**

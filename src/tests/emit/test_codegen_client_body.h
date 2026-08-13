@@ -3846,8 +3846,8 @@ TEST test_client_body_all_primitive_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp = tmpfile();
@@ -4013,8 +4013,8 @@ TEST test_client_body_inline_response_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     struct OpenAPI_Response resp = {0};
@@ -4175,8 +4175,8 @@ TEST test_client_body_inline_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4261,8 +4261,8 @@ TEST test_client_body_form_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4304,8 +4304,8 @@ TEST test_client_body_multipart_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4345,8 +4345,8 @@ TEST test_client_body_multipart_types(void) {
 TEST test_client_body_form_mega(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 5000; ++io_fail) {
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    extern C_CDD_EXPORT int g_fail_io_after;
+    extern C_CDD_EXPORT int g_io_calls;
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;

@@ -1346,7 +1346,8 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
 
-  {}
+  {
+  }
 
   {
     /* Test extract trivia from node with NO tokens */
@@ -1465,7 +1466,8 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   /* cdd_cst_bld_children */
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_token_fail;
+#include <c_cdd_export.h>
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     g_cdd_cst_alloc_token_fail = 1;
     rc = cdd_cst_splice_nodes(&b, node, 0, &new_node, 1);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);

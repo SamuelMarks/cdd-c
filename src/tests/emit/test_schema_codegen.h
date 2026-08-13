@@ -755,7 +755,8 @@ TEST test_schema_codegen_main_paths(void) {
   argv[0] = "a";
   argv[1] = "";
   {
-    extern int g_cdd_strdup_fail;
+#include <c_cdd_export.h>
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
     g_cdd_strdup_fail = 1;
     rc = schema2code_main(2, (char **)argv);
     ASSERT(rc != 0);
@@ -843,7 +844,8 @@ TEST test_schema_codegen_main_paths(void) {
   PASS();
 }
 
-extern int g_struct_fields_init_fail;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_struct_fields_init_fail;
 extern int g_json_object_to_struct_fields_fail;
 
 TEST test_schema_codegen_init_fail(void) {

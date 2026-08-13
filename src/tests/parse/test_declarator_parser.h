@@ -6,7 +6,8 @@ extern "C" {
 #endif
 extern int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
-extern int g_cdd_strdup_fail;
+#include <c_cdd_export.h>
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 #ifdef __cplusplus
 #endif /* __cplusplus */
 

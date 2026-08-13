@@ -35,7 +35,11 @@ TEST test_scan_c23_enum_fixed_type(void) {
   const char *filename = "test_c23_enum.h";
   const char *content = "enum E : long { A, B };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
 
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
@@ -65,7 +69,11 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   const char *filename = "test_c23_enum_ws.h";
   const char *content = "enum  MyEnum  :  unsigned int  { X , Y };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
 
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
@@ -91,7 +99,11 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
 TEST test_scan_classic_enum(void) {
   const char *filename = "test_classic.h";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
 
   rc = write_to_file(filename, "enum Classic { ONE };");
   ASSERT_EQ(0, rc);
@@ -185,7 +197,11 @@ TEST test_inspector_oom(void) {
   const char *filename = "test_oom.h";
   const char *content = "enum E { A, B }; struct S { int x; };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -216,7 +232,11 @@ TEST test_inspector_oom(void) {
 TEST test_inspector_extract_sig_oom(void) {
   const char *code = "/* doc */ void foo(int a, ...) { }";
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -290,7 +310,11 @@ TEST test_inspector_struct_empty_fields(void) {
   const char *filename = "test_empty_struct.h";
   const char *content = "struct Empty { };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
 
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
@@ -311,7 +335,11 @@ TEST test_inspector_struct_empty_fields(void) {
  */
 TEST test_inspector_extract_sig_oom_2(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -337,7 +365,11 @@ TEST test_inspector_extract_sig_oom_2(void) {
  */
 TEST test_inspector_extract_sig_oom_3(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -376,7 +408,11 @@ TEST test_inspector_list_frees_with_partial_alloc(void) {
  */
 TEST test_inspector_extract_sig_oom_4(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -404,7 +440,11 @@ TEST test_inspector_struct_fields_oom_2(void) {
   const char *filename = "test_oom_struct2.h";
   const char *content = "struct Empty { }; struct NotEmpty { int a; };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -435,7 +475,11 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   const char *filename = "test_oom_struct3.h";
   const char *content = "struct Empty { };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -466,7 +510,11 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   const char *filename = "test_oom_struct4.h";
   const char *content = "struct { }; struct { int a; }; enum { }; enum { A };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -495,7 +543,11 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
  */
 TEST test_inspector_extract_sig_oom_tokenize(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -518,7 +570,11 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
  */
 TEST test_inspector_extract_sig_oom_parse_tokens(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
@@ -541,7 +597,11 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
  */
 TEST test_inspector_extract_sig_fail_tokenizer(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int a = \xff\xff;", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -556,7 +616,11 @@ TEST test_inspector_extract_sig_fail_tokenizer(void) {
  */
 TEST test_inspector_extract_sig_fail_parser(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -571,7 +635,11 @@ TEST test_inspector_extract_sig_fail_parser(void) {
  */
 TEST test_inspector_extract_sig_fail_parser_err(void) {
   struct FuncSigList out;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -596,7 +664,11 @@ TEST test_inspector_strdup_oom(void) {
   const char *filename = "test_oom_strdup.h";
   const char *content = "enum MyEnum { A, B };";
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   int i;
   extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
@@ -626,7 +698,11 @@ TEST test_inspector_strdup_oom(void) {
  */
 TEST test_inspector_io_error_perms(void) {
   struct TypeDefList types;
+#ifdef _MSC_VER
   int rc;
+#else
+  int rc __attribute__((unused));
+#endif
   const char *filename = "test_no_read.h";
 
   write_to_file(filename, "");
