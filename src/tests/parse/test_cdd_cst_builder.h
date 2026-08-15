@@ -1346,8 +1346,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
 
-  {
-  }
+  {}
 
   {
     /* Test extract trivia from node with NO tokens */

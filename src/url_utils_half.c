@@ -225,3 +225,6 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
     }
   }
   *e = '\0';
+  *_out_val = enc;
+  return CDD_C_SUCCESS;
+}

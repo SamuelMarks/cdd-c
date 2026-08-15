@@ -238,6 +238,16 @@ TEST test_register_type_union_copy(void) {
   PASS();
 }
 
+TEST test_openapi_spec_init_null(void) {
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
+  PASS();
+}
+
+TEST test_openapi_spec_init_null2(void) {
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
+  PASS();
+}
+
 SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_openapi_spec_init_null);
   RUN_TEST(test_openapi_spec_init_null2);
@@ -252,18 +262,4 @@ SUITE(c2openapi_schema_suite) {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 #endif /* TEST_C2OPENAPI_SCHEMA_H */
-
-TEST test_openapi_spec_init_null(void) {
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
-  PASS();
-}
-
-TEST test_openapi_spec_init_null2(void) {
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_spec_init(NULL));
-  PASS();
-}

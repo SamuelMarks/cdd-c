@@ -174,6 +174,8 @@ static int media_type_ieq(const char *media_type, const char *expected) {
   size_t i;
   size_t len;
   size_t exp_len;
+  if (!media_type || !expected) return 0;
+
 
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
          _ast_media_type_base_len_2);
