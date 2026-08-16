@@ -11,12 +11,15 @@
 
 /* clang-format off */
 #include "mock_server.h"
-extern int g_accept_fail;
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+CDD_TEST_HELPERS_EXPORT int g_getsockname_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail = 0;
+CDD_TEST_HELPERS_EXPORT int g_accept_fail = 0;
 
 /* --- Platform Specifics --- */
 
@@ -139,10 +142,6 @@ extern C_CDD_EXPORT int g_cdd_alloc_fail;
 CDD_TEST_HELPERS_EXPORT int g_socket_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_bind_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_listen_fail = 0;
-CDD_TEST_HELPERS_EXPORT int g_getsockname_fail = 0;
-CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail = 0;
-CDD_TEST_HELPERS_EXPORT int g_accept_fail = 0;
-
 static socket_t mock_socket(int domain, int type, int protocol) {
   if (g_socket_fail)
     return INVALID_SOCK;
@@ -217,7 +216,6 @@ static socket_t mock_accept(socket_t sockfd, struct sockaddr *addr,
 #define malloc(size) (g_cdd_alloc_fail ? NULL : malloc(size))
 
 /* --- Internal Structure --- */
-extern int g_accept_fail;
 
 /** \brief mock */
 struct MockServer_ {
