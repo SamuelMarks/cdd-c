@@ -77,7 +77,7 @@ TEST add_node_basic(void) {
             cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
   g_fail_io_after = -1;
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
@@ -100,7 +100,7 @@ TEST add_node_basic(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
@@ -539,7 +539,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
   free_cst_node_list(&cst);
   g_fail_io_after = -1;
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
@@ -562,7 +562,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
@@ -1525,16 +1525,16 @@ TEST test_parse_tokens_attributes(void) {
 
   tokenize(az_span_create_from_str("[[unknown_attr[1]]] void f() {}"), &tl4);
   {
-    struct TokenList *tl = NULL;
-    struct CstNodeList cst = {0};
+    tl = NULL;
+    memset(&cst, 0, sizeof(cst));
     tokenize(az_span_create_from_str("__attribute__((always_inline))"), &tl);
     ASSERT_EQ(0, parse_tokens(tl, &cst));
     free_cst_node_list(&cst);
     free_token_list(tl);
   }
   {
-    struct TokenList *tl = NULL;
-    struct CstNodeList cst = {0};
+    tl = NULL;
+    memset(&cst, 0, sizeof(cst));
     tokenize(az_span_create_from_str("__declspec(dllexport)"), &tl);
     ASSERT_EQ(0, parse_tokens(tl, &cst));
     free_cst_node_list(&cst);

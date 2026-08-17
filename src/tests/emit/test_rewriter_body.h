@@ -203,8 +203,8 @@ TEST test_propagate_ptr_assignment2(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -213,7 +213,7 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -227,8 +227,8 @@ TEST test_propagate_ptr_assignment2(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -237,7 +237,7 @@ TEST test_propagate_ptr_assignment2(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -254,7 +254,7 @@ TEST test_propagate_ptr_assignment2(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -277,7 +277,7 @@ TEST test_propagate_ptr_assignment2(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -323,8 +323,8 @@ TEST test_propagate_ptr_assignment(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -333,7 +333,7 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -347,8 +347,8 @@ TEST test_propagate_ptr_assignment(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -357,7 +357,7 @@ TEST test_propagate_ptr_assignment(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -374,7 +374,7 @@ TEST test_propagate_ptr_assignment(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -397,7 +397,7 @@ TEST test_propagate_ptr_assignment(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -449,8 +449,8 @@ TEST test_propagate_ptr_declaration(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -459,7 +459,7 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -473,8 +473,8 @@ TEST test_propagate_ptr_declaration(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -483,7 +483,7 @@ TEST test_propagate_ptr_declaration(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -500,7 +500,7 @@ TEST test_propagate_ptr_declaration(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -523,7 +523,7 @@ TEST test_propagate_ptr_declaration(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -575,8 +575,8 @@ TEST test_propagate_nested_hoisting(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -585,7 +585,7 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -599,8 +599,8 @@ TEST test_propagate_nested_hoisting(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -609,7 +609,7 @@ TEST test_propagate_nested_hoisting(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -626,7 +626,7 @@ TEST test_propagate_nested_hoisting(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -649,7 +649,7 @@ TEST test_propagate_nested_hoisting(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -704,8 +704,8 @@ TEST test_integration_safety_and_prop(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -714,7 +714,7 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -728,8 +728,8 @@ TEST test_integration_safety_and_prop(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -738,7 +738,7 @@ TEST test_integration_safety_and_prop(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -755,7 +755,7 @@ TEST test_integration_safety_and_prop(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -778,7 +778,7 @@ TEST test_integration_safety_and_prop(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -831,7 +831,7 @@ TEST test_realloc_safety_injection(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
@@ -855,7 +855,7 @@ TEST test_realloc_safety_injection(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct RefactoredFunction funcs2[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
@@ -882,7 +882,7 @@ TEST test_realloc_safety_injection(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -905,7 +905,7 @@ TEST test_realloc_safety_injection(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -946,7 +946,7 @@ TEST test_rewriter_body_bounds(void) {
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
       int rc2;
-      struct RefactoredFunction funcs2[] = {
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -955,7 +955,7 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -970,7 +970,7 @@ TEST test_rewriter_body_bounds(void) {
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
       int rc2;
-      struct RefactoredFunction funcs2[] = {
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -979,7 +979,7 @@ TEST test_rewriter_body_bounds(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1091,7 +1091,7 @@ TEST test_rewriter_body_oom(void) {
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
       int rc2;
-      struct RefactoredFunction funcs2[] = {
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1100,7 +1100,7 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1115,7 +1115,7 @@ TEST test_rewriter_body_oom(void) {
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
       int rc2;
-      struct RefactoredFunction funcs2[] = {
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1124,7 +1124,7 @@ TEST test_rewriter_body_oom(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1324,8 +1324,8 @@ TEST test_propagate_void_stmt_return(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1334,7 +1334,7 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1348,8 +1348,8 @@ TEST test_propagate_void_stmt_return(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1358,7 +1358,7 @@ TEST test_propagate_void_stmt_return(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1375,7 +1375,7 @@ TEST test_propagate_void_stmt_return(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1398,7 +1398,7 @@ TEST test_propagate_void_stmt_return(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1443,8 +1443,8 @@ TEST test_propagate_void_stmt_transform(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1453,7 +1453,7 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1467,8 +1467,8 @@ TEST test_propagate_void_stmt_transform(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1477,7 +1477,7 @@ TEST test_propagate_void_stmt_transform(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1494,7 +1494,7 @@ TEST test_propagate_void_stmt_transform(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1517,7 +1517,7 @@ TEST test_propagate_void_stmt_transform(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1564,8 +1564,8 @@ TEST test_propagate_nested_parens(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1574,7 +1574,7 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
       g_patcher_test_cap_1 = 0;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1588,8 +1588,8 @@ TEST test_propagate_nested_parens(void) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
-      struct RefactoredFunction funcs2[] = {
+      /* int rc2; */
+      struct RefactoredFunction funcs_inner[] = {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1598,7 +1598,7 @@ TEST test_propagate_nested_parens(void) {
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
+      rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
       g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
@@ -1615,7 +1615,7 @@ TEST test_propagate_nested_parens(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1638,7 +1638,7 @@ TEST test_propagate_nested_parens(void) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
       char *out_code = NULL;
-      int rc2;
+      /* int rc2; */
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       extern C_CDD_EXPORT int g_cdd_alloc_fail;
       extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -1695,7 +1695,7 @@ TEST test_rewrite_body_oom(void) {
   }
 #endif
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
@@ -1746,7 +1746,7 @@ TEST test_rewrite_body_oom(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
@@ -1832,7 +1832,7 @@ TEST test_rewrite_body_funcs_oom(void) {
   }
 #endif
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
@@ -1883,7 +1883,7 @@ TEST test_rewrite_body_funcs_oom(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
@@ -1970,7 +1970,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
   }
 #endif
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
@@ -2021,7 +2021,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
@@ -2104,7 +2104,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
   }
 #endif
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
@@ -2155,7 +2155,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
@@ -2240,7 +2240,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
   }
 #endif
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
       struct TokenList *tl2 = NULL;
@@ -2291,7 +2291,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
     }
   }
   {
-    int i;
+    /* int i; */
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
       struct TokenList *tl2 = NULL;
