@@ -327,22 +327,22 @@ Usage: cdd-c schema2code <schema.json> <out_dir> [--guard-enum=...] [--guard-jso
 
 `cdd-c` is not just a standard parser; it is a full-fledged **Compiler Driven Development (CDD)** suite tailored specifically for `C` (strictly targeting ISO C90 compliance). It deeply understands C down to its comments and whitespace, treating codebase refactoring, code generation, and API alignment as first-class, lossless operations.
 
-### 1. Lossless AST Manipulation (Zero-Destruction Rule)
+### Lossless AST Manipulation (Zero-Destruction Rule)
 Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a custom, highly robust **Concrete Syntax Tree (CST)** and **Abstract Syntax Tree (AST)** pipeline.
 - **Trivia Preservation:** It perfectly captures and preserves "trivia"—inline comments, block comments, and exact whitespace (indentation, newlines).
 - **Format-Safe Rewrites:** When you mutate a tree (for instance, converting a GNU compiler extension into a standard C89 equivalent), `cdd-c` applies the change surgically. Your code does not get butchered, formatted entirely differently, or stripped of its documentation. The generated ISO C code is meant for human developers, not just compilers.
 
-### 2. Multi-Directional Code Generation
+### Multi-Directional Code Generation
 `cdd-c` acts as the master sync tool between your abstractions:
 - **API to Native C (SDK & Server):** Generate production-ready, memory-safe C clients, routing servers, and CLI argument parsers straight from OpenAPI JSON/YAML.
 - **Native C to OpenAPI:** Write your C functions, document them with standard block comments, and let `cdd-c` statically analyze the types and routes to reverse-engineer a perfectly compliant OpenAPI 3.x spec.
 - **SQL / JSON Schema Sync:** Seamlessly sync SQL DDL statements to C ORM layers, or JSON schemas directly into C structs and validation logic.
 
-### 3. Built-in Security & Auditing
+### Built-in Security & Auditing
 - **Memory Safety Audits:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, and missing initializations before they hit production.
 - **Safe CRT Transformation:** Automatically enforce safety by running the `safe_crt` transformer, which intelligently rewrites legacy string and memory operations to use bounds-checked equivalents (e.g., `strcpy_s`, `sprintf_s`).
 
-### 4. Universal FFI Bindings
+### Universal FFI Bindings
 `cdd-c` features a universal Foreign Function Interface (FFI) Intermediate Representation (IR). Instead of writing manual SWIG bindings or using fragile regex replacements, the `cdd-c bind` command statically analyzes your C codebase and generates seamless native bindings for over 40 languages. It intelligently maps complex C concepts like structs, enums, variadic formats, function pointers, and opaque pointers into idiomatic equivalents in the target language.
 
 ---
