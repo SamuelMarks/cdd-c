@@ -17,8 +17,8 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
   int ret;
   va_list args;

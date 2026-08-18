@@ -75,7 +75,7 @@ static FILE* cdd_test_tmpfile(void) {
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_cst_printer.h"
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #endif
 #include "emit/test_codegen_build.h"
 

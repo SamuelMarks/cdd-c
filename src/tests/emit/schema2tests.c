@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
     int ret;
     va_list args;
@@ -31,8 +31,8 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
 #define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
 #else

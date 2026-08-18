@@ -776,7 +776,7 @@ TEST test_schema_codegen_main_paths(void) {
 #ifdef CDD_BUILD_TESTS
   {
     int io_i = 1;
-    extern int g_schema_codegen_force_fail;
+    extern C_CDD_EXPORT int g_schema_codegen_force_fail;
     while (1) {
       g_fail_io_after = io_i++;
       g_io_calls = 0;
@@ -846,7 +846,7 @@ TEST test_schema_codegen_main_paths(void) {
 
 #include <c_cdd_export.h>
 extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern int g_json_object_to_struct_fields_fail;
+extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
 
 TEST test_schema_codegen_init_fail(void) {
   void *root;

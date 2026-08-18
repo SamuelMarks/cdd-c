@@ -12,7 +12,7 @@ extern "C" {
 
 struct OpenAPI_KV;
 
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
