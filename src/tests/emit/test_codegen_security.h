@@ -106,7 +106,7 @@ TEST test_sec_bearer_token(void) {
   ASSERT(code);
 
   /* Check context check */
-  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
+  ASSERT(strstr(code, "if (bearer_token) {"));
   /* Check helper call */
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
@@ -136,7 +136,7 @@ TEST test_sec_oauth2_bearer_token(void) {
   code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_1), _astgen_sec_code_1);
   ASSERT(code);
 
-  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
+  ASSERT(strstr(code, "if (bearer_token) {"));
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
@@ -163,7 +163,7 @@ TEST test_sec_openid_bearer_token(void) {
   code = (gen_sec_code(&spec, NULL, &_astgen_sec_code_2), _astgen_sec_code_2);
   ASSERT(code);
 
-  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
+  ASSERT(strstr(code, "if (bearer_token) {"));
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 

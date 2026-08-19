@@ -230,7 +230,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   }
 
   /* Dispatch to Emitters */
-  if (1) {
+  {
     int out_result = 0;
     if ((has_lang(config->target_langs, "python", &out_result) ==
              CDD_C_SUCCESS &&

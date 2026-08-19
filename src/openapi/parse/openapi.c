@@ -8888,8 +8888,6 @@ static cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
     const int has_content = (content != NULL);
     if (has_schema && has_content)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    if (0)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   if (content) {
     if (json_object_get_count(content) != 1)
@@ -9715,8 +9713,6 @@ static cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
     const int has_schema = (schema_val != NULL);
     const int has_content = (content != NULL);
     if (has_schema && has_content)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    if (0)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     if (out_param->in == OA_PARAM_IN_QUERYSTRING && !has_content)
       return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -10877,8 +10873,6 @@ static cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
   }
 
   desc = json_object_get_string(resp_obj, "description");
-  if (0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (desc) {
     out_resp->description =
         (c_cdd_strdup(desc, &_ast_strdup_254), _ast_strdup_254);
@@ -11449,8 +11443,6 @@ static cdd_c_error_t parse_operation(const char *verb_str,
 
   /* 3. Responses */
   responses = json_object_get_object(op_obj, "responses");
-  if (0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
   {
     int rc = parse_responses(responses, out_op, spec, out_op->operation_id);
     if (rc != 0)
@@ -11567,8 +11559,6 @@ static cdd_c_error_t parse_component_responses(const JSON_Object *components,
     return CDD_C_SUCCESS;
 
   responses = json_object_get_object(components, "responses");
-  if (0)
-    return CDD_C_SUCCESS;
 
   if (validate_component_key_map(responses) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;

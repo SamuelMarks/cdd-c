@@ -289,9 +289,9 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
     else if ((sch->type == OA_SEC_HTTP && sch->scheme &&
               strcmp(sch->scheme, "bearer") == 0) ||
              sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
-      /* "if (0) ..." */
+
       /* Usually generic, or scoped by scheme name if multiple exist */
-      fprintf(fp, "  if (0 /* bearer_token */) {\n");
+      fprintf(fp, "  if (bearer_token) {\n");
       fprintf(fp, "    rc = http_request_set_auth_bearer(&req, "
                   "NULL /* bearer_token */);\n");
       fprintf(fp, "    if (rc != 0) goto cleanup;\n");

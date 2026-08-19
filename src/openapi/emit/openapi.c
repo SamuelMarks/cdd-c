@@ -790,39 +790,6 @@ static void write_schema_type_union(JSON_Object *obj, const char *type,
   if (type)
     write_schema_type(obj, type, nullable);
 }
-
-#if 0
-/**
- * @brief Generates C code for write enum values.
- */
-static void write_enum_values(JSON_Object *obj, const char *key, char **values,
-                              size_t n_values) {
-  JSON_Value *enum_val;
-  JSON_Array *enum_arr;
-  size_t i;
-
-  if (!obj || !key || !values || n_values == 0)
-    return;
-
-  enum_val = json_value_init_array();
-  if (!enum_val)
-    return;
-  enum_arr = json_value_get_array(enum_val);
-  if (!enum_arr) {
-    json_value_free(enum_val);
-    return;
-  }
-  for (i = 0; i < n_values; ++i) {
-    if (values[i])
-      json_array_append_string(enum_arr, values[i]);
-  }
-  json_object_set_value(obj, key, enum_val);
-}
-#endif
-
-/**
- * @brief Generates C code for write enum any values.
- */
 static void write_enum_any_values(JSON_Object *obj, const char *key,
                                   const struct OpenAPI_Any *values,
                                   size_t n_values) {

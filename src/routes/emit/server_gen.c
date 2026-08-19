@@ -35,12 +35,23 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   {
+    cdd_c_error_t rc;
     char *dir_name = NULL, *base_name = NULL;
     char *src_dir = (char *)C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
-    get_dirname(config->filename_base, &dir_name);
-    get_basename(config->filename_base, &base_name);
+    rc = get_dirname(config->filename_base, &dir_name);
+    if (rc != CDD_C_SUCCESS) {
+      C_CDD_FREE(src_dir);
+      return rc;
+    }
+    rc = get_basename(config->filename_base, &base_name);
+    if (rc != CDD_C_SUCCESS) {
+      if (dir_name)
+        C_CDD_FREE(dir_name);
+      C_CDD_FREE(src_dir);
+      return rc;
+    }
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,

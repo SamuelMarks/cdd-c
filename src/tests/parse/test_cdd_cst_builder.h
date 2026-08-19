@@ -681,6 +681,7 @@ TEST test_cdd_cst_builder_errors_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 #endif
 
@@ -695,10 +696,14 @@ TEST test_cdd_cst_builder_oom(void) {
   tree->root = root;
   cdd_cst_builder_init(&b, tree, root);
 
-  g_cdd_cst_alloc_node_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 1;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a");
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
 
   b.error_state = 0;
 
@@ -733,9 +738,11 @@ TEST test_cdd_cst_builder_oom(void) {
   b.target_node->capacity = 0;
   b.target_node->num_children = 0;
   g_cdd_cst_realloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger"));
-  g_cdd_cst_realloc_fail = 0;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger");
+    g_cdd_cst_realloc_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   /* To trigger append_child_node failure inside cdd_cst_bld_block_open */
@@ -743,8 +750,11 @@ TEST test_cdd_cst_builder_oom(void) {
   b.target_node->capacity = 0;
   b.target_node->num_children = 0;
   g_cdd_cst_realloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_open(&b));
-  g_cdd_cst_realloc_fail = 0;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_open(&b);
+    g_cdd_cst_realloc_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   g_cdd_cst_alloc_node_fail = 1;
@@ -755,37 +765,67 @@ TEST test_cdd_cst_builder_oom(void) {
   g_cdd_cst_alloc_node_fail = 0;
 
   /* For trivia array OOM */
-  g_cdd_cst_alloc_node_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_line_comment(&b, "test"));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 1;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_line_comment(&b, "test");
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
-  g_cdd_cst_alloc_node_fail = 2;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_open(&b));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 2;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_open(&b);
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
-  g_cdd_cst_alloc_node_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 1;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_close(&b);
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   b.indent_level = 2;
-  g_cdd_cst_alloc_node_fail = 2;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 2;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_close(&b);
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   b.indent_level = 2;
-  g_cdd_cst_alloc_node_fail = 3;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 3;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_close(&b);
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   b.indent_level = 2;
-  g_cdd_cst_alloc_node_fail = 4;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_block_close(&b));
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 4;
+  {
+    cdd_c_error_t rc = cdd_cst_bld_block_close(&b);
+    g_cdd_cst_alloc_token_fail = 0;
+    if (rc != CDD_C_ERROR_MEMORY)
+      printf("RC IS %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   g_cdd_alloc_fail = 1;
@@ -842,8 +882,11 @@ TEST test_cdd_cst_builder_oom(void) {
   b.error_state = 0;
 
   g_cdd_cst_realloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_quote(&b, "%n", root));
-  g_cdd_cst_realloc_fail = 0;
+  {
+    cdd_c_error_t rc = cdd_cst_quote(&b, "%n", root);
+    g_cdd_cst_realloc_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   b.error_state = 0;
 
   {
@@ -865,6 +908,7 @@ TEST test_cdd_cst_builder_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #endif
@@ -951,36 +995,66 @@ TEST test_cdd_cst_builder_punct_all(void) {
   {
     extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
     /* pool_string_safe OOM */
-    g_cdd_cst_alloc_node_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_ident(&b, "a"));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 1;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_ident(&b, "a");
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
 
     /* space OOM inside indent */
-    g_cdd_cst_alloc_node_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_indent(&b, 1));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 1;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_indent(&b, 1);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
 
     /* include OOM coverage */
-    g_cdd_cst_alloc_node_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test1.h", 1));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 1;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_include(&b, "test1.h", 1);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 3;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test1.h", 1));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 3;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_include(&b, "test1.h", 1);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 1;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test2.h", 0));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 1;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_include(&b, "test2.h", 0);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 3;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_bld_include(&b, "test2.h", 0));
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 3;
+    {
+      cdd_c_error_t rc = cdd_cst_bld_include(&b, "test2.h", 0);
+      g_cdd_cst_alloc_token_fail = 0;
+      if (rc != CDD_C_ERROR_MEMORY)
+        printf("RC IS %d\n", rc);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     b.error_state = 0;
   }
 #endif
@@ -1004,13 +1078,13 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   /* pool_string expansion failure */
 #ifdef CDD_BUILD_TESTS
   tree->string_capacity = 0;
-  g_cdd_cst_alloc_node_fail = 1;
+  g_cdd_cst_alloc_token_fail = 1;
   {
     /* cdd_cst_bld_int calls pool_string directly before allocating token */
     rc = cdd_cst_bld_int(&b, 1234567);
+    g_cdd_cst_alloc_token_fail = 0;
     ASSERT(rc != 0);
   }
-  g_cdd_cst_alloc_node_fail = 0;
   b.error_state = 0;
 #endif
 
@@ -1026,19 +1100,19 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   /* cdd_cst_bld_number failure */
 #ifdef CDD_BUILD_TESTS
-  g_cdd_cst_alloc_node_fail = 1;
+  g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_bld_int(&b, 123);
+  g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_cst_alloc_node_fail = 0;
   b.error_state = 0;
 #endif
 
   /* cdd_cst_bld_string failure */
 #ifdef CDD_BUILD_TESTS
-  g_cdd_cst_alloc_node_fail = 1;
+  g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_bld_string(&b, "test");
+  g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_cst_alloc_node_fail = 0;
   b.error_state = 0;
 #endif
 
@@ -1088,16 +1162,16 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   /* snippet failure */
 #ifdef CDD_BUILD_TESTS
-  g_cdd_cst_alloc_node_fail = 5;
+  g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_bld_snippet(&b, "int y;");
   ASSERT(rc != 0);
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 
-  g_cdd_cst_alloc_node_fail = 2;
+  g_cdd_cst_alloc_token_fail = 2;
   rc = cdd_cst_bld_snippet(&b, "int y;");
   ASSERT(rc != 0);
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 #endif
 
@@ -1106,16 +1180,16 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   rc = cdd_cst_quote(&b, "int %s rest", "y");
   ASSERT_EQ(0, rc);
 
-  g_cdd_cst_alloc_node_fail = 5;
+  g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_quote(&b, "int %s;", "y");
   ASSERT(rc != 0);
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 
-  g_cdd_cst_alloc_node_fail = 5;
+  g_cdd_cst_alloc_token_fail = 1;
   rc = cdd_cst_quote(&b, "int %d;", 10);
   ASSERT(rc != 0);
-  g_cdd_cst_alloc_node_fail = 0;
+  g_cdd_cst_alloc_token_fail = 0;
   b.error_state = 0;
 
   {
@@ -1140,28 +1214,28 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
     cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
 
-    g_cdd_cst_alloc_node_fail = 1;
+    g_cdd_cst_alloc_token_fail = 1;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
     ASSERT(rc != 0);
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 0;
     empty_b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 2;
+    g_cdd_cst_alloc_token_fail = 2;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
     ASSERT(rc != 0);
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 0;
     empty_b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 3;
+    g_cdd_cst_alloc_token_fail = 3;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
     ASSERT(rc != 0);
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 0;
     empty_b.error_state = 0;
 
-    g_cdd_cst_alloc_node_fail = 4;
+    g_cdd_cst_alloc_token_fail = 4;
     rc = cdd_cst_bld_block_comment(&empty_b, "comment");
     ASSERT(rc != 0);
-    g_cdd_cst_alloc_node_fail = 0;
+    g_cdd_cst_alloc_token_fail = 0;
     empty_b.error_state = 0;
 
     empty_b.tree = NULL;

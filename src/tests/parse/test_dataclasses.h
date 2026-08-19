@@ -397,7 +397,7 @@ TEST test_debug_and_display(void) {
   PASS();
 }
 
-#if 1
+#ifndef CDD_DISABLE_EXPERIMENTAL_TESTS
 TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -575,7 +575,7 @@ TEST test_to_json_with_null_fields(void) {
   PASS();
 }
 
-#if 1
+#ifndef CDD_DISABLE_EXPERIMENTAL_TESTS
 TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -850,7 +850,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_json_parsing_errors);
   RUN_TEST(test_null_args_and_errors);
   RUN_TEST(test_json_parsing_corner_cases);
-#if 0
+#ifdef CDD_ENABLE_EXPERIMENTAL_TESTS
   /* TODO: Get them to work on MSVC and fix macOS segfaults */
 #else
   RUN_TEST(test_display_fail);

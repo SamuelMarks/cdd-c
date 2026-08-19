@@ -81,11 +81,14 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    g_cdd_alloc_fail = 5555;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2));
-    g_cdd_alloc_fail = 0;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    g_cdd_fail_alloc = 5555;
+    {
+      cdd_c_error_t rc =
+          patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2);
+      g_cdd_fail_alloc = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
   }
 #endif
 
@@ -102,14 +105,17 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
     /* Trigger realloc failure */
     diff3 = NULL;
-    g_cdd_alloc_fail = 7777;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
-    g_cdd_alloc_fail = 0;
+    g_cdd_fail_alloc = 7777;
+    {
+      cdd_c_error_t rc =
+          patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3);
+      g_cdd_fail_alloc = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
 
     /* Trigger realloc failure in the other branch */
     /* For the other branch, we need a huge token! */
@@ -119,10 +125,13 @@ TEST test_diff_generation_basic(void) {
     patch_list_add(&patch_list3, 0, 1, strdup("small"));
 
     diff3 = NULL;
-    g_cdd_alloc_fail = 6666;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3));
-    g_cdd_alloc_fail = 0;
+    g_cdd_fail_alloc = 6666;
+    {
+      cdd_c_error_t rc =
+          patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3);
+      g_cdd_fail_alloc = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
 
     /* Trigger realloc success in the first branch */
     diff3 = NULL;

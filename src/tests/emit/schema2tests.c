@@ -114,13 +114,9 @@ static int mock_makedirs(const char *path) {
 
 #include "tests/emit/schema2tests.h"
 
-#if 1
 
 #include <stdio.h>
 
-#else
-#include <c89stringutils_string_extras.h>
-#endif
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

@@ -1107,37 +1107,6 @@ TEST test_client_gen_write_docblock(void) {
   PASS();
 }
 
-#if 0
-TEST test_client_gen_write_preambles(void) {
-  FILE *fp1 = fopen("test9.h", "w");
-  FILE *fp2 = fopen("test10.c", "w");
-
-  /* Null checks */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_header_preamble(NULL, NULL, NULL));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_source_preamble(NULL, NULL));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_lifecycle_funcs(NULL, NULL, NULL, NULL));
-
-  /* Write header preamble */
-  ASSERT_EQ(0, write_header_preamble(fp1, "TEST9_H", "prefix"));
-
-  /* Write source preamble */
-  ASSERT_EQ(0, write_source_preamble(fp2, "test9.h"));
-
-  /* Write lifecycle funcs */
-  struct OpenAPI_Spec spec;
-  memset(&spec, 0, sizeof(spec));
-  ASSERT_EQ(0, write_lifecycle_funcs(fp1, fp2, "prefix", &spec));
-
-  fclose(fp1);
-  fclose(fp2);
-  remove("test9.h");
-  remove("test10.c");
-  g_fail_io_after = -1;
-
-  PASS();
-}
-#endif
-
 TEST test_client_gen_emit_operation(void) {
   struct OpenAPI_Path bad_path;
   struct OpenAPI_Operation bad_op;

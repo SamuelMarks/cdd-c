@@ -7,7 +7,7 @@
 /* clang-format off */
 #include "cdd_c_error.h"
 /* clang-format on */
-#include "test_cli.h"
+#include "(null).h"
 
 /**
  * @brief Auto-generated code from OpenAPI specification

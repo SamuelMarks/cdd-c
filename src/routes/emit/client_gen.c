@@ -2024,8 +2024,19 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (!spec || !config || !config->filename_base)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  get_dirname(config->filename_base, &dir_name);
-  get_basename(config->filename_base, &base_name);
+  {
+    cdd_c_error_t rc;
+    rc = get_dirname(config->filename_base, &dir_name);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
+    rc = get_basename(config->filename_base, &base_name);
+    if (rc != CDD_C_SUCCESS) {
+      if (dir_name)
+        free(dir_name);
+      return rc;
+    }
+  }
 
   {
     char *src_dir = malloc(512);
