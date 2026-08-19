@@ -839,7 +839,8 @@ static cdd_c_error_t match(struct ExprState *s, enum TokenKind kind,
 /**
  * @brief Executes the peek operation.
  */
-static cdd_c_error_t peek(struct ExprState *s, enum TokenKind *_out_val) {
+static cdd_c_error_t preprocessor_peek(struct ExprState *s,
+                                       enum TokenKind *_out_val) {
 
   size_t p = s->pos;
 
@@ -1639,7 +1640,7 @@ static cdd_c_error_t parse_relational(struct ExprState *s, long *_out_val) {
 
   while (s->pos < s->end && !s->error) {
 
-    enum TokenKind k = (peek(s, &_ast_peek_71), _ast_peek_71);
+    enum TokenKind k = (preprocessor_peek(s, &_ast_peek_71), _ast_peek_71);
 
     if (k == TOKEN_LEQ) {
 
@@ -2068,8 +2069,8 @@ static cdd_c_error_t stack_pop(struct ConditionalStack *st) {
 /**
  * @brief Executes the stack peek operation.
  */
-static cdd_c_error_t stack_peek(const struct ConditionalStack *st,
-                                enum CondState *_out_val) {
+static cdd_c_error_t stack_preprocessor_peek(const struct ConditionalStack *st,
+                                             enum CondState *_out_val) {
 
   if (st->top >= 0)
 
@@ -2338,7 +2339,8 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                     _ast_token_matches_string_107)) {
 
           enum CondState current =
-              (stack_peek(&stack, &_ast_stack_peek_108), _ast_stack_peek_108);
+              (stack_preprocessor_peek(&stack, &_ast_stack_peek_108),
+               _ast_stack_peek_108);
 
           int parent_enabled;
 
@@ -2382,7 +2384,8 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                     _ast_token_matches_string_110)) {
 
           enum CondState current =
-              (stack_peek(&stack, &_ast_stack_peek_111), _ast_stack_peek_111);
+              (stack_preprocessor_peek(&stack, &_ast_stack_peek_111),
+               _ast_stack_peek_111);
 
           int parent_enabled;
 

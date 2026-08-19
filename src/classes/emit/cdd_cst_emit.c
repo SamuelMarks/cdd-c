@@ -161,8 +161,10 @@ cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
     /* Empty file */
 
 #ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : malloc(1));
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    ctx.buf =
+        (char *)((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL
+                                                               : malloc(1));
 #else
     ctx.buf = (char *)malloc(1);
 #endif

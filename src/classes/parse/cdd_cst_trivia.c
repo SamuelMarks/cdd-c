@@ -84,14 +84,14 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   uint8_t *ws_buf;
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_token_fail;
+  extern int g_cdd_cst_alloc_node_fail;
 #endif
   (void)tree;
   if (!config || !out_trivia)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail == 1)
+  if (g_cdd_cst_alloc_node_fail == 1)
     nl = NULL;
   else
 #endif
@@ -110,7 +110,7 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   }
 
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail == 2)
+  if (g_cdd_cst_alloc_node_fail == 2)
     ws = NULL;
   else
 #endif
@@ -122,7 +122,7 @@ cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 
   total_spaces = config->indent_width * indent_level;
 #ifdef CDD_BUILD_TESTS
-  if (g_cdd_cst_alloc_token_fail == 3)
+  if (g_cdd_cst_alloc_node_fail == 3)
     ws_buf = NULL;
   else
 #endif

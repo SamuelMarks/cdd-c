@@ -120,8 +120,9 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
             size_t k;
             for (k = 0; k < flen; ++k) {
               if (isalpha(flags[k])) {
-                struct CliOption *opt =
-                    (add_option(cmd, &_ast_add_option_0), _ast_add_option_0);
+                struct CliOption *opt = NULL;
+                if (add_option(cmd, &opt) != CDD_C_SUCCESS)
+                  return CDD_C_ERROR_MEMORY;
                 opt->short_flag = flags[k];
                 if (k + 1 < flen && flags[k + 1] == ':') {
                   opt->has_arg = 1;
@@ -144,10 +145,14 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
      an assignment. */
   if (in_getopt) {
     for (i = 0; i < tokens->size; ++i) {
-      if (tokens->tokens[i].kind == TOKEN_KEYWORD_CASE &&
-          i + 2 < tokens->size) {
-        if (tokens->tokens[i + 1].kind == TOKEN_CHAR_LITERAL) {
-          char c = tokens->tokens[i + 1].start[1];
+      if (tokens->tokens[i].kind == TOKEN_KEYWORD_CASE) {
+        size_t next_idx = i + 1;
+        while (next_idx < tokens->size &&
+               tokens->tokens[next_idx].kind == TOKEN_WHITESPACE)
+          next_idx++;
+        if (next_idx < tokens->size &&
+            tokens->tokens[next_idx].kind == TOKEN_CHAR_LITERAL) {
+          char c = tokens->tokens[next_idx].start[1];
           size_t opt_idx;
           for (opt_idx = 0; opt_idx < cmd->n_options; ++opt_idx) {
             if (cmd->options[opt_idx].short_flag == c) {
@@ -156,12 +161,18 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                               tokens->tokens[j].kind != TOKEN_KEYWORD_BREAK;
                    ++j) {
                 if (tokens->tokens[j].kind == TOKEN_ASSIGN) {
-                  if (j > 0 && tokens->tokens[j - 1].kind == TOKEN_IDENTIFIER) {
-                    cmd->options[opt_idx].mapped_struct_field =
-                        (cdd_strndup2((const char *)tokens->tokens[j - 1].start,
-                                      tokens->tokens[j - 1].length,
-                                      &_ast_cdd_strndup2_1),
-                         _ast_cdd_strndup2_1);
+                  size_t prev_idx = j > 0 ? j - 1 : 0;
+                  while (prev_idx > 0 &&
+                         tokens->tokens[prev_idx].kind == TOKEN_WHITESPACE) {
+                    prev_idx--;
+                  }
+                  printf("DEBUG: j=%zu, prev_idx=%zu, kind=%d, len=%zu\n", j,
+                         prev_idx, tokens->tokens[prev_idx].kind,
+                         tokens->tokens[prev_idx].length);
+                  if (tokens->tokens[prev_idx].kind == TOKEN_IDENTIFIER) {
+                    cdd_strndup2((const char *)tokens->tokens[prev_idx].start,
+                                 tokens->tokens[prev_idx].length,
+                                 &cmd->options[opt_idx].mapped_struct_field);
                   }
                   break;
                 }

@@ -1,3 +1,9 @@
+#ifndef TEST_UNIONS_H
+#define TEST_UNIONS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 /**
@@ -20,7 +26,7 @@ extern C_CDD_EXPORT int g_io_calls;
 /* clang-format on */
 
 /* Add definitions that need to be in the test runner's main file. */
-GREATEST_MAIN_DEFS();
+
 #if defined(_MSC_VER)
 #pragma warning(disable : 4551)
 #endif
@@ -177,8 +183,7 @@ SUITE(unions_suite) {
   RUN_TEST(test_write_union_cleanup);
 }
 
-cdd_c_error_t main(int argc, char **argv) {
-  GREATEST_MAIN_BEGIN();
-  RUN_SUITE(unions_suite);
-  GREATEST_MAIN_END();
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* TEST_UNIONS_H */

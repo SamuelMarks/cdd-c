@@ -19,6 +19,7 @@ extern "C" {
 
 #include "functions/emit/safe_crt.h"
 #include "functions/parse/tokenizer.h"
+#include "functions/emit/safe_crt.h"
 /* clang-format on */
 
 TEST test_safe_crt_strcpy(void) {

@@ -232,7 +232,7 @@ TEST test_server_gen_branches(void) {
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = "test_server_branches";
+  config.filename_base = "test_build_dir/test_server_branches";
 
   spec.n_paths = 1;
   spec.paths =

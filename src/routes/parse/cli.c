@@ -13,6 +13,7 @@
 #include "../win_compat_sym.h"
 
 #include "classes/emit/schema.h" /* For Type Registry */
+#include "classes/parse/code2schema.h"
 #include "classes/parse/inspector.h"
 #include "docstrings/parse/doc.h"
 #include "functions/parse/cst.h"
@@ -1852,15 +1853,20 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
 
   type = (map_doc_security_type(doc->type, &_ast_map_doc_security_type_2),
           _ast_map_doc_security_type_2);
-  if (type == OA_SEC_UNKNOWN)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (type == OA_SEC_UNKNOWN) {
+    fprintf(stderr, "Warning: Unknown security scheme type ignored: %s\n",
+            doc->name);
+    return CDD_C_SUCCESS;
+  }
 
   if (type == OA_SEC_OAUTH2 && doc->n_flows > 0) {
     size_t i;
     for (i = 0; i < doc->n_flows; ++i) {
       int rc = validate_doc_oauth_flow(&doc->flows[i]);
-      if (rc != 0)
-        return rc;
+      if (rc != 0) {
+        fprintf(stderr, "Warning: Invalid OAuth flow ignored: %s\n", doc->name);
+        return CDD_C_SUCCESS;
+      }
     }
   }
 
@@ -1883,10 +1889,14 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
     scheme->type = type;
     spec->n_security_schemes++;
     if (scheme->type != type) {
-      return CDD_C_ERROR_INVALID_ARGUMENT;
+      fprintf(stderr, "Warning: Security scheme type collision ignored: %s\n",
+              doc->name);
+      return CDD_C_SUCCESS;
     }
   } else if (scheme->type != type) {
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    fprintf(stderr, "Warning: Security scheme type collision ignored: %s\n",
+            doc->name);
+    return CDD_C_SUCCESS;
   }
 
   if (doc->description) {
@@ -2189,8 +2199,11 @@ apply_doc_security_schemes(struct OpenAPI_Spec *spec,
     return CDD_C_SUCCESS;
   for (i = 0; i < meta->n_security_schemes; ++i) {
     int rc = spec_add_security_scheme(spec, &meta->security_schemes[i]);
-    if (rc != 0)
+    if (rc == CDD_C_ERROR_MEMORY)
       return rc;
+    if (rc != 0) {
+      fprintf(stderr, "Warning: Failed to add security scheme, ignoring.\n");
+    }
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -4720,7 +4733,7 @@ static cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
     struct TypeDefList types;
     type_def_list_init(&types);
     if (c_inspector_scan_file_types(path, &types) == 0) {
-      /* register_inline_schema_c2s(spec, &types); */
+      c2openapi_register_types(spec, &types);
     }
     type_def_list_free(&types);
   }
@@ -5114,8 +5127,12 @@ static cdd_c_error_t walker_cb(const char *path, void *user_data) {
 
     cdd_c_error_t rc = process_file(path, spec);
 
-    if (rc != CDD_C_SUCCESS)
+    if (rc == CDD_C_ERROR_MEMORY)
       return rc;
+    if (rc != CDD_C_SUCCESS) {
+      fprintf(stderr, "Warning: Failed to process %s (error %d), skipping.\n",
+              path, rc);
+    }
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -5707,5 +5724,81 @@ cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
     return CDD_C_ERROR_UNKNOWN;
   }
 
+  return CDD_C_SUCCESS;
+}
+cdd_c_error_t c2openapi_register_types(struct OpenAPI_Spec *spec,
+                                       const struct TypeDefList *types) {
+  size_t i, j;
+  if (!spec || !types)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  for (i = 0; i < types->size; i++) {
+    const struct TypeDefinition *def = &types->items[i];
+
+    /* Skip duplicates */
+    int is_duplicate = 0;
+    for (j = 0; j < spec->n_defined_schemas; j++) {
+      if (strcmp(spec->defined_schema_names[j], def->name) == 0) {
+        is_duplicate = 1;
+        break;
+      }
+    }
+    if (is_duplicate)
+      continue;
+
+    if (def->kind == KIND_STRUCT && def->name && def->details.struct_fields) {
+      size_t new_idx = spec->n_defined_schemas;
+      spec->n_defined_schemas++;
+      spec->defined_schema_names = realloc(
+          spec->defined_schema_names, spec->n_defined_schemas * sizeof(char *));
+      spec->defined_schemas =
+          realloc(spec->defined_schemas,
+                  spec->n_defined_schemas * sizeof(struct StructFields));
+      spec->defined_schema_names[new_idx] = strdup(def->name);
+
+      struct_fields_init(&spec->defined_schemas[new_idx]);
+      for (j = 0; j < def->details.struct_fields->size; j++) {
+        struct StructField *f = &def->details.struct_fields->fields[j];
+        struct StructField *new_f;
+        size_t k;
+        struct_fields_add(&spec->defined_schemas[new_idx], f->name, f->type,
+                          f->ref, f->default_val, f->bit_width);
+
+        new_f = &spec->defined_schemas[new_idx]
+                     .fields[spec->defined_schemas[new_idx].size - 1];
+        if (f->n_type_union > 0) {
+          new_f->n_type_union = f->n_type_union;
+          new_f->type_union = calloc(f->n_type_union, sizeof(char *));
+          for (k = 0; k < f->n_type_union; k++)
+            new_f->type_union[k] = strdup(f->type_union[k]);
+        }
+        if (f->n_items_type_union > 0) {
+          new_f->n_items_type_union = f->n_items_type_union;
+          new_f->items_type_union =
+              calloc(f->n_items_type_union, sizeof(char *));
+          for (k = 0; k < f->n_items_type_union; k++)
+            new_f->items_type_union[k] = strdup(f->items_type_union[k]);
+        }
+      }
+    } else if (def->kind == KIND_ENUM && def->name &&
+               def->details.enum_members) {
+      size_t new_idx = spec->n_defined_schemas;
+      spec->n_defined_schemas++;
+      spec->defined_schema_names = realloc(
+          spec->defined_schema_names, spec->n_defined_schemas * sizeof(char *));
+      spec->defined_schemas =
+          realloc(spec->defined_schemas,
+                  spec->n_defined_schemas * sizeof(struct StructFields));
+      spec->defined_schema_names[new_idx] = strdup(def->name);
+
+      struct_fields_init(&spec->defined_schemas[new_idx]);
+      spec->defined_schemas[new_idx].is_enum = 1;
+      enum_members_init(&spec->defined_schemas[new_idx].enum_members);
+      for (j = 0; j < def->details.enum_members->size; j++) {
+        enum_members_add(&spec->defined_schemas[new_idx].enum_members,
+                         def->details.enum_members->members[j]);
+      }
+    }
+  }
   return CDD_C_SUCCESS;
 }

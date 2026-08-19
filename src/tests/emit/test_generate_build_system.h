@@ -155,14 +155,14 @@ TEST test_build_system_oom2(void) {
   int rc;
 
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   for (i = 1; i <= 20; i++) {
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
     if (rc == CDD_C_SUCCESS)
       i = 999;
   }
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 0;
 #endif
 
   rc = generate_cmake_project("test_build_dir", "MyProject", 1);

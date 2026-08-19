@@ -1,3 +1,9 @@
+#ifndef TEST_ANONYMOUS_H
+#define TEST_ANONYMOUS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 /**
@@ -17,7 +23,6 @@ extern C_CDD_EXPORT int g_io_calls;
 #include "functions/parse/fs.h"
 /* clang-format on */
 
-GREATEST_MAIN_DEFS();
 #if defined(_MSC_VER)
 #pragma warning(disable : 4551)
 #endif
@@ -72,7 +77,8 @@ TEST test_lift_anonymous_struct(void) {
     ASSERT(strstr(content, "\"y\":"));
 
     /* We expect Parent to have property coords referencing Parent_coords */
-    ASSERT(strstr(content, "\"$ref\": \"#/components/schemas/Parent_coords\""));
+    ASSERT(strstr(content,
+                  "\"$ref\": \"#\\/components\\/schemas\\/Parent_coords\""));
 
     free(content);
   }
@@ -85,8 +91,7 @@ TEST test_lift_anonymous_struct(void) {
 
 SUITE(anonymous_suite) { RUN_TEST(test_lift_anonymous_struct); }
 
-cdd_c_error_t main(int argc, char **argv) {
-  GREATEST_MAIN_BEGIN();
-  RUN_SUITE(anonymous_suite);
-  GREATEST_MAIN_END();
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* TEST_ANONYMOUS_H */

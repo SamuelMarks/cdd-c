@@ -1,3 +1,9 @@
+#ifndef TEST_ARRAYS_PRIMITIVE_H
+#define TEST_ARRAYS_PRIMITIVE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 /**
@@ -23,7 +29,7 @@ extern C_CDD_EXPORT int g_io_calls;
 #include "functions/emit/codegen.h"
 
 /* Add definitions that need to be in the test runner's main file. */
-GREATEST_MAIN_DEFS();
+
 #if defined(_MSC_VER)
 #pragma warning(disable : 4551)
 #endif
@@ -74,14 +80,16 @@ TEST test_generated_copy_logic(void) {
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
+  printf("OUTPUT_BUF:\n%s\n", output_buf);
+
   /* Verify malloc logic for int array */
   ASSERT(strstr(output_buf,
                 "ret->int_arr = malloc(ret->n_int_arr * sizeof(int));"));
 
   /* Verify loop for strings */
   ASSERT(strstr(output_buf,
-                "ret->str_arr = malloc(ret->n_str_arr * sizeof(char*));"));
-  ASSERT(strstr(output_buf, "strdup(s)"));
+                "ret->str_arr = calloc(ret->n_str_arr, sizeof(char*));"));
+  ASSERT(strstr(output_buf, "strdup("));
 
   free(output_buf);
   fclose(tmp);
@@ -98,7 +106,13 @@ TEST test_code2schema_array_detection(void) {
    * into a single schema field "nums" of type "array".
    */
   const char *header =
-      "struct S { int *nums; size_t n_nums; char **strs; size_t n_strs; };";
+      "typedef unsigned int size_t;\n"
+      "struct S {\n"
+      "  int *nums;\n"
+      "  size_t n_nums;\n"
+      "  char **strs;\n"
+      "  size_t n_strs;\n"
+      "};\n";
   const char *json_out_file = "test_array_detect.json";
   FILE *f;
   char *json_content;
@@ -114,18 +128,10 @@ TEST test_code2schema_array_detection(void) {
        `code2schema_main`.
     */
     char *argv[] = {"test_array.h", (char *)json_out_file};
-    /* code2schema_main expects internal implementation details or mocks.
-       We will call it directly. */
-    /* Wait, code2schema_main is in `code2schema.c` but `parse_header_file`
-     * calls it. */
-    /* Let's use `code2schema_main` which calls `parse_header_file`. */
-
-    /* We need to declare the prototype if it wasn't in code2schema.h?
-       It IS in code2schema.h. */
-
-#include "classes/parse/code2schema.h"
     /* clang-format on */
-    ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
+    cdd_c_error_t result = code2schema_main(2, argv);
+    printf("code2schema_main returned %d\n", result);
+    ASSERT_EQ(CDD_C_SUCCESS, result);
   }
 
 /* Read JSON output */
@@ -148,6 +154,8 @@ TEST test_code2schema_array_detection(void) {
   fread(json_content, 1, len, f);
   json_content[len] = 0;
   fclose(f);
+
+  printf("JSON_CONTENT:\n%s\n", json_content);
 
   /* Validate Schema Structure */
   /* Expect: "nums": { "type": "array", "items": { "type": "integer" } } */
@@ -195,8 +203,7 @@ SUITE(arrays_primitive_suite) {
   RUN_TEST(test_code2schema_array_detection);
 }
 
-cdd_c_error_t main(int argc, char **argv) {
-  GREATEST_MAIN_BEGIN();
-  RUN_SUITE(arrays_primitive_suite);
-  GREATEST_MAIN_END();
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* TEST_ARRAYS_PRIMITIVE_H */

@@ -13,6 +13,7 @@ int g_force_strdup_fail = 0;
 #define realloc(p, s) (g_force_gnu_alloc_fail ? NULL : realloc(p, s))
 #define strdup(s) (g_force_strdup_fail ? NULL : strdup(s))
 
+cdd_c_error_t internal_cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 #define cdd_transform_gnu internal_cdd_transform_gnu
 
 #include "transformers/gnu_standardizer/gnu_standardizer.c"

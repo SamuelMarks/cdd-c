@@ -1160,7 +1160,7 @@ TEST test_cst_parser_extra(void) {
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
@@ -1261,14 +1261,14 @@ TEST test_cst_parser_extra(void) {
       for (i = 1; i < 60000; i++) {
         cdd_c_error_t rc;
         tree = NULL;
-        g_cdd_cst_alloc_node_fail = i;
+        g_cdd_alloc_fail = i;
         rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
         if (tree)
           cdd_cst_tree_free(tree);
         if (rc == CDD_C_SUCCESS)
           break;
       }
-      g_cdd_cst_alloc_node_fail = 0;
+      g_cdd_alloc_fail = 0;
 
       for (i = 1; i < 60000; i++) {
         cdd_c_error_t rc;
@@ -1368,7 +1368,7 @@ TEST parse_tokens_oom(void) {
   {
     struct TokenList *tl = NULL;
     struct CstNodeList cst_nodes;
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
     int i;
     int rc;
 
@@ -1380,9 +1380,9 @@ TEST parse_tokens_oom(void) {
 
     for (i = 1; i < 200; i++) {
       memset(&cst_nodes, 0, sizeof(cst_nodes));
-      g_cdd_fail_alloc = i;
+      g_cdd_alloc_fail = i;
       rc = parse_tokens(tl, &cst_nodes);
-      g_cdd_fail_alloc = 0;
+      g_cdd_alloc_fail = 0;
       if (rc == 0) {
         free_cst_node_list(&cst_nodes);
         break;

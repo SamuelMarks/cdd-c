@@ -723,7 +723,7 @@ TEST test_schema_codegen_specific_structs(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #endif
 
 TEST test_schema_codegen_main_paths(void) {

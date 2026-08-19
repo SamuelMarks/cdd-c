@@ -74,6 +74,13 @@ TEST test_main_coverage_from_openapi_opts(void) {
 }
 
 TEST test_main_coverage_from_openapi_valid(void) {
+  FILE *f = fopen("dummy_spec.json", "w");
+  if (f) {
+    fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
+          "\"1\"}, \"paths\": {}}",
+          f);
+    fclose(f);
+  }
   char *argv_to_sdk[] = {"from_openapi",    "to_sdk", "-i",
                          "dummy_spec.json", "-o",     "out_dir"};
   ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(6, argv_to_sdk));
@@ -81,6 +88,11 @@ TEST test_main_coverage_from_openapi_valid(void) {
 }
 
 TEST test_main_coverage_from_openapi_invalid(void) {
+  FILE *f = fopen("invalid_spec.json", "w");
+  if (f) {
+    fputs("invalid json", f);
+    fclose(f);
+  }
   char *argv_invalid[] = {"from_openapi",      "to_sdk", "-i",
                           "invalid_spec.json", "-o",     "out_dir"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_invalid));
@@ -88,6 +100,13 @@ TEST test_main_coverage_from_openapi_invalid(void) {
 }
 
 TEST test_main_coverage_from_openapi_cli_server(void) {
+  FILE *f = fopen("dummy_spec.json", "w");
+  if (f) {
+    fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
+          "\"1\"}, \"paths\": {}}",
+          f);
+    fclose(f);
+  }
   char *argv_cli[] = {"from_openapi",    "to_sdk_cli", "-i",
                       "dummy_spec.json", "-o",         "out_dir"};
   char *argv_server[] = {"from_openapi",    "to_server", "-i",
@@ -121,6 +140,13 @@ TEST test_main_coverage_to_openapi(void) {
 }
 
 TEST test_main_coverage_cdd_main_subcommands(void) {
+  FILE *f = fopen("dummy_spec.json", "w");
+  if (f) {
+    fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
+          "\"1\"}, \"paths\": {}}",
+          f);
+    fclose(f);
+  }
   char *argv_audit[] = {"cdd-c", "audit", "a", "b"};
   char *argv_c2openapi[] = {"cdd-c", "c2openapi", "a", "b"};
   char *argv_transformer[] = {"cdd-c", "transformer", "a"};
@@ -149,6 +175,13 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
 }
 
 TEST test_main_coverage_cdd_main_success(void) {
+  FILE *f = fopen("dummy_spec.json", "w");
+  if (f) {
+    fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
+          "\"1\"}, \"paths\": {}}",
+          f);
+    fclose(f);
+  }
   char *argv_to_openapi[] = {"cdd-c",        "to_openapi", "-i",
                              "my_empty_dir", "-o",         "out.json"};
   char *argv_from_openapi[] = {"cdd-c",  "from_openapi",    "to_sdk",

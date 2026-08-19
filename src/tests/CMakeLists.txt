@@ -45,6 +45,9 @@ set(Header_Files
         "emit/test_codegen_validation.h"
         "emit/test_codegen_root_arrays.h"
         "emit/test_codegen_sdk_tests.h"
+        "emit/test_safe_crt.h"
+        "emit/test_diff.h"
+        "parse/test_cli_c2openapi.h"
         "parse/test_cst_parser.h"
         "parse/test_crypto.h"
         "parse/test_dataclasses.h"
@@ -74,7 +77,17 @@ set(Header_Files
         "parse/test_c2openapi_op.h"
         "emit/test_aggregator.h"
         "parse/test_c2openapi_schema.h"
+        "transformers/gnu_standardizer/test_gnu_standardizer_internals.h"
+        "emit/sdk_tests.h"
         "parse/test_integration_c2openapi.h"
+        "parse/test_arrays_primitive.h"
+        "parse/test_arrays_object.h"
+        "parse/test_anonymous.h"
+        "parse/test_preprocessor_internals.h"
+        "parse/test_code2schema_coverage.h"
+        "parse/test_query_projection.h"
+        "parse/test_cli_parser.h"
+        "parse/test_fs_coverage.h"
 )
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 

@@ -18,7 +18,7 @@ extern "C" {
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
 
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 /* clang-format on */
 
 /**
@@ -85,9 +85,9 @@ TEST test_scan_for_designated_initializers_oom(void) {
 
   for (i = 1; i < 20; ++i) {
     (void)desig_init_list_init(&list);
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(tokens, &list);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     if (res != 0) {
       ASSERT_EQ(ENOMEM, res);
@@ -113,9 +113,9 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
 
   for (i = 1; i < 30; ++i) {
     (void)desig_init_list_init(&list);
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(tokens, &list);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     if (res != 0) {
       ASSERT_EQ(ENOMEM, res);
@@ -217,9 +217,9 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
 
   for (i = 1; i < 10; ++i) {
     (void)desig_init_list_init(&list);
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(&tokens, &list);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     if (res != 0) {
       ASSERT_EQ(ENOMEM, res);

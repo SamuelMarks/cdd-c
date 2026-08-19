@@ -143,23 +143,13 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
     if (dest && src) {
       /* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
        * look up the AST node's type. */
-      sprintf(replacement, "#if defined(_MSC_VER)\n"
-                           "  strcpy_s(%s, sizeof(%s), %s);\n"
-                           "#else\n"
-                           "#if defined(_MSC_VER)
-              strcpy_s(% s, sizeof(% s), % s);
-#else
-#if defined(_MSC_VER)
-              strcpy_s(% s, sizeof(% s), % s);
-#else
-#if defined(_MSC_VER)
-              strcpy_s(% s, sizeof(% s), % s);
-#else
-              strcpy(% s, % s);
-#endif
-#endif
-#endif \n "
-              "#endif", dest, dest, src, dest, src);
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  strcpy_s(%s, sizeof(%s), %s);\n"
+              "#else\n"
+              "  strcpy(%s, %s);\n"
+              "#endif\n",
+              dest, dest, src, dest, src);
       add_patch(out, call_start, call_end, replacement);
     }
 
@@ -242,20 +232,12 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
     (void)extract_token_text(tokens, id_idx, id_idx + 1, &dest);
 
     if (path && mode && dest) {
-      sprintf(replacement, "#if defined(_MSC_VER)\n"
-                           "  fopen_s(&%s, %s, %s);\n"
-                           "#else\n"
-                           "  %#if defined(_MSC_VER)
-              fopen_s(&s, % s, % s);
-#else
-#if defined(_MSC_VER)
-              fopen_s(&s, % s, % s);
-#else
-              s = fopen(% s, % s);
-#endif
-#endif
-\n "
-    "#endif",
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  fopen_s(&%s, %s, %s);\n"
+              "#else\n"
+              "  %s = fopen(%s, %s);\n"
+              "#endif\n",
               dest, path, mode, dest, path, mode);
       add_patch(out, assign_idx - 1, call_end, replacement);
     }
@@ -298,23 +280,13 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
     (void)extract_token_text(tokens, comma2 + 1, rparen, &count);
 
     if (dest && src && count) {
-      sprintf(replacement, "#if defined(_MSC_VER)\n"
-                           "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
-                           "#else\n"
-                           "#if defined(_MSC_VER)
-              strncpy_s(% s, % s + 1, % s, % s);
-#else
-#if defined(_MSC_VER)
-              strncpy_s(% s, % s + 1, % s, % s);
-#else
-#if defined(_MSC_VER)
-              strncpy_s(% s, % s + 1, % s, % s);
-#else
-              strncpy(% s, % s, % s);
-#endif
-#endif
-#endif \n "
-              "#endif", dest, dest, src, count, dest, src, count);
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
+              "#else\n"
+              "  strncpy(%s, %s, %s);\n"
+              "#endif\n",
+              dest, dest, src, count, dest, src, count);
       add_patch(out, call_start, call_end, replacement);
     }
 
@@ -458,11 +430,14 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
           }
 
           if (is_vla && end_bracket < n->end_token) {
+            char *type_name = NULL;
+            char *var_name = NULL;
+            char *expr = NULL;
+            char replacement[1024] = {0};
             /* found a VLA */
             (void)extract_token_text(tokens, j, j + 1, &type_name);
             (void)extract_token_text(tokens, j + 1, j + 2, &var_name);
             (void)extract_token_text(tokens, j + 3, end_bracket, &expr);
-            char replacement[1024] = {0};
 
             if (type_name && var_name && expr) {
               size_t end_stmt = end_bracket;

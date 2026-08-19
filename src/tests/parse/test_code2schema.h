@@ -1121,9 +1121,11 @@ TEST test_code2schema_utils(void) {
   {
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
+
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
+
     g_cdd_alloc_fail = 0;
 
     g_cdd_strdup_fail = 1;

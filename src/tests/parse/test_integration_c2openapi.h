@@ -144,8 +144,26 @@ TEST test_c2openapi_full_flow(void) {
 
     /* Check Components (Struct User) */
     {
-      const char *type = json_object_dotget_string(
-          obj, "components.schemas.User.properties.id.type");
+      JSON_Object *comps = json_object_get_object(obj, "components");
+      ASSERT(comps != NULL);
+      JSON_Object *schemas = json_object_get_object(comps, "schemas");
+      ASSERT(schemas != NULL);
+      JSON_Object *user = json_object_get_object(schemas, "User");
+      if (!user) {
+        printf("FAILED to find User in schemas!\n");
+        size_t num = json_object_get_count(schemas);
+        printf("Schemas has %zu items. Keys:\n", num);
+        for (size_t i = 0; i < num; ++i) {
+          printf("  '%s'\n", json_object_get_name(schemas, i));
+        }
+      }
+      ASSERT(user != NULL);
+      JSON_Object *props = json_object_get_object(user, "properties");
+      ASSERT(props != NULL);
+      JSON_Object *id = json_object_get_object(props, "id");
+      ASSERT(id != NULL);
+      const char *type = json_object_get_string(id, "type");
+
       ASSERT_STR_EQ(("integer") ? ("integer") : "NULL",
                     (type) ? (type) : "NULL");
     }
@@ -166,8 +184,13 @@ TEST test_c2openapi_full_flow(void) {
 
       /* Check Response (200 User) from Output Param */
       {
-        const char *ref = json_object_dotget_string(
-            op, "responses.200.content.application/json.schema.$ref");
+        JSON_Object *responses = json_object_get_object(op, "responses");
+        JSON_Object *r200 = json_object_get_object(responses, "200");
+        JSON_Object *content = json_object_get_object(r200, "content");
+        JSON_Object *app_json =
+            json_object_get_object(content, "application/json");
+        JSON_Object *schema = json_object_get_object(app_json, "schema");
+        const char *ref = json_object_get_string(schema, "$ref");
         ASSERT_STR_EQ(("#/components/schemas/User")
                           ? ("#/components/schemas/User")
                           : "NULL",
@@ -181,8 +204,12 @@ TEST test_c2openapi_full_flow(void) {
       ASSERT(op != NULL);
       /* Check Request Body */
       {
-        const char *ref = json_object_dotget_string(
-            op, "requestBody.content.application/json.schema.$ref");
+        JSON_Object *req_body = json_object_get_object(op, "requestBody");
+        JSON_Object *content = json_object_get_object(req_body, "content");
+        JSON_Object *app_json =
+            json_object_get_object(content, "application/json");
+        JSON_Object *schema = json_object_get_object(app_json, "schema");
+        const char *ref = json_object_get_string(schema, "$ref");
         ASSERT_STR_EQ(("#/components/schemas/User")
                           ? ("#/components/schemas/User")
                           : "NULL",
@@ -541,6 +568,9 @@ TEST test_c2o_cli_source_file_checks(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -619,6 +649,9 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
@@ -660,6 +693,9 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -705,6 +741,9 @@ TEST test_c2o_cli_mappings_errors_find(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -741,6 +780,9 @@ TEST test_c2o_cli_set_str_mismatch(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -779,6 +821,9 @@ TEST test_c2o_cli_server_variables(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -818,6 +863,9 @@ TEST test_c2o_cli_server_variables_validation(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -860,6 +908,9 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   remove(c_file);
@@ -913,6 +964,9 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
@@ -977,6 +1031,9 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   int rc = c2openapi_cli_main(3, argv);
+  if (rc != 0) {
+    printf("\nERROR rc=%d\n", rc);
+  }
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {

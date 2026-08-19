@@ -28,7 +28,7 @@ TEST test_cmake_modifier_basic(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   int i;
   int rc;
   (void)f;
@@ -72,7 +72,7 @@ TEST test_cmake_modifier_global(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   int i;
   int rc;
   (void)f;
@@ -129,7 +129,7 @@ TEST test_cmake_parser_oom(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
   int i;
   int rc;
   (void)f;
@@ -148,26 +148,26 @@ TEST test_cmake_parser_oom(void) {
   }
 
   for (i = 1; i < 20; i++) {
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     rc = cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
     if (rc == 0)
       cmake_modifier_free(&mod);
   }
 
   for (i = 1; i < 20; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     (void)cmake_modifier_add_compile_opt(&mod, "/W4");
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
     cmake_modifier_free(&mod);
   }
 
   for (i = 1; i < 20; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     (void)cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
     cmake_modifier_free(&mod);
   }
 
@@ -176,9 +176,9 @@ TEST test_cmake_parser_oom(void) {
     cmake_modifier_add_compile_opt(&mod, "/W4");
     cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
 
-    g_cdd_fail_alloc = i;
+    g_cdd_alloc_fail = i;
     (void)cmake_modifier_apply_diff(&mod, &diff_str);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
     if (diff_str) {
       free(diff_str);
       diff_str = NULL;

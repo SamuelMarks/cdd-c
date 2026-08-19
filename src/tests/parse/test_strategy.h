@@ -19,7 +19,7 @@ extern "C" {
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 extern C_CDD_EXPORT int g_cdd_fail_asprintf;
 #endif
 

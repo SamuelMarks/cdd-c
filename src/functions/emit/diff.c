@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "functions/emit/diff.h"
+#include "c_cdd/format_specifiers.h"
 /* clang-format on */
 
 /** @brief DiffLine struct */
@@ -67,13 +68,13 @@ static cdd_c_error_t split_lines(const char *str, size_t len,
   if (count == 0) {
     *out_lines = NULL;
     *out_count = 0;
-    return;
+    return CDD_C_SUCCESS;
   }
 
   *out_lines = (struct DiffLine *)malloc(count * sizeof(struct DiffLine));
   if (!*out_lines) {
     *out_count = 0;
-    return;
+    return CDD_C_ERROR_MEMORY;
   }
 
   *out_count = count;
@@ -90,6 +91,7 @@ static cdd_c_error_t split_lines(const char *str, size_t len,
     (*out_lines)[line_idx].text = str + start;
     (*out_lines)[line_idx].len = len - start;
   }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -98,7 +100,8 @@ static cdd_c_error_t split_lines(const char *str, size_t len,
 static cdd_c_error_t generate_block_new_text(const struct Block *b,
                                              struct PatchList *list,
                                              const struct TokenList *tokens,
-                                             const struct DiffLine *old_lines) {
+                                             const struct DiffLine *old_lines,
+                                             char **out_text) {
   const char *block_start_ptr = old_lines[b->old_start_line - 1].text;
   const char *block_end_ptr =
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
@@ -109,8 +112,10 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
   const char *cursor = block_start_ptr;
   size_t p;
 
-  if (!res)
-    return NULL;
+  if (!res) {
+    *out_text = NULL;
+    return CDD_C_ERROR_MEMORY;
+  }
 
   for (p = b->patch_start_idx; p < b->patch_end_idx; p++) {
     struct Patch *patch = &list->patches[p];
@@ -159,7 +164,8 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
   }
 
   res[res_len] = '\0';
-  return res;
+  *out_text = res;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -201,6 +207,21 @@ static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
     *diff_len += printed;
   }
   return CDD_C_SUCCESS;
+}
+
+static size_t find_line_for_token(const struct Token *tok,
+                                  const struct DiffLine *old_lines,
+                                  size_t old_line_count) {
+  size_t i;
+  for (i = 0; i < old_line_count; i++) {
+    const char *line_start = old_lines[i].text;
+    const char *line_end = line_start + old_lines[i].len;
+    if ((const char *)tok->start >= line_start &&
+        (const char *)tok->start <= line_end) {
+      return i + 1; /* 1-based */
+    }
+  }
+  return 1;
 }
 
 /**
@@ -250,12 +271,14 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
   /* Build blocks */
   for (p = 0; p < list->size; p++) {
     struct Patch *patch = &list->patches[p];
-    size_t p_start = tokens->tokens[patch->start_token_idx].line;
+    size_t p_start = find_line_for_token(
+        &tokens->tokens[patch->start_token_idx], old_lines, old_line_count);
     size_t p_end;
     size_t ctx_start, ctx_end;
 
     if (patch->end_token_idx > patch->start_token_idx) {
-      p_end = tokens->tokens[patch->end_token_idx - 1].line;
+      p_end = find_line_for_token(&tokens->tokens[patch->end_token_idx - 1],
+                                  old_lines, old_line_count);
     } else {
       p_end = p_start;
     }
@@ -281,10 +304,10 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     }
   }
 
-    (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "--- %s
-+++ %s\\n", filename, filename);
+  (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "--- %s\n+++ %s\n",
+                       filename, filename);
 
-    for (p = 0; p < block_count; p++) {
+  for (p = 0; p < block_count; p++) {
     struct Block *b = &blocks[p];
     char *new_text;
     struct DiffLine *new_lines = NULL;
@@ -292,28 +315,33 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     size_t i;
     size_t min_mod_line, max_mod_line, keep_start_count, keep_end_count;
 
-    new_text = generate_block_new_text(b, list, tokens, old_lines);
+    cdd_c_error_t rc;
+    new_text = NULL;
+    rc = generate_block_new_text(b, list, tokens, old_lines, &new_text);
 
-    if (!new_text)
+    if (rc != CDD_C_SUCCESS || !new_text)
       break;
     (void)split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
 
     (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                         "@@ -%" CDD_SIZE_T_FMT ",%" CDD_SIZE_T_FMT
-                         " +%" CDD_SIZE_T_FMT ",%" CDD_SIZE_T_FMT " @@\\n",
+                         "@@ -%" CDD_PRIz ",%" CDD_PRIz " +%" CDD_PRIz
+                         ",%" CDD_PRIz " @@\n",
                          (size_t)b->old_start_line,
                          (size_t)(b->old_end_line - b->old_start_line + 1),
                          (size_t)(b->old_start_line + current_line_delta),
                          (size_t)new_line_count);
 
-    min_mod_line =
-        tokens->tokens[list->patches[b->patch_start_idx].start_token_idx].line;
+    min_mod_line = find_line_for_token(
+        &tokens->tokens[list->patches[b->patch_start_idx].start_token_idx],
+        old_lines, old_line_count);
     if (list->patches[b->patch_end_idx - 1].end_token_idx > 0) {
-      max_mod_line =
-          tokens->tokens[list->patches[b->patch_end_idx - 1].end_token_idx - 1]
-              .line;
+      max_mod_line = find_line_for_token(
+          &tokens
+               ->tokens[list->patches[b->patch_end_idx - 1].end_token_idx - 1],
+          old_lines, old_line_count);
     } else {
-      max_mod_line = tokens->tokens[0].line;
+      max_mod_line =
+          find_line_for_token(&tokens->tokens[0], old_lines, old_line_count);
     }
     if (max_mod_line < min_mod_line)
       max_mod_line = min_mod_line;
@@ -328,8 +356,8 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
       (void)append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
                            (int)old_lines[i - 1].len, old_lines[i - 1].text);
       if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "
-\\ No newline at end of file\\n");
+        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
+                             "\n\\ No newline at end of file\n");
       }
     }
 
@@ -337,8 +365,8 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
       (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
                            (int)old_lines[i - 1].len, old_lines[i - 1].text);
       if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "
-\\ No newline at end of file\\n");
+        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
+                             "\n\\ No newline at end of file\n");
       }
     }
 
@@ -346,8 +374,8 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
       (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s",
                            (int)new_lines[i].len, new_lines[i].text);
       if (new_lines[i].text[new_lines[i].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "
-\\ No newline at end of file\\n");
+        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
+                             "\n\\ No newline at end of file\n");
       }
     }
 
@@ -355,24 +383,25 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
       (void)append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
                            (int)old_lines[i - 1].len, old_lines[i - 1].text);
       if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "
-\\ No newline at end of file\\n");
+        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
+                             "\n\\ No newline at end of file\n");
       }
     }
 
     current_line_delta +=
         new_line_count - (b->old_end_line - b->old_start_line + 1);
 
-    free(new_text);
+    if (new_text)
+      free(new_text);
     if (new_lines)
       free(new_lines);
-}
+  }
 
-if (blocks)
-  free(blocks);
-if (old_lines)
-  free(old_lines);
+  if (old_lines)
+    free(old_lines);
+  if (blocks)
+    free(blocks);
 
   *out_diff = diff_str;
-  return 0;
+  return CDD_C_SUCCESS;
 }

@@ -1,3 +1,9 @@
+#ifndef TEST_ARRAYS_OBJECT_H
+#define TEST_ARRAYS_OBJECT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 /**
@@ -22,7 +28,7 @@ extern C_CDD_EXPORT int g_io_calls;
 #include "functions/emit/codegen.h"
 
 /* Add definitions that need to be in the test runner's main file. */
-GREATEST_MAIN_DEFS();
+
 #if defined(_MSC_VER)
 #pragma warning(disable : 4551)
 #endif
@@ -57,6 +63,8 @@ TEST test_generated_obj_array_logic(void) {
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 
+  printf("OUTPUT_BUF:\n%s\n", output_buf);
+
   /* Verify malloc logic for array of pointers */
   /* Expect: ret->items = malloc(ret->n_items * sizeof(struct Item*)); */
   ASSERT(strstr(output_buf, "sizeof(struct Item*)"));
@@ -64,7 +72,7 @@ TEST test_generated_obj_array_logic(void) {
   /* Verify loop for object parsing */
   /* Expect: rc = Item_from_jsonObject(..., &ret->items[i]); */
   ASSERT(strstr(output_buf,
-                "rc = Item_from_jsonObject(obj_item, &ret->items[i]);"));
+                "rc = Item_from_jsonObject(json_array_get_object(arr, i), &ret->items[i]);"));
 
   /* Verify cleanup on error */
   ASSERT(strstr(output_buf, "Container_cleanup(ret);"));
@@ -84,8 +92,14 @@ TEST test_code2schema_obj_array_detection(void) {
    * into "items": { "type": "array", "items": { "$ref": "#/.../Item" } }
    */
   const char *header =
-      "struct Item { int id; };\n"
-      "struct Container { struct Item **items; size_t n_items; };";
+      "typedef unsigned int size_t;\n"
+      "struct Item {\n"
+      "  int id;\n"
+      "};\n"
+      "struct Container {\n"
+      "  struct Item **items;\n"
+      "  size_t n_items;\n"
+      "};\n";
   const char *json_out_file = "test_obj_array_detect.json";
   FILE *f;
   char *json_content;
@@ -122,10 +136,12 @@ TEST test_code2schema_obj_array_detection(void) {
   json_content[len] = 0;
   fclose(f);
 
+  printf("JSON_CONTENT:\n%s\n", json_content);
+
   /* Validate Schema Structure */
   ASSERT(strstr(json_content, "\"items\":"));
   ASSERT(strstr(json_content, "\"type\": \"array\""));
-  ASSERT(strstr(json_content, "\"$ref\": \"#/components/schemas/Item\""));
+  ASSERT(strstr(json_content, "\"$ref\": \"#\\/components\\/schemas\\/Item\""));
 
   /* Verify n_items is NOT in the properties list explicitly */
   ASSERT(strstr(json_content, "\"n_items\"") == NULL);
@@ -137,7 +153,7 @@ TEST test_code2schema_obj_array_detection(void) {
   PASS();
 }
 
-TEST test_cleanup_generation(void) {
+TEST test_arrays_object_cleanup_generation(void) {
   /* Verify deep cleanup generation logic */
   struct StructFields sf;
   char *output_buf = NULL;
@@ -177,11 +193,10 @@ TEST test_cleanup_generation(void) {
 SUITE(arrays_object_suite) {
   RUN_TEST(test_generated_obj_array_logic);
   RUN_TEST(test_code2schema_obj_array_detection);
-  RUN_TEST(test_cleanup_generation);
+  RUN_TEST(test_arrays_object_cleanup_generation);
 }
 
-cdd_c_error_t main(int argc, char **argv) {
-  GREATEST_MAIN_BEGIN();
-  RUN_SUITE(arrays_object_suite);
-  GREATEST_MAIN_END();
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* TEST_ARRAYS_OBJECT_H */

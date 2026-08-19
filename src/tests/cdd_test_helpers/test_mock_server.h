@@ -258,15 +258,15 @@ TEST test_mock_server_errors(void) {
 
 #ifndef _WIN32
 #ifndef _WIN32
-SUITE(mock_server_suite) {
+SUITE(c_cdd_mock_server_suite) {
   RUN_TEST(test_mock_server_basic);
   RUN_TEST(test_mock_server_errors);
 }
 #else
-SUITE(mock_server_suite) {}
+SUITE(c_cdd_mock_server_suite) {}
 #endif
 #else
-SUITE(mock_server_suite) {}
+SUITE(c_cdd_mock_server_suite) {}
 #endif
 
 #ifdef __cplusplus

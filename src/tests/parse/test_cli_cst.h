@@ -231,10 +231,10 @@ TEST test_cli_cst_process_errors(void) {
     g_cdd_alloc_fail = 0;
 
     for (i = 1; i <= 500; i++) {
-      g_cdd_cst_alloc_token_fail = i;
+      g_cdd_cst_alloc_node_fail = i;
       cli_cst_transformer_main(3, argv_fix);
     }
-    g_cdd_cst_alloc_token_fail = 0;
+    g_cdd_cst_alloc_node_fail = 0;
 
     for (i = 1; i <= 500; i++) {
       g_cdd_cst_alloc_node_fail = i;

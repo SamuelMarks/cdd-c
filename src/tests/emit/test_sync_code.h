@@ -386,7 +386,7 @@ TEST test_sync_oom(void) {
   {
     const char *argv[] = {"header.h", "impl.c"};
     FILE *f;
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
     extern C_CDD_EXPORT int g_cdd_fprintf_fail;
     int rc_s;
     int rc_s2;
@@ -419,7 +419,7 @@ TEST test_sync_oom(void) {
     rc_s2 = sync_code_main(2, (char **)argv);
     g_cdd_fprintf_fail = 0;
     ASSERT_EQ(0, rc_s2);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     remove("header.h");
   }

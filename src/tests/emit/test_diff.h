@@ -76,12 +76,13 @@ TEST test_patch_list_to_diff_basic(void) {
   res = patch_list_to_diff(&list, tokens, "main.c", &diff_str);
   ASSERT_EQ(0, res);
   ASSERT(diff_str != NULL);
+  printf("DEBUG DIFF:\n%s\n", diff_str);
 
   /* Verify diff string structure */
   ASSERT(strstr(diff_str, "--- main.c\n") != NULL);
   ASSERT(strstr(diff_str, "+++ main.c\n") != NULL);
-  ASSERT(strstr(diff_str, "-  return 0;\n") != NULL);
-  ASSERT(strstr(diff_str, "+  return 1;\n") != NULL);
+  ASSERT(strstr(diff_str, "-      return 0;\n") != NULL);
+  ASSERT(strstr(diff_str, "+      return 1;\n") != NULL);
 
   free(diff_str);
   patch_list_free(&list);

@@ -279,11 +279,13 @@ TEST test_cdd_cst_emit_oom_multi(void) {
 TEST test_cdd_cst_emit_empty_oom(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
-  extern C_CDD_EXPORT int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
-  g_cdd_fail_alloc = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
-  g_cdd_fail_alloc = 0;
+  g_cdd_alloc_fail = 1;
+  cdd_c_error_t rc_debug = cdd_cst_emit(&tree, &out);
+  printf("DEBUG cdd_cst_emit returned %d\n", rc_debug);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_debug);
+  g_cdd_alloc_fail = 0;
   g_fail_io_after = -1;
 
   PASS();

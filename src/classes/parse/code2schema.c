@@ -6244,6 +6244,46 @@ static cdd_c_error_t parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
   return CDD_C_SUCCESS;
 }
 
+static cdd_c_error_t collapse_arrays(struct StructFields *sf) {
+  size_t i, j;
+  if (!sf)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  for (i = 0; i < sf->size; ++i) {
+    printf("DEBUG FIELD[%zu]: name='%s', type='%s', ref='%s'\n", i,
+           sf->fields[i].name, sf->fields[i].type, sf->fields[i].ref);
+  }
+  for (i = 0; i < sf->size; ++i) {
+    if (strncmp(sf->fields[i].name, "n_", 2) == 0) {
+      const char *base_name = sf->fields[i].name + 2;
+      for (j = 0; j < sf->size; ++j) {
+        if (strcmp(sf->fields[j].name, base_name) == 0) {
+          /* Found a match! sf->fields[j] is the array, sf->fields[i] is the
+           * length */
+          if (strcmp(sf->fields[j].type, "array") != 0) {
+            if (strcmp(sf->fields[j].type, "string") == 0) {
+              strcpy(sf->fields[j].type, "array");
+              strcpy(sf->fields[j].ref, "string");
+            } else if (strcmp(sf->fields[j].type, "object") == 0) {
+              strcpy(sf->fields[j].type, "array");
+              /* keep existing ref for objects */
+            } else {
+              strcpy(sf->fields[j].ref, sf->fields[j].type);
+              strcpy(sf->fields[j].type, "array");
+            }
+          }
+          /* Remove the n_ field */
+          memmove(&sf->fields[i], &sf->fields[i + 1],
+                  (sf->size - i - 1) * sizeof(struct StructField));
+          sf->size--;
+          i--; /* Adjust index since we removed a field */
+          break;
+        }
+      }
+    }
+  }
+  return CDD_C_SUCCESS;
+}
+
 cdd_c_error_t code2schema_main(int argc, char **argv) {
   FILE *fp;
   char line[MAX_LINE_LENGTH];
@@ -6320,9 +6360,44 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 sp++;
               if (*sp == '}')
                 break;
+              if (strncmp(sp, "struct {", 8) == 0 ||
+                  strncmp(sp, "struct{", 7) == 0) {
+                /* Start nested struct */
+                struct StructFields nested_sf;
+                char nested_name[128];
+                char nested_prop_name[64] = {0};
+                struct_fields_init(&nested_sf);
+                while (read_line(fp, subline, sizeof(subline))) {
+                  char *nsp = subline;
+                  while (isspace((unsigned char)*nsp))
+                    nsp++;
+                  if (*nsp == '}') {
+                    /* extract name */
+                    char *semi = strchr(nsp, ';');
+                    if (semi)
+                      *semi = 0;
+                    nsp++;
+                    while (isspace((unsigned char)*nsp))
+                      nsp++;
+                    strcpy(nested_prop_name, nsp);
+                    break;
+                  }
+                  if (*nsp)
+                    parse_struct_member_line(nsp, &nested_sf);
+                }
+                sprintf(nested_name, "%s_%s", struct_name, nested_prop_name);
+                (void)collapse_arrays(&nested_sf);
+                write_struct_to_json_schema(schemas_obj, nested_name,
+                                            &nested_sf);
+                struct_fields_add(&sf, nested_prop_name, "object", nested_name,
+                                  NULL, NULL);
+                struct_fields_free(&nested_sf);
+                continue;
+              }
               if (*sp)
                 parse_struct_member_line(sp, &sf);
             }
+            (void)collapse_arrays(&sf);
             write_struct_to_json_schema(schemas_obj, struct_name, &sf);
             struct_fields_free(&sf);
           }

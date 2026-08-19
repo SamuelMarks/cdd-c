@@ -162,14 +162,14 @@ TEST test_cdd_cst_trivia_generate(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 
 TEST test_cdd_cst_trivia_oom(void) {
   cdd_cst_format_config_t config = {0};
   cdd_trivia_t *out = NULL;
   int rc_tmp, rc_tmp3;
 
-  g_cdd_cst_alloc_token_fail = 1;
+  g_cdd_cst_alloc_node_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   if (rc_tmp != CDD_C_ERROR_MEMORY) {
     printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
@@ -177,7 +177,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   }
   ASSERT(rc_tmp != 0);
 
-  g_cdd_cst_alloc_token_fail = 2;
+  g_cdd_cst_alloc_node_fail = 2;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   if (rc_tmp != CDD_C_ERROR_MEMORY) {
     printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
@@ -185,10 +185,10 @@ TEST test_cdd_cst_trivia_oom(void) {
   }
   ASSERT(rc_tmp != 0);
 
-  g_cdd_cst_alloc_token_fail = 3;
+  g_cdd_cst_alloc_node_fail = 3;
   rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
-  g_cdd_cst_alloc_token_fail = 0;
+  g_cdd_cst_alloc_node_fail = 0;
   g_fail_io_after = -1;
 
   PASS();

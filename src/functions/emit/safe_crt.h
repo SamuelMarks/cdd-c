@@ -3,8 +3,8 @@
  * @brief CST Transformer for Safe CRT functions (e.g. strcpy_s).
  */
 
-#ifndef C_CDD_SAFE_CRT_H
-#define C_CDD_SAFE_CRT_H
+#ifndef C_CDD_FUNCTIONS_EMIT_SAFE_CRT_H
+#define C_CDD_FUNCTIONS_EMIT_SAFE_CRT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,7 +50,7 @@ struct SafeCrtPatchList {
 C_CDD_EXPORT /**
               * @brief Executes the safe crt patch list init operation.
               */
-    void
+    cdd_c_error_t
     safe_crt_patch_list_init(struct SafeCrtPatchList *list);
 C_CDD_EXPORT /**
               * @brief Executes the safe crt patch list free operation.
@@ -79,4 +79,4 @@ C_CDD_EXPORT /**
 }
 #endif /* __cplusplus */
 
-#endif /* C_CDD_SAFE_CRT_H */
+#endif /* C_CDD_FUNCTIONS_EMIT_SAFE_CRT_H */

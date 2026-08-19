@@ -192,7 +192,7 @@ TEST test_propagate_ptr_assignment2(void) {
   fflush(stdout);
 
   ASSERT(strstr(output, "rc =my_strdup(\"a\", &s);") != NULL ||
-         strstr(output, "rc2 = my_strdup(\"a\", &s);") != NULL);
+         strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
@@ -311,8 +311,8 @@ TEST test_propagate_ptr_assignment(void) {
   rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
   ASSERT_EQ(0, rc2);
 
-  /* s = my_strdup(\"a\") -> rc2 = my_strdup("a", &s); if(rc) ... */
-  ASSERT(strstr(output, "rc2 = my_strdup(\"a\", &s);") != NULL);
+  /* s = my_strdup(\"a\") -> rc = my_strdup("a", &s); if(rc) ... */
+  ASSERT(strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
@@ -439,7 +439,7 @@ TEST test_propagate_ptr_declaration(void) {
   /* char *s = ... -> char *s ; = my_strdup("a", &s); ... */
   /* Logic: split decl `char *s` and call */
   ASSERT(strstr(output, "char *s") != NULL);
-  ASSERT(strstr(output, "; rc2 = my_strdup(\"a\", &s);") != NULL);
+  ASSERT(strstr(output, "; rc = my_strdup(\"a\", &s);") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -562,9 +562,9 @@ TEST test_propagate_nested_hoisting(void) {
   rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
   ASSERT_EQ(0, rc2);
 
-  /* Should hoist: char *tmp; rc2 = inner("x", &tmp); if(rc)... outer(tmp); */
+  /* Should hoist: char *tmp; rc = inner("x", &tmp); if(rc)... outer(tmp); */
   ASSERT(strstr(output, "char * _tmp_cdd_0;") != NULL);
-  ASSERT(strstr(output, "rc2 = inner(\"x\", &_tmp_cdd_0);") != NULL);
+  ASSERT(strstr(output, "rc = inner(\"x\", &_tmp_cdd_0);") != NULL);
   ASSERT(strstr(output, "outer(_tmp_cdd_0);") != NULL);
 
   free(output);
@@ -691,10 +691,10 @@ TEST test_integration_safety_and_prop(void) {
   ASSERT_EQ(0, rc2);
 
   printf("OUTPUT: %s\n", output);
-  ASSERT(strstr(output, "cdd_c_error_t rc2 = CDD_C_SUCCESS;") != NULL);
+  ASSERT(strstr(output, "cdd_c_error_t rc = CDD_C_SUCCESS;") != NULL);
   /* Malloc analysis finding check so no injection */
   /* do_work rewritten */
-  ASSERT(strstr(output, "rc2 = do_work();") != NULL);
+  ASSERT(strstr(output, "rc = do_work();") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -1057,27 +1057,27 @@ TEST test_rewriter_body_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
     int rc_oom_rb1;
-    g_cdd_fail_alloc = 1;
+    g_cdd_alloc_fail = 1;
     rc_oom_rb1 = rewrite_body(tl, &sites, funcs2, 1, NULL, &output);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom_rb1);
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     /* ignore */
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     /* ignore */
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     /* ignore */
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     /* ignore */
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
 
     /* ignore */
-    g_cdd_fail_alloc = 0;
+    g_cdd_alloc_fail = 0;
   }
 #endif
 
@@ -1550,11 +1550,12 @@ TEST test_propagate_nested_parens(void) {
 
   rc2 = run_body_rewrite(input, funcs2, 1, NULL, &output);
   ASSERT_EQ(0, rc2);
+  printf("\nOUTPUT: %s\n", output);
 
-  ASSERT(strstr(output, "rc2 = inner((1 + 2));") != NULL ||
-         strstr(output, "rc2 = inner ((1 + 2));") != NULL ||
-         strstr(output, "rc2 = inner((1 + 2) , &tmp);") != NULL ||
-         strstr(output, "rc2 = inner ((1 + 2) , &tmp);") != NULL);
+  ASSERT(strstr(output, "rc = inner((1 + 2));") != NULL ||
+         strstr(output, "rc = inner ((1 + 2));") != NULL ||
+         strstr(output, "rc = inner((1 + 2) , &tmp);") != NULL ||
+         strstr(output, "rc = inner ((1 + 2) , &tmp);") != NULL);
 
   free(output);
   g_fail_io_after = -1;

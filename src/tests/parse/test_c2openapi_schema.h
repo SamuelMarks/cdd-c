@@ -20,6 +20,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "classes/emit/schema.h"
 #include "classes/parse/inspector.h"
+#include "routes/parse/cli.h"
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */

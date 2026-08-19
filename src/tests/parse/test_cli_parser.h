@@ -99,7 +99,10 @@ TEST test_cli_parser_mappings(void) {
   PASS();
 }
 
-SUITE(cli_parser_suite) { RUN_TEST(test_cli_parser_getopt); }
+SUITE(cli_parser_suite) {
+  RUN_TEST(test_cli_parser_getopt);
+  RUN_TEST(test_cli_parser_mappings);
+}
 
 #ifdef __cplusplus
 }

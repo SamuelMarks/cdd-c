@@ -44,7 +44,7 @@ struct CliCommand {
 C_CDD_EXPORT /**
               * @brief Executes the cli command init operation.
               */
-    void
+    cdd_c_error_t
     cli_command_init(struct CliCommand *cmd);
 
 /**

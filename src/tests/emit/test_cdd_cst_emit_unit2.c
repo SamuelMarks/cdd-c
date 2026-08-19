@@ -2,7 +2,7 @@
 #include "c_cdd_export.h"
 #include <stdlib.h>
 /* clang-format on */
-extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
 
 /* Mmm, we shouldn't define this here, we can't easily mock malloc since other
  * things use it, but wait! We can define a test specific cdd_cst_emit function
