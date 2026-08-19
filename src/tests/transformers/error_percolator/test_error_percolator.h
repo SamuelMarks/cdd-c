@@ -373,7 +373,8 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
     if (rc == 0) {
       printf("Found %" CDD_PRIz " functions at i=%d\n", res_test.size, i);
       /*
-      for (size_t k = 0; k < res_test.size; k++) {
+      size_t k;
+      for (k = 0; k < res_test.size; k++) {
          printf("Func %" CDD_PRIz "\n", k);
       }
       */

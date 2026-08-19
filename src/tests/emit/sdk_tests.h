@@ -37,7 +37,19 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
     return -1;
   va_start(args, fmt);
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
   ret = vfprintf(fp, fmt, args);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
   va_end(args);
   return ret;
 }

@@ -153,7 +153,8 @@ TEST test_c2openapi_full_flow(void) {
         printf("FAILED to find User in schemas!\n");
         size_t num = json_object_get_count(schemas);
         printf("Schemas has %zu items. Keys:\n", num);
-        for (size_t i = 0; i < num; ++i) {
+        size_t i;
+        for (i = 0; i < num; ++i) {
           printf("  '%s'\n", json_object_get_name(schemas, i));
         }
       }

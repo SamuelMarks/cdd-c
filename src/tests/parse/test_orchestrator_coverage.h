@@ -168,6 +168,7 @@ SUITE(orchestrator_coverage_suite) {
   RUN_TEST(test_orchestrator_coverage_fix_file);
   RUN_TEST(test_orchestrator_coverage_oom_deep);
   RUN_TEST(test_orchestrator_coverage_fix_dir_no_inplace_1arg);
+  RUN_TEST(test_orchestrator_coverage_fix_file_1arg);
   RUN_TEST(test_orchestrator_coverage_fix_dir_errors);
   RUN_TEST(test_orchestrator_coverage_fix_file_failures);
   RUN_TEST(test_orchestrator_coverage_fix_file_failures_2);

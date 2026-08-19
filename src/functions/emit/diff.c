@@ -188,7 +188,19 @@ static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   printed = _vscprintf(format, args);
 #else
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
   printed = vsnprintf(NULL, 0, format, args);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #endif
   va_end(args);
 
@@ -201,7 +213,19 @@ static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     vsprintf_s(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
 #else
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
     vsprintf(*diff_str + *diff_len, format, args);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #endif
     va_end(args);
     *diff_len += printed;
