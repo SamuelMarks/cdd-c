@@ -195,7 +195,7 @@ endif()
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 
 if(MSVC)
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 )
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /wd4701 )
 else()
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -pedantic  -Wdeclaration-after-statement -Wno-long-long)
     if(CMAKE_C_COMPILER_ID MATCHES "AppleClang")
@@ -255,7 +255,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115;-Gy;-wd4701>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
@@ -295,7 +295,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<${gcc_like}:$<BUILD_INTERFACE:;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115;-Gy;-wd4701>>"
     )
 endif ()
 
@@ -538,3 +538,7 @@ if (DOXYGEN_FOUND)
     )
 endif()
 message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
+
+if(MSVC)
+    target_link_options("${PROJECT_NAME}_compiler_flags" INTERFACE /NODEFAULTLIB:LIBCMTD)
+endif()

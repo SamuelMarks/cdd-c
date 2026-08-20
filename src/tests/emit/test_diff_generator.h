@@ -84,8 +84,7 @@ TEST test_diff_generation_basic(void) {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 5555;
     {
-      cdd_c_error_t rc =
-          patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2);
+      rc = patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2);
       g_cdd_fail_alloc = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
@@ -111,8 +110,7 @@ TEST test_diff_generation_basic(void) {
     diff3 = NULL;
     g_cdd_fail_alloc = 7777;
     {
-      cdd_c_error_t rc =
-          patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3);
+      rc = patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3);
       g_cdd_fail_alloc = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
@@ -127,8 +125,7 @@ TEST test_diff_generation_basic(void) {
     diff3 = NULL;
     g_cdd_fail_alloc = 6666;
     {
-      cdd_c_error_t rc =
-          patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3);
+      rc = patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3);
       g_cdd_fail_alloc = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }

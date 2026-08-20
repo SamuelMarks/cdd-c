@@ -481,7 +481,7 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
 
   /* Also test the leak paths (lead without t_first) */
   {
-    cdd_cst_node_t *empty_node;
+    cdd_cst_node_t *empty_node = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
     cdd_cst_transfer_trivia(
         replacement_node,
@@ -1193,7 +1193,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   b.error_state = 0;
 
   {
-    cdd_cst_node_t *dummy;
+    cdd_cst_node_t *dummy = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &dummy);
     g_cdd_cst_realloc_fail = 1;
     rc = cdd_cst_quote(&b, "int %n;", dummy);
@@ -1254,7 +1254,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_bld_block_comment(&b, "/* comment */");
 
   {
-    cdd_cst_node_t *parent_node;
+    cdd_cst_node_t *parent_node = NULL;
     cdd_trivia_t *triv;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
     cdd_cst_append_child_node(parent_node, b.target_node);
@@ -1424,7 +1424,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   {
     /* Test extract trivia from node with NO tokens */
-    cdd_cst_node_t *empty_node;
+    cdd_cst_node_t *empty_node = NULL;
     cdd_trivia_t *tr = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
     cdd_cst_extract_leading_trivia(empty_node, &tr);

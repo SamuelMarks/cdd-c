@@ -129,7 +129,7 @@ set_target_properties(
         LINKER_LANGUAGE
         C
 )
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}" parson::parson)
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 if (C_CDD_USE_ASAN)

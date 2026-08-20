@@ -26,11 +26,9 @@ extern "C" {
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/socket.h>
-#ifndef _MSC_VER
-#ifndef _MSC_VER
+#ifndef _WIN32
 #include <unistd.h>
-#endif /* _MSC_VER */
-#endif /* _MSC_VER */
+#endif
 #endif
 
 extern C_CDD_EXPORT int g_socket_fail;
@@ -45,11 +43,9 @@ static int http_get(int port);
 __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 #define USLEEP(x) Sleep((x) / 1000)
 #else
-#ifndef _MSC_VER
-#ifndef _MSC_VER
+#ifndef _WIN32
 #include <unistd.h>
-#endif /* _MSC_VER */
-#endif /* _MSC_VER */
+#endif
 #define USLEEP(x) usleep(x)
 #endif
 static void *background_http_get(void *arg) {

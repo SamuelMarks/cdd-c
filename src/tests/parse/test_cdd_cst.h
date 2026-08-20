@@ -537,7 +537,7 @@ extern cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok);
 TEST test_cdd_cst_peek_advance_eof(void) {
   parser_state_t s = {0};
   cdd_token_t *tok = NULL;
-  cdd_token_list_t *tl;
+  cdd_token_list_t *tl = NULL;
   cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   s.list = tl;
   s.pos = tl->size; /* Move past end */

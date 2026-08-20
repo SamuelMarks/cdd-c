@@ -5,14 +5,10 @@
 
 /* clang-format off */
 #include "functions/parse/crypto_types.h"
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#if defined(_MSC_VER) && _MSC_VER < 1800
 #include "msvc/stdint.h"
 #else
-#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdint.h>
-#else
-#include "msvc/stdint.h"
-#endif /* _MSC_VER */
 #endif
 #include <string.h>
 

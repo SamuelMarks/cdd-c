@@ -25,17 +25,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#ifdef _WIN32
-#include <io.h>
-#else
-#if defined(_MSC_VER)
-#include <io.h>
-#else
-#ifndef _MSC_VER
 #include <unistd.h>
-#endif /* _MSC_VER */
-#endif
-#endif
 #endif
 #endif
 

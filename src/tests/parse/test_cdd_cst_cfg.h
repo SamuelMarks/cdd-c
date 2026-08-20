@@ -44,7 +44,7 @@ TEST test_cdd_cst_cfg_basic(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node;
+  cdd_cst_node_t *dummy_node = NULL;
   cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
   cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
@@ -169,7 +169,7 @@ TEST test_cdd_cst_cfg_empty(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node;
+  cdd_cst_node_t *dummy_node = NULL;
   cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
   cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
@@ -212,7 +212,7 @@ TEST test_cdd_cst_cfg_no_return(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node;
+  cdd_cst_node_t *dummy_node = NULL;
   cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
   cdd_cst_append_child_node(func, dummy_node);
   rc = cdd_cst_cfg_build(func, &cfg);
@@ -249,7 +249,7 @@ TEST test_cdd_cst_cfg_extra(void) {
     int i;
     for (i = 1; i < 100; ++i) {
       g_cdd_cfg_alloc_fail = i;
-      cdd_cst_node_t *dummy_node;
+      cdd_cst_node_t *dummy_node = NULL;
       cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
       cdd_cst_append_child_node(func, dummy_node);
       rc = cdd_cst_cfg_build(func, &cfg);

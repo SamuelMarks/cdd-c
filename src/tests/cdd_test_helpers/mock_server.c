@@ -95,11 +95,7 @@ static cdd_c_error_t platform_cleanup(void) {
 #ifdef _WIN32
 #include <io.h>
 #else
-#ifndef _MSC_VER
-#ifndef _MSC_VER
 #include <unistd.h>
-#endif /* _MSC_VER */
-#endif /* _MSC_VER */
 #endif
 /* clang-format on */
 

@@ -2025,16 +2025,16 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   {
-    cdd_c_error_t rc;
-    rc = get_dirname(config->filename_base, &dir_name);
-    if (rc != CDD_C_SUCCESS) {
-      return rc;
+    cdd_c_error_t _rc;
+    _rc = get_dirname(config->filename_base, &dir_name);
+    if (_rc != CDD_C_SUCCESS) {
+      return _rc;
     }
-    rc = get_basename(config->filename_base, &base_name);
-    if (rc != CDD_C_SUCCESS) {
+    _rc = get_basename(config->filename_base, &base_name);
+    if (_rc != CDD_C_SUCCESS) {
       if (dir_name)
         free(dir_name);
-      return rc;
+      return _rc;
     }
   }
 

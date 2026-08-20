@@ -23,19 +23,7 @@ extern "C" {
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
-#if defined(_MSC_VER)
-#include <io.h>
-#else
-#ifdef _WIN32
-#include <io.h>
-#else
-#ifndef _MSC_VER
-#ifndef _MSC_VER
 #include <unistd.h>
-#endif /* _MSC_VER */
-#endif /* _MSC_VER */
-#endif
-#endif
 #endif
 /* clang-format on */
 

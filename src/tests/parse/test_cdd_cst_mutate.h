@@ -95,10 +95,10 @@ TEST test_cdd_cst_mutate_replace(void) {
 
   /* Test find_first_token_mutate recursion */
   {
-    cdd_cst_node_t *nested_parent;
-    cdd_cst_node_t *nested_child;
-    cdd_cst_node_t *replacement;
-    cdd_cst_node_t *grandparent;
+    cdd_cst_node_t *nested_parent = NULL;
+    cdd_cst_node_t *nested_child = NULL;
+    cdd_cst_node_t *replacement = NULL;
+    cdd_cst_node_t *grandparent = NULL;
     cdd_token_t tok = {0};
     tok.kind = CDD_TOKEN_IDENTIFIER;
     tok.start = (const uint8_t *)"nested";
@@ -108,7 +108,7 @@ TEST test_cdd_cst_mutate_replace(void) {
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_parent);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_child);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &replacement);
-    cdd_cst_node_t *empty_child;
+    cdd_cst_node_t *empty_child = NULL;
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_child);
     cdd_cst_node_t *empty_clone = NULL;
     ASSERT_EQ(0, cdd_cst_clone_tree(tree, empty_child, &empty_clone));
@@ -516,7 +516,7 @@ TEST test_cdd_cst_insert_node_after_success(void) {
 
   /* Capacity expansion */
   {
-    cdd_cst_node_t *child3;
+    cdd_cst_node_t *child3 = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &child3);
     parent->capacity = parent->num_children; /* Force expansion */
     ASSERT_EQ(0, cdd_cst_insert_node_after(child1, child3));
@@ -602,7 +602,7 @@ TEST test_cdd_cst_detach_node_success(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, NULL));
 
   {
-    cdd_cst_node_t *orphan;
+    cdd_cst_node_t *orphan = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &orphan);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_detach_node(tree, orphan));
 
@@ -632,9 +632,9 @@ TEST test_cdd_cst_detach_node_success(void) {
   PASS();
 }
 TEST test_cdd_cst_remove_child_success(void) {
-  cdd_cst_node_t *parent;
-  cdd_cst_node_t *child1;
-  cdd_cst_node_t *child2;
+  cdd_cst_node_t *parent = NULL;
+  cdd_cst_node_t *child1 = NULL;
+  cdd_cst_node_t *child2 = NULL;
 
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent);
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &child1);

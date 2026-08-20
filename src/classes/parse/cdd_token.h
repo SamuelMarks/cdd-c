@@ -17,15 +17,11 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #else
-#if !defined(_MSC_VER) || _MSC_VER >= 1800
-#if !defined(_MSC_VER) || _MSC_VER >= 1800
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#include "msvc/stdint.h"
+#else
 #include <stdint.h>
-#else
-#include "msvc/stdint.h"
-#endif /* _MSC_VER */
-#else
-#include "msvc/stdint.h"
-#endif /* _MSC_VER */
+#endif
 #endif
 /* clang-format on */
 
