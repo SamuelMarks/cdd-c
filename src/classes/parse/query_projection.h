@@ -5,6 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <stddef.h>
 
@@ -23,11 +24,13 @@ typedef struct {
   cdd_c_query_projection_field_t *fields;
 } cdd_c_query_projection_t;
 
-cdd_c_error_t cdd_c_query_projection_init(cdd_c_query_projection_t *proj);
-cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
+cdd_c_query_projection_init(cdd_c_query_projection_t *proj);
+C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
                                  const cdd_c_query_projection_field_t *field);
-cdd_c_error_t cdd_c_query_projection_free(cdd_c_query_projection_t *proj);
+C_CDD_EXPORT cdd_c_error_t
+cdd_c_query_projection_free(cdd_c_query_projection_t *proj);
 
 #ifdef __cplusplus
 }

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd_export.h"
 #include "functions/parse/main.h"
 #include "routes/parse/cli_cst.h"
 #include "c_cddConfig.h"
@@ -37,11 +38,11 @@
 #include <parson.h>
 /* clang-format on */
 
-cdd_c_error_t print_version(void);
-cdd_c_error_t handle_audit(int argc, char **argv);
-cdd_c_error_t print_help(const char *program_name);
+C_CDD_EXPORT cdd_c_error_t print_version(void);
+C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv);
+C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name);
 
-cdd_c_error_t print_version(void) {
+C_CDD_EXPORT cdd_c_error_t print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
 
@@ -97,7 +98,7 @@ cdd_c_error_t print_version(void) {
  * @param[in] argv Argument values containing the directory path
  * @return EXIT_SUCCESS or the error code from audit_project
  */
-cdd_c_error_t handle_audit(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
@@ -114,7 +115,7 @@ cdd_c_error_t handle_audit(int argc, char **argv) {
  *
  * @param[in] program_name The program executable name (usually argv[0])
  */
-cdd_c_error_t print_help(const char *program_name) {
+C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", program_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
@@ -172,7 +173,7 @@ cdd_c_error_t print_help(const char *program_name) {
  * @param[in] argv Argument values for the command execution
  * @return EXIT_SUCCESS if code generation completes without error
  */
-cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
   const char *out_dir = NULL;
@@ -316,7 +317,7 @@ cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  * options
  * @return EXIT_SUCCESS if parsing and serialization succeed
  */
-cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   const char *input_dir =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
   const char *out_file =
@@ -392,13 +393,13 @@ cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
  * @param[in] argv Passed straight from application main.
  * @return Returns an exit code (0 for success, non-zero for failure).
  */
-cdd_c_error_t cdd_main(int argc, char **argv);
+C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv);
 /**
  * @brief Main entry point dispatcher execution logic.
  *
  * Implements the command routing and prints help or error outputs as needed.
  */
-cdd_c_error_t cdd_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
   const char *cmd;
 

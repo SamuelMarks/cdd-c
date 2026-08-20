@@ -5375,7 +5375,7 @@ static cdd_c_error_t load_base_spec(const char *path,
 /**
  * @brief Executes the c2openapi cli main operation.
  */
-cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
   struct OpenAPI_Spec spec;
   const char *src_dir;
   const char *out_file;
@@ -5513,7 +5513,7 @@ cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 /**
  * @brief Executes the to docs json cli main operation.
  */
-cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   const char *input_file =
       getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   int no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
@@ -5652,7 +5652,7 @@ cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
  * @brief CLI entry point for binding generation (e.g., `cdd-c
  * bind`).
  */
-cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
   int i;
   int rc;
@@ -5726,8 +5726,8 @@ cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
 
   return CDD_C_SUCCESS;
 }
-cdd_c_error_t c2openapi_register_types(struct OpenAPI_Spec *spec,
-                                       const struct TypeDefList *types) {
+C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
+    struct OpenAPI_Spec *spec, const struct TypeDefList *types) {
   size_t i, j;
   if (!spec || !types)
     return CDD_C_ERROR_INVALID_ARGUMENT;

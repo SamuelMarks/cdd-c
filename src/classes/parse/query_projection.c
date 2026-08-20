@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-cdd_c_error_t cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
+C_CDD_EXPORT cdd_c_error_t
+cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
   if (!proj)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   proj->n_fields = 0;
@@ -12,7 +13,7 @@ cdd_c_error_t cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
                                  const cdd_c_query_projection_field_t *field) {
   if (!proj || !field)
@@ -35,7 +36,8 @@ cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t cdd_c_query_projection_free(cdd_c_query_projection_t *proj) {
+C_CDD_EXPORT cdd_c_error_t
+cdd_c_query_projection_free(cdd_c_query_projection_t *proj) {
   size_t i;
   if (!proj)
     return CDD_C_ERROR_INVALID_ARGUMENT;

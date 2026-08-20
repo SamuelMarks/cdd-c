@@ -285,7 +285,7 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
 }
 
 /* Main function: load JSON schema and generate tests source */
-cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
+C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
   if (argc != 3) {
     fprintf(stderr, "Usage: jsonschema2tests <schema.json> <header_to_test.h> "
                     "<output-test.h>\n");
