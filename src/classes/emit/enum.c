@@ -43,11 +43,6 @@ static int test_test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #define FPRINTF_HOOK fprintf
 #endif
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
 /* Wrapper for fprintf to check errors tersely */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
@@ -220,7 +215,3 @@ cdd_c_error_t write_enum_from_str_func(FILE *fp, const char *enum_name,
 
   return CDD_C_SUCCESS;
 }
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif

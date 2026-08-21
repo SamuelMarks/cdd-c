@@ -138,7 +138,7 @@ TEST test_scrape_configure_ac_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #endif
 
 TEST test_scrape_makefile_oom(void) {

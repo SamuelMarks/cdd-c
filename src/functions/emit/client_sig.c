@@ -19,11 +19,6 @@
 #include "c_cdd/safe_crt.h"
 /* clang-format on */
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;

@@ -321,12 +321,12 @@ TEST test_patch_header_failures(void) {
   const char *h_path = "fail_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_extract;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply;
-  extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
+  extern int g_cdd_sync_fail_func_sig_init;
+  extern int g_cdd_sync_fail_patch_list_init;
+  extern int g_cdd_sync_fail_extract;
+  extern int g_cdd_sync_fail_tokenize;
+  extern int g_cdd_sync_fail_patch_list_apply;
+  extern int g_cdd_sync_fail_fopen_write;
 
   write_to_file(h_path, "void foo();\n");
 
@@ -386,8 +386,8 @@ TEST test_sync_oom(void) {
   {
     const char *argv[] = {"header.h", "impl.c"};
     FILE *f;
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+    extern int g_cdd_alloc_fail;
+    extern int g_cdd_fprintf_fail;
     int rc_s;
     int rc_s2;
 

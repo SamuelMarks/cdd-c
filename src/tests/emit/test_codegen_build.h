@@ -220,7 +220,7 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   int i;
   int rc;
-  extern C_CDD_EXPORT int g_fail_io_after;
+  extern int g_fail_io_after;
 
   memset(&config, 0, sizeof(config));
   config.project_name = "PetStore";

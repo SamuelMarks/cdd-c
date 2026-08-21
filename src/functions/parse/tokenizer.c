@@ -5,8 +5,6 @@
 
 /* clang-format off */
 #if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wc99-extensions"
 #endif
 
 #include <ctype.h>
@@ -1652,5 +1650,4 @@ cdd_c_error_t tokenize(const az_span source, struct TokenList **const out) {
   return CDD_C_SUCCESS;
 }
 #if defined(__clang__)
-#pragma clang diagnostic pop
 #endif

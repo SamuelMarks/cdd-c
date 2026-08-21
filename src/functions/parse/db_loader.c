@@ -8,18 +8,11 @@
 #include <stddef.h>
 
 #if defined(_WIN32)
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4201 4214)
-#endif
 #include "win_compat_sym.h"
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <winsock2.h>
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 #else
 #include <dlfcn.h>
 #endif

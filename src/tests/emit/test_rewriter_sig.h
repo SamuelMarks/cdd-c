@@ -526,7 +526,7 @@ TEST test_rewrite_oom(void) {
                           "static f()"};
   for (j = 0; j < (int)(sizeof(inputs) / sizeof(inputs[0])); j++) {
     for (i = 1; i < 200; i++) {
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       g_cdd_alloc_fail = i;
       int rc = test_rewrite_error(inputs[j]);
       g_cdd_alloc_fail = 0;
@@ -539,7 +539,7 @@ TEST test_rewrite_oom(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #endif
 
 TEST test_rewrite_sig_oom(void) {

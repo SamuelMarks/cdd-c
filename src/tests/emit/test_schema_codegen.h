@@ -518,8 +518,8 @@ TEST test_codegen_config_utils_guards(void) {
  * @return TEST
  */
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_schema_strdup_fail;
-extern C_CDD_EXPORT int g_schema_realloc_fail;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
 #endif
 
 TEST test_schema_constraints_bounds(void) {
@@ -594,8 +594,8 @@ TEST test_schema_constraints_bounds(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_schema_fail_io_after;
-extern C_CDD_EXPORT int g_schema_io_calls;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
 #endif
 
 TEST test_schema_codegen_cli_exhaustive_io(void) {
@@ -723,7 +723,7 @@ TEST test_schema_codegen_specific_structs(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #endif
 
 TEST test_schema_codegen_main_paths(void) {
@@ -756,7 +756,7 @@ TEST test_schema_codegen_main_paths(void) {
   argv[1] = "";
   {
 #include <c_cdd_export.h>
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    extern int g_cdd_strdup_fail;
     g_cdd_strdup_fail = 1;
     rc = schema2code_main(2, (char **)argv);
     ASSERT(rc != 0);
@@ -776,7 +776,7 @@ TEST test_schema_codegen_main_paths(void) {
 #ifdef CDD_BUILD_TESTS
   {
     int io_i = 1;
-    extern C_CDD_EXPORT int g_schema_codegen_force_fail;
+    extern int g_schema_codegen_force_fail;
     while (1) {
       g_fail_io_after = io_i++;
       g_io_calls = 0;
@@ -845,8 +845,8 @@ TEST test_schema_codegen_main_paths(void) {
 }
 
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail;
+extern int g_struct_fields_init_fail;
+extern int g_json_object_to_struct_fields_fail;
 
 TEST test_schema_codegen_init_fail(void) {
   void *root;

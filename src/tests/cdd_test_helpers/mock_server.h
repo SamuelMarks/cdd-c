@@ -43,8 +43,7 @@ struct MockServerRequest {
  *
  * @return A handle to the server, or NULL on failure.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
-mock_server_init(MockServerPtr *out);
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_init(MockServerPtr *out);
 
 /**
  * @brief Destroy a mock server instance.
@@ -53,8 +52,7 @@ mock_server_init(MockServerPtr *out);
  *
  * @param[in] server The server handle.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
-mock_server_destroy(MockServerPtr server);
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_destroy(MockServerPtr server);
 
 /**
  * @brief Start the server thread listening on loopback.
@@ -64,8 +62,7 @@ mock_server_destroy(MockServerPtr server);
  * @param[in] server The server handle.
  * @return 0 on success, non-zero error code on failure.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
-mock_server_start(MockServerPtr server);
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_start(MockServerPtr server);
 
 /**
  * @brief Get the port number the server is listening on.
@@ -73,8 +70,8 @@ mock_server_start(MockServerPtr server);
  * @param[in] server The server handle.
  * @return The port number (host byte order), or 0 if not running.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
-mock_server_get_port(MockServerPtr server, int *out_port);
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_get_port(MockServerPtr server,
+                                                           int *out_port);
 
 /**
  * @brief Wait for a client request and capture the headers.
@@ -87,7 +84,7 @@ mock_server_get_port(MockServerPtr server, int *out_port);
  *                     Caller must free contents.
  * @return 0 on success, non-zero on timeout or error.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_wait_for_request(
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_wait_for_request(
     MockServerPtr server, struct MockServerRequest *out_req);
 
 /**
@@ -95,7 +92,7 @@ extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t mock_server_wait_for_request(
  *
  * @param[in] req The request structure to clean.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t
 mock_server_request_cleanup(struct MockServerRequest *req);
 
 #ifdef __cplusplus

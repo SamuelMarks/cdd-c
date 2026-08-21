@@ -133,7 +133,7 @@ static cdd_c_error_t platform_cleanup(void) { return CDD_C_SUCCESS; }
 #endif
 
 #include "c_cdd_export.h"
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #include "cdd_test_helpers_export.h"
 CDD_TEST_HELPERS_EXPORT int g_socket_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_bind_fail = 0;

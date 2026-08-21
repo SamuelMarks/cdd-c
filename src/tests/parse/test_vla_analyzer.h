@@ -18,8 +18,8 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
 
-extern C_CDD_EXPORT int g_io_calls;
-extern C_CDD_EXPORT int g_fail_io_after;
+extern int g_io_calls;
+extern int g_fail_io_after;
 extern cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k, int *out_is_basic);
 
 /* clang-format on */

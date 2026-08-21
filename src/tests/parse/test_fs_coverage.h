@@ -56,8 +56,8 @@ TEST test_fs_coverage_edge_cases(void) {
   PASS();
 }
 
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+extern int g_cdd_strdup_fail;
 
 TEST test_fs_coverage_oom(void) {
   int i;

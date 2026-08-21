@@ -600,7 +600,7 @@ TEST test_pp_scan_defines(void) {
                           "#define MACRO_WITH_ARGS(a, b) a + b\n");
 
 #ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     pp_context_init(&ctx);
 
     g_cdd_alloc_fail = i;

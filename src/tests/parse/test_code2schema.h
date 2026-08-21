@@ -311,7 +311,7 @@ static void *mock_malloc(size_t sz) {
 }
 static void mock_free(void *ptr) { free(ptr); }
 
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern int g_cdd_strdup_fail;
 
 TEST test_code2schema_oom(void) {
   int i;
@@ -1119,8 +1119,8 @@ TEST test_code2schema_utils(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    extern int g_cdd_alloc_fail;
+    extern int g_cdd_strdup_fail;
 
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -1153,8 +1153,8 @@ TEST test_code2schema_utils(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    extern int g_cdd_alloc_fail;
+    extern int g_cdd_strdup_fail;
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               parse_type_union_array_code2schema(arr, &union_types, &count,

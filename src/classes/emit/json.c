@@ -26,11 +26,6 @@ extern int g_io_calls;
 
 /* clang-format on */
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
 #ifdef CDD_BUILD_TESTS
 static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)

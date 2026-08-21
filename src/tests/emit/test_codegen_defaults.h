@@ -18,8 +18,8 @@ extern "C" {
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 static FILE *mock_tmpfile_def(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;

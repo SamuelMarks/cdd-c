@@ -82,7 +82,7 @@ TEST add_node_basic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -105,7 +105,7 @@ TEST add_node_basic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -168,7 +168,7 @@ TEST parse_tokens_basic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -191,7 +191,7 @@ TEST parse_tokens_basic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -226,7 +226,7 @@ TEST parse_tokens_empty(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -249,7 +249,7 @@ TEST parse_tokens_empty(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -274,7 +274,7 @@ TEST parse_tokens_oom_make(void) {
   struct TokenList *tokens;
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   tokens = (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
   ASSERT_NEQ(NULL, tokens);
   memset(tokens, 0, sizeof(*tokens));
@@ -290,7 +290,7 @@ TEST parse_tokens_oom_make(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -313,7 +313,7 @@ TEST parse_tokens_oom_make(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -346,7 +346,7 @@ TEST parse_tokens_null_args(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -369,7 +369,7 @@ TEST parse_tokens_null_args(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -409,7 +409,7 @@ TEST parse_tokens_forward_declaration(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -432,7 +432,7 @@ TEST parse_tokens_forward_declaration(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -472,7 +472,7 @@ TEST parse_tokens_anonymous_struct(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -495,7 +495,7 @@ TEST parse_tokens_anonymous_struct(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -544,7 +544,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -567,7 +567,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -609,7 +609,7 @@ TEST parse_simple_array_init(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -632,7 +632,7 @@ TEST parse_simple_array_init(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -674,7 +674,7 @@ TEST parse_compound_literal(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -697,7 +697,7 @@ TEST parse_compound_literal(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -749,7 +749,7 @@ TEST parse_control_block_split(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -772,7 +772,7 @@ TEST parse_control_block_split(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -815,7 +815,7 @@ TEST parse_nested_compound_literal(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -838,7 +838,7 @@ TEST parse_nested_compound_literal(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -879,7 +879,7 @@ TEST parse_return_compound(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -902,7 +902,7 @@ TEST parse_return_compound(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -977,7 +977,7 @@ TEST parse_c11_generic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1000,7 +1000,7 @@ TEST parse_c11_generic(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1049,7 +1049,7 @@ TEST test_cst_find_first(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1072,7 +1072,7 @@ TEST test_cst_find_first(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1160,10 +1160,10 @@ TEST test_cst_parser_extra(void) {
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    extern int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
+    extern int g_cdd_cst_alloc_token_fail;
+    extern int g_cdd_cst_realloc_fail;
     int i;
     const char *snippet =
         "#ifdef A\n"
@@ -1255,7 +1255,7 @@ TEST test_cst_parser_extra(void) {
       cdd_cst_tree_free(t_dummy);
 
     {
-      extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
+      extern int g_cdd_cst_parser_fast_grow;
       g_cdd_cst_parser_fast_grow = 1;
 
       for (i = 1; i < 60000; i++) {
@@ -1319,7 +1319,7 @@ TEST test_cst_parser_extra(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1342,7 +1342,7 @@ TEST test_cst_parser_extra(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1368,7 +1368,7 @@ TEST parse_tokens_oom(void) {
   {
     struct TokenList *tl = NULL;
     struct CstNodeList cst_nodes;
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     int i;
     int rc;
 
@@ -1400,7 +1400,7 @@ TEST parse_tokens_oom(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1423,7 +1423,7 @@ TEST parse_tokens_oom(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1454,7 +1454,7 @@ TEST test_cst_branches(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1477,7 +1477,7 @@ TEST test_cst_branches(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1556,7 +1556,7 @@ TEST test_parse_tokens_attributes(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1579,7 +1579,7 @@ TEST test_parse_tokens_attributes(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),
@@ -1640,7 +1640,7 @@ TEST test_parse_tokens_static_assert(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(az_span_create_from_str(
                    "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
                    "[[nodiscard]] int y; } }"),
@@ -1663,7 +1663,7 @@ TEST test_parse_tokens_static_assert(void) {
       struct TokenList *tl_oom = NULL;
       struct CstNodeList cst_oom = {0};
       int rc;
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       tokenize(
           az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
                                   "U { int b; }; _Generic((1), int: 1);"),

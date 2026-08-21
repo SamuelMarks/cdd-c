@@ -32,8 +32,8 @@ static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list);
 
 #undef find_allocations
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT cdd_c_error_t find_allocations(
-    const struct TokenList *tokens, struct AllocationSiteList *out);
+C_CDD_EXPORT cdd_c_error_t find_allocations(const struct TokenList *tokens,
+                                            struct AllocationSiteList *out);
 static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
                                            struct AllocationSiteList *out) {
   if (g_force_find_allocations_fail)
@@ -43,8 +43,8 @@ static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
 
 #undef parse_tokens
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT cdd_c_error_t parse_tokens(const struct TokenList *tokens,
-                                               struct CstNodeList *out);
+C_CDD_EXPORT cdd_c_error_t parse_tokens(const struct TokenList *tokens,
+                                        struct CstNodeList *out);
 static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
                                        struct CstNodeList *out) {
   if (g_force_parse_tokens_fail)
@@ -54,8 +54,7 @@ static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
 
 #undef tokenize
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT cdd_c_error_t tokenize(az_span code,
-                                           struct TokenList **out_list);
+C_CDD_EXPORT cdd_c_error_t tokenize(az_span code, struct TokenList **out_list);
 static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list) {
   if (g_force_tokenize_fail)
     return CDD_C_ERROR_MEMORY;
@@ -101,7 +100,7 @@ TEST test_orchestrator_internals(void) {
   }
 
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
@@ -114,7 +113,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test join_tokens_str allocation failure */
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;

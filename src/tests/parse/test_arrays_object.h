@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_arrays_object.c
  * @brief Unit tests for Object Arrays generation and parsing.
@@ -29,9 +29,7 @@ extern C_CDD_EXPORT int g_io_calls;
 
 /* Add definitions that need to be in the test runner's main file. */
 
-#if defined(_MSC_VER)
-#pragma warning(disable : 4551)
-#endif
+
 
 TEST test_generated_obj_array_logic(void) {
   /*

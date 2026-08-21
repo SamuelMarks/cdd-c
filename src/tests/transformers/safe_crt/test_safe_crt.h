@@ -472,8 +472,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
-extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern int g_safe_crt_malloc_fail;
+extern int g_cdd_cst_alloc_node_fail;
 #endif
 
 TEST test_cdd_transform_safe_crt_oom(void) {

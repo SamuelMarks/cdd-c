@@ -104,9 +104,9 @@ TEST test_apply_refactoring_to_string_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add;
-extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
-extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+extern int g_cdd_fail_alloc_refactor_add;
+extern int g_cdd_audit_fail_tokenize;
+extern int g_cdd_audit_fail_find;
 #endif
 
 TEST test_refactor_mocks(void) {

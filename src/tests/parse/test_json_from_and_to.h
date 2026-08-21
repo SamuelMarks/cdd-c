@@ -1,6 +1,4 @@
-#if defined(_MSC_VER)
-#pragma warning(disable : 4702)
-#endif
+
 /**
  * @file test_json_from_and_to.h
  * @brief Unit tests for JSON to_json and from_json mock functions.

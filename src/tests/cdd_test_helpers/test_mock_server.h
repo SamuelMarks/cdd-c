@@ -31,12 +31,12 @@ extern "C" {
 #endif
 #endif
 
-extern C_CDD_EXPORT int g_socket_fail;
-extern C_CDD_EXPORT int g_bind_fail;
-extern C_CDD_EXPORT int g_listen_fail;
-extern C_CDD_EXPORT int g_getsockname_fail;
-extern C_CDD_EXPORT int g_pthread_create_fail;
-extern C_CDD_EXPORT int g_accept_fail;
+extern int g_socket_fail;
+extern int g_bind_fail;
+extern int g_listen_fail;
+extern int g_getsockname_fail;
+extern int g_pthread_create_fail;
+extern int g_accept_fail;
 
 static int http_get(int port);
 #ifdef _WIN32

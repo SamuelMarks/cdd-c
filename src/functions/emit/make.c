@@ -13,11 +13,6 @@
 
 /* clang-format on */
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
 /** @brief CHECK_IO definition */
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_fprintf_fail;
@@ -146,6 +141,3 @@ cdd_c_error_t codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
 
   return CDD_C_SUCCESS;
 }
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif

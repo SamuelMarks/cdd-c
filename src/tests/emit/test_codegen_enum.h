@@ -124,9 +124,9 @@ TEST test_enum_generation(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_enum_members_init_fail;
-extern C_CDD_EXPORT int g_enum_members_add_fail;
-extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
+extern int g_enum_members_init_fail;
+extern int g_enum_members_add_fail;
+extern int g_enum_members_add_strdup_fail;
 #endif
 
 TEST test_enum_generation_oom(void) {

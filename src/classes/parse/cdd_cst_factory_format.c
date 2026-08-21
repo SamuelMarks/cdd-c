@@ -52,12 +52,9 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
 
   va_start(args, fmt);
 #if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
   CDD_VSNPRINTF(buf, 4096, fmt, args);
 #if defined(__clang__)
-#pragma clang diagnostic pop
 #endif
   va_end(args);
 

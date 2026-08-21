@@ -68,17 +68,10 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #ifdef PATHCCH_LIB
 #include <pathcch.h>
 #endif /* !PATHCCH_LIB */
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4201)
-#endif
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #include <shlobj.h>
 #else
 #include <shlobj_core.h>
-#endif
-#if defined(_MSC_VER)
-#pragma warning(pop)
 #endif
 #elif defined(__WATCOMC__) || defined(__DOS__)
 #include <direct.h>

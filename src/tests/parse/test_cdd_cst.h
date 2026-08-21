@@ -419,8 +419,8 @@ TEST test_cdd_cst_cpp_inheritance(void) {
 TEST test_cdd_cst_parser_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   int i;
   const char *code = "template <typename T, class U> class Pair : public A { T "
                      "x; }; namespace N { using namespace std; try { throw 1; "

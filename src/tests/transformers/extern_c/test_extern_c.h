@@ -11,10 +11,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
-extern C_CDD_EXPORT volatile int g_extern_c_helper_fail;
+extern int g_cdd_cst_realloc_fail;
+C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
+C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
+C_CDD_EXPORT volatile int g_extern_c_helper_fail;
 #endif
 
 /* clang-format off */

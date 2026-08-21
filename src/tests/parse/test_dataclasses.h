@@ -1,6 +1,4 @@
-#if defined(_MSC_VER)
-#pragma warning(disable : 4702)
-#endif
+
 /**
  * @file test_dataclasses.h
  * @brief Unit tests for dataclasses parsing.

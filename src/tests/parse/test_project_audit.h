@@ -310,8 +310,8 @@ TEST test_audit_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
-extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+extern int g_cdd_audit_fail_tokenize;
+extern int g_cdd_audit_fail_find;
 #endif
 
 TEST test_audit_extras(void) {
@@ -396,7 +396,7 @@ TEST test_audit_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    extern int g_cdd_fail_alloc_audit;
     int i;
     int rc;
     char *json;

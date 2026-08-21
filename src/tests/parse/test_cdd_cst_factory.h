@@ -227,8 +227,8 @@ TEST test_cst_parse_format(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_cst_alloc_node_fail;
 
 TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -361,7 +361,7 @@ TEST test_cst_parse_format_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_alloc_node_fail;
     /* fail node alloc inside format parser (use a high value to avoid parser
      * failing first) */
     int k;

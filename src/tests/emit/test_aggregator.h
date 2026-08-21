@@ -220,9 +220,9 @@ TEST test_aggregator_oom(void) {
   dummy_op(&op, "op1");
 
   /* Test path alloc failure */
-  extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
-  extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
-  extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
+  extern int g_cdd_aggregator_fail_path_realloc;
+  extern int g_cdd_aggregator_fail_ops_realloc;
+  extern int g_cdd_aggregator_fail_route_strdup;
 
   g_cdd_aggregator_fail_path_realloc = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,

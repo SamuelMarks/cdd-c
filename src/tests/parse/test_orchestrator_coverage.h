@@ -29,7 +29,7 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
 
 TEST test_orchestrator_coverage_oom(void) {
   char *out = NULL;
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
 
   int i;
 
@@ -46,8 +46,8 @@ TEST test_orchestrator_coverage_oom(void) {
 
 TEST test_orchestrator_coverage_oom_deep(void) {
   char *out = NULL;
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
-  extern C_CDD_EXPORT int g_cdd_strdup_fail;
+  extern int g_cdd_alloc_fail;
+  extern int g_cdd_strdup_fail;
 
   int i;
   const char *code = "void test() { char *p = malloc(1); }\n"
@@ -127,7 +127,7 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
 
 TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
@@ -142,7 +142,7 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
 
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first

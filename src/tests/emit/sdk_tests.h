@@ -29,27 +29,15 @@ struct SdkTestsConfig {
 };
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
     return -1;
   va_start(args, fmt);
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
   ret = vfprintf(fp, fmt, args);
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
   va_end(args);
   return ret;
 }
@@ -197,9 +185,7 @@ codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                    "#include \"%s\"\n\n",
                    config->client_header));
 
-  CHECK_IO(FPRINTF(
-      fp, "\n"
-          "#if defined(_MSC_VER)\n#pragma warning(disable: 4551)\n#endif\n\n"));
+  CHECK_IO(FPRINTF(fp, "\n\n"));
 
   /* Iterate Operations */
   for (i = 0; i < spec->n_paths; ++i) {

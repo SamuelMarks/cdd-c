@@ -16,11 +16,6 @@
 #include "functions/emit/build.h"
 /* clang-format on */
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4127) /* conditional expression is constant */
-#endif
-
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_fail_io_after;
 static enum cdd_c_error _cdd_fprintf_mock(int x) {

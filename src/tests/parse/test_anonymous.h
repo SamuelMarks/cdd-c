@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_anonymous.c
  * @brief Integration tests for anonymous structure lifting.
@@ -22,10 +22,6 @@ extern C_CDD_EXPORT int g_io_calls;
 #include "classes/parse/code2schema.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
-
-#if defined(_MSC_VER)
-#pragma warning(disable : 4551)
-#endif
 
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"

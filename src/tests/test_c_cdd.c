@@ -1,38 +1,7 @@
 #if defined(_MSC_VER)
-#pragma warning(disable : 4189)
-#pragma warning(disable : 4057)
-#pragma warning(disable : 4101)
-#pragma warning(disable : 4267)
-#pragma warning(disable : 4456)
-#pragma warning(disable : 5286)
-#pragma warning(disable : 4210)
-#pragma warning(disable : 4703)
-#pragma warning(disable : 4244)
-#endif
-#if defined(_MSC_VER)
-#pragma warning(                                                               \
-    disable : 4189) /* local variable is initialized but not referenced */
-#pragma warning(                                                               \
-    disable : 4057) /* const uint8_t * differs in indirection to slightly      \
-                       different base types from char [3] */
-#pragma warning(disable : 4101) /* unreferenced local variable */
-#pragma warning(                                                               \
-    disable : 4267) /* conversion from size_t to int, possible loss of data */
-#pragma warning(                                                               \
-    disable : 4456) /* declaration of ... hides previous local declaration */
-#pragma warning(disable : 5286) /* implicit conversion from enum type */
-#pragma warning(disable : 4210) /* nonstandard extension used: function given  \
-                                   file scope */
-#endif
-#if defined(_MSC_VER)
-#if defined(_MSC_VER)
-#pragma warning(disable : 4005)
-#endif
+different base types from char[3] * / file scope * /
 #endif
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
-#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 /**
@@ -53,8 +22,8 @@
 
 #include <greatest.h>
 #include "c_cdd/format_specifiers.h"
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 
 static char g_cdd_test_tmp_buf[65536][64];
 
@@ -75,13 +44,13 @@ static FILE* cdd_test_tmpfile(void) {
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_cst_printer.h"
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #endif
 #include "emit/test_codegen_build.h"
 
 #include <stdio.h>
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT int g_fail_io_after;
+extern int g_fail_io_after;
 static FILE *mock_tmpfile_fuzzer(void) {
     if (g_fail_io_after >= 0) {
         return fopen("/dev/null", "w+b");
@@ -258,7 +227,7 @@ TEST test_cdd_helpers(void) {
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
 
 #include "cdd_test_helpers_export.h"
-  extern CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err;
+  extern int g_cdd_helpers_fopen_err;
   g_io_calls = 0;
   g_fail_io_after = 1;
   g_cdd_helpers_fopen_err = ENOMEM;
@@ -753,5 +722,4 @@ int main(int argc, char **argv) {
 }
 
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
 #endif

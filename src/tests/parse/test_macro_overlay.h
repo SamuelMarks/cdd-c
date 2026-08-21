@@ -131,8 +131,8 @@ TEST test_macro_overlay_non_macro(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
-extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
+extern int g_cdd_macro_overlay_fail_realloc;
+extern int g_cdd_macro_overlay_fail_calloc;
 #endif
 
 TEST test_macro_overlay_oom(void) {

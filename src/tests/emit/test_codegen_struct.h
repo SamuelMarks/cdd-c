@@ -400,8 +400,8 @@ TEST test_struct_io_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_struct_fields_init_fail;
-extern C_CDD_EXPORT int g_struct_fields_add_fail;
+extern int g_struct_fields_init_fail;
+extern int g_struct_fields_add_fail;
 #endif
 
 TEST test_struct_exhaustive_io(void) {

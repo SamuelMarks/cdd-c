@@ -19,7 +19,7 @@ extern "C" {
  * @brief Callback for assertion failures in dependencies.
  * Usually stubbed out or prints to stderr.
  */
-extern CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
+CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
 
 /**
  * @brief Write string content to a file.
@@ -29,8 +29,8 @@ extern CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
  * @param[in] contents The data to write.
  * @return EXIT_SUCCESS on success, EXIT_FAILURE on error.
  */
-extern CDD_TEST_HELPERS_EXPORT cdd_c_error_t
-write_to_file(const char *filename, const char *contents);
+CDD_TEST_HELPERS_EXPORT cdd_c_error_t write_to_file(const char *filename,
+                                                    const char *contents);
 
 #ifdef __cplusplus
 }

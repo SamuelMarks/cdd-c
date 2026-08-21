@@ -162,7 +162,7 @@ TEST test_cdd_cst_trivia_generate(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern int g_cdd_cst_alloc_node_fail;
 
 TEST test_cdd_cst_trivia_oom(void) {
   cdd_cst_format_config_t config = {0};

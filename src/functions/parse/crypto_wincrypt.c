@@ -21,8 +21,6 @@
 #endif
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4201 4214)
 #endif
 #include "win_compat_sym.h"
 #ifndef WIN32_LEAN_AND_MEAN
@@ -32,7 +30,6 @@
 
 #include <wincrypt.h>
 #ifdef _MSC_VER
-#pragma warning(pop)
 #endif
 #endif
 

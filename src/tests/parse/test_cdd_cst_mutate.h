@@ -70,7 +70,7 @@ TEST test_cdd_cst_mutate_replace(void) {
     }
 
 #include <c_cdd_export.h>
-    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    extern int g_cdd_cst_realloc_fail;
     for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
       tree->synthesized_capacity =
           tree->num_synthesized; /* force realloc on first token cloned */
@@ -341,7 +341,7 @@ TEST test_cst_splice_children(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_alloc_node_fail;
     cdd_cst_node_t *o_root = tree->root;
     g_cdd_cst_alloc_node_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -389,7 +389,7 @@ TEST test_cst_splice_children(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_realloc_fail;
 #endif
 
 TEST test_cdd_cst_splice_oom(void) {

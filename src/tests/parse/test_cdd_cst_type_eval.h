@@ -408,7 +408,7 @@ TEST test_cdd_cst_eval_ptr_fail(void) {
   cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
   cdd_cst_append_child_token(spec3, tok4);
 
-  extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
+  extern int g_cdd_type_eval_ptr_fail;
   g_cdd_type_eval_ptr_fail = 1;
   int rc1 = cdd_cst_eval_sizeof(env, spec3, CDD_CST_ABI_LP64, &sz);
   int rc2 = cdd_cst_eval_alignof(env, spec3, CDD_CST_ABI_LP64, &sz);

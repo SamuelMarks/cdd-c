@@ -314,7 +314,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       int rc_wattr;
       int i;
       for (i = 1; i <= 2; i++) {
@@ -337,7 +337,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
     /* OOM for c_cdd_strdup branches */
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT int g_cdd_strdup_fail;
+      extern int g_cdd_strdup_fail;
       struct CstNode nodes_dup[3];
       struct CstNodeList cst_dup = {0};
       int j;
@@ -421,7 +421,7 @@ TEST test_weaver_oom(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a;";
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   int r1, r2, r3, r6, r8;
 #endif
 
@@ -589,7 +589,7 @@ TEST test_weaver_cov(void) {
     /* OOM inside weaver_vla_to_alloca */
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT int g_cdd_alloc_fail;
+      extern int g_cdd_alloc_fail;
       g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, weaver_vla_to_alloca(&patches, tokens, 0, 1,
                                                          "int", "a", "5", 0));

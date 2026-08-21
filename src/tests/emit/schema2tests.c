@@ -14,26 +14,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
     int ret;
     va_list args;
     if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) return -1;
     va_start(args, fmt);
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
     ret = vfprintf(fp, fmt, args);
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
     va_end(args);
     return ret;
 }
@@ -43,8 +31,8 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 #define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
 #define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
 #else
@@ -55,26 +43,14 @@ extern C_CDD_EXPORT int g_io_calls;
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #include "c89stringutils_string_extras.h"
 static int mock_asprintf(char **strp, const char *fmt, ...) {
     int ret;
     va_list args;
     if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
     va_start(args, fmt);
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
     ret = c89stringutils_vasprintf(strp, fmt, args);
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
     va_end(args);
     return ret;
 }
@@ -94,7 +70,7 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 static int mock_get_dirname(const char *path, char **dir) {
     if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
     return get_dirname(path, dir);
@@ -590,9 +566,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
                     "#include <greatest.h>\n"
                     "#include \"%s\"\n\n"
                     "GREATEST_MAIN_DEFS();\n"
-                    "#if defined(_MSC_VER)\n#pragma warning(disable: "
-                    "4551)\n#endif\n\n"
-                    ""
+                    "\n"
                     "int main(int argc, char **argv) {\n"
                     "  GREATEST_MAIN_BEGIN();\n"
                     "  RUN_SUITE(enums_suite);\n"

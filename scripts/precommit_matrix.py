@@ -207,7 +207,7 @@ def main():
                     "-DCMAKE_CXX_COMPILER=cl",
                     "-DCMAKE_CROSSCOMPILING_EMULATOR=wine",
                     "-DBUILD_TESTING=ON",
-                    "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL",
+                    "-DC_CDD_CRT_LINKAGE=Shared",
                     "-DCMAKE_DISABLE_FIND_PACKAGE_SQLite3=ON",
                     "-DCMAKE_DISABLE_FIND_PACKAGE_ZLIB=ON",
                     "-DCMAKE_DISABLE_FIND_PACKAGE_Brotli=ON",

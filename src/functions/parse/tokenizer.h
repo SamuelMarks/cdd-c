@@ -37,15 +37,10 @@ extern "C" {
 #include "mocks/c_cdd_stdbool.h"
 
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#pragma GCC diagnostic ignored "-Wc++-compat"
-#pragma GCC diagnostic ignored "-Wattributes"
 #endif
 #include <c_str_span.h>
 /* clang-format on */
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
 #endif
 
 /**

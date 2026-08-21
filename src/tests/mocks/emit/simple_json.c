@@ -45,8 +45,6 @@ static void *test_calloc(size_t count, size_t size) {
   return calloc(count, size);
 }
 #if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
 static int test_jasprintf(char **strp, const char *fmt, ...) {
   {
@@ -90,8 +88,7 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
     return ret;
     }
     #if defined(__clang__)
-    #pragma clang diagnostic pop
-    #endif
+        #endif
 }
 #define malloc test_malloc
 #define calloc test_calloc

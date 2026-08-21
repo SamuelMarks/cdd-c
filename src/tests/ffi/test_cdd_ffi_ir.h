@@ -15,8 +15,8 @@ extern "C" {
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
-extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
+extern int g_cdd_ffi_ir_calloc_fail;
+extern int g_cdd_ffi_ir_malloc_fail;
 #endif
 
 TEST test_ffi_ir_toposort_null(void) {
@@ -247,9 +247,9 @@ TEST test_ffi_ir_free_partial(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
-extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
-extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
+extern int g_cdd_ffi_ir_calloc_fail;
+extern int g_cdd_ffi_ir_malloc_fail;
+extern int g_cdd_ffi_ir_toposort_fail;
 #endif
 
 TEST test_ffi_ir_c_toposort_dfs_errors(void) {

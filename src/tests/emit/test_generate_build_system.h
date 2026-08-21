@@ -155,7 +155,7 @@ TEST test_build_system_oom2(void) {
   int rc;
 
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
   for (i = 1; i <= 20; i++) {
     g_cdd_alloc_fail = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
@@ -232,7 +232,7 @@ TEST test_build_system_io_failure(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
 
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_fail_io_after;
+  extern int g_fail_io_after;
 
   for (i = 0; i <= 400; i++) {
     g_fail_io_after = i;
@@ -277,8 +277,8 @@ TEST test_gen_build_system_cli_args_fail(void) {
 
 TEST test_gen_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
-  extern C_CDD_EXPORT int g_cdd_strdup_fail;
+  extern int g_cdd_alloc_fail;
+  extern int g_cdd_strdup_fail;
   int i;
   makedirs("test_build_dir_oom");
   for (i = 1; i <= 100; i++) {

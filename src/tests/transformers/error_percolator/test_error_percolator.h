@@ -178,7 +178,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_err_perc_fail;
+extern int g_err_perc_fail;
 #endif
 
 TEST test_cdd_transform_percolate_errors_bld_fail(void) {

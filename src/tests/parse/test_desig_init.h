@@ -18,7 +18,7 @@ extern "C" {
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
 
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 /* clang-format on */
 
 /**

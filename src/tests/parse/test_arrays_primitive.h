@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern C_CDD_EXPORT int g_fail_io_after;
-extern C_CDD_EXPORT int g_io_calls;
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_arrays_primitive.c
  * @brief Unit tests for primitive array generation and parsing.
@@ -30,9 +30,7 @@ extern C_CDD_EXPORT int g_io_calls;
 
 /* Add definitions that need to be in the test runner's main file. */
 
-#if defined(_MSC_VER)
-#pragma warning(disable : 4551)
-#endif
+
 
 /**
  * @brief Mock Struct for Array Testing.

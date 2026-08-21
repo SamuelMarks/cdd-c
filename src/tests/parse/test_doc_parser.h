@@ -30,8 +30,8 @@ extern "C" {
 /* clang-format on */
 
 /* --- Test Helpers --- */
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+extern int g_cdd_strdup_fail;
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
@@ -980,7 +980,7 @@ TEST test_doc_oom_and_edges(void) {
         " * @deprecated\n"
         " */";
 #ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     doc_metadata_init(&meta);
     g_cdd_alloc_fail = i;
     if (doc_parse_block(comment, &meta) == 0) {

@@ -29,14 +29,14 @@ extern "C" {
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_crypto_fail_sha256;
-extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
-extern C_CDD_EXPORT int g_crypto_fail_digestinit;
-extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
-extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
-extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
-extern C_CDD_EXPORT int g_crypto_fail_hmac;
-extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+extern int g_crypto_fail_sha256;
+extern int g_crypto_fail_mdctx_new;
+extern int g_crypto_fail_digestinit;
+extern int g_crypto_fail_digestupdate;
+extern int g_crypto_fail_digestfinal;
+extern int g_crypto_fail_digestfinal_len;
+extern int g_crypto_fail_hmac;
+extern int g_crypto_fail_hmac_len;
 #endif
 
 /* Helpers */

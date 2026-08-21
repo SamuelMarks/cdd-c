@@ -2,51 +2,13 @@ message(STATUS "RUNNING cdd-c CMakeLists.txt")
 
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.2 LANGUAGES C)
+
+string(TOUPPER "${PROJECT_NAME}" PROJECT_PREFIX)
+string(REPLACE "-" "_" PROJECT_PREFIX "${PROJECT_PREFIX}")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ==========================================
-# cdd-c CMake Platform Options & Support
-# ==========================================
-option(CDD_USE_STATIC_CRT "Use static CRT (/MT, /MTd) instead of shared" OFF)
-option(CDD_USE_UNICODE "Use UNICODE character set (Windows)" OFF)
-option(CDD_SINGLE_THREADED "Build single-threaded (no thread support)" OFF)
-option(CDD_ENABLE_LTO "Enable Link-Time Optimization (LTO)" OFF)
-option(CDD_MSVC_RTC_S "Enable MSVC Stack Frame Runtime Checks (/RTCs)" OFF)
-option(CDD_MSVC_RTC_U "Enable MSVC Uninitialized Variable Runtime Checks (/RTCu)" OFF)
-option(CDD_MSVC_RTC_1 "Enable MSVC All Runtime Checks (/RTC1)" OFF)
-
-if(MSVC)
-  if(CDD_USE_STATIC_CRT)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  endif()
-
-  if(CDD_USE_UNICODE)
-    add_compile_definitions(UNICODE _UNICODE)
-  endif()
-
-  if(CDD_MSVC_RTC_1)
-    add_compile_options(/RTC1)
-  elseif(CDD_MSVC_RTC_S AND CDD_MSVC_RTC_U)
-    add_compile_options(/RTCs /RTCu)
-  elseif(CDD_MSVC_RTC_S)
-    add_compile_options(/RTCs)
-  elseif(CDD_MSVC_RTC_U)
-    add_compile_options(/RTCu)
-  endif()
-endif()
-
-if(CDD_SINGLE_THREADED)
-  add_compile_definitions(CDD_SINGLE_THREADED=1)
-endif()
-
-if(CDD_ENABLE_LTO)
-  include(CheckIPOSupported)
-  check_ipo_supported(RESULT lto_supported)
-  if(lto_supported)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-  endif()
-endif()
-
+string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+string(REPLACE "-" "_" PROJECT_NAME_UPPER "${PROJECT_NAME_UPPER}")
 
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
@@ -64,10 +26,6 @@ endif()
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
-
-if(NOT C_CDD_BUILD_TESTS)
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-endif()
 set(C_STR_SPAN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(C89STRINGUTILS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(CFS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -75,11 +33,20 @@ set(PARSON_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(C_ABSTRACT_HTTP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
 macro(FetchDependencyLocalOrArchive NAME LOCAL_DIR GITHUB_REPO)
-    FetchContent_Declare(
-        ${NAME}
-        GIT_REPOSITORY "https://github.com/${GITHUB_REPO}.git"
-        GIT_TAG "master"
-    )
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}")
+        message(STATUS "Fetching ${NAME} from local directory: ${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}")
+        FetchContent_Declare(
+            ${NAME}
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}"
+        )
+    else()
+        message(STATUS "Fetching ${NAME} from GitHub: ${GITHUB_REPO}")
+        FetchContent_Declare(
+            ${NAME}
+            GIT_REPOSITORY "https://github.com/${GITHUB_REPO}.git"
+            GIT_TAG "master"
+        )
+    endif()
     if(DEFINED BUILD_TESTING)
         set(OLD_BUILD_TESTING "${BUILD_TESTING}")
         set(OLD_BUILD_TESTING_DEFINED TRUE)
@@ -141,18 +108,16 @@ endif()
 
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
-option(C_CDD_USE_UNICODE "Build with UNICODE support" ON)
-option(C_CDD_USE_ANSI "Build with ANSI string support (disables UNICODE)" OFF)
-option(C_CDD_MULTI_THREADED "Multi-threaded support" ON)
-option(C_CDD_USE_LTO "Enable Link-Time Optimization" OFF)
+set(${PROJECT_NAME_UPPER}_CHARSET "Unicode" CACHE STRING "Charset to use: Unicode or ANSI")
+set(${PROJECT_NAME_UPPER}_THREADING "Multi-threaded" CACHE STRING "Threading: Multi-threaded or Single-threaded")
+set(${PROJECT_NAME_UPPER}_LTO OFF CACHE BOOL "Enable Link-Time Optimization (LTO)")
 
 if(MSVC)
-    option(C_CDD_STATIC_CRT "Use static CRT (/MT, /MTd) instead of shared (/MD, /MDd)" OFF)
-    set(C_CDD_RUNTIME_CHECKS "" CACHE STRING "Runtime checks (/RTC1, /RTCs, /RTCu or empty)")
-    set_property(CACHE C_CDD_RUNTIME_CHECKS PROPERTY STRINGS "" "/RTC1" "/RTCs" "/RTCu")
+    set(${PROJECT_NAME_UPPER}_CRT_LINKAGE "Shared" CACHE STRING "MSVC CRT Linkage: Static or Shared")
+    set(${PROJECT_NAME_UPPER}_MSVC_RTC "" CACHE STRING "MSVC Runtime Checks: RTC1, RTCs, RTCu, or empty")
 endif()
 
-if(C_CDD_USE_LTO)
+if(${PROJECT_NAME_UPPER}_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT ipo_supported OUTPUT error)
     if(ipo_supported)
@@ -162,10 +127,12 @@ endif()
 
 if(MSVC)
     # Enforce the same C runtime library for all targets to avoid CRT mismatches.
-    if(C_CDD_STATIC_CRT)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "MSVC C runtime library" FORCE)
-    else()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "MSVC C runtime library" FORCE)
+    if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+        if(${PROJECT_NAME_UPPER}_CRT_LINKAGE STREQUAL "Static")
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "MSVC C runtime library")
+        else()
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "MSVC C runtime library")
+        endif()
     endif()
 
     if(CMAKE_VERSION VERSION_LESS "3.15")
@@ -174,7 +141,7 @@ if(MSVC)
                 CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
                 CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            if(C_CDD_STATIC_CRT)
+            if(${PROJECT_NAME_UPPER}_CRT_LINKAGE STREQUAL "Static")
                 if(${flag_var} MATCHES "/MD")
                     string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
                 endif()
@@ -195,27 +162,24 @@ endif()
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 
 if(MSVC)
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy /wd4701 )
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy )
 else()
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -pedantic  -Wdeclaration-after-statement -Wno-long-long)
-    if(CMAKE_C_COMPILER_ID MATCHES "AppleClang")
-        target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wno-deprecated-declarations)
-    endif()
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -pedantic  -Wdeclaration-after-statement)
 endif()
 
-if(C_CDD_USE_UNICODE)
+if((${PROJECT_NAME_UPPER}_CHARSET STREQUAL "Unicode"))
     target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE UNICODE _UNICODE)
 endif()
 
-if(C_CDD_MULTI_THREADED)
+if((${PROJECT_NAME_UPPER}_THREADING STREQUAL "Multi-threaded"))
     if(NOT CMAKE_C_COMPILER_ID MATCHES "Watcom")
         target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<NOT:$<COMPILE_LANG_AND_ID:C,CXX,MSVC>>:-pthread>")
     endif()
 endif()
 
 if(MSVC)
-    if(NOT C_CDD_RUNTIME_CHECKS STREQUAL "")
-        target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "${C_CDD_RUNTIME_CHECKS}")
+    if(NOT ${PROJECT_NAME_UPPER}_MSVC_RTC STREQUAL "")
+        target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "/${${PROJECT_NAME_UPPER}_MSVC_RTC}")
     endif()
 endif()
 
@@ -471,11 +435,9 @@ else()
     option(BUILD_TESTING_${PROJECT_NAME} "Build tests" OFF)
 endif()
 
-if(BUILD_TESTING_${PROJECT_NAME})
+if(BUILD_TESTING_${PROJECT_NAME} AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
     include(CTest)
-    if(BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
-        add_subdirectory("src/tests")
-    endif()
+    add_subdirectory("src/tests")
 endif()
 
 ###########

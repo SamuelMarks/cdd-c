@@ -44,7 +44,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
@@ -286,7 +286,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;

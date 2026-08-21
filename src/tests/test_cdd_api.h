@@ -93,8 +93,8 @@ TEST test_bin_cdd(void) {
   PASS();
 }
 
-extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
-extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
+C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
+extern int g_cdd_ffi_ir_calloc_fail;
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};

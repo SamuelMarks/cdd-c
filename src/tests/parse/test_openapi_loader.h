@@ -11,8 +11,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
 #endif
 
 /* clang-format off */
@@ -4540,7 +4538,6 @@ SUITE(openapi_loader_suite) {
 }
 
 #if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
 #endif
 
 #ifdef __cplusplus

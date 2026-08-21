@@ -135,9 +135,9 @@ TEST test_analysis_bounds(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_init;
-extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_add;
-extern C_CDD_EXPORT int g_cdd_analysis_fail_alloc_varname;
+extern int g_cdd_analysis_fail_alloc_init;
+extern int g_cdd_analysis_fail_alloc_add;
+extern int g_cdd_analysis_fail_alloc_varname;
 #endif
 
 TEST test_analysis_oom(void) {
@@ -304,7 +304,7 @@ TEST test_analysis_edge_cases(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 1;
     ASSERT_EQ(0, find_allocs("void *p = malloc(10);", &sites));
     if (sites.size > 0) {

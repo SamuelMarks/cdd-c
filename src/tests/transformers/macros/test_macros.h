@@ -111,8 +111,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 #ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
-    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    extern int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_realloc_fail;
     g_cdd_cst_alloc_node_fail = k;
     g_cdd_cst_realloc_fail = 0;
 #endif
@@ -129,8 +129,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 #ifdef CDD_BUILD_TESTS
-    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
-    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+    extern int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_realloc_fail;
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = k;
 #endif
@@ -145,7 +145,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_query_err_fail;
+    extern int g_cdd_query_err_fail;
 
     /* Fail on FOO */
     tree = NULL;

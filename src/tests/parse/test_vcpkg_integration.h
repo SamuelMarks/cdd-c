@@ -105,7 +105,7 @@ TEST test_vcpkg_builder_errors(void) {
   vcpkg_builder_free(NULL);
 
 #ifdef CDD_BUILD_TESTS
-  extern cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+  cdd_c_error_t test_vcpkg_my_strdup_errors(void);
   ASSERT_EQ(CDD_C_SUCCESS, test_vcpkg_my_strdup_errors());
 
   g_cdd_alloc_fail = 1; /* tokenize allocates tokens */
@@ -222,7 +222,7 @@ TEST test_vcpkg_builder_extras(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern int g_cdd_alloc_fail;
 #endif
 
 TEST test_vcpkg_builder_oom(void) {

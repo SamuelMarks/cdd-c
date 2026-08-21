@@ -321,7 +321,7 @@ TEST test_ffi_ir_extract_stl_types(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
+C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 #endif
 
 TEST test_ffi_ir_extract_exports_oom(void) {

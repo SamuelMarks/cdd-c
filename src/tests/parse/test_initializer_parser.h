@@ -284,7 +284,7 @@ TEST test_init_oom(void) {
   struct InitList list;
   int rc;
   int i;
-  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+  extern int g_cdd_alloc_fail;
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
