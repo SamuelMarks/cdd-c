@@ -22,6 +22,9 @@ extern "C" {
 #include "functions/emit/build_system.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_fail_io_after;
+
 /**
  * @brief test_cbuild_null_args
  * @return TEST
@@ -220,7 +223,7 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   int i;
   int rc;
-  extern int g_fail_io_after;
+  /* extern int g_fail_io_after; (moved to global) */
 
   memset(&config, 0, sizeof(config));
   config.project_name = "PetStore";

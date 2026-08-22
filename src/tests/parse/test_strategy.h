@@ -18,9 +18,13 @@ extern "C" {
 #include "functions/emit/patcher.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+/* Moved extern declarations for C89 compliance */
 extern int g_cdd_fail_asprintf;
+extern int g_cdd_alloc_fail;
+
+#ifdef CDD_BUILD_TESTS
+/* extern int g_cdd_alloc_fail; (moved to global) */
+/* extern int g_cdd_fail_asprintf; (moved to global) */
 #endif
 
 static size_t find_token_index(struct TokenList *tl, const char *str);

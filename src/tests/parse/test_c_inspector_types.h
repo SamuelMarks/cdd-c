@@ -203,7 +203,7 @@ TEST test_inspector_oom(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -238,7 +238,7 @@ TEST test_inspector_extract_sig_oom(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -341,7 +341,7 @@ TEST test_inspector_extract_sig_oom_2(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -371,7 +371,7 @@ TEST test_inspector_extract_sig_oom_3(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -414,7 +414,7 @@ TEST test_inspector_extract_sig_oom_4(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -446,7 +446,7 @@ TEST test_inspector_struct_fields_oom_2(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -481,7 +481,7 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -516,7 +516,7 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -549,7 +549,7 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -576,7 +576,7 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   (void)rc;
 
@@ -670,7 +670,7 @@ TEST test_inspector_strdup_oom(void) {
   int rc __attribute__((unused));
 #endif
   int i;
-  extern int g_cdd_strdup_fail;
+  /* extern int g_cdd_strdup_fail; (moved to global) */
 
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
@@ -690,6 +690,12 @@ TEST test_inspector_strdup_oom(void) {
 
 #ifndef _WIN32
 #include <sys/stat.h>
+
+/* Moved extern declarations for C89 compliance */
+extern int g_enum_members_init_fail;
+extern int g_struct_fields_init_fail;
+extern int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
 #endif
 
 /**
@@ -727,9 +733,9 @@ TEST test_inspector_io_error_perms(void) {
 TEST test_inspector_branch_coverage(void) {
   const char *filename = "test_branch_cov.h";
   struct TypeDefList types;
-  extern int g_enum_members_init_fail;
-  extern int g_struct_fields_init_fail;
-  extern int g_cdd_strdup_fail;
+  /* extern int g_enum_members_init_fail; (moved to global) */
+  /* extern int g_struct_fields_init_fail; (moved to global) */
+  /* extern int g_cdd_strdup_fail; (moved to global) */
 
   /* 1. All-whitespace name: "struct    {" */
   write_to_file(filename, "struct    { int a; };");

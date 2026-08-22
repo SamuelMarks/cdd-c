@@ -159,7 +159,12 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, fname, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
 #endif
   if (!fp)
@@ -311,7 +316,12 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, fname, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
 #endif
   if (!fp)

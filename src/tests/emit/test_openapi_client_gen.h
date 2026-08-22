@@ -1046,7 +1046,12 @@ TEST test_client_gen_write_docblock(void) {
   memset(&path, 0, sizeof(path));
   memset(&op, 0, sizeof(op));
 
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, "test_docblock.txt", "w") != 0)
+    fp = NULL;
+#else
   fp = fopen("test_docblock.txt", "w");
+#endif
   ASSERT(fp != NULL);
 
   /* Fallback */

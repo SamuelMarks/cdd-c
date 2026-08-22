@@ -481,7 +481,12 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   if (fopen_s(&fp, full_path, "w") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, full_path, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(full_path, "w");
+#endif
 #endif
 
   if (!fp) {
@@ -561,7 +566,12 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
       sprintf(src_cmake, "%s/%s", src_dir, filename);
     }
 
+#if defined(_MSC_VER)
+    if (fopen_s(&fp, src_cmake, "w") != 0)
+      fp = NULL;
+#else
     fp = fopen(src_cmake, "w");
+#endif
 
     if (fp) {
       rc = write_cmake_content(fp, project_name, has_tests);

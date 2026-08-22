@@ -20,6 +20,10 @@ extern "C" {
 #include "functions/emit/weaver_attributes.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief test_weaver_wrap_ifdef_basic
  * @return TEST
@@ -314,7 +318,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_alloc_fail;
+      /* extern int g_cdd_alloc_fail; (moved to global) */
       int rc_wattr;
       int i;
       for (i = 1; i <= 2; i++) {
@@ -337,7 +341,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
     /* OOM for c_cdd_strdup branches */
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_strdup_fail;
+      /* extern int g_cdd_strdup_fail; (moved to global) */
       struct CstNode nodes_dup[3];
       struct CstNodeList cst_dup = {0};
       int j;
@@ -421,7 +425,7 @@ TEST test_weaver_oom(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a;";
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   int r1, r2, r3, r6, r8;
 #endif
 
@@ -589,7 +593,7 @@ TEST test_weaver_cov(void) {
     /* OOM inside weaver_vla_to_alloca */
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_alloc_fail;
+      /* extern int g_cdd_alloc_fail; (moved to global) */
       g_cdd_alloc_fail = 1;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, weaver_vla_to_alloca(&patches, tokens, 0, 1,
                                                          "int", "a", "5", 0));
@@ -677,7 +681,12 @@ TEST test_weaver_interactive(void) {
   tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
 
   sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);
+#if defined(_MSC_VER)
+  if (fopen_s(&fake_stdin, tmp_name, "w+") != 0)
+    fake_stdin = NULL;
+#else
   fake_stdin = fopen(tmp_name, "w+");
+#endif
   fprintf(fake_stdin, "y\n");
   rewind(fake_stdin);
 
@@ -687,7 +696,13 @@ TEST test_weaver_interactive(void) {
 #ifndef _WIN32
 
   {
-    FILE *f = fopen(tmp_name, "w");
+    FILE *f;
+#if defined(_MSC_VER)
+    if (fopen_s(&f, tmp_name, "w") != 0)
+      f = NULL;
+#else
+    f = fopen(tmp_name, "w");
+#endif
     fprintf(f, "n\nN\ny\n");
     fclose(f);
     if (freopen(tmp_name, "r", stdin)) {

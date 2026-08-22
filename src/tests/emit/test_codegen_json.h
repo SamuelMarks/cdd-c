@@ -38,7 +38,13 @@ static void setup_json_fields(struct StructFields *sf) {
  * @return TEST
  */
 TEST test_json_to_plain(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   long sz;
   char *content = NULL;
@@ -78,7 +84,13 @@ TEST test_json_to_plain(void) {
  * @return TEST
  */
 TEST test_json_from_plain(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   long sz;
   char *content = NULL;
@@ -116,7 +128,13 @@ TEST test_json_from_plain(void) {
  * @return TEST
  */
 TEST test_json_recursive_obj(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   char *content = NULL;
   long sz;
@@ -151,7 +169,13 @@ TEST test_json_recursive_obj(void) {
  * @return TEST
  */
 TEST test_json_array_logic(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   char *content = NULL;
   long sz;
@@ -187,7 +211,13 @@ TEST test_json_array_logic(void) {
  * @return TEST
  */
 TEST test_json_guards(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   struct CodegenJsonConfig config;
   char *content = NULL;
@@ -311,7 +341,13 @@ TEST test_json_guards(void) {
  * @return TEST
  */
 TEST test_struct_array_from_json(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   char *content = NULL;
   long sz;
 
@@ -344,7 +380,13 @@ TEST test_struct_array_from_json(void) {
  * @return TEST
  */
 TEST test_json_null_args(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_to_json_func(NULL, "S", NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -357,7 +399,13 @@ TEST test_json_null_args(void) {
             write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
 
   {
-    FILE *readonly_f = tmpfile();
+    FILE *readonly_f;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&readonly_f) != 0)
+      readonly_f = NULL;
+#else
+    readonly_f = tmpfile();
+#endif
     struct StructFields sf;
     struct CodegenJsonConfig config;
 
@@ -494,7 +542,13 @@ TEST test_json_null_args(void) {
  * @return TEST
  */
 TEST test_standalone_json_func(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   char *content = NULL;
   long sz;
@@ -661,7 +715,13 @@ TEST test_json_exhaustive_io(void) {
   config.guard_macro = "JSON_ENABLED";
 
   for (i = 0; i < 500; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
@@ -676,7 +736,13 @@ TEST test_json_exhaustive_io(void) {
   }
 
   for (i = 0; i < 500; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_from_json_func(tmp, "Data", &config);
@@ -691,7 +757,13 @@ TEST test_json_exhaustive_io(void) {
   }
 
   for (i = 0; i < 500; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_array_from_json_func(tmp, "Data", &config);
@@ -706,7 +778,13 @@ TEST test_json_exhaustive_io(void) {
   }
 
   for (i = 0; i < 500; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_from_jsonObject_func(tmp, "Data", &sf, &config);
@@ -722,7 +800,13 @@ TEST test_json_exhaustive_io(void) {
 
   config.guard_macro = NULL;
   for (i = 0; i < 500; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
@@ -744,7 +828,13 @@ TEST test_json_exhaustive_io(void) {
 }
 
 TEST test_codegen_json_extra(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   struct CodegenJsonConfig config;
 

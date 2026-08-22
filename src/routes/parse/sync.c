@@ -647,7 +647,12 @@ static cdd_c_error_t apply_updates(const char *filename,
 #if defined(_MSC_VER)
     fopen_s(&f, filename, "w");
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&f, filename, "w") != 0)
+      f = NULL;
+#else
     f = fopen(filename, "w");
+#endif
 #endif
 #endif
     if (f) {

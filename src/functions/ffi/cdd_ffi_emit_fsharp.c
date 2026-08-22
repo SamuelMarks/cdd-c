@@ -141,7 +141,12 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -159,7 +164,12 @@ cdd_ffi_emit_fsharp(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      proj_f = fopen(proj_filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&proj_f, proj_filepath, "w") != 0)
+        proj_f = NULL;
+#else
+    proj_f = fopen(proj_filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

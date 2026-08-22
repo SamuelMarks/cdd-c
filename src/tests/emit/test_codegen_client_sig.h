@@ -26,7 +26,13 @@ extern "C" {
 static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
                              const struct CodegenSigConfig *cfg,
                              char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   long sz;
   char *content = NULL;
 

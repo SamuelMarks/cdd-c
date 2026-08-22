@@ -92,13 +92,23 @@ cdd_c_error_t cdd_ffi_emit_ada(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.ads", config->output_dir,
                module_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(gpr_filepath, sizeof(gpr_filepath), "%s/%s.gpr",
                config->output_dir, lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&gpr_f, gpr_filepath, "w") != 0)
+    gpr_f = NULL;
+#else
   gpr_f = fopen(gpr_filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
 
   if (g_fail_io_after == 555) {

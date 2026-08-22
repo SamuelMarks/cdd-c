@@ -22,6 +22,10 @@ extern "C" {
 
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
+
 struct SdkTestsConfig {
   const char *client_header;
   const char *func_prefix;
@@ -29,8 +33,8 @@ struct SdkTestsConfig {
 };
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+/* extern int g_fail_io_after; (moved to global) */
+/* extern int g_io_calls; (moved to global) */
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
   int ret;
   va_list args;

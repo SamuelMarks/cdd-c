@@ -40,12 +40,22 @@ TEST test_client_gui_gen_basic(void) {
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/test_gui_gui.c", "r") != 0)
+    f = NULL;
+#else
   f = fopen("src/test_gui_gui.c", "r");
+#endif
   ASSERT(f != NULL);
   if (f)
     fclose(f);
 
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/test_gui_gui.h", "r") != 0)
+    f = NULL;
+#else
   f = fopen("src/test_gui_gui.h", "r");
+#endif
   ASSERT(f != NULL);
   if (f)
     fclose(f);

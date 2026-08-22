@@ -187,7 +187,12 @@ TEST test_fs_cp(void) {
   FILE *f;
   int rc;
 
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_cp_src.txt", "w") != 0)
+    f = NULL;
+#else
   f = fopen("test_cp_src.txt", "w");
+#endif
   fprintf(f, "test");
   fclose(f);
 
@@ -307,7 +312,13 @@ TEST test_fs_cdd_fopen_too_long(void) {
 }
 
 TEST test_read_from_fh_errors(void) {
-  FILE *f = tmpfile();
+  FILE *f;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&f) != 0)
+    f = NULL;
+#else
+  f = tmpfile();
+#endif
   char *data = NULL;
   size_t sz = 0;
 

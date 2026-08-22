@@ -22,6 +22,11 @@ extern "C" {}
 #include "functions/parse/fs.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_fail_alloc_audit;
+extern int g_cdd_audit_fail_find;
+extern int g_cdd_audit_fail_tokenize;
+
 TEST test_audit_stats_init(void) {
   struct AuditStats stats;
   /* Set to garbage */
@@ -310,8 +315,8 @@ TEST test_audit_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_audit_fail_tokenize;
-extern int g_cdd_audit_fail_find;
+/* extern int g_cdd_audit_fail_tokenize; (moved to global) */
+/* extern int g_cdd_audit_fail_find; (moved to global) */
 #endif
 
 TEST test_audit_extras(void) {
@@ -396,13 +401,18 @@ TEST test_audit_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
-    extern int g_cdd_fail_alloc_audit;
+    /* extern int g_cdd_fail_alloc_audit; (moved to global) */
     int i;
     int rc;
     char *json;
 
     makedirs("test_audit_dir");
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
+      f = NULL;
+#else
     f = fopen("test_audit_dir/test.c", "w");
+#endif
     if (f) {
       fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
       fclose(f);
@@ -455,7 +465,12 @@ TEST test_audit_capacity(void) {
   {
     FILE *f;
     makedirs("test_audit_dir");
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
+      f = NULL;
+#else
     f = fopen("test_audit_dir/test.c", "w");
+#endif
     if (f) {
       fprintf(
           f,

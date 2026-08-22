@@ -18,6 +18,9 @@ extern "C" {
 #include "functions/parse/makefile_scraper.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief Tests basic functionality of the Makefile scraper.
  *
@@ -138,7 +141,7 @@ TEST test_scrape_configure_ac_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+/* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 TEST test_scrape_makefile_oom(void) {

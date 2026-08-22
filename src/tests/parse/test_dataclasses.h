@@ -410,7 +410,12 @@ TEST test_display_fail(void) {
     const char *const tmp_fname = "display_test.tmp";
     FILE *fh = NULL;
     write_to_file(tmp_fname, "content");
+#if defined(_MSC_VER)
+    if (fopen_s(&fh, tmp_fname, "r") != 0)
+      fh = NULL;
+#else
     fh = fopen(tmp_fname, "r");
+#endif
     ASSERT(fh != NULL);
 
     rc = FooE_display(foo, fh); /* Try to write to read-only stream */
@@ -588,7 +593,12 @@ TEST test_debug_fail(void) {
     const char *const tmp_fname = "debug_test.tmp";
     FILE *fh = NULL;
     write_to_file(tmp_fname, "content");
+#if defined(_MSC_VER)
+    if (fopen_s(&fh, tmp_fname, "r") != 0)
+      fh = NULL;
+#else
     fh = fopen(tmp_fname, "r");
+#endif
     ASSERT(fh != NULL);
 
     rc = FooE_debug(foo, fh); /* Try to write to read-only stream */
@@ -735,7 +745,13 @@ TEST test_debug_with_null_nested(void) {
 TEST test_debug_with_empty_strings(void) {
   struct HazE haz = {"", Tank_SMALL};
   struct FooE foo = {"", 0, NULL};
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   ASSERT(tmp != NULL);
   foo.haz = &haz;
 

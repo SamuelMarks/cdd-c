@@ -69,7 +69,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
   fopen_s(&fp, path, "w");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, path, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(path, "w");
+#endif
 #endif
 #endif
   if (!fp) {
@@ -351,7 +356,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
     fopen_s(&fp_test, test_path, "w");
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&fp_test, test_path, "w") != 0)
+      fp_test = NULL;
+#else
     fp_test = fopen(test_path, "w");
+#endif
 #endif
 #endif
     if (fp_test) {

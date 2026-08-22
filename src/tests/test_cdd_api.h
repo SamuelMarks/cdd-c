@@ -7,6 +7,9 @@
 #include <greatest.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_ffi_ir_calloc_fail;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -94,7 +97,7 @@ TEST test_bin_cdd(void) {
 }
 
 C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
-extern int g_cdd_ffi_ir_calloc_fail;
+/* extern int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
@@ -157,8 +160,9 @@ TEST test_cdd_generate_bindings(void) {
   config.output_dir = "test_bindings_out";
   makedir(config.output_dir);
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
+    int rc;
     config.target_langs = langs[i];
-    int rc = cdd_generate_bindings(&config);
+    rc = cdd_generate_bindings(&config);
     ASSERT_EQ(0, rc);
   }
 

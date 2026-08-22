@@ -10,6 +10,10 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+
 TEST test_fs_coverage_is_directory(void) {
   int is_dir;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, fs_is_directory(".", NULL));
@@ -56,8 +60,8 @@ TEST test_fs_coverage_edge_cases(void) {
   PASS();
 }
 
-extern int g_cdd_alloc_fail;
-extern int g_cdd_strdup_fail;
+/* extern int g_cdd_alloc_fail; (moved to global) */
+/* extern int g_cdd_strdup_fail; (moved to global) */
 
 TEST test_fs_coverage_oom(void) {
   int i;

@@ -680,9 +680,9 @@ TEST test_cdd_cst_builder_errors_extra(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_node_fail;
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_cst_realloc_fail;
+/* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+/* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
+/* extern int g_cdd_cst_realloc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_cst_builder_oom(void) {
@@ -907,10 +907,10 @@ TEST test_cdd_cst_builder_oom(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_node_fail;
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_cst_realloc_fail;
-extern int g_cdd_alloc_fail;
+/* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+/* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
+/* extern int g_cdd_cst_realloc_fail; (moved to global) */
+/* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_cst_builder_punct_all(void) {
@@ -993,7 +993,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_node_fail;
+    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* pool_string_safe OOM */
     g_cdd_cst_alloc_token_fail = 1;
     {
@@ -1540,7 +1540,13 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 #ifdef CDD_BUILD_TESTS
   {
 #include <c_cdd_export.h>
+
+    /* Moved extern declarations for C89 compliance */
     extern int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_realloc_fail;
+    extern int g_cdd_cst_alloc_token_fail;
+    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
     g_cdd_cst_alloc_node_fail = 1;
     rc = cdd_cst_splice_nodes(&b, node, 0, &new_node, 1);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);

@@ -20,6 +20,11 @@ extern "C" {
 #include "functions/parse/refactor.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_fail_alloc_refactor_add;
+extern int g_cdd_audit_fail_find;
+extern int g_cdd_audit_fail_tokenize;
+
 /**
  * @brief Tests the lifecycle of RefactorContext.
  *
@@ -104,9 +109,9 @@ TEST test_apply_refactoring_to_string_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_fail_alloc_refactor_add;
-extern int g_cdd_audit_fail_tokenize;
-extern int g_cdd_audit_fail_find;
+/* extern int g_cdd_fail_alloc_refactor_add; (moved to global) */
+/* extern int g_cdd_audit_fail_tokenize; (moved to global) */
+/* extern int g_cdd_audit_fail_find; (moved to global) */
 #endif
 
 TEST test_refactor_mocks(void) {

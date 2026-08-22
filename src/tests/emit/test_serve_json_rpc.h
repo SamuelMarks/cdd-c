@@ -145,12 +145,24 @@ TEST test_serve_mcp_stdio_main(void) {
   int rc;
 
   /* Create a temporary file and redirect stdin to it */
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   ASSERT_NEQ(NULL, tmp);
   {
     int old_stdin = dup(fileno(stdin));
     int old_stdout = dup(fileno(stdout));
-    FILE *devnull = fopen("/dev/null", "w");
+    FILE *devnull;
+#if defined(_MSC_VER)
+    if (fopen_s(&devnull, "/dev/null", "w") != 0)
+      devnull = NULL;
+#else
+    devnull = fopen("/dev/null", "w");
+#endif
 
     /* Write test inputs to cover handle_stdio_request branches */
     fprintf(tmp, "invalid json\n");

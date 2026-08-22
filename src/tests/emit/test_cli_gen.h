@@ -106,7 +106,12 @@ TEST test_cli_gen_basic(void) {
 #elif defined(_MSC_VER)
   fopen_s(&f, "src/test_cli_cli.c", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/test_cli_cli.c", "r") != 0)
+    f = NULL;
+#else
   f = fopen("src/test_cli_cli.c", "r");
+#endif
 #endif
   ASSERT(f != NULL);
   if (f)

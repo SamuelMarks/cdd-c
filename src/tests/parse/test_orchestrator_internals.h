@@ -54,6 +54,9 @@ static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
 
 #undef tokenize
 #include <c_cdd_export.h>
+
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
 C_CDD_EXPORT cdd_c_error_t tokenize(az_span code, struct TokenList **out_list);
 static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list) {
   if (g_force_tokenize_fail)
@@ -100,7 +103,7 @@ TEST test_orchestrator_internals(void) {
   }
 
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
@@ -113,7 +116,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test join_tokens_str allocation failure */
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
@@ -197,7 +200,12 @@ TEST test_orchestrator_internals(void) {
     const char *test_file = "test_orchestrator_internals.c";
     FILE *f;
     ctx.single_output_file = NULL;
+#if defined(_MSC_VER)
+    if (fopen_s(&f, test_file, "w") != 0)
+      f = NULL;
+#else
     f = fopen(test_file, "w");
+#endif
     if (f) {
       fputs("void A() { malloc(1); }", f);
       fclose(f);
@@ -213,7 +221,12 @@ TEST test_orchestrator_internals(void) {
     const char *test_file = "test_orchestrator_internals2.c";
     FILE *f;
     ctx.single_output_file = NULL;
+#if defined(_MSC_VER)
+    if (fopen_s(&f, test_file, "w") != 0)
+      f = NULL;
+#else
     f = fopen(test_file, "w");
+#endif
     if (f) {
       fputs("void A() { malloc(1); }", f);
       fclose(f);

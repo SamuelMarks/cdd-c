@@ -20,6 +20,10 @@ extern "C" {
 #include "functions/parse/str.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_str_unquote_malloc_fail;
+extern int g_cdd_alloc_fail;
+
 /* --- strdup tests --- */
 
 TEST test_c_cdd_strdup_basic(void) {
@@ -38,7 +42,7 @@ TEST test_c_cdd_strdup_basic(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -47,7 +51,7 @@ TEST test_c_cdd_strdup_basic(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -69,7 +73,7 @@ TEST test_c_cdd_strdup_null(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -78,7 +82,7 @@ TEST test_c_cdd_strdup_null(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -103,7 +107,7 @@ TEST test_c_cdd_strdup_empty(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -112,7 +116,7 @@ TEST test_c_cdd_strdup_empty(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -152,7 +156,7 @@ TEST test_c_cdd_str_starts_with(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -161,7 +165,7 @@ TEST test_c_cdd_str_starts_with(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -190,7 +194,7 @@ TEST test_c_cdd_str_starts_with_null(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -199,7 +203,7 @@ TEST test_c_cdd_str_starts_with_null(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -227,7 +231,7 @@ TEST test_c_cdd_str_equal(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -236,7 +240,7 @@ TEST test_c_cdd_str_equal(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -262,7 +266,7 @@ TEST test_c_cdd_str_equal_nulls(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -271,7 +275,7 @@ TEST test_c_cdd_str_equal_nulls(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -302,7 +306,7 @@ TEST test_c_cdd_str_iequal(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -311,7 +315,7 @@ TEST test_c_cdd_str_iequal(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -337,7 +341,7 @@ TEST test_c_cdd_str_iequal_nulls(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -346,7 +350,7 @@ TEST test_c_cdd_str_iequal_nulls(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -387,7 +391,7 @@ TEST test_c_cdd_str_after_last(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -396,7 +400,7 @@ TEST test_c_cdd_str_after_last(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -419,7 +423,7 @@ TEST test_c_cdd_str_after_last_null(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -428,7 +432,7 @@ TEST test_c_cdd_str_after_last_null(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -464,7 +468,7 @@ TEST test_c_cdd_ref_is_type(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -473,7 +477,7 @@ TEST test_c_cdd_ref_is_type(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -605,7 +609,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -614,7 +618,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -643,7 +647,7 @@ TEST test_c_cdd_ref_is_type_null(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -652,7 +656,7 @@ TEST test_c_cdd_ref_is_type_null(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -673,7 +677,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -682,7 +686,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -760,7 +764,7 @@ TEST test_c_cdd_destringize(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -769,7 +773,7 @@ TEST test_c_cdd_destringize(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -809,7 +813,7 @@ TEST test_c_cdd_stricmp(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -818,7 +822,7 @@ TEST test_c_cdd_stricmp(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);
@@ -832,7 +836,7 @@ TEST test_c_cdd_stricmp(void) {
 /* --- Suite definition --- */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_str_unquote_malloc_fail;
+/* extern int g_str_unquote_malloc_fail; (moved to global) */
 #endif
 
 TEST test_c_cdd_destringize_oom(void) {
@@ -851,7 +855,7 @@ TEST test_c_cdd_destringize_oom(void) {
   }
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(NULL, out3);
@@ -860,7 +864,7 @@ TEST test_c_cdd_destringize_oom(void) {
 
   {
     char *out3 = NULL;
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 2;
     ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out3));
     ASSERT_EQ(1, g_cdd_alloc_fail);

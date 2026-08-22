@@ -19,6 +19,9 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_fail_alloc_decl_hoist;
+
 /**
  * @brief Tests basic functionality of scanning for mixed declarations.
  *
@@ -78,7 +81,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_fail_alloc_decl_hoist;
+/* extern int g_cdd_fail_alloc_decl_hoist; (moved to global) */
 #endif
 
 static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {

@@ -134,7 +134,12 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 #if defined(_MSC_VER)
   fopen_s(&fp, filename, "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, filename, "r") != 0)
+    fp = NULL;
+#else
   fp = fopen(filename, "r");
+#endif
 #endif
 #endif
   if (!fp) {

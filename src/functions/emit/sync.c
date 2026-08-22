@@ -69,7 +69,12 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   if (fopen_s(&out, impl_filename, "w") != 0)
     out = NULL;
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&out, impl_filename, "w") != 0)
+    out = NULL;
+#else
   out = fopen(impl_filename, "w");
+#endif
 #endif
 #ifdef CDD_BUILD_TESTS
   {
@@ -328,7 +333,12 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
     if (fopen_s(&fp, header_path, "w") != 0)
       fp = NULL;
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&fp, header_path, "w") != 0)
+      fp = NULL;
+#else
     fp = fopen(header_path, "w");
+#endif
 #endif
 #ifdef CDD_BUILD_TESTS
     {

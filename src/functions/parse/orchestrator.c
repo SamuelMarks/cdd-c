@@ -833,7 +833,12 @@ static cdd_c_error_t fix_file_callback(const char *path, void *user_data) {
 #if defined(_MSC_VER)
     fopen_s(&f, out_path, "w");
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&f, out_path, "w") != 0)
+      f = NULL;
+#else
     f = fopen(out_path, "w");
+#endif
 #endif
 #endif
     if (f) {

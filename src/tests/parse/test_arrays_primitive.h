@@ -4,18 +4,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern int g_fail_io_after;
-extern int g_io_calls;
-/**
- * @file test_arrays_primitive.c
- * @brief Unit tests for primitive array generation and parsing.
- *
- * Verifies that the code generator correctly handles arrays of integers,
- * strings, and booleans, using the specific C-CDD convention of
- * `Type *arr; size_t n_arr;`.
- *
- * @author Samuel Marks
- */
+       /* extern int g_fail_io_after; (moved to global) */
+       /* extern int g_io_calls; (moved to global) */
+       /**
+        * @file test_arrays_primitive.c
+        * @brief Unit tests for primitive array generation and parsing.
+        *
+        * Verifies that the code generator correctly handles arrays of integers,
+        * strings, and booleans, using the specific C-CDD convention of
+        * `Type *arr; size_t n_arr;`.
+        *
+        * @author Samuel Marks
+        */
 
 /* clang-format off */
 #include "c_cdd_export.h"
@@ -27,6 +27,10 @@ extern int g_io_calls;
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/emit/codegen.h"
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
 
 /* Add definitions that need to be in the test runner's main file. */
 
@@ -65,7 +69,11 @@ TEST test_generated_copy_logic(void) {
   struct_fields_add(&sf, "int_arr", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
 
+  #if defined(_MSC_VER)
+  if(tmpfile_s(&tmp) != 0) tmp = NULL;
+#else
   tmp = tmpfile();
+#endif
   ASSERT(tmp);
 
   write_struct_from_jsonObject_func(tmp, "ArrayStruct", &sf, NULL);
@@ -140,7 +148,12 @@ TEST test_code2schema_array_detection(void) {
 #elif defined(_MSC_VER)
   fopen_s(&f, json_out_file, "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, json_out_file, "r") != 0)
+    f = NULL;
+#else
   f = fopen(json_out_file, "r");
+#endif
 #endif
   ASSERT(f);
   fseek(f, 0, SEEK_END);

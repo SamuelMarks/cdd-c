@@ -16,8 +16,19 @@ extern "C" {
 #include <stdlib.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_enum_members_init_fail;
+extern int g_enum_members_add_fail;
+extern int g_enum_members_add_strdup_fail;
+
 TEST test_enum_generation(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct EnumMembers em;
   char *content = NULL;
   long sz;
@@ -95,7 +106,13 @@ TEST test_enum_generation(void) {
   ASSERT(strstr(content, "#endif /* MY_GUARD */"));
 
   {
-    FILE *readonly_f = tmpfile();
+    FILE *readonly_f;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&readonly_f) != 0)
+      readonly_f = NULL;
+#else
+    readonly_f = tmpfile();
+#endif
     if (readonly_f) {
       g_fail_io_after = 0;
       g_io_calls = 0;
@@ -124,9 +141,9 @@ TEST test_enum_generation(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_enum_members_init_fail;
-extern int g_enum_members_add_fail;
-extern int g_enum_members_add_strdup_fail;
+/* extern int g_enum_members_init_fail; (moved to global) */
+/* extern int g_enum_members_add_fail; (moved to global) */
+/* extern int g_enum_members_add_strdup_fail; (moved to global) */
 #endif
 
 TEST test_enum_generation_oom(void) {
@@ -157,7 +174,13 @@ TEST test_enum_generation_oom(void) {
   em.size++; /* Intentionally leave one member NULL */
 
   {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     struct CodegenEnumConfig config = {"MY_GUARD"};
     printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
     ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
@@ -183,7 +206,13 @@ TEST test_enum_exhaustive_io(void) {
   enum_members_add(&em, "VAL2");
 
   for (i = 0; i < 1000; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_enum_to_str_func(tmp, "MyEnum", &em, &config);
@@ -198,7 +227,13 @@ TEST test_enum_exhaustive_io(void) {
   }
 
   for (i = 0; i < 1000; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_enum_from_str_func(tmp, "MyEnum", &em, &config);
@@ -215,7 +250,13 @@ TEST test_enum_exhaustive_io(void) {
   config.guard_macro = NULL;
 
   for (i = 0; i < 1000; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_enum_to_str_func(tmp, "MyEnum", &em, &config);
@@ -230,7 +271,13 @@ TEST test_enum_exhaustive_io(void) {
   }
 
   for (i = 0; i < 1000; ++i) {
-    FILE *tmp = tmpfile();
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&tmp) != 0)
+      tmp = NULL;
+#else
+    tmp = tmpfile();
+#endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_enum_from_str_func(tmp, "MyEnum", &em, &config);

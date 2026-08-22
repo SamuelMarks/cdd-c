@@ -25,6 +25,9 @@ extern "C" {
 #include "classes/parse/mapping.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_strdup_fail;
+
 /**
  * @brief test_mapping_int
  * @return TEST
@@ -237,7 +240,7 @@ TEST test_mapping_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   {
     /* Simulate OOMs */
-    extern int g_cdd_strdup_fail;
+    /* extern int g_cdd_strdup_fail; (moved to global) */
     int rc_oom;
     int i;
     g_cdd_strdup_fail = 1;
@@ -296,7 +299,7 @@ TEST test_mapping_coverage(void) {
   /* Simulate strdup OOM inside mapping */
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_strdup_fail;
+    /* extern int g_cdd_strdup_fail; (moved to global) */
 
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c_mapping_map_type("enum MyEnum", "x", &m));

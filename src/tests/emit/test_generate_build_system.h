@@ -27,6 +27,11 @@ extern "C" {
 #include "functions/parse/fs.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_fail_io_after;
+extern int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief test_gen_cmake_basic
  * @return TEST
@@ -106,7 +111,12 @@ TEST test_gen_build_system_cli_args(void) {
 #elif defined(_MSC_VER)
     fopen_s(&f, "test_build_dir/src/CMakeLists.txt", "r");
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "test_build_dir/src/CMakeLists.txt", "r") != 0)
+      f = NULL;
+#else
     f = fopen("test_build_dir/src/CMakeLists.txt", "r");
+#endif
 #endif
     ASSERT(f != NULL);
     fclose(f);
@@ -155,7 +165,7 @@ TEST test_build_system_oom2(void) {
   int rc;
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   for (i = 1; i <= 20; i++) {
     g_cdd_alloc_fail = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
@@ -205,11 +215,23 @@ TEST test_gen_cmake_bad_makedirs(void) {
   /* Passing an empty string to makedirs often fails or does nothing depending
      on OS, but we can try a definitely invalid path like a file that exists but
      is not a dir */
-  FILE *f = fopen("test_dummy_file_for_makedirs", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_dummy_file_for_makedirs", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_dummy_file_for_makedirs", "w");
+#endif
   if (f) {
     fclose(f);
     makedirs("test_dummy_dir_for_makedirs");
-    FILE *f2 = fopen("test_dummy_dir_for_makedirs/src", "w");
+    FILE *f2;
+#if defined(_MSC_VER)
+    if (fopen_s(&f2, "test_dummy_dir_for_makedirs/src", "w") != 0)
+      f2 = NULL;
+#else
+    f2 = fopen("test_dummy_dir_for_makedirs/src", "w");
+#endif
     if (f2) {
       fclose(f2);
       ASSERT_NEQ(
@@ -232,7 +254,7 @@ TEST test_build_system_io_failure(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_fail_io_after;
+  /* extern int g_fail_io_after; (moved to global) */
 
   for (i = 0; i <= 400; i++) {
     g_fail_io_after = i;
@@ -265,7 +287,13 @@ TEST test_gen_build_system_cli_args_tests(void) {
 TEST test_gen_build_system_cli_args_fail(void) {
   char *argv[] = {"cmake", "test_dummy_file_for_makedirs/foo",
                   "CLIProjWithTests"};
-  FILE *f = fopen("test_dummy_file_for_makedirs", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_dummy_file_for_makedirs", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_dummy_file_for_makedirs", "w");
+#endif
   if (f) {
     fclose(f);
     ASSERT_EQ(CDD_C_ERROR_IO, generate_build_system_main(3, argv));
@@ -277,8 +305,8 @@ TEST test_gen_build_system_cli_args_fail(void) {
 
 TEST test_gen_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_alloc_fail;
-  extern int g_cdd_strdup_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /* extern int g_cdd_strdup_fail; (moved to global) */
   int i;
   makedirs("test_build_dir_oom");
   for (i = 1; i <= 100; i++) {

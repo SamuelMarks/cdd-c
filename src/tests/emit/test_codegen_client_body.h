@@ -24,6 +24,10 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
+
 static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec, const char *tmpl,
                               const char *base_url_expr, char **_out_val) {
@@ -32,7 +36,12 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
   char *content = NULL;
   cdd_c_error_t rc;
 
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
   tmp = tmpfile();
+#endif
   if (!tmp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -2213,7 +2222,13 @@ TEST test_client_body_verb_mapping(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2265,7 +2280,13 @@ TEST test_client_body_mapped_err_code(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2291,7 +2312,13 @@ TEST test_client_body_media_type_matching(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2322,7 +2349,13 @@ TEST test_client_body_find_media_type_not_found(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2354,7 +2387,13 @@ TEST test_client_body_find_encoding_not_found(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2406,7 +2445,13 @@ TEST test_client_body_array_items_statics(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2475,7 +2520,13 @@ TEST test_client_body_verb_enum_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2506,7 +2557,13 @@ TEST test_client_body_header_formatting_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2574,7 +2631,13 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2660,7 +2723,13 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2725,7 +2794,13 @@ TEST test_client_body_media_type_caps_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2786,7 +2861,13 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2847,7 +2928,13 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2910,7 +2997,13 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -2974,7 +3067,13 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3040,7 +3139,13 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3107,7 +3212,13 @@ TEST test_client_body_form_object_style_form_explode(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3162,7 +3273,13 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3193,7 +3310,13 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3235,7 +3358,13 @@ TEST test_client_body_response_is_textual_string_success(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3266,7 +3395,13 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3304,7 +3439,13 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3333,7 +3474,13 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3367,7 +3514,13 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3408,7 +3561,13 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3463,7 +3622,13 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
 }
 
 TEST test_client_body_write_joined_form_array_direct(void) {
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Encoding enc = {0};
@@ -3542,7 +3707,13 @@ TEST test_client_body_write_joined_form_array_direct(void) {
 TEST test_client_body_write_joined_form_array_direct_io(void) {
   int i;
   for (i = 0; i < 50; ++i) {
-    FILE *fp = tmpfile();
+    FILE *fp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
+    fp = tmpfile();
+#endif
     struct OpenAPI_Operation op = {0};
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Encoding enc = {0};
@@ -3632,7 +3803,13 @@ TEST test_client_body_write_joined_form_array(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3686,7 +3863,13 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
 
-  FILE *fp = tmpfile();
+  FILE *fp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&fp) != 0)
+    fp = NULL;
+#else
+  fp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
@@ -3846,11 +4029,17 @@ TEST test_client_body_all_primitive_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
-    FILE *fp = tmpfile();
+    FILE *fp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
+    fp = tmpfile();
+#endif
     int rc;
 
     memset(&spec, 0, sizeof(spec));
@@ -4013,8 +4202,8 @@ TEST test_client_body_inline_response_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     struct OpenAPI_Response resp = {0};
@@ -4032,7 +4221,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4052,7 +4246,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4072,7 +4271,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4092,7 +4296,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4113,7 +4322,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4134,7 +4348,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4154,7 +4373,12 @@ TEST test_client_body_inline_response_types(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4175,8 +4399,8 @@ TEST test_client_body_inline_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4187,7 +4411,12 @@ TEST test_client_body_inline_types(void) {
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "integer";
     op.req_body.content_type = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4200,7 +4429,12 @@ TEST test_client_body_inline_types(void) {
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "boolean";
     op.req_body.content_type = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4213,7 +4447,12 @@ TEST test_client_body_inline_types(void) {
     memset(&op, 0, sizeof(op));
     op.req_body.inline_type = "number";
     op.req_body.content_type = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4227,7 +4466,12 @@ TEST test_client_body_inline_types(void) {
     op.req_body.is_array = 1;
     op.req_body.inline_type = "integer";
     op.req_body.content_type = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4241,7 +4485,12 @@ TEST test_client_body_inline_types(void) {
     op.req_body.is_array = 1;
     op.req_body.inline_type = "boolean";
     op.req_body.content_type = "application/json";
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4261,8 +4510,8 @@ TEST test_client_body_form_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4283,7 +4532,12 @@ TEST test_client_body_form_types(void) {
     op.req_body.multipart_fields[3].name = "fBool";
     op.req_body.multipart_fields[3].type = "boolean";
 
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4304,8 +4558,8 @@ TEST test_client_body_multipart_types(void) {
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
     if (g_io_calls > 0 && g_io_calls < io_fail)
       break;
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4326,7 +4580,12 @@ TEST test_client_body_multipart_types(void) {
     op.req_body.multipart_fields[3].name = "mBool";
     op.req_body.multipart_fields[3].type = "boolean";
 
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -4345,8 +4604,8 @@ TEST test_client_body_multipart_types(void) {
 TEST test_client_body_form_mega(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 5000; ++io_fail) {
-    extern int g_fail_io_after;
-    extern int g_io_calls;
+    /* extern int g_fail_io_after; (moved to global) */
+    /* extern int g_io_calls; (moved to global) */
     struct OpenAPI_Spec spec = {0};
     struct OpenAPI_Operation op = {0};
     FILE *fp;
@@ -4519,7 +4778,12 @@ TEST test_client_body_form_mega(void) {
     op.req_body_media_types[0].encoding[10].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[10].style_set = 1;
 
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
     fp = tmpfile();
+#endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);

@@ -18,6 +18,9 @@ extern "C" {
 #include "functions/parse/cmake_parser.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief Tests basic functionality of the CMake modifier.
  *
@@ -28,7 +31,7 @@ TEST test_cmake_modifier_basic(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   int i;
   int rc;
   (void)f;
@@ -72,7 +75,7 @@ TEST test_cmake_modifier_global(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   int i;
   int rc;
   (void)f;
@@ -129,7 +132,7 @@ TEST test_cmake_parser_oom(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   int i;
   int rc;
   (void)f;
@@ -138,7 +141,12 @@ TEST test_cmake_parser_oom(void) {
   (void)rc;
 
   makedirs("test_cmake_dir");
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_cmake_dir/CMakeLists.txt", "w") != 0)
+    f = NULL;
+#else
   f = fopen("test_cmake_dir/CMakeLists.txt", "w");
+#endif
   if (f) {
     fprintf(
         f,
@@ -186,9 +194,14 @@ TEST test_cmake_parser_oom(void) {
     cmake_modifier_free(&mod);
   }
 
-  /* Trigger src[len-1] != '
+/* Trigger src[len-1] != '
 ' */
+#if defined(_MSC_VER)
+  if (fopen_s(&f2, "test_cmake_dir/CMakeLists2.txt", "w") != 0)
+    f2 = NULL;
+#else
   f2 = fopen("test_cmake_dir/CMakeLists2.txt", "w");
+#endif
   if (f2) {
     fprintf(f2, "project(test) ");
     fclose(f2);

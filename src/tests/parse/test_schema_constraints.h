@@ -20,6 +20,9 @@ extern "C" {
 #include "classes/parse/code2schema.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_schema_strdup_fail;
+
 TEST test_schema_constraints_roundtrip(void) {
   JSON_Value *val;
   JSON_Object *obj;
@@ -796,7 +799,7 @@ TEST test_schema_constraints_free_branch(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_schema_strdup_fail;
+    /* extern int g_schema_strdup_fail; (moved to global) */
     struct SchemaConstraints sc_oom;
     schema_constraints_init(&sc_oom);
     g_schema_strdup_fail = 1;

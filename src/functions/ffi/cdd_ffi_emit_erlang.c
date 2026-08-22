@@ -98,7 +98,12 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      c_f = fopen(c_filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&c_f, c_filepath, "w") != 0)
+        c_f = NULL;
+#else
+    c_f = fopen(c_filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -116,7 +121,12 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      erl_f = fopen(erl_filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&erl_f, erl_filepath, "w") != 0)
+        erl_f = NULL;
+#else
+    erl_f = fopen(erl_filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

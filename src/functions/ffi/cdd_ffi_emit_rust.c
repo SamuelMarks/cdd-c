@@ -89,7 +89,12 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   fopen_s(&f, filepath, "w");
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/src/sys.rs", dir_path);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #endif
 
 #ifdef CDD_BUILD_TESTS
@@ -173,7 +178,12 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
   fopen_s(&f, filepath, "w");
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/src/lib.rs", dir_path);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #endif
 
 #ifdef CDD_BUILD_TESTS
@@ -286,7 +296,12 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
   fopen_s(&f, filepath, "w");
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/Cargo.toml", config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #endif
 
 #ifdef CDD_BUILD_TESTS
@@ -327,7 +342,12 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/tests/integration_test.rs",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #endif
 
 #ifdef CDD_BUILD_TESTS

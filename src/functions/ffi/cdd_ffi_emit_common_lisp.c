@@ -142,13 +142,23 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.lisp", config->output_dir,
                lisp_lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(asd_filepath, sizeof(asd_filepath), "%s/%s.asd",
                config->output_dir, lisp_lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&asd_f, asd_filepath, "w") != 0)
+    asd_f = NULL;
+#else
   asd_f = fopen(asd_filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
 
   if (g_fail_io_after == 555) {

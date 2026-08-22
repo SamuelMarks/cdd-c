@@ -92,7 +92,12 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

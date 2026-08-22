@@ -225,8 +225,13 @@ TEST test_main_from_openapi_cli_options(void) {
   setenv("CDD_OUTPUT", "build/test_out_dir_env", 1);
 #endif
 
-  /* Create a dummy spec to test the execution */
+/* Create a dummy spec to test the execution */
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "spec.json", "w") != 0)
+    f = NULL;
+#else
   f = fopen("spec.json", "w");
+#endif
   fprintf(f, "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"Test\", "
              "\"version\": \"1.0\"}, \"paths\": {}}");
   fclose(f);

@@ -135,7 +135,13 @@ TEST test_codegen_config_json_guards(void) {
 
    */
 
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct StructFields sf;
 
@@ -225,7 +231,13 @@ TEST test_codegen_config_json_guards(void) {
  */
 TEST test_union_config_json_guards(void) {
 
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct StructFields sf;
 
@@ -449,7 +461,13 @@ TEST test_codegen_config_utils_guards(void) {
 
    */
 
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct StructFields sf;
 
@@ -518,8 +536,8 @@ TEST test_codegen_config_utils_guards(void) {
  * @return TEST
  */
 #ifdef CDD_BUILD_TESTS
-extern int g_schema_strdup_fail;
-extern int g_schema_realloc_fail;
+/* extern int g_schema_strdup_fail; (moved to global) */
+/* extern int g_schema_realloc_fail; (moved to global) */
 #endif
 
 TEST test_schema_constraints_bounds(void) {
@@ -594,8 +612,8 @@ TEST test_schema_constraints_bounds(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_schema_fail_io_after;
-extern int g_schema_io_calls;
+/* extern int g_schema_fail_io_after; (moved to global) */
+/* extern int g_schema_io_calls; (moved to global) */
 #endif
 
 TEST test_schema_codegen_cli_exhaustive_io(void) {
@@ -614,7 +632,13 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
                             "  }"
                             "}"
                             "}";
-  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_codegen_schema_io.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 
@@ -723,7 +747,7 @@ TEST test_schema_codegen_specific_structs(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+/* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 TEST test_schema_codegen_main_paths(void) {
@@ -756,7 +780,7 @@ TEST test_schema_codegen_main_paths(void) {
   argv[1] = "";
   {
 #include <c_cdd_export.h>
-    extern int g_cdd_strdup_fail;
+    /* extern int g_cdd_strdup_fail; (moved to global) */
     g_cdd_strdup_fail = 1;
     rc = schema2code_main(2, (char **)argv);
     ASSERT(rc != 0);
@@ -776,7 +800,7 @@ TEST test_schema_codegen_main_paths(void) {
 #ifdef CDD_BUILD_TESTS
   {
     int io_i = 1;
-    extern int g_schema_codegen_force_fail;
+    /* extern int g_schema_codegen_force_fail; (moved to global) */
     while (1) {
       g_fail_io_after = io_i++;
       g_io_calls = 0;
@@ -845,8 +869,19 @@ TEST test_schema_codegen_main_paths(void) {
 }
 
 #include <c_cdd_export.h>
+
+/* Moved extern declarations for C89 compliance */
+extern int g_schema_strdup_fail;
+extern int g_schema_io_calls;
 extern int g_struct_fields_init_fail;
 extern int g_json_object_to_struct_fields_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_strdup_fail;
+extern int g_schema_fail_io_after;
+extern int g_cdd_alloc_fail;
+/* extern int g_struct_fields_init_fail; (moved to global) */
+/* extern int g_json_object_to_struct_fields_fail; (moved to global) */
 
 TEST test_schema_codegen_init_fail(void) {
   void *root;
@@ -854,7 +889,13 @@ TEST test_schema_codegen_init_fail(void) {
   int rc;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": {\"properties\": {}}}}}";
-  FILE *f = fopen("test_codegen_schema_init.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_codegen_schema_init.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_codegen_schema_init.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 
@@ -893,7 +934,13 @@ TEST test_schema_codegen_parse_error(void) {
   int rc;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": 123}}}";
-  FILE *f = fopen("test_codegen_schema_parse.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_codegen_schema_parse.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_codegen_schema_parse.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 
@@ -920,7 +967,13 @@ TEST test_schema_codegen_source_fail(void) {
   int rc;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
-  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_codegen_schema_io.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 
@@ -928,7 +981,12 @@ TEST test_schema_codegen_source_fail(void) {
   schemas = json_object_get_object(json_value_get_object(root), "components");
   schemas = json_object_get_object(schemas, "schemas");
 
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_out_source.c", "w") != 0)
+    f = NULL;
+#else
   f = fopen("test_out_source.c", "w");
+#endif
   fclose(f);
   if (system("chmod 0444 test_out_source.c")) {
   }
@@ -956,7 +1014,13 @@ TEST test_schema_codegen_system_error(void) {
   int rc;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
-  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_codegen_schema_io.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 
@@ -983,7 +1047,13 @@ TEST test_schema_codegen_main_errors(void) {
   char *argv_bad4[] = {"file.json", "/invalid/path/prefix"};
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
-  FILE *f = fopen("file.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "file.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("file.json", "w");
+#endif
   fputs(schema_json, f);
   fclose(f);
 

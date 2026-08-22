@@ -81,7 +81,12 @@ cdd_c_error_t cdd_ffi_emit_scala(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.scala", config->output_dir,
                module_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

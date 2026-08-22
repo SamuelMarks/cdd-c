@@ -73,7 +73,12 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\cdd_bindings.py", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_ffi_e2e_out/cdd_bindings.py", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_ffi_e2e_out/cdd_bindings.py", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f) {
@@ -84,7 +89,12 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Cargo.toml", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_ffi_e2e_out/Cargo.toml", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_ffi_e2e_out/Cargo.toml", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f) {
@@ -95,7 +105,12 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Bindings.cs", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_ffi_e2e_out/Bindings.cs", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_ffi_e2e_out/Bindings.cs", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)

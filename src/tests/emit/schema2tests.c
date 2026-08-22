@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+  extern int g_fail_io_after;
+  extern int g_io_calls;
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
     int ret;
     va_list args;
@@ -31,8 +31,8 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+  extern int g_fail_io_after;
+  extern int g_io_calls;
 #define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
 #define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
 #else
@@ -43,7 +43,7 @@ extern int g_io_calls;
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 #include "c89stringutils_string_extras.h"
 static int mock_asprintf(char **strp, const char *fmt, ...) {
     int ret;
@@ -70,7 +70,7 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 static int mock_get_dirname(const char *path, char **dir) {
     if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
     return get_dirname(path, dir);
@@ -102,6 +102,11 @@ static int mock_makedirs(const char *path) {
 #include <errno.h>
 #endif
 /* clang-format on */
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
+extern int g_cdd_alloc_fail;
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \

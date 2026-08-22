@@ -164,13 +164,23 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(idl_filepath, sizeof(idl_filepath), "%s/%s.idl",
                config->output_dir, lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&idl_f, idl_filepath, "w") != 0)
+    idl_f = NULL;
+#else
   idl_f = fopen(idl_filepath, "w");
+#endif
   if (!idl_f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(cpp_filepath, sizeof(cpp_filepath), "%s/%s_glue.cpp",
                config->output_dir, lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&cpp_f, cpp_filepath, "w") != 0)
+    cpp_f = NULL;
+#else
   cpp_f = fopen(cpp_filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
@@ -185,7 +195,12 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
   }
   CDD_SNPRINTF(ts_filepath, sizeof(ts_filepath), "%s/%s.d.ts",
                config->output_dir, lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&ts_f, ts_filepath, "w") != 0)
+    ts_f = NULL;
+#else
   ts_f = fopen(ts_filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {

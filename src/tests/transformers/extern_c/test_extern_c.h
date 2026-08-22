@@ -11,7 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_realloc_fail;
+/* extern int g_cdd_cst_realloc_fail; (moved to global) */
 C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
 C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
 C_CDD_EXPORT volatile int g_extern_c_helper_fail;
@@ -27,6 +27,9 @@ C_CDD_EXPORT volatile int g_extern_c_helper_fail;
 #include "classes/emit/cdd_cst_emit.h"
 #include "c_str_span.h"
 /* clang-format on */
+
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_cst_realloc_fail;
 
 /**
  * @brief Tests basic functionality of the extern C transformer.

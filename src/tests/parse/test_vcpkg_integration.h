@@ -18,6 +18,9 @@ extern "C" {
 #include "functions/parse/vcpkg_integration.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief Tests basic functionality of the Vcpkg builder.
  *
@@ -222,7 +225,7 @@ TEST test_vcpkg_builder_extras(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+/* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 TEST test_vcpkg_builder_oom(void) {

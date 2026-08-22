@@ -43,13 +43,23 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(c_filepath, sizeof(c_filepath), "%s/%s_tcl.c",
                config->output_dir, lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&c_f, c_filepath, "w") != 0)
+    c_f = NULL;
+#else
   c_f = fopen(c_filepath, "w");
+#endif
   if (!c_f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(pkg_filepath, sizeof(pkg_filepath), "%s/pkgIndex.tcl",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&pkg_f, pkg_filepath, "w") != 0)
+    pkg_f = NULL;
+#else
   pkg_f = fopen(pkg_filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {

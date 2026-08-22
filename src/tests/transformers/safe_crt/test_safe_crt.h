@@ -21,6 +21,10 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_safe_crt_malloc_fail;
+extern int g_cdd_cst_alloc_node_fail;
+
 TEST test_cdd_transform_safe_crt(void) {
   cdd_cst_tree_t *tree = NULL;
 
@@ -64,8 +68,17 @@ TEST test_cdd_transform_safe_crt(void) {
       "  strncpy(dest, \"def\", 3);\n"
       "  sprintf(dest, \"%d\", 1);\n"
       "  FILE *f;\n"
+      "  #if defined(_MSC_VER)\n"
+      "  if(fopen_s(&f, \"a.txt\", \"r\") != 0) f = NULL;\n"
+      "#else\n"
       "  f = fopen(\"a.txt\", \"r\");\n"
-      "  FILE *f2 = fopen(\"b.txt\", \"r\");\n"
+      "#endif \n"
+      "  FILE *f2;\n"
+      "#if defined (_MSC_VER)\n"
+      "  if (fopen_s(&f2, \"b.txt\", \"r\") != 0) f2 = NULL;\n"
+      "#else\n"
+      "  f2 = fopen(\"b.txt\", \"r\");\n"
+      "#endif \n"
       "  strcat(dest, \"x\");\n"
       "  strncat(dest, \"y\", 1);\n"
       "  memcpy(dest, \"z\", 1);\n"
@@ -90,7 +103,12 @@ TEST test_cdd_transform_safe_crt(void) {
       "  _wcsupr(wdest);\n"
       "  f = freopen(\"a.txt\", \"w\", f);\n"
       "  FILE *f3 = _wfopen(L\"a.txt\", L\"r\");\n"
-      "  FILE *f4 = tmpfile();\n"
+      "  FILE *f4;\n"
+      "#if defined (_MSC_VER)\n"
+      "  if (tmpfile_s(&f4) != 0) f4 = NULL;\n"
+      "#else\n"
+      "  f4 = tmpfile();\n"
+      "#endif \n"
       "  _splitpath(dest, dest, dest, dest, dest);\n"
       "  _makepath(dest, dest, dest, dest, dest);\n"
       "  _searchenv(\"x\", \"PATH\", dest);\n"
@@ -273,7 +291,12 @@ TEST test_cdd_transform_safe_crt(void) {
   ASSERT_EQ(0, cdd_transform_safe_crt(tree6, &config));
   cdd_cst_tree_free(tree6);
 
-  const char *code7 = "void edge7() { FILE *f; f = fopen(\"a\", \"b\"); }";
+  const char *code7 = "void edge7() { FILE *f;\n"
+                      "#if defined(_MSC_VER)\n"
+                      "  if(fopen_s(&f, \"a\", \"b\") != 0) f = NULL;\n"
+                      "#else\n"
+                      "  f = fopen(\"a\", \"b\");\n"
+                      "#endif } ";
   cdd_cst_tree_t *tree7 = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code7), &tree7));
   ASSERT_EQ(0, cdd_transform_safe_crt(tree7, &config));
@@ -472,8 +495,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_safe_crt_malloc_fail;
-extern int g_cdd_cst_alloc_node_fail;
+/* extern int g_safe_crt_malloc_fail; (moved to global) */
+/* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
 #endif
 
 TEST test_cdd_transform_safe_crt_oom(void) {
@@ -487,8 +510,13 @@ TEST test_cdd_transform_safe_crt_oom(void) {
       "_mbstok(buf, \"a\"); "
       "if (1) strerror(1); if (1) _wcserror(1); if (1) _ecvt(d, 1, 0, 0); if "
       "(1) _fcvt(d, 1, 0, 0); "
-      "if (1) ctime(NULL); if (1) getenv(\"A\"); FILE *f = fopen(\"A\", "
-      "\"B\"); if (1) _wgetenv(L\"A\"); strcpy(buf, \"abc\"); }";
+      "if (1) ctime(NULL); if (1) getenv(\"A\"); FILE *f;\n"
+      "#if defined (_MSC_VER)\n"
+      "  if (fopen_s(&f, \"A\", \"B\") != 0) f = NULL;\n"
+      "#else\n"
+      "  f = fopen(\"A\", \"B\");\n"
+      "#endif \n"
+      "if (1) _wgetenv(L\"A\"); strcpy(buf, \"abc\"); }";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));

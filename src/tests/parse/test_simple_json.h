@@ -163,7 +163,12 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("invalid", &haz_e2));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("[]", &haz_e2));
 
+#if defined(_MSC_VER)
+  if (tmpfile_s(&f) != 0)
+    f = NULL;
+#else
   f = tmpfile();
+#endif
   ASSERT(f);
   ASSERT(f);
   ASSERT_EQ(0, HazE_display(haz_e, f));
@@ -321,7 +326,12 @@ TEST test_foo_e_full_coverage(void) {
            (void *)"foo");
     fflush(stdout);
 
+#if defined(_MSC_VER)
+    if (tmpfile_s(&f) != 0)
+      f = NULL;
+#else
     f = tmpfile();
+#endif
     ASSERT(f);
     g_simple_json_fail_alloc = i;
     HazE_display(haz_e, f);
@@ -375,7 +385,12 @@ TEST test_foo_e_full_coverage(void) {
       foo_e2 = NULL;
     }
 
+#if defined(_MSC_VER)
+    if (tmpfile_s(&f) != 0)
+      f = NULL;
+#else
     f = tmpfile();
+#endif
     ASSERT(f);
     g_simple_json_fail_alloc = i;
     FooE_display(foo_e, f);

@@ -73,7 +73,13 @@ TEST test_generate_bindings_cli_main_help(void) {
 }
 
 TEST test_c2openapi_cli_main_doc_tags(void) {
-  FILE *f = fopen("src/tests/mocks/parse/test_doc_tags.c", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/parse/test_doc_tags.c", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("src/tests/mocks/parse/test_doc_tags.c", "w");
+#endif
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @tagMeta TestTag1\n");
@@ -104,7 +110,12 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     remove("src/tests/mocks/parse/test_doc_tags.c");
     remove("out3.json");
   }
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/parse/test_doc_tags_invalid2.c", "w") != 0)
+    f = NULL;
+#else
   f = fopen("src/tests/mocks/parse/test_doc_tags_invalid2.c", "w");
+#endif
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth14 [type:apiKey] [in:invalid]\n");
@@ -118,7 +129,12 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     remove("src/tests/mocks/parse/test_doc_tags_invalid2.c");
     remove("out52.json");
   }
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/parse/test_doc_tags_oauth.c", "w") != 0)
+    f = NULL;
+#else
   f = fopen("src/tests/mocks/parse/test_doc_tags_oauth.c", "w");
+#endif
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth3 [type:oauth2] [flow:implicit] "
@@ -152,7 +168,12 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     remove("src/tests/mocks/parse/test_doc_tags_oauth.c");
     remove("out4.json");
   }
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/parse/test_doc_tags_invalid.c", "w") != 0)
+    f = NULL;
+#else
   f = fopen("src/tests/mocks/parse/test_doc_tags_invalid.c", "w");
+#endif
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f, " * @securityScheme MyAuth6 [type:invalid]\n");
@@ -168,7 +189,13 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     remove("src/tests/mocks/parse/test_doc_tags_invalid.c");
     remove("out5.json");
   }
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/parse/test_doc_tags_oauth_merge.c", "w") !=
+      0)
+    f = NULL;
+#else
   f = fopen("src/tests/mocks/parse/test_doc_tags_oauth_merge.c", "w");
+#endif
   if (f) {
     fprintf(f, "/**\n");
     fprintf(f,

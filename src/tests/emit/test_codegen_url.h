@@ -25,7 +25,13 @@ extern "C" {
 static cdd_c_error_t gen_url_code(const char *tmpl,
                                   const struct OpenAPI_Parameter *params,
                                   size_t n_params, char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   long sz;
   char *content = NULL;
 
@@ -56,7 +62,13 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
 
 static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
                                     char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   long sz;
   char *content = NULL;
 
@@ -1234,7 +1246,13 @@ TEST test_codegen_url_coverage_extras(void) {
 
   /* 1733: missing path param */
   {
-    FILE *fp = tmpfile();
+    FILE *fp;
+#if defined(_MSC_VER)
+    if (tmpfile_s(&fp) != 0)
+      fp = NULL;
+#else
+    fp = tmpfile();
+#endif
     if (fp) {
       codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
       fclose(fp);

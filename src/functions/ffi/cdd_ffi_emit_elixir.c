@@ -112,7 +112,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      c_f = fopen(c_filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&c_f, c_filepath, "w") != 0)
+        c_f = NULL;
+#else
+    c_f = fopen(c_filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -130,7 +135,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      ex_f = fopen(ex_filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&ex_f, ex_filepath, "w") != 0)
+        ex_f = NULL;
+#else
+    ex_f = fopen(ex_filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

@@ -22,6 +22,9 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_fail_alloc;
+
 /**
  * @brief Tests basic diff generation
  * @return TEST
@@ -81,7 +84,7 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    /* extern int g_cdd_fail_alloc; (moved to global) */
     g_cdd_fail_alloc = 5555;
     {
       rc = patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2);
@@ -104,7 +107,7 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    /* extern int g_cdd_fail_alloc; (moved to global) */
 
     /* Trigger realloc failure */
     diff3 = NULL;

@@ -42,6 +42,10 @@ typedef unsigned __int64 uint64_t;
 
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_strdup_fail;
+extern int g_cdd_alloc_fail;
+
 /* Updated test cases to reflect new return types (int vs void) */
 
 TEST test_write_enum_functions(void) {
@@ -67,7 +71,12 @@ TEST test_write_enum_functions(void) {
     FAILm("Failed to open file for writing");
 #else
 
+#if defined(_MSC_VER)
+  if (fopen_s(&tmp_fh, "tmp_enum_func.c", "w") != 0)
+    tmp_fh = NULL;
+#else
   tmp_fh = fopen("tmp_enum_func.c", "w");
+#endif
   if (!tmp_fh)
 
     FAILm("Failed to open file for writing");
@@ -192,7 +201,13 @@ TEST test_parse_struct_member_format_mapping(void) {
 static struct StructFields test_struct_fields;
 
 TEST test_write_struct_functions(void) {
-  FILE *tmpf = tmpfile();
+  FILE *tmpf;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmpf) != 0)
+    tmpf = NULL;
+#else
+  tmpf = tmpfile();
+#endif
 
   if (!tmpf)
 
@@ -311,7 +326,7 @@ static void *mock_malloc(size_t sz) {
 }
 static void mock_free(void *ptr) { free(ptr); }
 
-extern int g_cdd_strdup_fail;
+/* extern int g_cdd_strdup_fail; (moved to global) */
 
 TEST test_code2schema_oom(void) {
   int i;
@@ -341,7 +356,13 @@ TEST test_code2schema_oom(void) {
     {
       const char *test_file = "test_oom_union.h";
       const char *out_file = "test_oom_union_out.json";
-      FILE *f = fopen(test_file, "w");
+      FILE *f;
+#if defined(_MSC_VER)
+      if (fopen_s(&f, test_file, "w") != 0)
+        f = NULL;
+#else
+      f = fopen(test_file, "w");
+#endif
       if (f) {
         fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
         fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
@@ -382,7 +403,13 @@ TEST test_code2schema_oom(void) {
     {
       const char *test_file = "test_oom_union.h";
       const char *out_file = "test_oom_union_out.json";
-      FILE *f = fopen(test_file, "w");
+      FILE *f;
+#if defined(_MSC_VER)
+      if (fopen_s(&f, test_file, "w") != 0)
+        f = NULL;
+#else
+      f = fopen(test_file, "w");
+#endif
       if (f) {
         fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
         fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
@@ -409,7 +436,13 @@ TEST test_code2schema_branches(void) {
 
   /* test read_line with \r\n */
   {
-    FILE *fp = fopen("dummy_c_code.c", "wb");
+    FILE *fp;
+#if defined(_MSC_VER)
+    if (fopen_s(&fp, "dummy_c_code.c", "wb") != 0)
+      fp = NULL;
+#else
+    fp = fopen("dummy_c_code.c", "wb");
+#endif
     if (fp) {
       fprintf(fp, "int main() {\r\n  return 0;\r\n}\r\n");
       fclose(fp);
@@ -498,7 +531,13 @@ TEST test_code2schema_file_not_found(void) {
 }
 
 TEST test_codegen_enum_null_args(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct EnumMembers em_valid;
   struct EnumMembers em_null_members;
@@ -554,7 +593,13 @@ TEST test_codegen_enum_null_args(void) {
 }
 
 TEST test_codegen_enum_with_unknown(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct EnumMembers em;
 
@@ -583,7 +628,13 @@ TEST test_codegen_enum_with_unknown(void) {
 }
 
 TEST test_codegen_all_field_types(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct StructFields sf;
 
@@ -629,7 +680,13 @@ TEST test_codegen_all_field_types(void) {
 }
 
 TEST test_codegen_empty_struct_and_enum(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct EnumMembers em;
   struct StructFields sf;
@@ -664,7 +721,13 @@ TEST test_codegen_empty_struct_and_enum(void) {
 }
 
 TEST test_codegen_struct_null_args(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   struct StructFields sf_valid;
 
@@ -1119,8 +1182,8 @@ TEST test_code2schema_utils(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
-    extern int g_cdd_strdup_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /* extern int g_cdd_strdup_fail; (moved to global) */
 
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -1153,8 +1216,8 @@ TEST test_code2schema_utils(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
-    extern int g_cdd_strdup_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /* extern int g_cdd_strdup_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               parse_type_union_array_code2schema(arr, &union_types, &count,
@@ -1179,7 +1242,13 @@ TEST test_code2schema_utils(void) {
 TEST test_code2schema_union(void) {
   const char *test_file = "test_union.h";
   const char *out_file = "test_union_out.json";
-  FILE *f = fopen(test_file, "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, test_file, "w") != 0)
+    f = NULL;
+#else
+  f = fopen(test_file, "w");
+#endif
   const char *argv[2];
   argv[0] = test_file;
   argv[1] = out_file;

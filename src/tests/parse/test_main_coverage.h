@@ -74,7 +74,13 @@ TEST test_main_coverage_from_openapi_opts(void) {
 }
 
 TEST test_main_coverage_from_openapi_valid(void) {
-  FILE *f = fopen("dummy_spec.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "dummy_spec.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("dummy_spec.json", "w");
+#endif
   if (f) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
@@ -88,7 +94,13 @@ TEST test_main_coverage_from_openapi_valid(void) {
 }
 
 TEST test_main_coverage_from_openapi_invalid(void) {
-  FILE *f = fopen("invalid_spec.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "invalid_spec.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("invalid_spec.json", "w");
+#endif
   if (f) {
     fputs("invalid json", f);
     fclose(f);
@@ -100,7 +112,13 @@ TEST test_main_coverage_from_openapi_invalid(void) {
 }
 
 TEST test_main_coverage_from_openapi_cli_server(void) {
-  FILE *f = fopen("dummy_spec.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "dummy_spec.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("dummy_spec.json", "w");
+#endif
   if (f) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
@@ -140,7 +158,13 @@ TEST test_main_coverage_to_openapi(void) {
 }
 
 TEST test_main_coverage_cdd_main_subcommands(void) {
-  FILE *f = fopen("dummy_spec.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "dummy_spec.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("dummy_spec.json", "w");
+#endif
   if (f) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
@@ -175,7 +199,13 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
 }
 
 TEST test_main_coverage_cdd_main_success(void) {
-  FILE *f = fopen("dummy_spec.json", "w");
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "dummy_spec.json", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("dummy_spec.json", "w");
+#endif
   if (f) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",

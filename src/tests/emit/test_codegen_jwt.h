@@ -28,7 +28,13 @@ extern "C" {
  * @return TEST
  */
 TEST test_jwt_generation(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct StructFields sf;
   char *content = NULL;
   long sz;

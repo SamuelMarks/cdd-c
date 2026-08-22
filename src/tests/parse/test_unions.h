@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern int g_fail_io_after;
-extern int g_io_calls;
+/* extern int g_fail_io_after; (moved to global) */
+/* extern int g_io_calls; (moved to global) */
 /**
  * @file test_unions.c
  * @brief Unit tests for Tagged Union code generation.
@@ -25,11 +25,21 @@ extern int g_io_calls;
 #include "functions/emit/codegen.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
+
 /* Add definitions that need to be in the test runner's main file. */
 
 TEST test_write_union_to_json(void) {
   struct StructFields sf;
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   char *content = NULL;
   long sz;
 
@@ -68,7 +78,13 @@ TEST test_write_union_to_json(void) {
 
 TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   char *content = NULL;
   long sz;
 
@@ -104,7 +120,13 @@ TEST test_write_union_from_json_object(void) {
 
 TEST test_write_union_from_json(void) {
   struct StructFields sf;
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   char *content = NULL;
   long sz;
 
@@ -138,7 +160,13 @@ TEST test_write_union_from_json(void) {
 }
 TEST test_write_union_cleanup(void) {
   struct StructFields sf;
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   char *content = NULL;
   long sz;
 

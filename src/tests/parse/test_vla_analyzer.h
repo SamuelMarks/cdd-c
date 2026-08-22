@@ -18,11 +18,15 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
 
-extern int g_io_calls;
-extern int g_fail_io_after;
+  /* extern int g_io_calls; (moved to global) */
+  /* extern int g_fail_io_after; (moved to global) */
 extern cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k, int *out_is_basic);
 
 /* clang-format on */
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
 
 /**
  * @brief Tests basic functionality of VLA scanning.

@@ -28,7 +28,13 @@ TEST test_gen_sdk_test_basic(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   struct SdkTestsConfig config;
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   long sz;
   char *content = NULL;
 
@@ -107,7 +113,13 @@ TEST test_gen_sdk_test_exhaustive(void) {
   struct OpenAPI_Parameter param[3];
   struct SdkTestsConfig config;
   struct OpenAPI_Response responses[2];
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
 
   memset(&spec, 0, sizeof(spec));
   memset(&path, 0, sizeof(path));

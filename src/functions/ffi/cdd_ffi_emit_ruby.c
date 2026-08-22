@@ -97,7 +97,12 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.rb", config->output_dir,
                lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -194,7 +199,12 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #else
     CDD_SNPRINTF(filepath_c, sizeof(filepath_c), "%s/cdd_ruby_wrap.c",
                  config->output_dir);
+#if defined(_MSC_VER)
+    if (fopen_s(&fc, filepath_c, "w") != 0)
+      fc = NULL;
+#else
     fc = fopen(filepath_c, "w");
+#endif
 #endif
     {
       if (g_fail_io_after == 2) {
@@ -237,7 +247,12 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #else
     CDD_SNPRINTF(filepath_test, sizeof(filepath_test), "%s/test_%s.rb",
                  config->output_dir, lib_name);
+#if defined(_MSC_VER)
+    if (fopen_s(&f, filepath_test, "w") != 0)
+      f = NULL;
+#else
     f = fopen(filepath_test, "w");
+#endif
 #endif
     {
       if (g_fail_io_after == 3) {

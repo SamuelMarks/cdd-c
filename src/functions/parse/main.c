@@ -361,7 +361,12 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
 #else
     sprintf(snapshot_path, "%s/openapi.snapshot.json", input_dir);
 #endif
+#if defined(_MSC_VER)
+    if (fopen_s(&f, snapshot_path, "r") != 0)
+      f = NULL;
+#else
     f = fopen(snapshot_path, "r");
+#endif
     if (f) {
       char *c2_argv_base[5];
       fclose(f);

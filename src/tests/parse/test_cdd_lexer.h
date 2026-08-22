@@ -12,6 +12,12 @@ extern "C" {
 #include "classes/parse/cdd_lexer.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_lexer_trivia_fail;
+extern int g_cdd_lexer_id2_fail;
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_lexer_id_fail;
+
 /**
  * @brief test_cdd_lexer_basic
  * @return TEST
@@ -243,7 +249,7 @@ TEST test_cdd_lexer_cpp_keywords(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
+/* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
 
 TEST test_cdd_lexer_oom(void) {
   cdd_token_list_t *tl = NULL;
@@ -490,7 +496,7 @@ TEST test_lexer_branches(void) {
 TEST test_lexer_oom_injected(void) {
   cdd_token_list_t *tl = NULL;
 
-  extern int g_cdd_lexer_trivia_fail;
+  /* extern int g_cdd_lexer_trivia_fail; (moved to global) */
   g_cdd_lexer_trivia_fail = 1;
   int r1 = cdd_lexer_tokenize(az_span_create((uint8_t *)"// trivia", 10), &tl);
   g_cdd_lexer_trivia_fail = 0;
@@ -501,13 +507,13 @@ TEST test_lexer_oom_injected(void) {
   g_cdd_lexer_trivia_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
-  extern int g_cdd_lexer_id_fail;
+  /* extern int g_cdd_lexer_id_fail; (moved to global) */
   g_cdd_lexer_id_fail = 1;
   int r3 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
   g_cdd_lexer_id_fail = 0;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
-  extern int g_cdd_lexer_id2_fail;
+  /* extern int g_cdd_lexer_id2_fail; (moved to global) */
   g_cdd_lexer_id2_fail = 1;
   int r4 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
   g_cdd_lexer_id2_fail = 0;

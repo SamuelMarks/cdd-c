@@ -19,6 +19,9 @@ extern "C" {
 #include "classes/emit/cdd_cst_emit.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief Tests basic roundtrip of CST parsing and emitting.
  *
@@ -419,8 +422,8 @@ TEST test_cdd_cst_cpp_inheritance(void) {
 TEST test_cdd_cst_parser_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
-  extern int g_cdd_alloc_fail;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   int i;
   const char *code = "template <typename T, class U> class Pair : public A { T "
                      "x; }; namespace N { using namespace std; try { throw 1; "

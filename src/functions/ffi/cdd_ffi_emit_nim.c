@@ -101,7 +101,12 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -190,7 +195,12 @@ cdd_c_error_t cdd_ffi_emit_nim(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

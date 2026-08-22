@@ -19,6 +19,13 @@ extern "C" {
 #include "functions/parse/orchestrator.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_alloc_node_fail;
+extern int g_cdd_strdup_fail;
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_alloc_fail;
+
 TEST test_orchestrator_simple_propagation(void) {
   /*
      A returns void, allocs.
@@ -254,9 +261,9 @@ TEST test_orchestrator_edge_cases(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
-    extern int g_cdd_strdup_fail;
-    extern int g_cdd_cst_alloc_node_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /* extern int g_cdd_strdup_fail; (moved to global) */
+    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
     int i;
     for (i = 1; i < 20000; ++i) {
       g_cdd_alloc_fail = i;
@@ -326,7 +333,7 @@ TEST test_orchestrator_edge_cases(void) {
     g_cdd_cst_alloc_node_fail = 0;
 
     for (i = 1; i < 20000; ++i) {
-      extern int g_cdd_cst_alloc_token_fail;
+      /* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
       g_cdd_cst_alloc_token_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"
                            "void B() { A(); }\n"
@@ -349,7 +356,7 @@ TEST test_orchestrator_edge_cases(void) {
     g_cdd_cst_alloc_token_fail = 0;
 
     for (i = 1; i < 20000; ++i) {
-      extern int g_cdd_cst_realloc_fail;
+      /* extern int g_cdd_cst_realloc_fail; (moved to global) */
       g_cdd_cst_realloc_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"
                            "void B() { A(); }\n"

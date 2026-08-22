@@ -203,13 +203,23 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.pm", config->output_dir,
                module_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
   CDD_SNPRINTF(xs_filepath, sizeof(xs_filepath), "%s/%s.xs", config->output_dir,
                module_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&xs_f, xs_filepath, "w") != 0)
+    xs_f = NULL;
+#else
   xs_f = fopen(xs_filepath, "w");
+#endif
   if (!xs_f) {
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;
@@ -223,7 +233,12 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   }
   CDD_SNPRINTF(make_filepath, sizeof(make_filepath), "%s/Makefile.PL",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&make_f, make_filepath, "w") != 0)
+    make_f = NULL;
+#else
   make_f = fopen(make_filepath, "w");
+#endif
   if (!make_f) {
     fclose(f);
     fclose(xs_f);
@@ -239,7 +254,12 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   }
   CDD_SNPRINTF(typemap_filepath, sizeof(typemap_filepath), "%s/typemap",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&typemap_f, typemap_filepath, "w") != 0)
+    typemap_f = NULL;
+#else
   typemap_f = fopen(typemap_filepath, "w");
+#endif
   if (!typemap_f) {
     fclose(f);
     fclose(xs_f);

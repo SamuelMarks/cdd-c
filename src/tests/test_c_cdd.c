@@ -13,6 +13,81 @@ different base types from char[3] * / file scope * /
 #include "c_cdd_export.h"
 #include <errno.h>
 
+int g_fail_io_after;
+int g_io_calls;
+int g_cdd_cst_emit_realloc_fail;
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+int g_cdd_cst_alloc_token_fail;
+int g_cdd_cst_alloc_node_fail;
+int g_cdd_scope_alloc_fail;
+
+
+int g_fail_io_after;
+int g_io_calls;
+int g_cdd_cst_emit_realloc_fail;
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+
+
+
+
+int g_fail_io_after;
+int g_io_calls;
+int g_cdd_cst_emit_realloc_fail;
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+
+
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+
+
+
+
+int g_fail_io_after;
+int g_io_calls;
+int g_cdd_cst_emit_realloc_fail;
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+
+
+int g_schema_strdup_fail;
+int g_schema_realloc_fail;
+int g_schema_fail_io_after;
+int g_schema_io_calls;
+int g_schema_codegen_force_fail;
+int g_cdd_cst_realloc_fail;
+int g_cdd_cst_parser_fast_grow;
+
+
+
+
 #ifndef ENOTSUP
 #define ENOTSUP 134
 #endif
@@ -22,8 +97,8 @@ different base types from char[3] * / file scope * /
 
 #include <greatest.h>
 #include "c_cdd/format_specifiers.h"
-extern int g_fail_io_after;
-extern int g_io_calls;
+  /* extern int g_fail_io_after; (moved to global) */
+  /* extern int g_io_calls; (moved to global) */
 
 static char g_cdd_test_tmp_buf[65536][64];
 
@@ -33,7 +108,11 @@ static FILE* cdd_test_tmpfile(void) {
     if (counter >= 65536) counter = 0;
     sprintf(g_cdd_test_tmp_buf[counter], "cdd_test_tmp_%d.txt", counter);
     remove(g_cdd_test_tmp_buf[counter]);
-    f = fopen(g_cdd_test_tmp_buf[counter], "w+b");
+    #if defined(_MSC_VER)
+  if(fopen_s(&f, g_cdd_test_tmp_buf[counter], "w+b") != 0) f = NULL;
+#else
+  f = fopen(g_cdd_test_tmp_buf[counter], "w+b");
+#endif
     counter++;
     return f;
 }
@@ -44,13 +123,13 @@ static FILE* cdd_test_tmpfile(void) {
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_cst_printer.h"
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 #include "emit/test_codegen_build.h"
 
 #include <stdio.h>
 #include <c_cdd_export.h>
-extern int g_fail_io_after;
+  /* extern int g_fail_io_after; (moved to global) */
 static FILE *mock_tmpfile_fuzzer(void) {
     if (g_fail_io_after >= 0) {
         return fopen("/dev/null", "w+b");
@@ -227,7 +306,54 @@ TEST test_cdd_helpers(void) {
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
 
 #include "cdd_test_helpers_export.h"
+
+  /* Moved extern declarations for C89 compliance */
+  extern int g_struct_fields_add_fail;
+
+  extern int g_cdd_cst_parser_fast_grow;
+  extern int g_cdd_query_err_fail;
+  extern int g_schema_realloc_fail;
+
+  extern int g_json_object_to_struct_fields_fail;
+  extern int g_safe_crt_malloc_fail;
+  extern int g_msvc_port_bld_fail;
+  extern int g_cdd_type_eval_ptr_fail;
+  extern int g_cdd_fprintf_fail;
+  extern int g_cdd_ffi_ir_calloc_fail;
+  extern int g_cdd_cst_emit_realloc_fail;
+  extern int g_str_unquote_malloc_fail;
+  extern int g_enum_members_init_fail;
+  extern int g_listen_fail;
+  extern int g_force_gnu_alloc_fail;
+  extern int g_cdd_lexer_id_fail;
+  extern int g_cdd_cfg_alloc_fail;
+  extern int g_force_parse_tokens_fail;
+  extern int g_force_find_allocations_fail;
+  extern int g_socket_fail;
+  extern int g_err_perc_fail;
+  extern int g_cdd_cst_realloc_fail;
+  extern int g_fail_io_after;
+  extern int g_struct_fields_init_fail;
+  extern int g_enum_members_add_strdup_fail;
+  extern int g_cdd_ffi_ir_toposort_fail;
+  extern int g_bind_fail;
+  extern int g_cdd_semantic_leave_fail;
+  extern int g_schema_codegen_force_fail;
+  extern int g_cdd_ffi_ir_malloc_fail;
+  extern int g_io_calls;
+  extern int g_cdd_strdup_fail;
+  extern int g_force_strdup_fail;
+  extern int g_cdd_lexer_trivia_fail;
+  extern int g_schema_strdup_fail;
+  extern int g_force_tokenize_fail;
+  extern int g_pthread_create_fail;
   extern int g_cdd_helpers_fopen_err;
+  extern int g_accept_fail;
+  extern int g_enum_members_add_fail;
+  extern int g_getsockname_fail;
+  extern int g_cdd_lexer_id2_fail;
+  extern extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_helpers_fopen_err; (moved to global) */
   g_io_calls = 0;
   g_fail_io_after = 1;
   g_cdd_helpers_fopen_err = ENOMEM;
@@ -308,55 +434,55 @@ SUITE(ffi_extractor_suite) {
 #endif
 
 static void reset_mocks(void) {
-  extern int g_accept_fail;
+  /* extern int g_accept_fail; (moved to global) */
   g_accept_fail = 0;
-  extern int g_bind_fail;
+  /* extern int g_bind_fail; (moved to global) */
   g_bind_fail = 0;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
   g_cdd_alloc_fail = 0;
-  extern int g_cdd_cfg_alloc_fail;
+  /* extern int g_cdd_cfg_alloc_fail; (moved to global) */
   g_cdd_cfg_alloc_fail = 0;
-  extern int g_cdd_cst_alloc_node_fail;
+  /*  (moved to global) */
   g_cdd_cst_alloc_node_fail = 0;
-  extern int g_cdd_cst_alloc_token_fail;
+  /* extern  (moved to global) */
   g_cdd_cst_alloc_token_fail = 0;
-  extern int g_cdd_cst_emit_realloc_fail;
+  /* extern int g_cdd_cst_emit_realloc_fail; (moved to global) */
   g_cdd_cst_emit_realloc_fail = 0;
-  extern int g_cdd_cst_parser_fast_grow;
+  /* extern int g_cdd_cst_parser_fast_grow; (moved to global) */
   g_cdd_cst_parser_fast_grow = 0;
-  extern int g_cdd_cst_realloc_fail;
+  /* extern int g_cdd_cst_realloc_fail; (moved to global) */
   g_cdd_cst_realloc_fail = 0;
-  extern int g_cdd_ffi_ir_calloc_fail;
+  /* extern int g_cdd_ffi_ir_calloc_fail; (moved to global) */
   g_cdd_ffi_ir_calloc_fail = 0;
-  extern int g_cdd_ffi_ir_malloc_fail;
+  /* extern int g_cdd_ffi_ir_malloc_fail; (moved to global) */
   g_cdd_ffi_ir_malloc_fail = 0;
-  extern int g_cdd_ffi_ir_toposort_fail;
+  /* extern int g_cdd_ffi_ir_toposort_fail; (moved to global) */
   g_cdd_ffi_ir_toposort_fail = 0;
-  extern int g_cdd_fprintf_fail;
+  /* extern int g_cdd_fprintf_fail; (moved to global) */
   g_cdd_fprintf_fail = 0;
-  extern int g_cdd_lexer_id2_fail;
+  /* extern int g_cdd_lexer_id2_fail; (moved to global) */
   g_cdd_lexer_id2_fail = 0;
-  extern int g_cdd_lexer_id_fail;
+  /* extern int g_cdd_lexer_id_fail; (moved to global) */
   g_cdd_lexer_id_fail = 0;
-  extern int g_cdd_lexer_trivia_fail;
+  /* extern int g_cdd_lexer_trivia_fail; (moved to global) */
   g_cdd_lexer_trivia_fail = 0;
-  extern int g_cdd_query_err_fail;
+  /* extern int g_cdd_query_err_fail; (moved to global) */
   g_cdd_query_err_fail = 0;
-  extern int g_cdd_scope_alloc_fail;
+  /*  (moved to global) */
   g_cdd_scope_alloc_fail = 0;
-  extern int g_cdd_semantic_leave_fail;
+  /* extern int g_cdd_semantic_leave_fail; (moved to global) */
   g_cdd_semantic_leave_fail = 0;
-  extern int g_cdd_strdup_fail;
+  /* extern int g_cdd_strdup_fail; (moved to global) */
   g_cdd_strdup_fail = 0;
-  extern int g_cdd_type_eval_ptr_fail;
+  /* extern int g_cdd_type_eval_ptr_fail; (moved to global) */
   g_cdd_type_eval_ptr_fail = 0;
-  extern int g_enum_members_add_fail;
+  /* extern int g_enum_members_add_fail; (moved to global) */
   g_enum_members_add_fail = 0;
-  extern int g_enum_members_add_strdup_fail;
+  /* extern int g_enum_members_add_strdup_fail; (moved to global) */
   g_enum_members_add_strdup_fail = 0;
-  extern int g_enum_members_init_fail;
+  /* extern int g_enum_members_init_fail; (moved to global) */
   g_enum_members_init_fail = 0;
-  extern int g_err_perc_fail;
+  /* extern int g_err_perc_fail; (moved to global) */
   g_err_perc_fail = 0;
   extern volatile int g_extern_c_bot_node_fail;
   g_extern_c_bot_node_fail = 0;
@@ -366,43 +492,43 @@ static void reset_mocks(void) {
   g_extern_c_top_node_fail = 0;
   extern volatile int g_ffi_extractor_alloc_fail;
   g_ffi_extractor_alloc_fail = 0;
-  extern int g_force_find_allocations_fail;
+  /* extern int g_force_find_allocations_fail; (moved to global) */
   g_force_find_allocations_fail = 0;
-  extern int g_force_gnu_alloc_fail;
+  /* extern int g_force_gnu_alloc_fail; (moved to global) */
   g_force_gnu_alloc_fail = 0;
-  extern int g_force_parse_tokens_fail;
+  /* extern int g_force_parse_tokens_fail; (moved to global) */
   g_force_parse_tokens_fail = 0;
-  extern int g_force_strdup_fail;
+  /* extern int g_force_strdup_fail; (moved to global) */
   g_force_strdup_fail = 0;
-  extern int g_force_tokenize_fail;
+  /* extern int g_force_tokenize_fail; (moved to global) */
   g_force_tokenize_fail = 0;
-  extern int g_getsockname_fail;
+  /* extern int g_getsockname_fail; (moved to global) */
   g_getsockname_fail = 0;
-  extern int g_json_object_to_struct_fields_fail;
+  /* extern int g_json_object_to_struct_fields_fail; (moved to global) */
   g_json_object_to_struct_fields_fail = 0;
-  extern int g_listen_fail;
+  /* extern int g_listen_fail; (moved to global) */
   g_listen_fail = 0;
-  extern int g_msvc_port_bld_fail;
+  /* extern int g_msvc_port_bld_fail; (moved to global) */
   g_msvc_port_bld_fail = 0;
-  extern int g_pthread_create_fail;
+  /* extern int g_pthread_create_fail; (moved to global) */
   g_pthread_create_fail = 0;
-  extern int g_safe_crt_malloc_fail;
+  /* extern int g_safe_crt_malloc_fail; (moved to global) */
   g_safe_crt_malloc_fail = 0;
-  extern int g_schema_codegen_force_fail;
+  /* extern int g_schema_codegen_force_fail; (moved to global) */
   g_schema_codegen_force_fail = 0;
-  extern int g_schema_realloc_fail;
+  /* extern int g_schema_realloc_fail; (moved to global) */
   g_schema_realloc_fail = 0;
-  extern int g_schema_strdup_fail;
+  /* extern int g_schema_strdup_fail; (moved to global) */
   g_schema_strdup_fail = 0;
-  extern int g_socket_fail;
+  /* extern int g_socket_fail; (moved to global) */
   g_socket_fail = 0;
-  extern int g_str_unquote_malloc_fail;
+  /* extern int g_str_unquote_malloc_fail; (moved to global) */
   g_str_unquote_malloc_fail = 0;
-  extern int g_struct_fields_add_fail;
+  /* extern int g_struct_fields_add_fail; (moved to global) */
   g_struct_fields_add_fail = 0;
-  extern int g_struct_fields_init_fail;
+  /* extern int g_struct_fields_init_fail; (moved to global) */
   g_struct_fields_init_fail = 0;
-  extern int g_io_calls;
+  /* extern int g_io_calls; (moved to global) */
   g_io_calls = 0;
 }
 

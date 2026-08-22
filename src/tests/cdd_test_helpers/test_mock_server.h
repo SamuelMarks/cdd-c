@@ -31,12 +31,12 @@ extern "C" {
 #endif
 #endif
 
-extern int g_socket_fail;
-extern int g_bind_fail;
-extern int g_listen_fail;
-extern int g_getsockname_fail;
-extern int g_pthread_create_fail;
-extern int g_accept_fail;
+/* extern int g_socket_fail; (moved to global) */
+/* extern int g_bind_fail; (moved to global) */
+/* extern int g_listen_fail; (moved to global) */
+/* extern int g_getsockname_fail; (moved to global) */
+/* extern int g_pthread_create_fail; (moved to global) */
+/* extern int g_accept_fail; (moved to global) */
 
 static int http_get(int port);
 #ifdef _WIN32
@@ -45,6 +45,14 @@ __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 #else
 #ifndef _WIN32
 #include <unistd.h>
+
+/* Moved extern declarations for C89 compliance */
+extern int g_pthread_create_fail;
+extern int g_bind_fail;
+extern int g_socket_fail;
+extern int g_accept_fail;
+extern int g_getsockname_fail;
+extern int g_listen_fail;
 #endif
 #define USLEEP(x) usleep(x)
 #endif

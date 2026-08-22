@@ -76,7 +76,12 @@ emit_swift_file(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.swift", config->output_dir,
                lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
@@ -193,7 +198,12 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/module.modulemap",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {

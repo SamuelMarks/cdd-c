@@ -115,7 +115,12 @@ emit_csharp_bindings(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -293,7 +298,12 @@ emit_csharp_tests(cdd_ffi_ir_t *ir,
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }
@@ -362,7 +372,12 @@ static cdd_c_error_t emit_csproj(const cdd_generate_bindings_config_t *config) {
     } else
 #endif
     {
-      f = fopen(filepath, "w");
+#if defined(_MSC_VER)
+      if (fopen_s(&f, filepath, "w") != 0)
+        f = NULL;
+#else
+    f = fopen(filepath, "w");
+#endif
     }
 #ifdef CDD_BUILD_TESTS
   }

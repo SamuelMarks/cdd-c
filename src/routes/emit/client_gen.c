@@ -2096,10 +2096,30 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fopen_s(&mcfile, mc_name, "w") != 0)
     mcfile = NULL;
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&hfile, h_name, "w") != 0)
+    hfile = NULL;
+#else
   hfile = fopen(h_name, "w");
+#endif
+#if defined(_MSC_VER)
+  if (fopen_s(&cfile, c_name, "w") != 0)
+    cfile = NULL;
+#else
   cfile = fopen(c_name, "w");
+#endif
+#if defined(_MSC_VER)
+  if (fopen_s(&mhfile, mh_name, "w") != 0)
+    mhfile = NULL;
+#else
   mhfile = fopen(mh_name, "w");
+#endif
+#if defined(_MSC_VER)
+  if (fopen_s(&mcfile, mc_name, "w") != 0)
+    mcfile = NULL;
+#else
   mcfile = fopen(mc_name, "w");
+#endif
 #endif
   if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = 0;
@@ -3102,7 +3122,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                  dir_name ? dir_name : ".");
     CDD_SNPRINTF(cpath, sizeof(cpath), "%s/src/url_utils.c",
                  dir_name ? dir_name : ".");
+#if defined(_MSC_VER)
+    if (fopen_s(&uh, hpath, "w") != 0)
+      uh = NULL;
+#else
     uh = fopen(hpath, "w");
+#endif
     if (uh) {
       fprintf(
           uh, "%s",
@@ -3396,7 +3421,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
           "\n");
       fclose(uh);
     }
+#if defined(_MSC_VER)
+    if (fopen_s(&uc, cpath, "w") != 0)
+      uc = NULL;
+#else
     uc = fopen(cpath, "w");
+#endif
     if (uc) {
       fprintf(
           uc, "%s",
@@ -4272,7 +4302,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
     makedirs(tdir);
     CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
+#if defined(_MSC_VER)
+    if (fopen_s(&tfp, tfile, "w") != 0)
+      tfp = NULL;
+#else
     tfp = fopen(tfile, "w");
+#endif
     if (tfp) {
       fprintf(tfp,
               "#include <stdio.h>\n#include <stdlib.h>\n#include "

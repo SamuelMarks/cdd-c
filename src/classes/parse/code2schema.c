@@ -6308,7 +6308,12 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&fp, argv[0], "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, argv[0], "r") != 0)
+    fp = NULL;
+#else
   fp = fopen(argv[0], "r");
+#endif
 #endif
 #endif
   if (!fp) {

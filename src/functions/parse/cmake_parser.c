@@ -182,7 +182,12 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "rb");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filename, "rb") != 0)
+    f = NULL;
+#else
   f = fopen(filename, "rb");
+#endif
 #endif
 #endif
   if (!f) {

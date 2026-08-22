@@ -12,9 +12,9 @@ extern "C" {
 
 struct OpenAPI_KV;
 
-extern int g_io_calls;
-extern int g_fail_io_after;
-extern int g_cdd_strdup_fail;
+/* extern int g_io_calls; (moved to global) */
+/* extern int g_fail_io_after; (moved to global) */
+/* extern int g_cdd_strdup_fail; (moved to global) */
 
 extern cdd_c_error_t is_pct_encoded_test(const char *p);
 extern cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
@@ -33,6 +33,11 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 
 #include "routes/parse/url.h"
 /* clang-format on */
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
+extern int g_cdd_strdup_fail;
 
 /* --- Encoding Tests --- */
 
@@ -393,7 +398,12 @@ TEST test_url_utils_write_query_json_param(void) {
   struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
 
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, "test_url_json.txt", "w") != 0)
+    fp = NULL;
+#else
   fp = fopen("test_url_json.txt", "w");
+#endif
   ASSERT(fp != NULL);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(NULL, NULL));

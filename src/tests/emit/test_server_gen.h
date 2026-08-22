@@ -119,7 +119,12 @@ TEST test_server_gen_basic(void) {
 #elif defined(_MSC_VER)
   fopen_s(&f, "src/test_server_server.c", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/test_server_server.c", "r") != 0)
+    f = NULL;
+#else
   f = fopen("src/test_server_server.c", "r");
+#endif
 #endif
 
   ASSERT(f != NULL);

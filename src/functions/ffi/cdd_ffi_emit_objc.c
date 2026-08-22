@@ -104,10 +104,20 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
                module_name);
   CDD_SNPRINTF(m_filepath, sizeof(m_filepath), "%s/%s.m", config->output_dir,
                module_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&h_file, h_filepath, "w") != 0)
+    h_file = NULL;
+#else
   h_file = fopen(h_filepath, "w");
+#endif
   if (!h_file)
     return CDD_C_ERROR_UNKNOWN;
+#if defined(_MSC_VER)
+  if (fopen_s(&m_file, m_filepath, "w") != 0)
+    m_file = NULL;
+#else
   m_file = fopen(m_filepath, "w");
+#endif
   if (!m_file) {
     printf("Failed to open %s\n", m_filepath);
     fclose(h_file);

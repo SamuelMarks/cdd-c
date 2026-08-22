@@ -30,7 +30,12 @@ process_file(const char *filepath,
   cdd_c_error_t rc;
   FILE *out_f;
 
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "rb") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "rb");
+#endif
   if (!f) {
     fprintf(stderr, "Error opening %s\n", filepath);
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -89,7 +94,12 @@ process_file(const char *filepath,
         fprintf(stdout, "Would fix %s (dry run).\n", filepath);
         rc = CDD_C_SUCCESS;
       } else {
+#if defined(_MSC_VER)
+        if (fopen_s(&out_f, filepath, "wb") != 0)
+          out_f = NULL;
+#else
         out_f = fopen(filepath, "wb");
+#endif
         if (!out_f) {
           fprintf(stderr, "Error opening %s for writing\n", filepath);
           C_CDD_FREE(str);

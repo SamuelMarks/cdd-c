@@ -21,6 +21,10 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int method_str_to_enum_str(const char *method, const char **_out_val);
+extern int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val);
+
 TEST test_cli_parser_getopt(void) {
   const char *src = ""
                     "int main(int argc, char **argv) {\n"
@@ -89,8 +93,10 @@ TEST test_cli_parser_getopt(void) {
 
 TEST test_cli_parser_mappings(void) {
   const char *out_val;
-  extern int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val);
-  extern int method_str_to_enum_str(const char *method, const char **_out_val);
+  /* extern int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val);
+   * (moved to global) */
+  /* extern int method_str_to_enum_str(const char *method, const char
+   * **_out_val); (moved to global) */
   /* No wait, these are in client_body.c. */
   /* We want the mappings from cli.c which are internal to `cli.c`. */
   /* cli.c isn't mocked directly. */

@@ -22,12 +22,21 @@ extern "C" {
 #include "functions/emit/make.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_fprintf_fail;
+
 /**
  * @brief Tests basic make file generation.
  * @return TEST
  */
 TEST test_make_simple(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct MakeConfig cfg;
   char *content = NULL;
   long sz;
@@ -61,7 +70,13 @@ TEST test_make_simple(void) {
  * @return TEST
  */
 TEST test_make_extra_sources(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   struct MakeConfig cfg;
   char *content = NULL;
   char *extras[] = {"a.c", "b.c"};
@@ -97,7 +112,13 @@ TEST test_make_extra_sources(void) {
  */
 TEST test_make_invalid(void) {
   struct MakeConfig cfg = {0};
-  FILE *tmp = tmpfile();
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (tmpfile_s(&tmp) != 0)
+    tmp = NULL;
+#else
+  tmp = tmpfile();
+#endif
   ASSERT(tmp);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, codegen_make_generate(NULL, &cfg));
@@ -119,7 +140,12 @@ TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
   FILE *f;
   cfg.project_name = "test_io";
+#if defined(_MSC_VER)
+  if (tmpfile_s(&f) != 0)
+    f = NULL;
+#else
   f = tmpfile();
+#endif
   g_fail_io_after = 0;
   g_io_calls = 0;
   ASSERT(f);
@@ -145,7 +171,7 @@ TEST test_make_oom(void) {
   struct MakeConfig config3 = {0};
   const char *srcs2[] = {NULL};
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fprintf_fail;
+  /* extern int g_cdd_fprintf_fail; (moved to global) */
   int i;
   int rc;
 #endif
@@ -154,7 +180,12 @@ TEST test_make_oom(void) {
   config.extra_sources = (char **)srcs;
   config.extra_source_count = 2;
 
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, "test_make_out.txt", "w") != 0)
+    fp = NULL;
+#else
   fp = fopen("test_make_out.txt", "w");
+#endif
   ASSERT(fp);
 
 #ifdef CDD_BUILD_TESTS
@@ -169,7 +200,12 @@ TEST test_make_oom(void) {
 
   fclose(fp);
 
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, "test_make_out.txt", "w") != 0)
+    fp = NULL;
+#else
   fp = fopen("test_make_out.txt", "w");
+#endif
   config2.project_name = "proj";
   config2.min_cmake_version = "3.20";
   ASSERT_EQ(0, codegen_make_generate(fp, &config2));
@@ -177,7 +213,12 @@ TEST test_make_oom(void) {
 
   remove("test_make_out.txt");
 
+#if defined(_MSC_VER)
+  if (fopen_s(&fp, "test_make_out.txt", "w") != 0)
+    fp = NULL;
+#else
   fp = fopen("test_make_out.txt", "w");
+#endif
   config3.project_name = "proj";
   config3.extra_sources = (char **)srcs2;
   config3.extra_source_count = 1;

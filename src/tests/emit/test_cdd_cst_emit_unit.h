@@ -13,6 +13,10 @@ extern "C" {
 #include <string.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_cst_emit_realloc_fail;
+extern int g_cdd_alloc_fail;
+
 TEST test_cdd_cst_emit_invalid(void) {
   cdd_cst_tree_t t = {0};
   char *out = NULL;
@@ -194,9 +198,9 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
   root.children = &child;
   root.num_children = 1;
   child.kind = CDD_CST_CHILD_TOKEN;
+  /* extern int g_cdd_cst_emit_realloc_fail; (moved to global) */
   child.val.token = &tok;
 
-  extern int g_cdd_cst_emit_realloc_fail;
   g_cdd_cst_emit_realloc_fail = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_cdd_cst_emit_realloc_fail = 0;
@@ -232,7 +236,7 @@ TEST test_cdd_cst_emit_capacity_overflow(void) {
   child.val.token = &tok;
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_emit_realloc_fail;
+  /* extern int g_cdd_cst_emit_realloc_fail; (moved to global) */
   g_cdd_cst_emit_realloc_fail = 1;
 #endif
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
@@ -279,7 +283,7 @@ TEST test_cdd_cst_emit_oom_multi(void) {
 TEST test_cdd_cst_emit_empty_oom(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   g_cdd_alloc_fail = 1;
   cdd_c_error_t rc_debug = cdd_cst_emit(&tree, &out);

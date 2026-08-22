@@ -18,11 +18,15 @@
 
 #include "c_cdd_export.h"
 #include "cdd_test_helpers_export.h"
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
 CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err = 0;
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+/* extern int g_fail_io_after; (moved to global) */
+/* extern int g_io_calls; (moved to global) */
 
 static FILE *mock_fopen(const char *path, const char *mode) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {

@@ -96,7 +96,12 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.java", config->output_dir,
                class_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -407,7 +412,12 @@ emit_pom_xml(const cdd_generate_bindings_config_t *config) {
   }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/pom.xml", config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

@@ -14,6 +14,16 @@ extern "C" {
 #include <stdio.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_sync_fail_tokenize;
+extern int g_cdd_sync_fail_patch_list_apply;
+extern int g_cdd_sync_fail_func_sig_init;
+extern int g_cdd_sync_fail_patch_list_init;
+extern int g_cdd_fprintf_fail;
+extern int g_cdd_sync_fail_extract;
+extern int g_cdd_sync_fail_fopen_write;
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief test_sync_code_wrong_args
  * @return TEST
@@ -140,7 +150,12 @@ TEST test_sync_code_too_many_defs(void) {
   fopen_s(&f, filename, "w");
   ASSERT(f);
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filename, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filename, "w");
+#endif
   ASSERT(f);
 #endif
   for (i = 0; i < 70; i++)
@@ -321,12 +336,12 @@ TEST test_patch_header_failures(void) {
   const char *h_path = "fail_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
-  extern int g_cdd_sync_fail_func_sig_init;
-  extern int g_cdd_sync_fail_patch_list_init;
-  extern int g_cdd_sync_fail_extract;
-  extern int g_cdd_sync_fail_tokenize;
-  extern int g_cdd_sync_fail_patch_list_apply;
-  extern int g_cdd_sync_fail_fopen_write;
+  /* extern int g_cdd_sync_fail_func_sig_init; (moved to global) */
+  /* extern int g_cdd_sync_fail_patch_list_init; (moved to global) */
+  /* extern int g_cdd_sync_fail_extract; (moved to global) */
+  /* extern int g_cdd_sync_fail_tokenize; (moved to global) */
+  /* extern int g_cdd_sync_fail_patch_list_apply; (moved to global) */
+  /* extern int g_cdd_sync_fail_fopen_write; (moved to global) */
 
   write_to_file(h_path, "void foo();\n");
 
@@ -386,14 +401,19 @@ TEST test_sync_oom(void) {
   {
     const char *argv[] = {"header.h", "impl.c"};
     FILE *f;
-    extern int g_cdd_alloc_fail;
-    extern int g_cdd_fprintf_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /* extern int g_cdd_fprintf_fail; (moved to global) */
     int rc_s;
     int rc_s2;
 
     remove("header.h");
 
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "header.h", "w") != 0)
+      f = NULL;
+#else
     f = fopen("header.h", "w");
+#endif
     if (f) {
       fprintf(f, "struct A { int a; };\n");
       fclose(f);

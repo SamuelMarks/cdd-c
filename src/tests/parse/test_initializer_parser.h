@@ -20,6 +20,9 @@ extern "C" {
 #include "c_cdd/memory.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)s), &tl);
@@ -284,7 +287,7 @@ TEST test_init_oom(void) {
   struct InitList list;
   int rc;
   int i;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;

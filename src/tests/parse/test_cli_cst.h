@@ -205,7 +205,11 @@ TEST test_cli_standardize_gnu(void) {
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
+
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_cst_emit_realloc_fail;
 extern int g_cdd_alloc_fail;
+/* extern int g_cdd_alloc_fail; (moved to global) */
 #endif
 
 /**
@@ -222,7 +226,7 @@ TEST test_cli_cst_process_errors(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_emit_realloc_fail;
+    /* extern int g_cdd_cst_emit_realloc_fail; (moved to global) */
     int i;
     for (i = 1; i <= 500; i++) {
       g_cdd_alloc_fail = i;

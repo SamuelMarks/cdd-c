@@ -112,7 +112,12 @@ static cdd_c_error_t file_exists(const char *path, int *out_exists) {
 #if defined(_MSC_VER)
   fopen_s(&f, path, "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, path, "r") != 0)
+    f = NULL;
+#else
   f = fopen(path, "r");
+#endif
 #endif
 #endif
   if (f) {

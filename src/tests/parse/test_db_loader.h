@@ -14,6 +14,9 @@ extern "C" {
 #endif
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_mock_dlopen_success;
+
 TEST test_db_loader_basic(void) {
   int avail;
   ASSERT_EQ(0, check_libpq_available(&avail));
@@ -31,7 +34,7 @@ TEST test_db_loader_basic(void) {
 TEST test_db_loader_success(void) {
   int avail;
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_mock_dlopen_success;
+  /* extern int g_cdd_mock_dlopen_success; (moved to global) */
   g_cdd_mock_dlopen_success = 1;
   ASSERT_EQ(0, check_libpq_available(&avail));
   ASSERT_EQ(1, avail);

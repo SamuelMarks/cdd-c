@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern int g_fail_io_after;
-extern int g_io_calls;
+/* extern int g_fail_io_after; (moved to global) */
+/* extern int g_io_calls; (moved to global) */
 /**
  * @file test_anonymous.c
  * @brief Integration tests for anonymous structure lifting.
@@ -22,6 +22,10 @@ extern int g_io_calls;
 #include "classes/parse/code2schema.h"
 #include "functions/parse/fs.h"
 /* clang-format on */
+
+/* Moved extern declarations for C89 compliance */
+extern int g_io_calls;
+extern int g_fail_io_after;
 
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"
@@ -49,7 +53,12 @@ TEST test_lift_anonymous_struct(void) {
 #elif defined(_MSC_VER)
     fopen_s(&f, "anon.json", "r");
 #else
+#if defined(_MSC_VER)
+    if (fopen_s(&f, "anon.json", "r") != 0)
+      f = NULL;
+#else
     f = fopen("anon.json", "r");
+#endif
 #endif
     ASSERT(f);
     fseek(f, 0, SEEK_END);

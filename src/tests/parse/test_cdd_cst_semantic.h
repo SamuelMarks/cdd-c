@@ -22,9 +22,15 @@ extern "C" {
 #include "../../classes/parse/cdd_cst_builder.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_semantic_oom_scope;
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_semantic_leave_fail;
 extern int g_cdd_semantic_oom_scope2;
+extern int g_cdd_semantic_oom_scope;
+extern int g_cdd_alloc_fail;
+
+#ifdef CDD_BUILD_TESTS
+/* extern int g_cdd_semantic_oom_scope; (moved to global) */
+/* extern int g_cdd_semantic_oom_scope2; (moved to global) */
 
 #endif
 
@@ -261,7 +267,7 @@ TEST test_cdd_cst_semantic_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 30; i++) {
       g_cdd_alloc_fail = i;
@@ -287,7 +293,7 @@ TEST test_cdd_cst_semantic_oom(void) {
     cdd_cst_append_child_token(id2, tok2);
     cdd_cst_append_child_node(r2, id2);
 
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 30; i++) {
       g_cdd_alloc_fail = i;
@@ -308,7 +314,7 @@ TEST test_cdd_cst_semantic_oom(void) {
     cdd_cst_alloc_node(CDD_CST_NAMESPACE_DECLARATION, &r2);
     t2->root = r2;
 
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 20; i++) {
       g_cdd_alloc_fail = i;
@@ -328,7 +334,7 @@ TEST test_cdd_cst_semantic_oom(void) {
     cdd_cst_alloc_node(CDD_CST_BLOCK, &r2);
     t2->root = r2;
 
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     /* test leave fail by doing a large index that fails scope leave */
     /* scope enter is 1 or 2 allocations, so we start i around 3 */
@@ -351,7 +357,7 @@ TEST test_cdd_cst_semantic_oom(void) {
     cdd_cst_alloc_node(CDD_CST_BLOCK, &r2);
     t2->root = r2;
 
-    extern int g_cdd_semantic_leave_fail;
+    /* extern int g_cdd_semantic_leave_fail; (moved to global) */
     g_cdd_semantic_leave_fail = 1;
     rc = cdd_cst_build_semantic_info(t2, &env);
     g_cdd_semantic_leave_fail = 0;

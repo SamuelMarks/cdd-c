@@ -22,6 +22,9 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /* Helper to setup a token list from a string */
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
@@ -303,7 +306,7 @@ TEST test_patcher_oom(void) {
     int i;
     struct TokenList tl2;
     memset(&tl2, 0, sizeof(tl2));
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_init(&list));
     g_cdd_alloc_fail = 0;
@@ -1058,7 +1061,7 @@ TEST test_patcher_invalid(void) {
   struct TokenList tl_empty;
   int i;
   int rc;
-  extern int g_cdd_alloc_fail;
+  /* extern int g_cdd_alloc_fail; (moved to global) */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             patch_list_add(NULL, 0, 1, strdup("a")));
@@ -1170,7 +1173,7 @@ TEST test_patcher_cov(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, patch_list_apply(&pl, tl, &out));
     g_cdd_alloc_fail = 0;
@@ -1226,7 +1229,7 @@ TEST test_patcher_oom_original_token_copy(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     /* Try failing allocations for the token copying block. We try a range. */
     for (i = 1; i < 20; i++) {
       g_cdd_alloc_fail = i;
@@ -1287,7 +1290,7 @@ TEST test_patcher_oom_no_patches(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     for (i = 1; i < 5; i++) {
       g_cdd_alloc_fail = i;
       res = patch_list_apply(&list, tl, &out_code);

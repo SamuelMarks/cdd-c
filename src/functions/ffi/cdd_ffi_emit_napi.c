@@ -24,7 +24,12 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s_napi.c", config->output_dir,
                lib_name);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
@@ -227,7 +232,12 @@ static cdd_c_error_t emit_napi_c(cdd_ffi_ir_t *ir,
     CDD_SNPRINTF(filepath_test, sizeof(filepath_test), "%s/test_%s.js",
                  config->output_dir,
                  (config->library_name) ? config->library_name : "mylib");
+#if defined(_MSC_VER)
+    if (fopen_s(&ft, filepath_test, "w") != 0)
+      ft = NULL;
+#else
     ft = fopen(filepath_test, "w");
+#endif
 #endif
     if (ft) {
       fprintf(ft, "// Auto-generated tests for %s\n",
@@ -274,7 +284,12 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/binding.gyp",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }

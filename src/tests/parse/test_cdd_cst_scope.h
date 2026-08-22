@@ -16,6 +16,9 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_alloc_fail;
+
 /**
  * @brief Tests basic functionality of CST scope.
  *
@@ -44,7 +47,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
@@ -286,7 +289,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;

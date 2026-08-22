@@ -16,6 +16,11 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
+/* Moved extern declarations for C89 compliance */
+extern int g_cdd_cst_alloc_node_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_query_err_fail;
+
 /**
  * @brief Test macro transformation of simple AST macros.
  *
@@ -111,8 +116,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 #ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_alloc_node_fail;
-    extern int g_cdd_cst_realloc_fail;
+    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+    /* extern int g_cdd_cst_realloc_fail; (moved to global) */
     g_cdd_cst_alloc_node_fail = k;
     g_cdd_cst_realloc_fail = 0;
 #endif
@@ -129,8 +134,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     tree = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 #ifdef CDD_BUILD_TESTS
-    extern int g_cdd_cst_alloc_node_fail;
-    extern int g_cdd_cst_realloc_fail;
+    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+    /* extern int g_cdd_cst_realloc_fail; (moved to global) */
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = k;
 #endif
@@ -145,7 +150,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_query_err_fail;
+    /* extern int g_cdd_query_err_fail; (moved to global) */
 
     /* Fail on FOO */
     tree = NULL;

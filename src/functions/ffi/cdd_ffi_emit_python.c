@@ -97,7 +97,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/cdd_bindings.py",
                config->output_dir);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, filepath, "w") != 0)
+    f = NULL;
+#else
   f = fopen(filepath, "w");
+#endif
 #endif
 
   {
@@ -402,7 +407,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #else
     CDD_SNPRINTF(filepath, sizeof(filepath), "%s/cdd_python_wrap.c",
                  config->output_dir);
+#if defined(_MSC_VER)
+    if (fopen_s(&fc, filepath, "w") != 0)
+      fc = NULL;
+#else
     fc = fopen(filepath, "w");
+#endif
 #endif
     {
       if (g_fail_io_after == 2) {
@@ -442,7 +452,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #else
     CDD_SNPRINTF(filepath, sizeof(filepath), "%s/test_cdd_bindings.py",
                  config->output_dir);
+#if defined(_MSC_VER)
+    if (fopen_s(&f, filepath, "w") != 0)
+      f = NULL;
+#else
     f = fopen(filepath, "w");
+#endif
 #endif
     {
       if (g_fail_io_after == 3) {

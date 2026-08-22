@@ -687,7 +687,12 @@ TEST test_ffi_ir_emit_python(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_python_out\\cdd_bindings.py", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_python_out/cdd_bindings.py", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_python_out/cdd_bindings.py", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -738,7 +743,12 @@ TEST test_ffi_ir_emit_rust(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_rust_out\\Cargo.toml", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_rust_out/Cargo.toml", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_rust_out/Cargo.toml", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -789,7 +799,12 @@ TEST test_ffi_ir_emit_csharp(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_csharp_out\\Bindings.cs", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_csharp_out/Bindings.cs", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_csharp_out/Bindings.cs", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -836,7 +851,12 @@ TEST test_ffi_ir_emit_typescript(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_typescript_out\\test_lib.ts", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_typescript_out/test_lib.ts", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_typescript_out/test_lib.ts", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -884,7 +904,12 @@ TEST test_ffi_ir_emit_napi(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_napi_out\\test_lib_napi.c", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_napi_out/test_lib_napi.c", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_napi_out/test_lib_napi.c", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -936,7 +961,12 @@ TEST test_ffi_ir_emit_java(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_java_out\\TestLib.java", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_java_out/TestLib.java", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_java_out/TestLib.java", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -983,7 +1013,12 @@ TEST test_ffi_ir_emit_cpp(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_cpp_out\\test_lib.hpp", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_cpp_out/test_lib.hpp", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_cpp_out/test_lib.hpp", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1030,7 +1065,12 @@ TEST test_ffi_ir_emit_go(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_go_out\\test_lib.go", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_go_out/test_lib.go", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_go_out/test_lib.go", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1077,7 +1117,12 @@ TEST test_ffi_ir_emit_swift(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_swift_out\\test_lib.swift", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_swift_out/test_lib.swift", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_swift_out/test_lib.swift", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1124,7 +1169,12 @@ TEST test_ffi_ir_emit_dart(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_dart_out\\test_lib.dart", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_dart_out/test_lib.dart", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_dart_out/test_lib.dart", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1171,7 +1221,12 @@ TEST test_ffi_ir_emit_ruby(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ruby_out\\test_lib.rb", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_ruby_out/test_lib.rb", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_ruby_out/test_lib.rb", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1218,7 +1273,12 @@ TEST test_ffi_ir_emit_kotlin(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_kotlin_out\\test_lib.def", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_kotlin_out/test_lib.def", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_kotlin_out/test_lib.def", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1265,7 +1325,12 @@ TEST test_ffi_ir_emit_php(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_php_out\\TestLib.php", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_php_out/TestLib.php", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_php_out/TestLib.php", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1312,7 +1377,12 @@ TEST test_ffi_ir_emit_lua(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_lua_out\\test_lib.lua", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_lua_out/test_lib.lua", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_lua_out/test_lib.lua", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1359,7 +1429,12 @@ TEST test_ffi_ir_emit_zig(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_zig_out\\test_lib.zig", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_zig_out/test_lib.zig", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_zig_out/test_lib.zig", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1410,7 +1485,12 @@ TEST test_ffi_ir_emit_odin(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_odin_out\\test_lib.odin", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_odin_out/test_lib.odin", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_odin_out/test_lib.odin", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1457,7 +1537,12 @@ TEST test_ffi_ir_emit_julia(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_julia_out\\TestLib.jl", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_julia_out/TestLib.jl", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_julia_out/TestLib.jl", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1504,7 +1589,12 @@ TEST test_ffi_ir_emit_r(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_r_out\\test_lib.R", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_r_out/test_lib.R", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_r_out/test_lib.R", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1551,7 +1641,12 @@ TEST test_ffi_ir_emit_matlab(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_matlab_out\\test_lib.m", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_matlab_out/test_lib.m", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_matlab_out/test_lib.m", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1598,7 +1693,12 @@ TEST test_ffi_ir_emit_haskell(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_haskell_out\\TestLib.hs", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_haskell_out/TestLib.hs", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_haskell_out/TestLib.hs", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
@@ -1645,7 +1745,12 @@ TEST test_ffi_ir_emit_ocaml(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ocaml_out\\test_lib.ml", "r");
 #else
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_ocaml_out/test_lib.ml", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_ocaml_out/test_lib.ml", "r");
+#endif
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
