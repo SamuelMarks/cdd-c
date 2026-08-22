@@ -286,13 +286,15 @@ TEST test_cdd_cst_emit_empty_oom(void) {
   /* extern int g_cdd_alloc_fail; (moved to global) */
 
   g_cdd_alloc_fail = 1;
-  cdd_c_error_t rc_debug = cdd_cst_emit(&tree, &out);
-  printf("DEBUG cdd_cst_emit returned %d\n", rc_debug);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_debug);
-  g_cdd_alloc_fail = 0;
-  g_fail_io_after = -1;
+  {
+    cdd_c_error_t rc_debug = cdd_cst_emit(&tree, &out);
+    printf("DEBUG cdd_cst_emit returned %d\n", rc_debug);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_debug);
+    g_cdd_alloc_fail = 0;
+    g_fail_io_after = -1;
 
-  PASS();
+    PASS();
+  }
 }
 
 SUITE(cdd_cst_emit_unit_suite) {

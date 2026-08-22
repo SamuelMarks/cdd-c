@@ -273,74 +273,112 @@ TEST test_cdd_transform_safe_crt(void) {
   free(out);
   cdd_cst_tree_free(tree);
 
-  const char *code4 = "void edge4() { FILE *f; foo(f = fopen(\"a\", \"b\")); }";
-  cdd_cst_tree_t *tree4 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code4), &tree4));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree4, &config));
-  cdd_cst_tree_free(tree4);
+  {
+    const char *code4 =
+        "void edge4() { FILE *f; foo(f = fopen(\"a\", \"b\")); }";
+    cdd_cst_tree_t *tree4 = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code4), &tree4));
+    ASSERT_EQ(0, cdd_transform_safe_crt(tree4, &config));
+    cdd_cst_tree_free(tree4);
 
-  const char *code5 = "void edge5() { char *u; (strcpy(u, \"a\")); }";
-  cdd_cst_tree_t *tree5 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code5), &tree5));
-  ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_transform_safe_crt(tree5, &config));
-  cdd_cst_tree_free(tree5);
+    {
+      const char *code5 = "void edge5() { char *u; (strcpy(u, \"a\")); }";
+      cdd_cst_tree_t *tree5 = NULL;
+      ASSERT_EQ(0,
+                cdd_cst_parse(az_span_create_from_str((char *)code5), &tree5));
+      ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_transform_safe_crt(tree5, &config));
+      cdd_cst_tree_free(tree5);
 
-  const char *code6 = "void edge6() { FILE *f; (f = fopen(\"a\", \"b\")); }";
-  cdd_cst_tree_t *tree6 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code6), &tree6));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree6, &config));
-  cdd_cst_tree_free(tree6);
+      {
+        const char *code6 =
+            "void edge6() { FILE *f; (f = fopen(\"a\", \"b\")); }";
+        cdd_cst_tree_t *tree6 = NULL;
+        ASSERT_EQ(
+            0, cdd_cst_parse(az_span_create_from_str((char *)code6), &tree6));
+        ASSERT_EQ(0, cdd_transform_safe_crt(tree6, &config));
+        cdd_cst_tree_free(tree6);
 
-  const char *code7 = "void edge7() { FILE *f;\n"
-                      "#if defined(_MSC_VER)\n"
-                      "  if(fopen_s(&f, \"a\", \"b\") != 0) f = NULL;\n"
-                      "#else\n"
-                      "  f = fopen(\"a\", \"b\");\n"
-                      "#endif } ";
-  cdd_cst_tree_t *tree7 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code7), &tree7));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree7, &config));
-  cdd_cst_tree_free(tree7);
+        {
+          const char *code7 = "void edge7() { FILE *f;\n"
+                              "#if defined(_MSC_VER)\n"
+                              "  if(fopen_s(&f, \"a\", \"b\") != 0) f = NULL;\n"
+                              "#else\n"
+                              "  f = fopen(\"a\", \"b\");\n"
+                              "#endif } ";
+          cdd_cst_tree_t *tree7 = NULL;
+          ASSERT_EQ(
+              0, cdd_cst_parse(az_span_create_from_str((char *)code7), &tree7));
+          ASSERT_EQ(0, cdd_transform_safe_crt(tree7, &config));
+          cdd_cst_tree_free(tree7);
 
-  const char *code8 = "void edge8() { char *u; foo(strcpy(u, \"a\")); }";
-  cdd_cst_tree_t *tree8 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code8), &tree8));
-  ASSERT_EQ(CDD_C_ERROR_PARSE, cdd_transform_safe_crt(tree8, &config));
-  cdd_cst_tree_free(tree8);
+          {
+            const char *code8 =
+                "void edge8() { char *u; foo(strcpy(u, \"a\")); }";
+            cdd_cst_tree_t *tree8 = NULL;
+            ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code8),
+                                       &tree8));
+            ASSERT_EQ(CDD_C_ERROR_PARSE,
+                      cdd_transform_safe_crt(tree8, &config));
+            cdd_cst_tree_free(tree8);
 
-  const char *code9 =
-      "void edge9() { char buf[256]; strcpy(malloc(10), \"a\"); "
-      "strcpy(calloc(1, 10), \"a\"); strcpy(realloc(NULL, 10), \"a\"); }";
-  cdd_cst_tree_t *tree9 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code9), &tree9));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
-  cdd_cst_tree_free(tree9);
+            {
+              const char *code9 =
+                  "void edge9() { char buf[256]; strcpy(malloc(10), \"a\"); "
+                  "strcpy(calloc(1, 10), \"a\"); strcpy(realloc(NULL, 10), "
+                  "\"a\"); }";
+              cdd_cst_tree_t *tree9 = NULL;
+              ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code9),
+                                         &tree9));
+              ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
+              cdd_cst_tree_free(tree9);
 
-  const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
-  cdd_cst_tree_t *tree10 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code10), &tree10));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
-  cdd_cst_tree_free(tree10);
+              {
+                const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
+                cdd_cst_tree_t *tree10 = NULL;
+                ASSERT_EQ(0,
+                          cdd_cst_parse(az_span_create_from_str((char *)code10),
+                                        &tree10));
+                ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
+                cdd_cst_tree_free(tree10);
 
-  const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
-  cdd_cst_tree_t *tree11 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code11), &tree11));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
-  cdd_cst_tree_free(tree11);
+                {
+                  const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
+                  cdd_cst_tree_t *tree11 = NULL;
+                  ASSERT_EQ(
+                      0, cdd_cst_parse(az_span_create_from_str((char *)code11),
+                                       &tree11));
+                  ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
+                  cdd_cst_tree_free(tree11);
 
-  const char *code12 =
-      "void edge12() { char buf[10]; scanf(\"%s %s %s %s %s %s %s %s %s %s %s "
-      "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\", "
-      "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
-      "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
-      "buf, buf, buf, buf, buf, buf); }";
-  cdd_cst_tree_t *tree12 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code12), &tree12));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
-  cdd_cst_tree_free(tree12);
+                  {
+                    const char *code12 =
+                        "void edge12() { char buf[10]; scanf(\"%s %s %s %s %s "
+                        "%s %s %s %s %s %s "
+                        "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s "
+                        "%s %s %s %s %s\", "
+                        "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
+                        "buf, buf, buf, buf, "
+                        "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
+                        "buf, buf, buf, buf, "
+                        "buf, buf, buf, buf, buf, buf); }";
+                    cdd_cst_tree_t *tree12 = NULL;
+                    ASSERT_EQ(0, cdd_cst_parse(
+                                     az_span_create_from_str((char *)code12),
+                                     &tree12));
+                    ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
+                    cdd_cst_tree_free(tree12);
 
-  g_fail_io_after = -1;
-  PASS();
+                    g_fail_io_after = -1;
+                    PASS();
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 TEST test_cdd_transform_safe_crt_extended_functions(void) {
@@ -596,40 +634,54 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   cdd_transform_safe_crt(tree2, &config);
   cdd_cst_tree_free(tree2);
 
-  const char *code9 =
-      "void edge9() { char buf[256]; strcpy(malloc(10), \"a\"); "
-      "strcpy(calloc(1, 10), \"a\"); strcpy(realloc(NULL, 10), \"a\"); }";
-  cdd_cst_tree_t *tree9 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code9), &tree9));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
-  cdd_cst_tree_free(tree9);
+  {
+    const char *code9 =
+        "void edge9() { char buf[256]; strcpy(malloc(10), \"a\"); "
+        "strcpy(calloc(1, 10), \"a\"); strcpy(realloc(NULL, 10), \"a\"); }";
+    cdd_cst_tree_t *tree9 = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code9), &tree9));
+    ASSERT_EQ(0, cdd_transform_safe_crt(tree9, &config));
+    cdd_cst_tree_free(tree9);
 
-  const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
-  cdd_cst_tree_t *tree10 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code10), &tree10));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
-  cdd_cst_tree_free(tree10);
+    {
+      const char *code10 = "void edge10() { scanf(\"%s\", NULL); }";
+      cdd_cst_tree_t *tree10 = NULL;
+      ASSERT_EQ(
+          0, cdd_cst_parse(az_span_create_from_str((char *)code10), &tree10));
+      ASSERT_EQ(0, cdd_transform_safe_crt(tree10, &config));
+      cdd_cst_tree_free(tree10);
 
-  const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
-  cdd_cst_tree_t *tree11 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code11), &tree11));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
-  cdd_cst_tree_free(tree11);
+      {
+        const char *code11 = "void edge11() { scanf(\"%s\", 0); }";
+        cdd_cst_tree_t *tree11 = NULL;
+        ASSERT_EQ(
+            0, cdd_cst_parse(az_span_create_from_str((char *)code11), &tree11));
+        ASSERT_EQ(0, cdd_transform_safe_crt(tree11, &config));
+        cdd_cst_tree_free(tree11);
 
-  const char *code12 =
-      "void edge12() { char buf[10]; scanf(\"%s %s %s %s %s %s %s %s %s %s %s "
-      "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\", "
-      "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
-      "buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, buf, "
-      "buf, buf, buf, buf, buf, buf); }";
-  cdd_cst_tree_t *tree12 = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code12), &tree12));
-  ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
-  cdd_cst_tree_free(tree12);
+        {
+          const char *code12 = "void edge12() { char buf[10]; scanf(\"%s %s %s "
+                               "%s %s %s %s %s %s %s %s "
+                               "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s "
+                               "%s %s %s %s %s %s %s %s\", "
+                               "buf, buf, buf, buf, buf, buf, buf, buf, buf, "
+                               "buf, buf, buf, buf, buf, "
+                               "buf, buf, buf, buf, buf, buf, buf, buf, buf, "
+                               "buf, buf, buf, buf, buf, "
+                               "buf, buf, buf, buf, buf, buf); }";
+          cdd_cst_tree_t *tree12 = NULL;
+          ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code12),
+                                     &tree12));
+          ASSERT_EQ(0, cdd_transform_safe_crt(tree12, &config));
+          cdd_cst_tree_free(tree12);
 
 #endif
-  g_fail_io_after = -1;
-  PASS();
+          g_fail_io_after = -1;
+          PASS();
+        }
+      }
+    }
+  }
 }
 
 SUITE(transformer_safe_crt_suite) {

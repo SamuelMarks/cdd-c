@@ -5,9 +5,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
 #include <stddef.h>
+/* clang-format on */
 
 typedef enum { SQL_TYPE_INT = 1, SQL_TYPE_VARCHAR = 2 } cdd_c_sql_type_t;
 

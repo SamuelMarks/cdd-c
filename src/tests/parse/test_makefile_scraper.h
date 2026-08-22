@@ -155,14 +155,16 @@ TEST test_scrape_makefile_oom(void) {
   for (i = 1; i < 20; i++) {
     build_info_init(&info);
     g_cdd_alloc_fail = i;
-    int rc = scrape_makefile(&info, makefile);
-    g_cdd_alloc_fail = 0;
-    if (rc == CDD_C_SUCCESS) {
+    {
+      int rc = scrape_makefile(&info, makefile);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        build_info_free(&info);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       build_info_free(&info);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    build_info_free(&info);
   }
 #endif
   PASS();
@@ -178,14 +180,16 @@ TEST test_scrape_configure_ac_oom(void) {
   for (i = 1; i < 20; i++) {
     build_info_init(&info);
     g_cdd_alloc_fail = i;
-    int rc = scrape_configure_ac(&info, config);
-    g_cdd_alloc_fail = 0;
-    if (rc == CDD_C_SUCCESS) {
+    {
+      int rc = scrape_configure_ac(&info, config);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        build_info_free(&info);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       build_info_free(&info);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    build_info_free(&info);
   }
 #endif
   PASS();
@@ -201,21 +205,25 @@ TEST test_build_info_to_cmake_oom(void) {
   build_info_init(&info);
   scrape_makefile(&info, makefile);
 
-  int i;
-  for (i = 1; i < 5; i++) {
-    g_cdd_alloc_fail = i;
-    int rc = build_info_to_cmake(&info, "my_proj", &cmake_str);
-    g_cdd_alloc_fail = 0;
-    if (rc == CDD_C_SUCCESS) {
-      free(cmake_str);
-      cmake_str = NULL;
-      break;
+  {
+    int i;
+    for (i = 1; i < 5; i++) {
+      g_cdd_alloc_fail = i;
+      {
+        int rc = build_info_to_cmake(&info, "my_proj", &cmake_str);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS) {
+          free(cmake_str);
+          cmake_str = NULL;
+          break;
+        }
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      }
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  }
-  build_info_free(&info);
+    build_info_free(&info);
 #endif
-  PASS();
+    PASS();
+  }
 }
 
 SUITE(makefile_scraper_suite) {

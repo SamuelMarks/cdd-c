@@ -138,63 +138,65 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
   t[2].length = 1;
   t[3].start = (const uint8_t *)"=";
   t[3].length = 1;
-  struct DesigInitList list;
+  {
+    struct DesigInitList list;
 
-  (void)desig_init_list_init(&list);
-  tokens.tokens = t;
-  tokens.size = 0;
-  tokens.capacity = 10;
+    (void)desig_init_list_init(&list);
+    tokens.tokens = t;
+    tokens.size = 0;
+    tokens.capacity = 10;
 
-  /* Case: RBRACE when brace_depth == 0 */
-  t[0].kind = TOKEN_RBRACE;
-  tokens.size = 1;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: RBRACE when brace_depth == 0 */
+    t[0].kind = TOKEN_RBRACE;
+    tokens.size = 1;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: DOT followed by EOF */
-  t[0].kind = TOKEN_LBRACE;
-  t[1].kind = TOKEN_DOT;
-  tokens.size = 2;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: DOT followed by EOF */
+    t[0].kind = TOKEN_LBRACE;
+    t[1].kind = TOKEN_DOT;
+    tokens.size = 2;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: DOT followed by non-identifier */
-  t[2].kind = TOKEN_PLUS;
-  tokens.size = 3;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: DOT followed by non-identifier */
+    t[2].kind = TOKEN_PLUS;
+    tokens.size = 3;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: DOT followed by identifier then EOF */
-  t[2].kind = TOKEN_IDENTIFIER;
-  tokens.size = 3;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: DOT followed by identifier then EOF */
+    t[2].kind = TOKEN_IDENTIFIER;
+    tokens.size = 3;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: DOT followed by identifier then non-assign */
-  t[3].kind = TOKEN_PLUS;
-  tokens.size = 4;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: DOT followed by identifier then non-assign */
+    t[3].kind = TOKEN_PLUS;
+    tokens.size = 4;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: DOT followed by identifier then assign then EOF */
-  t[3].kind = TOKEN_ASSIGN;
-  tokens.size = 4;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: DOT followed by identifier then assign then EOF */
+    t[3].kind = TOKEN_ASSIGN;
+    tokens.size = 4;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  /* Case: Comma inside nested braces */
-  memset(t, 0, sizeof(t));
-  t[0].kind = TOKEN_LBRACE;
-  t[1].kind = TOKEN_DOT;
-  t[2].kind = TOKEN_IDENTIFIER;
-  t[2].start = (const uint8_t *)"x";
-  t[2].length = 1;
-  t[3].kind = TOKEN_ASSIGN;
-  t[4].kind = TOKEN_LBRACE;
-  t[5].kind = TOKEN_NUMBER_LITERAL;
-  t[6].kind = TOKEN_COMMA;
-  t[7].kind = TOKEN_NUMBER_LITERAL;
-  t[8].kind = TOKEN_RBRACE;
-  t[9].kind = TOKEN_RBRACE;
-  tokens.size = 10;
-  ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
+    /* Case: Comma inside nested braces */
+    memset(t, 0, sizeof(t));
+    t[0].kind = TOKEN_LBRACE;
+    t[1].kind = TOKEN_DOT;
+    t[2].kind = TOKEN_IDENTIFIER;
+    t[2].start = (const uint8_t *)"x";
+    t[2].length = 1;
+    t[3].kind = TOKEN_ASSIGN;
+    t[4].kind = TOKEN_LBRACE;
+    t[5].kind = TOKEN_NUMBER_LITERAL;
+    t[6].kind = TOKEN_COMMA;
+    t[7].kind = TOKEN_NUMBER_LITERAL;
+    t[8].kind = TOKEN_RBRACE;
+    t[9].kind = TOKEN_RBRACE;
+    tokens.size = 10;
+    ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
-  desig_init_list_free(&list);
-  PASS();
+    desig_init_list_free(&list);
+    PASS();
+  }
 }
 
 TEST test_scan_for_designated_initializers_oom_empty(void) {

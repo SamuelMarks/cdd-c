@@ -35,68 +35,70 @@ TEST test_gen_sdk_test_basic(void) {
 #else
   tmp = tmpfile();
 #endif
-  long sz;
-  char *content = NULL;
+  {
+    long sz;
+    char *content = NULL;
 
-  if (!tmp)
-    return -1;
+    if (!tmp)
+      return -1;
 
-  /* Setup Spec */
-  memset(&spec, 0, sizeof(spec));
-  memset(&path, 0, sizeof(path));
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
+    /* Setup Spec */
+    memset(&spec, 0, sizeof(spec));
+    memset(&path, 0, sizeof(path));
+    memset(&op, 0, sizeof(op));
+    memset(&param, 0, sizeof(param));
 
-  spec.paths = &path;
-  spec.n_paths = 1;
+    spec.paths = &path;
+    spec.n_paths = 1;
 
-  path.operations = &op;
-  path.n_operations = 1;
-  path.route = "/api/test";
+    path.operations = &op;
+    path.n_operations = 1;
+    path.route = "/api/test";
 
-  op.operation_id = "runOp";
-  op.parameters = &param;
-  op.n_parameters = 1;
+    op.operation_id = "runOp";
+    op.parameters = &param;
+    op.n_parameters = 1;
 
-  param.name = "count";
-  param.type = "integer";
-  param.in = OA_PARAM_IN_QUERY;
+    param.name = "count";
+    param.type = "integer";
+    param.in = OA_PARAM_IN_QUERY;
 
-  /* Config */
-  config.client_header = "client.h";
-  config.func_prefix = "api_";
-  config.mock_server_url = "http://loopback";
+    /* Config */
+    config.client_header = "client.h";
+    config.func_prefix = "api_";
+    config.mock_server_url = "http://loopback";
 
-  /* Generate */
-  ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+    /* Generate */
+    ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-  /* Verify */
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    /* Verify */
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)C_CDD_CALLOC(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    /* Preamble check */
+    ASSERT(strstr(content, "#include \"client.h\""));
+    ASSERT(strstr(content, "GREATEST_MAIN_DEFS"));
+
+    /* Operation check */
+    ASSERT(strstr(content, "TEST test_runOp(void)"));
+    ASSERT(strstr(content, "api_init(&client, \"http://loopback\")"));
+    ASSERT(strstr(content, "api_runOp(&client"));
+    /* Parameter check */
+    ASSERT(strstr(content, "const int count = 1;"));
+    /* Cleanup */
+    ASSERT(strstr(content, "api_cleanup(&client)"));
+    /* Runner check */
+    ASSERT(strstr(content, "RUN_TEST(test_runOp)"));
+
+    C_CDD_FREE(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  /* Preamble check */
-  ASSERT(strstr(content, "#include \"client.h\""));
-  ASSERT(strstr(content, "GREATEST_MAIN_DEFS"));
-
-  /* Operation check */
-  ASSERT(strstr(content, "TEST test_runOp(void)"));
-  ASSERT(strstr(content, "api_init(&client, \"http://loopback\")"));
-  ASSERT(strstr(content, "api_runOp(&client"));
-  /* Parameter check */
-  ASSERT(strstr(content, "const int count = 1;"));
-  /* Cleanup */
-  ASSERT(strstr(content, "api_cleanup(&client)"));
-  /* Runner check */
-  ASSERT(strstr(content, "RUN_TEST(test_runOp)"));
-
-  C_CDD_FREE(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 TEST test_gen_sdk_test_nulls(void) {
@@ -148,36 +150,38 @@ TEST test_gen_sdk_test_exhaustive(void) {
 
   op.req_body.ref_name = "MyRequestBody";
   op.req_body.is_array = 0;
-  char *tags[] = {"auth"};
-  op.n_tags = 1;
-  op.tags = tags;
+  {
+    char *tags[] = {"auth"};
+    op.n_tags = 1;
+    op.tags = tags;
 
-  op.n_responses = 2;
-  op.responses = responses;
+    op.n_responses = 2;
+    op.responses = responses;
 
-  responses[0].code = "400";
-  responses[0].schema.ref_name = "MyError";
-  responses[1].code = "200";
-  responses[1].schema.ref_name = "MyResponse";
+    responses[0].code = "400";
+    responses[0].schema.ref_name = "MyError";
+    responses[1].code = "200";
+    responses[1].schema.ref_name = "MyResponse";
 
-  config.client_header = "client.h";
-  config.func_prefix = "api_";
-  config.mock_server_url = "http://loopback";
+    config.client_header = "client.h";
+    config.func_prefix = "api_";
+    config.mock_server_url = "http://loopback";
 
-  ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+    ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-  g_io_calls = 0;
-  g_fail_io_after = 2;
-  ASSERT_EQ(CDD_C_ERROR_IO, codegen_sdk_tests_generate(tmp, &spec, &config));
-  g_fail_io_after = -1;
+    g_io_calls = 0;
+    g_fail_io_after = 2;
+    ASSERT_EQ(CDD_C_ERROR_IO, codegen_sdk_tests_generate(tmp, &spec, &config));
+    g_fail_io_after = -1;
 
-  /* Also test array request body */
-  op.req_body.is_array = 1;
-  ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+    /* Also test array request body */
+    op.req_body.is_array = 1;
+    ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 SUITE(codegen_sdk_tests_suite) {

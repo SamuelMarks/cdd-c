@@ -72,24 +72,26 @@ TEST test_cdd_cst_mutate_replace(void) {
 #include <c_cdd_export.h>
 
     /* Moved extern declarations for C89 compliance */
-    extern int g_cdd_cst_alloc_node_fail;
-    extern int g_cdd_cst_realloc_fail;
-    /* extern int g_cdd_cst_realloc_fail; (moved to global) */
-    for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
-      tree->synthesized_capacity =
-          tree->num_synthesized; /* force realloc on first token cloned */
-      g_cdd_cst_realloc_fail = fails[j];
-      rc = cdd_cst_clone_tree(tree, target, &clone_err);
-      g_cdd_cst_realloc_fail = 0;
-      if (rc == 0) {
-        if (clone_err)
-          cdd_cst_free_node(clone_err);
+    {
+      extern int g_cdd_cst_alloc_node_fail;
+      extern int g_cdd_cst_realloc_fail;
+      /* extern int g_cdd_cst_realloc_fail; (moved to global) */
+      for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
+        tree->synthesized_capacity =
+            tree->num_synthesized; /* force realloc on first token cloned */
+        g_cdd_cst_realloc_fail = fails[j];
+        rc = cdd_cst_clone_tree(tree, target, &clone_err);
+        g_cdd_cst_realloc_fail = 0;
+        if (rc == 0) {
+          if (clone_err)
+            cdd_cst_free_node(clone_err);
+        }
       }
-    }
 
-    /* Test clone_trivia_list_mutate invalid arguments */
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              clone_trivia_list_mutate(NULL, NULL));
+      /* Test clone_trivia_list_mutate invalid arguments */
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                clone_trivia_list_mutate(NULL, NULL));
+    }
   }
 #endif
 
@@ -112,33 +114,40 @@ TEST test_cdd_cst_mutate_replace(void) {
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_parent);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &nested_child);
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &replacement);
-    cdd_cst_node_t *empty_child = NULL;
-    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_child);
-    cdd_cst_node_t *empty_clone = NULL;
-    ASSERT_EQ(0, cdd_cst_clone_tree(tree, empty_child, &empty_clone));
-    cdd_cst_free_node(empty_clone);
+    {
+      cdd_cst_node_t *empty_child = NULL;
+      cdd_cst_alloc_node(CDD_CST_UNKNOWN, &empty_child);
+      {
+        cdd_cst_node_t *empty_clone = NULL;
+        ASSERT_EQ(0, cdd_cst_clone_tree(tree, empty_child, &empty_clone));
+        cdd_cst_free_node(empty_clone);
 
-    cdd_cst_append_child_node(replacement, empty_child);
+        cdd_cst_append_child_node(replacement, empty_child);
 
-    cdd_cst_append_child_node(grandparent, nested_parent);
-    cdd_cst_append_child_node(nested_parent, nested_child);
-    cdd_cst_append_child_token(nested_child, &tok);
+        cdd_cst_append_child_node(grandparent, nested_parent);
+        cdd_cst_append_child_node(nested_parent, nested_child);
+        cdd_cst_append_child_token(nested_child, &tok);
 
-    /* Dummy tree for replacement */
-    cdd_cst_tree_t *dummy_tree;
-    dummy_tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
-    dummy_tree->root = grandparent;
+        /* Dummy tree for replacement */
+        {
+          cdd_cst_tree_t *dummy_tree;
+          dummy_tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+          dummy_tree->root = grandparent;
 
-    /* replace nested_parent with replacement */
-    ASSERT_EQ(0, cdd_cst_replace_node(dummy_tree, nested_parent, replacement));
+          /* replace nested_parent with replacement */
+          ASSERT_EQ(
+              0, cdd_cst_replace_node(dummy_tree, nested_parent, replacement));
 
-    dummy_tree->root = NULL; /* prevent double free */
-    cdd_cst_tree_free(dummy_tree);
-    cdd_cst_free_node_only(nested_parent);
-    cdd_cst_free_node_only(nested_child);
-    cdd_cst_free_node_only(replacement);
-    cdd_cst_free_node_only(empty_child);
-    cdd_cst_free_node_only(grandparent);
+          dummy_tree->root = NULL; /* prevent double free */
+          cdd_cst_tree_free(dummy_tree);
+          cdd_cst_free_node_only(nested_parent);
+          cdd_cst_free_node_only(nested_child);
+          cdd_cst_free_node_only(replacement);
+          cdd_cst_free_node_only(empty_child);
+          cdd_cst_free_node_only(grandparent);
+        }
+      }
+    }
   }
 
   rc = cdd_cst_emit(tree, &out);

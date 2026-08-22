@@ -1686,18 +1686,20 @@ TEST test_rewrite_body_oom(void) {
 
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc2 = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
-    g_cdd_alloc_fail = 0;
-    g_patcher_test_cap_1 = 0;
+    {
+      int rc2 = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
+      g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
 
-    if (rc2 == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
+        C_CDD_FREE(out_code);
+        free_token_list(tl);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   {
@@ -1823,18 +1825,20 @@ TEST test_rewrite_body_funcs_oom(void) {
     /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
-    g_cdd_alloc_fail = 0;
-    g_patcher_test_cap_1 = 0;
+    {
+      int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
+      g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
 
-    if (rc2 == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
+        C_CDD_FREE(out_code);
+        free_token_list(tl);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   {
@@ -1961,18 +1965,20 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
     /* extern int g_cdd_strdup_fail; (moved to global) */
     g_cdd_strdup_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
-    g_cdd_strdup_fail = 0;
-    g_patcher_test_cap_1 = 0;
+    {
+      int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
+      g_cdd_strdup_fail = 0;
+      g_patcher_test_cap_1 = 0;
 
-    if (rc2 == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
+        C_CDD_FREE(out_code);
+        free_token_list(tl);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   {
@@ -2096,17 +2102,19 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
     /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc2 = rewrite_body(tl, &sites, funcs2, 1, NULL, &out_code);
-    g_cdd_alloc_fail = 0;
-    g_patcher_test_cap_1 = 0;
+    {
+      int rc2 = rewrite_body(tl, &sites, funcs2, 1, NULL, &out_code);
+      g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
 
-    if (rc2 == CDD_C_SUCCESS) {
+      if (rc2 == CDD_C_SUCCESS) {
+        C_CDD_FREE(out_code);
+        free_token_list(tl);
+        break;
+      }
       C_CDD_FREE(out_code);
       free_token_list(tl);
-      break;
     }
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   {
@@ -2232,17 +2240,19 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
     /* extern int g_cdd_alloc_fail; (moved to global) */
     g_cdd_alloc_fail = i;
     g_patcher_test_cap_1 = 1;
-    int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
-    g_cdd_alloc_fail = 0;
-    g_patcher_test_cap_1 = 0;
+    {
+      int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
+      g_cdd_alloc_fail = 0;
+      g_patcher_test_cap_1 = 0;
 
-    if (rc2 == CDD_C_ERROR_MEMORY) {
-      /* Good, failed as expected */
-    } else {
-      /* printf("i=%d rc=%d\n", i, rc); */
+      if (rc2 == CDD_C_ERROR_MEMORY) {
+        /* Good, failed as expected */
+      } else {
+        /* printf("i=%d rc=%d\n", i, rc); */
+      }
+      C_CDD_FREE(out_code);
+      free_token_list(tl);
     }
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   {
@@ -2982,15 +2992,17 @@ TEST test_rewrite_body_corner_oom_2(void) {
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_alloc_fail = i;
       g_patcher_test_cap_1 = 1;
-      int rc2 = rewrite_body(tl, NULL, funcs2, 2,
-                             c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
-      g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
-      free_token_list(tl);
-      if (out_code)
-        C_CDD_FREE(out_code);
-      if (rc2 == CDD_C_SUCCESS) {
-        break;
+      {
+        int rc2 = rewrite_body(tl, NULL, funcs2, 2,
+                               c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+        g_cdd_alloc_fail = 0;
+        g_patcher_test_cap_1 = 0;
+        free_token_list(tl);
+        if (out_code)
+          C_CDD_FREE(out_code);
+        if (rc2 == CDD_C_SUCCESS) {
+          break;
+        }
       }
     }
   }
@@ -3004,15 +3016,17 @@ TEST test_rewrite_body_corner_oom_2(void) {
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_strdup_fail = i;
       g_patcher_test_cap_1 = 1;
-      int rc2 = rewrite_body(tl, NULL, funcs2, 2,
-                             c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
-      g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
-      free_token_list(tl);
-      if (out_code)
-        C_CDD_FREE(out_code);
-      if (rc2 == CDD_C_SUCCESS) {
-        break;
+      {
+        int rc2 = rewrite_body(tl, NULL, funcs2, 2,
+                               c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
+        g_cdd_strdup_fail = 0;
+        g_patcher_test_cap_1 = 0;
+        free_token_list(tl);
+        if (out_code)
+          C_CDD_FREE(out_code);
+        if (rc2 == CDD_C_SUCCESS) {
+          break;
+        }
       }
     }
   }

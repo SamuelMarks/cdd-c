@@ -33,35 +33,37 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
 #else
   tmp = tmpfile();
 #endif
-  long sz;
-  char *content = NULL;
+  {
+    long sz;
+    char *content = NULL;
 
-  if (!tmp) {
-    *_out_val = NULL;
-    return 0;
-  }
-
-  if (codegen_client_write_signature(tmp, op, cfg) != 0) {
-    fclose(tmp);
-    {
+    if (!tmp) {
       *_out_val = NULL;
       return 0;
     }
-  }
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-
-  content = (char *)calloc(1, sz + 1);
-  if (sz > 0)
-    if (fread(content, 1, sz, tmp)) {
+    if (codegen_client_write_signature(tmp, op, cfg) != 0) {
+      fclose(tmp);
+      {
+        *_out_val = NULL;
+        return 0;
+      }
     }
 
-  fclose(tmp);
-  {
-    *_out_val = content;
-    return 0;
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+
+    content = (char *)calloc(1, sz + 1);
+    if (sz > 0)
+      if (fread(content, 1, sz, tmp)) {
+      }
+
+    fclose(tmp);
+    {
+      *_out_val = content;
+      return 0;
+    }
   }
 }
 

@@ -10,6 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_test_helpers/mock_server.h"
 #include <greatest.h>
@@ -45,6 +46,7 @@ __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 #else
 #ifndef _WIN32
 #include <unistd.h>
+/* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
 extern int g_pthread_create_fail;

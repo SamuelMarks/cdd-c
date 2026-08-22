@@ -210,33 +210,35 @@ TEST test_register_type_union_copy(void) {
   types.items[0].kind = KIND_STRUCT;
   types.items[0].details.struct_fields = calloc(1, sizeof(struct StructFields));
 
-  struct StructFields *sf = types.items[0].details.struct_fields;
-  struct_fields_init(sf);
-  struct_fields_add(sf, "prop1", "union", NULL, NULL, NULL);
+  {
+    struct StructFields *sf = types.items[0].details.struct_fields;
+    struct_fields_init(sf);
+    struct_fields_add(sf, "prop1", "union", NULL, NULL, NULL);
 
-  sf->fields[0].type_union = types_arr;
-  sf->fields[0].n_type_union = 2;
-  sf->fields[0].items_type_union = types_arr;
-  sf->fields[0].n_items_type_union = 2;
+    sf->fields[0].type_union = types_arr;
+    sf->fields[0].n_type_union = 2;
+    sf->fields[0].items_type_union = types_arr;
+    sf->fields[0].n_items_type_union = 2;
 
-  rc = c2openapi_register_types(&spec, &types);
-  ASSERT_EQ(0, rc);
+    rc = c2openapi_register_types(&spec, &types);
+    ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(1, spec.n_defined_schemas);
-  ASSERT_STR_EQ("TestUnion", spec.defined_schema_names[0]);
-  ASSERT_EQ(2, spec.defined_schemas[0].fields[0].n_type_union);
-  ASSERT_STR_EQ("string", spec.defined_schemas[0].fields[0].type_union[0]);
+    ASSERT_EQ(1, spec.n_defined_schemas);
+    ASSERT_STR_EQ("TestUnion", spec.defined_schema_names[0]);
+    ASSERT_EQ(2, spec.defined_schemas[0].fields[0].n_type_union);
+    ASSERT_STR_EQ("string", spec.defined_schemas[0].fields[0].type_union[0]);
 
-  openapi_spec_free(&spec);
+    openapi_spec_free(&spec);
 
-  sf->fields[0].type_union = NULL;
-  sf->fields[0].items_type_union = NULL;
-  /* struct_fields_free(sf) is handled by type_def_list_free! */
-  types.items[0].name = NULL; /* prevent free */
-  type_def_list_free(&types);
-  g_fail_io_after = -1;
+    sf->fields[0].type_union = NULL;
+    sf->fields[0].items_type_union = NULL;
+    /* struct_fields_free(sf) is handled by type_def_list_free! */
+    types.items[0].name = NULL; /* prevent free */
+    type_def_list_free(&types);
+    g_fail_io_after = -1;
 
-  PASS();
+    PASS();
+  }
 }
 
 TEST test_openapi_spec_init_null(void) {

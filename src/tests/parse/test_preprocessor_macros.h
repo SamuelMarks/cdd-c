@@ -436,29 +436,31 @@ TEST test_macro_evaluator_uncovered(void) {
   ctx.macro_count = 0;
 
   /* OOM handlers in lexer */
-  int fail_idx;
-  for (fail_idx = 1; fail_idx < 15; fail_idx++) {
-    g_cdd_alloc_fail = fail_idx;
-    cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res);
+  {
+    int fail_idx;
+    for (fail_idx = 1; fail_idx < 15; fail_idx++) {
+      g_cdd_alloc_fail = fail_idx;
+      cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res);
+      g_cdd_alloc_fail = 0;
+    }
+
+    g_cdd_alloc_fail = 1;
+    rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
     g_cdd_alloc_fail = 0;
+
+    rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
+    cdd_macro_eval_result_free(&res);
+
+    rc = cdd_macro_evaluate(&ctx, "   ", &res);
+    ASSERT_NEQ(0, rc);
+
+    g_cdd_alloc_fail = 1;
+    rc = cdd_macro_evaluate(&ctx, "ABC", &res);
+    g_cdd_alloc_fail = 0;
+
+    pp_context_free(&ctx);
+    PASS();
   }
-
-  g_cdd_alloc_fail = 1;
-  rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
-  g_cdd_alloc_fail = 0;
-
-  rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
-  cdd_macro_eval_result_free(&res);
-
-  rc = cdd_macro_evaluate(&ctx, "   ", &res);
-  ASSERT_NEQ(0, rc);
-
-  g_cdd_alloc_fail = 1;
-  rc = cdd_macro_evaluate(&ctx, "ABC", &res);
-  g_cdd_alloc_fail = 0;
-
-  pp_context_free(&ctx);
-  PASS();
 }
 
 SUITE(preprocessor_macros_suite) {

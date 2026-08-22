@@ -143,86 +143,88 @@ TEST test_codegen_config_json_guards(void) {
   tmp = tmpfile();
 #endif
 
-  struct StructFields sf;
-
-  /* We use the specific config struct now */
-  struct CodegenJsonConfig config;
-
-  char *content = NULL;
-
-  long sz;
-
-  /* Setup */
-
-  ASSERT(tmp);
-
-  struct_fields_init(&sf);
-
-  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
-
-  memset(&config, 0, sizeof(config));
-
-  config.guard_macro = "ENABLE_JSON";
-
-  /* Generate */
-
-  ASSERT_EQ(0, write_struct_to_json_func(tmp, "GuardStruct", &sf, &config));
-
-  ASSERT_EQ(0, write_struct_from_json_func(tmp, "GuardStruct", &config));
-
-  ASSERT_EQ(
-
-      0, write_struct_from_jsonObject_func(tmp, "GuardStruct", &sf, &config));
-
-  /* Check content */
-
-  fseek(tmp, 0, SEEK_END);
-
-  sz = ftell(tmp);
-
-  rewind(tmp);
-
-  content = (char *)calloc(1, sz + 1);
-
-  if (fread(content, 1, sz, tmp)) {
-  }
-
-  /* Check Guards exist */
-
-  ASSERT(strstr(content, "#ifdef ENABLE_JSON"));
-
-  ASSERT(strstr(content, "#endif /* ENABLE_JSON */"));
-
-  /* Verify the guards appear multiple times (once per function block) */
-
   {
+    struct StructFields sf;
 
-    char *p;
-    int count;
-    p = content;
+    /* We use the specific config struct now */
+    struct CodegenJsonConfig config;
 
-    count = 0;
+    char *content = NULL;
 
-    while ((p = strstr(p, "#ifdef ENABLE_JSON")) != NULL) {
+    long sz;
 
-      count++;
+    /* Setup */
 
-      p++;
+    ASSERT(tmp);
+
+    struct_fields_init(&sf);
+
+    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+
+    memset(&config, 0, sizeof(config));
+
+    config.guard_macro = "ENABLE_JSON";
+
+    /* Generate */
+
+    ASSERT_EQ(0, write_struct_to_json_func(tmp, "GuardStruct", &sf, &config));
+
+    ASSERT_EQ(0, write_struct_from_json_func(tmp, "GuardStruct", &config));
+
+    ASSERT_EQ(
+
+        0, write_struct_from_jsonObject_func(tmp, "GuardStruct", &sf, &config));
+
+    /* Check content */
+
+    fseek(tmp, 0, SEEK_END);
+
+    sz = ftell(tmp);
+
+    rewind(tmp);
+
+    content = (char *)calloc(1, sz + 1);
+
+    if (fread(content, 1, sz, tmp)) {
     }
 
-    /* We called 3 write_ functions, expecting 3 blocks */
+    /* Check Guards exist */
 
-    ASSERT_EQ(3, count);
+    ASSERT(strstr(content, "#ifdef ENABLE_JSON"));
+
+    ASSERT(strstr(content, "#endif /* ENABLE_JSON */"));
+
+    /* Verify the guards appear multiple times (once per function block) */
+
+    {
+
+      char *p;
+      int count;
+      p = content;
+
+      count = 0;
+
+      while ((p = strstr(p, "#ifdef ENABLE_JSON")) != NULL) {
+
+        count++;
+
+        p++;
+      }
+
+      /* We called 3 write_ functions, expecting 3 blocks */
+
+      ASSERT_EQ(3, count);
+    }
+
+    free(content);
+
+    struct_fields_free(&sf);
+
+    fclose(tmp);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-
-  free(content);
-
-  struct_fields_free(&sf);
-
-  fclose(tmp);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 /**
@@ -239,54 +241,56 @@ TEST test_union_config_json_guards(void) {
   tmp = tmpfile();
 #endif
 
-  struct StructFields sf;
+  {
+    struct StructFields sf;
 
-  /* Specific config struct */
-  struct CodegenTypesConfig config;
+    /* Specific config struct */
+    struct CodegenTypesConfig config;
 
-  char *content = NULL;
+    char *content = NULL;
 
-  long sz;
+    long sz;
 
-  ASSERT(tmp);
+    ASSERT(tmp);
 
-  struct_fields_init(&sf);
+    struct_fields_init(&sf);
 
-  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-  memset(&config, 0, sizeof(config));
+    memset(&config, 0, sizeof(config));
 
-  config.json_guard = "UNION_GUARD";
+    config.json_guard = "UNION_GUARD";
 
-  ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
+    ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
 
-  ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "U", &sf, &config));
+    ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "U", &sf, &config));
 
-  ASSERT_EQ(0, write_union_from_json_func(tmp, "U", &sf, &config));
+    ASSERT_EQ(0, write_union_from_json_func(tmp, "U", &sf, &config));
 
-  fseek(tmp, 0, SEEK_END);
+    fseek(tmp, 0, SEEK_END);
 
-  sz = ftell(tmp);
+    sz = ftell(tmp);
 
-  rewind(tmp);
+    rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, sz + 1);
 
-  if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "#ifdef UNION_GUARD"));
+
+    ASSERT(strstr(content, "#endif /* UNION_GUARD */"));
+
+    free(content);
+
+    struct_fields_free(&sf);
+
+    fclose(tmp);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-
-  ASSERT(strstr(content, "#ifdef UNION_GUARD"));
-
-  ASSERT(strstr(content, "#endif /* UNION_GUARD */"));
-
-  free(content);
-
-  struct_fields_free(&sf);
-
-  fclose(tmp);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 /**
@@ -469,66 +473,68 @@ TEST test_codegen_config_utils_guards(void) {
   tmp = tmpfile();
 #endif
 
-  struct StructFields sf;
+  {
+    struct StructFields sf;
 
-  /* Specific config struct */
-  struct CodegenStructConfig config;
+    /* Specific config struct */
+    struct CodegenStructConfig config;
 
-  char *content = NULL;
+    char *content = NULL;
 
-  long sz;
+    long sz;
 
-  ASSERT(tmp);
+    ASSERT(tmp);
 
-  struct_fields_init(&sf);
+    struct_fields_init(&sf);
 
-  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
 
-  memset(&config, 0, sizeof(config));
+    memset(&config, 0, sizeof(config));
 
-  config.guard_macro = "DATA_UTILS";
+    config.guard_macro = "DATA_UTILS";
 
-  /* Generate helpers */
+    /* Generate helpers */
 
-  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_cleanup_func(tmp, "S", &sf, &config));
 
-  ASSERT_EQ(0, write_struct_debug_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_debug_func(tmp, "S", &sf, &config));
 
-  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, &config));
 
-  ASSERT_EQ(0, write_struct_default_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_default_func(tmp, "S", &sf, &config));
 
-  ASSERT_EQ(0, write_struct_display_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_display_func(tmp, "S", &sf, &config));
 
-  ASSERT_EQ(0, write_struct_eq_func(tmp, "S", &sf, &config));
+    ASSERT_EQ(0, write_struct_eq_func(tmp, "S", &sf, &config));
 
-  fseek(tmp, 0, SEEK_END);
+    fseek(tmp, 0, SEEK_END);
 
-  sz = ftell(tmp);
+    sz = ftell(tmp);
 
-  rewind(tmp);
+    rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, sz + 1);
 
-  if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    /* Just sample checks */
+
+    ASSERT(strstr(content, "#ifdef DATA_UTILS"));
+
+    ASSERT(strstr(content, "#endif /* DATA_UTILS */"));
+
+    ASSERT(strstr(content, "cdd_c_error_t S_cleanup("));
+
+    free(content);
+
+    struct_fields_free(&sf);
+
+    fclose(tmp);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-
-  /* Just sample checks */
-
-  ASSERT(strstr(content, "#ifdef DATA_UTILS"));
-
-  ASSERT(strstr(content, "#endif /* DATA_UTILS */"));
-
-  ASSERT(strstr(content, "cdd_c_error_t S_cleanup("));
-
-  free(content);
-
-  struct_fields_free(&sf);
-
-  fclose(tmp);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 /**

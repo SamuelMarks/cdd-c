@@ -564,47 +564,50 @@ TEST test_weaver_cov(void) {
   free_token_list(tokens);
 
   /* Test #ident that is not include */
-  const char *src2 = "#define X 1";
-  res = tokenize(az_span_create_from_str((char *)src2), &tokens);
-  ASSERT_EQ(0, res);
-
-  res = patch_list_init(&patches);
-  ASSERT_EQ(0, res);
-
-  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
-  ASSERT_EQ(0, res);
-
-  res = patch_list_apply(&patches, tokens, &out_code);
-  ASSERT_EQ(0, res);
-
-  free(out_code);
-  patch_list_free(&patches);
-  free_token_list(tokens);
-
-  /* Test vla_to_alloca edge cases */
   {
-    const char *src3 = "int a[5];";
-    res = tokenize(az_span_create_from_str((char *)src3), &tokens);
+    const char *src2 = "#define X 1";
+    res = tokenize(az_span_create_from_str((char *)src2), &tokens);
     ASSERT_EQ(0, res);
 
     res = patch_list_init(&patches);
     ASSERT_EQ(0, res);
 
-    /* OOM inside weaver_vla_to_alloca */
-#ifdef CDD_BUILD_TESTS
-    {
-      /* extern int g_cdd_alloc_fail; (moved to global) */
-      g_cdd_alloc_fail = 1;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, weaver_vla_to_alloca(&patches, tokens, 0, 1,
-                                                         "int", "a", "5", 0));
-      g_cdd_alloc_fail = 0;
-    }
-#endif
+    res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+    ASSERT_EQ(0, res);
+
+    res = patch_list_apply(&patches, tokens, &out_code);
+    ASSERT_EQ(0, res);
+
+    free(out_code);
     patch_list_free(&patches);
     free_token_list(tokens);
-  }
 
-  PASS();
+    /* Test vla_to_alloca edge cases */
+    {
+      const char *src3 = "int a[5];";
+      res = tokenize(az_span_create_from_str((char *)src3), &tokens);
+      ASSERT_EQ(0, res);
+
+      res = patch_list_init(&patches);
+      ASSERT_EQ(0, res);
+
+      /* OOM inside weaver_vla_to_alloca */
+#ifdef CDD_BUILD_TESTS
+      {
+        /* extern int g_cdd_alloc_fail; (moved to global) */
+        g_cdd_alloc_fail = 1;
+        ASSERT_EQ(
+            CDD_C_ERROR_MEMORY,
+            weaver_vla_to_alloca(&patches, tokens, 0, 1, "int", "a", "5", 0));
+        g_cdd_alloc_fail = 0;
+      }
+#endif
+      patch_list_free(&patches);
+      free_token_list(tokens);
+    }
+
+    PASS();
+  }
 }
 
 TEST test_weaver_cov_more(void) {

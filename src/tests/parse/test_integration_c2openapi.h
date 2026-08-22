@@ -144,27 +144,41 @@ TEST test_c2openapi_full_flow(void) {
     {
       JSON_Object *comps = json_object_get_object(obj, "components");
       ASSERT(comps != NULL);
-      JSON_Object *schemas = json_object_get_object(comps, "schemas");
-      ASSERT(schemas != NULL);
-      JSON_Object *user = json_object_get_object(schemas, "User");
-      if (!user) {
-        printf("FAILED to find User in schemas!\n");
-        size_t num = json_object_get_count(schemas);
-        printf("Schemas has %" CDD_PRIz " items. Keys:\n", num);
-        size_t i;
-        for (i = 0; i < num; ++i) {
-          printf("  '%s'\n", json_object_get_name(schemas, i));
+      {
+        JSON_Object *schemas = json_object_get_object(comps, "schemas");
+        ASSERT(schemas != NULL);
+        {
+          JSON_Object *user = json_object_get_object(schemas, "User");
+          if (!user) {
+            printf("FAILED to find User in schemas!\n");
+            {
+              size_t num = json_object_get_count(schemas);
+              printf("Schemas has %" CDD_PRIz " items. Keys:\n", num);
+              {
+                size_t i;
+                for (i = 0; i < num; ++i) {
+                  printf("  '%s'\n", json_object_get_name(schemas, i));
+                }
+              }
+            }
+          }
+          ASSERT(user != NULL);
+          {
+            JSON_Object *props = json_object_get_object(user, "properties");
+            ASSERT(props != NULL);
+            {
+              JSON_Object *id = json_object_get_object(props, "id");
+              ASSERT(id != NULL);
+              {
+                const char *type = json_object_get_string(id, "type");
+
+                ASSERT_STR_EQ(("integer") ? ("integer") : "NULL",
+                              (type) ? (type) : "NULL");
+              }
+            }
+          }
         }
       }
-      ASSERT(user != NULL);
-      JSON_Object *props = json_object_get_object(user, "properties");
-      ASSERT(props != NULL);
-      JSON_Object *id = json_object_get_object(props, "id");
-      ASSERT(id != NULL);
-      const char *type = json_object_get_string(id, "type");
-
-      ASSERT_STR_EQ(("integer") ? ("integer") : "NULL",
-                    (type) ? (type) : "NULL");
     }
 
     /* Check GET /users/{id} */
@@ -565,27 +579,29 @@ TEST test_c2o_cli_source_file_checks(void) {
   write_to_file(txt_file, "just some notes");
   write_to_file(no_ext_file, "no extension here");
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    int rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(txt_file);
+    remove(no_ext_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(txt_file);
+    free(no_ext_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(txt_file);
-  remove(no_ext_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(txt_file);
-  free(no_ext_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_doc_sec_unset(void) {
@@ -638,35 +654,39 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  size_t i;
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    write_to_file(c_file, snippets[i]);
-    free(c_file);
-  }
+  {
+    size_t i;
+    for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+      char *c_file = NULL;
+      asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+      write_to_file(c_file, snippets[i]);
+      free(c_file);
+    }
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
-  }
-  ASSERT_EQ(0, rc);
+    {
+      char *argv[] = {"c2openapi", src_dir, out_json};
+      int rc = c2openapi_cli_main(3, argv);
+      if (rc != 0) {
+        printf("\nERROR rc=%d\n", rc);
+      }
+      ASSERT_EQ(0, rc);
 
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    remove(c_file);
-    free(c_file);
-  }
-  remove(out_json);
-  rmdir(src_dir);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
+      for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+        char *c_file = NULL;
+        asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+        remove(c_file);
+        free(c_file);
+      }
+      remove(out_json);
+      rmdir(src_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
+      g_fail_io_after = -1;
 
-  PASS();
+      PASS();
+    }
+  }
 }
 
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
@@ -690,23 +710,25 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_mappings_errors_find(void) {
@@ -738,23 +760,25 @@ TEST test_c2o_cli_mappings_errors_find(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_set_str_mismatch(void) {
@@ -777,23 +801,25 @@ TEST test_c2o_cli_set_str_mismatch(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    int rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_server_variables(void) {
@@ -818,23 +844,25 @@ TEST test_c2o_cli_server_variables(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    int rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_server_variables_validation(void) {
@@ -860,23 +888,25 @@ TEST test_c2o_cli_server_variables_validation(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    int rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_merge_oauth_scopes(void) {
@@ -905,23 +935,25 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
 
   write_to_file(c_file, src);
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
+  {
+    char *argv[] = {"c2openapi", src_dir, out_json};
+    int rc = c2openapi_cli_main(3, argv);
+    if (rc != 0) {
+      printf("\nERROR rc=%d\n", rc);
+    }
+    ASSERT_EQ(0, rc);
+
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
+    free(c_file);
+    free(out_json);
+    free(src_dir);
+    free(tmp_dir);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  ASSERT_EQ(0, rc);
-
-  remove(c_file);
-  remove(out_json);
-  rmdir(src_dir);
-  free(c_file);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_c2o_cli_oauth_validation_errors(void) {
@@ -953,35 +985,39 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  size_t i;
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    write_to_file(c_file, snippets[i]);
-    free(c_file);
-  }
+  {
+    size_t i;
+    for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+      char *c_file = NULL;
+      asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+      write_to_file(c_file, snippets[i]);
+      free(c_file);
+    }
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
-  }
-  ASSERT_EQ(0, rc);
+    {
+      char *argv[] = {"c2openapi", src_dir, out_json};
+      int rc = c2openapi_cli_main(3, argv);
+      if (rc != 0) {
+        printf("\nERROR rc=%d\n", rc);
+      }
+      ASSERT_EQ(0, rc);
 
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    remove(c_file);
-    free(c_file);
-  }
-  remove(out_json);
-  rmdir(src_dir);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
+      for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+        char *c_file = NULL;
+        asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+        remove(c_file);
+        free(c_file);
+      }
+      remove(out_json);
+      rmdir(src_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
+      g_fail_io_after = -1;
 
-  PASS();
+      PASS();
+    }
+  }
 }
 
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
@@ -1020,35 +1056,39 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  size_t i;
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    write_to_file(c_file, snippets[i]);
-    free(c_file);
-  }
+  {
+    size_t i;
+    for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+      char *c_file = NULL;
+      asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+      write_to_file(c_file, snippets[i]);
+      free(c_file);
+    }
 
-  char *argv[] = {"c2openapi", src_dir, out_json};
-  int rc = c2openapi_cli_main(3, argv);
-  if (rc != 0) {
-    printf("\nERROR rc=%d\n", rc);
-  }
-  ASSERT_EQ(0, rc);
+    {
+      char *argv[] = {"c2openapi", src_dir, out_json};
+      int rc = c2openapi_cli_main(3, argv);
+      if (rc != 0) {
+        printf("\nERROR rc=%d\n", rc);
+      }
+      ASSERT_EQ(0, rc);
 
-  for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
-    char *c_file = NULL;
-    asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
-    remove(c_file);
-    free(c_file);
-  }
-  remove(out_json);
-  rmdir(src_dir);
-  free(out_json);
-  free(src_dir);
-  free(tmp_dir);
-  g_fail_io_after = -1;
+      for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
+        char *c_file = NULL;
+        asprintf(&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C, i);
+        remove(c_file);
+        free(c_file);
+      }
+      remove(out_json);
+      rmdir(src_dir);
+      free(out_json);
+      free(src_dir);
+      free(tmp_dir);
+      g_fail_io_after = -1;
 
-  PASS();
+      PASS();
+    }
+  }
 }
 
 SUITE(integration_c2openapi_suite) {

@@ -47,34 +47,36 @@ TEST test_cleanup_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  long sz;
-  char *content = NULL;
+  {
+    struct StructFields sf;
+    long sz;
+    char *content = NULL;
 
-  ASSERT(tmp);
-  setup_struct_fields(&sf);
+    ASSERT(tmp);
+    setup_struct_fields(&sf);
 
-  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, NULL));
+    ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
+    ASSERT(strstr(content, "if (!obj) return;"));
+    ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
+    ASSERT(strstr(content, "free(obj);"));
+
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
-  ASSERT(strstr(content, "if (!obj) return;"));
-  ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
-  ASSERT(strstr(content, "free(obj);"));
-
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -89,34 +91,36 @@ TEST test_default_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
+  {
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  setup_struct_fields(&sf);
+    ASSERT(tmp);
+    setup_struct_fields(&sf);
 
-  ASSERT_EQ(0, write_struct_default_func(tmp, "User", &sf, NULL));
+    ASSERT_EQ(0, write_struct_default_func(tmp, "User", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
+    /* Check literals injected */
+    ASSERT(strstr(content, "(*out)->id = 0;"));
+    /* Check string duplication */
+    ASSERT(strstr(content, "strdup(\"test\");"));
+
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
-  /* Check literals injected */
-  ASSERT(strstr(content, "(*out)->id = 0;"));
-  /* Check string duplication */
-  ASSERT(strstr(content, "strdup(\"test\");"));
-
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -131,36 +135,38 @@ TEST test_deepcopy_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
+  {
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  setup_struct_fields(&sf);
+    ASSERT(tmp);
+    setup_struct_fields(&sf);
 
-  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "User", &sf, NULL));
+    ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "User", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
-  }
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
 
-  ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
-  ASSERT(strstr(content, "if (src->name) {"));
+    ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
+    ASSERT(strstr(content, "if (src->name) {"));
 #if defined(_MSC_VER)
-  ASSERT(strstr(content, "(*dest)->name = _strdup(src->name);"));
+    ASSERT(strstr(content, "(*dest)->name = _strdup(src->name);"));
 #else
-  ASSERT(strstr(content, "(*dest)->name = strdup(src->name);"));
+    ASSERT(strstr(content, "(*dest)->name = strdup(src->name);"));
 #endif
 
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 /**
@@ -175,32 +181,35 @@ TEST test_eq_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
+  {
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  setup_struct_fields(&sf);
+    ASSERT(tmp);
+    setup_struct_fields(&sf);
 
-  ASSERT_EQ(0, write_struct_eq_func(tmp, "User", &sf, NULL));
+    ASSERT_EQ(0, write_struct_eq_func(tmp, "User", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(
+        strstr(content, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
+    ASSERT(strstr(content, "a->id != b->id"));
+    ASSERT(strstr(content, "strcmp(a->name, b->name)"));
+
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "if (a == b) { *out_eq = 1; return CDD_C_SUCCESS; }"));
-  ASSERT(strstr(content, "a->id != b->id"));
-  ASSERT(strstr(content, "strcmp(a->name, b->name)"));
-
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -215,33 +224,35 @@ TEST test_guards_injection(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  struct CodegenStructConfig cfg;
-  char *content = NULL;
-  long sz;
+  {
+    struct StructFields sf;
+    struct CodegenStructConfig cfg;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  setup_struct_fields(&sf);
-  cfg.guard_macro = "MY_GUARD";
+    ASSERT(tmp);
+    setup_struct_fields(&sf);
+    cfg.guard_macro = "MY_GUARD";
 
-  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));
+    ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "#ifdef MY_GUARD"));
+    ASSERT(strstr(content, "#endif /* MY_GUARD */"));
+
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "#ifdef MY_GUARD"));
-  ASSERT(strstr(content, "#endif /* MY_GUARD */"));
-
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -273,52 +284,54 @@ TEST test_struct_debug_func(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
+  {
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
-  struct_fields_add(&sf, "name", "string", NULL, "\"test\"", NULL);
-  struct_fields_add(&sf, "val", "number", NULL, "1.0", NULL);
-  struct_fields_add(&sf, "is_active", "boolean", NULL, "1", NULL);
-  struct_fields_add(&sf, "status", "enum", "Status", "1", NULL);
-  struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
-  struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
-  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
-  struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
-  struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
-  struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
-  struct_fields_add(&sf, "user", "object", "User", NULL, NULL);
-  struct_fields_add(&sf, "unknown", "unknown", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
+    struct_fields_add(&sf, "name", "string", NULL, "\"test\"", NULL);
+    struct_fields_add(&sf, "val", "number", NULL, "1.0", NULL);
+    struct_fields_add(&sf, "is_active", "boolean", NULL, "1", NULL);
+    struct_fields_add(&sf, "status", "enum", "Status", "1", NULL);
+    struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
+    struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+    struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+    struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
+    struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+    struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
+    struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
+    struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
+    struct_fields_add(&sf, "user", "object", "User", NULL, NULL);
+    struct_fields_add(&sf, "unknown", "unknown", NULL, NULL, NULL);
+    struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
 
-  ASSERT_EQ(0, write_struct_debug_func(tmp, "TestStruct", &sf, NULL));
+    ASSERT_EQ(0, write_struct_debug_func(tmp, "TestStruct", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "TestStruct_debug"));
+    ASSERT(strstr(content, "obj->id"));
+    ASSERT(strstr(content, "obj->name"));
+    ASSERT(strstr(content, "obj->val"));
+    ASSERT(strstr(content, "obj->items[i]"));
+    ASSERT(strstr(content, "(unknown)"));
+
+    free(content);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "TestStruct_debug"));
-  ASSERT(strstr(content, "obj->id"));
-  ASSERT(strstr(content, "obj->name"));
-  ASSERT(strstr(content, "obj->val"));
-  ASSERT(strstr(content, "obj->items[i]"));
-  ASSERT(strstr(content, "(unknown)"));
-
-  free(content);
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -403,52 +416,54 @@ TEST test_struct_io_errors(void) {
 #else
   readonly_f = tmpfile();
 #endif
-  struct StructFields sf;
-  struct CodegenStructConfig config = {0};
+  {
+    struct StructFields sf;
+    struct CodegenStructConfig config = {0};
 
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
-  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
-  struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
-  struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
-  struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
+    struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+    struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+    struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
+    struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
 
-  if (readonly_f) {
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    {
-      int _rc = write_struct_cleanup_func(readonly_f, "Test", &sf, &config);
-      printf("write_struct_cleanup_func RC %d\\n", _rc);
-      ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+    if (readonly_f) {
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      {
+        int _rc = write_struct_cleanup_func(readonly_f, "Test", &sf, &config);
+        printf("write_struct_cleanup_func RC %d\\n", _rc);
+        ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+      }
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      {
+        int _rc = write_struct_default_func(readonly_f, "Test", &sf, &config);
+        printf("write_struct_default_func RC %d\\n", _rc);
+        ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+      }
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      ASSERT_EQ(CDD_C_ERROR_IO,
+                write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      ASSERT_EQ(CDD_C_ERROR_IO,
+                write_struct_eq_func(readonly_f, "Test", &sf, &config));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      ASSERT_EQ(CDD_C_ERROR_IO,
+                write_struct_debug_func(readonly_f, "Test", &sf, &config));
+      fclose(readonly_f);
     }
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    {
-      int _rc = write_struct_default_func(readonly_f, "Test", &sf, &config);
-      printf("write_struct_default_func RC %d\\n", _rc);
-      ASSERT_EQ(CDD_C_ERROR_IO, _rc);
-    }
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    ASSERT_EQ(CDD_C_ERROR_IO,
-              write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    ASSERT_EQ(CDD_C_ERROR_IO,
-              write_struct_eq_func(readonly_f, "Test", &sf, &config));
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    ASSERT_EQ(CDD_C_ERROR_IO,
-              write_struct_debug_func(readonly_f, "Test", &sf, &config));
-    fclose(readonly_f);
+    struct_fields_free(NULL);
+    struct_fields_free(&sf);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-  struct_fields_free(NULL);
-  struct_fields_free(&sf);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 #ifdef CDD_BUILD_TESTS

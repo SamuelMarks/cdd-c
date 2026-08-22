@@ -398,72 +398,88 @@ TEST test_type_eval_branches(void) {
 TEST test_cdd_cst_eval_ptr_fail(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_scope_env_init(&env);
-  size_t sz = 0;
+  {
+    size_t sz = 0;
 
-  cdd_cst_node_t *spec3 = NULL;
-  cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &spec3);
-  cdd_cst_tree_t *tree = calloc(1, sizeof(*tree));
-  tree->root = spec3;
-  cdd_token_t *tok3 = NULL;
-  cdd_cst_create_token_len(tree, CDD_TOKEN_STAR, "*", 1, &tok3);
-  cdd_cst_append_child_token(spec3, tok3);
-  cdd_token_t *tok4 = NULL;
-  cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
-  cdd_cst_append_child_token(spec3, tok4);
+    cdd_cst_node_t *spec3 = NULL;
+    cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &spec3);
+    {
+      cdd_cst_tree_t *tree = calloc(1, sizeof(*tree));
+      tree->root = spec3;
+      {
+        cdd_token_t *tok3 = NULL;
+        cdd_cst_create_token_len(tree, CDD_TOKEN_STAR, "*", 1, &tok3);
+        cdd_cst_append_child_token(spec3, tok3);
+        {
+          cdd_token_t *tok4 = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
+          cdd_cst_append_child_token(spec3, tok4);
 
-  /* extern int g_cdd_type_eval_ptr_fail; (moved to global) */
-  g_cdd_type_eval_ptr_fail = 1;
-  int rc1 = cdd_cst_eval_sizeof(env, spec3, CDD_CST_ABI_LP64, &sz);
-  int rc2 = cdd_cst_eval_alignof(env, spec3, CDD_CST_ABI_LP64, &sz);
-  g_cdd_type_eval_ptr_fail = 0;
+          /* extern int g_cdd_type_eval_ptr_fail; (moved to global) */
+          g_cdd_type_eval_ptr_fail = 1;
+          {
+            int rc1 = cdd_cst_eval_sizeof(env, spec3, CDD_CST_ABI_LP64, &sz);
+            int rc2 = cdd_cst_eval_alignof(env, spec3, CDD_CST_ABI_LP64, &sz);
+            g_cdd_type_eval_ptr_fail = 0;
 
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc1);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
+            ASSERT_EQ(CDD_C_ERROR_MEMORY, rc1);
+            ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
 
-  cdd_cst_tree_free(tree);
-  cdd_cst_scope_env_free(env);
-  PASS();
+            cdd_cst_tree_free(tree);
+            cdd_cst_scope_env_free(env);
+            PASS();
+          }
+        }
+      }
+    }
+  }
 }
 
 TEST test_cdd_cst_type_eval_branches(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_scope_env_init(&env);
-  cdd_c_error_t rc;
-  (void)rc;
-  enum cdd_cst_abi_model_t abi = CDD_CST_ABI_LP64;
-  cdd_cst_node_t dummy_node = {0};
-  cdd_token_t dummy_tok = {0};
-  cdd_cst_child_t children[1];
-  char *name_out = NULL;
-  int is_ptr = 0;
-  size_t sz = 0, al = 0;
-  dummy_tok.kind = CDD_TOKEN_IDENTIFIER;
-  dummy_tok.start = (const uint8_t *)"int";
-  dummy_tok.length = 3;
-  children[0].kind = CDD_CST_CHILD_TOKEN;
-  children[0].val.token = &dummy_tok;
-  dummy_node.kind = CDD_CST_DECLARATION;
-  dummy_node.children = children;
-  dummy_node.num_children = 1;
-  g_cdd_alloc_fail = 1;
-  /* Also test the malloc failure inside eval_alignof since it calls
-   * extract_type_name too */
-  g_cdd_alloc_fail = 1;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY,
-            cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
-  g_cdd_alloc_fail = 2;
-  ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
-  rc = cdd_cst_eval_primitive_type("int", abi, NULL);
-  g_cdd_alloc_fail = 0;
-  /* It turns out extract_type_name was wrong so just hit branch inside eval */
-  dummy_tok.start = (const uint8_t *)"unknown_type";
-  dummy_tok.length = 12;
-  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
-            cdd_cst_eval_sizeof(env, &dummy_node, abi, &sz));
-  ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
-            cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
-  cdd_cst_scope_env_free(env);
-  PASS();
+  {
+    cdd_c_error_t rc;
+    (void)rc;
+    {
+      enum cdd_cst_abi_model_t abi = CDD_CST_ABI_LP64;
+      cdd_cst_node_t dummy_node = {0};
+      cdd_token_t dummy_tok = {0};
+      cdd_cst_child_t children[1];
+      char *name_out = NULL;
+      int is_ptr = 0;
+      size_t sz = 0, al = 0;
+      dummy_tok.kind = CDD_TOKEN_IDENTIFIER;
+      dummy_tok.start = (const uint8_t *)"int";
+      dummy_tok.length = 3;
+      children[0].kind = CDD_CST_CHILD_TOKEN;
+      children[0].val.token = &dummy_tok;
+      dummy_node.kind = CDD_CST_DECLARATION;
+      dummy_node.children = children;
+      dummy_node.num_children = 1;
+      g_cdd_alloc_fail = 1;
+      /* Also test the malloc failure inside eval_alignof since it calls
+       * extract_type_name too */
+      g_cdd_alloc_fail = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
+      g_cdd_alloc_fail = 2;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
+      rc = cdd_cst_eval_primitive_type("int", abi, NULL);
+      g_cdd_alloc_fail = 0;
+      /* It turns out extract_type_name was wrong so just hit branch inside eval
+       */
+      dummy_tok.start = (const uint8_t *)"unknown_type";
+      dummy_tok.length = 12;
+      ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                cdd_cst_eval_sizeof(env, &dummy_node, abi, &sz));
+      ASSERT_EQ(CDD_C_ERROR_NOT_FOUND,
+                cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
+      cdd_cst_scope_env_free(env);
+      PASS();
+    }
+  }
 }
 
 SUITE(cdd_cst_type_eval_suite) {

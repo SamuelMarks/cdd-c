@@ -225,23 +225,25 @@ TEST test_gen_cmake_bad_makedirs(void) {
   if (f) {
     fclose(f);
     makedirs("test_dummy_dir_for_makedirs");
-    FILE *f2;
+    {
+      FILE *f2;
 #if defined(_MSC_VER)
-    if (fopen_s(&f2, "test_dummy_dir_for_makedirs/src", "w") != 0)
-      f2 = NULL;
+      if (fopen_s(&f2, "test_dummy_dir_for_makedirs/src", "w") != 0)
+        f2 = NULL;
 #else
-    f2 = fopen("test_dummy_dir_for_makedirs/src", "w");
+      f2 = fopen("test_dummy_dir_for_makedirs/src", "w");
 #endif
-    if (f2) {
-      fclose(f2);
-      ASSERT_NEQ(
-          0, generate_cmake_project("test_dummy_dir_for_makedirs", "MyLib", 0));
-      remove("test_dummy_dir_for_makedirs/src");
+      if (f2) {
+        fclose(f2);
+        ASSERT_NEQ(0, generate_cmake_project("test_dummy_dir_for_makedirs",
+                                             "MyLib", 0));
+        remove("test_dummy_dir_for_makedirs/src");
+      }
+      remove("test_dummy_dir_for_makedirs");
+      ASSERT_NEQ(0, generate_cmake_project("test_dummy_file_for_makedirs/foo",
+                                           "MyLib", 0));
+      remove("test_dummy_file_for_makedirs");
     }
-    remove("test_dummy_dir_for_makedirs");
-    ASSERT_NEQ(0, generate_cmake_project("test_dummy_file_for_makedirs/foo",
-                                         "MyLib", 0));
-    remove("test_dummy_file_for_makedirs");
   }
   g_fail_io_after = -1;
   PASS();
@@ -311,11 +313,13 @@ TEST test_gen_cmake_oom(void) {
   makedirs("test_build_dir_oom");
   for (i = 1; i <= 100; i++) {
     g_cdd_alloc_fail = i;
-    int rc = generate_cmake_project("test_build_dir_oom", "Proj", 0);
-    printf("i=%d, rc=%d, g_alloc=%d\n", i, rc, g_cdd_alloc_fail);
-    if (rc == 0) {
-      printf("BROKE AT %d\n", i);
-      break;
+    {
+      int rc = generate_cmake_project("test_build_dir_oom", "Proj", 0);
+      printf("i=%d, rc=%d, g_alloc=%d\n", i, rc, g_cdd_alloc_fail);
+      if (rc == 0) {
+        printf("BROKE AT %d\n", i);
+        break;
+      }
     }
   }
 

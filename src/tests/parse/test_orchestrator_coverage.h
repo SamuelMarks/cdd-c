@@ -25,10 +25,12 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing);
 
   /* Missing input file */
-  int rc_2_argv_missing2 = fix_code_main(2, argv_missing2);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing2);
+  {
+    int rc_2_argv_missing2 = fix_code_main(2, argv_missing2);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_2_argv_missing2);
 
-  PASS();
+    PASS();
+  }
 }
 
 TEST test_orchestrator_coverage_oom(void) {
@@ -95,21 +97,28 @@ TEST test_orchestrator_coverage_fix_file(void) {
     fclose(f);
   }
   makedir("my_empty_dir");
-  char *argv_txt[] = {"test_empty.txt", "out.txt"};
-  char *argv_c[] = {"test_empty.c", "out.c"};
-  char *argv_dir[] = {"my_empty_dir", "--in-place"};
+  {
+    char *argv_txt[] = {"test_empty.txt", "out.txt"};
+    char *argv_c[] = {"test_empty.c", "out.c"};
+    char *argv_dir[] = {"my_empty_dir", "--in-place"};
 
-  int rc_txt = fix_code_main(2, argv_txt);
-  ASSERT_EQ(EXIT_SUCCESS, rc_txt);
+    int rc_txt = fix_code_main(2, argv_txt);
+    ASSERT_EQ(EXIT_SUCCESS, rc_txt);
 
-  /* c file -> is_c_source true -> parses -> valid c file, refactors, success */
-  int rc_c = fix_code_main(2, argv_c);
-  ASSERT_EQ(EXIT_SUCCESS, rc_c);
+    /* c file -> is_c_source true -> parses -> valid c file, refactors, success
+     */
+    {
+      int rc_c = fix_code_main(2, argv_c);
+      ASSERT_EQ(EXIT_SUCCESS, rc_c);
 
-  /* directory -> parses all c files, refactors, success */
-  int rc_dir = fix_code_main(2, argv_dir);
-  ASSERT_EQ(EXIT_SUCCESS, rc_dir);
-  PASS();
+      /* directory -> parses all c files, refactors, success */
+      {
+        int rc_dir = fix_code_main(2, argv_dir);
+        ASSERT_EQ(EXIT_SUCCESS, rc_dir);
+        PASS();
+      }
+    }
+  }
 }
 TEST test_orchestrator_coverage_fix_dir_no_inplace_1arg(void) {
   char *argv[] = {"my_empty_dir"};
@@ -134,10 +143,12 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
   /* Invalid argc */
   int rc_0_argv_argc0 = fix_code_main(0, argv_argc0);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_0_argv_argc0);
-  int rc_3_argv_argc3 = fix_code_main(3, argv_argc3);
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_3_argv_argc3);
+  {
+    int rc_3_argv_argc3 = fix_code_main(3, argv_argc3);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc_3_argv_argc3);
 
-  PASS();
+    PASS();
+  }
 }
 
 TEST test_orchestrator_coverage_fix_file_failures(void) {

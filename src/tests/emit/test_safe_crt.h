@@ -37,31 +37,33 @@ TEST test_safe_crt_strcpy(void) {
 
   nodes = calloc(1, sizeof(struct CstNodeList));
 
-  az_span span = az_span_create((uint8_t *)src, strlen(src));
-  rc = tokenize(span, &tokens);
-  ASSERT_EQ(0, rc);
+  {
+    az_span span = az_span_create((uint8_t *)src, strlen(src));
+    rc = tokenize(span, &tokens);
+    ASSERT_EQ(0, rc);
 
-  rc = parse_tokens(tokens, nodes);
-  ASSERT_EQ(0, rc);
+    rc = parse_tokens(tokens, nodes);
+    ASSERT_EQ(0, rc);
 
-  (void)safe_crt_patch_list_init(&patches);
-  rc = cst_generate_safe_crt_patches(nodes, tokens, &patches);
-  ASSERT_EQ(0, rc);
+    (void)safe_crt_patch_list_init(&patches);
+    rc = cst_generate_safe_crt_patches(nodes, tokens, &patches);
+    ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(1, patches.size);
-  if (strstr(patches.patches[0].replacement_text,
-             "strcpy_s(dest, sizeof(dest),  src)") == NULL) {
-    printf("DEBUG: replacement_text=\n%s\n",
-           patches.patches[0].replacement_text);
-    FAILm("Missing expected text");
+    ASSERT_EQ(1, patches.size);
+    if (strstr(patches.patches[0].replacement_text,
+               "strcpy_s(dest, sizeof(dest),  src)") == NULL) {
+      printf("DEBUG: replacement_text=\n%s\n",
+             patches.patches[0].replacement_text);
+      FAILm("Missing expected text");
+    }
+
+    safe_crt_patch_list_free(&patches);
+    free_cst_node_list(nodes);
+    free(nodes);
+    free_token_list(tokens);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  safe_crt_patch_list_free(&patches);
-  free_cst_node_list(nodes);
-  free(nodes);
-  free_token_list(tokens);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 SUITE(safe_crt_suite) { RUN_TEST(test_safe_crt_strcpy); }

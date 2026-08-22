@@ -280,38 +280,40 @@ TEST test_audit_edge_cases(void) {
   write_to_file(f_bad_token, "char *s = \"unclosed");
 
   /* Test file ending with return and whitespace to cover branch */
-  char *f_eof_ret = NULL;
-  if (asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP)) {
+  {
+    char *f_eof_ret = NULL;
+    if (asprintf(&f_eof_ret, "%s%seof_ret.c", root, PATH_SEP)) {
+    }
+    write_to_file(f_eof_ret, "void f() { return ");
+
+    (void)audit_stats_init(&stats);
+    audit_project(root, &stats);
+
+    /* strndup should be counted in functions_returning_alloc */
+    ASSERT(stats.functions_returning_alloc >= 1);
+
+    audit_stats_free(&stats);
+
+    remove(f_noext);
+    rmdir(d_dir_c);
+    remove(f_strndup);
+
+    chmod(f_unreadable, 0644);
+    remove(f_unreadable);
+    free(f_unreadable);
+    remove(f_bad_token);
+    remove(f_eof_ret);
+    rmdir(root);
+    free(f_noext);
+    free(d_dir_c);
+    free(f_strndup);
+    free(f_bad_token);
+    free(f_eof_ret);
+    free(root);
+    free(sys_tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-  write_to_file(f_eof_ret, "void f() { return ");
-
-  (void)audit_stats_init(&stats);
-  audit_project(root, &stats);
-
-  /* strndup should be counted in functions_returning_alloc */
-  ASSERT(stats.functions_returning_alloc >= 1);
-
-  audit_stats_free(&stats);
-
-  remove(f_noext);
-  rmdir(d_dir_c);
-  remove(f_strndup);
-
-  chmod(f_unreadable, 0644);
-  remove(f_unreadable);
-  free(f_unreadable);
-  remove(f_bad_token);
-  remove(f_eof_ret);
-  rmdir(root);
-  free(f_noext);
-  free(d_dir_c);
-  free(f_strndup);
-  free(f_bad_token);
-  free(f_eof_ret);
-  free(root);
-  free(sys_tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 #ifdef CDD_BUILD_TESTS

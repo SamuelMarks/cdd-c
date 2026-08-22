@@ -531,10 +531,12 @@ TEST test_rewrite_oom(void) {
     for (i = 1; i < 200; i++) {
       /* extern int g_cdd_alloc_fail; (moved to global) */
       g_cdd_alloc_fail = i;
-      int rc = test_rewrite_error(inputs[j]);
-      g_cdd_alloc_fail = 0;
-      if (rc == CDD_C_SUCCESS)
-        break;
+      {
+        int rc = test_rewrite_error(inputs[j]);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS)
+          break;
+      }
     }
   }
   g_fail_io_after = -1;
@@ -555,18 +557,20 @@ TEST test_rewrite_sig_oom(void) {
     tokenize(source, &tl);
 
     g_cdd_alloc_fail = i;
-    int rc = rewrite_signature(tl, &out_code);
-    g_cdd_alloc_fail = 0;
+    {
+      int rc = rewrite_signature(tl, &out_code);
+      g_cdd_alloc_fail = 0;
 
-    if (rc == CDD_C_SUCCESS) {
-      if (out_code)
-        free(out_code);
+      if (rc == CDD_C_SUCCESS) {
+        if (out_code)
+          free(out_code);
+        free_token_list(tl);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      C_CDD_FREE(out_code);
       free_token_list(tl);
-      break;
     }
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    C_CDD_FREE(out_code);
-    free_token_list(tl);
   }
 #endif
   PASS();

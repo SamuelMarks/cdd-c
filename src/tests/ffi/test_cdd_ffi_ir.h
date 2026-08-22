@@ -188,30 +188,32 @@ TEST test_ffi_ir_toposort_complex(void) {
   ASSERT_EQ(0, rc);
 
   /* C should be before B, B before A, A before myA */
-  size_t idxA = 0, idxB = 0, idxC = 0, idxD = 0, idxM = 0;
-  size_t i;
-  for (i = 0; i < ir.nodes_count; i++) {
-    if (!ir.nodes[i].name)
-      continue;
-    if (strcmp(ir.nodes[i].name, "A") == 0)
-      idxA = i;
-    else if (strcmp(ir.nodes[i].name, "B") == 0)
-      idxB = i;
-    else if (strcmp(ir.nodes[i].name, "C") == 0)
-      idxC = i;
-    else if (strcmp(ir.nodes[i].name, "D") == 0)
-      idxD = i;
-    else if (strcmp(ir.nodes[i].name, "myA") == 0)
-      idxM = i;
+  {
+    size_t idxA = 0, idxB = 0, idxC = 0, idxD = 0, idxM = 0;
+    size_t i;
+    for (i = 0; i < ir.nodes_count; i++) {
+      if (!ir.nodes[i].name)
+        continue;
+      if (strcmp(ir.nodes[i].name, "A") == 0)
+        idxA = i;
+      else if (strcmp(ir.nodes[i].name, "B") == 0)
+        idxB = i;
+      else if (strcmp(ir.nodes[i].name, "C") == 0)
+        idxC = i;
+      else if (strcmp(ir.nodes[i].name, "D") == 0)
+        idxD = i;
+      else if (strcmp(ir.nodes[i].name, "myA") == 0)
+        idxM = i;
+    }
+
+    ASSERT(idxC < idxB);
+    ASSERT(idxB < idxA);
+    ASSERT(idxA < idxM);
+    (void)idxD; /* Just to avoid unused warning */
+
+    cdd_ffi_ir_free(&ir);
+    PASS();
   }
-
-  ASSERT(idxC < idxB);
-  ASSERT(idxB < idxA);
-  ASSERT(idxA < idxM);
-  (void)idxD; /* Just to avoid unused warning */
-
-  cdd_ffi_ir_free(&ir);
-  PASS();
 }
 
 TEST test_ffi_ir_free_empty(void) {

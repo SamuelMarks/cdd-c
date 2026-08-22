@@ -39,46 +39,48 @@ TEST test_write_union_to_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "obj", "object", "SomeObj", NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
-  struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
+    struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf, "obj", "object", "SomeObj", NULL, NULL);
+    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+    struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+    struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+    struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
 
-  /* Generate */
-  ASSERT_EQ(0, write_union_to_json_func(tmp, "MyUnion", &sf, &config));
+    /* Generate */
+    ASSERT_EQ(0, write_union_to_json_func(tmp, "MyUnion", &sf, &config));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    /* Check for switch on tag */
+    ASSERT(strstr(content, "switch (obj->tag)"));
+    /* Check case for id */
+    ASSERT(strstr(content, "case MyUnion_id:"));
+    ASSERT(strstr(content, "obj->data.id"));
+    /* Check case for name */
+    ASSERT(strstr(content, "case MyUnion_name:"));
+    ASSERT(strstr(content, "obj->data.name"));
+    /* Check case for obj */
+    ASSERT(strstr(content, "case MyUnion_obj:"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  /* Check for switch on tag */
-  ASSERT(strstr(content, "switch (obj->tag)"));
-  /* Check case for id */
-  ASSERT(strstr(content, "case MyUnion_id:"));
-  ASSERT(strstr(content, "obj->data.id"));
-  /* Check case for name */
-  ASSERT(strstr(content, "case MyUnion_name:"));
-  ASSERT(strstr(content, "obj->data.name"));
-  /* Check case for obj */
-  ASSERT(strstr(content, "case MyUnion_obj:"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -94,34 +96,36 @@ TEST test_write_union_from_json_object(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "pet", "object", "Pet", NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "pet", "object", "Pet", NULL, NULL);
 
-  /* Generate */
-  ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "ObjU", &sf, NULL));
+    /* Generate */
+    ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "ObjU", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
+    ASSERT(strstr(content, "match_count"));
+    ASSERT(strstr(content, "json_object_get_count"));
+    ASSERT(strstr(content, "ret->tag = ObjU_pet;"));
+    ASSERT(strstr(content, "Pet_from_jsonObject"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
-  ASSERT(strstr(content, "match_count"));
-  ASSERT(strstr(content, "json_object_get_count"));
-  ASSERT(strstr(content, "ret->tag = ObjU_pet;"));
-  ASSERT(strstr(content, "Pet_from_jsonObject"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -137,42 +141,44 @@ TEST test_write_union_from_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
-  struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
-  struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
-  struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+    struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+    struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+    struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+    struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+    struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
 
-  sf.union_is_anyof = 1;
+    sf.union_is_anyof = 1;
 
-  ASSERT_EQ(0, write_union_from_json_func(tmp, "MixU", &sf, NULL));
+    ASSERT_EQ(0, write_union_from_json_func(tmp, "MixU", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "json_parse_string"));
+    ASSERT(strstr(content, "case JSONString"));
+    ASSERT(strstr(content, "ret->tag = MixU_s;"));
+    ASSERT(strstr(content, "case JSONNumber"));
+    ASSERT(strstr(content, "ret->tag = MixU_i;"));
+    ASSERT(strstr(content, "ret->data.i = (int)num;"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "json_parse_string"));
-  ASSERT(strstr(content, "case JSONString"));
-  ASSERT(strstr(content, "ret->tag = MixU_s;"));
-  ASSERT(strstr(content, "case JSONNumber"));
-  ASSERT(strstr(content, "ret->tag = MixU_i;"));
-  ASSERT(strstr(content, "ret->data.i = (int)num;"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -188,31 +194,33 @@ TEST test_write_union_array_to_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
-  ASSERT_EQ(0, write_union_to_json_func(tmp, "ArrU", &sf, NULL));
+    ASSERT_EQ(0, write_union_to_json_func(tmp, "ArrU", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "case ArrU_vals:"));
+    ASSERT(strstr(content, "obj->data.vals.n_vals"));
+    ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"[\")"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "case ArrU_vals:"));
-  ASSERT(strstr(content, "obj->data.vals.n_vals"));
-  ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"[\")"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -228,31 +236,33 @@ TEST test_write_union_array_from_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
-  ASSERT_EQ(0, write_union_from_json_func(tmp, "ArrU", &sf, NULL));
+    ASSERT_EQ(0, write_union_from_json_func(tmp, "ArrU", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "case JSONArray"));
+    ASSERT(strstr(content, "json_array_get_count"));
+    ASSERT(strstr(content, "ret->data.vals.n_vals"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "case JSONArray"));
-  ASSERT(strstr(content, "json_array_get_count"));
-  ASSERT(strstr(content, "ret->data.vals.n_vals"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -268,31 +278,33 @@ TEST test_write_union_array_cleanup(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "vals", "array", "string", NULL, NULL);
 
-  ASSERT_EQ(0, write_union_cleanup_func(tmp, "ArrU", &sf, NULL));
+    ASSERT_EQ(0, write_union_cleanup_func(tmp, "ArrU", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "case ArrU_vals:"));
+    ASSERT(strstr(content, "for (i = 0; i < obj->data.vals.n_vals"));
+    ASSERT(strstr(content, "free(obj->data.vals.vals)"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "case ArrU_vals:"));
-  ASSERT(strstr(content, "for (i = 0; i < obj->data.vals.n_vals"));
-  ASSERT(strstr(content, "free(obj->data.vals.vals)"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 /**
  * @brief test_write_union_cleanup_switch
@@ -307,33 +319,35 @@ TEST test_write_union_cleanup_switch(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "str", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "str", "string", NULL, NULL, NULL);
+    struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL);
 
-  ASSERT_EQ(0, write_union_cleanup_func(tmp, "U", &sf, NULL));
+    ASSERT_EQ(0, write_union_cleanup_func(tmp, "U", &sf, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "switch (obj->tag)"));
+    /* Integer should do nothing implicit */
+    /* String should free */
+    ASSERT(strstr(content, "case U_str:\n      free((void*)obj->data.str);"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "switch (obj->tag)"));
-  /* Integer should do nothing implicit */
-  /* String should free */
-  ASSERT(strstr(content, "case U_str:\n      free((void*)obj->data.str);"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /* --- Root Array Tests --- */
@@ -350,29 +364,31 @@ TEST test_root_array_string_cleanup(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  ASSERT_EQ(0,
-            write_root_array_cleanup_func(tmp, "StrArr", "string", NULL, NULL));
+    ASSERT(tmp);
+    ASSERT_EQ(
+        0, write_root_array_cleanup_func(tmp, "StrArr", "string", NULL, NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(
+        strstr(content, "cdd_c_error_t StrArr_cleanup(char **in, size_t len)"));
+    ASSERT(strstr(content, "free(in[i])"));
+    ASSERT(strstr(content, "free(in)"));
+
+    free(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(
-      strstr(content, "cdd_c_error_t StrArr_cleanup(char **in, size_t len)"));
-  ASSERT(strstr(content, "free(in[i])"));
-  ASSERT(strstr(content, "free(in)"));
-
-  free(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -387,29 +403,31 @@ TEST test_root_array_int_from_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  ASSERT_EQ(
-      0, write_root_array_from_json_func(tmp, "IntArr", "integer", NULL, NULL));
+    ASSERT(tmp);
+    ASSERT_EQ(0, write_root_array_from_json_func(tmp, "IntArr", "integer", NULL,
+                                                 NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "cdd_c_error_t IntArr_from_json(const char *json, "
+                           "int **out, size_t *len)"));
+    ASSERT(strstr(content, "malloc(count * sizeof(int))"));
+    ASSERT(strstr(content, "json_array_get_number"));
+
+    free(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "cdd_c_error_t IntArr_from_json(const char *json, "
-                         "int **out, size_t *len)"));
-  ASSERT(strstr(content, "malloc(count * sizeof(int))"));
-  ASSERT(strstr(content, "json_array_get_number"));
-
-  free(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -424,27 +442,29 @@ TEST test_root_array_obj_to_json(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  ASSERT_EQ(
-      0, write_root_array_to_json_func(tmp, "ObjArr", "object", "Obj", NULL));
+    ASSERT(tmp);
+    ASSERT_EQ(
+        0, write_root_array_to_json_func(tmp, "ObjArr", "object", "Obj", NULL));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "Obj_to_json(in[i], &tmp)"));
+    ASSERT(strstr(content, "c89stringutils_jasprintf(json_out, \"[\")"));
+
+    free(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "Obj_to_json(in[i], &tmp)"));
-  ASSERT(strstr(content, "c89stringutils_jasprintf(json_out, \"[\")"));
-
-  free(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /* Guard Logic */
@@ -458,34 +478,36 @@ TEST test_union_guards(void) {
 #else
   tmp = tmpfile();
 #endif
-  char *content = NULL;
-  long sz;
+  {
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
+    ASSERT(tmp);
+    struct_fields_init(&sf);
+    struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-  cfg.json_guard = "JSON_G";
-  cfg.utils_guard = NULL;
+    cfg.json_guard = "JSON_G";
+    cfg.utils_guard = NULL;
 
-  ASSERT_EQ(0, write_union_to_json_func(tmp, "GuardedU", &sf, &cfg));
-  ASSERT_EQ(0, write_union_from_json_func(tmp, "GuardedU", &sf, &cfg));
+    ASSERT_EQ(0, write_union_to_json_func(tmp, "GuardedU", &sf, &cfg));
+    ASSERT_EQ(0, write_union_from_json_func(tmp, "GuardedU", &sf, &cfg));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "#ifdef JSON_G"));
+    ASSERT(strstr(content, "#endif /* JSON_G */"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "#ifdef JSON_G"));
-  ASSERT(strstr(content, "#endif /* JSON_G */"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**

@@ -63,18 +63,20 @@ TEST test_cli_cst_extern_c_fix(void) {
   ASSERT_EQ(0, rc);
 
   /* Audit should succeed on already fixed file */
-  char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
-  rc = cli_cst_transformer_main(3, argv_audit);
-  ASSERT_EQ(0, rc);
+  {
+    char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
+    rc = cli_cst_transformer_main(3, argv_audit);
+    ASSERT_EQ(0, rc);
 
-  /* Fix again on the already fixed file. It should match exactly and hit the no
-   * changes else block */
-  rc = cli_cst_transformer_main(argc - 1, argv);
-  ASSERT_EQ(0, rc);
+    /* Fix again on the already fixed file. It should match exactly and hit the
+     * no changes else block */
+    rc = cli_cst_transformer_main(argc - 1, argv);
+    ASSERT_EQ(0, rc);
 
-  remove("test_cli_cst_file.h");
-  g_fail_io_after = -1;
-  PASS();
+    remove("test_cli_cst_file.h");
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 /**
@@ -164,43 +166,56 @@ TEST test_cli_standardize_gnu(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cli_standardize_gnu_main(0, argv));
 
   /* Test help */
-  char *argv_help[] = {"--help"};
-  char *argv_help2[] = {"-h"};
-  ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help));
-  ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help2));
+  {
+    char *argv_help[] = {"--help"};
+    char *argv_help2[] = {"-h"};
+    ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help));
+    ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help2));
 
-  /* Test no file specified or bad file */
-  char *argv_nofile[] = {"--audit"};
-  ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_nofile));
+    /* Test no file specified or bad file */
+    {
+      char *argv_nofile[] = {"--audit"};
+      ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_nofile));
 
-  /* Test missing audit/fix */
-  char *argv_missing[] = {"test_gnu_file.h"};
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            cli_standardize_gnu_main(1, argv_missing));
+      /* Test missing audit/fix */
+      {
+        char *argv_missing[] = {"test_gnu_file.h"};
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cli_standardize_gnu_main(1, argv_missing));
 
-  write_to_file("test_gnu_file.h", content);
+        write_to_file("test_gnu_file.h", content);
 
-  /* Test valid args */
-  rc = cli_standardize_gnu_main(7, argv);
-  ASSERT_EQ(0, rc);
+        /* Test valid args */
+        rc = cli_standardize_gnu_main(7, argv);
+        ASSERT_EQ(0, rc);
 
-  char *argv_fixonly[] = {"--fix", "test_gnu_file.h", NULL};
-  ASSERT_EQ(0, cli_standardize_gnu_main(2, argv_fixonly));
+        {
+          char *argv_fixonly[] = {"--fix", "test_gnu_file.h", NULL};
+          ASSERT_EQ(0, cli_standardize_gnu_main(2, argv_fixonly));
 
-  /* Test unknown flag */
-  char *argv_unknown_flag[] = {"--audit", "--unknown-flag", "test_gnu_file.h",
-                               NULL};
-  rc = cli_standardize_gnu_main(3, argv_unknown_flag);
-  ASSERT_EQ(0, rc);
+          /* Test unknown flag */
+          {
+            char *argv_unknown_flag[] = {"--audit", "--unknown-flag",
+                                         "test_gnu_file.h", NULL};
+            rc = cli_standardize_gnu_main(3, argv_unknown_flag);
+            ASSERT_EQ(0, rc);
 
-  remove("test_gnu_file.h");
+            remove("test_gnu_file.h");
 
-  /* Test file not found */
-  char *argv_notfound[] = {"--audit", "not_found.h"};
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cli_standardize_gnu_main(2, argv_notfound));
+            /* Test file not found */
+            {
+              char *argv_notfound[] = {"--audit", "not_found.h"};
+              ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                        cli_standardize_gnu_main(2, argv_notfound));
 
-  g_fail_io_after = -1;
-  PASS();
+              g_fail_io_after = -1;
+              PASS();
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 #ifdef CDD_BUILD_TESTS

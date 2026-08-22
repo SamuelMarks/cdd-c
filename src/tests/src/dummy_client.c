@@ -1,4 +1,6 @@
+/* clang-format off */
 #include "cdd_c_error.h"
+/* clang-format on */
 
 cdd_c_error_t dummy_client(void);
 

@@ -498,28 +498,39 @@ TEST test_lexer_oom_injected(void) {
 
   /* extern int g_cdd_lexer_trivia_fail; (moved to global) */
   g_cdd_lexer_trivia_fail = 1;
-  int r1 = cdd_lexer_tokenize(az_span_create((uint8_t *)"// trivia", 10), &tl);
-  g_cdd_lexer_trivia_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
+  {
+    int r1 =
+        cdd_lexer_tokenize(az_span_create((uint8_t *)"// trivia", 10), &tl);
+    g_cdd_lexer_trivia_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
-  g_cdd_lexer_trivia_fail = 1;
-  int r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)"   ", 3), &tl);
-  g_cdd_lexer_trivia_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
+    g_cdd_lexer_trivia_fail = 1;
+    {
+      int r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)"   ", 3), &tl);
+      g_cdd_lexer_trivia_fail = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
-  /* extern int g_cdd_lexer_id_fail; (moved to global) */
-  g_cdd_lexer_id_fail = 1;
-  int r3 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
-  g_cdd_lexer_id_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
+      /* extern int g_cdd_lexer_id_fail; (moved to global) */
+      g_cdd_lexer_id_fail = 1;
+      {
+        int r3 =
+            cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+        g_cdd_lexer_id_fail = 0;
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
-  /* extern int g_cdd_lexer_id2_fail; (moved to global) */
-  g_cdd_lexer_id2_fail = 1;
-  int r4 = cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
-  g_cdd_lexer_id2_fail = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
+        /* extern int g_cdd_lexer_id2_fail; (moved to global) */
+        g_cdd_lexer_id2_fail = 1;
+        {
+          int r4 =
+              cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+          g_cdd_lexer_id2_fail = 0;
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
 
-  PASS();
+          PASS();
+        }
+      }
+    }
+  }
 }
 
 SUITE(cdd_lexer_suite) {

@@ -308,83 +308,85 @@ TEST test_cdd_helpers(void) {
 #include "cdd_test_helpers_export.h"
 
   /* Moved extern declarations for C89 compliance */
-  extern int g_struct_fields_add_fail;
-
-  extern int g_cdd_cst_parser_fast_grow;
-  extern int g_cdd_query_err_fail;
-  extern int g_schema_realloc_fail;
-
-  extern int g_json_object_to_struct_fields_fail;
-  extern int g_safe_crt_malloc_fail;
-  extern int g_msvc_port_bld_fail;
-  extern int g_cdd_type_eval_ptr_fail;
-  extern int g_cdd_fprintf_fail;
-  extern int g_cdd_ffi_ir_calloc_fail;
-  extern int g_cdd_cst_emit_realloc_fail;
-  extern int g_str_unquote_malloc_fail;
-  extern int g_enum_members_init_fail;
-  extern int g_listen_fail;
-  extern int g_force_gnu_alloc_fail;
-  extern int g_cdd_lexer_id_fail;
-  extern int g_cdd_cfg_alloc_fail;
-  extern int g_force_parse_tokens_fail;
-  extern int g_force_find_allocations_fail;
-  extern int g_socket_fail;
-  extern int g_err_perc_fail;
-  extern int g_cdd_cst_realloc_fail;
-  extern int g_fail_io_after;
-  extern int g_struct_fields_init_fail;
-  extern int g_enum_members_add_strdup_fail;
-  extern int g_cdd_ffi_ir_toposort_fail;
-  extern int g_bind_fail;
-  extern int g_cdd_semantic_leave_fail;
-  extern int g_schema_codegen_force_fail;
-  extern int g_cdd_ffi_ir_malloc_fail;
-  extern int g_io_calls;
-  extern int g_cdd_strdup_fail;
-  extern int g_force_strdup_fail;
-  extern int g_cdd_lexer_trivia_fail;
-  extern int g_schema_strdup_fail;
-  extern int g_force_tokenize_fail;
-  extern int g_pthread_create_fail;
-  extern int g_cdd_helpers_fopen_err;
-  extern int g_accept_fail;
-  extern int g_enum_members_add_fail;
-  extern int g_getsockname_fail;
-  extern int g_cdd_lexer_id2_fail;
-  extern extern int g_cdd_alloc_fail;
-  /* extern int g_cdd_helpers_fopen_err; (moved to global) */
-  g_io_calls = 0;
-  g_fail_io_after = 1;
-  g_cdd_helpers_fopen_err = ENOMEM;
   {
-    cdd_c_error_t rc = write_to_file("test_helpers.txt", "abc");
-    printf("write_to_file ENOMEM test got: %d, g_io_calls: %d, errno: %d\n", rc,
-           g_io_calls, errno);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    extern int g_struct_fields_add_fail;
+
+    extern int g_cdd_cst_parser_fast_grow;
+    extern int g_cdd_query_err_fail;
+    extern int g_schema_realloc_fail;
+
+    extern int g_json_object_to_struct_fields_fail;
+    extern int g_safe_crt_malloc_fail;
+    extern int g_msvc_port_bld_fail;
+    extern int g_cdd_type_eval_ptr_fail;
+    extern int g_cdd_fprintf_fail;
+    extern int g_cdd_ffi_ir_calloc_fail;
+    extern int g_cdd_cst_emit_realloc_fail;
+    extern int g_str_unquote_malloc_fail;
+    extern int g_enum_members_init_fail;
+    extern int g_listen_fail;
+    extern int g_force_gnu_alloc_fail;
+    extern int g_cdd_lexer_id_fail;
+    extern int g_cdd_cfg_alloc_fail;
+    extern int g_force_parse_tokens_fail;
+    extern int g_force_find_allocations_fail;
+    extern int g_socket_fail;
+    extern int g_err_perc_fail;
+    extern int g_cdd_cst_realloc_fail;
+    extern int g_fail_io_after;
+    extern int g_struct_fields_init_fail;
+    extern int g_enum_members_add_strdup_fail;
+    extern int g_cdd_ffi_ir_toposort_fail;
+    extern int g_bind_fail;
+    extern int g_cdd_semantic_leave_fail;
+    extern int g_schema_codegen_force_fail;
+    extern int g_cdd_ffi_ir_malloc_fail;
+    extern int g_io_calls;
+    extern int g_cdd_strdup_fail;
+    extern int g_force_strdup_fail;
+    extern int g_cdd_lexer_trivia_fail;
+    extern int g_schema_strdup_fail;
+    extern int g_force_tokenize_fail;
+    extern int g_pthread_create_fail;
+    extern int g_cdd_helpers_fopen_err;
+    extern int g_accept_fail;
+    extern int g_enum_members_add_fail;
+    extern int g_getsockname_fail;
+    extern int g_cdd_lexer_id2_fail;
+    extern extern int g_cdd_alloc_fail;
+    /* extern int g_cdd_helpers_fopen_err; (moved to global) */
+    g_io_calls = 0;
+    g_fail_io_after = 1;
+    g_cdd_helpers_fopen_err = ENOMEM;
+    {
+      cdd_c_error_t rc = write_to_file("test_helpers.txt", "abc");
+      printf("write_to_file ENOMEM test got: %d, g_io_calls: %d, errno: %d\n",
+             rc, g_io_calls, errno);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+
+    g_io_calls = 0;
+    g_fail_io_after = 1;
+    g_cdd_helpers_fopen_err = EINVAL;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_to_file("test_helpers.txt", "abc"));
+
+    g_io_calls = 0;
+    g_fail_io_after = 1;
+    g_cdd_helpers_fopen_err = EIO;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, write_to_file("test_helpers.txt", "abc"));
+
+    g_io_calls = 0;
+    g_fail_io_after = 2; /* FPUTS fails */
+    ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
+
+    g_io_calls = 0;
+    g_fail_io_after = 3; /* FCLOSE fails */
+    ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
+
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  g_io_calls = 0;
-  g_fail_io_after = 1;
-  g_cdd_helpers_fopen_err = EINVAL;
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_to_file("test_helpers.txt", "abc"));
-
-  g_io_calls = 0;
-  g_fail_io_after = 1;
-  g_cdd_helpers_fopen_err = EIO;
-  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, write_to_file("test_helpers.txt", "abc"));
-
-  g_io_calls = 0;
-  g_fail_io_after = 2; /* FPUTS fails */
-  ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
-
-  g_io_calls = 0;
-  g_fail_io_after = 3; /* FCLOSE fails */
-  ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
-
-  g_fail_io_after = -1;
-  PASS();
 }
 
 SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
@@ -484,52 +486,61 @@ static void reset_mocks(void) {
   g_enum_members_init_fail = 0;
   /* extern int g_err_perc_fail; (moved to global) */
   g_err_perc_fail = 0;
-  extern volatile int g_extern_c_bot_node_fail;
-  g_extern_c_bot_node_fail = 0;
-  extern volatile int g_extern_c_helper_fail;
-  g_extern_c_helper_fail = 0;
-  extern volatile int g_extern_c_top_node_fail;
-  g_extern_c_top_node_fail = 0;
-  extern volatile int g_ffi_extractor_alloc_fail;
-  g_ffi_extractor_alloc_fail = 0;
-  /* extern int g_force_find_allocations_fail; (moved to global) */
-  g_force_find_allocations_fail = 0;
-  /* extern int g_force_gnu_alloc_fail; (moved to global) */
-  g_force_gnu_alloc_fail = 0;
-  /* extern int g_force_parse_tokens_fail; (moved to global) */
-  g_force_parse_tokens_fail = 0;
-  /* extern int g_force_strdup_fail; (moved to global) */
-  g_force_strdup_fail = 0;
-  /* extern int g_force_tokenize_fail; (moved to global) */
-  g_force_tokenize_fail = 0;
-  /* extern int g_getsockname_fail; (moved to global) */
-  g_getsockname_fail = 0;
-  /* extern int g_json_object_to_struct_fields_fail; (moved to global) */
-  g_json_object_to_struct_fields_fail = 0;
-  /* extern int g_listen_fail; (moved to global) */
-  g_listen_fail = 0;
-  /* extern int g_msvc_port_bld_fail; (moved to global) */
-  g_msvc_port_bld_fail = 0;
-  /* extern int g_pthread_create_fail; (moved to global) */
-  g_pthread_create_fail = 0;
-  /* extern int g_safe_crt_malloc_fail; (moved to global) */
-  g_safe_crt_malloc_fail = 0;
-  /* extern int g_schema_codegen_force_fail; (moved to global) */
-  g_schema_codegen_force_fail = 0;
-  /* extern int g_schema_realloc_fail; (moved to global) */
-  g_schema_realloc_fail = 0;
-  /* extern int g_schema_strdup_fail; (moved to global) */
-  g_schema_strdup_fail = 0;
-  /* extern int g_socket_fail; (moved to global) */
-  g_socket_fail = 0;
-  /* extern int g_str_unquote_malloc_fail; (moved to global) */
-  g_str_unquote_malloc_fail = 0;
-  /* extern int g_struct_fields_add_fail; (moved to global) */
-  g_struct_fields_add_fail = 0;
-  /* extern int g_struct_fields_init_fail; (moved to global) */
-  g_struct_fields_init_fail = 0;
-  /* extern int g_io_calls; (moved to global) */
-  g_io_calls = 0;
+  {
+    extern volatile int g_extern_c_bot_node_fail;
+    g_extern_c_bot_node_fail = 0;
+    {
+      extern volatile int g_extern_c_helper_fail;
+      g_extern_c_helper_fail = 0;
+      {
+        extern volatile int g_extern_c_top_node_fail;
+        g_extern_c_top_node_fail = 0;
+        {
+          extern volatile int g_ffi_extractor_alloc_fail;
+          g_ffi_extractor_alloc_fail = 0;
+          /* extern int g_force_find_allocations_fail; (moved to global) */
+          g_force_find_allocations_fail = 0;
+          /* extern int g_force_gnu_alloc_fail; (moved to global) */
+          g_force_gnu_alloc_fail = 0;
+          /* extern int g_force_parse_tokens_fail; (moved to global) */
+          g_force_parse_tokens_fail = 0;
+          /* extern int g_force_strdup_fail; (moved to global) */
+          g_force_strdup_fail = 0;
+          /* extern int g_force_tokenize_fail; (moved to global) */
+          g_force_tokenize_fail = 0;
+          /* extern int g_getsockname_fail; (moved to global) */
+          g_getsockname_fail = 0;
+          /* extern int g_json_object_to_struct_fields_fail; (moved to global)
+           */
+          g_json_object_to_struct_fields_fail = 0;
+          /* extern int g_listen_fail; (moved to global) */
+          g_listen_fail = 0;
+          /* extern int g_msvc_port_bld_fail; (moved to global) */
+          g_msvc_port_bld_fail = 0;
+          /* extern int g_pthread_create_fail; (moved to global) */
+          g_pthread_create_fail = 0;
+          /* extern int g_safe_crt_malloc_fail; (moved to global) */
+          g_safe_crt_malloc_fail = 0;
+          /* extern int g_schema_codegen_force_fail; (moved to global) */
+          g_schema_codegen_force_fail = 0;
+          /* extern int g_schema_realloc_fail; (moved to global) */
+          g_schema_realloc_fail = 0;
+          /* extern int g_schema_strdup_fail; (moved to global) */
+          g_schema_strdup_fail = 0;
+          /* extern int g_socket_fail; (moved to global) */
+          g_socket_fail = 0;
+          /* extern int g_str_unquote_malloc_fail; (moved to global) */
+          g_str_unquote_malloc_fail = 0;
+          /* extern int g_struct_fields_add_fail; (moved to global) */
+          g_struct_fields_add_fail = 0;
+          /* extern int g_struct_fields_init_fail; (moved to global) */
+          g_struct_fields_init_fail = 0;
+          /* extern int g_io_calls; (moved to global) */
+          g_io_calls = 0;
+        }
+      }
+    }
+  }
 }
 
 int main(int argc, char **argv) {

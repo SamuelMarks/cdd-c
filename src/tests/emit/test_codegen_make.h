@@ -37,32 +37,34 @@ TEST test_make_simple(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct MakeConfig cfg;
-  char *content = NULL;
-  long sz;
+  {
+    struct MakeConfig cfg;
+    char *content = NULL;
+    long sz;
 
-  ASSERT(tmp);
-  memset(&cfg, 0, sizeof(cfg));
-  cfg.project_name = "test_client";
+    ASSERT(tmp);
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.project_name = "test_client";
 
-  ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
+    ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "project(test_client"));
+    ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
+    ASSERT(strstr(content, "add_library(test_client"));
+    ASSERT(strstr(content, "parson"));
+
+    free(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "project(test_client"));
-  ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
-  ASSERT(strstr(content, "add_library(test_client"));
-  ASSERT(strstr(content, "parson"));
-
-  free(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**
@@ -77,33 +79,35 @@ TEST test_make_extra_sources(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct MakeConfig cfg;
-  char *content = NULL;
-  char *extras[] = {"a.c", "b.c"};
-  long sz;
+  {
+    struct MakeConfig cfg;
+    char *content = NULL;
+    char *extras[] = {"a.c", "b.c"};
+    long sz;
 
-  ASSERT(tmp);
-  memset(&cfg, 0, sizeof(cfg));
-  cfg.project_name = "w_extras";
-  cfg.extra_sources = (char **)extras;
-  cfg.extra_source_count = 2;
+    ASSERT(tmp);
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.project_name = "w_extras";
+    cfg.extra_sources = (char **)extras;
+    cfg.extra_source_count = 2;
 
-  ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
+    ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, sz + 1);
-  if (fread(content, 1, sz, tmp)) {
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, sz + 1);
+    if (fread(content, 1, sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "\"a.c\""));
+    ASSERT(strstr(content, "\"b.c\""));
+
+    free(content);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT(strstr(content, "\"a.c\""));
-  ASSERT(strstr(content, "\"b.c\""));
-
-  free(content);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**

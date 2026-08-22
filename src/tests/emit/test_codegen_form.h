@@ -33,61 +33,63 @@ TEST test_form_generation_basic(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
-
-  ASSERT(tmp);
-  ASSERT_EQ(0, struct_fields_init(&sf));
-
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_to_form_urlencoded_func(NULL, "Form", &sf));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_to_form_urlencoded_func(tmp, "Form", NULL));
-
-  /* add fields */
   {
-    struct StructField f1, f2, f3;
-    memset(&f1, 0, sizeof(f1));
-    memset(&f2, 0, sizeof(f2));
-    memset(&f3, 0, sizeof(f3));
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-    strcpy(f1.name, "grant_type");
-    strcpy(f1.type, "string");
-    sf.fields[sf.size++] = f1;
+    ASSERT(tmp);
+    ASSERT_EQ(0, struct_fields_init(&sf));
 
-    strcpy(f2.name, "count");
-    strcpy(f2.type, "integer");
-    sf.fields[sf.size++] = f2;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_to_form_urlencoded_func(NULL, "Form", &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_to_form_urlencoded_func(tmp, "Form", NULL));
 
-    strcpy(f3.name, "active");
-    strcpy(f3.type, "boolean");
-    sf.fields[sf.size++] = f3;
+    /* add fields */
+    {
+      struct StructField f1, f2, f3;
+      memset(&f1, 0, sizeof(f1));
+      memset(&f2, 0, sizeof(f2));
+      memset(&f3, 0, sizeof(f3));
+
+      strcpy(f1.name, "grant_type");
+      strcpy(f1.type, "string");
+      sf.fields[sf.size++] = f1;
+
+      strcpy(f2.name, "count");
+      strcpy(f2.type, "integer");
+      sf.fields[sf.size++] = f2;
+
+      strcpy(f3.name, "active");
+      strcpy(f3.type, "boolean");
+      sf.fields[sf.size++] = f3;
+    }
+
+    ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
+
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "AuthRequest_url_encode_form"));
+    ASSERT(strstr(content, "AuthRequest_to_form_urlencoded"));
+    ASSERT(strstr(content, "grant_type"));
+    ASSERT(strstr(content, "count"));
+    ASSERT(strstr(content, "active"));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
-
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-
-  content = (char *)calloc(1, (size_t)sz + 1);
-  if (fread(content, 1, (size_t)sz, tmp)) {
-  }
-
-  ASSERT(strstr(content, "AuthRequest_url_encode_form"));
-  ASSERT(strstr(content, "AuthRequest_to_form_urlencoded"));
-  ASSERT(strstr(content, "grant_type"));
-  ASSERT(strstr(content, "count"));
-  ASSERT(strstr(content, "active"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**

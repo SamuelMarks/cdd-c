@@ -35,55 +35,57 @@ TEST test_jwt_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
-
-  ASSERT(tmp);
-  ASSERT_EQ(0, struct_fields_init(&sf));
-
-  /* Invalid arguments bounds */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_from_jwt_func(NULL, "JwtPayload", &sf));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_from_jwt_func(tmp, NULL, &sf));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_struct_from_jwt_func(tmp, "JwtPayload", NULL));
-
-  /* simulate struct { char* sub; int exp; } */
   {
-    struct StructField f1;
-    struct StructField f2;
-    memset(&f1, 0, sizeof(f1));
-    memset(&f2, 0, sizeof(f2));
+    struct StructFields sf;
+    char *content = NULL;
+    long sz;
 
-    strcpy(f1.name, "sub");
-    strcpy(f1.type, "string");
-    sf.fields[sf.size++] = f1;
+    ASSERT(tmp);
+    ASSERT_EQ(0, struct_fields_init(&sf));
 
-    strcpy(f2.name, "exp");
-    strcpy(f2.type, "integer");
-    sf.fields[sf.size++] = f2;
+    /* Invalid arguments bounds */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_jwt_func(NULL, "JwtPayload", &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_jwt_func(tmp, NULL, &sf));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_struct_from_jwt_func(tmp, "JwtPayload", NULL));
+
+    /* simulate struct { char* sub; int exp; } */
+    {
+      struct StructField f1;
+      struct StructField f2;
+      memset(&f1, 0, sizeof(f1));
+      memset(&f2, 0, sizeof(f2));
+
+      strcpy(f1.name, "sub");
+      strcpy(f1.type, "string");
+      sf.fields[sf.size++] = f1;
+
+      strcpy(f2.name, "exp");
+      strcpy(f2.type, "integer");
+      sf.fields[sf.size++] = f2;
+    }
+
+    ASSERT_EQ(0, write_struct_from_jwt_func(tmp, "JwtPayload", &sf));
+
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "JwtPayload_from_jwt"));
+    ASSERT(strstr(content, "cdd_c_base64url_decode"));
+    ASSERT(strstr(content, " JwtPayload_from_json("));
+
+    free(content);
+    struct_fields_free(&sf);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  ASSERT_EQ(0, write_struct_from_jwt_func(tmp, "JwtPayload", &sf));
-
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, (size_t)sz + 1);
-  if (fread(content, 1, (size_t)sz, tmp)) {
-  }
-
-  ASSERT(strstr(content, "JwtPayload_from_jwt"));
-  ASSERT(strstr(content, "cdd_c_base64url_decode"));
-  ASSERT(strstr(content, " JwtPayload_from_json("));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 /**

@@ -26,11 +26,13 @@ TEST test_cdd_transform_percolate_errors(void) {
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  int rc = cdd_transform_percolate_errors(tree, &config);
-  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
+  {
+    int rc = cdd_transform_percolate_errors(tree, &config);
+    ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-  cdd_cst_tree_free(tree);
-  PASS();
+    cdd_cst_tree_free(tree);
+    PASS();
+  }
 }
 
 TEST test_cdd_transform_percolate_errors_complex(void) {
@@ -146,11 +148,13 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  int rc = cdd_transform_percolate_errors(tree, &config);
-  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
+  {
+    int rc = cdd_transform_percolate_errors(tree, &config);
+    ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-  cdd_cst_tree_free(tree);
-  PASS();
+    cdd_cst_tree_free(tree);
+    PASS();
+  }
 }
 
 TEST test_cdd_transform_percolate_errors_edge_cases(void) {
@@ -172,12 +176,14 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
             cdd_transform_percolate_errors(NULL, &config));
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
-  int rc = cdd_transform_percolate_errors(tree, &config);
-  ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
+  {
+    int rc = cdd_transform_percolate_errors(tree, &config);
+    ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
 
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -370,32 +376,34 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
     rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
     ASSERT_EQ(0, rc);
 
-    cdd_cst_query_result_t res_test;
-    rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
-                                    &res_test);
-    if (rc == 0) {
-      printf("Found %" CDD_PRIz " functions at i=%d\n", res_test.size, i);
-      /*
-      size_t k;
-      for (k = 0; k < res_test.size; k++) {
-         printf("Func %" CDD_PRIz "\n", k);
+    {
+      cdd_cst_query_result_t res_test;
+      rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
+                                      &res_test);
+      if (rc == 0) {
+        printf("Found %" CDD_PRIz " functions at i=%d\n", res_test.size, i);
+        /*
+        size_t k;
+        for (k = 0; k < res_test.size; k++) {
+           printf("Func %" CDD_PRIz "\n", k);
+        }
+        */
+        C_CDD_FREE(res_test.nodes);
       }
-      */
-      C_CDD_FREE(res_test.nodes);
-    }
 
-    g_cdd_alloc_fail = i;
-    rc = cdd_transform_percolate_errors(tree, &config);
-    if (rc == CDD_C_SUCCESS) {
-      printf("OOM loop success at i=%d, alloc_fail remaining: %d, rc=%d\n", i,
-             g_cdd_alloc_fail, rc);
-      break;
-    }
-    printf("OOM loop i=%d failed with rc=%d\n", i, rc);
-    g_cdd_alloc_fail = 0;
+      g_cdd_alloc_fail = i;
+      rc = cdd_transform_percolate_errors(tree, &config);
+      if (rc == CDD_C_SUCCESS) {
+        printf("OOM loop success at i=%d, alloc_fail remaining: %d, rc=%d\n", i,
+               g_cdd_alloc_fail, rc);
+        break;
+      }
+      printf("OOM loop i=%d failed with rc=%d\n", i, rc);
+      g_cdd_alloc_fail = 0;
 
-    cdd_cst_tree_free(tree);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      cdd_cst_tree_free(tree);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
   }
   g_cdd_alloc_fail = 0;
 #endif

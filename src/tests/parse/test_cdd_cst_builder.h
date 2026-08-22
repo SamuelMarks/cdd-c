@@ -30,166 +30,168 @@ TEST test_cdd_cst_builder_basic(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  char *out = NULL;
-
-  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  ASSERT(tree != NULL);
-
-  rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  tree->root = root;
-
-  rc = cdd_cst_builder_init(&b, tree, root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  out_has = -1;
   {
-    cdd_trivia_t *trivia_ptr = NULL;
-    cdd_cst_node_t *node_arr[1] = {NULL};
-    rc = cdd_cst_extract_leading_trivia(NULL, &trivia_ptr);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_extract_trailing_trivia(NULL, &trivia_ptr);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_replace_node(NULL, root, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_replace_node(tree, NULL, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_replace_node(tree, root, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(NULL, root, 0, node_arr, 0);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(&b, NULL, 0, node_arr, 0);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(&b, root, 0, NULL, 1);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    char *out = NULL;
+
+    tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
+    ASSERT(tree != NULL);
+
+    rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    tree->root = root;
+
+    rc = cdd_cst_builder_init(&b, tree, root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    out_has = -1;
+    {
+      cdd_trivia_t *trivia_ptr = NULL;
+      cdd_cst_node_t *node_arr[1] = {NULL};
+      rc = cdd_cst_extract_leading_trivia(NULL, &trivia_ptr);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_extract_trailing_trivia(NULL, &trivia_ptr);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_replace_node(NULL, root, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_replace_node(tree, NULL, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_replace_node(tree, root, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(NULL, root, 0, node_arr, 0);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(&b, NULL, 0, node_arr, 0);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(&b, root, 0, NULL, 1);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    }
+
+    {
+      int err = 0;
+      rc = cdd_cst_builder_init(NULL, tree, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_builder_init(&b, NULL, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_builder_init(&b, tree, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_builder_has_error(&b, NULL);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      rc = cdd_cst_builder_set_insert_point(NULL, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_builder_set_insert_point(&b, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_snippet(NULL, "a");
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_snippet(&b, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_quote(NULL, "a");
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_quote(&b, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_line_comment(NULL, "a");
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_line_comment(&b, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_block_comment(NULL, "a");
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_bld_block_comment(&b, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_extract_leading_trivia(NULL, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_extract_leading_trivia(root, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_extract_trailing_trivia(NULL, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_extract_trailing_trivia(root, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_transfer_trivia(NULL, root);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_transfer_trivia(root, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(NULL, root, 0, NULL, 0);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(&b, NULL, 0, NULL, 0);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      rc = cdd_cst_splice_nodes(&b, root, 0, NULL, 1);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    }
+
+    ASSERT_EQ(0, cdd_cst_builder_has_error(&b, &out_has));
+    ASSERT_EQ(0, out_has);
+
+    rc = cdd_cst_bld_ident(&b, "int");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_space(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_ident(&b, "main");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_punct(&b, "(");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_punct(&b, ")");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_space(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_bld_block_open(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_indent(&b, b.indent_level);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_bld_ident(&b, "return");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_space(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_int(&b, 0);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_punct(&b, ";");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_bld_block_close(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    fflush(stdout);
+    rc = cdd_cst_emit(tree, &out);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    ASSERT(strstr(out, "int main()") != NULL);
+    ASSERT(strstr(out, "return 0;") != NULL);
+
+    free(out);
+    rc = cdd_cst_builder_free(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+
+    /* Manual tree free since we built it from scratch without a lexer list */
+
+    cdd_cst_free_node_only(NULL);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+
+    PASS();
   }
-
-  {
-    int err = 0;
-    rc = cdd_cst_builder_init(NULL, tree, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_builder_init(&b, NULL, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_builder_init(&b, tree, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_builder_has_error(&b, NULL);
-    ASSERT_EQ(CDD_C_SUCCESS, rc);
-    rc = cdd_cst_builder_set_insert_point(NULL, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_builder_set_insert_point(&b, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_snippet(NULL, "a");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_snippet(&b, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_quote(NULL, "a");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_quote(&b, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_line_comment(NULL, "a");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_line_comment(&b, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_block_comment(NULL, "a");
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_bld_block_comment(&b, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_extract_leading_trivia(NULL, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_extract_leading_trivia(root, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_extract_trailing_trivia(NULL, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_extract_trailing_trivia(root, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_transfer_trivia(NULL, root);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_transfer_trivia(root, NULL);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(NULL, root, 0, NULL, 0);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(&b, NULL, 0, NULL, 0);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-    rc = cdd_cst_splice_nodes(&b, root, 0, NULL, 1);
-    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  }
-
-  ASSERT_EQ(0, cdd_cst_builder_has_error(&b, &out_has));
-  ASSERT_EQ(0, out_has);
-
-  rc = cdd_cst_bld_ident(&b, "int");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_space(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_ident(&b, "main");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_punct(&b, "(");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_punct(&b, ")");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_space(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_bld_block_open(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_indent(&b, b.indent_level);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_bld_ident(&b, "return");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_space(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_int(&b, 0);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_punct(&b, ";");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_bld_block_close(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  fflush(stdout);
-  rc = cdd_cst_emit(tree, &out);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  ASSERT(strstr(out, "int main()") != NULL);
-  ASSERT(strstr(out, "return 0;") != NULL);
-
-  free(out);
-  rc = cdd_cst_builder_free(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  /* Manual tree free since we built it from scratch without a lexer list */
-
-  cdd_cst_free_node_only(NULL);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-
-  PASS();
 }
 
 TEST test_cdd_cst_builder_macros(void) {
@@ -199,84 +201,86 @@ TEST test_cdd_cst_builder_macros(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  char *out = NULL;
+  {
+    char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  ASSERT(tree != NULL);
+    tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
+    ASSERT(tree != NULL);
 
-  rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  tree->root = root;
+    rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    tree->root = root;
 
-  rc = cdd_cst_builder_init(&b, tree, root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_builder_init(&b, tree, root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_include(&b, "stdio.h", 1);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_include(&b, "stdio.h", 1);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_ifndef(&b, "TEST_MACRO");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_ifndef(&b, "TEST_MACRO");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_ifdef(&b, "TEST_MACRO2");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_ifdef(&b, "TEST_MACRO2");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_else(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_else(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_endif(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_endif(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_endif(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_endif(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_extern_c_open(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_extern_c_close(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_extern_c_open(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_extern_c_close(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_emit(tree, &out);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_emit(tree, &out);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  free(out);
-  cdd_cst_builder_free(&b);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
+    free(out);
+    cdd_cst_builder_free(&b);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 TEST test_cdd_cst_builder_quote(void) {
@@ -286,39 +290,41 @@ TEST test_cdd_cst_builder_quote(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  char *out = NULL;
-  cdd_cst_node_t *injected_node = NULL;
+  {
+    char *out = NULL;
+    cdd_cst_node_t *injected_node = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  ASSERT(tree != NULL);
+    tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
+    ASSERT(tree != NULL);
 
-  rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  tree->root = root;
+    rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    tree->root = root;
 
-  rc = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &injected_node);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &injected_node);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_builder_init(&b, tree, root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_builder_init(&b, tree, root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_quote(&b, "int %s = %d; %% %n", "my_var", 42, injected_node);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_quote(&b, "int %s = %d; %% %n", "my_var", 42, injected_node);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_emit(tree, &out);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  ASSERT(strstr(out, "my_var") != NULL);
+    rc = cdd_cst_emit(tree, &out);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    ASSERT(strstr(out, "my_var") != NULL);
 
-  free(out);
-  cdd_cst_builder_free(&b);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
+    free(out);
+    cdd_cst_builder_free(&b);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 TEST test_cdd_cst_builder_snippet(void) {
@@ -328,34 +334,36 @@ TEST test_cdd_cst_builder_snippet(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  char *out = NULL;
+  {
+    char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  ASSERT(tree != NULL);
+    tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
+    ASSERT(tree != NULL);
 
-  rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  tree->root = root;
+    rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    tree->root = root;
 
-  rc = cdd_cst_builder_init(&b, tree, root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_builder_init(&b, tree, root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_snippet(&b, "void func() { return; }");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_snippet(&b, "void func() { return; }");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_emit(tree, &out);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  ASSERT_STR_EQ("void func() { return; }", out);
+    rc = cdd_cst_emit(tree, &out);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    ASSERT_STR_EQ("void func() { return; }", out);
 
-  free(out);
-  cdd_cst_builder_free(&b);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
+    free(out);
+    cdd_cst_builder_free(&b);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 TEST test_cdd_cst_builder_comments(void) {
@@ -365,44 +373,46 @@ TEST test_cdd_cst_builder_comments(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  char *out = NULL;
+  {
+    char *out = NULL;
 
-  tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
-  ASSERT(tree != NULL);
+    tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
+    ASSERT(tree != NULL);
 
-  rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  tree->root = root;
+    rc = cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    tree->root = root;
 
-  rc = cdd_cst_builder_init(&b, tree, root);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_builder_init(&b, tree, root);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_bld_block_comment(&b, " block ");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_line_comment(&b, " line");
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  rc = cdd_cst_bld_newline(&b);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_block_comment(&b, " block ");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_line_comment(&b, " line");
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_bld_newline(&b);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_emit(tree, &out);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-  ASSERT(strstr(out, "block") != NULL);
-  ASSERT(strstr(out, "line") != NULL);
+    rc = cdd_cst_emit(tree, &out);
+    printf("rc = %d\n", rc);
+    ASSERT_EQ(0, rc);
+    ASSERT(strstr(out, "block") != NULL);
+    ASSERT(strstr(out, "line") != NULL);
 
-  free(out);
-  cdd_cst_builder_free(&b);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
+    free(out);
+    cdd_cst_builder_free(&b);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 TEST test_cdd_cst_builder_errors(void) {
@@ -449,85 +459,89 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   int rc;
   int out_has = -1;
   (void)out_has;
-  cdd_trivia_t *lead;
-
-  cdd_cst_tree_t *replacement_node_tree = NULL;
-  cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
-                &tree);
-  root = tree->root;
-  (void)root;
-  target_node = tree->root->children[0].val.node;
-  cdd_cst_builder_init(&b, tree, tree->root);
-
-  cdd_cst_parse(
-      az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
-      &replacement_node_tree);
-  replacement_node = replacement_node_tree->root->children[0].val.node;
-
-  rc = cdd_cst_extract_leading_trivia(target_node, &lead);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_extract_trailing_trivia(target_node, &lead);
-  ASSERT_EQ(0, rc);
-
-  /* This will transfer L1 L2 to NL1, and T1 to NT1 NT2 */
-  rc = cdd_cst_transfer_trivia(target_node, replacement_node);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_replace_node_preserve_trivia(&b, target_node, replacement_node);
-  ASSERT_EQ(0, rc);
-
-  rc = cdd_cst_alloc_node(CDD_CST_STATEMENT, &spliced_node);
-
-  /* Also test the leak paths (lead without t_first) */
   {
-    cdd_cst_node_t *empty_node = NULL;
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
-    cdd_cst_transfer_trivia(
-        replacement_node,
-        empty_node); /* replacement_node has all the trivia now */
-    cdd_cst_free_node_only(empty_node);
-  }
+    cdd_trivia_t *lead;
 
-  {
-    cdd_cst_node_t *nodes[1];
-    nodes[0] = spliced_node;
-    rc = cdd_cst_splice_nodes(&b, replacement_node, 0, nodes, 1);
+    cdd_cst_tree_t *replacement_node_tree = NULL;
+    cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
+                  &tree);
+    root = tree->root;
+    (void)root;
+    target_node = tree->root->children[0].val.node;
+    cdd_cst_builder_init(&b, tree, tree->root);
+
+    cdd_cst_parse(
+        az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
+        &replacement_node_tree);
+    replacement_node = replacement_node_tree->root->children[0].val.node;
+
+    rc = cdd_cst_extract_leading_trivia(target_node, &lead);
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_extract_trailing_trivia(target_node, &lead);
+    ASSERT_EQ(0, rc);
+
+    /* This will transfer L1 L2 to NL1, and T1 to NT1 NT2 */
+    rc = cdd_cst_transfer_trivia(target_node, replacement_node);
+    ASSERT_EQ(0, rc);
+
+    rc =
+        cdd_cst_replace_node_preserve_trivia(&b, target_node, replacement_node);
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_alloc_node(CDD_CST_STATEMENT, &spliced_node);
+
+    /* Also test the leak paths (lead without t_first) */
+    {
+      cdd_cst_node_t *empty_node = NULL;
+      cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
+      cdd_cst_transfer_trivia(
+          replacement_node,
+          empty_node); /* replacement_node has all the trivia now */
+      cdd_cst_free_node_only(empty_node);
+    }
+
+    {
+      cdd_cst_node_t *nodes[1];
+      nodes[0] = spliced_node;
+      rc = cdd_cst_splice_nodes(&b, replacement_node, 0, nodes, 1);
+      printf("rc = %d\n", rc);
+      ASSERT_EQ(0, rc);
+    }
+
+    /* Error checks */
+    b.error_state = CDD_C_ERROR_MEMORY;
+    rc =
+        cdd_cst_replace_node_preserve_trivia(&b, target_node, replacement_node);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    rc = cdd_cst_splice_nodes(&b, replacement_node, 0, NULL, 0);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    b.error_state = 0;
+
+    rc = cdd_cst_extract_leading_trivia(NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_extract_leading_trivia(target_node, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_extract_trailing_trivia(NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_extract_trailing_trivia(target_node, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_transfer_trivia(NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_replace_node_preserve_trivia(NULL, NULL, NULL);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_splice_nodes(NULL, NULL, 0, NULL, 1);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    rc = cdd_cst_splice_nodes(&b, replacement_node, 0, NULL, 0);
     printf("rc = %d\n", rc);
     ASSERT_EQ(0, rc);
+
+    cdd_cst_builder_free(&b);
+
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  /* Error checks */
-  b.error_state = CDD_C_ERROR_MEMORY;
-  rc = cdd_cst_replace_node_preserve_trivia(&b, target_node, replacement_node);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  rc = cdd_cst_splice_nodes(&b, replacement_node, 0, NULL, 0);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  b.error_state = 0;
-
-  rc = cdd_cst_extract_leading_trivia(NULL, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_extract_leading_trivia(target_node, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_extract_trailing_trivia(NULL, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_extract_trailing_trivia(target_node, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_transfer_trivia(NULL, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_replace_node_preserve_trivia(NULL, NULL, NULL);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_splice_nodes(NULL, NULL, 0, NULL, 1);
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-  rc = cdd_cst_splice_nodes(&b, replacement_node, 0, NULL, 0);
-  printf("rc = %d\n", rc);
-  ASSERT_EQ(0, rc);
-
-  cdd_cst_builder_free(&b);
-
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
-  PASS();
 }
 
 TEST test_cdd_cst_builder_extra(void) {

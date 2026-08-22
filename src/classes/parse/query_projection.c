@@ -1,7 +1,9 @@
+/* clang-format off */
 #include "classes/parse/query_projection.h"
 #include "c_cdd/memory.h"
 #include <stdlib.h>
 #include <string.h>
+/* clang-format on */
 
 C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {

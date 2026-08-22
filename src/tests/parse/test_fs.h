@@ -319,17 +319,19 @@ TEST test_read_from_fh_errors(void) {
 #else
   f = tmpfile();
 #endif
-  char *data = NULL;
-  size_t sz = 0;
+  {
+    char *data = NULL;
+    size_t sz = 0;
 
-  /* Test invalid args */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(NULL, &data, &sz));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, NULL, &sz));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, &data, NULL));
+    /* Test invalid args */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(NULL, &data, &sz));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, NULL, &sz));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, &data, NULL));
 
-  fclose(f);
-  g_fail_io_after = -1;
-  PASS();
+    fclose(f);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 #ifdef _MSC_VER

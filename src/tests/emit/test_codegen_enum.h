@@ -29,115 +29,117 @@ TEST test_enum_generation(void) {
 #else
   tmp = tmpfile();
 #endif
-  struct EnumMembers em;
-  char *content = NULL;
-  long sz;
-  struct CodegenEnumConfig config = {"MY_GUARD"};
-  int i;
-
-  ASSERT(tmp);
-
-  ASSERT_EQ(0, enum_members_init(&em));
-
-  /* Invalid args */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_init(NULL));
-  enum_members_free(NULL); /* Should not crash */
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(NULL, "VAL"));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(&em, NULL));
-
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_to_str_func(NULL, "MyEnum", &em, &config));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_to_str_func(tmp, NULL, &em, &config));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_to_str_func(tmp, "MyEnum", NULL, &config));
-
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_from_str_func(NULL, "MyEnum", &em, &config));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_from_str_func(tmp, NULL, &em, &config));
-  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-            write_enum_from_str_func(tmp, "MyEnum", NULL, &config));
-
   {
-    struct EnumMembers bad_em = {0};
+    struct EnumMembers em;
+    char *content = NULL;
+    long sz;
+    struct CodegenEnumConfig config = {"MY_GUARD"};
+    int i;
+
+    ASSERT(tmp);
+
+    ASSERT_EQ(0, enum_members_init(&em));
+
+    /* Invalid args */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_init(NULL));
+    enum_members_free(NULL); /* Should not crash */
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(NULL, "VAL"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, enum_members_add(&em, NULL));
+
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              write_enum_to_str_func(tmp, "MyEnum", &bad_em, &config));
+              write_enum_to_str_func(NULL, "MyEnum", &em, &config));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
-              write_enum_from_str_func(tmp, "MyEnum", &bad_em, &config));
-  }
+              write_enum_to_str_func(tmp, NULL, &em, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_to_str_func(tmp, "MyEnum", NULL, &config));
 
-  ASSERT_EQ(0, enum_members_add(&em, "VAL1"));
-  ASSERT_EQ(0, enum_members_add(&em, "UNKNOWN"));
-  ASSERT_EQ(0, enum_members_add(&em, "VAL2"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_from_str_func(NULL, "MyEnum", &em, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_from_str_func(tmp, NULL, &em, &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              write_enum_from_str_func(tmp, "MyEnum", NULL, &config));
 
-  /* Force realloc to increase capacity to test the branch */
-  for (i = 0; i < 10; ++i) {
-    char buf[16];
-    sprintf(buf, "VAL%d", i + 3);
-    ASSERT_EQ(0, enum_members_add(&em, buf));
-  }
-
-  /* Test OOM during string duplication by failing strdup somehow? We can fail
-   * the next realloc instead */
-  {
-    while (em.size < em.capacity) {
-      ASSERT_EQ(0, enum_members_add(&em, "FILL"));
+    {
+      struct EnumMembers bad_em = {0};
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                write_enum_to_str_func(tmp, "MyEnum", &bad_em, &config));
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                write_enum_from_str_func(tmp, "MyEnum", &bad_em, &config));
     }
-    /* We can't actually easily fail it without a mock, so we just let it
-     * increase */
-    ASSERT_EQ(0, enum_members_add(&em, "OOM"));
-  }
 
-  printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
-  ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
-  ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
+    ASSERT_EQ(0, enum_members_add(&em, "VAL1"));
+    ASSERT_EQ(0, enum_members_add(&em, "UNKNOWN"));
+    ASSERT_EQ(0, enum_members_add(&em, "VAL2"));
 
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, (size_t)sz + 1);
-  if (fread(content, 1, (size_t)sz, tmp)) {
-  }
+    /* Force realloc to increase capacity to test the branch */
+    for (i = 0; i < 10; ++i) {
+      char buf[16];
+      sprintf(buf, "VAL%d", i + 3);
+      ASSERT_EQ(0, enum_members_add(&em, buf));
+    }
 
-  ASSERT(strstr(content, "int MyEnum_to_str"));
-  ASSERT(strstr(content, "int MyEnum_from_str"));
-  ASSERT(strstr(content, "#ifdef MY_GUARD"));
-  ASSERT(strstr(content, "#endif /* MY_GUARD */"));
-
-  {
-    FILE *readonly_f;
-#if defined(_MSC_VER)
-    if (tmpfile_s(&readonly_f) != 0)
-      readonly_f = NULL;
-#else
-    readonly_f = tmpfile();
-#endif
-    if (readonly_f) {
-      g_fail_io_after = 0;
-      g_io_calls = 0;
-      g_fail_io_after = 0;
-      g_io_calls = 0;
-      {
-        int _rc = write_enum_to_str_func(readonly_f, "MyEnum", &em, &config);
-        printf("write_enum_to_str_func RC WAS %d\\n", _rc);
-        ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+    /* Test OOM during string duplication by failing strdup somehow? We can fail
+     * the next realloc instead */
+    {
+      while (em.size < em.capacity) {
+        ASSERT_EQ(0, enum_members_add(&em, "FILL"));
       }
-      g_fail_io_after = 0;
-      g_io_calls = 0;
-      g_fail_io_after = 0;
-      g_io_calls = 0;
-      ASSERT_EQ(CDD_C_ERROR_IO,
-                write_enum_from_str_func(readonly_f, "MyEnum", &em, &config));
-      fclose(readonly_f);
+      /* We can't actually easily fail it without a mock, so we just let it
+       * increase */
+      ASSERT_EQ(0, enum_members_add(&em, "OOM"));
     }
-  }
 
-  free(content);
-  enum_members_free(&em);
-  fclose(tmp);
-  g_fail_io_after = -1;
-  PASS();
+    printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
+    ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
+    ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
+
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
+    }
+
+    ASSERT(strstr(content, "int MyEnum_to_str"));
+    ASSERT(strstr(content, "int MyEnum_from_str"));
+    ASSERT(strstr(content, "#ifdef MY_GUARD"));
+    ASSERT(strstr(content, "#endif /* MY_GUARD */"));
+
+    {
+      FILE *readonly_f;
+#if defined(_MSC_VER)
+      if (tmpfile_s(&readonly_f) != 0)
+        readonly_f = NULL;
+#else
+      readonly_f = tmpfile();
+#endif
+      if (readonly_f) {
+        g_fail_io_after = 0;
+        g_io_calls = 0;
+        g_fail_io_after = 0;
+        g_io_calls = 0;
+        {
+          int _rc = write_enum_to_str_func(readonly_f, "MyEnum", &em, &config);
+          printf("write_enum_to_str_func RC WAS %d\\n", _rc);
+          ASSERT_EQ(CDD_C_ERROR_IO, _rc);
+        }
+        g_fail_io_after = 0;
+        g_io_calls = 0;
+        g_fail_io_after = 0;
+        g_io_calls = 0;
+        ASSERT_EQ(CDD_C_ERROR_IO,
+                  write_enum_from_str_func(readonly_f, "MyEnum", &em, &config));
+        fclose(readonly_f);
+      }
+    }
+
+    free(content);
+    enum_members_free(&em);
+    fclose(tmp);
+    g_fail_io_after = -1;
+    PASS();
+  }
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -181,11 +183,13 @@ TEST test_enum_generation_oom(void) {
 #else
     tmp = tmpfile();
 #endif
-    struct CodegenEnumConfig config = {"MY_GUARD"};
-    printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
-    ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
-    ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
-    fclose(tmp);
+    {
+      struct CodegenEnumConfig config = {"MY_GUARD"};
+      printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
+      ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
+      ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
+      fclose(tmp);
+    }
   }
 
   enum_members_free(&em);

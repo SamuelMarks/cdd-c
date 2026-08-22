@@ -47,21 +47,23 @@ TEST test_cdd_cst_cfg_basic(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node = NULL;
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-  cdd_cst_append_child_node(func, dummy_node);
-  rc = cdd_cst_cfg_build(func, &cfg);
-  func->num_children--;
-  cdd_cst_free_node_only(dummy_node);
+  {
+    cdd_cst_node_t *dummy_node = NULL;
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    cdd_cst_append_child_node(func, dummy_node);
+    rc = cdd_cst_cfg_build(func, &cfg);
+    func->num_children--;
+    cdd_cst_free_node_only(dummy_node);
 
-  ASSERT_EQ(0, rc);
-  ASSERT(cfg != NULL);
+    ASSERT_EQ(0, rc);
+    ASSERT(cfg != NULL);
 
-  cdd_cst_cfg_free(cfg);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+    cdd_cst_cfg_free(cfg);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
 
-  PASS();
+    PASS();
+  }
 }
 
 /**
@@ -172,20 +174,22 @@ TEST test_cdd_cst_cfg_empty(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node = NULL;
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-  cdd_cst_append_child_node(func, dummy_node);
-  rc = cdd_cst_cfg_build(func, &cfg);
-  func->num_children--;
-  cdd_cst_free_node_only(dummy_node);
-  ASSERT_EQ(0, rc);
-  ASSERT(cfg != NULL);
+  {
+    cdd_cst_node_t *dummy_node = NULL;
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    cdd_cst_append_child_node(func, dummy_node);
+    rc = cdd_cst_cfg_build(func, &cfg);
+    func->num_children--;
+    cdd_cst_free_node_only(dummy_node);
+    ASSERT_EQ(0, rc);
+    ASSERT(cfg != NULL);
 
-  cdd_cst_cfg_free(cfg);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+    cdd_cst_cfg_free(cfg);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
 
-  PASS();
+    PASS();
+  }
 }
 
 /**
@@ -215,20 +219,22 @@ TEST test_cdd_cst_cfg_no_return(void) {
   }
   ASSERT(func != NULL);
 
-  cdd_cst_node_t *dummy_node = NULL;
-  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-  cdd_cst_append_child_node(func, dummy_node);
-  rc = cdd_cst_cfg_build(func, &cfg);
-  func->num_children--;
-  cdd_cst_free_node_only(dummy_node);
-  ASSERT_EQ(0, rc);
-  ASSERT(cfg != NULL);
+  {
+    cdd_cst_node_t *dummy_node = NULL;
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+    cdd_cst_append_child_node(func, dummy_node);
+    rc = cdd_cst_cfg_build(func, &cfg);
+    func->num_children--;
+    cdd_cst_free_node_only(dummy_node);
+    ASSERT_EQ(0, rc);
+    ASSERT(cfg != NULL);
 
-  cdd_cst_cfg_free(cfg);
-  cdd_cst_tree_free(tree);
-  g_fail_io_after = -1;
+    cdd_cst_cfg_free(cfg);
+    cdd_cst_tree_free(tree);
+    g_fail_io_after = -1;
 
-  PASS();
+    PASS();
+  }
 }
 
 TEST test_cdd_cst_cfg_extra(void) {
@@ -252,17 +258,19 @@ TEST test_cdd_cst_cfg_extra(void) {
     int i;
     for (i = 1; i < 100; ++i) {
       g_cdd_cfg_alloc_fail = i;
-      cdd_cst_node_t *dummy_node = NULL;
-      cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
-      cdd_cst_append_child_node(func, dummy_node);
-      rc = cdd_cst_cfg_build(func, &cfg);
-      func->num_children--;
-      cdd_cst_free_node_only(dummy_node);
-      if (rc == 0) {
-        cdd_cst_cfg_free(cfg);
-        break;
+      {
+        cdd_cst_node_t *dummy_node = NULL;
+        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy_node);
+        cdd_cst_append_child_node(func, dummy_node);
+        rc = cdd_cst_cfg_build(func, &cfg);
+        func->num_children--;
+        cdd_cst_free_node_only(dummy_node);
+        if (rc == 0) {
+          cdd_cst_cfg_free(cfg);
+          break;
+        }
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_cfg_alloc_fail = 0;
   }

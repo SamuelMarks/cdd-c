@@ -38,60 +38,62 @@ TEST test_lift_anonymous_struct(void) {
 
   write_to_file("anon.h", src);
 
-  char *argv[] = {"anon.h", "anon.json"};
-  ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
-
-  /* Check JSON */
   {
-    char *content = NULL;
-    size_t sz;
-    FILE *f = NULL;
+    char *argv[] = {"anon.h", "anon.json"};
+    ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
+
+    /* Check JSON */
+    {
+      char *content = NULL;
+      size_t sz;
+      FILE *f = NULL;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    if (fopen_s(&f, "anon.json", "r") != 0)
-      f = NULL;
+      if (fopen_s(&f, "anon.json", "r") != 0)
+        f = NULL;
 #elif defined(_MSC_VER)
-    fopen_s(&f, "anon.json", "r");
+      fopen_s(&f, "anon.json", "r");
 #else
 #if defined(_MSC_VER)
-    if (fopen_s(&f, "anon.json", "r") != 0)
-      f = NULL;
+      if (fopen_s(&f, "anon.json", "r") != 0)
+        f = NULL;
 #else
-    f = fopen("anon.json", "r");
+      f = fopen("anon.json", "r");
 #endif
 #endif
-    ASSERT(f);
-    fseek(f, 0, SEEK_END);
-    sz = ftell(f);
-    rewind(f);
-    content = (char *)malloc(sz + 1);
-    if (!content)
-      FAILm("OOM");
-    fread(content, 1, sz, f);
-    content[sz] = 0;
-    fclose(f);
+      ASSERT(f);
+      fseek(f, 0, SEEK_END);
+      sz = ftell(f);
+      rewind(f);
+      content = (char *)malloc(sz + 1);
+      if (!content)
+        FAILm("OOM");
+      fread(content, 1, sz, f);
+      content[sz] = 0;
+      fclose(f);
 
-    /* We expect a definition for Parent */
-    ASSERT(strstr(content, "\"Parent\":"));
+      /* We expect a definition for Parent */
+      ASSERT(strstr(content, "\"Parent\":"));
 
-    /* We expect a definition for Parent_coords (Lifting) */
-    ASSERT(strstr(content, "\"Parent_coords\":"));
+      /* We expect a definition for Parent_coords (Lifting) */
+      ASSERT(strstr(content, "\"Parent_coords\":"));
 
-    /* We expect Parent_coords to have properties x and y */
-    ASSERT(strstr(content, "\"x\":"));
-    ASSERT(strstr(content, "\"y\":"));
+      /* We expect Parent_coords to have properties x and y */
+      ASSERT(strstr(content, "\"x\":"));
+      ASSERT(strstr(content, "\"y\":"));
 
-    /* We expect Parent to have property coords referencing Parent_coords */
-    ASSERT(strstr(content,
-                  "\"$ref\": \"#\\/components\\/schemas\\/Parent_coords\""));
+      /* We expect Parent to have property coords referencing Parent_coords */
+      ASSERT(strstr(content,
+                    "\"$ref\": \"#\\/components\\/schemas\\/Parent_coords\""));
 
-    free(content);
+      free(content);
+    }
+
+    remove("anon.h");
+    remove("anon.json");
+    g_fail_io_after = -1;
+    PASS();
   }
-
-  remove("anon.h");
-  remove("anon.json");
-  g_fail_io_after = -1;
-  PASS();
 }
 
 SUITE(anonymous_suite) { RUN_TEST(test_lift_anonymous_struct); }

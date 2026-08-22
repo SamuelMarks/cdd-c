@@ -259,12 +259,14 @@ TEST test_cdd_cst_parse_format_oom(void) {
     int i;
     for (i = 0; i < 50; i++) {
       g_cdd_cst_alloc_node_fail = i;
-      int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
-      (void)rc_tmp;
-      g_cdd_cst_alloc_node_fail = 0;
-      if (node) {
-        cdd_cst_free_node(node);
-        node = NULL;
+      {
+        int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
+        (void)rc_tmp;
+        g_cdd_cst_alloc_node_fail = 0;
+        if (node) {
+          cdd_cst_free_node(node);
+          node = NULL;
+        }
       }
     }
   }

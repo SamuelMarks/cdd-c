@@ -858,13 +858,15 @@ TEST test_url_query_build_empty_oom(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_cdd_strdup_fail = 1;
-  int rc = url_query_build(&qp, &res);
-  printf("url_query_build empty oom rc: %d\n", rc);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_fail_io_after = -1;
-  g_cdd_strdup_fail = -1;
-  url_query_free(&qp);
-  PASS();
+  {
+    int rc = url_query_build(&qp, &res);
+    printf("url_query_build empty oom rc: %d\n", rc);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_fail_io_after = -1;
+    g_cdd_strdup_fail = -1;
+    url_query_free(&qp);
+    PASS();
+  }
 }
 
 TEST test_is_pct_encoded_branches(void) {

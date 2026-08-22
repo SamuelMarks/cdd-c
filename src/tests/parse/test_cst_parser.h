@@ -1146,227 +1146,231 @@ TEST test_cst_parser_extra(void) {
       cdd_cst_tree_free(t_empty);
   }
 
-  cdd_cst_tree_t *t_macro = NULL;
-  cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
-  if (t_macro)
-    cdd_cst_tree_free(t_macro);
   {
-    const char *abrupts[] = {
-        "#ifdef A",  "template",    "template <",   "template <class",
-        "namespace", "namespace N", "namespace N;", "namespace N {",
-        "try {",     "throw ",      "class Foo {",  "class Foo { public:",
-        "void f() {"};
-    size_t j;
-    for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
-      cdd_cst_tree_t *t_abrupt = NULL;
-      cdd_cst_parse(az_span_create_from_str((char *)abrupts[j]), &t_abrupt);
-      if (t_abrupt)
-        cdd_cst_tree_free(t_abrupt);
+    cdd_cst_tree_t *t_macro = NULL;
+    cdd_cst_parse(az_span_create_from_str("#define D 1\n"), &t_macro);
+    if (t_macro)
+      cdd_cst_tree_free(t_macro);
+    {
+      const char *abrupts[] = {
+          "#ifdef A",  "template",    "template <",   "template <class",
+          "namespace", "namespace N", "namespace N;", "namespace N {",
+          "try {",     "throw ",      "class Foo {",  "class Foo { public:",
+          "void f() {"};
+      size_t j;
+      for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
+        cdd_cst_tree_t *t_abrupt = NULL;
+        cdd_cst_parse(az_span_create_from_str((char *)abrupts[j]), &t_abrupt);
+        if (t_abrupt)
+          cdd_cst_tree_free(t_abrupt);
+      }
     }
-  }
 #ifdef CDD_BUILD_TESTS
-  {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
-    /* extern int g_cdd_alloc_fail; (moved to global) */
-    /* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
-    /* extern int g_cdd_cst_realloc_fail; (moved to global) */
-    int i;
-    const char *snippet =
-        "#ifdef A\n"
-        "#elif B\n"
-        "#else\n"
-        "{ int z1; }\n"
-        "{ int z2; }\n"
-        "{ int z3; }\n"
-        "{ int z4; }\n"
-        "{ int z5; }\n"
-        "{ int z6; }\n"
-        "{ int z7; }\n"
-        "{ int z8; }\n"
-        "{ int z9; }\n"
-        "{ int z10; }\n"
-        "#endif\n"
-        "#ifndef C\n"
-        "{ int w; }\n"
-        "#endif\n"
-        "#define D1 1;\n"
-        "#define D2 2;\n"
-        "#define D3 3;\n"
-        "#define D4 4;\n"
-        "#define D5 5;\n"
-        "#define D6 6;\n"
-        "#define D7 7;\n"
-        "#define D8 8;\n"
-        "#define D9 9;\n"
-        "#define D10 10;\n"
-        "#define D11 11;\n"
-        "#define D12 12;\n"
-        "#define D13 13;\n"
-        "#define D14 14;\n"
-        "#define D15 15;\n"
-        "#define D16 16;\n"
-        "#define D17 17;\n"
-        "#define D18 18;\n"
-        "#define D19 19;\n"
-        "#include <stdio.h>\n"
-        "#pragma once\n"
-        "#unknown_directive\n"
-        "[[nodiscard]] struct AttributedStruct { int x; };\n"
-        "[[nodiscard]] class AttributedClass { int x; };\n"
-        "template class Foo;\n"
-        "template <typename T1, typename T2, typename T3, typename T4, "
-        "typename T5, typename T6, typename T7, typename T8, typename T9, "
-        "typename T10>\n"
-        "class Foo : public virtual Bar, virtual private Baz {\n"
-        "public:\n"
-        "  void baz() noexcept(true) {}\n"
-        "  ~Foo();\n"
-        "  int operator+(int);\n"
-        "protected:\n"
-        "  class { int anon; } anon_var;\n"
-        "  int x;\n"
-        "private:\n"
-        "  int y;\n"
-        "};\n"
-        "namespace N {\n"
-        "  using namespace std;\n"
-        "  void f() {\n"
-        "    try {\n"
-        "      throw 1;\n"
-        "    } catch (int e) {\n"
-        "    } catch (...) {\n"
-        "    }\n"
-        "  }\n"
-        "}\n"
-        "int main() { asm(\"nop\"); return 0; }";
-
-    cdd_cst_tree_t *t_dummy = NULL;
-    g_cdd_cst_realloc_fail = 1000000;
-    cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
-    printf("Total REALLOCs in snippet: %d\n", 1000000 - g_cdd_cst_realloc_fail);
-    g_cdd_cst_realloc_fail = 0;
-    if (t_dummy)
-      cdd_cst_tree_free(t_dummy);
-
-    g_cdd_alloc_fail = 1000000;
-    t_dummy = NULL;
     {
-      int debug_rc =
-          cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
-      printf("Total ALLOCs in snippet: %d, RC=%d\n", 1000000 - g_cdd_alloc_fail,
-             debug_rc);
-    }
-    g_cdd_alloc_fail = 0;
-    if (t_dummy)
-      cdd_cst_tree_free(t_dummy);
+      /* extern int g_cdd_alloc_fail; (moved to global) */
+      /* extern int g_cdd_alloc_fail; (moved to global) */
+      /* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
+      /* extern int g_cdd_cst_realloc_fail; (moved to global) */
+      int i;
+      const char *snippet =
+          "#ifdef A\n"
+          "#elif B\n"
+          "#else\n"
+          "{ int z1; }\n"
+          "{ int z2; }\n"
+          "{ int z3; }\n"
+          "{ int z4; }\n"
+          "{ int z5; }\n"
+          "{ int z6; }\n"
+          "{ int z7; }\n"
+          "{ int z8; }\n"
+          "{ int z9; }\n"
+          "{ int z10; }\n"
+          "#endif\n"
+          "#ifndef C\n"
+          "{ int w; }\n"
+          "#endif\n"
+          "#define D1 1;\n"
+          "#define D2 2;\n"
+          "#define D3 3;\n"
+          "#define D4 4;\n"
+          "#define D5 5;\n"
+          "#define D6 6;\n"
+          "#define D7 7;\n"
+          "#define D8 8;\n"
+          "#define D9 9;\n"
+          "#define D10 10;\n"
+          "#define D11 11;\n"
+          "#define D12 12;\n"
+          "#define D13 13;\n"
+          "#define D14 14;\n"
+          "#define D15 15;\n"
+          "#define D16 16;\n"
+          "#define D17 17;\n"
+          "#define D18 18;\n"
+          "#define D19 19;\n"
+          "#include <stdio.h>\n"
+          "#pragma once\n"
+          "#unknown_directive\n"
+          "[[nodiscard]] struct AttributedStruct { int x; };\n"
+          "[[nodiscard]] class AttributedClass { int x; };\n"
+          "template class Foo;\n"
+          "template <typename T1, typename T2, typename T3, typename T4, "
+          "typename T5, typename T6, typename T7, typename T8, typename T9, "
+          "typename T10>\n"
+          "class Foo : public virtual Bar, virtual private Baz {\n"
+          "public:\n"
+          "  void baz() noexcept(true) {}\n"
+          "  ~Foo();\n"
+          "  int operator+(int);\n"
+          "protected:\n"
+          "  class { int anon; } anon_var;\n"
+          "  int x;\n"
+          "private:\n"
+          "  int y;\n"
+          "};\n"
+          "namespace N {\n"
+          "  using namespace std;\n"
+          "  void f() {\n"
+          "    try {\n"
+          "      throw 1;\n"
+          "    } catch (int e) {\n"
+          "    } catch (...) {\n"
+          "    }\n"
+          "  }\n"
+          "}\n"
+          "int main() { asm(\"nop\"); return 0; }";
 
-    {
-      /* extern int g_cdd_cst_parser_fast_grow; (moved to global) */
-      g_cdd_cst_parser_fast_grow = 1;
-
-      for (i = 1; i < 60000; i++) {
-        cdd_c_error_t rc;
-        tree = NULL;
-        g_cdd_alloc_fail = i;
-        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-        if (tree)
-          cdd_cst_tree_free(tree);
-        if (rc == CDD_C_SUCCESS)
-          break;
-      }
-      g_cdd_alloc_fail = 0;
-
-      for (i = 1; i < 60000; i++) {
-        cdd_c_error_t rc;
-        tree = NULL;
-        g_cdd_alloc_fail = i;
-        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-        if (tree)
-          cdd_cst_tree_free(tree);
-        if (rc == CDD_C_SUCCESS)
-          break;
-      }
-      g_cdd_alloc_fail = 0;
-
-      for (i = 1; i < 60000; i++) {
-        cdd_c_error_t rc;
-        tree = NULL;
-        g_cdd_cst_alloc_token_fail = i;
-        rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-        if (tree)
-          cdd_cst_tree_free(tree);
-        if (rc == CDD_C_SUCCESS)
-          break;
-      }
-      g_cdd_cst_alloc_token_fail = 0;
-
-      for (i = 1; i < 60000; i++) {
-        cdd_c_error_t parse_rc;
-        tree = NULL;
-        g_cdd_cst_realloc_fail = i;
-        parse_rc =
-            cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
-        if (tree)
-          cdd_cst_tree_free(tree);
-        if (parse_rc == CDD_C_SUCCESS)
-          break;
-      }
+      cdd_cst_tree_t *t_dummy = NULL;
+      g_cdd_cst_realloc_fail = 1000000;
+      cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
+      printf("Total REALLOCs in snippet: %d\n",
+             1000000 - g_cdd_cst_realloc_fail);
       g_cdd_cst_realloc_fail = 0;
+      if (t_dummy)
+        cdd_cst_tree_free(t_dummy);
 
-      g_cdd_cst_parser_fast_grow = 0;
+      g_cdd_alloc_fail = 1000000;
+      t_dummy = NULL;
+      {
+        int debug_rc =
+            cdd_cst_parse(az_span_create_from_str((char *)snippet), &t_dummy);
+        printf("Total ALLOCs in snippet: %d, RC=%d\n",
+               1000000 - g_cdd_alloc_fail, debug_rc);
+      }
+      g_cdd_alloc_fail = 0;
+      if (t_dummy)
+        cdd_cst_tree_free(t_dummy);
+
+      {
+        /* extern int g_cdd_cst_parser_fast_grow; (moved to global) */
+        g_cdd_cst_parser_fast_grow = 1;
+
+        for (i = 1; i < 60000; i++) {
+          cdd_c_error_t rc;
+          tree = NULL;
+          g_cdd_alloc_fail = i;
+          rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+          if (tree)
+            cdd_cst_tree_free(tree);
+          if (rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_alloc_fail = 0;
+
+        for (i = 1; i < 60000; i++) {
+          cdd_c_error_t rc;
+          tree = NULL;
+          g_cdd_alloc_fail = i;
+          rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+          if (tree)
+            cdd_cst_tree_free(tree);
+          if (rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_alloc_fail = 0;
+
+        for (i = 1; i < 60000; i++) {
+          cdd_c_error_t rc;
+          tree = NULL;
+          g_cdd_cst_alloc_token_fail = i;
+          rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+          if (tree)
+            cdd_cst_tree_free(tree);
+          if (rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_cst_alloc_token_fail = 0;
+
+        for (i = 1; i < 60000; i++) {
+          cdd_c_error_t parse_rc;
+          tree = NULL;
+          g_cdd_cst_realloc_fail = i;
+          parse_rc =
+              cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+          if (tree)
+            cdd_cst_tree_free(tree);
+          if (parse_rc == CDD_C_SUCCESS)
+            break;
+        }
+        g_cdd_cst_realloc_fail = 0;
+
+        g_cdd_cst_parser_fast_grow = 0;
+      }
     }
-  }
 #endif
-  g_fail_io_after = -1;
+    g_fail_io_after = -1;
 
-  {
-    int i;
-    for (i = 1; i < 500; i++) {
-      struct TokenList *tl_oom = NULL;
-      struct CstNodeList cst_oom = {0};
-      int rc;
-      /* extern int g_cdd_alloc_fail; (moved to global) */
-      tokenize(az_span_create_from_str(
-                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
-                   "[[nodiscard]] int y; } }"),
-               &tl_oom);
-      g_cdd_alloc_fail = i;
-      rc = parse_tokens(tl_oom, &cst_oom);
-      g_cdd_alloc_fail = 0;
-      if (rc == CDD_C_SUCCESS) {
+    {
+      int i;
+      for (i = 1; i < 500; i++) {
+        struct TokenList *tl_oom = NULL;
+        struct CstNodeList cst_oom = {0};
+        int rc;
+        /* extern int g_cdd_alloc_fail; (moved to global) */
+        tokenize(
+            az_span_create_from_str(
+                "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                "[[nodiscard]] int y; } }"),
+            &tl_oom);
+        g_cdd_alloc_fail = i;
+        rc = parse_tokens(tl_oom, &cst_oom);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS) {
+          free_token_list(tl_oom);
+          free_cst_node_list(&cst_oom);
+          break;
+        }
         free_token_list(tl_oom);
         free_cst_node_list(&cst_oom);
-        break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
     }
-  }
-  {
-    int i;
-    for (i = 1; i < 500; i++) {
-      struct TokenList *tl_oom = NULL;
-      struct CstNodeList cst_oom = {0};
-      int rc;
-      /* extern int g_cdd_alloc_fail; (moved to global) */
-      tokenize(
-          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
-                                  "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
-      g_cdd_alloc_fail = i;
-      rc = parse_tokens(tl_oom, &cst_oom);
-      g_cdd_alloc_fail = 0;
-      if (rc == CDD_C_SUCCESS) {
+    {
+      int i;
+      for (i = 1; i < 500; i++) {
+        struct TokenList *tl_oom = NULL;
+        struct CstNodeList cst_oom = {0};
+        int rc;
+        /* extern int g_cdd_alloc_fail; (moved to global) */
+        tokenize(az_span_create_from_str(
+                     "struct A { int a: 1; }; enum E { X }; union "
+                     "U { int b; }; _Generic((1), int: 1);"),
+                 &tl_oom);
+        g_cdd_alloc_fail = i;
+        rc = parse_tokens(tl_oom, &cst_oom);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS) {
+          free_token_list(tl_oom);
+          free_cst_node_list(&cst_oom);
+          break;
+        }
         free_token_list(tl_oom);
         free_cst_node_list(&cst_oom);
-        break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
     }
-  }
 
-  PASS();
+    PASS();
+  }
 }
 
 TEST parse_tokens_oom(void) {
@@ -1634,60 +1638,63 @@ TEST test_parse_tokens_static_assert(void) {
   free_cst_node_list(&cst);
   free_token_list(tl5);
 
-  struct TokenList *tl6 = NULL;
-  tokenize(az_span_create_from_str("_Static_assert(1 == 1;"), &tl6);
-  ASSERT_EQ(0, parse_tokens(tl6, &cst));
-  free_cst_node_list(&cst);
-  free_token_list(tl6);
-
   {
-    int i;
-    for (i = 1; i < 500; i++) {
-      struct TokenList *tl_oom = NULL;
-      struct CstNodeList cst_oom = {0};
-      int rc;
-      /* extern int g_cdd_alloc_fail; (moved to global) */
-      tokenize(az_span_create_from_str(
-                   "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
-                   "[[nodiscard]] int y; } }"),
-               &tl_oom);
-      g_cdd_alloc_fail = i;
-      rc = parse_tokens(tl_oom, &cst_oom);
-      g_cdd_alloc_fail = 0;
-      if (rc == CDD_C_SUCCESS) {
+    struct TokenList *tl6 = NULL;
+    tokenize(az_span_create_from_str("_Static_assert(1 == 1;"), &tl6);
+    ASSERT_EQ(0, parse_tokens(tl6, &cst));
+    free_cst_node_list(&cst);
+    free_token_list(tl6);
+
+    {
+      int i;
+      for (i = 1; i < 500; i++) {
+        struct TokenList *tl_oom = NULL;
+        struct CstNodeList cst_oom = {0};
+        int rc;
+        /* extern int g_cdd_alloc_fail; (moved to global) */
+        tokenize(
+            az_span_create_from_str(
+                "void f() { int x = 1; if(x) { _Static_assert(1); } else { "
+                "[[nodiscard]] int y; } }"),
+            &tl_oom);
+        g_cdd_alloc_fail = i;
+        rc = parse_tokens(tl_oom, &cst_oom);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS) {
+          free_token_list(tl_oom);
+          free_cst_node_list(&cst_oom);
+          break;
+        }
         free_token_list(tl_oom);
         free_cst_node_list(&cst_oom);
-        break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
     }
-  }
-  {
-    int i;
-    for (i = 1; i < 500; i++) {
-      struct TokenList *tl_oom = NULL;
-      struct CstNodeList cst_oom = {0};
-      int rc;
-      /* extern int g_cdd_alloc_fail; (moved to global) */
-      tokenize(
-          az_span_create_from_str("struct A { int a: 1; }; enum E { X }; union "
-                                  "U { int b; }; _Generic((1), int: 1);"),
-          &tl_oom);
-      g_cdd_alloc_fail = i;
-      rc = parse_tokens(tl_oom, &cst_oom);
-      g_cdd_alloc_fail = 0;
-      if (rc == CDD_C_SUCCESS) {
+    {
+      int i;
+      for (i = 1; i < 500; i++) {
+        struct TokenList *tl_oom = NULL;
+        struct CstNodeList cst_oom = {0};
+        int rc;
+        /* extern int g_cdd_alloc_fail; (moved to global) */
+        tokenize(az_span_create_from_str(
+                     "struct A { int a: 1; }; enum E { X }; union "
+                     "U { int b; }; _Generic((1), int: 1);"),
+                 &tl_oom);
+        g_cdd_alloc_fail = i;
+        rc = parse_tokens(tl_oom, &cst_oom);
+        g_cdd_alloc_fail = 0;
+        if (rc == CDD_C_SUCCESS) {
+          free_token_list(tl_oom);
+          free_cst_node_list(&cst_oom);
+          break;
+        }
         free_token_list(tl_oom);
         free_cst_node_list(&cst_oom);
-        break;
       }
-      free_token_list(tl_oom);
-      free_cst_node_list(&cst_oom);
     }
-  }
 
-  PASS();
+    PASS();
+  }
 }
 
 SUITE(cst_parser_suite) {
