@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file url_utils.c
  * @brief Implementation of RFC 3986 URL encoding and Query serialization.
@@ -1129,7 +1122,3 @@ oom:
   }
   return CDD_C_ERROR_MEMORY;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

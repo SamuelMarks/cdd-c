@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /*  */
 /**
  * @file schema_codegen.c
@@ -475,7 +468,3 @@ cdd_c_error_t schema2code_main(int argc, char **argv) {
 }
 
 /*  */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_cst_alloc_token_fail;
 #endif
@@ -618,7 +611,3 @@ void cdd_lexer_free_token_list(cdd_token_list_t *list) {
   }
   C_CDD_FREE(list);
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

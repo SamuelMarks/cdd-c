@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_CLI_C2OPENAPI_H
 #define TEST_CLI_C2OPENAPI_H
 
@@ -257,7 +250,3 @@ SUITE(cli_c2openapi_suite) {
   RUN_TEST(test_c2openapi_cli_main_doc_tags);
 }
 #endif /* TEST_CLI_C2OPENAPI_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

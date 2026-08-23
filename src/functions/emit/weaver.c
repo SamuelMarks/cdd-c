@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file weaver.c
  * @brief Implementation of the High-level Weaver Engine API.
@@ -275,7 +268,3 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
   res = patch_list_add(patches, start_idx, end_idx, str);
   return res;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

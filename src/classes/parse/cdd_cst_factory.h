@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef CDD_CST_FACTORY_H
 #define CDD_CST_FACTORY_H
 
@@ -90,7 +83,3 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 const char *fmt, ...);
 C_CDD_EXPORT void cdd_cst_free_node_only(cdd_cst_node_t *node);
 #endif /* CDD_CST_FACTORY_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

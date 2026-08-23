@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file cmake_parser.h
  * @brief Auxiliary parser for basic CMakeLists.txt structure manipulation.
@@ -99,7 +92,3 @@ cmake_modifier_apply_diff(const struct CMakeModifier *mod, char **out_diff);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_CMAKE_PARSER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

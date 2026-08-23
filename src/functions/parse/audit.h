@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file audit.h
  * @brief Analysis and auditing for C projects.
@@ -99,7 +92,3 @@ audit_print_json(const struct AuditStats *stats, char **out_json);
 #endif /* __cplusplus */
 
 #endif /* PROJECT_AUDIT_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

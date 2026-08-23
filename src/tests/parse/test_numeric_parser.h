@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
@@ -338,7 +331,3 @@ SUITE(numeric_parser_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_NUMERIC_PARSER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

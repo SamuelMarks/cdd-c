@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef CDD_API_H
 #define CDD_API_H
 
@@ -145,7 +138,3 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config);
 #endif /* __cplusplus */
 
 #endif /* CDD_API_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

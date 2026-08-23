@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_STANDALONE_JSON_H
 #define TEST_STANDALONE_JSON_H
 
@@ -121,8 +114,4 @@ SUITE(standalone_json_suite) { RUN_TEST(test_standalone_json_gen); }
 }
 #endif
 
-#endif
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

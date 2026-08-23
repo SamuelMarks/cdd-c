@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file str.h
  * @brief Centralized string utilities and platform compatibility safeguards.
@@ -174,7 +167,3 @@ extern C_CDD_EXPORT cdd_c_error_t c_cdd_destringize(const char *quoted,
 #endif /* __cplusplus */
 
 #endif /* C_CDD_STR_UTILS_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

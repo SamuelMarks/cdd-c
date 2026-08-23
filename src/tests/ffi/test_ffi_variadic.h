@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /* clang-format off */
 #ifndef TEST_FFI_VARIADIC_H
 #define TEST_FFI_VARIADIC_H
@@ -196,7 +189,3 @@ SUITE(ffi_variadic_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_FFI_VARIADIC_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

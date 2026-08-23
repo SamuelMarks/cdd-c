@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file sync.c
  * @brief Implementation of sync parsing.
@@ -896,7 +889,3 @@ cdd_c_error_t api_sync_file(const char *filename,
  * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
  * Requirement Object
  */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

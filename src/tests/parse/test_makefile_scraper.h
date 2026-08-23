@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_makefile_scraper.h
  * @brief Unit tests for Makefile/configure.ac scraper.
@@ -247,7 +240,3 @@ SUITE(makefile_scraper_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_MAKEFILE_SCRAPER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

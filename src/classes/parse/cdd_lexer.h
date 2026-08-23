@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef CDD_LEXER_H
 #define CDD_LEXER_H
 
@@ -41,7 +34,3 @@ C_CDD_EXPORT void cdd_lexer_free_token_list(cdd_token_list_t *list);
 #endif /* __cplusplus */
 
 #endif /* CDD_LEXER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

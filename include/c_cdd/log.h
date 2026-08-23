@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /* clang-format off */
 /* clang-format on */
 /**
@@ -43,7 +36,3 @@ cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_LOG_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

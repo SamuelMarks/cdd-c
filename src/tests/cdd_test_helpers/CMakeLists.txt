@@ -35,8 +35,10 @@ set_target_properties(
 )
 target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}")
 
-find_package(Threads REQUIRED)
-target_link_libraries("${LIBRARY_NAME}" PUBLIC Threads::Threads)
+find_package(Threads)
+if(Threads_FOUND)
+    target_link_libraries("${LIBRARY_NAME}" PUBLIC Threads::Threads)
+endif()
 
 if (WIN32)
     target_link_libraries("${LIBRARY_NAME}" PUBLIC ws2_32)

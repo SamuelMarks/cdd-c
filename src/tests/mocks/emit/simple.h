@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #include "cdd_c_error.h"
 #ifndef C_CDD_TESTS_MOCKS_SIMPLE_H
 #define C_CDD_TESTS_MOCKS_SIMPLE_H
@@ -37,7 +30,3 @@ extern SIMPLE_MOCKS_EXPORT cdd_c_error_t Foo_cleanup(struct Foo *);
 #endif /* __cplusplus */
 
 #endif /* !C_CDD_TESTS_MOCKS_SIMPLE_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

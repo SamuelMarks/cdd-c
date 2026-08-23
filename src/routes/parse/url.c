@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file url.c
  * @brief Implementation of URL parsing.
@@ -882,8 +875,4 @@ C_CDD_EXPORT cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
                                            const char *s) {
   return append_str(buf, len, cap, s);
 }
-#endif
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

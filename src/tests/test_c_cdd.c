@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #if defined(_MSC_VER)
 different base types from char[3] * / file scope * /
 #endif
@@ -866,8 +859,4 @@ int main(int argc, char **argv) {
 }
 
 #if defined(__GNUC__) || defined(__clang__)
-#endif
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

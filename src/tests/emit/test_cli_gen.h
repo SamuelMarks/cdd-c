@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
@@ -373,7 +366,3 @@ SUITE(cli_gen_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CLI_GEN_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

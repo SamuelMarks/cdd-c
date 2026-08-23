@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
@@ -481,7 +474,3 @@ SUITE(sync_code_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_SYNC_CODE_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

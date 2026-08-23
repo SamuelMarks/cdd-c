@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file crypto_wasm.c
  * @brief WASM Crypto implementation (Native C Fallback + Node/JS Sync wrapper)
@@ -244,7 +237,3 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     return CDD_C_SUCCESS;
   }
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_cst_printer.h
  * @brief Unit tests for CST non-destructive printing.
@@ -103,7 +96,3 @@ SUITE(cst_printer_suite) { RUN_TEST(test_cst_print_exact); }
 #endif /* __cplusplus */
 
 #endif /* TEST_CST_PRINTER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

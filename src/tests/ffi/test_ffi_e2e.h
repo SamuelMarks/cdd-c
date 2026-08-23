@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_FFI_E2E_H
 #define TEST_FFI_E2E_H
 
@@ -131,7 +124,3 @@ TEST test_ffi_e2e_complex_codebase(void) {
 }
 #endif /* __cplusplus */
 #endif /* TEST_FFI_E2E_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

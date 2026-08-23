@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_client_gui_gen.h
  * @brief Unit tests for client GUI generation.
@@ -168,7 +161,3 @@ SUITE(client_gui_gen_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CLIENT_GUI_GEN_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

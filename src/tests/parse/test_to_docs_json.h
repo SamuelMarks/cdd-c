@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_to_docs_json.h
  * @brief Unit tests for converting CST to doc JSON.
@@ -207,7 +200,3 @@ SUITE(to_docs_json_suite) {
 #endif /* __cplusplus */
 
 #endif /* C_CDD_TEST_TO_DOCS_JSON_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

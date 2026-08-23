@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /* clang-format off */
 #include "c_cdd/memory.h"
 #include "cdd_api.h"
@@ -168,7 +161,11 @@ cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
   argv[argc++] = "serve_json_rpc";
 
   if (config->port > 0) {
+#if defined(_MSC_VER)
+    sprintf_s(port_str, sizeof(port_str), "%d", config->port);
+#else
     sprintf(port_str, "%d", config->port);
+#endif
     argv[argc++] = "-p";
     argv[argc++] = port_str;
   }
@@ -892,7 +889,3 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 C_CDD_EXPORT int g_cdd_alloc_fail = 0;
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

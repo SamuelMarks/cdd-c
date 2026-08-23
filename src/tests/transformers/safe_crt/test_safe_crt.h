@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_safe_crt.h
  * @brief Unit tests for the Safe CRT transformer.
@@ -705,7 +698,3 @@ SUITE(transformer_safe_crt_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_TRANSFORM_SAFE_CRT_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file cdd_cst_emit.c
  * @brief CST emit implementation
@@ -184,7 +177,3 @@ cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   *out_str = ctx.buf;
   return CDD_C_SUCCESS;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

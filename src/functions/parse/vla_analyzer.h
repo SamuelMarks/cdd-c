@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file vla_analyzer.h
  * @brief Analysis engine for detecting Variable Length Arrays (VLAs).
@@ -92,7 +85,3 @@ extern C_CDD_EXPORT cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
 #endif /* __cplusplus */
 
 #endif /* C_CDD_VLA_ANALYZER_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 int g_cdd_alloc_fail = 0;
 /**
  * @file test_simple_json.c
@@ -31,7 +24,3 @@ int main(int argc, char **argv) {
   RUN_SUITE(simple_mocks_suite);
   GREATEST_MAIN_END();
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

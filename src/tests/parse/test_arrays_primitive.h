@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 #ifndef TEST_ARRAYS_PRIMITIVE_H
 #define TEST_ARRAYS_PRIMITIVE_H
 
@@ -228,7 +221,3 @@ SUITE(arrays_primitive_suite) {
 }
 #endif /* __cplusplus */
 #endif /* TEST_ARRAYS_PRIMITIVE_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

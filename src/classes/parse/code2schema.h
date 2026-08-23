@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file code2schema.h
  * @brief Functions for parsing C headers and converting to JSON Schema,
@@ -237,7 +230,3 @@ extern C_CDD_EXPORT cdd_c_error_t copy_string_array_code2schema(
 #endif /* __cplusplus */
 
 #endif /* CODE2SCHEMA_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

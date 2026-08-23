@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file code2schema.c
  * @brief Implementation of C header parsing and code-to-schema conversion.
@@ -6268,14 +6261,19 @@ static cdd_c_error_t collapse_arrays(struct StructFields *sf) {
            * length */
           if (strcmp(sf->fields[j].type, "array") != 0) {
             if (strcmp(sf->fields[j].type, "string") == 0) {
-              strcpy(sf->fields[j].type, "array");
-              strcpy(sf->fields[j].ref, "string");
+              CDD_STRCPY(sf->fields[j].type, sizeof(sf->fields[j].type),
+                         "array");
+              CDD_STRCPY(sf->fields[j].ref, sizeof(sf->fields[j].ref),
+                         "string");
             } else if (strcmp(sf->fields[j].type, "object") == 0) {
-              strcpy(sf->fields[j].type, "array");
+              CDD_STRCPY(sf->fields[j].type, sizeof(sf->fields[j].type),
+                         "array");
               /* keep existing ref for objects */
             } else {
-              strcpy(sf->fields[j].ref, sf->fields[j].type);
-              strcpy(sf->fields[j].type, "array");
+              CDD_STRCPY(sf->fields[j].ref, sizeof(sf->fields[j].ref),
+                         sf->fields[j].type);
+              CDD_STRCPY(sf->fields[j].type, sizeof(sf->fields[j].type),
+                         "array");
             }
           }
           /* Remove the n_ field */
@@ -6391,13 +6389,18 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     nsp++;
                     while (isspace((unsigned char)*nsp))
                       nsp++;
-                    strcpy(nested_prop_name, nsp);
+                    CDD_STRCPY(nested_prop_name, sizeof(nested_prop_name), nsp);
                     break;
                   }
                   if (*nsp)
                     parse_struct_member_line(nsp, &nested_sf);
                 }
+#if defined(_MSC_VER)
+                sprintf_s(nested_name, sizeof(nested_name), "%s_%s",
+                          struct_name, nested_prop_name);
+#else
                 sprintf(nested_name, "%s_%s", struct_name, nested_prop_name);
+#endif
                 (void)collapse_arrays(&nested_sf);
                 write_struct_to_json_schema(schemas_obj, nested_name,
                                             &nested_sf);
@@ -6494,7 +6497,3 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   json_value_free(root);
   return CDD_C_SUCCESS;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file rewriter_sig.h
  * @brief Logic to transform C function signatures to use integer error codes.
@@ -63,7 +56,3 @@ rewrite_signature(const struct TokenList *tokens, char **out_code);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_REWRITER_SIG_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

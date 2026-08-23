@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file decl_hoist.c
  * @brief Implementation of the declaration hoisting scanner.
@@ -209,7 +202,3 @@ cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
 
   return CDD_C_SUCCESS;
 }
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

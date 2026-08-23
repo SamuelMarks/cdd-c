@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_tokenizer_trigraphs.h
  * @brief Unit tests for tokenizer trigraphs.
@@ -208,7 +201,3 @@ SUITE(tokenizer_trigraphs_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_TOKENIZER_TRIGRAPHS_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

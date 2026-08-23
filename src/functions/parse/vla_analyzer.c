@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file vla_analyzer.c
  * @brief Implementation of VLA detection.
@@ -324,8 +317,4 @@ C_CDD_EXPORT cdd_c_error_t is_basic_type_keyword_test(enum TokenKind k,
                                                       int *out_is_basic) {
   return is_basic_type_keyword(k, out_is_basic);
 }
-#endif
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

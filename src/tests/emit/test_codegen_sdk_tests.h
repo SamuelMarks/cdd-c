@@ -1,10 +1,3 @@
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 /**
  * @file test_codegen_sdk_tests.h
  * @brief Unit tests for SDK Test Generator.
@@ -202,7 +195,3 @@ SUITE(codegen_sdk_tests_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SDK_TESTS_H */
-
-#if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
