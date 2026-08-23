@@ -5619,11 +5619,11 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
                            "\"https://api.example.com\");\n");
       }
 
-      sprintf(snippet,
-              "  /* Call the %s API */\n  int rc = "
-              "api_%s(&client, &err);\n  "
-              "if (rc != 0) {\n    /* handle error */\n  }\n",
-              op_id, op_id);
+      snprintf(snippet, sizeof(snippet),
+               "  /* Call the %s API */\n  int rc = "
+               "api_%s(&client, &err);\n  "
+               "if (rc != 0) {\n    /* handle error */\n  }\n",
+               op_id, op_id);
       strcat(final_code, snippet);
 
       if (!no_wrapping) {

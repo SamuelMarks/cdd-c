@@ -16,6 +16,9 @@
 #ifdef CDD_BUILD_TESTS
   extern int g_fail_io_after;
   extern int g_io_calls;
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
 static int mock_fprintf(FILE *fp, const char *fmt, ...) {
     int ret;
     va_list args;

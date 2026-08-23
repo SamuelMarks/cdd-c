@@ -35,7 +35,11 @@ struct SdkTestsConfig {
 #ifdef CDD_BUILD_TESTS
 /* extern int g_fail_io_after; (moved to global) */
 /* extern int g_io_calls; (moved to global) */
-static int mock_fprintf(FILE *fp, const char *fmt, ...) {
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
+static int
+mock_fprintf(FILE *fp, const char *fmt, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)

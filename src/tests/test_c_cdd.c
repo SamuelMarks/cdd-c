@@ -19,6 +19,13 @@ int g_cdd_cst_emit_realloc_fail;
 int g_schema_strdup_fail;
 int g_schema_realloc_fail;
 int g_schema_fail_io_after;
+
+int g_force_gnu_alloc_fail = 0;
+int g_force_parse_tokens_fail = 0;
+int g_force_find_allocations_fail = 0;
+int g_force_strdup_fail = 0;
+int g_force_tokenize_fail = 0;
+
 int g_schema_io_calls;
 int g_schema_codegen_force_fail;
 int g_cdd_cst_realloc_fail;
@@ -325,11 +332,8 @@ TEST test_cdd_helpers(void) {
     extern int g_str_unquote_malloc_fail;
     extern int g_enum_members_init_fail;
     extern int g_listen_fail;
-    extern int g_force_gnu_alloc_fail;
     extern int g_cdd_lexer_id_fail;
     extern int g_cdd_cfg_alloc_fail;
-    extern int g_force_parse_tokens_fail;
-    extern int g_force_find_allocations_fail;
     extern int g_socket_fail;
     extern int g_err_perc_fail;
     extern int g_cdd_cst_realloc_fail;
@@ -343,10 +347,8 @@ TEST test_cdd_helpers(void) {
     extern int g_cdd_ffi_ir_malloc_fail;
     extern int g_io_calls;
     extern int g_cdd_strdup_fail;
-    extern int g_force_strdup_fail;
     extern int g_cdd_lexer_trivia_fail;
     extern int g_schema_strdup_fail;
-    extern int g_force_tokenize_fail;
     extern int g_pthread_create_fail;
     extern int g_cdd_helpers_fopen_err;
     extern int g_accept_fail;

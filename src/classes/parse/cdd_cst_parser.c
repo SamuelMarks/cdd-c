@@ -171,8 +171,10 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
 
   advance(s, &t); /* { */
   rc = append_child_token(b, t);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    free_node(b);
     return rc;
+  }
 
   while (s->pos < s->list->size) {
 

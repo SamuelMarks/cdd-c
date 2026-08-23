@@ -292,7 +292,7 @@ TEST test_foo_e_full_coverage(void) {
     HazE_default(&haz_e);
     g_simple_json_fail_alloc = 0;
     haz_e->bzr = malloc(4);
-    strcpy((char *)haz_e->bzr, "foo");
+    memcpy((char *)haz_e->bzr, "foo", 4);
     printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n", (void *)haz_e->bzr,
            (void *)"foo");
     fflush(stdout);
@@ -321,7 +321,7 @@ TEST test_foo_e_full_coverage(void) {
     }
     g_simple_json_fail_alloc = 0;
     haz_e->bzr = malloc(4);
-    strcpy((char *)haz_e->bzr, "foo");
+    memcpy((char *)haz_e->bzr, "foo", 4);
     printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n", (void *)haz_e->bzr,
            (void *)"foo");
     fflush(stdout);
@@ -369,7 +369,7 @@ TEST test_foo_e_full_coverage(void) {
     g_simple_json_fail_alloc = 0;
     FooE_default(&foo_e);
     foo_e->bar = malloc(5);
-    strcpy((char *)foo_e->bar, "test");
+    memcpy((char *)foo_e->bar, "test", 5);
 
     g_simple_json_fail_alloc = i;
     rc = FooE_default(&foo_e2);

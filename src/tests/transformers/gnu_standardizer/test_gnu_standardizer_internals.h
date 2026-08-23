@@ -7,8 +7,6 @@
 #include "classes/parse/cdd_cst_parser.h"
 #include <greatest.h>
 
-int g_force_gnu_alloc_fail = 0;
-int g_force_strdup_fail = 0;
 #define malloc(s) (g_force_gnu_alloc_fail ? NULL : malloc(s))
 #define realloc(p, s) (g_force_gnu_alloc_fail ? NULL : realloc(p, s))
 #define strdup(s) (g_force_strdup_fail ? NULL : strdup(s))

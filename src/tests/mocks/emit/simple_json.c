@@ -46,6 +46,9 @@ static void *test_calloc(size_t count, size_t size) {
 }
 #if defined(__clang__)
 #endif
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
 static int test_jasprintf(char **strp, const char *fmt, ...) {
   {
     int ret;
@@ -77,7 +80,7 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
         size_t old_len = strlen(*strp);
         new_str = malloc(old_len + len + 1);
         if (!new_str) { free(*strp); *strp = NULL; va_end(ap); return -1; }
-        strcpy(new_str, *strp);
+        memcpy(new_str, *strp, old_len + 1);
         vsnprintf(new_str + old_len, len + 1, fmt, ap);
         free(*strp);
       }

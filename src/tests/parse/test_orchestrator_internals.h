@@ -6,7 +6,6 @@
 #include "functions/parse/tokenizer.h"
 #include <greatest.h>
 
-int g_force_find_allocations_fail = 0;
 
 cdd_c_error_t internal_orchestrate_fix(const char *source_code, char **out_code);
 cdd_c_error_t internal_fix_code_main(int argc, char **argv);
@@ -18,12 +17,10 @@ cdd_c_error_t internal_fix_code_main(int argc, char **argv);
 static cdd_c_error_t mock_find_allocations(const struct TokenList *tokens,
                                            struct AllocationSiteList *out);
 
-int g_force_parse_tokens_fail = 0;
 #define parse_tokens mock_parse_tokens
 static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
                                        struct CstNodeList *out);
 
-int g_force_tokenize_fail = 0;
 #define tokenize mock_tokenize
 static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list);
 
