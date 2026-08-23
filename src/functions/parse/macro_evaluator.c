@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #include "c_cdd/memory.h"
 /* clang-format off */
 #include "macro_evaluator.h"
@@ -678,3 +685,7 @@ void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result) {
     result->str_val = NULL;
   }
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /* clang-format off */
 #include "c_cdd/memory.h"
 #include "cdd_api.h"
@@ -885,3 +892,7 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   return CDD_C_SUCCESS;
 }
 C_CDD_EXPORT int g_cdd_alloc_fail = 0;
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

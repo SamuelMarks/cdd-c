@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_diff.h
  * @brief Unit tests for diff generation.
@@ -26,7 +33,7 @@ TEST test_patch_list_to_diff_basic(void) {
   int res;
   char *diff_str = NULL;
   size_t tok_idx = 0;
-  bool found = false;
+  int found = 0;
 
   res = tokenize(az_span_create_from_str((char *)src), &tokens);
   ASSERT_EQ(0, res);
@@ -119,3 +126,7 @@ SUITE(diff_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_DIFF_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

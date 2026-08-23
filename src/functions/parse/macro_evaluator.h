@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef CDD_MACRO_EVALUATOR_H
 #define CDD_MACRO_EVALUATOR_H
 
@@ -61,3 +68,7 @@ C_CDD_EXPORT void cdd_macro_eval_result_free(cdd_macro_eval_result_t *result);
 #endif /* __cplusplus */
 
 #endif /* CDD_MACRO_EVALUATOR_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

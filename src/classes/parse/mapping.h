@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file mapping.h
  * @brief Reusable type mapper for converting C types to OpenAPI Schemas.
@@ -88,3 +95,7 @@ c_mapping_map_type(const char *c_type_in, const char *decl_name,
 #endif /* __cplusplus */
 
 #endif /* C_CDD_C_MAPPING_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

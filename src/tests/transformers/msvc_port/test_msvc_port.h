@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_msvc_port.h
  * @brief Unit tests for MSVC port transformer.
@@ -87,7 +94,8 @@ TEST test_cdd_transform_msvc(void) {
    * Wait, msvc_port replaces strdup etc. */
   {
     cdd_cst_tree_t *tree2 = NULL;
-    cdd_cst_node_t *node = NULL;
+    cdd_cst_node_t *node;
+    node = NULL;
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &node);
     tree2 = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
     tree2->root = node;
@@ -288,3 +296,7 @@ SUITE(transformer_msvc_port_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_TRANSFORM_MSVC_PORT_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file preprocessor.c
  * @brief Implementation of the C preprocessor.
@@ -1649,27 +1656,27 @@ static cdd_c_error_t parse_relational(struct ExprState *s, long *_out_val) {
 
     if (k == TOKEN_LEQ) {
 
-      (match(s, k, &_ast_match_72) == 0 && _ast_match_72);
+      (void)(match(s, k, &_ast_match_72) == 0 && _ast_match_72);
 
       val =
           (val <= (parse_shift(s, &_ast_parse_shift_73), _ast_parse_shift_73));
 
     } else if (k == TOKEN_GEQ) {
 
-      (match(s, k, &_ast_match_74) == 0 && _ast_match_74);
+      (void)(match(s, k, &_ast_match_74) == 0 && _ast_match_74);
 
       val =
           (val >= (parse_shift(s, &_ast_parse_shift_75), _ast_parse_shift_75));
 
     } else if (k == TOKEN_LESS) {
 
-      (match(s, k, &_ast_match_76) == 0 && _ast_match_76);
+      (void)(match(s, k, &_ast_match_76) == 0 && _ast_match_76);
 
       val = (val < (parse_shift(s, &_ast_parse_shift_77), _ast_parse_shift_77));
 
     } else if (k == TOKEN_GREATER) {
 
-      (match(s, k, &_ast_match_78) == 0 && _ast_match_78);
+      (void)(match(s, k, &_ast_match_78) == 0 && _ast_match_78);
 
       val = (val > (parse_shift(s, &_ast_parse_shift_79), _ast_parse_shift_79));
 
@@ -2594,3 +2601,7 @@ cleanup_and_exit:
 
   return rc;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

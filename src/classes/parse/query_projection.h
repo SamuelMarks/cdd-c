@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef C_CDD_QUERY_PROJECTION_H
 #define C_CDD_QUERY_PROJECTION_H
 
@@ -39,3 +46,7 @@ cdd_c_query_projection_free(cdd_c_query_projection_t *proj);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_QUERY_PROJECTION_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

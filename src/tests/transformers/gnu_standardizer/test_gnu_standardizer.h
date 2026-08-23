@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_gnu_standardizer.h
  * @brief Unit tests for the GNU standardizer transformer.
@@ -752,3 +759,7 @@ SUITE(transformer_gnu_standardizer_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_TRANSFORM_GNU_STANDARDIZER_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file json.h
  * @brief JSON Serialization Generator.
@@ -111,3 +118,7 @@ extern C_CDD_EXPORT cdd_c_error_t write_struct_array_from_json_func(
 #endif /* __cplusplus */
 
 #endif /* C_CDD_CODEGEN_JSON_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file aggregator.c
  * @brief Implementation of route aggregation.
@@ -214,3 +221,7 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   return append_operation(&target_path->operations, &target_path->n_operations,
                           op);
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

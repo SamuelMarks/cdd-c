@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 
 #ifdef CDD_BUILD_TESTS
 #endif
@@ -312,3 +319,7 @@ SUITE(codegen_enum_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_ENUM_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

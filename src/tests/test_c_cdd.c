@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #if defined(_MSC_VER)
 different base types from char[3] * / file scope * /
 #endif
@@ -353,7 +360,7 @@ TEST test_cdd_helpers(void) {
     extern int g_enum_members_add_fail;
     extern int g_getsockname_fail;
     extern int g_cdd_lexer_id2_fail;
-    extern extern int g_cdd_alloc_fail;
+    extern int g_cdd_alloc_fail;
     /* extern int g_cdd_helpers_fopen_err; (moved to global) */
     g_io_calls = 0;
     g_fail_io_after = 1;
@@ -859,4 +866,8 @@ int main(int argc, char **argv) {
 }
 
 #if defined(__GNUC__) || defined(__clang__)
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif

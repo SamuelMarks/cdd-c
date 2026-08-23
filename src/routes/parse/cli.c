@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file cli.c
  * @brief Implementation of CLI parsing.
@@ -5668,8 +5675,8 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
            "  -l, --lang <langs>        Comma-separated list "
            "of languages or "
            "'*' "
-           "(e.g., python,rust)\n"
-           "  -n, --lib-name <name>     Name of the shared "
+           "(e.g., python,rust)");
+      puts("  -n, --lib-name <name>     Name of the shared "
            "library (e.g., "
            "sqlite3)\n"
            "  -m, --module-name <name>  Name of the generated "
@@ -5682,7 +5689,7 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
            "  --generate-tests          Generate basic "
            "sanity-check tests\n"
            "  -h, --help                Show this help "
-           "message\n");
+           "message");
       return CDD_C_SUCCESS;
     } else if ((strcmp(argv[i], "-i") == 0 ||
                 strcmp(argv[i], "--input") == 0) &&
@@ -5802,3 +5809,7 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
   }
   return CDD_C_SUCCESS;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

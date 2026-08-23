@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /* clang-format off */
 #include "cdd_cst_builder.h"
 #include "cdd_cst_factory.h"
@@ -968,3 +975,7 @@ cdd_c_error_t cdd_cst_splice_nodes(cdd_cst_builder_t *builder,
   }
   return rc;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

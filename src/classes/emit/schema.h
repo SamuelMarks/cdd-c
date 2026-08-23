@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file schema.h
  * @brief Schema constraint handling logic for code generation.
@@ -72,3 +79,7 @@ extern C_CDD_EXPORT void schema_constraints_free(struct SchemaConstraints *sc);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_CODEGEN_SCHEMA_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

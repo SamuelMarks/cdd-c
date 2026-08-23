@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file makefile_scraper.h
  * @brief Simple Makefile / configure.ac Scraper to extract build properties.
@@ -91,3 +98,7 @@ build_info_to_cmake(const struct ExtractedBuildInfo *info,
 #endif /* __cplusplus */
 
 #endif /* C_CDD_MAKEFILE_SCRAPER_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

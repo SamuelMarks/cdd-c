@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef TEST_CLI_C2OPENAPI_H
 #define TEST_CLI_C2OPENAPI_H
 
@@ -14,7 +21,8 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[] = {"c2openapi", "src/tests/mocks", "out.json"};
-  int rc = c2openapi_cli_main(3, argv1);
+  int rc;
+  rc = c2openapi_cli_main(3, argv1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
@@ -29,7 +37,8 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "http://example.com/dialect",
                    "src/tests/mocks",
                    "out2.json"};
-  int rc = c2openapi_cli_main(9, argv1);
+  int rc;
+  rc = c2openapi_cli_main(9, argv1);
   if (rc != CDD_C_SUCCESS) {
     printf(
         "test_c2openapi_cli_main_valid_args_with_options failed with rc=%d\n",
@@ -248,3 +257,7 @@ SUITE(cli_c2openapi_suite) {
   RUN_TEST(test_c2openapi_cli_main_doc_tags);
 }
 #endif /* TEST_CLI_C2OPENAPI_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

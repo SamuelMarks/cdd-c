@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef TEST_CODE2SCHEMA_OOM_H
 #define TEST_CODE2SCHEMA_OOM_H
 
@@ -25,4 +32,8 @@ TEST test_code2schema_oom_simulate(void) {
   json_set_allocation_functions(malloc, free);
   PASS();
 }
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_cdd_cst_trivia.h
  * @brief Unit tests for CST trivia operations.
@@ -246,3 +253,7 @@ SUITE(cdd_cst_trivia_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_TRIVIA_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

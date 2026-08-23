@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_integration_c2openapi.h
  * @brief Integration tests for C to OpenAPI conversion.
@@ -98,7 +105,8 @@ TEST test_c2openapi_full_flow(void) {
   /* 3. Run CLI */
   {
     /* C90 compliant initialization */
-    char *argv[5];
+    char *argv[5]; /* ... */
+    int rc;
     argv[0] = "c2openapi";
     argv[1] = "--dialect";
     argv[2] = "https://spec.openapis.org/oas/3.1/dialect/base";
@@ -343,7 +351,8 @@ TEST test_c2openapi_with_base_spec(void) {
                 "}\n");
 
   {
-    char *argv[5];
+    char *argv[5]; /* ... */
+    int rc;
     argv[0] = "c2openapi";
     argv[1] = "--base";
     argv[2] = base_json;
@@ -432,7 +441,8 @@ TEST test_c2openapi_with_self_uri(void) {
                 "int api_list_users(struct User **out) { return 0; }\n");
 
   {
-    char *argv[5];
+    char *argv[5]; /* ... */
+    int rc;
     argv[0] = "c2openapi";
     argv[1] = "--self";
     argv[2] = "https://example.com/override.json";
@@ -497,7 +507,8 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
               "int api_ping(void) { return 0; }\n");
 
   {
-    char *argv[3];
+    char *argv[3]; /* ... */
+    int rc;
     argv[0] = "c2openapi";
     argv[1] = src_dir;
     argv[2] = out_json;
@@ -580,8 +591,12 @@ TEST test_c2o_cli_source_file_checks(void) {
   write_to_file(no_ext_file, "no extension here");
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
-    int rc = c2openapi_cli_main(3, argv);
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
+    rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
     }
@@ -664,8 +679,12 @@ TEST test_c2o_cli_doc_sec_unset(void) {
     }
 
     {
-      char *argv[] = {"c2openapi", src_dir, out_json};
-      int rc = c2openapi_cli_main(3, argv);
+      char *argv[3]; /* ... */
+      int rc;
+      argv[0] = "c2openapi";
+      argv[1] = (char *)src_dir;
+      argv[2] = (char *)out_json;
+      rc = c2openapi_cli_main(3, argv);
       if (rc != 0) {
         printf("\nERROR rc=%d\n", rc);
       }
@@ -711,7 +730,11 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
     rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
@@ -761,7 +784,11 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
     rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
@@ -802,8 +829,12 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
-    int rc = c2openapi_cli_main(3, argv);
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
+    rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
     }
@@ -845,8 +876,12 @@ TEST test_c2o_cli_server_variables(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
-    int rc = c2openapi_cli_main(3, argv);
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
+    rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
     }
@@ -889,8 +924,12 @@ TEST test_c2o_cli_server_variables_validation(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
-    int rc = c2openapi_cli_main(3, argv);
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
+    rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
     }
@@ -936,8 +975,12 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   write_to_file(c_file, src);
 
   {
-    char *argv[] = {"c2openapi", src_dir, out_json};
-    int rc = c2openapi_cli_main(3, argv);
+    char *argv[3]; /* ... */
+    int rc;
+    argv[0] = "c2openapi";
+    argv[1] = (char *)src_dir;
+    argv[2] = (char *)out_json;
+    rc = c2openapi_cli_main(3, argv);
     if (rc != 0) {
       printf("\nERROR rc=%d\n", rc);
     }
@@ -995,8 +1038,12 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
     }
 
     {
-      char *argv[] = {"c2openapi", src_dir, out_json};
-      int rc = c2openapi_cli_main(3, argv);
+      char *argv[3]; /* ... */
+      int rc;
+      argv[0] = "c2openapi";
+      argv[1] = (char *)src_dir;
+      argv[2] = (char *)out_json;
+      rc = c2openapi_cli_main(3, argv);
       if (rc != 0) {
         printf("\nERROR rc=%d\n", rc);
       }
@@ -1066,8 +1113,12 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
     }
 
     {
-      char *argv[] = {"c2openapi", src_dir, out_json};
-      int rc = c2openapi_cli_main(3, argv);
+      char *argv[3]; /* ... */
+      int rc;
+      argv[0] = "c2openapi";
+      argv[1] = (char *)src_dir;
+      argv[2] = (char *)out_json;
+      rc = c2openapi_cli_main(3, argv);
       if (rc != 0) {
         printf("\nERROR rc=%d\n", rc);
       }
@@ -1116,3 +1167,7 @@ SUITE(integration_c2openapi_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_INTEGRATION_C2OPENAPI_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

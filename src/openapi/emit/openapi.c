@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file openapi.c
  * @brief Implementation of OpenAPI generation.
@@ -3760,3 +3767,7 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
 
   return *json_out ? 0 : ENOMEM;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

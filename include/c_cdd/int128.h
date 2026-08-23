@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file int128.h
  * @brief Polyfills for 128-bit integers (`__int128`).
@@ -90,3 +97,7 @@ static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
 #endif /* __cplusplus */
 
 #endif /* C_CDD_INT128_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

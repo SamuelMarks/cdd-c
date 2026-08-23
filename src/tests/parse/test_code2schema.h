@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_code2schema.h
  * @brief Unit tests for code to schema conversion.
@@ -450,7 +457,12 @@ TEST test_code2schema_branches(void) {
     if (fp) {
       fprintf(fp, "int main() {\r\n  return 0;\r\n}\r\n");
       fclose(fp);
-      code2schema_main(2, (char *[]){"code2schema", "dummy_c_code.c"});
+      {
+        char *args[2];
+        args[0] = "code2schema";
+        args[1] = "dummy_c_code.c";
+        code2schema_main(2, args);
+      }
     }
   }
   PASS();
@@ -1338,3 +1350,7 @@ SUITE(code2schema_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CODE2SCHEMA_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

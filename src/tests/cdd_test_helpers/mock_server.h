@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file mock_server.h
  * @brief Lightweight, cross-platform TCP server for integration testing.
@@ -100,3 +107,7 @@ mock_server_request_cleanup(struct MockServerRequest *req);
 #endif /* __cplusplus */
 
 #endif /* CDD_TEST_HELPERS_MOCK_SERVER_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

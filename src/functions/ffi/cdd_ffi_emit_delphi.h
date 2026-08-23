@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef CDD_FFI_EMIT_DELPHI_H
 #define CDD_FFI_EMIT_DELPHI_H
 
@@ -26,3 +33,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_delphi(
 #endif /* __cplusplus */
 
 #endif /* CDD_FFI_EMIT_DELPHI_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

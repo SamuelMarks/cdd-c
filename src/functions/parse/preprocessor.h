@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file preprocessor.h
  * @brief Simplistic C Preprocessor logic for include resolution and macro
@@ -215,3 +222,7 @@ extern C_CDD_EXPORT void pp_embed_params_free(struct EmbedParams *params);
 #endif /* __cplusplus */
 
 #endif /* C_CDD_PREPROCESSOR_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

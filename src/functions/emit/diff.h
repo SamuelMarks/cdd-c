@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file diff.h
  * @brief Simple Unified Diff generator for PatchLists.
@@ -40,3 +47,7 @@ patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
 #endif /* __cplusplus */
 
 #endif /* C_CDD_DIFF_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

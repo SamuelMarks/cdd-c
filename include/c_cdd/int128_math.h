@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file int128_math.h
  * @brief Polyfill arithmetic operations for 128-bit integers.
@@ -538,3 +545,7 @@ static int cdd_int128_to_double(cdd_int128_t val, double *out) {
 #endif /* __cplusplus */
 
 #endif /* C_CDD_INT128_MATH_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

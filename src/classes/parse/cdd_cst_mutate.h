@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef CDD_CST_MUTATE_H
 #define CDD_CST_MUTATE_H
 
@@ -115,3 +122,7 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_cst_remove_child(cdd_cst_node_t *node,
 extern C_CDD_EXPORT cdd_c_error_t cdd_cst_replace_token_child(
     cdd_cst_node_t *node, size_t idx, cdd_token_t *new_tok);
 #endif /* CDD_CST_MUTATE_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

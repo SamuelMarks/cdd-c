@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef TEST_MAIN_COVERAGE_H
 #define TEST_MAIN_COVERAGE_H
 
@@ -272,4 +279,8 @@ SUITE(main_coverage_suite) {
 #ifdef __cplusplus
 }
 #endif
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif

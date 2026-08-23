@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /* clang-format off */
 #include "cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/inspector.h"
@@ -1078,3 +1085,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
   *out_ir = ir;
   return CDD_C_SUCCESS;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

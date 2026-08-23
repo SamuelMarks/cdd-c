@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef TEST_ARRAYS_PRIMITIVE_H
 #define TEST_ARRAYS_PRIMITIVE_H
 
@@ -133,9 +140,12 @@ TEST test_code2schema_array_detection(void) {
        `parse_header_file` is static in code2schema.c. We must use
        `code2schema_main`.
     */
-    char *argv[] = {"test_array.h", (char *)json_out_file};
+    char *argv[2];
+    cdd_c_error_t result;
+    argv[0] = "test_array.h";
+    argv[1] = (char *)json_out_file;
     /* clang-format on */
-    cdd_c_error_t result = code2schema_main(2, argv);
+    result = code2schema_main(2, argv);
     printf("code2schema_main returned %d\n", result);
     ASSERT_EQ(CDD_C_SUCCESS, result);
   }
@@ -218,3 +228,7 @@ SUITE(arrays_primitive_suite) {
 }
 #endif /* __cplusplus */
 #endif /* TEST_ARRAYS_PRIMITIVE_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

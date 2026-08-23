@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /* clang-format off */
 #include "../../include/ffi/cdd_ffi_variadic.h"
 #include <string.h>
@@ -151,3 +158,7 @@ cdd_c_error_t cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...),
     return -1;
   }
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

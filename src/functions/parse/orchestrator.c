@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #include "c_cdd/memory.h"
 /**
  * @file orchestrator.c
@@ -890,3 +897,7 @@ cdd_c_error_t fix_code_main(int argc, char **argv) {
     return CDD_C_ERROR_UNKNOWN;
   return (ctx.error_count == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

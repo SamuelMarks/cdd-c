@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_codegen_jwt.h
  * @brief Unit tests for JWT parser generator.
@@ -98,3 +105,7 @@ SUITE(codegen_jwt_suite) { RUN_TEST(test_jwt_generation); }
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_JWT_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

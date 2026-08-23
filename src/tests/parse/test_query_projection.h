@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_query_projection.h
  * @brief Tests for query projection AST representations.
@@ -57,3 +64,7 @@ SUITE(query_projection_suite) {
 #endif /* __cplusplus */
 
 #endif /* C_CDD_TEST_QUERY_PROJECTION_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

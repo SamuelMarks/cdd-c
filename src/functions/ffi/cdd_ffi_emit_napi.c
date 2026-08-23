@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt.h"
 #include "cdd_ffi_emit_napi.h"
@@ -321,3 +328,7 @@ cdd_c_error_t cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
 
   return emit_binding_gyp(config);
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

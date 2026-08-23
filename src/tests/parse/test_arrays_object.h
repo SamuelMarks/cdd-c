@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 #ifndef TEST_ARRAYS_OBJECT_H
 #define TEST_ARRAYS_OBJECT_H
 
@@ -117,7 +124,9 @@ TEST test_code2schema_obj_array_detection(void) {
 extern int g_io_calls;
 extern int g_fail_io_after;
     /* clang-format on */
-    char *argv[] = {"test_obj_array.h", (char *)json_out_file};
+    char *argv[2];
+    argv[0] = "test_obj_array.h";
+    argv[1] = (char *)json_out_file;
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 
@@ -216,3 +225,7 @@ SUITE(arrays_object_suite) {
 }
 #endif /* __cplusplus */
 #endif /* TEST_ARRAYS_OBJECT_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

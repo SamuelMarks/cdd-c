@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file db_loader.c
  * @brief Dynamic loader checking for DB clients
@@ -92,3 +99,7 @@ cdd_c_error_t check_sqlite3_available(int *out_avail) {
 cdd_c_error_t check_mysql_available(int *out_avail) {
   return check_lib("libmysql.dll", "libmysqlclient.so", out_avail);
 }
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

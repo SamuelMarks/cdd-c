@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file makefile_scraper.c
  * @brief Implementation of legacy build script scraper.
@@ -344,4 +351,8 @@ C_CDD_EXPORT cdd_c_error_t test_my_strdup_errors(void) {
   return (cdd_c_error_t)((err1 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
                          (err2 ^ CDD_C_ERROR_INVALID_ARGUMENT));
 }
+#endif
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif

@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_refactor_api_sync.h
  * @brief Unit tests for refactoring API sync logic.
@@ -201,3 +208,7 @@ SUITE(api_sync_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_REFACTOR_API_SYNC_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

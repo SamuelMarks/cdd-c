@@ -1,3 +1,10 @@
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#pragma GCC diagnostic ignored "-Wlong-long"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 /**
  * @file test_cdd_cst_factory.h
  * @brief Unit tests for the CST factory.
@@ -30,7 +37,8 @@ extern int g_cdd_cst_alloc_token_fail;
  * @return TEST
  */
 TEST test_cst_alloc_node(void) {
-  cdd_cst_node_t *node = NULL;
+  cdd_cst_node_t *node;
+  node = NULL;
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_alloc_node(CDD_CST_DECLARATION, NULL));
@@ -236,7 +244,8 @@ TEST test_cst_parse_format(void) {
 
 TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_tree_t *tree = NULL;
-  cdd_cst_node_t *node = NULL;
+  cdd_cst_node_t *node;
+  node = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   g_cdd_cst_alloc_token_fail = 2;
@@ -406,3 +415,7 @@ SUITE(cdd_cst_factory_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_FACTORY_H */
+
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
