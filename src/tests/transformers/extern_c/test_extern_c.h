@@ -12,9 +12,9 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 /* extern int g_cdd_cst_realloc_fail; (moved to global) */
-C_CDD_EXPORT volatile int g_extern_c_top_node_fail;
-C_CDD_EXPORT volatile int g_extern_c_bot_node_fail;
-C_CDD_EXPORT volatile int g_extern_c_helper_fail;
+extern volatile int g_extern_c_top_node_fail;
+extern volatile int g_extern_c_bot_node_fail;
+extern volatile int g_extern_c_helper_fail;
 #endif
 
 /* clang-format off */

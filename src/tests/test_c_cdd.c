@@ -13,84 +13,84 @@ different base types from char[3] * / file scope * /
 #include "c_cdd_export.h"
 #include <errno.h>
 
-int g_fail_io_after;
-int g_io_calls;
-int g_cdd_cst_emit_realloc_fail;
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
+extern int g_fail_io_after;
+extern int g_io_calls;
+extern int g_cdd_cst_emit_realloc_fail;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
 
-int g_force_gnu_alloc_fail = 0;
-int g_force_parse_tokens_fail = 0;
-int g_force_find_allocations_fail = 0;
-int g_force_strdup_fail = 0;
-int g_force_tokenize_fail = 0;
+extern int g_force_gnu_alloc_fail = 0;
+extern int g_force_parse_tokens_fail = 0;
+extern int g_force_find_allocations_fail = 0;
+extern int g_force_strdup_fail = 0;
+extern int g_force_tokenize_fail = 0;
 
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
-int g_cdd_cst_alloc_token_fail;
-int g_cdd_cst_alloc_node_fail;
-int g_cdd_scope_alloc_fail;
-
-
-int g_fail_io_after;
-int g_io_calls;
-int g_cdd_cst_emit_realloc_fail;
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_cst_alloc_node_fail;
+extern int g_cdd_scope_alloc_fail;
 
 
-
-
-int g_fail_io_after;
-int g_io_calls;
-int g_cdd_cst_emit_realloc_fail;
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
-
-
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
+extern int g_fail_io_after;
+extern int g_io_calls;
+extern int g_cdd_cst_emit_realloc_fail;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
 
 
 
 
-int g_fail_io_after;
-int g_io_calls;
-int g_cdd_cst_emit_realloc_fail;
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
+extern int g_fail_io_after;
+extern int g_io_calls;
+extern int g_cdd_cst_emit_realloc_fail;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
 
 
-int g_schema_strdup_fail;
-int g_schema_realloc_fail;
-int g_schema_fail_io_after;
-int g_schema_io_calls;
-int g_schema_codegen_force_fail;
-int g_cdd_cst_realloc_fail;
-int g_cdd_cst_parser_fast_grow;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
+
+
+
+
+extern int g_fail_io_after;
+extern int g_io_calls;
+extern int g_cdd_cst_emit_realloc_fail;
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
+
+
+extern int g_schema_strdup_fail;
+extern int g_schema_realloc_fail;
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+extern int g_schema_codegen_force_fail;
+extern int g_cdd_cst_realloc_fail;
+extern int g_cdd_cst_parser_fast_grow;
 
 
 
