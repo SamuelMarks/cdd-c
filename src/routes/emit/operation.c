@@ -3,7 +3,8 @@
  * @brief Implementation of operation logic.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -12,10 +13,10 @@
 
 #include "../win_compat_sym.h"
 
+#include "c_cdd/log.h"
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
 #include "routes/emit/operation.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helpers --- */
@@ -833,8 +834,8 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
     }
   }
   if (dl->parameters_json) {
-    int rc = parse_link_params_json(dl->parameters_json, &link->parameters,
-                                    &link->n_parameters);
+    cdd_c_error_t rc = parse_link_params_json(
+        dl->parameters_json, &link->parameters, &link->n_parameters);
     if (rc != 0)
       return rc;
   }
@@ -1465,7 +1466,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
   const struct C2OpenAPI_ParsedSig *sig = ctx->sig;
   const struct DocMetadata *doc = ctx->doc;
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = 0;
 
   if (!ctx || !out_op || !sig)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1690,7 +1691,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           return CDD_C_ERROR_MEMORY;
       }
       if (src->n_variables > 0) {
-        int vrc = copy_doc_server_variables_op(&out_op->servers[s], src);
+        cdd_c_error_t vrc =
+            copy_doc_server_variables_op(&out_op->servers[s], src);
         if (vrc != 0)
           return vrc;
       }
@@ -1800,7 +1802,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             (c_cdd_strdup(type_map.oa_type, &_ast_strdup_75), _ast_strdup_75);
       }
       {
-        int fmt_rc = apply_format_to_schema_ref(&r->schema, &type_map, NULL);
+        cdd_c_error_t fmt_rc =
+            apply_format_to_schema_ref(&r->schema, &type_map, NULL);
         if (fmt_rc == ENOMEM) {
           c_mapping_free(&type_map);
           return CDD_C_ERROR_MEMORY;
@@ -1827,7 +1830,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       out_op->req_body_required = 1;
       out_op->req_body_required_set = 1;
       {
-        int fmt_rc =
+        cdd_c_error_t fmt_rc =
             apply_format_to_schema_ref(&out_op->req_body, &type_map, NULL);
         if (fmt_rc == ENOMEM) {
           c_mapping_free(&type_map);
@@ -1916,8 +1919,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
     {
       const char *fmt_override = (dp && dp->format) ? dp->format : NULL;
-      int fmt_rc = apply_format_to_schema_ref(&curr_param.schema, &type_map,
-                                              fmt_override);
+      cdd_c_error_t fmt_rc = apply_format_to_schema_ref(
+          &curr_param.schema, &type_map, fmt_override);
       if (fmt_rc == ENOMEM) {
         c_mapping_free(&type_map);
         return CDD_C_ERROR_MEMORY;
@@ -1977,7 +1980,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     }
 
     if (dp && dp->example) {
-      int ex_rc = parse_example_any(dp->example, &curr_param.example);
+      cdd_c_error_t ex_rc = parse_example_any(dp->example, &curr_param.example);
       if (ex_rc == ENOMEM) {
         c_mapping_free(&type_map);
         return CDD_C_ERROR_MEMORY;
@@ -2136,9 +2139,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
               return CDD_C_ERROR_MEMORY;
           }
           if (doc->returns[i].content_type) {
-            int add_rc = add_response_media_type(&out_op->responses[k],
-                                                 doc->returns[i].content_type,
-                                                 doc->returns[i].item_schema);
+            cdd_c_error_t add_rc = add_response_media_type(
+                &out_op->responses[k], doc->returns[i].content_type,
+                doc->returns[i].item_schema);
             if (add_rc != 0)
               return add_rc;
             if (!out_op->responses[k].content_type) {
@@ -2150,9 +2153,9 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             }
           }
           if (doc->returns[i].example) {
-            int ex_rc = apply_example_to_response(&out_op->responses[k],
-                                                  doc->returns[i].example,
-                                                  doc->returns[i].content_type);
+            cdd_c_error_t ex_rc = apply_example_to_response(
+                &out_op->responses[k], doc->returns[i].example,
+                doc->returns[i].content_type);
             if (ex_rc != 0)
               return ex_rc;
           }
@@ -2192,8 +2195,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           }
         }
         if (doc->returns[i].content_type) {
-          int add_rc = add_response_media_type(r, doc->returns[i].content_type,
-                                               doc->returns[i].item_schema);
+          cdd_c_error_t add_rc = add_response_media_type(
+              r, doc->returns[i].content_type, doc->returns[i].item_schema);
           if (add_rc != 0)
             return add_rc;
           r->content_type =
@@ -2205,8 +2208,8 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
           }
         }
         if (doc->returns[i].example) {
-          int ex_rc = apply_example_to_response(r, doc->returns[i].example,
-                                                doc->returns[i].content_type);
+          cdd_c_error_t ex_rc = apply_example_to_response(
+              r, doc->returns[i].example, doc->returns[i].content_type);
           if (ex_rc != 0)
             return ex_rc;
         }

@@ -19,7 +19,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of the Makefile scraper.
@@ -29,6 +28,7 @@ extern int g_cdd_alloc_fail;
 TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
+  (void)cmake_str;
   const char *makefile = "CC=gcc\n"
                          "CFLAGS=-I./include -DDEBUG=1 -I -D a b\n"
                          "SRCS=main.c util.c main.c .c";
@@ -84,6 +84,7 @@ extern cdd_c_error_t test_my_strdup_errors(void);
 TEST test_scrape_errors(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
+  (void)cmake_str;
 
   (void)build_info_init(&info);
 
@@ -141,13 +142,14 @@ TEST test_scrape_configure_ac_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_alloc_fail; (moved to global) */
+/*  (moved to global) */
 #endif
 
 TEST test_scrape_makefile_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
+  (void)cmake_str;
   const char *makefile = "CC=gcc\n"
                          "CFLAGS=-I./include -DDEBUG=1\n"
                          "SRCS=main.c util.c";
@@ -199,6 +201,7 @@ TEST test_build_info_to_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
+  (void)cmake_str;
   const char *makefile = "CC=gcc\n"
                          "CFLAGS=-I./include -DDEBUG=1\n"
                          "SRCS=main.c util.c";

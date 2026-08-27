@@ -1,3 +1,9 @@
+#ifdef _MSC_VER
+#define dup2 _dup2
+#define close _close
+#define fileno _fileno
+#define dup _dup
+#endif
 /**
  * @file test_serve_json_rpc.h
  * @brief Unit tests for JSON RPC server functionality.

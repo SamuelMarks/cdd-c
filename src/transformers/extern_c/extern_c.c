@@ -5,20 +5,21 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
+#include "c_cdd_export.h"
+#include "c_str_span.h"
 #include "cdd_cst_transform.h"
-#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
-#include "c_cdd/memory.h"
-#include "c_str_span.h"
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd_export.h"
+#include <string.h>
 /* clang-format on */
 
 /**
@@ -73,10 +74,10 @@ static cdd_c_error_t tree_has_decl(cdd_cst_node_t *node, int *out_has_decl) {
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *child = node->children[i].val.node;
-      int k;
+      enum cdd_cst_node_kind_t k;
       if (!child)
         continue;
-      k = child->kind;
+      k = (enum cdd_cst_node_kind_t)child->kind;
       if (k == CDD_CST_DECLARATION || k == CDD_CST_FUNCTION_DEFINITION ||
           k == CDD_CST_STATEMENT) {
         *out_has_decl = 1;

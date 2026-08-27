@@ -1,10 +1,11 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_semantic.h"
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include "c_cdd/memory.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 /* clang-format on */
 
 static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,

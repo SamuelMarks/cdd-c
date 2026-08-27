@@ -3,15 +3,16 @@
  * @brief Implementation of server code generation.
  */
 
-/* clang-format off */
-#include "c_cdd/safe_crt.h"
-#include "c_cdd/memory.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "server_gen.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
+#include "functions/parse/fs.h"
 #include "routes/emit/security.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "functions/parse/fs.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)

@@ -5,15 +5,16 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -113,7 +114,7 @@ static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
 static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
-  int rc;
+  cdd_c_error_t rc;
 
   /* Remove pointer asterisk */
   rc = c_cdd_strdup(in, &buf);
@@ -140,7 +141,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   const char *c_type = NULL;
   int is_ptr = 0;
   int is_array = 0;
-  int rc = 0;
+  cdd_c_error_t rc = 0;
   skip_qualifiers(c_type_in, &c_type);
   printf("DEBUG c_mapping_map_type: c_type_in='%s', c_type='%s'\n", c_type_in,
          c_type);

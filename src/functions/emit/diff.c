@@ -5,15 +5,16 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/emit/diff.h"
 #include "c_cdd/format_specifiers.h"
+#include "functions/emit/diff.h"
 /* clang-format on */
 
 /** @brief DiffLine struct */
@@ -197,8 +198,8 @@ append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
   va_end(args);
 
   if (printed > 0) {
-    if (*diff_len + printed + 1 > *diff_cap) {
-      *diff_cap = *diff_len + printed + 1024;
+    if (*diff_len + (size_t)printed + 1 > *diff_cap) {
+      *diff_cap = *diff_len + (size_t)printed + 1024;
       *diff_str = (char *)realloc(*diff_str, *diff_cap);
     }
     va_start(args, format);
@@ -208,7 +209,7 @@ append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
     vsprintf(*diff_str + *diff_len, format, args);
 #endif
     va_end(args);
-    *diff_len += printed;
+    *diff_len += (size_t)printed;
   }
   return CDD_C_SUCCESS;
 }

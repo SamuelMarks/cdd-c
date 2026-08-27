@@ -4,12 +4,13 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
 
 #include "functions/emit/patcher.h"
@@ -153,7 +154,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                            const struct SignatureTransform *transform,
                            char **out_code) {
   struct PatchList patches;
-  int rc;
+  cdd_c_error_t rc;
   size_t i;
   int injected_rc = 0;
   size_t tmp_var_counter = 0;

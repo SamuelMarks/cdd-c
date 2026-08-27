@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd/memory.h"
 #include <stdlib.h>
 #include <string.h>
@@ -203,7 +204,7 @@ enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
  * @brief Executes the HazE debug operation.
  */
 enum cdd_c_error HazE_debug(const struct HazE *haz_e, FILE *fh) {
-  int rc;
+  cdd_c_error_t rc;
   if (haz_e == NULL) {
     rc = fputs("<null HazE>\n", fh);
     return rc < 0 ? rc : 0;
@@ -248,7 +249,7 @@ enum cdd_c_error HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
  */
 enum cdd_c_error HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   int need_comma = 0;
 
   if (json == NULL)
@@ -304,7 +305,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
                                       struct HazE **haz_e) {
   const char *bzr_str = NULL;
   const char *tank_str;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   enum Tank tank_val;
   struct HazE *new_haz;
 
@@ -345,7 +346,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
 enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
-  int rc;
+  cdd_c_error_t rc;
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -382,7 +383,7 @@ enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
  * @brief Executes the FooE default operation.
  */
 enum cdd_c_error FooE_default(struct FooE **foo_e) {
-  int rc;
+  cdd_c_error_t rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -461,7 +462,7 @@ enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
  * @brief Executes the FooE debug operation.
  */
 enum cdd_c_error FooE_debug(const struct FooE *foo_e, FILE *fh) {
-  int rc;
+  cdd_c_error_t rc;
   if (foo_e == NULL) {
     rc = fputs("<null FooE>\n", fh);
     return rc < 0 ? rc : 0;
@@ -513,7 +514,7 @@ enum cdd_c_error FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
  */
 enum cdd_c_error FooE_to_json(const struct FooE *foo_e, char **const json) {
   char *haz_e_json = NULL;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -564,7 +565,7 @@ cleanup:
  */
 enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
                                       struct FooE **const foo_e) {
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   const char *bar_str = NULL;
   const JSON_Object *haz_obj = NULL;
   struct FooE *new_foo;
@@ -607,7 +608,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
 enum cdd_c_error FooE_from_json(const char *json, struct FooE **const foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
-  int rc;
+  cdd_c_error_t rc;
 
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;

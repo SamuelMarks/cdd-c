@@ -6,16 +6,17 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #ifdef CDD_BUILD_TESTS
-  extern int g_fail_io_after;
-  extern int g_io_calls;
+  extern C_CDD_EXPORT int g_fail_io_after;
+  extern C_CDD_EXPORT int g_io_calls;
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 2, 3)))
 #endif
@@ -34,8 +35,8 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_fail_io_after;
-  extern int g_io_calls;
+  extern C_CDD_EXPORT int g_fail_io_after;
+  extern C_CDD_EXPORT int g_io_calls;
 #define FOPEN(path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL : fopen(path, mode))
 #define FOPEN_S(fp, path, mode) ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? (*(fp) = NULL, -1) : fopen_s(fp, path, mode))
 #else
@@ -46,8 +47,11 @@ static int mock_fprintf(FILE *fp, const char *fmt, ...) {
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
 #include "c89stringutils_string_extras.h"
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 2, 3)))
+#endif
 static int mock_asprintf(char **strp, const char *fmt, ...) {
     int ret;
     va_list args;
@@ -73,14 +77,14 @@ static int mock_asprintf(char **strp, const char *fmt, ...) {
 
 #ifdef CDD_BUILD_TESTS
 #include <c_cdd_export.h>
-  /* extern int g_cdd_alloc_fail; (moved to global) */
-static int mock_get_dirname(const char *path, char **dir) {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
-    return get_dirname(path, dir);
+  /*  (moved to global) */
+static cdd_c_error_t mock_get_dirname(const char *path, char **dir) {
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return CDD_C_ERROR_MEMORY;
+    return (cdd_c_error_t)get_dirname(path, dir);
 }
-static int mock_makedirs(const char *path) {
-    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return -1;
-    return makedirs(path);
+static cdd_c_error_t mock_makedirs(const char *path) {
+    if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) return CDD_C_ERROR_MEMORY;
+    return (cdd_c_error_t)makedirs(path);
 }
 #define GET_DIRNAME mock_get_dirname
 #define MAKEDIRS mock_makedirs
@@ -107,9 +111,8 @@ static int mock_makedirs(const char *path) {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \
@@ -153,7 +156,7 @@ static cdd_c_error_t write_test_enum(FILE *f, const char *const enum_name,
               "TEST test_%s_to_str_from_str(void) {\n"
               "  char *str = NULL;\n"
               "  enum %s val;\n"
-              "  int rc;\n\n",
+              "  cdd_c_error_t rc;\n\n",
               c_enum_name, enum_name) < 0)
     return CDD_C_ERROR_IO;
 
@@ -216,9 +219,13 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
               "TEST test_%s_default_deepcopy_eq_cleanup(void) {\n"
               "  struct %s *obj0 = NULL;\n"
               "  struct %s *obj1 = NULL;\n"
-              "  int rc;\n\n"
+              "  cdd_c_error_t rc;\n\n"
               "  rc = %s_default(&obj0);\n"
-              "  if (rc != 0 || obj0 == NULL) FAIL();\n\n"
+              "  if (rc != 0 || obj0 == NULL) FAIL();\n\n",
+              struct_name, c_struct_name, struct_name, struct_name,
+              struct_name) < 0)
+    return CDD_C_ERROR_IO;
+  if (FPRINTF(f,
               "  rc = %s_deepcopy(obj0, &obj1);\n"
               "  if (rc != 0 || obj1 == NULL) { %s_cleanup(obj0); FAIL(); }\n\n"
               "  ASSERT(%s_eq(obj0, obj1));\n\n"
@@ -228,7 +235,6 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
               "  %s_cleanup(obj1);\n\n"
               "  PASS();\n"
               "}\n\n",
-              struct_name, c_struct_name, struct_name, struct_name, struct_name,
               struct_name, struct_name, struct_name, struct_name,
               struct_name) < 0)
     return CDD_C_ERROR_IO;
@@ -239,7 +245,7 @@ static cdd_c_error_t write_test_struct(FILE *f, const char *const struct_name,
               "  struct %s *obj_in = NULL;\n"
               "  struct %s *obj_out = NULL;\n"
               "  char *json_str = NULL;\n"
-              "  int rc;\n"
+              "  cdd_c_error_t rc;\n"
               "\n"
               "  rc = %s_default(&obj_in);\n"
               "  ASSERT_EQ(0, rc);\n"
@@ -286,7 +292,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
     JSON_Object *schemas_obj = NULL;
     FILE *f;
     char sanitized[128];
-    int rc = 0;
+    cdd_c_error_t rc = 0;
 
     root_val = json_parse_file(schema_file);
     if (!root_val) {

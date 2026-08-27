@@ -3,7 +3,8 @@
  * @brief Implementation of CLI parsing.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -12,6 +13,7 @@
 
 #include "../win_compat_sym.h"
 
+#include "../../cdd_api.h"
 #include "classes/emit/schema.h" /* For Type Registry */
 #include "classes/parse/code2schema.h"
 #include "classes/parse/inspector.h"
@@ -25,7 +27,6 @@
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
-#include "../../cdd_api.h"
 /* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1327,18 +1328,19 @@ static cdd_c_error_t find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
  */
 static cdd_c_error_t merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
                                       const struct DocOAuthFlow *src) {
-  int rc;
-  rc = set_str_if_missing(&dst->authorization_url, src->authorization_url);
+  cdd_c_error_t rc;
+  rc = (cdd_c_error_t)set_str_if_missing(&dst->authorization_url,
+                                         src->authorization_url);
   if (rc != 0)
     return rc;
-  rc = set_str_if_missing(&dst->token_url, src->token_url);
+  rc = (cdd_c_error_t)set_str_if_missing(&dst->token_url, src->token_url);
   if (rc != 0)
     return rc;
-  rc = set_str_if_missing(&dst->refresh_url, src->refresh_url);
+  rc = (cdd_c_error_t)set_str_if_missing(&dst->refresh_url, src->refresh_url);
   if (rc != 0)
     return rc;
-  rc = set_str_if_missing(&dst->device_authorization_url,
-                          src->device_authorization_url);
+  rc = (cdd_c_error_t)set_str_if_missing(&dst->device_authorization_url,
+                                         src->device_authorization_url);
   if (rc != 0)
     return rc;
   return merge_scopes(dst, src);
@@ -1586,7 +1588,7 @@ static cdd_c_error_t add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
     dst_flow = (find_oauth_flow(scheme, flow_type, &_ast_find_oauth_flow_1),
                 _ast_find_oauth_flow_1);
     if (dst_flow) {
-      int rc = merge_oauth_flow(dst_flow, &doc->flows[i]);
+      cdd_c_error_t rc = merge_oauth_flow(dst_flow, &doc->flows[i]);
       if (rc != 0)
         return rc;
       continue;
@@ -1862,7 +1864,7 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
   if (type == OA_SEC_OAUTH2 && doc->n_flows > 0) {
     size_t i;
     for (i = 0; i < doc->n_flows; ++i) {
-      int rc = validate_doc_oauth_flow(&doc->flows[i]);
+      cdd_c_error_t rc = validate_doc_oauth_flow(&doc->flows[i]);
       if (rc != 0) {
         fprintf(stderr, "Warning: Invalid OAuth flow ignored: %s\n", doc->name);
         return CDD_C_SUCCESS;
@@ -1900,7 +1902,8 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
   }
 
   if (doc->description) {
-    int rc = set_str_if_missing(&scheme->description, doc->description);
+    cdd_c_error_t rc = (cdd_c_error_t)set_str_if_missing(&scheme->description,
+                                                         doc->description);
     if (rc != 0)
       return rc;
   }
@@ -1922,7 +1925,8 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
       return CDD_C_ERROR_INVALID_ARGUMENT;
     scheme->in = in;
     {
-      int rc = set_str_if_missing(&scheme->key_name, doc->param_name);
+      cdd_c_error_t rc =
+          (cdd_c_error_t)set_str_if_missing(&scheme->key_name, doc->param_name);
       if (rc != 0)
         return rc;
     }
@@ -1932,12 +1936,14 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
     if (!doc->scheme || !*doc->scheme)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     {
-      int rc = set_str_if_missing(&scheme->scheme, doc->scheme);
+      cdd_c_error_t rc =
+          (cdd_c_error_t)set_str_if_missing(&scheme->scheme, doc->scheme);
       if (rc != 0)
         return rc;
     }
     if (doc->bearer_format) {
-      int rc = set_str_if_missing(&scheme->bearer_format, doc->bearer_format);
+      cdd_c_error_t rc = (cdd_c_error_t)set_str_if_missing(
+          &scheme->bearer_format, doc->bearer_format);
       if (rc != 0)
         return rc;
     }
@@ -1946,21 +1952,21 @@ spec_add_security_scheme(struct OpenAPI_Spec *spec,
     if (!doc->open_id_connect_url || !*doc->open_id_connect_url)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     {
-      int rc = set_str_if_missing(&scheme->open_id_connect_url,
-                                  doc->open_id_connect_url);
+      cdd_c_error_t rc = (cdd_c_error_t)set_str_if_missing(
+          &scheme->open_id_connect_url, doc->open_id_connect_url);
       if (rc != 0)
         return rc;
     }
     break;
   case OA_SEC_OAUTH2:
     if (doc->oauth2_metadata_url) {
-      int rc = set_str_if_missing(&scheme->oauth2_metadata_url,
-                                  doc->oauth2_metadata_url);
+      cdd_c_error_t rc = (cdd_c_error_t)set_str_if_missing(
+          &scheme->oauth2_metadata_url, doc->oauth2_metadata_url);
       if (rc != 0)
         return rc;
     }
     if (doc->n_flows > 0) {
-      int rc = add_oauth_flows(scheme, doc);
+      cdd_c_error_t rc = add_oauth_flows(scheme, doc);
       if (rc != 0)
         return rc;
     }
@@ -2198,7 +2204,8 @@ apply_doc_security_schemes(struct OpenAPI_Spec *spec,
   if (!spec || !meta || meta->n_security_schemes == 0)
     return CDD_C_SUCCESS;
   for (i = 0; i < meta->n_security_schemes; ++i) {
-    int rc = spec_add_security_scheme(spec, &meta->security_schemes[i]);
+    cdd_c_error_t rc =
+        spec_add_security_scheme(spec, &meta->security_schemes[i]);
     if (rc == CDD_C_ERROR_MEMORY)
       return rc;
     if (rc != 0) {
@@ -2729,7 +2736,7 @@ static cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
         return CDD_C_ERROR_MEMORY;
     }
     if (src->n_variables > 0) {
-      int vrc = copy_doc_server_variables(dst, src);
+      cdd_c_error_t vrc = copy_doc_server_variables(dst, src);
       if (vrc != 0)
         return vrc;
     }
@@ -2958,54 +2965,60 @@ static cdd_c_error_t apply_doc_global_meta(struct OpenAPI_Spec *spec,
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
   char *_ast_strdup_23 = NULL;
-  int rc;
+  cdd_c_error_t rc;
   if (!spec || !meta)
     return CDD_C_SUCCESS;
   if (meta->json_schema_dialect) {
-    rc = set_str_if_missing(&spec->json_schema_dialect,
-                            meta->json_schema_dialect);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->json_schema_dialect,
+                                           meta->json_schema_dialect);
     if (rc != 0)
       return rc;
   }
   if (meta->info_title) {
-    rc = set_str_if_missing(&spec->info.title, meta->info_title);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->info.title, meta->info_title);
     if (rc != 0)
       return rc;
   }
   if (meta->info_version) {
-    rc = set_str_if_missing(&spec->info.version, meta->info_version);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->info.version,
+                                           meta->info_version);
     if (rc != 0)
       return rc;
   }
   if (meta->info_summary) {
-    rc = set_str_if_missing(&spec->info.summary, meta->info_summary);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->info.summary,
+                                           meta->info_summary);
     if (rc != 0)
       return rc;
   }
   if (meta->info_description) {
-    rc = set_str_if_missing(&spec->info.description, meta->info_description);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->info.description,
+                                           meta->info_description);
     if (rc != 0)
       return rc;
   }
   if (meta->terms_of_service) {
-    rc = set_str_if_missing(&spec->info.terms_of_service,
-                            meta->terms_of_service);
+    rc = (cdd_c_error_t)set_str_if_missing(&spec->info.terms_of_service,
+                                           meta->terms_of_service);
     if (rc != 0)
       return rc;
   }
   if (meta->contact_name || meta->contact_url || meta->contact_email) {
     if (meta->contact_name) {
-      rc = set_str_if_missing(&spec->info.contact.name, meta->contact_name);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.contact.name,
+                                             meta->contact_name);
       if (rc != 0)
         return rc;
     }
     if (meta->contact_url) {
-      rc = set_str_if_missing(&spec->info.contact.url, meta->contact_url);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.contact.url,
+                                             meta->contact_url);
       if (rc != 0)
         return rc;
     }
     if (meta->contact_email) {
-      rc = set_str_if_missing(&spec->info.contact.email, meta->contact_email);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.contact.email,
+                                             meta->contact_email);
       if (rc != 0)
         return rc;
     }
@@ -3020,18 +3033,20 @@ static cdd_c_error_t apply_doc_global_meta(struct OpenAPI_Spec *spec,
     if (spec->info.license.identifier && meta->license_url)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     if (meta->license_name) {
-      rc = set_str_if_missing(&spec->info.license.name, meta->license_name);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.license.name,
+                                             meta->license_name);
       if (rc != 0)
         return rc;
     }
     if (meta->license_url) {
-      rc = set_str_if_missing(&spec->info.license.url, meta->license_url);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.license.url,
+                                             meta->license_url);
       if (rc != 0)
         return rc;
     }
     if (meta->license_identifier) {
-      rc = set_str_if_missing(&spec->info.license.identifier,
-                              meta->license_identifier);
+      rc = (cdd_c_error_t)set_str_if_missing(&spec->info.license.identifier,
+                                             meta->license_identifier);
       if (rc != 0)
         return rc;
     }
@@ -3576,7 +3591,7 @@ static cdd_c_error_t spec_apply_tag_meta(struct OpenAPI_Spec *spec,
 static cdd_c_error_t apply_doc_tag_meta(struct OpenAPI_Spec *spec,
                                         const struct DocMetadata *meta) {
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = 0;
   if (!spec || !meta || !meta->tag_meta || meta->n_tag_meta == 0)
     return CDD_C_SUCCESS;
   for (i = 0; i < meta->n_tag_meta; ++i) {
@@ -3811,7 +3826,7 @@ static cdd_c_error_t collect_tags_from_op(struct OpenAPI_Spec *spec,
   if (!spec || !op || !op->tags)
     return CDD_C_SUCCESS;
   for (i = 0; i < op->n_tags; ++i) {
-    int rc = spec_add_tag(spec, op->tags[i]);
+    cdd_c_error_t rc = spec_add_tag(spec, op->tags[i]);
     if (rc != 0)
       return rc;
   }
@@ -4046,12 +4061,13 @@ static cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
     size_t j;
     const struct OpenAPI_Path *path = &paths[i];
     for (j = 0; j < path->n_operations; ++j) {
-      int rc = collect_tags_from_op(spec, &path->operations[j]);
+      cdd_c_error_t rc = collect_tags_from_op(spec, &path->operations[j]);
       if (rc != 0)
         return rc;
     }
     for (j = 0; j < path->n_additional_operations; ++j) {
-      int rc = collect_tags_from_op(spec, &path->additional_operations[j]);
+      cdd_c_error_t rc =
+          collect_tags_from_op(spec, &path->additional_operations[j]);
       if (rc != 0)
         return rc;
     }
@@ -4278,7 +4294,7 @@ static cdd_c_error_t collect_tags_from_paths(struct OpenAPI_Spec *spec,
  * @brief Collects spec tags.
  */
 static cdd_c_error_t collect_spec_tags(struct OpenAPI_Spec *spec) {
-  int rc;
+  cdd_c_error_t rc;
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = collect_tags_from_paths(spec, spec->paths, spec->n_paths);
@@ -4514,7 +4530,7 @@ static cdd_c_error_t parse_c_signature_string(const char *sig_str,
   size_t _ast_token_find_next_6 = 0;
   struct TokenList *tl = NULL;
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = 0;
   size_t lp = 0, rp = 0;
 
   if (!sig_str || !out)
@@ -4725,7 +4741,7 @@ static cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   int *comment_used = NULL;
-  int rc;
+  cdd_c_error_t rc;
   size_t i;
 
   /* 1. Register Types (Structs/Enums) */
@@ -4785,7 +4801,7 @@ static cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
 
           doc_metadata_init(&meta);
           if (doc_parse_block(doc_text, &meta) == 0) {
-            int rc_meta = apply_doc_tag_meta(spec, &meta);
+            cdd_c_error_t rc_meta = apply_doc_tag_meta(spec, &meta);
             if (rc_meta == 0)
               rc_meta = apply_doc_security_schemes(spec, &meta);
             if (rc_meta == 0)
@@ -4865,7 +4881,7 @@ static cdd_c_error_t process_file(const char *path, struct OpenAPI_Spec *spec) {
 
         doc_metadata_init(&meta);
         if (doc_parse_block(doc_text, &meta) == 0) {
-          int rc_meta = apply_doc_tag_meta(spec, &meta);
+          cdd_c_error_t rc_meta = apply_doc_tag_meta(spec, &meta);
           if (rc_meta == 0)
             rc_meta = apply_doc_security_schemes(spec, &meta);
           if (rc_meta == 0)
@@ -5358,7 +5374,7 @@ static cdd_c_error_t walker_cb(const char *path, void *user_data) {
 static cdd_c_error_t load_base_spec(const char *path,
                                     struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!path || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -5383,7 +5399,7 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
   const char *self_uri = NULL;
   const char *dialect_uri = NULL;
   char *json = NULL;
-  int rc;
+  cdd_c_error_t rc;
   int argi = 1;
 
   while (argi < argc && argv[argi][0] == '-') {
@@ -5520,7 +5536,7 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
   int no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
   int i;
   struct OpenAPI_Spec spec = {0};
-  int rc;
+  cdd_c_error_t rc;
   JSON_Value *parsed_root;
   JSON_Value *root_val;
   JSON_Object *root_obj;
@@ -5620,7 +5636,7 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
       }
 
       snprintf(snippet, sizeof(snippet),
-               "  /* Call the %s API */\n  int rc = "
+               "  /* Call the %s API */\n  cdd_c_error_t rc = "
                "api_%s(&client, &err);\n  "
                "if (rc != 0) {\n    /* handle error */\n  }\n",
                op_id, op_id);
@@ -5655,7 +5671,7 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
 C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
   cdd_generate_bindings_config_t config = {0};
   int i;
-  int rc;
+  cdd_c_error_t rc;
 
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {

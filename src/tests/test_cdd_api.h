@@ -8,7 +8,7 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_ffi_ir_calloc_fail;
+extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,8 +96,8 @@ TEST test_bin_cdd(void) {
   PASS();
 }
 
-extern volatile int g_ffi_extractor_alloc_fail;
-/* extern int g_cdd_ffi_ir_calloc_fail; (moved to global) */
+extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};

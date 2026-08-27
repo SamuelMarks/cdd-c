@@ -1,12 +1,13 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_go.h"
-#include <stdio.h>
 #include "c_cdd/format_specifiers.h"
+#include "c_cdd/safe_crt.h"
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include "c_cdd/safe_crt.h"
 /* clang-format on */
 
 static const char *get_go_type(cdd_ffi_type_t type) {
@@ -312,7 +313,7 @@ static cdd_c_error_t emit_go_mod(const cdd_generate_bindings_config_t *config) {
 
 cdd_c_error_t cdd_ffi_emit_go(cdd_ffi_ir_t *ir,
                               const cdd_generate_bindings_config_t *config) {
-  int rc;
+  cdd_c_error_t rc;
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }

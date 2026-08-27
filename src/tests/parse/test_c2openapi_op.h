@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
 /**
  * @file test_c2openapi_op.h
  * @brief Unit tests for the Operation Builder.

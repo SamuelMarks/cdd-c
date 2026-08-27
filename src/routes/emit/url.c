@@ -3,16 +3,17 @@
  * @brief Implementation of URL generation.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /** @brief CHECK_IO definition */
@@ -764,16 +765,17 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
         "        char *tmp = (char *)realloc(joined, joined_len + extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = "
         "CDD_C_ERROR_MEMORY; goto "
-        "cleanup; }\n"
-        "        joined = tmp;\n"
-        "        if (joined_len) joined[joined_len++] = ',';\n"
-        "        memcpy(joined + joined_len, key_enc, key_len);\n"
-        "        joined_len += key_len;\n"
-        "        joined[joined_len++] = ',';\n"
-        "        memcpy(joined + joined_len, val_enc, val_len);\n"
-        "        joined_len += val_len;\n"
-        "        joined[joined_len] = '\\0';\n"
-        "      }\n"));
+        "cleanup; }\n"));
+    CHECK_IO(fprintf(fp,
+                     "        joined = tmp;\n"
+                     "        if (joined_len) joined[joined_len++] = ',';\n"
+                     "        memcpy(joined + joined_len, key_enc, key_len);\n"
+                     "        joined_len += key_len;\n"
+                     "        joined[joined_len++] = ',';\n"
+                     "        memcpy(joined + joined_len, val_enc, val_len);\n"
+                     "        joined_len += val_len;\n"
+                     "        joined[joined_len] = '\\0';\n"
+                     "      }\n"));
     CHECK_IO(fprintf(fp, "      free(key_enc);\n      free(val_enc);\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
     CHECK_IO(fprintf(fp, "    if (joined) {\n"));
@@ -889,22 +891,27 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           "        if (!tmp) { free(key_enc); free(val_enc); rc = "
           "CDD_C_ERROR_MEMORY; "
           "goto cleanup; }\n"
-          "        joined = tmp;\n"
+          "        joined = tmp;\n",
+          strlen(delim_enc), strlen(delim_enc)));
+      CHECK_IO(fprintf(
+          fp,
           "        if (joined_len) {\n"
           "          memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT
           ");\n"
           "          joined_len += %" CDD_SIZE_T_FMT ";\n"
           "        }\n"
           "        memcpy(joined + joined_len, key_enc, key_len);\n"
-          "        joined_len += key_len;\n"
+          "        joined_len += key_len;\n",
+          delim_enc, strlen(delim_enc), strlen(delim_enc)));
+      CHECK_IO(fprintf(
+          fp,
           "        memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
           "        joined_len += %" CDD_SIZE_T_FMT ";\n"
           "        memcpy(joined + joined_len, val_enc, val_len);\n"
           "        joined_len += val_len;\n"
           "        joined[joined_len] = '\\0';\n"
           "      }\n",
-          strlen(delim_enc), strlen(delim_enc), delim_enc, strlen(delim_enc),
-          strlen(delim_enc), delim_enc, strlen(delim_enc), strlen(delim_enc)));
+          delim_enc, strlen(delim_enc), strlen(delim_enc)));
       CHECK_IO(fprintf(fp, "      free(key_enc);\n      free(val_enc);\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "    if (joined) {\n"));
@@ -954,16 +961,17 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
           "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
-          "        joined = tmp;\n"
-          "        if (joined_len) joined[joined_len++] = '%c';\n"
-          "        memcpy(joined + joined_len, kv_key, key_len);\n"
-          "        joined_len += key_len;\n"
-          "        joined[joined_len++] = '%c';\n"
-          "        memcpy(joined + joined_len, kv_raw, val_len);\n"
-          "        joined_len += val_len;\n"
-          "        joined[joined_len] = '\\0';\n"
-          "      }\n",
-          delim, delim));
+          "        joined = tmp;\n"));
+      CHECK_IO(fprintf(fp,
+                       "        if (joined_len) joined[joined_len++] = '%c';\n"
+                       "        memcpy(joined + joined_len, kv_key, key_len);\n"
+                       "        joined_len += key_len;\n"
+                       "        joined[joined_len++] = '%c';\n"
+                       "        memcpy(joined + joined_len, kv_raw, val_len);\n"
+                       "        joined_len += val_len;\n"
+                       "        joined[joined_len] = '\\0';\n"
+                       "      }\n",
+                       delim, delim));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "    if (joined) {\n"));
       CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, \"%s\", joined);\n",
@@ -1086,22 +1094,26 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
         "        if (!tmp) { free(key_enc); free(val_enc); rc = "
         "CDD_C_ERROR_MEMORY; goto "
         "cleanup; }\n"
-        "        path_%s = tmp;\n"
-        "        if (first && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        if (!first && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        memcpy(path_%s + path_len, key_enc, key_len);\n"
-        "        path_len += key_len;\n"
-        "        path_%s[path_len++] = '=';\n"
-        "        memcpy(path_%s + path_len, val_enc, val_len);\n"
-        "        path_len += val_len;\n"
-        "        path_%s[path_len] = '\\0';\n",
-        prefix_len, delim_len, name, name, prefix_len, name, prefix, prefix_len,
-        prefix_len, delim_len, name, pair_delim, delim_len, delim_len, name,
-        name, name, name));
+        "        path_%s = tmp;\n",
+        prefix_len, delim_len, name, name));
+    CHECK_IO(
+        fprintf(fp,
+                "        if (first && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n"
+                "        if (!first && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n",
+                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
+                name, pair_delim, delim_len, delim_len));
+    CHECK_IO(fprintf(fp,
+                     "        memcpy(path_%s + path_len, key_enc, key_len);\n"
+                     "        path_len += key_len;\n"
+                     "        path_%s[path_len++] = '=';\n"
+                     "        memcpy(path_%s + path_len, val_enc, val_len);\n"
+                     "        path_len += val_len;\n"
+                     "        path_%s[path_len] = '\\0';\n",
+                     name, name, name, name));
   } else {
     CHECK_IO(fprintf(
         fp,
@@ -1114,13 +1126,20 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
         "        if (!tmp) { free(key_enc); free(val_enc); rc = "
         "CDD_C_ERROR_MEMORY; goto "
         "cleanup; }\n"
-        "        path_%s = tmp;\n"
-        "        if (first && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        if (!first && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
+        "        path_%s = tmp;\n",
+        prefix_len, delim_len, delim_len, name, name));
+    CHECK_IO(
+        fprintf(fp,
+                "        if (first && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n"
+                "        if (!first && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n",
+                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
+                name, pair_delim, delim_len, delim_len));
+    CHECK_IO(fprintf(
+        fp,
         "        memcpy(path_%s + path_len, key_enc, key_len);\n"
         "        path_len += key_len;\n"
         "        memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
@@ -1128,9 +1147,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
         "        memcpy(path_%s + path_len, val_enc, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n",
-        prefix_len, delim_len, delim_len, name, name, prefix_len, name, prefix,
-        prefix_len, prefix_len, delim_len, name, pair_delim, delim_len,
-        delim_len, name, name, pair_delim, delim_len, delim_len, name, name));
+        name, name, pair_delim, delim_len, delim_len, name, name));
   }
   CHECK_IO(fprintf(fp, "      }\n"));
   CHECK_IO(fprintf(fp, "      free(key_enc);\n"));
@@ -1212,19 +1229,24 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
         "}\n"
-        "        path_%s = tmp;\n"
-        "        if (i == 0 && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        if (i > 0 && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        memcpy(path_%s + path_len, enc, val_len);\n"
-        "        path_len += val_len;\n"
-        "        path_%s[path_len] = '\\0';\n"
-        "      }\n",
-        delim_len, prefix_len, name, name, prefix_len, name, prefix, prefix_len,
-        prefix_len, delim_len, name, delim, delim_len, delim_len, name, name));
+        "        path_%s = tmp;\n",
+        delim_len, prefix_len, name, name));
+    CHECK_IO(
+        fprintf(fp,
+                "        if (i == 0 && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n"
+                "        if (i > 0 && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n",
+                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
+                name, delim, delim_len, delim_len));
+    CHECK_IO(fprintf(fp,
+                     "        memcpy(path_%s + path_len, enc, val_len);\n"
+                     "        path_len += val_len;\n"
+                     "        path_%s[path_len] = '\\0';\n"
+                     "      }\n",
+                     name, name));
     CHECK_IO(fprintf(fp, "      free(enc);\n"));
   } else {
     CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
@@ -1236,19 +1258,24 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
         "0);\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
-        "        path_%s = tmp;\n"
-        "        if (i == 0 && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        if (i > 0 && %" CDD_SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-        "path_len += %" CDD_SIZE_T_FMT "; }\n"
-        "        memcpy(path_%s + path_len, raw, val_len);\n"
-        "        path_len += val_len;\n"
-        "        path_%s[path_len] = '\\0';\n"
-        "      }\n",
-        delim_len, prefix_len, name, name, prefix_len, name, prefix, prefix_len,
-        prefix_len, delim_len, name, delim, delim_len, delim_len, name, name));
+        "        path_%s = tmp;\n",
+        delim_len, prefix_len, name, name));
+    CHECK_IO(
+        fprintf(fp,
+                "        if (i == 0 && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n"
+                "        if (i > 0 && %" CDD_SIZE_T_FMT
+                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+                "path_len += %" CDD_SIZE_T_FMT "; }\n",
+                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
+                name, delim, delim_len, delim_len));
+    CHECK_IO(fprintf(fp,
+                     "        memcpy(path_%s + path_len, raw, val_len);\n"
+                     "        path_len += val_len;\n"
+                     "        path_%s[path_len] = '\\0';\n"
+                     "      }\n",
+                     name, name));
   }
 
   CHECK_IO(fprintf(fp, "    }\n"));
@@ -1475,7 +1502,7 @@ static cdd_c_error_t parse_segments(const char *tmpl,
   while (*p) {
     if (*p == '{') {
       if (p > start) {
-        size_t len = p - start;
+        size_t len = (size_t)(p - start);
         if (count >= cap) {
           cap = (cap == 0) ? 8 : cap * 2;
           segs = (struct UrlSegment *)realloc(segs,
@@ -1504,7 +1531,7 @@ static cdd_c_error_t parse_segments(const char *tmpl,
           return CDD_C_ERROR_INVALID_ARGUMENT;
         }
         {
-          size_t len = close - start;
+          size_t len = (size_t)(close - start);
           if (count >= cap) {
             cap = (cap == 0) ? 8 : cap * 2;
             segs = (struct UrlSegment *)realloc(
@@ -1530,7 +1557,7 @@ static cdd_c_error_t parse_segments(const char *tmpl,
     }
   }
   if (p > start) {
-    size_t len = p - start;
+    size_t len = (size_t)(p - start);
     if (count >= cap) {
       cap = (cap == 0) ? 8 : cap * 2;
       segs =
@@ -1568,7 +1595,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
   struct UrlSegment *segs = NULL;
   size_t n_segs = 0;
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   const char *base_var = (config && config->base_variable)
                              ? config->base_variable
                              : "ctx->base_url";
@@ -2184,14 +2211,14 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "  /* Query Parameter: %s */\n", p->name));
 
       if (p->content_type && media_type_is_json_url(p->content_type)) {
-        int rc2 = write_query_json_param(fp, p);
+        cdd_c_error_t rc2 = write_query_json_param(fp, p);
         if (rc2 != 0)
           return rc2;
         continue;
       }
 
       if (param_is_object_kv_url(p)) {
-        int rc2 = write_query_object_param(fp, p);
+        cdd_c_error_t rc2 = write_query_object_param(fp, p);
         if (rc2 != 0)
           return rc2;
         continue;
@@ -2250,7 +2277,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                   (p->allow_reserved_set && p->allow_reserved)
                       ? "url_encode_allow_reserved"
                       : "url_encode";
-              int rc2 = write_joined_query_array(fp, p, ',', encode_fn, 1);
+              cdd_c_error_t rc2 =
+                  write_joined_query_array(fp, p, ',', encode_fn, 1);
               if (rc2 != 0)
                 return rc2;
             }
@@ -2258,24 +2286,24 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
         } else if (style == OA_STYLE_SPACE_DELIMITED) {
           /* === spaceDelimited (explode n/a) === */
           if (p->allow_reserved_set && p->allow_reserved) {
-            int rc2 = write_joined_query_array_encoded_delim(
+            cdd_c_error_t rc2 = write_joined_query_array_encoded_delim(
                 fp, p, "%20", "url_encode_allow_reserved");
             if (rc2 != 0)
               return rc2;
           } else {
-            int rc2 = write_joined_query_array(fp, p, ' ', NULL, 0);
+            cdd_c_error_t rc2 = write_joined_query_array(fp, p, ' ', NULL, 0);
             if (rc2 != 0)
               return rc2;
           }
         } else if (style == OA_STYLE_PIPE_DELIMITED) {
           /* === pipeDelimited (explode n/a) === */
           if (p->allow_reserved_set && p->allow_reserved) {
-            int rc2 = write_joined_query_array_encoded_delim(
+            cdd_c_error_t rc2 = write_joined_query_array_encoded_delim(
                 fp, p, "%7C", "url_encode_allow_reserved");
             if (rc2 != 0)
               return rc2;
           } else {
-            int rc2 = write_joined_query_array(fp, p, '|', NULL, 0);
+            cdd_c_error_t rc2 = write_joined_query_array(fp, p, '|', NULL, 0);
             if (rc2 != 0)
               return rc2;
           }

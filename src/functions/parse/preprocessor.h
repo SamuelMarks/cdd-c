@@ -111,15 +111,14 @@ struct PreprocessorContext {
  * @param[out] ctx Pointer to the context structure.
  * @return 0 on success, EINVAL or ENOMEM on failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-pp_context_init(struct PreprocessorContext *ctx);
+extern cdd_c_error_t pp_context_init(struct PreprocessorContext *ctx);
 
 /**
  * @brief Free resources associated with the context.
  *
  * @param[in] ctx Pointer to the context.
  */
-extern C_CDD_EXPORT void pp_context_free(struct PreprocessorContext *ctx);
+extern void pp_context_free(struct PreprocessorContext *ctx);
 
 /**
  * @brief Add a search path to the context.
@@ -128,8 +127,8 @@ extern C_CDD_EXPORT void pp_context_free(struct PreprocessorContext *ctx);
  * @param[in] path Directory path to add (copied internally).
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-pp_add_search_path(struct PreprocessorContext *ctx, const char *path);
+extern cdd_c_error_t pp_add_search_path(struct PreprocessorContext *ctx,
+                                        const char *path);
 
 /**
  * @brief Add a macro definition manually to the context.
@@ -140,9 +139,8 @@ pp_add_search_path(struct PreprocessorContext *ctx, const char *path);
  * @param[in] value Macro value text (can be NULL for empty define).
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx,
-                                               const char *name,
-                                               const char *value);
+extern cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx,
+                                  const char *name, const char *value);
 
 /**
  * @brief Scan a file for \#include directives and resolve them.
@@ -160,9 +158,9 @@ extern C_CDD_EXPORT cdd_c_error_t pp_add_macro(struct PreprocessorContext *ctx,
  * @param[in] user_data Opaque data passed to callback.
  * @return 0 on success, error code on failure (IO, memory, or parsing).
  */
-extern C_CDD_EXPORT cdd_c_error_t
-pp_scan_includes(const char *filename, struct PreprocessorContext *ctx,
-                 pp_visitor_cb cb, void *user_data);
+extern cdd_c_error_t pp_scan_includes(const char *filename,
+                                      struct PreprocessorContext *ctx,
+                                      pp_visitor_cb cb, void *user_data);
 
 /**
  * @brief Scan a file token stream for macro definitions and populate the
@@ -175,8 +173,8 @@ pp_scan_includes(const char *filename, struct PreprocessorContext *ctx,
  * @param[in] filename Path to the file to parse.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT cdd_c_error_t
-pp_scan_defines(struct PreprocessorContext *ctx, const char *filename);
+extern cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
+                                     const char *filename);
 
 /**
  * @brief Evaluate a preprocessor constant expression.
@@ -199,16 +197,17 @@ pp_scan_defines(struct PreprocessorContext *ctx, const char *filename);
  * @param[out] result Result of the evaluation (1 or 0 usually).
  * @return 0 on success, EINVAL on syntax error.
  */
-extern C_CDD_EXPORT cdd_c_error_t pp_eval_expression(
-    const struct TokenList *tokens, size_t start_idx, size_t end_idx,
-    const struct PreprocessorContext *ctx, long *result);
+extern cdd_c_error_t pp_eval_expression(const struct TokenList *tokens,
+                                        size_t start_idx, size_t end_idx,
+                                        const struct PreprocessorContext *ctx,
+                                        long *result);
 
 /**
  * @brief Release memory within EmbedParams structure.
  *
  * @param[in] params Pointer to struct to clean.
  */
-extern C_CDD_EXPORT void pp_embed_params_free(struct EmbedParams *params);
+extern void pp_embed_params_free(struct EmbedParams *params);
 
 #ifdef __cplusplus
 }

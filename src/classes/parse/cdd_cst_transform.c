@@ -1,21 +1,22 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_transform.h"
+#include "c_str_span.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
-#include "c_str_span.h"
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 /* clang-format on */
 
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
-  int rc;
+  cdd_c_error_t rc;
   cdd_cst_query_result_t res;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
   int found_cpp = 0;
   cdd_cst_node_t *insert_after_node = NULL;
   (void)config;
@@ -122,7 +123,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                                  const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
   (void)config;
 
   if (!tree || !tree->root) {

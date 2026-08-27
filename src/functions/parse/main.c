@@ -8,31 +8,32 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "c_cdd_export.h"
-#include "functions/parse/main.h"
-#include "routes/parse/cli_cst.h"
 #include "c_cddConfig.h"
+#include "c_cdd_export.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
 #include "functions/emit/build_system.h"
 #include "functions/emit/sync.h"
 #include "functions/parse/audit.h"
+#include "functions/parse/db_loader.h"
+#include "functions/parse/main.h"
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/str.h"
-#include "functions/parse/db_loader.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/cli_gen.h"
-#include "routes/emit/client_gui_gen.h"
 #include "routes/emit/client_gen.h"
-#include "routes/emit/server_gen.h"
+#include "routes/emit/client_gui_gen.h"
 #include "routes/emit/serve_json_rpc.h"
+#include "routes/emit/server_gen.h"
 #include "routes/parse/cli.h" /* New entry */
+#include "routes/parse/cli_cst.h"
 #include "tests/emit/schema2tests.h"
 
 #include <parson.h>
@@ -100,7 +101,7 @@ C_CDD_EXPORT cdd_c_error_t print_version(void) {
  */
 C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   struct AuditStats stats;
-  int rc;
+  cdd_c_error_t rc;
   if (argc != 1)
     return CDD_C_ERROR_UNKNOWN;
   (void)audit_stats_init(&stats);

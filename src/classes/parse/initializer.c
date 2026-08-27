@@ -5,16 +5,17 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "classes/parse/initializer.h"
-#include "functions/parse/str.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "classes/parse/initializer.h"
+#include "functions/parse/str.h"
 /* clang-format on */
 
 /* --- Helper: Token Joiner --- */
@@ -249,7 +250,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
                                 size_t start_idx, size_t end_idx,
                                 struct InitList *out, size_t *consumed) {
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;

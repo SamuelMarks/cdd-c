@@ -32,30 +32,27 @@ extern "C" {
 #endif
 #endif
 
-/* extern int g_socket_fail; (moved to global) */
-/* extern int g_bind_fail; (moved to global) */
-/* extern int g_listen_fail; (moved to global) */
-/* extern int g_getsockname_fail; (moved to global) */
-/* extern int g_pthread_create_fail; (moved to global) */
-/* extern int g_accept_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_socket_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_bind_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_listen_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_getsockname_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_pthread_create_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_accept_fail; (moved to global) */
 
 static int http_get(int port);
+/* Moved extern declarations for C89 compliance */
+extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
+extern CDD_TEST_HELPERS_EXPORT int g_bind_fail;
+extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
+extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
+extern CDD_TEST_HELPERS_EXPORT int g_getsockname_fail;
+extern CDD_TEST_HELPERS_EXPORT int g_listen_fail;
+
 #ifdef _WIN32
 __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
 #define USLEEP(x) Sleep((x) / 1000)
 #else
-#ifndef _WIN32
 #include <unistd.h>
-/* clang-format on */
-
-/* Moved extern declarations for C89 compliance */
-extern int g_pthread_create_fail;
-extern int g_bind_fail;
-extern int g_socket_fail;
-extern int g_accept_fail;
-extern int g_getsockname_fail;
-extern int g_listen_fail;
-#endif
 #define USLEEP(x) usleep(x)
 #endif
 static void *background_http_get(void *arg) {
@@ -79,8 +76,8 @@ static int http_get(int port) {
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
   server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(port);
-  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  server_addr.sin_port = htons((unsigned short)port);
+  server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
   if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 #if defined(_WIN32)
@@ -91,7 +88,7 @@ static int http_get(int port) {
     return -1;
   }
 
-  send(sock, msg, strlen(msg), 0);
+  send(sock, msg, (int)strlen(msg), 0);
   recv(sock, buf, sizeof(buf) - 1, 0);
 
 #if defined(_WIN32)

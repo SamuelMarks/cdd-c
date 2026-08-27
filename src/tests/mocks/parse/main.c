@@ -6,7 +6,8 @@ int g_cdd_alloc_fail = 0;
  * @brief Main mock runner for simple JSON serialization testing.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>

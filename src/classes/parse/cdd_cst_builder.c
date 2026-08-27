@@ -1,16 +1,17 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_builder.h"
+#include "c_cdd/log.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
 #include "cdd_lexer.h"
-#include "c_cdd/memory.h"
 #include <errno.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/log.h"
-#include "c_cdd/safe_crt.h"
+#include <string.h>
 /* clang-format on */
 static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
                                  const char **out_str);

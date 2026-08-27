@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +46,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   struct CodegenJsonConfig json_cfg = {0};
   FILE *out = NULL;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (argc != 2) {
     fprintf(stderr, "Usage: sync_code <header.h> <impl.c>\n");
@@ -170,7 +171,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
   char *new_header = NULL;
   size_t hdr_sz;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   /* Init structures */
 #ifdef CDD_BUILD_TESTS
@@ -353,7 +354,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
       fputs(new_header, fp);
       fclose(fp);
     } else {
-      rc = CDD_C_ERROR_SYSTEM ? errno : EIO;
+      rc = CDD_C_ERROR_SYSTEM;
     }
   }
 

@@ -21,8 +21,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_strdup_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /**
  * @brief test_weaver_wrap_ifdef_basic
@@ -33,7 +32,9 @@ TEST test_weaver_wrap_ifdef_basic(void) {
   struct TokenList *tokens = NULL;
   const char *src = "int a = 5;";
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
 
   res = tokenize(az_span_create_from_str((char *)src), &tokens);
   ASSERT_EQ(0, res);
@@ -65,7 +66,9 @@ TEST test_weaver_wrap_ifdef_else(void) {
   struct TokenList *tokens = NULL;
   const char *src = "int a = 5;";
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
 
   res = tokenize(az_span_create_from_str((char *)src), &tokens);
   ASSERT_EQ(0, res);
@@ -123,7 +126,9 @@ TEST test_weaver_inject_msvc_headers(void) {
   const char *src = "#include <stdio.h>\n#include <stdlib.h>\n\n      int\n    "
                     "  main() {\n    return 0;\n  }\n  ";
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
 
   res = tokenize(az_span_create_from_str((char *)src), &tokens);
   ASSERT_EQ(0, res);
@@ -166,7 +171,9 @@ TEST test_weaver_vla_to_alloca(void) {
       ""
       "int main() {\n      int n = 10;\n  int arr[n];\n  return 0;\n}\n";
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
   size_t start_idx = 0;
   size_t end_idx = 0;
   size_t i;
@@ -227,6 +234,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
   struct CstNodeList cst;
   struct CstNode nodes[5];
   int res;
+  (void)res;
 
   tokens.size = 0;
   tokens.capacity = 0;
@@ -318,7 +326,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 #ifdef CDD_BUILD_TESTS
     {
-      /* extern int g_cdd_alloc_fail; (moved to global) */
+      /*  (moved to global) */
       int rc_wattr;
       int i;
       for (i = 1; i <= 2; i++) {
@@ -341,7 +349,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
     /* OOM for c_cdd_strdup branches */
 #ifdef CDD_BUILD_TESTS
     {
-      /* extern int g_cdd_strdup_fail; (moved to global) */
+      /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       struct CstNode nodes_dup[3];
       struct CstNodeList cst_dup = {0};
       int j;
@@ -425,7 +433,7 @@ TEST test_weaver_oom(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a;";
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int r1, r2, r3, r6, r8;
 #endif
 
@@ -543,7 +551,9 @@ TEST test_weaver_cov(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
 
   /* Test # include with spaces and no trailing newline */
   const char *src1 = "#    include <stdio.h>";
@@ -594,7 +604,7 @@ TEST test_weaver_cov(void) {
       /* OOM inside weaver_vla_to_alloca */
 #ifdef CDD_BUILD_TESTS
       {
-        /* extern int g_cdd_alloc_fail; (moved to global) */
+        /*  (moved to global) */
         g_cdd_alloc_fail = 1;
         ASSERT_EQ(
             CDD_C_ERROR_MEMORY,
@@ -614,7 +624,9 @@ TEST test_weaver_cov_more(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
   int res;
+  (void)res;
   char *out_code = NULL;
+  (void)out_code;
 
   /* Test # at the end of file (covers j == tokens->size) */
   const char *src1 = "#";
@@ -650,6 +662,7 @@ TEST test_weaver_cov_even_more(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
   int res;
+  (void)res;
 
   /* Test # followed by non-identifier */
   const char *src1 = "# 123";
@@ -672,6 +685,7 @@ TEST test_weaver_interactive(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a[n];";
   int res;
+  (void)res;
   FILE *fake_stdin;
   char tmp_name[32];
 

@@ -18,12 +18,12 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 static FILE *mock_tmpfile_eq(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;
@@ -52,7 +52,7 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
                                       struct StructFields *sf,
                                       char **_out_val) {
   FILE *tmp = TMPFILE();
-  long sz;
+  size_t sz;
   char *content = NULL;
 
   if (!tmp) {
@@ -69,12 +69,12 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
   }
 
   fseek(tmp, 0, SEEK_END);
-  sz = FTELL(tmp);
+  sz = (size_t)FTELL(tmp);
   rewind(tmp);
 
   if (sz > 0) {
-    content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)C_CDD_CALLOC(1, (size_t)(size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
   } else {
     content = C_CDD_STRDUP("");

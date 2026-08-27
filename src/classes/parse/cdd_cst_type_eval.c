@@ -1,10 +1,11 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_type_eval.h"
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS

@@ -15,7 +15,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -24,13 +25,13 @@
 
 #include <c_str_span.h>
 
+#include "c_cdd/log.h"
 #include "functions/emit/rewriter_body.h"
 #include "functions/emit/rewriter_sig.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/orchestrator.h"
-#include "c_cdd/log.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup */
 #include "functions/parse/tokenizer.h"
 
@@ -39,8 +40,8 @@
 #define strdup _strdup
 #endif
 #else
-#include <errno.h>
 #include "c_cdd/log.h"
+#include <errno.h>
 #endif
 /* clang-format on */
 
@@ -389,7 +390,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
   char *output = NULL;
   size_t i;
   size_t marked_count = 0;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   (void)_ast_extract_func_name_4;
   (void)_ast_join_tokens_str_5;
@@ -797,7 +798,7 @@ static cdd_c_error_t fix_file_callback(const char *path, void *user_data) {
   char *content = NULL;
   char *result = NULL;
   size_t sz = 0;
-  int rc;
+  cdd_c_error_t rc;
   const char *out_path =
       ctx->single_output_file ? ctx->single_output_file : path;
 

@@ -1,9 +1,10 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_trivia.h"
+#include "c_cdd/log.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 
 cdd_c_error_t

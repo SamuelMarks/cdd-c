@@ -95,6 +95,7 @@ TEST test_cli_parser_getopt(void) {
 
 TEST test_cli_parser_mappings(void) {
   const char *out_val;
+  (void)out_val;
   /* extern int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val);
    * (moved to global) */
   /* extern int method_str_to_enum_str(const char *method, const char

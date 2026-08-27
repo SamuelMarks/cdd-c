@@ -1,6 +1,7 @@
-/* clang-format off */
-#include "functions/parse/main.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_c_error.h"
+#include "functions/parse/main.h"
 /* clang-format on */
 
 /**
@@ -13,7 +14,7 @@
  * @return CDD_C_SUCCESS on success, CDD_C_ERROR_UNKNOWN otherwise
  */
 static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
-  int rc;
+  cdd_c_error_t rc;
   rc = cdd_main(argc, argv);
   if (rc != 0) {
     return CDD_C_ERROR_UNKNOWN;

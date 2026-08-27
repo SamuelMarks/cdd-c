@@ -3,22 +3,23 @@
  * @brief Implementation of the Safe CRT transformer.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_transform.h"
-#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_mutate.h"
 
-#include "classes/parse/cdd_cst_parser.h"
-#include "classes/parse/cdd_cst_query.h"
-#include "c_str_span.h"
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "c_cdd/log.h"
 #include "c_cdd_export.h"
+#include "c_str_span.h"
+#include "classes/parse/cdd_cst_parser.h"
+#include "classes/parse/cdd_cst_query.h"
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 /* clang-format on */
 
 /** @brief safe_crt_arena_t */
@@ -148,7 +149,7 @@ static cdd_c_error_t parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
         }
         if (*idx == old_idx) {
           if (*idx < stmt->num_children) {
-            int tk = stmt->children[*idx].val.token->kind;
+            int tk = (int)stmt->children[*idx].val.token->kind;
             if (tk != CDD_TOKEN_COMMA && tk != CDD_TOKEN_RPAREN &&
                 tk != CDD_TOKEN_SEMICOLON) {
               (*idx)++;
@@ -232,7 +233,7 @@ static cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
         int sub_found = 0;
         rc = find_and_mark_fopen(curr->args[i], &sub_found);
         if (rc != CDD_C_SUCCESS)
-          return rc;
+          return (cdd_c_error_t)rc;
         if (sub_found)
           found = 1;
       }
@@ -240,7 +241,7 @@ static cdd_c_error_t find_and_mark_fopen(expr_t *head, int *out_found) {
         int sub_found = 0;
         rc = find_and_mark_fopen(curr->args[0], &sub_found);
         if (rc != CDD_C_SUCCESS)
-          return rc;
+          return (cdd_c_error_t)rc;
         if (sub_found)
           found = 1;
       }
@@ -269,12 +270,12 @@ static cdd_c_error_t check_unsupported_calls(expr_t *head) {
       for (i = 0; i < head->num_args; i++) {
         cdd_c_error_t rc = check_unsupported_calls(head->args[i]);
         if (rc != CDD_C_SUCCESS)
-          return rc;
+          return (cdd_c_error_t)rc;
       }
     } else if (head->type == 2) {
       cdd_c_error_t rc = check_unsupported_calls(head->args[0]);
       if (rc != CDD_C_SUCCESS)
-        return rc;
+        return (cdd_c_error_t)rc;
     }
     head = head->next;
   }
@@ -534,16 +535,21 @@ static cdd_c_error_t check_needs_transform(expr_t *head) {
         if (need_verified_size) {
           size_t k;
           for (k = 0; k < (size_t)need_verified_size; k++) {
-            if ((size_t)arg_idx + k < head->num_args) {
-              if (head->args[arg_idx + k] && head->args[arg_idx + k]->tok &&
-                  head->args[arg_idx + k]->tok->length == 4 &&
-                  memcmp(head->args[arg_idx + k]->tok->start, "NULL", 4) == 0)
+            if ((size_t)((size_t)arg_idx + (size_t)k) < head->num_args) {
+              if (head->args[((size_t)arg_idx + (size_t)k)] &&
+                  head->args[((size_t)arg_idx + (size_t)k)]->tok &&
+                  head->args[((size_t)arg_idx + (size_t)k)]->tok->length == 4 &&
+                  memcmp(head->args[((size_t)arg_idx + (size_t)k)]->tok->start,
+                         "NULL", 4) == 0)
                 continue;
-              if (head->args[arg_idx + k] && head->args[arg_idx + k]->tok &&
-                  head->args[arg_idx + k]->tok->length == 1 &&
-                  head->args[arg_idx + k]->tok->start[0] == '0')
+              if (head->args[((size_t)arg_idx + (size_t)k)] &&
+                  head->args[((size_t)arg_idx + (size_t)k)]->tok &&
+                  head->args[((size_t)arg_idx + (size_t)k)]->tok->length == 1 &&
+                  head->args[((size_t)arg_idx + (size_t)k)]->tok->start[0] ==
+                      '0')
                 continue;
-              if (!infer_buffer_size(head->args[arg_idx + k]).valid) {
+              if (!infer_buffer_size(head->args[((size_t)arg_idx + (size_t)k)])
+                       .valid) {
                 return CDD_C_ERROR_PARSE;
               }
             }
@@ -702,15 +708,14 @@ static cdd_c_error_t clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
   return CDD_C_SUCCESS;
 }
 
-static cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
-                                  int is_msc);
+static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc);
 
 static cdd_c_error_t emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
                                         int is_msc) {
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   size_t old_num_children =
       bld->target_node ? bld->target_node->num_children : 0;
-  rc = emit_ast_bld(node, bld, is_msc);
+  rc = (cdd_c_error_t)emit_ast_bld(node, bld, is_msc);
   if (bld->target_node && bld->target_node->num_children > old_num_children) {
     if (bld->target_node->children[old_num_children].kind ==
         CDD_CST_CHILD_TOKEN) {
@@ -725,7 +730,7 @@ static cdd_c_error_t emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
           NULL;
     }
   }
-  return rc;
+  return (cdd_c_error_t)rc;
 }
 
 static cdd_c_error_t
@@ -804,8 +809,7 @@ static void emit_inferred_size(cdd_cst_builder_t *bld, expr_t *dest) {
   }
 }
 
-static cdd_c_error_t emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
-                                  int is_msc) {
+static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
 
   int changes = 0;
   size_t k;
@@ -1580,7 +1584,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
     if (rc != 0) {
       arena_free_all();
       current_tree = NULL;
-      return rc;
+      return (cdd_c_error_t)rc;
     }
 
     for (i = 0; i < res.size; i++) {
@@ -1688,7 +1692,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           goto loop_err;
         cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
-        msc_changes = emit_ast_bld(ast, &msc_bld, 1);
+        msc_changes = (int)emit_ast_bld(ast, &msc_bld, 1);
         g_msc_ctx = NULL;
 
         rc = cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
@@ -1925,5 +1929,5 @@ loop_err:
     free(res.nodes);
   arena_free_all();
   current_tree = NULL;
-  return rc;
+  return (cdd_c_error_t)rc;
 }

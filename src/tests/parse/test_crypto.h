@@ -29,24 +29,24 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_crypto_fail_digestupdate;
-extern int g_crypto_fail_hmac;
-extern int g_crypto_fail_sha256;
-extern int g_crypto_fail_mdctx_new;
-extern int g_crypto_fail_digestinit;
-extern int g_crypto_fail_digestfinal_len;
-extern int g_crypto_fail_hmac_len;
-extern int g_crypto_fail_digestfinal;
+extern C_CDD_EXPORT int g_crypto_fail_digestupdate;
+extern C_CDD_EXPORT int g_crypto_fail_hmac;
+extern C_CDD_EXPORT int g_crypto_fail_sha256;
+extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
+extern C_CDD_EXPORT int g_crypto_fail_digestinit;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
+extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_crypto_fail_sha256; (moved to global) */
-/* extern int g_crypto_fail_mdctx_new; (moved to global) */
-/* extern int g_crypto_fail_digestinit; (moved to global) */
-/* extern int g_crypto_fail_digestupdate; (moved to global) */
-/* extern int g_crypto_fail_digestfinal; (moved to global) */
-/* extern int g_crypto_fail_digestfinal_len; (moved to global) */
-/* extern int g_crypto_fail_hmac; (moved to global) */
-/* extern int g_crypto_fail_hmac_len; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_sha256; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_mdctx_new; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_digestinit; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_digestupdate; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_digestfinal; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_hmac; (moved to global) */
+/* extern C_CDD_EXPORT int g_crypto_fail_hmac_len; (moved to global) */
 #endif
 
 /* Helpers */

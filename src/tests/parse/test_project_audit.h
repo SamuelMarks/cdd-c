@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#define chmod _chmod
+#endif
 /**
  * @file test_project_audit.h
  * @brief Unit tests for project auditing.
@@ -23,9 +26,9 @@ extern "C" {}
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_fail_alloc_audit;
-extern int g_cdd_audit_fail_find;
-extern int g_cdd_audit_fail_tokenize;
+extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
 
 TEST test_audit_stats_init(void) {
   struct AuditStats stats;
@@ -317,8 +320,8 @@ TEST test_audit_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_audit_fail_tokenize; (moved to global) */
-/* extern int g_cdd_audit_fail_find; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_audit_fail_find; (moved to global) */
 #endif
 
 TEST test_audit_extras(void) {
@@ -403,7 +406,7 @@ TEST test_audit_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
-    /* extern int g_cdd_fail_alloc_audit; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_fail_alloc_audit; (moved to global) */
     int i;
     int rc;
     char *json;

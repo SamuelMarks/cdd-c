@@ -10,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -19,13 +20,13 @@
 
 #include "../win_compat_sym.h"
 
+#include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "classes/parse/code2schema.h" /* For parse_struct_member_line */
 #include "classes/parse/inspector.h"
 #include "functions/parse/cst.h" /* For CST analysis */
 #include "functions/parse/str.h" /* For string duplication and utilities */
 #include "functions/parse/tokenizer.h"
-#include "c_cdd/log.h"
-#include "c_cdd/memory.h"
 /* clang-format on */
 
 /* --- Type Definitions Logic --- */
@@ -122,7 +123,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
   struct EnumMembers *curr_em = NULL;
   struct StructFields *curr_sf = NULL;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!filename || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -432,7 +433,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
                                              struct FuncSigList *out) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
-  int rc;
+  cdd_c_error_t rc;
   size_t i;
 
   if (!source_code || !out)

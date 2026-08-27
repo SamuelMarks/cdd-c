@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -22,15 +23,15 @@
 #endif
 #endif
 
+#include "c_cdd/log.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
 #include "classes/emit/struct.h"
 #include "classes/parse/code2schema.h"
 #include "classes/parse/mapping.h"
 #include "classes/parse/numeric.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
-#include "c_cdd/safe_crt.h"
-#include "c_cdd/memory.h"
 /* clang-format on */
 
 /** @brief MAX_LINE_LENGTH definition */
@@ -1225,7 +1226,7 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
   }
   {
     char *dup = NULL;
-    int rc = c_cdd_strdup(serialized, &dup);
+    cdd_c_error_t rc = c_cdd_strdup(serialized, &dup);
     json_free_serialized_string(serialized);
     if (rc != 0 || !dup) {
       json_value_free(dest_val);
@@ -1534,7 +1535,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 
   /* Helper for mapping result */
   struct OpenApiTypeMapping mapping;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!line || !sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -2008,7 +2009,7 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
   const JSON_Array *all_of;
   const JSON_Array *any_of;
   const JSON_Array *one_of;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!o || !f)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -4575,7 +4576,7 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
     const JSON_Object *resolved = sub;
     const char *ref;
     struct StructFields tmp;
-    int rc;
+    cdd_c_error_t rc;
 
     if (!sub)
       continue;
@@ -4807,7 +4808,7 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
     const JSON_Object *resolved = sub;
     const char *ref;
     struct StructFields tmp;
-    int rc;
+    cdd_c_error_t rc;
 
     if (!sub)
       continue;
@@ -5171,7 +5172,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     size_t n_items_type_union = 0;
     struct StructField *field = NULL;
     struct UnionVariantMeta *meta = &dest->union_variants[i];
-    int rc;
+    cdd_c_error_t rc;
 
     if (!sub)
       continue;

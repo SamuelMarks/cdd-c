@@ -3,7 +3,8 @@
  * @brief Implementation of JSON-RPC server generation.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #ifndef __wasi__
 #include "serve_json_rpc.h"
 #include "../parse/cli.h"
@@ -29,6 +30,14 @@
 #endif
 #endif
 
+#if defined(_WIN32)
+#define CDD_SEND_LEN_CAST(x) (int)(x)
+typedef int cdd_ssize_t;
+#else
+#define CDD_SEND_LEN_CAST(x) (x)
+typedef ssize_t cdd_ssize_t;
+#endif
+
 #if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
 /** @brief cdd_socket_t */
 typedef int cdd_socket_t;
@@ -51,19 +60,19 @@ typedef int cdd_socket_t;
 static cdd_c_error_t send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
   char resp[1024];
   sprintf(resp, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":null}", code, msg);
-  send(client_fd, resp, (int)strlen(resp), 0);
+  send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t send_rpc_success(cdd_socket_t client_fd) {
   const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":null}";
-  send(client_fd, resp, (int)strlen(resp), 0);
+  send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   char buffer[65536];
-  int bytes_received;
+  cdd_ssize_t bytes_received;
   char *body;
   JSON_Value *root_val;
   JSON_Object *root_obj;
@@ -96,7 +105,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
 
   if (strcmp(method, "version") == 0) {
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.2\",\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "initialize") == 0) {
     /* MCP Initialize Handshake Sequence */
     const char *resp;
@@ -108,7 +117,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
         (void)capabilities; /* Unused but mapped */
     }
     resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.2\"}},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "notifications/initialized") == 0) {
     /* MCP Initialized Acknowledgment (Fire and forget) */
     /* No response needed for notification */
@@ -121,47 +130,47 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   } else if (strcmp(method, "logging/setLevel") == 0) {
     /* MCP SetLevelRequest */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "ping") == 0) {
     /* MCP Liveness ping */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "tools/list") == 0) {
     /* MCP Tool Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\",\"inputSchema\":{\"type\":\"object\"}}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "resources/list") == 0) {
     /* MCP Resource Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "roots/list") == 0) {
     /* MCP Root Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "resources/templates/list") == 0) {
     /* MCP Resource Templates Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resourceTemplates\":[]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "resources/read") == 0) {
     /* MCP Resource Read */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "resources/subscribe") == 0) {
     /* MCP Subscribe Request */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "resources/unsubscribe") == 0) {
     /* MCP Unsubscribe Request */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "tools/read_image") == 0) {
     /* MCP ImageContent example endpoint */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\",\"mimeType\":\"image/png\",\"annotations\":{\"audience\":[\"user\"],\"priority\":1.0}}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "prompts/list") == 0) {
     /* MCP Prompt Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "sampling/createMessage") == 0) {
     /* MCP CreateMessageRequest */
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -175,15 +184,15 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
     double temperature = params && json_object_has_value_of_type(params, "temperature", JSONNumber) ? json_object_get_number(params, "temperature") : 0.0;
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"},\"id\":null}";
     (void)messages; (void)maxTokens; (void)includeContext; (void)metadata; (void)modelPreferences; (void)stopSequences; (void)systemPrompt; (void)temperature;
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "prompts/get") == 0) {
     /* MCP Prompt Get */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "completion/complete") == 0) {
     /* MCP Complete Request */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"completion\":{\"values\":[\"example\"],\"hasMore\":false,\"total\":1}},\"id\":null}";
-    send(client_fd, resp, (int)strlen(resp), 0);
+    send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   } else if (strcmp(method, "tools/call") == 0) {
     /* MCP CallToolRequest */
     JSON_Object *params = json_object_get_object(root_obj, "params");
@@ -208,7 +217,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             to_openapi_cli_main(5, argv);
             /* Return CallToolResult */
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":null}";
-            send(client_fd, resp, (int)strlen(resp), 0);
+            send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
         }
     } else if (strcmp(name, "to_docs_json") == 0) {
         const char *input = json_object_get_string(arguments, "input");
@@ -234,7 +243,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             }
             to_docs_json_cli_main(argc_call, argv);
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":null}";
-            send(client_fd, resp, (int)strlen(resp), 0);
+            send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
         }
     } else {
         { cdd_c_error_t _rc = send_rpc_error(client_fd, -32601, "Tool not found"); if (_rc != CDD_C_SUCCESS) return _rc; }

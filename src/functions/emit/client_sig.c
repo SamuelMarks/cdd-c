@@ -6,17 +6,18 @@
  * Appends standard `struct ApiError **api_error` argument to all operations.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/safe_crt.h"
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
-#include "c_cdd/safe_crt.h"
 /* clang-format on */
 
 /** @brief CHECK_IO definition */
@@ -986,7 +987,7 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   /* 3. Success Output */
-  success_is_binary = response_is_binary_success(op);
+  success_is_binary = (int)response_is_binary_success(op);
   success_schema = (get_success_schema(op, &_ast_get_success_schema_20),
                     _ast_get_success_schema_20);
   if (success_is_binary)

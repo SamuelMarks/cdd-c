@@ -8,16 +8,17 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/emit/patcher.h"
-#include "c_cdd/memory.h"
-#include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
+#include "functions/emit/patcher.h"
+#include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
 /* clang-format on */
 
 /**
@@ -149,7 +150,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
   size_t patch_idx = 0;
   size_t out_len = 0;
   size_t out_cap = 1024;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!list || !tokens || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;

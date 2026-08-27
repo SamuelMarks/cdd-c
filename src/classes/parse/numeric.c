@@ -9,7 +9,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -101,11 +102,11 @@ static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
   uint64_t val = 0;
   const char *p = str;
   while (*p == '0' || *p == '1') {
-    if (val > (UINT64_MAX >> 1)) {
-      val = UINT64_MAX; /* Overflow saturation */
+    if (val > (((uint64_t)-1) >> 1)) {
+      val = ((uint64_t)-1); /* Overflow saturation */
       errno = ERANGE;
     } else {
-      val = (val << 1) | (*p - '0');
+      val = (val << 1) | (uint64_t)(*p - '0');
     }
     p++;
   }

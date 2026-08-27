@@ -3,9 +3,11 @@
  * @brief Implementation of formatting CST factory allocation functions.
  */
 
-/* clang-format off */
-#include "cdd_cst_factory.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
+#include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
 #include "cdd_cst_parser.h"
 #include <errno.h>
@@ -13,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -51,11 +52,7 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
   }
 
   va_start(args, fmt);
-#if defined(__clang__)
-#endif
   CDD_VSNPRINTF(buf, 4096, fmt, args);
-#if defined(__clang__)
-#endif
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);

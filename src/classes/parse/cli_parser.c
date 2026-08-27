@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -152,7 +153,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
           next_idx++;
         if (next_idx < tokens->size &&
             tokens->tokens[next_idx].kind == TOKEN_CHAR_LITERAL) {
-          char c = tokens->tokens[next_idx].start[1];
+          char c = (char)tokens->tokens[next_idx].start[1];
           size_t opt_idx;
           for (opt_idx = 0; opt_idx < cmd->n_options; ++opt_idx) {
             if (cmd->options[opt_idx].short_flag == c) {

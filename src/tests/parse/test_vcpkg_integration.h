@@ -12,6 +12,8 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+extern cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+
 #include <greatest.h>
 #include <string.h>
 
@@ -19,7 +21,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of the Vcpkg builder.
@@ -109,7 +110,7 @@ TEST test_vcpkg_builder_errors(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    cdd_c_error_t test_vcpkg_my_strdup_errors(void);
+
     ASSERT_EQ(CDD_C_SUCCESS, test_vcpkg_my_strdup_errors());
 
     g_cdd_alloc_fail = 1; /* tokenize allocates tokens */
@@ -235,7 +236,7 @@ TEST test_vcpkg_builder_extras(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_alloc_fail; (moved to global) */
+/*  (moved to global) */
 #endif
 
 TEST test_vcpkg_builder_oom(void) {

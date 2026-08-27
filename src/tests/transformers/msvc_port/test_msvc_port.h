@@ -22,10 +22,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_msvc_port_bld_fail;
-extern int g_cdd_cst_realloc_fail;
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_msvc_port_bld_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 /**
  * @brief Test MSVC transformation of POSIX features.
@@ -61,7 +60,7 @@ TEST test_cdd_transform_msvc(void) {
       rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
       if (rc == 0 && tree_copy) {
 #ifdef CDD_BUILD_TESTS
-        /* extern int g_cdd_cst_realloc_fail; (moved to global) */
+        /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
         g_cdd_cst_realloc_fail = i;
 #endif
         rc = cdd_transform_msvc(tree_copy, &config);
@@ -116,7 +115,7 @@ TEST test_cdd_transform_msvc(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_msvc_port_bld_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_msvc_port_bld_fail; (moved to global) */
 #endif
 
 TEST test_cdd_transform_msvc_context(void) {
@@ -178,7 +177,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   /* Test all possible allocation failures to cover wrap_node and deps_node NULL
    * branches */
   {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     int fail_idx;
     for (fail_idx = 1; fail_idx < 30; fail_idx++) {
       cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
@@ -254,7 +253,8 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
                            "void f() { isnan(12); }"};
     size_t i;
     for (i = 0; i < sizeof(fails) / sizeof(fails[0]); i++) {
-      /* extern int g_cdd_cst_alloc_token_fail; (moved to global) */
+      /* extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail; (moved to global)
+       */
       int parse_rc =
           cdd_cst_parse(az_span_create_from_str((char *)fails[i]), &tree);
       if (parse_rc != 0 || tree == NULL) {

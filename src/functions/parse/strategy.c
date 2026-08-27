@@ -3,16 +3,17 @@
  * @brief Implementation of parsing strategies.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/parse/str.h" /* For string duplication utilities if specific needed */
-#include "functions/parse/strategy.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "functions/parse/str.h" /* For string duplication utilities if specific needed */
+#include "functions/parse/strategy.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -276,7 +277,8 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     /* Dispatch realloc strategy */
     if (strcmp(site->spec->name, "realloc") == 0) {
       size_t old_size = patches->size;
-      int rc = strategy_rewrite_realloc(tokens, site, semi_idx, patches);
+      cdd_c_error_t rc =
+          strategy_rewrite_realloc(tokens, site, semi_idx, patches);
       if (rc != 0)
         return rc;
       /* If matched and patched, skip standard injection logic */

@@ -5,19 +5,20 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd_export.h"
+#include "c_str_span.h"
 #include "cdd_cst_transform.h"
-#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
-#include "c_str_span.h"
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd_export.h"
+#include <string.h>
 /* clang-format on */
 
 /**

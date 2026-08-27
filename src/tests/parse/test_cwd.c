@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32

@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd/memory.h"
 #include "url_utils.h"
 
@@ -15,9 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup helpers */
 #include "routes/parse/url.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Standard definitions for C89 compatibility */

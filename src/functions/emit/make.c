@@ -4,12 +4,13 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "functions/emit/make.h"
 #include <errno.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "functions/emit/make.h"
-#include <stdarg.h>
 
 /* clang-format on */
 

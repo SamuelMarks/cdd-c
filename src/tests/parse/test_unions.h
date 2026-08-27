@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
  * @file test_unions.c
  * @brief Unit tests for Tagged Union code generation.
@@ -26,8 +26,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Add definitions that need to be in the test runner's main file. */
 

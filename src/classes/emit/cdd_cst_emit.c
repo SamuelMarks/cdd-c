@@ -3,15 +3,16 @@
  * @brief CST emit implementation
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "cdd_cst_emit.h"
+#include "c_cdd/log.h"
+#include "c_cdd_export.h"
+#include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "c_cdd_export.h"
-#include "cdd_cst_emit.h"
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /** @brief Context for emitting CST to string */
@@ -84,7 +85,7 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
  */
 static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   while (t) {
-    int rc = append_str(ctx, t->start, t->length);
+    cdd_c_error_t rc = append_str(ctx, t->start, t->length);
     if (rc != 0)
       return rc;
     t = t->next;
@@ -99,7 +100,7 @@ static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
  * @return 0 on success, error code otherwise.
  */
 static cdd_c_error_t emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
-  int rc;
+  cdd_c_error_t rc;
   if (!tok)
     return CDD_C_SUCCESS;
   if (tok->kind == CDD_TOKEN_EOF) {
@@ -130,7 +131,7 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
     return CDD_C_SUCCESS;
 
   for (i = 0; i < node->num_children; i++) {
-    int rc = 0;
+    cdd_c_error_t rc = 0;
     cdd_cst_child_t *child = &node->children[i];
     if (child->kind == CDD_CST_CHILD_TOKEN) {
       rc = emit_token(ctx, child->val.token);
@@ -145,7 +146,7 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
 
 cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   emit_ctx_t ctx = {0};
-  int rc;
+  cdd_c_error_t rc;
 
   if (!tree || !out_str)
     return CDD_C_ERROR_INVALID_ARGUMENT;

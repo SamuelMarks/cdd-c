@@ -3,15 +3,16 @@
  * @brief Implementation of route aggregation.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "functions/parse/str.h"
 #include "routes/emit/aggregator.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -140,7 +141,7 @@ cdd_c_error_t openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
                                                struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_0;
   struct OpenAPI_Path *target_path;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -188,7 +189,7 @@ openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
                                          struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_1;
   struct OpenAPI_Path *target_path;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;

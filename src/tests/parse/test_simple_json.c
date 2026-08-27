@@ -4,7 +4,8 @@ int g_cdd_alloc_fail = 0;
  * @brief Test runner for simple json tests.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <greatest.h>
 
 #include "test_simple_json.h"

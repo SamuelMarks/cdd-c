@@ -9,7 +9,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -92,7 +93,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   HCRYPTPROV hProv = 0;
   HCRYPTHASH hHash = 0;
   DWORD cbHash = CRYPTO_SHA256_SIZE;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
 #ifdef CDD_BUILD_TESTS
   if (g_crypto_fail_sha256)
@@ -168,7 +169,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
   HMAC_INFO HmacInfo;
   DWORD cbHash = CRYPTO_SHA256_SIZE;
   DWORD blobSize;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
 #ifdef CDD_BUILD_TESTS
   if (g_crypto_fail_hmac || g_crypto_fail_hmac_len)

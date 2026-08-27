@@ -3,7 +3,8 @@
  * @brief JWT codegen implementation
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

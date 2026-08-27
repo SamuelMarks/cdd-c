@@ -17,7 +17,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of CST scope.
@@ -26,6 +25,7 @@ extern int g_cdd_alloc_fail;
  */
 TEST test_cdd_cst_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
+  (void)env;
   cdd_cst_symbol_t *sym = NULL;
   (void)sym;
 
@@ -47,7 +47,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
@@ -64,6 +64,9 @@ TEST test_cdd_cst_scope_basic(void) {
       g_cdd_alloc_fail = i;
       {
         cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        (void)rc;
+        (void)rc;
+        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -77,6 +80,8 @@ TEST test_cdd_cst_scope_basic(void) {
       {
         cdd_c_error_t rc = cdd_cst_scope_add_symbol(
             env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+        (void)rc;
+        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -130,6 +135,7 @@ TEST test_cdd_cst_scope_basic(void) {
  */
 TEST test_cdd_cst_scope_errors(void) {
   cdd_cst_scope_env_t *env = NULL;
+  (void)env;
   cdd_cst_symbol_t *sym = NULL;
   (void)sym;
 
@@ -193,6 +199,7 @@ TEST test_cdd_cst_scope_errors(void) {
  */
 TEST test_cdd_cst_scope_tag(void) {
   cdd_cst_scope_env_t *env = NULL;
+  (void)env;
   cdd_cst_symbol_t *sym = NULL;
   (void)sym;
 
@@ -275,6 +282,7 @@ TEST test_cdd_cst_scope_mem(void) {
 
 TEST test_cdd_cst_scope_oom(void) {
   cdd_cst_scope_env_t *env = NULL;
+  (void)env;
   cdd_cst_symbol_t *sym = NULL;
   (void)sym;
 
@@ -293,7 +301,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     int i;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
@@ -310,6 +318,9 @@ TEST test_cdd_cst_scope_oom(void) {
       g_cdd_alloc_fail = i;
       {
         cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        (void)rc;
+        (void)rc;
+        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -323,6 +334,8 @@ TEST test_cdd_cst_scope_oom(void) {
       {
         cdd_c_error_t rc = cdd_cst_scope_add_symbol(
             env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+        (void)rc;
+        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -334,6 +347,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
 TEST test_scope_invalid_tag(void) {
   cdd_cst_scope_env_t *env = NULL;
+  (void)env;
   cdd_cst_symbol_t *found = NULL;
 
   cdd_cst_scope_env_init(&env);

@@ -1,10 +1,11 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_mutate.h"
+#include "c_cdd/log.h"
 #include "cdd_cst_factory.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 
 cdd_c_error_t find_child_index_mutate(cdd_cst_node_t *parent,

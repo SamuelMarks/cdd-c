@@ -3,14 +3,15 @@
  * @brief Implementation of schema constraint handling.
  */
 
-/* clang-format off */
-#include "c_cdd_export.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "classes/emit/schema.h"
+#include "c_cdd/log.h"
+#include "c_cdd_export.h"
+#include "functions/parse/str.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 cdd_c_error_t schema_constraints_init(struct SchemaConstraints *sc) {

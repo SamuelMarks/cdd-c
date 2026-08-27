@@ -4,20 +4,29 @@
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/safe_crt.h"
+#include "c_cdd/format_specifiers.h"
+#include "c_str_span.h"
 #include "cdd_cst_transform.h"
-#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_mutate.h"
+
+#ifdef _MSC_VER
+#ifndef strdup
+#define strdup _strdup
+#endif
+#endif
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 #include "classes/parse/numeric.h"
-#include "c_str_span.h"
+#include <ctype.h>
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include "c_cdd/safe_crt.h"
+#include <string.h>
 /* clang-format on */
 
 /** @brief MAX_LOCAL_LABELS */
@@ -128,7 +137,7 @@ static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
     }
     low_part = low * 10;
     high_part = high * 10 + (low_part < low ? 1 : 0) +
-                (low / 1844674407370955161ULL); /* Roughly */
+                (low / 1844674407370955161UL); /* Roughly */
     /* Accurate 128-bit multiply by 10 */
     {
       uint64_t al = low & 0xFFFFFFFF;
@@ -482,7 +491,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                     start_id--;
                   }
                   if (start_id < ellipsis) {
-                    var_len = ellipsis - start_id;
+                    var_len = (size_t)(ellipsis - start_id);
                     var_name = (char *)malloc(var_len + 1);
                     memcpy(var_name, start_id, var_len);
                     var_name[var_len] = '\0';
@@ -572,7 +581,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                           }
                           cdd_cst_create_token_len(
                               tree, CDD_TOKEN_PREPROC_DEFINE, pooled,
-                              out_p - out_buf, &new_tok);
+                              (size_t)(out_p - out_buf), &new_tok);
                           free(out_buf);
                           out_buf = NULL;
                           if (new_tok) {
@@ -1142,23 +1151,14 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, "(");
               {
                 char tb2[128];
-#if defined(_MSC_VER)
-                /** @brief ULL_HEX_FMT */
-
-#else
-
-#endif
-                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
-                             (unsigned long long)high);
+                CDD_SNPRINTF(tb2, 128, "0x%" CDD_PRIx64 "ULL", (uint64_t)high);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
               {
                 char tb2[128];
-                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
-                             (unsigned long long)low);
-#undef ULL_HEX_FMT
+                CDD_SNPRINTF(tb2, 128, "0x%" CDD_PRIx64 "ULL", (uint64_t)low);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ")");
@@ -1921,7 +1921,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
 
         /* Find end of expression heuristic to add `}` */
         for (fwd = rparen_idx + 1; fwd < tree->base_tokens->size; fwd++) {
-          tk = tree->base_tokens->tokens[fwd].kind;
+          tk = (int)tree->base_tokens->tokens[fwd].kind;
           if (tk == (int)CDD_TOKEN_SEMICOLON || tk == (int)CDD_TOKEN_ASSIGN) {
             size_t end_cidx;
             cdd_cst_node_t *end_parent = NULL;
@@ -2030,7 +2030,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
         size_t len = 0;
         char *p;
         for (k = i; k-- > 0;) {
-          int k_kind = tree->base_tokens->tokens[k].kind;
+          int k_kind = (int)tree->base_tokens->tokens[k].kind;
           if (k_kind == CDD_TOKEN_RPAREN || k_kind == CDD_TOKEN_RBRACKET ||
               k_kind == CDD_TOKEN_RBRACE) {
             depth++;
@@ -2094,7 +2094,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               tree->base_tokens->tokens[lhs_start].start;
           const uint8_t *expr_end = tree->base_tokens->tokens[i - 1].start +
                                     tree->base_tokens->tokens[i - 1].length;
-          len = expr_end - expr_start;
+          len = (size_t)(expr_end - expr_start);
           buf = (char *)malloc(len + 4);
           if (buf) {
             p = buf;
@@ -3350,7 +3350,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               if (start_val > end_val) {
                 alloc_sz = 128;
               } else {
-                alloc_sz = (end_val - start_val + 2) * 32 + 128;
+                alloc_sz = ((size_t)(end_val - start_val + 2)) * 32 + 128;
               }
               heap_buf = (char *)malloc(alloc_sz);
               if (heap_buf) {
@@ -3460,8 +3460,9 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
 
               if (assign_val) {
-                alloc_sz =
-                    (end_val - start_val + 2) * (32 + assign_val->length) + 1;
+                alloc_sz = ((size_t)(end_val - start_val + 2)) *
+                               (32 + assign_val->length) +
+                           1;
                 heap_buf = (char *)malloc(alloc_sz);
                 if (heap_buf) {
                   const char *pooled;

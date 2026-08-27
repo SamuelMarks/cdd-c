@@ -20,7 +20,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_fail_alloc_decl_hoist;
+extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
 
 /**
  * @brief Tests basic functionality of scanning for mixed declarations.
@@ -61,8 +61,9 @@ TEST test_scan_for_mixed_declarations_basic(void) {
  * @return The result of the test.
  */
 TEST test_scan_for_mixed_declarations_errors(void) {
-  struct TokenList *tl = setup_tokens("int a = 1;");
+  struct TokenList *tl = NULL;
   struct HoistSiteList list;
+  tokenize(az_span_create_from_str("int a = 1;"), &tl);
   (void)hoist_site_list_init(&list);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -81,7 +82,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_fail_alloc_decl_hoist; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist; (moved to global) */
 #endif
 
 static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {

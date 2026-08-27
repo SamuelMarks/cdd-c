@@ -26,9 +26,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_aggregator_fail_path_realloc;
-extern int g_cdd_aggregator_fail_ops_realloc;
-extern int g_cdd_aggregator_fail_route_strdup;
+extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc;
+extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc;
+extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup;
 
 static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));
@@ -220,14 +220,18 @@ TEST test_aggregator_oom(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   int i;
+  (void)i;
 
   (void)openapi_spec_init(&spec);
   dummy_op(&op, "op1");
 
   /* Test path alloc failure */
-  /* extern int g_cdd_aggregator_fail_path_realloc; (moved to global) */
-  /* extern int g_cdd_aggregator_fail_ops_realloc; (moved to global) */
-  /* extern int g_cdd_aggregator_fail_route_strdup; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_aggregator_fail_path_realloc; (moved to
+   * global) */
+  /* extern C_CDD_EXPORT int g_cdd_aggregator_fail_ops_realloc; (moved to
+   * global) */
+  /* extern C_CDD_EXPORT int g_cdd_aggregator_fail_route_strdup; (moved to
+   * global) */
 
   g_cdd_aggregator_fail_path_realloc = 1;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,

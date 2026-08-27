@@ -11,8 +11,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_macro_overlay_fail_realloc;
-extern int g_cdd_macro_overlay_fail_calloc;
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc;
+extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc;
 TEST test_macro_overlay_basic(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;
@@ -135,8 +135,9 @@ TEST test_macro_overlay_non_macro(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_macro_overlay_fail_realloc; (moved to global) */
-/* extern int g_cdd_macro_overlay_fail_calloc; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_realloc; (moved to global)
+ */
+/* extern C_CDD_EXPORT int g_cdd_macro_overlay_fail_calloc; (moved to global) */
 #endif
 
 TEST test_macro_overlay_oom(void) {

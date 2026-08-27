@@ -10,19 +10,20 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
-#include "win_compat_sym.h"
-#include <ctype.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "classes/emit/struct.h"
+#include "c_cdd/log.h"
+#include "c_cdd_export.h"
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
 #include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
-#include "c_cdd/log.h"
-#include "c_cdd_export.h"
+#include "win_compat_sym.h"
+#include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* clang-format on */
 
@@ -600,8 +601,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
             CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %" CDD_NUM_FORMAT ";\n",
-                                  n,
-                                  (unsigned long long)nv.data.integer.value));
+                                  n, (uint64_t)nv.data.integer.value));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));

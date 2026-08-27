@@ -5,16 +5,17 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include "classes/emit/struct.h" /* for get_type_from_ref */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "classes/emit/types.h"
+#include "c_cdd/log.h"
+#include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
-#include "c_cdd/log.h"
+#include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* clang-format on */
 
@@ -651,7 +652,10 @@ write_union_from_json_func(FILE *fp, const char *union_name,
                        "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
                        "        ret = malloc(sizeof(struct %s));\n"
                        "        if (!ret) { json_value_free(val); return "
-                       "CDD_C_ERROR_MEMORY; }\n"
+                       "CDD_C_ERROR_MEMORY; }\n",
+                       union_name, union_name));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
                        "        memset(ret, 0, sizeof(*ret));\n"
                        "        ret->tag = %s_%s;\n"
                        "        ret->data.%s = strdup(s);\n"
@@ -661,7 +665,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
                        "        json_value_free(val);\n"
                        "        return CDD_C_SUCCESS;\n"
                        "      }\n",
-                       union_name, union_name, union_name, name, name, name));
+                       union_name, name, name, name));
     }
   }
 

@@ -7,7 +7,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "functions/parse/crypto_types.h"
 
 #include <errno.h>

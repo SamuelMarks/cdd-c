@@ -1,9 +1,7 @@
+#ifdef _MSC_VER
+#define chdir _chdir
+#endif
 #if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 /**
  * @file test_generate_build_system.h
@@ -35,9 +33,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_fail_io_after;
-extern int g_cdd_strdup_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /**
  * @brief test_gen_cmake_basic
@@ -172,7 +169,7 @@ TEST test_build_system_oom2(void) {
   int rc;
 
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   for (i = 1; i <= 20; i++) {
     g_cdd_alloc_fail = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
@@ -263,7 +260,7 @@ TEST test_build_system_io_failure(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
 
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_fail_io_after; (moved to global) */
+  /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   for (i = 0; i <= 400; i++) {
     g_fail_io_after = i;
@@ -314,8 +311,8 @@ TEST test_gen_build_system_cli_args_fail(void) {
 
 TEST test_gen_cmake_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_cdd_alloc_fail; (moved to global) */
-  /* extern int g_cdd_strdup_fail; (moved to global) */
+  /*  (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
   int i;
   makedirs("test_build_dir_oom");
   for (i = 1; i <= 100; i++) {
@@ -451,5 +448,4 @@ SUITE(generate_build_system_suite) {
 #endif /* TEST_GENERATE_BUILD_SYSTEM_H */
 
 #if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

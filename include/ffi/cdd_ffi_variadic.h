@@ -10,6 +10,19 @@ extern "C" {
 #include "cdd_ffi_ir.h"
 #include <stddef.h>
 
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef signed __int8 int8_t;
+typedef signed __int16 int16_t;
+typedef signed __int32 int32_t;
+typedef signed __int64 int64_t;
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
+
 /**
  * @brief Parses a printf-style format string and returns an array of types.
  *
@@ -32,7 +45,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_parse_printf_format(const char *fmt,
 typedef union cdd_ffi_var_arg_t {
   int i;
   long l;
-  long long ll;
+  int64_t ll;
   double d;
   void *p;
 } cdd_ffi_var_arg_t;

@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -25,7 +26,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
                                 const char *condition, const char *false_code) {
   char *ifdef_str;
   char *endif_str;
-  int res;
+  cdd_c_error_t res;
   size_t ifdef_len;
   size_t endif_len;
 
@@ -110,7 +111,7 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
   size_t insert_idx = 0;
   size_t len;
   char *str;
-  int res;
+  cdd_c_error_t res;
 
   if (!patches || !tokens) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -221,7 +222,7 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
                                    const char *size_expr, int interactive) {
   char *str;
   size_t len;
-  int res;
+  cdd_c_error_t res;
 
   if (!patches || !tokens || !type_str || !var_name || !size_expr ||
       start_idx >= end_idx || end_idx > tokens->size) {

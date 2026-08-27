@@ -1,8 +1,9 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_cfg.h"
+#include "c_cdd/log.h"
 #include <errno.h>
 #include <stdlib.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_cfg_alloc_fail = 0;

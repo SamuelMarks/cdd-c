@@ -9,7 +9,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "mock_server.h"
 
 #include <errno.h>
@@ -109,7 +110,7 @@ typedef pthread_cond_t cond_t;
 #define THREAD_FUNC_RETURN void *
 #define THREAD_FUNC_ARG void *
 
-static void sleep_ms(int ms) { usleep(ms * 1000); }
+static void sleep_ms(int ms) { usleep((useconds_t)ms * 1000); }
 
 static void mutex_init(mutex_t *m) { pthread_mutex_init(m, NULL); }
 static void mutex_destroy(mutex_t *m) { pthread_mutex_destroy(m); }
@@ -133,11 +134,12 @@ static cdd_c_error_t platform_cleanup(void) { return CDD_C_SUCCESS; }
 #endif
 
 #include "c_cdd_export.h"
-/* extern int g_cdd_alloc_fail; (moved to global) */
+/*  (moved to global) */
 #include "cdd_test_helpers_export.h"
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
+#include "c_cdd/memory.h"
+
 CDD_TEST_HELPERS_EXPORT int g_socket_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_bind_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_listen_fail = 0;
@@ -150,7 +152,7 @@ static int mock_bind(socket_t sockfd, const struct sockaddr *addr,
                      int addrlen) {
   if (g_bind_fail)
     return SOCK_ERROR;
-  return bind(sockfd, addr, addrlen);
+  return bind(sockfd, addr, (socklen_t)addrlen);
 }
 static int mock_listen(socket_t sockfd, int backlog) {
   if (g_listen_fail)
@@ -284,10 +286,10 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
         mutex_lock(&s->lock);
         if (s->captured_request)
           free(s->captured_request);
-        s->captured_request = (char *)malloc(bytes_read + 1);
+        s->captured_request = (char *)malloc((size_t)bytes_read + 1);
         if (s->captured_request) {
           memcpy(s->captured_request, buffer, bytes_read + 1);
-          s->captured_len = bytes_read;
+          s->captured_len = (size_t)bytes_read;
           s->has_request = 1;
           cond_signal(&s->cond_req_ready);
         }

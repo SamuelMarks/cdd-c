@@ -28,12 +28,13 @@ extern "C" {
 /* clang-format on */
 
 TEST test_c2openapi_full_flow(void) {
+  int rc;
+  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *h_file = NULL;
   char *out_json = NULL;
-  int rc;
 
   /* 0. Setup Directories */
   tempdir(&tmp_dir);
@@ -99,7 +100,7 @@ TEST test_c2openapi_full_flow(void) {
   {
     /* C90 compliant initialization */
     char *argv[5]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = "--dialect";
     argv[2] = "https://spec.openapis.org/oas/3.1/dialect/base";
@@ -292,13 +293,14 @@ TEST test_c2openapi_full_flow(void) {
 }
 
 TEST test_c2openapi_with_base_spec(void) {
+  int rc;
+  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *h_file = NULL;
   char *out_json = NULL;
   char *base_json = NULL;
-  int rc;
 
   tempdir(&tmp_dir);
   asprintf(&src_dir, "%s%cc2o_base_%d", tmp_dir, PATH_SEP_C, rand());
@@ -345,7 +347,7 @@ TEST test_c2openapi_with_base_spec(void) {
 
   {
     char *argv[5]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = "--base";
     argv[2] = base_json;
@@ -409,12 +411,13 @@ TEST test_c2openapi_with_base_spec(void) {
 }
 
 TEST test_c2openapi_with_self_uri(void) {
+  int rc;
+  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *h_file = NULL;
   char *out_json = NULL;
-  int rc;
 
   tempdir(&tmp_dir);
   asprintf(&src_dir, "%s%cc2o_self_%d", tmp_dir, PATH_SEP_C, rand());
@@ -435,7 +438,7 @@ TEST test_c2openapi_with_self_uri(void) {
 
   {
     char *argv[5]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = "--self";
     argv[2] = "https://example.com/override.json";
@@ -470,11 +473,12 @@ TEST test_c2openapi_with_self_uri(void) {
 }
 
 TEST test_c2openapi_global_meta_security_schemes(void) {
+  int rc;
+  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
   char *out_json = NULL;
-  int rc;
 
   tempdir(&tmp_dir);
   asprintf(&src_dir, "%s%cc2o_global_%d", tmp_dir, PATH_SEP_C, rand());
@@ -501,7 +505,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = src_dir;
     argv[2] = out_json;
@@ -564,6 +568,8 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
 }
 
 TEST test_c2o_cli_source_file_checks(void) {
+  int rc;
+  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -585,7 +591,7 @@ TEST test_c2o_cli_source_file_checks(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -613,6 +619,8 @@ TEST test_c2o_cli_source_file_checks(void) {
 }
 
 TEST test_c2o_cli_doc_sec_unset(void) {
+  int rc;
+  (void)rc;
   const char *snippets[] = {
       "/**\n * @securityScheme my_bad_sec\n */\nint foo1(void);\n",
       "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint "
@@ -673,7 +681,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 
     {
       char *argv[3]; /* ... */
-      int rc;
+
       argv[0] = "c2openapi";
       argv[1] = (char *)src_dir;
       argv[2] = (char *)out_json;
@@ -702,6 +710,8 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 }
 
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
+  int rc;
+  (void)rc;
   const char *src = "/**\n"
                     " * @tag duplicated\n"
                     " * @tag duplicated\n"
@@ -712,7 +722,6 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   char *src_dir = NULL;
   char *c_file = NULL;
   char *out_json = NULL;
-  int rc;
 
   tempdir(&tmp_dir);
   asprintf(&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C, rand());
@@ -724,7 +733,7 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -748,6 +757,8 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
 }
 
 TEST test_c2o_cli_mappings_errors_find(void) {
+  int rc;
+  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -766,7 +777,6 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   char *src_dir = NULL;
   char *c_file = NULL;
   char *out_json = NULL;
-  int rc;
 
   tempdir(&tmp_dir);
   asprintf(&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C, rand());
@@ -778,7 +788,7 @@ TEST test_c2o_cli_mappings_errors_find(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -802,6 +812,8 @@ TEST test_c2o_cli_mappings_errors_find(void) {
 }
 
 TEST test_c2o_cli_set_str_mismatch(void) {
+  int rc;
+  (void)rc;
   const char *src = "/**\n"
                     " * @securityScheme my_http [type:http] [scheme:bearer]\n"
                     " * @securityScheme my_http [type:http] [scheme:basic]\n"
@@ -823,7 +835,7 @@ TEST test_c2o_cli_set_str_mismatch(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -847,6 +859,8 @@ TEST test_c2o_cli_set_str_mismatch(void) {
 }
 
 TEST test_c2o_cli_server_variables(void) {
+  int rc;
+  (void)rc;
   const char *src = "/**\n"
                     " * GLOBAL META:\n"
                     " * @server https://api.com [description:prod]\n"
@@ -870,7 +884,7 @@ TEST test_c2o_cli_server_variables(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -894,6 +908,8 @@ TEST test_c2o_cli_server_variables(void) {
 }
 
 TEST test_c2o_cli_server_variables_validation(void) {
+  int rc;
+  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -918,7 +934,7 @@ TEST test_c2o_cli_server_variables_validation(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -942,6 +958,8 @@ TEST test_c2o_cli_server_variables_validation(void) {
 }
 
 TEST test_c2o_cli_merge_oauth_scopes(void) {
+  int rc;
+  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -969,7 +987,7 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
 
   {
     char *argv[3]; /* ... */
-    int rc;
+
     argv[0] = "c2openapi";
     argv[1] = (char *)src_dir;
     argv[2] = (char *)out_json;
@@ -993,6 +1011,8 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
 }
 
 TEST test_c2o_cli_oauth_validation_errors(void) {
+  int rc;
+  (void)rc;
   const char *snippets[] = {
       "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
       "*/\nint foo21(void);\n", /* Missing authorizationUrl */
@@ -1032,7 +1052,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 
     {
       char *argv[3]; /* ... */
-      int rc;
+
       argv[0] = "c2openapi";
       argv[1] = (char *)src_dir;
       argv[2] = (char *)out_json;
@@ -1061,6 +1081,8 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 }
 
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
+  int rc;
+  (void)rc;
   const char *snippets[] = {
       "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
       "[flow:implicit] [authorizationUrl:https://auth.com/auth1]\n * "
@@ -1107,7 +1129,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
 
     {
       char *argv[3]; /* ... */
-      int rc;
+
       argv[0] = "c2openapi";
       argv[1] = (char *)src_dir;
       argv[2] = (char *)out_json;

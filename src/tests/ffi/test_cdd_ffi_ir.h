@@ -15,13 +15,13 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_ffi_ir_calloc_fail;
-extern int g_cdd_ffi_ir_malloc_fail;
-extern int g_cdd_ffi_ir_toposort_fail;
+extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
+extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
+extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_ffi_ir_calloc_fail; (moved to global) */
-/* extern int g_cdd_ffi_ir_malloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail; (moved to global) */
 #endif
 
 TEST test_ffi_ir_toposort_null(void) {
@@ -254,9 +254,9 @@ TEST test_ffi_ir_free_partial(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_ffi_ir_calloc_fail; (moved to global) */
-/* extern int g_cdd_ffi_ir_malloc_fail; (moved to global) */
-/* extern int g_cdd_ffi_ir_toposort_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail; (moved to global) */
 #endif
 
 TEST test_ffi_ir_c_toposort_dfs_errors(void) {

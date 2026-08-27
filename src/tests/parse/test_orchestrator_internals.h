@@ -53,7 +53,7 @@ static cdd_c_error_t mock_parse_tokens(const struct TokenList *tokens,
 #include <c_cdd_export.h>
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
+
 C_CDD_EXPORT cdd_c_error_t tokenize(az_span code, struct TokenList **out_list);
 static cdd_c_error_t mock_tokenize(az_span code, struct TokenList **out_list) {
   if (g_force_tokenize_fail)
@@ -100,7 +100,7 @@ TEST test_orchestrator_internals(void) {
   }
 
   {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
@@ -113,7 +113,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test join_tokens_str allocation failure */
   {
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
     tokenize(AZ_SPAN_FROM_STR("void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;

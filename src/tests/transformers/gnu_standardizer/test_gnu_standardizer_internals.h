@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#ifndef strdup
+#define strdup _strdup
+#endif
+#endif
 #ifndef TEST_GNU_STANDARDIZER_INTERNALS_H
 #define TEST_GNU_STANDARDIZER_INTERNALS_H
 
@@ -9,7 +14,12 @@
 
 #define malloc(s) (g_force_gnu_alloc_fail ? NULL : malloc(s))
 #define realloc(p, s) (g_force_gnu_alloc_fail ? NULL : realloc(p, s))
+#undef strdup
+#if defined(_MSC_VER)
+#define strdup(s) (g_force_strdup_fail ? NULL : _strdup(s))
+#else
 #define strdup(s) (g_force_strdup_fail ? NULL : strdup(s))
+#endif
 
 cdd_c_error_t internal_cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 #define cdd_transform_gnu internal_cdd_transform_gnu
@@ -23,8 +33,8 @@ extern void parse_hex_128_literal(const char *str, size_t len, uint64_t *high,
 
 #undef cdd_transform_gnu
 
-extern cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
-                                       const cdd_transform_config_t *config);
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 TEST test_gnu_internals(void) {
   cdd_cst_tree_t tree;

@@ -3,7 +3,8 @@
  * @brief Dynamic loader checking for DB clients
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "functions/parse/db_loader.h"
 #include <stddef.h>
 

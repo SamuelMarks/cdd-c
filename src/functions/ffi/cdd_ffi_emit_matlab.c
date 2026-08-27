@@ -1,12 +1,13 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */
-#include "c_cdd/safe_crt.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_matlab.h"
-#include <stdio.h>
 #include "c_cdd/format_specifiers.h"
+#include "c_cdd/safe_crt.h"
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 /* clang-format on */
 
 static cdd_c_error_t
@@ -208,7 +209,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 cdd_c_error_t
 cdd_ffi_emit_matlab(cdd_ffi_ir_t *ir,
                     const cdd_generate_bindings_config_t *config) {
-  int rc;
+  cdd_c_error_t rc;
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }

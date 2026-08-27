@@ -1,6 +1,19 @@
+#if defined(_MSC_VER)
+static FILE *cdd_freopen_helper_to_docs(const char *p, const char *m, FILE *s) {
+  FILE *f = NULL;
+  freopen_s(&f, p, m, s);
+  return f;
+}
+#undef CDD_FREOPEN
+#define CDD_FREOPEN cdd_freopen_helper_to_docs
+#define dup _dup
+#define dup2 _dup2
+#define close _close
+#define fileno _fileno
+#else
+#define CDD_FREOPEN freopen
+#endif
 /**
- * @file test_to_docs_json.h
- * @brief Unit tests for converting CST to doc JSON.
  */
 
 /**
@@ -88,7 +101,7 @@ TEST test_to_docs_json_basic(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  if (freopen(TEMP_OUT_FILE, "w", stdout)) {
+  if (CDD_FREOPEN(TEMP_OUT_FILE, "w", stdout)) {
   }
 
   rc = to_docs_json_cli_main(3, argv);
@@ -149,7 +162,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  if (freopen(TEMP_OUT_FILE, "w", stdout)) {
+  if (CDD_FREOPEN(TEMP_OUT_FILE, "w", stdout)) {
   }
 
   rc = to_docs_json_cli_main(5, argv);

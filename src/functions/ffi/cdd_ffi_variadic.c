@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "../../include/ffi/cdd_ffi_variadic.h"
 #include <string.h>
 /* clang-format on */
@@ -148,6 +149,6 @@ cdd_c_error_t cdd_ffi_invoke_variadic(cdd_c_error_t (*fn)(const char *, ...),
               args[5].p, args[6].p, args[7].p);
   default:
     /* Exceeded maximum supported arguments for the fallback trampoline */
-    return -1;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 }

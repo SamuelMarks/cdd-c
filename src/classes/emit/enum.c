@@ -5,15 +5,16 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "classes/emit/enum.h"
-#include "functions/parse/str.h"
 #include "c_cdd/log.h"
 #include "c_cdd_export.h"
+#include "functions/parse/str.h"
+#include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* clang-format on */
 

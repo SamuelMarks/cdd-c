@@ -228,7 +228,9 @@ TEST test_FooE_json_roundtrip(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = FooE_from_json(json, &foo_in);
   ASSERT_EQ_FMT(0, rc, "%d");
@@ -257,7 +259,9 @@ TEST test_HazE_json_roundtrip(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = HazE_from_json(json, &haz_in);
   ASSERT_EQ(0, rc);
@@ -282,7 +286,9 @@ TEST test_HazE_json_roundtrip(void) {
 TEST test_json_parsing_errors(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("{", &h));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("{", &f));
@@ -310,8 +316,12 @@ TEST test_json_parsing_corner_cases(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   /* Test HazE from JSON with missing "tank" field */
   rc = HazE_from_json("{\"bzr\": \"val\"}", &h);
@@ -338,6 +348,7 @@ TEST test_json_parsing_corner_cases(void) {
 }
 
 TEST test_null_args_and_errors(void) {
+  extern int g_cdd_wine_skip;
   char *str = NULL;
   struct HazE h = {"", Tank_BIG};
   struct FooE f = {"", 1, NULL};
@@ -345,6 +356,8 @@ TEST test_null_args_and_errors(void) {
   struct FooE *foo_e_ptr = &f;
   f.haz = haz_e_ptr;
   if (getenv("RUNNING_UNDER_VALGRIND"))
+    ;
+  if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_to_str(Tank_BIG, NULL));
@@ -537,7 +550,9 @@ TEST test_to_json_with_null_fields(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   foo.haz = &haz;
 
@@ -627,7 +642,9 @@ TEST test_debug_fail(void) {
 TEST test_json_parsing_wrong_types(void) {
   struct FooE *f = NULL;
   struct HazE *h = NULL;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   /* tank is not a string */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -693,7 +710,9 @@ TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   /* `bar` is optional and can be missing */
   rc = FooE_from_json(
@@ -728,7 +747,9 @@ TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  SKIPm("Parson crash under Wine 2005 builds");
+  extern int g_cdd_wine_skip;
+  if (g_cdd_wine_skip)
+    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f);
   ASSERT_EQ(0, rc);

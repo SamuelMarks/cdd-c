@@ -5,7 +5,11 @@
 #include <cdd_test_helpers/cdd_helpers.h>
 
 /* Include the C file to access static functions */
+#pragma push_macro("C_CDD_EXPORT")
+#undef C_CDD_EXPORT
+#define C_CDD_EXPORT
 #include "functions/parse/preprocessor.c"
+#pragma pop_macro("C_CDD_EXPORT")
 /* clang-format on */
 
 TEST test_preprocessor_internals(void) {

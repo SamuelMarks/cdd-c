@@ -11,10 +11,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_strdup_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
-extern cdd_c_error_t fix_code_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t fix_code_main(int argc, char **argv);
 
 TEST test_orchestrator_coverage_fix_code_main(void) {
   char *argv_missing[] = {"does_not_exist_dir", "--in-place"};
@@ -35,7 +34,7 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
 
 TEST test_orchestrator_coverage_oom(void) {
   char *out = NULL;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
 
   int i;
 
@@ -52,8 +51,8 @@ TEST test_orchestrator_coverage_oom(void) {
 
 TEST test_orchestrator_coverage_oom_deep(void) {
   char *out = NULL;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
-  /* extern int g_cdd_strdup_fail; (moved to global) */
+  /*  (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
   int i;
   const char *code = "void test() { char *p = malloc(1); }\n"
@@ -153,7 +152,7 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
 
 TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
@@ -168,7 +167,7 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
 
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first

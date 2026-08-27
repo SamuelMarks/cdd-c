@@ -23,7 +23,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 /**
  * @brief test_cbuild_null_args
@@ -223,7 +223,7 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   int i;
   int rc;
-  /* extern int g_fail_io_after; (moved to global) */
+  /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   memset(&config, 0, sizeof(config));
   config.project_name = "PetStore";

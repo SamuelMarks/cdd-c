@@ -1,10 +1,11 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_php.h"
+#include "c_cdd/safe_crt.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include "c_cdd/safe_crt.h"
 /* clang-format on */
 
 static const char *get_cdef_type(cdd_ffi_type_t type) {

@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "../../functions/emit/client_sig.c"
 #include "greatest.h"
 /* clang-format on */

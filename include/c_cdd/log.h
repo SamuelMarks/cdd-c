@@ -1,4 +1,7 @@
 /* clang-format off */
+#include "c_cdd_export.h"
+#include "cdd_c_error.h"
+
 /* clang-format on */
 /**
  * @file log.h

@@ -1,4 +1,5 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 /* clang-format on */
 C_CDD_EXPORT int g_fail_io_after = -1;

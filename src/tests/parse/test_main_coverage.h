@@ -10,11 +10,11 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
-extern cdd_c_error_t print_version(void);
-extern cdd_c_error_t print_help(const char *program_name);
-extern cdd_c_error_t handle_audit(int argc, char **argv);
-extern cdd_c_error_t from_openapi_cli_main(int argc, char **argv);
-extern cdd_c_error_t to_openapi_cli_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t print_version(void);
+extern C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name);
+extern C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv);
+extern C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv);
 
 TEST test_main_coverage_print_version(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_version());

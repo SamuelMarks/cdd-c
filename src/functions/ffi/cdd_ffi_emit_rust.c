@@ -1,12 +1,13 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_rust.h"
 #include "../parse/fs.h"
+#include "c_cdd/safe_crt.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/safe_crt.h"
 
 /* clang-format on */
 
@@ -379,7 +380,7 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
 
 cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
-  int rc;
+  cdd_c_error_t rc;
   char src_dir[1024];
   char tests_dir[1024];
 

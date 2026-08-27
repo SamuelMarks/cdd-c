@@ -18,7 +18,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_cfg_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
 
 /**
  * @brief Tests basic functionality of the CFG generator.
@@ -73,7 +73,7 @@ TEST test_cdd_cst_cfg_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_cfg_alloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_cst_cfg_oom(void) {
@@ -112,7 +112,7 @@ TEST test_cdd_cst_cfg_oom(void) {
     cdd_cst_tree_free(t2);
   }
   {
-    /* extern int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
     const char *ret_src = "int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;
@@ -254,7 +254,7 @@ TEST test_cdd_cst_cfg_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* extern int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
     for (i = 1; i < 100; ++i) {
       g_cdd_cfg_alloc_fail = i;
@@ -291,7 +291,7 @@ TEST test_cdd_cst_cfg_extra(void) {
     cdd_cst_tree_free(t2);
   }
   {
-    /* extern int g_cdd_cfg_alloc_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
     const char *ret_src = "int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;

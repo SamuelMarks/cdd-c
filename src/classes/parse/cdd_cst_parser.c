@@ -1,11 +1,12 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_parser.h"
+#include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "cdd_lexer.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
-#include "c_cdd/memory.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -159,13 +160,13 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
 static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                                  cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc = CDD_C_SUCCESS;
 
   cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
   rc = alloc_node(CDD_CST_BLOCK, parent, &b);
   if (rc != CDD_C_SUCCESS) {
-    s->err = rc;
+    s->err = (int)rc;
     return rc;
   }
 
@@ -190,7 +191,7 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(child);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(b);
         *out_node = NULL;
         return app_rc;
@@ -279,7 +280,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
           if (app_rc != CDD_C_SUCCESS) {
             free_node(child);
-            s->err = app_rc;
+            s->err = (int)app_rc;
             free_node(n);
             *out_node = NULL;
             return app_rc;
@@ -384,7 +385,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
           if (app_rc != CDD_C_SUCCESS) {
             free_node(param);
-            s->err = app_rc;
+            s->err = (int)app_rc;
             free_node(param_list);
             *out_node = NULL;
             return app_rc;
@@ -401,7 +402,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(param_list);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(n);
         *out_node = NULL;
         return app_rc;
@@ -418,7 +419,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(child);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(n);
         *out_node = NULL;
         return app_rc;
@@ -458,7 +459,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(child);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(n);
         *out_node = NULL;
         return app_rc;
@@ -514,7 +515,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(child);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(n);
         *out_node = NULL;
         return app_rc;
@@ -560,7 +561,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
         if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = app_rc;
+          s->err = (int)app_rc;
           free_node(catch_node);
           *out_node = NULL;
           return app_rc;
@@ -570,7 +571,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(catch_node);
-        s->err = app_rc;
+        s->err = (int)app_rc;
         free_node(n);
         *out_node = NULL;
         return app_rc;
@@ -629,7 +630,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
         if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
-          s->err = app_rc;
+          s->err = (int)app_rc;
           free_node(n);
           *out_node = NULL;
           return app_rc;
@@ -691,7 +692,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
           if (app_rc != CDD_C_SUCCESS) {
             free_node(base_spec);
-            s->err = app_rc;
+            s->err = (int)app_rc;
             free_node(base_list);
             *out_node = NULL;
             return app_rc;
@@ -712,7 +713,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
         if (app_rc != CDD_C_SUCCESS) {
           free_node(base_list);
-          s->err = app_rc;
+          s->err = (int)app_rc;
           free_node(n);
           *out_node = NULL;
           return app_rc;
@@ -903,7 +904,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
           if (app_rc != CDD_C_SUCCESS) {
             free_node(noexcept_node);
-            s->err = app_rc;
+            s->err = (int)app_rc;
             free_node(n);
             *out_node = NULL;
             return app_rc;
@@ -920,7 +921,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 
           if (app_rc != CDD_C_SUCCESS) {
             free_node(child);
-            s->err = app_rc;
+            s->err = (int)app_rc;
             free_node(n);
             *out_node = NULL;
             return app_rc;
@@ -982,7 +983,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
 }
 
 cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
-  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc;
+  cdd_c_error_t rc = CDD_C_SUCCESS, app_rc = CDD_C_SUCCESS;
 
   parser_state_t state = {0};
   cdd_cst_tree_t *tree;
@@ -1021,7 +1022,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
       advance(&state, &t);
       rc = append_child_token(tree->root, t);
       if (rc != CDD_C_SUCCESS) {
-        state.err = rc;
+        state.err = (int)rc;
       }
       break;
     }
@@ -1029,14 +1030,14 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
       cdd_cst_node_t *child = NULL;
       rc = parse_declaration_or_statement(&state, tree->root, &child);
       if (rc != CDD_C_SUCCESS) {
-        state.err = rc;
+        state.err = (int)rc;
         break;
       }
       app_rc = append_child_node(tree->root, child);
 
       if (app_rc != CDD_C_SUCCESS) {
         free_node(child);
-        state.err = app_rc;
+        state.err = (int)app_rc;
         break;
       }
     }
@@ -1044,7 +1045,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   if (state.err) {
     cdd_cst_tree_free(tree);
-    return state.err;
+    return (cdd_c_error_t)state.err;
   }
 
   *out_tree = tree;

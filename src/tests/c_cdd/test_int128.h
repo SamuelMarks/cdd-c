@@ -14,17 +14,21 @@ extern "C" {
 
 TEST test_cdd_make_uint128(void) {
   cdd_uint128_t u =
-      cdd_make_uint128(0x1234567890ABCDEFULL, 0xFEDCBA0987654321ULL);
-  ASSERT_EQ(0x1234567890ABCDEFULL, u.high);
-  ASSERT_EQ(0xFEDCBA0987654321ULL, u.low);
+      cdd_make_uint128((((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF),
+                       (((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321));
+  ASSERT_EQ((((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF), u.high);
+  ASSERT_EQ((((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321), u.low);
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_cdd_make_int128(void) {
-  cdd_int128_t i = cdd_make_int128(-1234567890LL, 0xFEDCBA0987654321ULL);
-  ASSERT_EQ(-1234567890LL, i.high);
-  ASSERT_EQ(0xFEDCBA0987654321ULL, i.low);
+  cdd_int128_t i = cdd_make_int128(
+      ((int64_t)(((uint64_t)0xFFFFFFFF << 32) | (uint64_t)0xB669FD2E)),
+      (((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321));
+  ASSERT_EQ(((int64_t)(((uint64_t)0xFFFFFFFF << 32) | (uint64_t)0xB669FD2E)),
+            i.high);
+  ASSERT_EQ((((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321), i.low);
   g_fail_io_after = -1;
   PASS();
 }
@@ -57,10 +61,10 @@ TEST test_cdd_math_add_sub(void) {
 }
 
 TEST test_cdd_math_add_sub_carry(void) {
-  cdd_uint128_t u1 = cdd_make_uint128(0, 0xFFFFFFFFFFFFFFFFULL);
+  cdd_uint128_t u1 = cdd_make_uint128(0, (((uint64_t)-1)));
   cdd_uint128_t u2 = cdd_make_uint128(0, 1);
   cdd_uint128_t uout;
-  cdd_int128_t i1 = cdd_make_int128(0, 0xFFFFFFFFFFFFFFFFULL);
+  cdd_int128_t i1 = cdd_make_int128(0, (((uint64_t)-1)));
   cdd_int128_t i2 = cdd_make_int128(0, 1);
   cdd_int128_t iout;
 
@@ -70,7 +74,7 @@ TEST test_cdd_math_add_sub_carry(void) {
 
   cdd_uint128_sub(uout, u2, &uout);
   ASSERT_EQ(0, uout.high);
-  ASSERT_EQ(0xFFFFFFFFFFFFFFFFULL, uout.low);
+  ASSERT_EQ((((uint64_t)-1)), uout.low);
 
   cdd_int128_add(i1, i2, &iout);
   ASSERT_EQ(1, iout.high);
@@ -78,7 +82,7 @@ TEST test_cdd_math_add_sub_carry(void) {
 
   cdd_int128_sub(iout, i2, &iout);
   ASSERT_EQ(0, iout.high);
-  ASSERT_EQ(0xFFFFFFFFFFFFFFFFULL, iout.low);
+  ASSERT_EQ((((uint64_t)-1)), iout.low);
   g_fail_io_after = -1;
   PASS();
 }
@@ -111,25 +115,25 @@ TEST test_cdd_math_mul_div(void) {
 }
 
 TEST test_cdd_math_mul_carry(void) {
-  cdd_uint128_t u1 = cdd_make_uint128(0, 0xFFFFFFFFFFFFFFFFULL);
-  cdd_uint128_t u2 = cdd_make_uint128(0, 0xFFFFFFFFFFFFFFFFULL);
+  cdd_uint128_t u1 = cdd_make_uint128(0, (((uint64_t)-1)));
+  cdd_uint128_t u2 = cdd_make_uint128(0, (((uint64_t)-1)));
   cdd_uint128_t uout;
 
   cdd_uint128_mul(u1, u2, &uout);
-  ASSERT_EQ(0xFFFFFFFFFFFFFFFEULL, uout.high);
+  ASSERT_EQ((((uint64_t)-2)), uout.high);
   ASSERT_EQ(1, uout.low);
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_cdd_math_div_mod_neg(void) {
-  cdd_int128_t i1 = cdd_make_int128(-1LL, 0xFFFFFFFFFFFFFFF6ULL); /* -10 */
+  cdd_int128_t i1 = cdd_make_int128(((int64_t)-1), (((uint64_t)-10))); /* -10 */
   cdd_int128_t i2 = cdd_make_int128(0, 2);
   cdd_int128_t iout;
 
   cdd_int128_div(i1, i2, &iout);
-  ASSERT_EQ(-1LL, iout.high);
-  ASSERT_EQ(0xFFFFFFFFFFFFFFFBULL, iout.low);
+  ASSERT_EQ(((int64_t)-1), iout.high);
+  ASSERT_EQ((((uint64_t)-5)), iout.low);
 
   cdd_int128_mod(i1, i2, &iout);
   ASSERT_EQ(0, iout.high);
@@ -143,7 +147,7 @@ TEST test_cdd_math_div_mod_neg(void) {
   ASSERT_EQ(0, iout.high);
   ASSERT_EQ(2, iout.low);
 
-  i2 = cdd_make_int128(-1LL, 0xFFFFFFFFFFFFFFFEULL); /* -2 */
+  i2 = cdd_make_int128(((int64_t)-1), (((uint64_t)-2))); /* -2 */
   cdd_int128_div(i1, i2, &iout);
   ASSERT_EQ(0, iout.high);
   ASSERT_EQ(5, iout.low);
@@ -192,11 +196,14 @@ TEST test_cdd_math_mod_shl_shr(void) {
 
 TEST test_cdd_math_shl_shr_edge(void) {
   cdd_uint128_t u1 =
-      cdd_make_uint128(0x1234567890ABCDEFULL, 0xFEDCBA0987654321ULL);
+      cdd_make_uint128((((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF),
+                       (((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321));
   cdd_uint128_t uout;
-  cdd_int128_t i1 =
-      cdd_make_int128(0x1234567890ABCDEFLL, 0xFEDCBA0987654321ULL);
-  cdd_int128_t ineg = cdd_make_int128(-1LL, 0xFEDCBA0987654321ULL);
+  cdd_int128_t i1 = cdd_make_int128(
+      ((int64_t)(((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF)),
+      (((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321));
+  cdd_int128_t ineg = cdd_make_int128(
+      ((int64_t)-1), (((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321));
   cdd_int128_t iout;
 
   cdd_uint128_shl(u1, 0, &uout);
@@ -207,12 +214,14 @@ TEST test_cdd_math_shl_shr_edge(void) {
   ASSERT_EQ(u1.low, uout.low);
 
   cdd_uint128_shl(u1, 68, &uout);
-  ASSERT_EQ(0xFEDCBA0987654321ULL << 4, uout.high);
+  ASSERT_EQ((((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321) << 4,
+            uout.high);
   ASSERT_EQ(0, uout.low);
 
   cdd_uint128_shr(u1, 68, &uout);
   ASSERT_EQ(0, uout.high);
-  ASSERT_EQ(0x1234567890ABCDEFULL >> 4, uout.low);
+  ASSERT_EQ((((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF) >> 4,
+            uout.low);
 
   cdd_int128_shl(i1, 0, &iout);
   ASSERT_EQ(i1.high, iout.high);
@@ -222,15 +231,17 @@ TEST test_cdd_math_shl_shr_edge(void) {
   ASSERT_EQ(i1.low, iout.low);
 
   cdd_int128_shl(i1, 68, &iout);
-  ASSERT_EQ(0xFEDCBA0987654321ULL << 4, (uint64_t)iout.high);
+  ASSERT_EQ((((uint64_t)0xFEDCBA09 << 32) | (uint64_t)0x87654321) << 4,
+            (uint64_t)iout.high);
   ASSERT_EQ(0, iout.low);
 
   cdd_int128_shr(i1, 68, &iout);
   ASSERT_EQ(0, iout.high);
-  ASSERT_EQ(0x1234567890ABCDEFULL >> 4, iout.low);
+  ASSERT_EQ((((uint64_t)0x12345678 << 32) | (uint64_t)0x90ABCDEF) >> 4,
+            iout.low);
 
   cdd_int128_shr(ineg, 68, &iout);
-  ASSERT_EQ(-1LL, iout.high);
+  ASSERT_EQ(((int64_t)-1), iout.high);
   g_fail_io_after = -1;
   PASS();
 }
@@ -250,7 +261,7 @@ TEST test_cdd_math_bitwise(void) {
   cdd_uint128_xor(u1, u2, &uout);
   ASSERT_EQ(2, uout.low);
   cdd_uint128_not(u2, &uout);
-  ASSERT_EQ(~1ULL, uout.low);
+  ASSERT_EQ(~(((uint64_t)0x0 << 32) | (uint64_t)0x1), uout.low);
 
   cdd_int128_and(i1, i2, &iout);
   ASSERT_EQ(1, iout.low);
@@ -259,7 +270,7 @@ TEST test_cdd_math_bitwise(void) {
   cdd_int128_xor(i1, i2, &iout);
   ASSERT_EQ(2, iout.low);
   cdd_int128_not(i2, &iout);
-  ASSERT_EQ(~1ULL, iout.low);
+  ASSERT_EQ(~(((uint64_t)0x0 << 32) | (uint64_t)0x1), iout.low);
   g_fail_io_after = -1;
   PASS();
 }
@@ -291,20 +302,20 @@ TEST test_cdd_math_casts(void) {
 TEST test_cdd_math_casts_neg(void) {
   cdd_int128_t i;
   cdd_float_to_int128(-10.5f, &i);
-  ASSERT_EQ(-1LL, i.high);
+  ASSERT_EQ(((int64_t)-1), i.high);
   cdd_double_to_int128(-10.5, &i);
-  ASSERT_EQ(-1LL, i.high);
+  ASSERT_EQ(((int64_t)-1), i.high);
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_cdd_math_div_large_quotient(void) {
-  cdd_uint128_t u1 = cdd_make_uint128(0xFFFFFFFFFFFFFFFFULL, 0);
+  cdd_uint128_t u1 = cdd_make_uint128((((uint64_t)-1)), 0);
   cdd_uint128_t u2 = cdd_make_uint128(0, 2);
   cdd_uint128_t uout;
   cdd_uint128_div(u1, u2, &uout);
-  ASSERT_EQ(0x7FFFFFFFFFFFFFFFULL, uout.high);
-  ASSERT_EQ(0x8000000000000000ULL, uout.low);
+  ASSERT_EQ((((uint64_t)0x7FFFFFFF << 32) | (uint64_t)0xFFFFFFFF), uout.high);
+  ASSERT_EQ((((uint64_t)0x80000000 << 32) | (uint64_t)0x0), uout.low);
   g_fail_io_after = -1;
   PASS();
 }
@@ -349,8 +360,10 @@ TEST test_cdd_math_div_large_den(void) {
 
 TEST test_cdd_math_div_branch_coverage(void) {
   /* Cover r.high > den.high */
-  cdd_uint128_t u1 = cdd_make_uint128(0x0FFFFFFFFFFFFFFFULL, 0);
-  cdd_uint128_t u2 = cdd_make_uint128(0x0000000000000002ULL, 0);
+  cdd_uint128_t u1 =
+      cdd_make_uint128((((uint64_t)0xFFFFFFF << 32) | (uint64_t)0xFFFFFFFF), 0);
+  cdd_uint128_t u2 =
+      cdd_make_uint128((((uint64_t)0x0 << 32) | (uint64_t)0x2), 0);
   cdd_uint128_t uout;
   cdd_uint128_div(u1, u2, &uout);
 

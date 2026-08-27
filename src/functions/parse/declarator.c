@@ -11,7 +11,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
@@ -20,9 +21,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "functions/parse/declarator.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -397,7 +398,7 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
   size_t left_limit = start;
   struct DeclType *tail = NULL;
   int is_abstract = 0;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!tokens || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;

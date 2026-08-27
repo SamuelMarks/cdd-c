@@ -1,9 +1,10 @@
 #include "cdd_c_error.h"
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include <c89stringutils_string_extras.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <c89stringutils_string_extras.h>
 #define c89stringutils_jasprintf jasprintf
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)

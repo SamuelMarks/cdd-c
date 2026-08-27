@@ -17,15 +17,16 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/parse/cst.h"
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "functions/parse/cst.h"
 /* clang-format on */
 
 /**
@@ -439,7 +440,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
   size_t _ast_skip_ws_back_16 = 0;
   int _ast_token_matches_string_17 = 0;
   size_t i = start;
-  int rc;
+  cdd_c_error_t rc;
 
   while (i < end) {
     const struct Token *tok = &tokens->tokens[i];

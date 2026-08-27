@@ -11,25 +11,26 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
 
 #include <c89stringutils_string_extras.h>
 
-#include "functions/emit/rewriter_sig.h"
 #include "c_cdd/log.h"
+#include "functions/emit/rewriter_sig.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #endif
 #else
-#include <errno.h>
 #include "c_cdd/log.h"
+#include <errno.h>
 #endif
 /* clang-format on */
 
@@ -161,8 +162,8 @@ static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
  */
-static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
-                                   size_t end) {
+static int check_is_void(const struct TokenList *tokens, size_t start,
+                         size_t end) {
   size_t i;
   int saw_void = 0;
 
@@ -189,19 +190,26 @@ static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
 /**
  * @brief Convert 'void' args string to empty string, or detect if empty.
  */
-static cdd_c_error_t args_represent_void(const char *args) {
+static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
   const char *p = args;
+  if (!args || !out_is_empty)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_empty = 0;
   while (*p && isspace((unsigned char)*p))
     p++;
-  if (*p == '\0')
-    return CDD_C_ERROR_UNKNOWN;
+  if (*p == '\0') {
+    *out_is_empty = 1;
+    return CDD_C_SUCCESS;
+  }
   /* Check for 'void' */
   if (strncmp(p, "void", 4) == 0) {
     p += 4;
     while (*p && isspace((unsigned char)*p))
       p++;
-    if (*p == '\0')
-      return CDD_C_ERROR_UNKNOWN;
+    if (*p == '\0') {
+      *out_is_empty = 1;
+      return CDD_C_SUCCESS;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -235,7 +243,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   size_t type_end_idx = 0;
   size_t attr_end_idx = 0;
   size_t storage_end_idx = 0;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!tokens || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -401,10 +409,14 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 
   /* 7. Construct new signature */
   {
-    int args_is_empty = args_represent_void(sig.args);
+    int args_is_empty = 0;
     char *new_args = NULL;
     char *prefix = sig.attributes ? sig.attributes : "";
     char *k_r_suffix = sig.k_r_decls ? sig.k_r_decls : "";
+
+    rc = args_represent_void(sig.args, &args_is_empty);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
 
     if (sig.is_void_ret) {
       /* Case: void f(...) -> int f(...) ... */

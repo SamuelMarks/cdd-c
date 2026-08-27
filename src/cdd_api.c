@@ -1,6 +1,7 @@
-/* clang-format off */
-#include "c_cdd/memory.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_api.h"
+#include "c_cdd/memory.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
 
@@ -8,13 +9,8 @@
 #endif
 
 #include "classes/parse/cdd_cst_parser.h"
-#include "classes/parse/cdd_cst_semantic.h"
 #include "classes/parse/cdd_cst_scope.h"
-#include "routes/emit/serve_json_rpc.h"
-#include "routes/parse/cli.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "classes/parse/cdd_cst_semantic.h"
 #include "functions/ffi/cdd_ffi_emit_ada.h"
 #include "functions/ffi/cdd_ffi_emit_clojure.h"
 #include "functions/ffi/cdd_ffi_emit_common_lisp.h"
@@ -57,6 +53,11 @@
 #include "functions/ffi/cdd_ffi_emit_webassembly.h"
 #include "functions/ffi/cdd_ffi_emit_zig.h"
 #include "functions/ffi/cdd_ffi_ir_extractor.h"
+#include "routes/emit/serve_json_rpc.h"
+#include "routes/parse/cli.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_fail_alloc = 0;
@@ -201,7 +202,7 @@ cdd_c_error_t
 cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   cdd_ffi_ir_t *ir = NULL;
-  int rc;
+  cdd_c_error_t rc;
 
   char *file_content = NULL;
   size_t file_size = 0;

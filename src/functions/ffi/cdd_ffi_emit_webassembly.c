@@ -1,15 +1,16 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_webassembly.h"
 
+#include "../../../include/c_cdd/safe_crt.h"
+#include "../../../include/ffi/cdd_ffi_ir.h"
 #include "../../cdd_api.h"
 #include "../../win_compat_sym.h"
-#include "../../../include/ffi/cdd_ffi_ir.h"
-#include "../../../include/c_cdd/safe_crt.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 /* clang-format on */
 
 static void map_idl_type(cdd_ffi_type_t *t, char *out_type, size_t out_sz) {

@@ -7,7 +7,15 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
+
+#include "c_cdd_export.h"
+#include "c_cdd_export.h"
+
 #include "cdd_c_error.h"
+#include "c_cdd_export.h"
+
+#include "c_cdd_export.h"
+
 #include <stddef.h>
 /* clang-format on */
 

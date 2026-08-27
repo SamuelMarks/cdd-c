@@ -11,8 +11,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_strdup_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 TEST test_fs_coverage_is_directory(void) {
   int is_dir;
@@ -60,8 +59,8 @@ TEST test_fs_coverage_edge_cases(void) {
   PASS();
 }
 
-/* extern int g_cdd_alloc_fail; (moved to global) */
-/* extern int g_cdd_strdup_fail; (moved to global) */
+/*  (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
 TEST test_fs_coverage_oom(void) {
   int i;

@@ -1,9 +1,4 @@
 #if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wlong-long"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 /**
  * @file build_system.c
@@ -15,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -23,10 +19,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "functions/emit/build_system.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -454,7 +450,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
-  int rc = 0;
+  cdd_c_error_t rc = 0;
 
   if (!project_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -621,7 +617,7 @@ cdd_c_error_t generate_build_system_main(int argc, char **argv) {
     has_tests = 1;
 
   if (strcmp(sys_type, "cmake") == 0) {
-    int rc = generate_cmake_project(out_dir, name, has_tests);
+    cdd_c_error_t rc = generate_cmake_project(out_dir, name, has_tests);
     if (rc != 0) {
       fprintf(stderr, "Failed to generate CMakeLists.txt (error %d)\n", rc);
       return CDD_C_ERROR_IO;
@@ -635,5 +631,4 @@ cdd_c_error_t generate_build_system_main(int argc, char **argv) {
 }
 
 #if defined(__clang__) || defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif

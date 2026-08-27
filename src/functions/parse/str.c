@@ -5,11 +5,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/memory.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

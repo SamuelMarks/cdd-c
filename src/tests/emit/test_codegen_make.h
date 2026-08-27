@@ -23,7 +23,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_fprintf_fail;
+extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 
 /**
  * @brief Tests basic make file generation.
@@ -175,7 +175,7 @@ TEST test_make_oom(void) {
   struct MakeConfig config3 = {0};
   const char *srcs2[] = {NULL};
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_cdd_fprintf_fail; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
   int rc;
 #endif

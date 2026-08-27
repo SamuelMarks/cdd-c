@@ -4,7 +4,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "functions/parse/refactor.h"
 #include "c_cdd/log.h"
 #include "c_str_span.h"
@@ -20,8 +21,8 @@
 #define strdup _strdup
 #endif
 #else
-#include <errno.h>
 #include "c_cdd/log.h"
+#include <errno.h>
 #endif
 /* clang-format on */
 
@@ -104,7 +105,7 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
                                           char **const out_code) {
   struct TokenList *tokens = NULL;
   struct AllocationSiteList allocs = {0};
-  int rc;
+  cdd_c_error_t rc;
 
   if (ctx == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;

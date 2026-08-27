@@ -1,11 +1,12 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <stdlib.h>
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
-/* extern int g_cdd_alloc_fail; (moved to global) */
+
+/*  (moved to global) */
 
 /* Mmm, we shouldn't define this here, we can't easily mock malloc since other
  * things use it, but wait! We can define a test specific cdd_cst_emit function

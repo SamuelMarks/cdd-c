@@ -1,15 +1,16 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_ir_extractor.h"
-#include "../../classes/parse/inspector.h"
 #include "../../classes/parse/cdd_cst_parser.h"
 #include "../../classes/parse/cdd_cst_query.h"
-#include "../../functions/parse/preprocessor.h"
-#include "../../functions/parse/macro_evaluator.h"
+#include "../../classes/parse/inspector.h"
 #include "../../functions/parse/fs.h"
+#include "../../functions/parse/macro_evaluator.h"
+#include "../../functions/parse/preprocessor.h"
 #include "c_cdd/format_specifiers.h"
 #include <errno.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -274,7 +275,7 @@ static cdd_c_error_t
 extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   size_t i;
   struct TypeDefList types;
   struct FuncSigList sigs;
@@ -802,7 +803,7 @@ struct IncludeMergeCtx {
   char **visited;
   size_t visited_count;
   size_t visited_capacity;
-  int err;
+  cdd_c_error_t err;
   struct PreprocessorContext *pp_ctx;
 };
 

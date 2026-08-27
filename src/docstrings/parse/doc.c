@@ -6,7 +6,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
@@ -14,9 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "docstrings/parse/doc.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helpers --- */
@@ -193,7 +194,7 @@ static cdd_c_error_t parse_tags_line(const char *line, const char *end,
   char *_ast_trim_segment_3 = NULL;
   char *rest;
   char *cursor;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   rest = (extract_rest(line, end, &_ast_extract_rest_2), _ast_extract_rest_2);
   if (!rest)
@@ -393,7 +394,7 @@ static cdd_c_error_t parse_optional_bool_attr(const char *attr, const char *key,
                                               int *out_set, int *out_val) {
   char *_ast_trim_segment_13 = NULL;
   size_t key_len;
-  int parsed;
+  cdd_c_error_t parsed;
 
   if (!attr || !key || !out_set || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1551,7 +1552,7 @@ static cdd_c_error_t parse_security_line(const char *line, const char *end,
   size_t n_scopes = 0;
   struct DocSecurityRequirement *new_reqs;
   struct DocSecurityRequirement *req;
-  int rc;
+  cdd_c_error_t rc;
 
   scheme = (extract_word(cur, end, &cur, &_ast_extract_word_64),
             _ast_extract_word_64);
@@ -1700,7 +1701,7 @@ static cdd_c_error_t parse_oauth_scopes(const char *input,
   size_t n = 0;
   size_t i;
   struct DocOAuthScope *scopes;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!out || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -2120,7 +2121,7 @@ static cdd_c_error_t split_enum_values(const char *input, char ***out_vals,
   char *_ast_strdup_49 = NULL;
   char *buf;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!out_vals || !out_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -2557,7 +2558,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
   char *_ast_extract_rest_121 = NULL;
   char *_ast_extract_rest_122 = NULL;
   const char *p = comment;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!comment || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;

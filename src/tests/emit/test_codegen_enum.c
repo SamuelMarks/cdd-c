@@ -1,5 +1,5 @@
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
  * @file test_codegen_enum.c
  * @brief Unit tests for Enum code generation module.
@@ -10,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -24,8 +25,8 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 /* Standard definitions for greatest library */
 GREATEST_MAIN_DEFS();

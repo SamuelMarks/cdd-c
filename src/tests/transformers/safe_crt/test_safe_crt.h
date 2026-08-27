@@ -22,8 +22,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_safe_crt_malloc_fail;
-extern int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 
 TEST test_cdd_transform_safe_crt(void) {
   cdd_cst_tree_t *tree = NULL;
@@ -533,8 +533,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_safe_crt_malloc_fail; (moved to global) */
-/* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_safe_crt_malloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
 #endif
 
 TEST test_cdd_transform_safe_crt_oom(void) {

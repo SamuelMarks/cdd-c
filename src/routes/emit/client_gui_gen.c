@@ -3,15 +3,16 @@
  * @brief Implementation of OAuth2 client GUI generation.
  */
 
-/* clang-format off */
-#include "c_cdd/safe_crt.h"
-#include "c_cdd/memory.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "routes/emit/client_gui_gen.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
+#include "functions/parse/fs.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "functions/parse/fs.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS

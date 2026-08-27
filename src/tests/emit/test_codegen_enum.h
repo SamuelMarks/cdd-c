@@ -17,9 +17,9 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_enum_members_init_fail;
-extern int g_enum_members_add_fail;
-extern int g_enum_members_add_strdup_fail;
+extern C_CDD_EXPORT int g_enum_members_init_fail;
+extern C_CDD_EXPORT int g_enum_members_add_fail;
+extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 
 TEST test_enum_generation(void) {
   FILE *tmp;
@@ -143,9 +143,9 @@ TEST test_enum_generation(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_enum_members_init_fail; (moved to global) */
-/* extern int g_enum_members_add_fail; (moved to global) */
-/* extern int g_enum_members_add_strdup_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_enum_members_init_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_enum_members_add_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_enum_members_add_strdup_fail; (moved to global) */
 #endif
 
 TEST test_enum_generation_oom(void) {

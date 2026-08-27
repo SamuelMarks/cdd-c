@@ -15,14 +15,13 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_sync_fail_tokenize;
-extern int g_cdd_sync_fail_patch_list_apply;
-extern int g_cdd_sync_fail_func_sig_init;
-extern int g_cdd_sync_fail_patch_list_init;
-extern int g_cdd_fprintf_fail;
-extern int g_cdd_sync_fail_extract;
-extern int g_cdd_sync_fail_fopen_write;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize;
+extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply;
+extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init;
+extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init;
+extern C_CDD_EXPORT int g_cdd_fprintf_fail;
+extern C_CDD_EXPORT int g_cdd_sync_fail_extract;
+extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
 
 /**
  * @brief test_sync_code_wrong_args
@@ -336,12 +335,14 @@ TEST test_patch_header_failures(void) {
   const char *h_path = "fail_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
-  /* extern int g_cdd_sync_fail_func_sig_init; (moved to global) */
-  /* extern int g_cdd_sync_fail_patch_list_init; (moved to global) */
-  /* extern int g_cdd_sync_fail_extract; (moved to global) */
-  /* extern int g_cdd_sync_fail_tokenize; (moved to global) */
-  /* extern int g_cdd_sync_fail_patch_list_apply; (moved to global) */
-  /* extern int g_cdd_sync_fail_fopen_write; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
+   */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_extract; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_tokenize; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_apply; (moved to global)
+   */
+  /* extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write; (moved to global) */
 
   write_to_file(h_path, "void foo();\n");
 
@@ -401,8 +402,8 @@ TEST test_sync_oom(void) {
   {
     const char *argv[] = {"header.h", "impl.c"};
     FILE *f;
-    /* extern int g_cdd_alloc_fail; (moved to global) */
-    /* extern int g_cdd_fprintf_fail; (moved to global) */
+    /*  (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
     int rc_s;
     int rc_s2;
 

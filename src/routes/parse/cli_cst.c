@@ -2,12 +2,13 @@
  * @file cli_cst.c
  * @brief Implementation of CLI CST parsing.
  */
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "routes/parse/cli_cst.h"
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "c_str_span.h"
 #include "cdd_cst_transform.h"
-#include "c_cdd/memory.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include <errno.h>

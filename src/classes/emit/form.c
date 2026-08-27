@@ -3,7 +3,8 @@
  * @brief Implementation of struct to form URL encoded generator.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

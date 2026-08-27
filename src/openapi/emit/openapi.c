@@ -3,7 +3,8 @@
  * @brief Implementation of OpenAPI generation.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +12,10 @@
 
 #include <parson.h>
 
+#include "c_cdd/log.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helper Prototypes --- */
@@ -2487,7 +2488,7 @@ static cdd_c_error_t write_request_body(JSON_Object *op_obj,
 static void write_callback_object(JSON_Object *cb_obj,
                                   const struct OpenAPI_Callback *cb) {
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!cb_obj || !cb)
     return;
@@ -2587,7 +2588,7 @@ static cdd_c_error_t write_responses(JSON_Object *op_obj,
 static cdd_c_error_t
 write_operation_object(JSON_Object *op_obj,
                        const struct OpenAPI_Operation *op) {
-  int rc;
+  cdd_c_error_t rc;
 
   if (!op_obj || !op)
     return CDD_C_SUCCESS;
@@ -2663,7 +2664,7 @@ static cdd_c_error_t write_operations(JSON_Object *path_item,
                                       const struct OpenAPI_Path *path) {
   char *_ast_verb_to_str_20 = NULL;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   for (i = 0; i < path->n_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->operations[i];
@@ -2699,7 +2700,7 @@ write_additional_operations(JSON_Object *path_item,
   JSON_Value *add_val;
   JSON_Object *add_obj;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!path_item || !path || path->n_additional_operations == 0 ||
       !path->additional_operations)
@@ -2746,7 +2747,7 @@ write_additional_operations(JSON_Object *path_item,
  */
 static cdd_c_error_t write_path_item_object(JSON_Object *item_obj,
                                             const struct OpenAPI_Path *path) {
-  int rc;
+  cdd_c_error_t rc;
 
   if (!item_obj || !path)
     return CDD_C_SUCCESS;
@@ -2791,7 +2792,7 @@ static cdd_c_error_t write_paths(JSON_Object *root_obj,
   JSON_Value *paths_val = json_value_init_object();
   JSON_Object *paths_obj = json_value_get_object(paths_val);
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!spec) {
     json_object_set_value(root_obj, "paths", paths_val);
@@ -2933,7 +2934,7 @@ static cdd_c_error_t write_webhooks(JSON_Object *root_obj,
   JSON_Value *hooks_val;
   JSON_Object *hooks_obj;
   size_t i;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!spec)
     return CDD_C_SUCCESS;
@@ -3443,7 +3444,7 @@ write_component_path_items(JSON_Object *components,
   JSON_Value *paths_val;
   JSON_Object *paths_obj;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!spec || spec->n_component_path_items == 0)
     return CDD_C_SUCCESS;
@@ -3534,7 +3535,7 @@ static cdd_c_error_t write_components(JSON_Object *root_obj,
                                       const struct OpenAPI_Spec *spec) {
   JSON_Value *comps_val;
   JSON_Object *comps_obj;
-  int rc;
+  cdd_c_error_t rc;
 
   /* Only create components block if there is something to write */
   if (spec->n_defined_schemas == 0 && spec->n_raw_schemas == 0 &&
@@ -3677,7 +3678,7 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   char *_ast_strdup_4 = NULL;
   JSON_Value *root_val;
   JSON_Object *root_obj;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!spec || !json_out) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

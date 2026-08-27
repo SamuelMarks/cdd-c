@@ -5,16 +5,17 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/parse/cmake_parser.h"
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
+#include "functions/parse/cmake_parser.h"
 /* clang-format on */
 
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
@@ -283,7 +284,8 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE,
                           "--- %s\n+++ %s\n", mod->filepath, mod->filepath);
 #else
-  diff_len += CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
+  diff_len +=
+      (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
                            "--- %s\n+++ %s\n", mod->filepath, mod->filepath);
 #endif
 
@@ -309,8 +311,8 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                              _TRUNCATE, "if(MSVC)\n");
 #else
-  str_buf_len +=
-      CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, "if(MSVC)\n");
+  str_buf_len += (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
+                                      "if(MSVC)\n");
 #endif
 
   if (mod->compile_opts_n > 0) {
@@ -320,17 +322,18 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
           str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE,
           "    target_compile_options(%s PRIVATE", mod->target_name);
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  "    target_compile_options(%s PRIVATE",
-                                  mod->target_name);
+      str_buf_len += (size_t)CDD_SNPRINTF(
+          str_buf + str_buf_len, 1024 - str_buf_len,
+          "    target_compile_options(%s PRIVATE", mod->target_name);
 #endif
     } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                                  _TRUNCATE, "    add_compile_options(");
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  "    add_compile_options(");
+      str_buf_len +=
+          (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
+                               "    add_compile_options(");
 #endif
     }
     for (i = 0; i < mod->compile_opts_n; i++) {
@@ -338,8 +341,9 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
       str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                                  _TRUNCATE, " %s", mod->compile_opts[i]);
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  " %s", mod->compile_opts[i]);
+      str_buf_len +=
+          (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, " %s",
+                               mod->compile_opts[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -347,7 +351,7 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                _TRUNCATE, ")\n");
 #else
     str_buf_len +=
-        CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
+        (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
 #endif
   }
 
@@ -358,17 +362,17 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
           _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE,
                       "    target_link_libraries(%s PRIVATE", mod->target_name);
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  "    target_link_libraries(%s PRIVATE",
-                                  mod->target_name);
+      str_buf_len += (size_t)CDD_SNPRINTF(
+          str_buf + str_buf_len, 1024 - str_buf_len,
+          "    target_link_libraries(%s PRIVATE", mod->target_name);
 #endif
     } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                                  _TRUNCATE, "    link_libraries(");
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  "    link_libraries(");
+      str_buf_len += (size_t)CDD_SNPRINTF(
+          str_buf + str_buf_len, 1024 - str_buf_len, "    link_libraries(");
 #endif
     }
     for (i = 0; i < mod->link_libs_n; i++) {
@@ -376,8 +380,8 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
       str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                                  _TRUNCATE, " %s", mod->link_libs[i]);
 #else
-      str_buf_len += CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
-                                  " %s", mod->link_libs[i]);
+      str_buf_len += (size_t)CDD_SNPRINTF(
+          str_buf + str_buf_len, 1024 - str_buf_len, " %s", mod->link_libs[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -385,7 +389,7 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                _TRUNCATE, ")\n");
 #else
     str_buf_len +=
-        CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
+        (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
 #endif
   }
 
@@ -393,8 +397,8 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
                              _TRUNCATE, "endif()\n");
 #else
-  str_buf_len +=
-      CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\n");
+  str_buf_len += (size_t)CDD_SNPRINTF(str_buf + str_buf_len, 1024 - str_buf_len,
+                                      "endif()\n");
 #endif
 
   {
@@ -410,9 +414,9 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                             "@@ -%d,0 +%d,%d @@\n", lines_count, lines_count,
                             new_lines);
 #else
-    diff_len += CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
-                             "@@ -%d,0 +%d,%d @@\n", lines_count, lines_count,
-                             new_lines);
+    diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
+                                     "@@ -%d,0 +%d,%d @@\n", lines_count,
+                                     lines_count, new_lines);
 #endif
 
     /* Append lines */
@@ -426,8 +430,8 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
           diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
                                   _TRUNCATE, "+%.*s\n", l_len, line_start);
 #else
-          diff_len += CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
-                                   "+%.*s\n", l_len, line_start);
+          diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
+                                           "+%.*s\n", l_len, line_start);
 #endif
           line_start = nl + 1;
         }

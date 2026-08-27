@@ -287,7 +287,11 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  arr = json_value_get_array(val);\n"
       "  if (!arr) { json_value_free(val); return "
-      "CDD_C_ERROR_INVALID_ARGUMENT; }\n"
+      "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
+      struct_name, struct_name, struct_name));
+
+  CHECK_IO(FPRINTF_HOOK(
+      fp,
       "  count = json_array_get_count(arr);\n"
       "  if (count == 0) {\n"
       "    *out = NULL;\n"
@@ -300,22 +304,25 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "  for (i = 0; i < count; ++i) {\n"
       "    rc = %s_from_jsonObject(json_array_get_object(arr, i), &tmp[i]);\n"
       "    if (rc != 0) break;\n"
-      "  }\n"
-      "  if (rc == 0) {\n"
-      "    *out = tmp;\n"
-      "    *out_len = count;\n"
-      "  } else {\n"
-      "    size_t k;\n"
-      "    for (k = 0; k < i; ++k) {\n"
-      "      if (tmp[k]) { %s_cleanup(tmp[k]); free(tmp[k]); }\n"
-      "    }\n"
-      "    free(tmp);\n"
-      "  }\n"
-      "  json_value_free(val);\n"
-      "  return rc;\n"
-      "}\n",
-      struct_name, struct_name, struct_name, struct_name, struct_name,
-      struct_name, struct_name));
+      "  }\n",
+      struct_name, struct_name, struct_name));
+
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
+                   "  if (rc == 0) {\n"
+                   "    *out = tmp;\n"
+                   "    *out_len = count;\n"
+                   "  } else {\n"
+                   "    size_t k;\n"
+                   "    for (k = 0; k < i; ++k) {\n"
+                   "      if (tmp[k]) { %s_cleanup(tmp[k]); free(tmp[k]); }\n"
+                   "    }\n"
+                   "    free(tmp);\n"
+                   "  }\n"
+                   "  json_value_free(val);\n"
+                   "  return rc;\n"
+                   "}\n",
+                   struct_name));
 
   if (config && config->guard_macro)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));

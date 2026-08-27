@@ -31,7 +31,7 @@ typedef struct cdd_macro_eval_result_t {
   /** @brief Type of the result */
   cdd_macro_eval_type_t type;
   /** @brief Integer value */
-  long long int_val;
+  int64_t int_val;
   /** @brief Float value */
   double float_val;
   /** @brief String value (dynamically allocated) */

@@ -73,9 +73,9 @@ TEST test_cdd_cst_mutate_replace(void) {
 
     /* Moved extern declarations for C89 compliance */
     {
-      extern int g_cdd_cst_alloc_node_fail;
-      extern int g_cdd_cst_realloc_fail;
-      /* extern int g_cdd_cst_realloc_fail; (moved to global) */
+      extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+      extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+      /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
       for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
         tree->synthesized_capacity =
             tree->num_synthesized; /* force realloc on first token cloned */
@@ -354,7 +354,7 @@ TEST test_cst_splice_children(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    /* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+    /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     cdd_cst_node_t *o_root = tree->root;
     g_cdd_cst_alloc_node_fail = 1;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
@@ -402,7 +402,7 @@ TEST test_cst_splice_children(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_cst_realloc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_cst_splice_oom(void) {

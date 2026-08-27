@@ -5,17 +5,18 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
 
-#include "functions/parse/tokenizer.h"
-#include "functions/parse/vcpkg_integration.h"
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
+#include "functions/parse/tokenizer.h"
+#include "functions/parse/vcpkg_integration.h"
 /* clang-format on */
 
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
@@ -140,7 +141,7 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
 cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                                         const char *file_content) {
   struct TokenList *tokens = NULL;
-  int res;
+  cdd_c_error_t res;
   size_t i;
 
   if (!builder || !file_content)
@@ -250,7 +251,7 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                      builder->project_name, builder->version_string,
                      builder->description);
 #else
-  len += CDD_SNPRINTF(
+  len += (size_t)CDD_SNPRINTF(
       json + len, cap - len,
       "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
       "\"description\": \"%s\"",
@@ -262,7 +263,8 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     len += _snprintf_s(json + len, cap - len, _TRUNCATE,
                        ",\n  \"dependencies\": [\n");
 #else
-    len += CDD_SNPRINTF(json + len, cap - len, ",\n  \"dependencies\": [\n");
+    len += (size_t)CDD_SNPRINTF(json + len, cap - len,
+                                ",\n  \"dependencies\": [\n");
 #endif
     for (i = 0; i < builder->deps_count; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -270,28 +272,28 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                          builder->deps[i].name,
                          i == builder->deps_count - 1 ? "" : ",");
 #else
-      len += CDD_SNPRINTF(json + len, cap - len, "    \"%s\"%s\\n",
-                          builder->deps[i].name,
-                          i == builder->deps_count - 1 ? "" : ",");
+      len += (size_t)CDD_SNPRINTF(json + len, cap - len, "    \"%s\"%s\\n",
+                                  builder->deps[i].name,
+                                  i == builder->deps_count - 1 ? "" : ",");
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE, "  ]\\n");
 #else
-    len += CDD_SNPRINTF(json + len, cap - len, "  ]\\n");
+    len += (size_t)CDD_SNPRINTF(json + len, cap - len, "  ]\\n");
 #endif
   } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE, "\\n");
 #else
-    len += CDD_SNPRINTF(json + len, cap - len, "\\n");
+    len += (size_t)CDD_SNPRINTF(json + len, cap - len, "\\n");
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(json + len, cap - len, _TRUNCATE, "}\n");
 #else
-  len += CDD_SNPRINTF(json + len, cap - len, "}\n");
+  len += (size_t)CDD_SNPRINTF(json + len, cap - len, "}\n");
 #endif
 
   *out_json = json;

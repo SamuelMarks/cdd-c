@@ -3,14 +3,15 @@
  * @brief Implementation of CST factory allocation and construction functions.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_factory.h"
+#include "c_cdd/log.h"
 #include "cdd_cst_mutate.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
 /* clang-format on */
 C_CDD_EXPORT int g_cdd_cst_alloc_token_fail = 0;
 C_CDD_EXPORT int g_cdd_cst_realloc_fail = 0;

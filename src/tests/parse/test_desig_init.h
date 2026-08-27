@@ -18,11 +18,10 @@ extern "C" {
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
 
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of designated initializer scanning.

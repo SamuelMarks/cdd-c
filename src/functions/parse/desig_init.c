@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
@@ -87,7 +88,7 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
   size_t *brace_stack = NULL;
   size_t brace_depth = 0;
   size_t brace_cap = 0;
-  int res = 0;
+  cdd_c_error_t res = CDD_C_SUCCESS;
 
   if (!tokens || !list)
     return CDD_C_ERROR_INVALID_ARGUMENT;

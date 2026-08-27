@@ -20,7 +20,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 
 /**
  * @brief Tests basic whitespace trivia detection.
@@ -165,7 +165,7 @@ TEST test_cdd_cst_trivia_generate(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_cst_alloc_node_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
 
 TEST test_cdd_cst_trivia_oom(void) {
   cdd_cst_format_config_t config = {0};

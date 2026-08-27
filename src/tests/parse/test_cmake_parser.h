@@ -19,7 +19,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Tests basic functionality of the CMake modifier.
@@ -31,7 +30,7 @@ TEST test_cmake_modifier_basic(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int i;
   int rc;
   (void)f;
@@ -75,7 +74,7 @@ TEST test_cmake_modifier_global(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int i;
   int rc;
   (void)f;
@@ -132,7 +131,7 @@ TEST test_cmake_parser_oom(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
   int i;
   int rc;
   (void)f;

@@ -3,14 +3,15 @@
  * @brief Implementation of CLI code generation.
  */
 
-/* clang-format off */
-#include "c_cdd/safe_crt.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cli_gen.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
+#include "functions/parse/fs.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
-#include "functions/parse/fs.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)

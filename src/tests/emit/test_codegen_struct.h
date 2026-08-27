@@ -26,8 +26,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_struct_fields_init_fail;
-extern int g_struct_fields_add_fail;
+extern C_CDD_EXPORT int g_struct_fields_init_fail;
+extern C_CDD_EXPORT int g_struct_fields_add_fail;
 
 static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_init(sf);
@@ -467,8 +467,8 @@ TEST test_struct_io_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_struct_fields_init_fail; (moved to global) */
-/* extern int g_struct_fields_add_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_struct_fields_init_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_struct_fields_add_fail; (moved to global) */
 #endif
 
 TEST test_struct_exhaustive_io(void) {

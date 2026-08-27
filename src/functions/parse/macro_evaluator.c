@@ -1,5 +1,6 @@
 #include "c_cdd/memory.h"
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "macro_evaluator.h"
 #include <ctype.h>
 #include <errno.h>
@@ -41,7 +42,7 @@ typedef enum {
 
 typedef struct {
   macro_tok_kind_t kind;
-  long long int_val;
+  int64_t int_val;
   double float_val;
   char *str_val;
 } macro_tok_t;
@@ -305,7 +306,7 @@ static cdd_macro_eval_result_t make_err(void) {
   return r;
 }
 
-static cdd_macro_eval_result_t make_int(long long v) {
+static cdd_macro_eval_result_t make_int(int64_t v) {
   cdd_macro_eval_result_t r = make_err();
   r.type = MACRO_EVAL_TYPE_INT;
   r.int_val = v;
@@ -343,8 +344,10 @@ static cdd_macro_eval_result_t parse_logical_or(parser_t *p) {
     if (p->err)
       return make_err();
     left = make_int(
-        (left.type == MACRO_EVAL_TYPE_INT ? left.int_val : left.float_val) ||
-        (right.type == MACRO_EVAL_TYPE_INT ? right.int_val : right.float_val));
+        (left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
+                                          : (left.float_val != 0.0)) ||
+        (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
+                                           : (right.float_val != 0.0)));
   }
   return left;
 }
@@ -358,8 +361,10 @@ static cdd_macro_eval_result_t parse_logical_and(parser_t *p) {
     if (p->err)
       return make_err();
     left = make_int(
-        (left.type == MACRO_EVAL_TYPE_INT ? left.int_val : left.float_val) &&
-        (right.type == MACRO_EVAL_TYPE_INT ? right.int_val : right.float_val));
+        (left.type == MACRO_EVAL_TYPE_INT ? (left.int_val != 0)
+                                          : (left.float_val != 0.0)) &&
+        (right.type == MACRO_EVAL_TYPE_INT ? (right.int_val != 0)
+                                           : (right.float_val != 0.0)));
   }
   return left;
 }
@@ -579,7 +584,7 @@ static cdd_macro_eval_result_t parse_unary(parser_t *p) {
     if (r.type == MACRO_EVAL_TYPE_INT)
       r.int_val = !r.int_val;
     else
-      r.int_val = !r.float_val;
+      r.int_val = (r.float_val == 0.0);
     r.type = MACRO_EVAL_TYPE_INT;
     return r;
   }

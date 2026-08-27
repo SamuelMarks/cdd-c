@@ -30,12 +30,11 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_strdup_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /* --- Test Helpers --- */
-/* extern int g_cdd_alloc_fail; (moved to global) */
-/* extern int g_cdd_strdup_fail; (moved to global) */
+/*  (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
@@ -984,7 +983,7 @@ TEST test_doc_oom_and_edges(void) {
         " * @deprecated\n"
         " */";
 #ifdef CDD_BUILD_TESTS
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     doc_metadata_init(&meta);
     g_cdd_alloc_fail = i;
     if (doc_parse_block(comment, &meta) == 0) {

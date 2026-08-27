@@ -3,7 +3,8 @@
  * @brief Implementation of sync parsing.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,10 +69,10 @@ static cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)malloc((size_t)sz + 1);
   if (buf) {
     size_t len;
-    size_t bytes_read = fread(buf, 1, sz, tmp);
+    size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
     c_cdd_str_trim_trailing_whitespace(buf);
     len = strlen(buf);
@@ -112,9 +113,9 @@ static cdd_c_error_t generate_expected_query(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)malloc((size_t)sz + 1);
   if (buf) {
-    size_t bytes_read = fread(buf, 1, sz, tmp);
+    size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
   }
   fclose(tmp);
@@ -220,9 +221,9 @@ static cdd_c_error_t generate_expected_url(const char *path,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc(sz + 1);
+  buf = (char *)malloc((size_t)sz + 1);
   if (buf) {
-    size_t bytes_read = fread(buf, 1, sz, tmp);
+    size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
   }
   fclose(tmp);
@@ -515,7 +516,7 @@ static cdd_c_error_t apply_updates(const char *filename,
   char *_ast_generate_expected_url_12 = NULL;
   struct PatchList patches;
   size_t i, j;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   char *result = NULL;
 
   if (patch_list_init(&patches) != 0)
@@ -678,7 +679,7 @@ cdd_c_error_t api_sync_file(const char *filename,
   size_t sz = 0;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
-  int rc;
+  cdd_c_error_t rc;
   struct ApiSyncConfig default_cfg = {NULL, NULL};
   const struct ApiSyncConfig *cfg = config ? config : &default_cfg;
 

@@ -20,10 +20,12 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_type_eval_ptr_fail;
+extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;
+  (void)rc;
+  (void)rc;
 
   /* int under LP64 */
   rc = cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, &info);
@@ -50,6 +52,8 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size;
   int rc;
+  (void)rc;
+  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   const char *src = "int a;";
@@ -84,6 +88,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size, align;
   int rc;
+  (void)rc;
+  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   cdd_cst_tree_t *tree2 = NULL;
@@ -319,6 +325,8 @@ TEST test_type_eval_branches(void) {
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
   int rc;
+  (void)rc;
+  (void)rc;
 #endif
 
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
@@ -415,7 +423,8 @@ TEST test_cdd_cst_eval_ptr_fail(void) {
           cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "int", 3, &tok4);
           cdd_cst_append_child_token(spec3, tok4);
 
-          /* extern int g_cdd_type_eval_ptr_fail; (moved to global) */
+          /* extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail; (moved to global)
+           */
           g_cdd_type_eval_ptr_fail = 1;
           {
             int rc1 = cdd_cst_eval_sizeof(env, spec3, CDD_CST_ABI_LP64, &sz);
@@ -447,7 +456,9 @@ TEST test_cdd_cst_type_eval_branches(void) {
       cdd_token_t dummy_tok = {0};
       cdd_cst_child_t children[1];
       char *name_out = NULL;
+      (void)name_out;
       int is_ptr = 0;
+      (void)is_ptr;
       size_t sz = 0, al = 0;
       dummy_tok.kind = CDD_TOKEN_IDENTIFIER;
       dummy_tok.start = (const uint8_t *)"int";

@@ -17,8 +17,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
     string(REPLACE "\\" "\\\\" GREATEST_FILE "${GREATEST_FILE}")
 endif ()
 
-set(GREATEST_URL "https://raw.githubusercontent.com/SamuelMarks/greatest/master/greatest.h")
-file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}")
+file(COPY "${greatest_SOURCE_DIR}/greatest.h" DESTINATION "${DOWNLOAD_DIR}")
 ################
 # Test library #
 ################
@@ -171,3 +170,15 @@ target_include_directories(
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
 )
 add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
+
+if(TARGET test_c_cdd)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(test_c_cdd PRIVATE -w)
+        if(TARGET cdd_test_helpers)
+            target_compile_options(cdd_test_helpers PRIVATE -w)
+        endif()
+        if(TARGET simple_mocks)
+            target_compile_options(simple_mocks PRIVATE -w)
+        endif()
+    endif()
+endif()

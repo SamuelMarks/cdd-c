@@ -370,6 +370,9 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     endif ()
     endif ()
 
+    # greatest
+    FetchDependencyLocalOrArchive(greatest "greatest" "SamuelMarks/greatest")
+
     # parson
     if (TARGET parson)
         message(STATUS "parson already provided by parent")

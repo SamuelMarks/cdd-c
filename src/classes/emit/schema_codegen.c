@@ -9,26 +9,27 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <parson.h>
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "classes/emit/schema_codegen.h"
 #include "classes/emit/enum.h"
-#include "classes/emit/json.h"
 #include "classes/emit/form.h"
+#include "classes/emit/json.h"
 #include "classes/emit/jwt.h"
 #include "classes/emit/oauth2_error.h"
-#include "classes/emit/schema_codegen.h"
 #include "classes/emit/struct.h"
 #include "classes/emit/types.h"
 #include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h" /* Facade header */
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
+#include <errno.h>
 #include <limits.h>
+#include <parson.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 
@@ -84,7 +85,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 /** @brief CHECK_RC definition */
 #define CHECK_RC(x)                                                            \
   do {                                                                         \
-    int err = (x);                                                             \
+    cdd_c_error_t err = (x);                                                   \
     if (err != 0)                                                              \
       return err;                                                              \
   } while (0)
@@ -100,7 +101,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 #ifndef CDD_BUILD_TESTS
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   do {                                                                         \
-    int err = (x);                                                             \
+    cdd_c_error_t err = (x);                                                   \
     if (err != 0) {                                                            \
       fclose(fp);                                                              \
       return err;                                                              \
@@ -110,7 +111,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   do {                                                                         \
-    int err = (x);                                                             \
+    cdd_c_error_t err = (x);                                                   \
     if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
       err = CDD_C_ERROR_MEMORY;                                                \
     if (err != 0) {                                                            \
@@ -171,21 +172,21 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
     return CDD_C_ERROR_SYSTEM;
 
   F_CHECK_RC_TESTABLE(print_header_guard(fp, basename));
+  F_CHECK_IO(FPRINTF_HOOK(fp, "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
+                              "#include \"lib_export.h\"\n\n"
+                              "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                              "typedef signed __int8 int8_t;\n"
+                              "typedef unsigned __int8 uint8_t;\n"
+                              "typedef signed __int16 int16_t;\n"
+                              "typedef unsigned __int16 uint16_t;\n"));
+  F_CHECK_IO(FPRINTF_HOOK(fp, "typedef signed __int32 int32_t;\n"
+                              "typedef unsigned __int32 uint32_t;\n"
+                              "typedef signed __int64 int64_t;\n"
+                              "typedef unsigned __int64 uint64_t;\n"
+                              "#else\n"
+                              "#include <stdint.h>\n"
+                              "#endif\n\n"));
   F_CHECK_IO(FPRINTF_HOOK(fp,
-                          "#include <stdlib.h>\n#include <cdd_c_error.h>\n"
-                          "#include \"lib_export.h\"\n\n"
-                          "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
-                          "typedef signed __int8 int8_t;\n"
-                          "typedef unsigned __int8 uint8_t;\n"
-                          "typedef signed __int16 int16_t;\n"
-                          "typedef unsigned __int16 uint16_t;\n"
-                          "typedef signed __int32 int32_t;\n"
-                          "typedef unsigned __int32 uint32_t;\n"
-                          "typedef signed __int64 int64_t;\n"
-                          "typedef unsigned __int64 uint64_t;\n"
-                          "#else\n"
-                          "#include <stdint.h>\n"
-                          "#endif\n\n"
                           "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
                           "#if !defined(__cplusplus)\n"
                           "#ifndef bool\n"

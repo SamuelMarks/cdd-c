@@ -21,7 +21,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
@@ -287,7 +286,7 @@ TEST test_init_oom(void) {
   struct InitList list;
   int rc;
   int i;
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /*  (moved to global) */
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;

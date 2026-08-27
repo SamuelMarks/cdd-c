@@ -23,8 +23,8 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 
 struct SdkTestsConfig {
   const char *client_header;
@@ -33,8 +33,8 @@ struct SdkTestsConfig {
 };
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 2, 3)))
 #endif
@@ -126,7 +126,7 @@ static cdd_c_error_t write_test_operation(FILE *fp,
       char group_buf[512];
       if (op->n_tags > 0 && op->tags[0] && op->tags[0][0]) {
         CDD_SNPRINTF(group_buf, sizeof(group_buf), "%s", op->tags[0]);
-        group_buf[0] = toupper((unsigned char)group_buf[0]);
+        group_buf[0] = (char)toupper((unsigned char)group_buf[0]);
       } else {
         CDD_SNPRINTF(group_buf, sizeof(group_buf), "Default");
       }

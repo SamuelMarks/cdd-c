@@ -3,15 +3,16 @@
  * @brief Implementation of the C preprocessor.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 
 #include <errno.h>
 
 #include <stdio.h>
 
-#include <stdlib.h>
 #include "c_cdd/memory.h"
+#include <stdlib.h>
 
 #include <string.h>
 
@@ -19,8 +20,8 @@
 
 #include "functions/parse/fs.h"
 
-#include "functions/parse/preprocessor.h"
 #include "c_cdd/log.h"
+#include "functions/parse/preprocessor.h"
 
 #include "functions/parse/str.h"
 
@@ -41,8 +42,8 @@
 /** @brief PATH_SEP_CHAR definition */
 #define PATH_SEP_CHAR '/'
 
-#include <errno.h>
 #include "c_cdd/log.h"
+#include <errno.h>
 
 #endif
 /* clang-format on */
@@ -475,7 +476,7 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
   struct TokenList *tokens = NULL;
 
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   size_t i;
 
@@ -2155,7 +2156,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
   size_t i;
 
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   /* Init stack */
 

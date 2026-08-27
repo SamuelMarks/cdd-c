@@ -4,10 +4,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* extern int g_io_calls; (moved to global) */
-/* extern int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 #include <c_cdd_export.h>
-/* extern int g_cdd_strdup_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 #ifdef __cplusplus
 #endif /* __cplusplus */
 
@@ -30,9 +30,9 @@ extern cdd_c_error_t is_grouping_paren(const struct TokenList *tokens, size_t pa
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
-extern int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /**
  * @brief Executes the setup tokens operation.

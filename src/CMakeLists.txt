@@ -1,4 +1,3 @@
-add_compile_definitions( _CRT_NONSTDC_NO_WARNINGS)
 ###########
 # Library #
 ###########

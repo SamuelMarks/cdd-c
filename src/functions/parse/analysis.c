@@ -4,17 +4,18 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/log.h"
 #include "c_cdd_stdbool.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/str.h"
-#include "c_cdd/log.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -370,13 +371,13 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
   int _ast_token_matches_string_1 = 0;
   char *_ast_get_assigned_var_2 = NULL;
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (out->sites == NULL) {
-    if ((rc = allocation_site_list_init(out)) != 0)
+    if ((rc = allocation_site_list_init(out)) != CDD_C_SUCCESS)
       return rc;
   }
 
@@ -409,7 +410,7 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
 
           if (is_return) {
             rc = allocation_site_list_add(out, i, NULL, 0, 0, 1, spec);
-            if (rc != 0)
+            if (rc != CDD_C_SUCCESS)
               return rc;
             break;
           }
@@ -444,13 +445,13 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
             free(var_name);
-            if (rc != 0)
+            if (rc != CDD_C_SUCCESS)
               return rc;
           } else {
             int checked = 0;
             is_inside_condition(tokens, i, &checked);
             rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
-            if (rc != 0)
+            if (rc != CDD_C_SUCCESS)
               return rc;
           }
           break;

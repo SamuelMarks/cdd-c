@@ -5,17 +5,18 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/memory.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd/memory.h"
 #include <string.h>
 
-#include "functions/parse/makefile_scraper.h"
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"
+#include "functions/parse/makefile_scraper.h"
 /* clang-format on */
 
 static cdd_c_error_t my_strdup(const char *s, char **out_val) {
@@ -254,10 +255,10 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
                      "project(%s C)\n\n ",
                      project_name);
 #else
-  len += CDD_SNPRINTF(buf + len, cap - len,
-                      "cmake_minimum_required(VERSION 3.10)\n"
-                      "project(%s C)\n\n ",
-                      project_name);
+  len += (size_t)CDD_SNPRINTF(buf + len, cap - len,
+                              "cmake_minimum_required(VERSION 3.10)\n"
+                              "project(%s C)\n\n ",
+                              project_name);
 #endif
 
   if (info->compile_defs_n > 0) {
@@ -265,21 +266,22 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE,
                        "add_compile_definitions(\n");
 #else
-    len += CDD_SNPRINTF(buf + len, cap - len, "add_compile_definitions(\n");
+    len += (size_t)CDD_SNPRINTF(buf + len, cap - len,
+                                "add_compile_definitions(\n");
 #endif
     for (i = 0; i < info->compile_defs_n; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                          info->compile_defs[i]);
 #else
-      len +=
-          CDD_SNPRINTF(buf + len, cap - len, "  %s\n", info->compile_defs[i]);
+      len += (size_t)CDD_SNPRINTF(buf + len, cap - len, "  %s\n",
+                                  info->compile_defs[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")\n\n");
 #else
-    len += CDD_SNPRINTF(buf + len, cap - len, ")\n\n");
+    len += (size_t)CDD_SNPRINTF(buf + len, cap - len, ")\n\n");
 #endif
   }
 
@@ -287,8 +289,8 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
   len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "add_executable(%s\n",
                      project_name);
 #else
-  len +=
-      CDD_SNPRINTF(buf + len, cap - len, "add_executable(%s\n", project_name);
+  len += (size_t)CDD_SNPRINTF(buf + len, cap - len, "add_executable(%s\n",
+                              project_name);
 #endif
 
   for (i = 0; i < info->source_files_n; i++) {
@@ -296,14 +298,15 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                        info->source_files[i]);
 #else
-    len += CDD_SNPRINTF(buf + len, cap - len, "  %s\n", info->source_files[i]);
+    len += (size_t)CDD_SNPRINTF(buf + len, cap - len, "  %s\n",
+                                info->source_files[i]);
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")\n\n");
 #else
-  len += CDD_SNPRINTF(buf + len, cap - len, ")\n\n");
+  len += (size_t)CDD_SNPRINTF(buf + len, cap - len, ")\n\n");
 #endif
 
   if (info->include_dirs_n > 0) {
@@ -311,23 +314,23 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE,
                        "target_include_directories(%s PRIVATE\n", project_name);
 #else
-    len +=
-        CDD_SNPRINTF(buf + len, cap - len,
-                     "target_include_directories(%s PRIVATE\n", project_name);
+    len += (size_t)CDD_SNPRINTF(buf + len, cap - len,
+                                "target_include_directories(%s PRIVATE\n",
+                                project_name);
 #endif
     for (i = 0; i < info->include_dirs_n; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                          info->include_dirs[i]);
 #else
-      len +=
-          CDD_SNPRINTF(buf + len, cap - len, "  %s\n", info->include_dirs[i]);
+      len += (size_t)CDD_SNPRINTF(buf + len, cap - len, "  %s\n",
+                                  info->include_dirs[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")\\n");
 #else
-    len += CDD_SNPRINTF(buf + len, cap - len, ")\\n");
+    len += (size_t)CDD_SNPRINTF(buf + len, cap - len, ")\\n");
 #endif
   }
 

@@ -6,8 +6,11 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "functions/parse/audit.h"
+#include "c_cdd/log.h"
+#include "c_cdd_export.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
@@ -17,8 +20,6 @@
 #include <parson.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/log.h"
-#include "c_cdd_export.h"
 
 /* clang-format on */
 
@@ -264,7 +265,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   struct AllocationSiteList sites = {0};
   char *content = NULL;
   size_t sz = 0;
-  int rc;
+  cdd_c_error_t rc;
   size_t i;
 
   /* Filter only .c files */
@@ -284,7 +285,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 
   /* Tokenize */
   {
-    int tok_rc = tokenize(az_span_create_from_str(content), &tokens);
+    cdd_c_error_t tok_rc = tokenize(az_span_create_from_str(content), &tokens);
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
     if (g_cdd_audit_fail_tokenize)
@@ -299,7 +300,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 
   /* Analyze */
   {
-    int find_rc = find_allocations(tokens, &sites);
+    cdd_c_error_t find_rc = find_allocations(tokens, &sites);
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_audit_fail_find;
     if (g_cdd_audit_fail_find)
@@ -335,7 +336,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   {
     int count = 0;
     count_returning_allocs(tokens, &count);
-    stats->functions_returning_alloc += count;
+    stats->functions_returning_alloc += (size_t)count;
   }
 
   free_token_list(tokens);

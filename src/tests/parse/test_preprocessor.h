@@ -25,7 +25,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #define PATH_SEP_CHAR '\\'
@@ -603,7 +602,7 @@ TEST test_pp_scan_defines(void) {
                           "#define MACRO_WITH_ARGS(a, b) a + b\n");
 
 #ifdef CDD_BUILD_TESTS
-    /* extern int g_cdd_alloc_fail; (moved to global) */
+    /*  (moved to global) */
     pp_context_init(&ctx);
 
     g_cdd_alloc_fail = i;

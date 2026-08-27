@@ -3,7 +3,8 @@
  * @brief Implementation of the C tokenizer.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #if defined(__clang__)
 #endif
 
@@ -15,10 +16,10 @@
 
 #include <string.h>
 
-#include "functions/parse/tokenizer.h"
-#include <stdio.h>
 #include "c_cdd/log.h"
 #include "c_cdd/memory.h"
+#include "functions/parse/tokenizer.h"
+#include <stdio.h>
 /* clang-format on */
 
 /* --- Phase 1 & 2 Logic --- */
@@ -30,7 +31,7 @@
  * @return The replacement char or 0 if not a trigraph.
  */
 
-static cdd_c_error_t get_trigraph_map(int c3) {
+static int get_trigraph_map(int c3) {
 
   switch (c3) {
 
@@ -89,9 +90,9 @@ static cdd_c_error_t get_trigraph_map(int c3) {
  * @return The logical character (int), or EOF (-1) if end of buffer.
  */
 
-static cdd_c_error_t peek_logical(const uint8_t *base, size_t len, size_t pos,
+static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 
-                                  size_t *out_consumed) {
+                        size_t *out_consumed) {
 
   size_t current = pos;
 
@@ -214,8 +215,8 @@ static cdd_c_error_t span_equals_str(const az_span span, const char *str,
   *_out_val = 0;
 
   {
-    *_out_val =
-        az_span_is_content_equal(span, az_span_create_from_str((char *)str));
+    *_out_val = ((int)az_span_is_content_equal(
+        span, az_span_create_from_str((char *)str)));
     return CDD_C_SUCCESS;
   }
 }
@@ -292,7 +293,7 @@ cdd_c_error_t identify_keyword_or_id(const uint8_t *start, size_t len,
   *_out_val = TOKEN_IDENTIFIER;
   if (!start)
     return CDD_C_SUCCESS;
-  s = az_span_create((uint8_t *)start, (int32_t)len);
+  s = az_span_create((uint8_t *)start, (size_t)len);
 
   /* C89/C90/C99/C11/C23 Keywords */
 
@@ -898,7 +899,7 @@ cdd_c_error_t tokenize(const az_span source, struct TokenList **const out) {
 
   size_t len, pos = 0;
 
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!out)
 

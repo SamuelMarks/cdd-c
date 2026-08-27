@@ -94,9 +94,9 @@ static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
   uint64_t p11 = a_hi * b_hi;
 
   uint64_t mid1 = p01 + (p00 >> 32);
-  uint64_t carry = (mid1 < p01) ? 1ULL : 0ULL;
+  uint64_t carry = (mid1 < p01) ? ((uint64_t)1) : ((uint64_t)0);
   uint64_t mid2 = mid1 + p10;
-  carry += (mid2 < mid1) ? 1ULL : 0ULL;
+  carry += (mid2 < mid1) ? ((uint64_t)1) : ((uint64_t)0);
 
   out->low = (mid2 << 32) | (p00 & 0xFFFFFFFF);
   out->high =
@@ -210,7 +210,7 @@ static int cdd_int128_shr(cdd_int128_t a, unsigned int shift,
     out->high = a.high >> shift;
   } else {
     out->low = (uint64_t)(a.high >> (shift - 64));
-    out->high = a.high < 0 ? -1LL : 0LL;
+    out->high = a.high < 0 ? ((int64_t)-1) : ((int64_t)0);
   }
   return 0;
 }
@@ -253,9 +253,9 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
     if (r.high > den.high || (r.high == den.high && r.low >= den.low)) {
       cdd_uint128_sub(r, den, &r);
       if (i < 64) {
-        q.low |= (1ULL << i);
+        q.low |= (((uint64_t)1) << i);
       } else {
-        q.high |= (1ULL << (i - 64));
+        q.high |= (((uint64_t)1) << (i - 64));
       }
     }
   }
@@ -475,7 +475,7 @@ static int cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
  */
 static int cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
   out->low = (uint64_t)(int64_t)val;
-  out->high = (val < 0) ? -1LL : 0LL;
+  out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
   return 0;
 }
 
@@ -501,7 +501,7 @@ static int cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
 static int cdd_float_to_int128(float val, cdd_int128_t *out) {
   /* Stub implementation */
   out->low = (uint64_t)(int64_t)val;
-  out->high = (val < 0) ? -1LL : 0LL;
+  out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
   return 0;
 }
 
@@ -511,7 +511,7 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
 static int cdd_double_to_int128(double val, cdd_int128_t *out) {
   /* Stub implementation */
   out->low = (uint64_t)(int64_t)val;
-  out->high = (val < 0) ? -1LL : 0LL;
+  out->high = (val < 0) ? ((int64_t)-1) : ((int64_t)0);
   return 0;
 }
 

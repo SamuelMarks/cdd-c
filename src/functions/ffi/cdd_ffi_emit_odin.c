@@ -1,12 +1,13 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_odin.h"
-#include <stdio.h>
 #include "c_cdd/format_specifiers.h"
+#include "c_cdd/safe_crt.h"
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include "c_cdd/safe_crt.h"
 
 /* clang-format on */
 

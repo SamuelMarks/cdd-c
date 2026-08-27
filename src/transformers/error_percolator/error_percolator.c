@@ -3,22 +3,23 @@
  * @brief Implementation of the error percolator transformer.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
+#include "c_cdd/format_specifiers.h"
+#include "c_cdd/memory.h"
+#include "c_cdd/safe_crt.h"
+#include "c_cdd_export.h"
+#include "c_str_span.h"
 #include "cdd_cst_transform.h"
-#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
+#include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
-#include "c_str_span.h"
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "c_cdd_export.h"
-#include "c_cdd/safe_crt.h"
-#include "c_cdd/memory.h"
-#include "c_cdd/format_specifiers.h"
+#include <string.h>
 /* clang-format on */
 
 static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
@@ -328,7 +329,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i, j;
-  int rc;
+  cdd_c_error_t rc;
   cdd_token_t *modified_funcs[256];
   size_t num_modified = 0;
   (void)config;
@@ -567,7 +568,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
     {
       cdd_cst_query_result_t stmts_res;
-      int q_rc = cdd_cst_find_nodes_by_type(func, CDD_CST_UNKNOWN, &stmts_res);
+      cdd_c_error_t q_rc =
+          cdd_cst_find_nodes_by_type(func, CDD_CST_UNKNOWN, &stmts_res);
       if (q_rc != CDD_C_SUCCESS) {
         C_CDD_FREE(res.nodes);
         return q_rc;

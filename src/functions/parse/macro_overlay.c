@@ -3,14 +3,15 @@
  * @brief Implementation of macro overlay mapping.
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "functions/parse/macro_overlay.h"
 #include "c_cdd/log.h"
+#include "functions/parse/macro_overlay.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS

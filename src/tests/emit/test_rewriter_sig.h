@@ -17,7 +17,6 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_alloc_fail;
 
 /**
  * @brief Helper to run rewrite_signature on a string input and verify against
@@ -529,7 +528,7 @@ TEST test_rewrite_oom(void) {
                           "static f()"};
   for (j = 0; j < (int)(sizeof(inputs) / sizeof(inputs[0])); j++) {
     for (i = 1; i < 200; i++) {
-      /* extern int g_cdd_alloc_fail; (moved to global) */
+      /*  (moved to global) */
       g_cdd_alloc_fail = i;
       {
         int rc = test_rewrite_error(inputs[j]);
@@ -544,7 +543,7 @@ TEST test_rewrite_oom(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_alloc_fail; (moved to global) */
+/*  (moved to global) */
 #endif
 
 TEST test_rewrite_sig_oom(void) {

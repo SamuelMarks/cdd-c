@@ -19,12 +19,11 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_fail_asprintf;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_fail_asprintf;
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_cdd_alloc_fail; (moved to global) */
-/* extern int g_cdd_fail_asprintf; (moved to global) */
+/*  (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_fail_asprintf; (moved to global) */
 #endif
 
 static size_t find_token_index(struct TokenList *tl, const char *str);
@@ -382,6 +381,7 @@ TEST test_strategy_edge_cases(void) {
   /* Test range_to_string with start >= end */
   {
     char *out = NULL;
+    (void)out;
     struct AllocationSite site = allocs.sites[1];
     site.var_name = "p";
     site.spec = &REALLOC_SPEC;

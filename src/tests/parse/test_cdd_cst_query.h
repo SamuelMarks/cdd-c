@@ -22,8 +22,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_cdd_query_err_fail;
-extern int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_query_err_fail;
 
 static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
@@ -403,8 +402,8 @@ TEST test_query_call_expr_coverage(void) {
   cdd_token_t tok2 = {0};
   cdd_cst_node_t dummy_empty_node = {0};
 #ifdef CDD_BUILD_TESTS
-  /* extern int g_cdd_query_err_fail; (moved to global) */
-  /* extern int g_cdd_alloc_fail; (moved to global) */
+  /* extern C_CDD_EXPORT int g_cdd_query_err_fail; (moved to global) */
+  /*  (moved to global) */
 
   memset(children, 0, sizeof(children));
   dummy_call.children = children;

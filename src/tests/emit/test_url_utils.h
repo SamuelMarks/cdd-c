@@ -12,9 +12,9 @@ extern "C" {
 
 struct OpenAPI_KV;
 
-/* extern int g_io_calls; (moved to global) */
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_cdd_strdup_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
 extern cdd_c_error_t is_pct_encoded_test(const char *p);
 extern cdd_c_error_t kv_value_to_string_test(const struct OpenAPI_KV *kv,
@@ -35,9 +35,9 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
-extern int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /* --- Encoding Tests --- */
 

@@ -1,16 +1,17 @@
 extern volatile int g_fail_io_after;
 #ifdef CDD_BUILD_TESTS
 #endif
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_common_lisp.h"
 
-#include "../../cdd_api.h"
-#include "../../../include/ffi/cdd_ffi_ir.h"
 #include "../../../include/c_cdd/safe_crt.h"
+#include "../../../include/ffi/cdd_ffi_ir.h"
+#include "../../cdd_api.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 /* clang-format on */
 

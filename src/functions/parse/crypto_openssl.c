@@ -11,14 +11,15 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <errno.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <string.h>
 
-#include "functions/parse/crypto_types.h"
 #include "c_cdd/log.h"
+#include "functions/parse/crypto_types.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -107,7 +108,7 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   EVP_MD_CTX *mdctx;
   const EVP_MD *md;
   unsigned int len = 0;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if ((!data && data_len > 0) || !out_digest)
     return CDD_C_ERROR_INVALID_ARGUMENT;

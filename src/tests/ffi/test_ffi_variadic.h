@@ -174,7 +174,7 @@ TEST test_ffi_variadic_invoke(void) {
   ASSERT_EQ(CDD_C_SUCCESS, result);
 
   result = cdd_ffi_invoke_variadic(dummy_variadic_func, "", args, 9);
-  ASSERT_EQ((cdd_c_error_t)-1, result);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, result);
 
   PASS();
 }

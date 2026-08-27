@@ -1,8 +1,9 @@
-/* clang-format off */
-#include "c_cdd/safe_crt.h"
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_ffi_emit_napi.h"
-#include <stdio.h>
 #include "c_cdd/format_specifiers.h"
+#include "c_cdd/safe_crt.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
@@ -310,7 +311,7 @@ emit_binding_gyp(const cdd_generate_bindings_config_t *config) {
 
 cdd_c_error_t cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
-  int rc;
+  cdd_c_error_t rc;
   if (!ir || !config || !config->output_dir) {
     return CDD_C_ERROR_UNKNOWN;
   }

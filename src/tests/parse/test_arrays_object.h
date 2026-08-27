@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-       /* extern int g_fail_io_after; (moved to global) */
-       /* extern int g_io_calls; (moved to global) */
+       /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+       /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
        /**
         * @file test_arrays_object.c
         * @brief Unit tests for Object Arrays generation and parsing.
@@ -114,8 +114,8 @@ TEST test_code2schema_obj_array_detection(void) {
 #include "classes/parse/code2schema.h"
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
     /* clang-format on */
     char *argv[2];
     argv[0] = "test_obj_array.h";

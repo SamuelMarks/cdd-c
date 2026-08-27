@@ -10,7 +10,7 @@
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
-extern int g_err_perc_fail;
+extern C_CDD_EXPORT int g_err_perc_fail;
 
 #ifdef __cplusplus
 extern "C" {
@@ -187,7 +187,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_err_perc_fail; (moved to global) */
+/* extern C_CDD_EXPORT int g_err_perc_fail; (moved to global) */
 #endif
 
 TEST test_cdd_transform_percolate_errors_bld_fail(void) {

@@ -78,8 +78,15 @@ C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
 }
 #endif /* __cplusplus */
 
+#if defined(__GNUC__) || defined(__clang__)
+C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
+                                                cdd_cst_node_t **out_node,
+                                                const char *fmt, ...)
+    __attribute__((format(printf, 3, 4)));
+#else
 C_CDD_EXPORT cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
                                                 cdd_cst_node_t **out_node,
                                                 const char *fmt, ...);
+#endif
 C_CDD_EXPORT void cdd_cst_free_node_only(cdd_cst_node_t *node);
 #endif /* CDD_CST_FACTORY_H */

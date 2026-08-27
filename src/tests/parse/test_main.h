@@ -1,3 +1,14 @@
+#if defined(_MSC_VER)
+static FILE *cdd_freopen_helper_main(const char *p, const char *m, FILE *s) {
+  FILE *f = NULL;
+  freopen_s(&f, p, m, s);
+  return f;
+}
+#undef CDD_FREOPEN
+#define CDD_FREOPEN cdd_freopen_helper_main
+#else
+#define CDD_FREOPEN freopen
+#endif
 /**
  * @file test_main.h
  * @brief Unit tests for the main application entry point router.
@@ -102,6 +113,7 @@ TEST test_main_subcommands(void) {
       "cdd-c", "from_openapi",        "to_sdk", "-i", "spec.json",
       "-o",    "build/test_out_dir_3"};
   char *argv_serve_json_rpc[] = {"cdd-c", "serve_json_rpc"};
+  (void)argv_serve_json_rpc;
   char *argv_transformer[] = {"cdd-c", "transformer", "--help"};
   char *argv_standardize_gnu[] = {"cdd-c", "standardize-gnu", "--help"};
   char *argv_code2schema_err[] = {"cdd-c", "code2schema", "invalid"};
@@ -111,6 +123,7 @@ TEST test_main_subcommands(void) {
   char *argv_schema2code_err[] = {"cdd-c", "schema2code", "invalid"};
   char *argv_serve_json_rpc_err[] = {"cdd-c", "serve_json_rpc", "invalid"};
   char *argv_mcp[] = {"cdd-c", "mcp"};
+  (void)argv_mcp;
   char *argv_openapi2client[] = {"cdd-c", "openapi2client", "--help"};
   char *argv_audit_err[] = {"cdd-c", "audit", "invalid"};
   char *argv_audit_too_many[] = {"cdd-c", "audit", "invalid", "extra"};
@@ -160,9 +173,9 @@ TEST test_main_subcommands(void) {
 /* Close stdin or redirect to /dev/null so mcp does not block waiting for
  * input */
 #if defined(_WIN32)
-  (void)freopen("NUL", "r", stdin);
+  (void)CDD_FREOPEN("NUL", "r", stdin);
 #else
-  if (freopen("/dev/null", "r", stdin)) {
+  if (CDD_FREOPEN("/dev/null", "r", stdin)) {
   }
 #endif
 

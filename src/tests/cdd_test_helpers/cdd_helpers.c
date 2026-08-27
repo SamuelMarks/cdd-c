@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,13 +21,13 @@
 #include "cdd_test_helpers_export.h"
 
 /* Moved extern declarations for C89 compliance */
-extern int g_io_calls;
-extern int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
 CDD_TEST_HELPERS_EXPORT int g_cdd_helpers_fopen_err = 0;
 
 #ifdef CDD_BUILD_TESTS
-/* extern int g_fail_io_after; (moved to global) */
-/* extern int g_io_calls; (moved to global) */
+/* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
+/* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 
 static FILE *mock_fopen(const char *path, const char *mode) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
@@ -80,7 +81,7 @@ void cdd_precondition_failed(void) {
 cdd_c_error_t write_to_file(const char *const filename,
                             const char *const contents) {
   FILE *fh;
-  int rc = CDD_C_SUCCESS;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (filename == NULL || contents == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;

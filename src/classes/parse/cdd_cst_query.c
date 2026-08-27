@@ -1,10 +1,11 @@
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "cdd_cst_query.h"
+#include "c_cdd/memory.h"
 #include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c_cdd/memory.h"
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
@@ -17,7 +18,7 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
                                         cdd_cst_visitor_fn visitor,
                                         void *user_data) {
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
   if (!root || !visitor)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -41,7 +42,7 @@ cdd_c_error_t cdd_cst_traverse_postorder(cdd_cst_node_t *root,
                                          cdd_cst_visitor_fn visitor,
                                          void *user_data) {
   size_t i;
-  int rc;
+  cdd_c_error_t rc;
   if (!root || !visitor)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

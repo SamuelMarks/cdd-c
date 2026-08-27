@@ -5,7 +5,8 @@
 #define _CRT_RAND_S
 #endif
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include "functions/parse/str.h"
 /**
  * @file fs.c
@@ -20,8 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "functions/parse/fs.h"
 #include "c_cdd/log.h"
+#include "functions/parse/fs.h"
 #include "functions/str_includes.h"
 
 static cdd_c_error_t errno_to_cdd_error(int err) {
@@ -38,9 +39,9 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <winsock2.h>
 #include <fileapi.h>
 #include <winnls.h>
+#include <winsock2.h>
 #endif
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -91,8 +92,8 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #if defined(_MSC_VER)
 #include <io.h>
 #else
-#include <unistd.h>
 #include "c_cdd/log.h"
+#include <unistd.h>
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* clang-format on */
@@ -368,7 +369,7 @@ cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
  */
 cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
   FILE *f;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!path || !content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -424,7 +425,7 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
                            size_t *out_size) {
   FILE *f = NULL;
-  int internal_rc = 0;
+  cdd_c_error_t internal_rc = CDD_C_SUCCESS;
 
   if (!path || !mode || !out_data || !out_size) {
     fprintf(stderr, "read_to_file returning INVALID_ARGUMENT\n");
@@ -501,7 +502,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   size_t total_read = 0;
   size_t capacity = 0;
   size_t read_now;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!fh || !out_data || !out_size)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -562,10 +563,10 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   int fd_to, fd_from;
   char buf[READ_CHUNK_SIZE];
   ssize_t nread;
-  int saved_errno;
+  cdd_c_error_t saved_errno;
   char *out_ptr;
   ssize_t nwritten;
-  int ret_val = 0;
+  cdd_c_error_t ret_val = CDD_C_SUCCESS;
 
   fd_from = open(src, O_RDONLY);
   if (fd_from < 0)
@@ -574,7 +575,7 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   /* O_EXCL to fail if dest exists */
   fd_to = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0666);
   if (fd_to < 0) {
-    saved_errno = errno;
+    saved_errno = errno_to_cdd_error(errno);
     close(fd_from);
     return saved_errno;
   }
@@ -582,7 +583,7 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   while ((nread = read(fd_from, buf, sizeof(buf))) > 0) {
     out_ptr = buf;
     do {
-      nwritten = write(fd_to, out_ptr, nread);
+      nwritten = write(fd_to, out_ptr, (size_t)nread);
       if (nwritten >= 0) {
         nread -= nwritten;
         out_ptr += nwritten;
@@ -607,7 +608,7 @@ out_error:
   }
 
   if (close(fd_to) < 0) {
-    saved_errno = errno;
+    saved_errno = errno_to_cdd_error(errno);
     close(fd_from);
     return saved_errno;
   }
@@ -662,7 +663,7 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
 cdd_c_error_t makedirs(const char *path) {
   char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (path == NULL || *path == '\0') {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -827,7 +828,7 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
   unsigned char i;
   char *tmpdir_path = NULL;
   char *tmpfilename = NULL;
-  int rc;
+  cdd_c_error_t rc;
 
   if (!file)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -953,7 +954,7 @@ cdd_c_error_t path_is_unc(const char *path, int *out_is_unc) {
 cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   char *full_path = NULL;
   c_stat st;
-  int rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!path || !cb)
     return CDD_C_ERROR_INVALID_ARGUMENT;

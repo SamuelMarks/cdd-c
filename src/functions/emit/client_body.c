@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
+/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -16,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/safe_crt.h"
 #include "c_cdd_stdbool.h"
 #include "classes/emit/struct.h"
 #include "functions/emit/client_body.h"
@@ -24,7 +26,6 @@
 #include "routes/emit/security.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
-#include "c_cdd/safe_crt.h"
 /* clang-format on */
 
 /** @brief CHECK_IO definition */
@@ -3757,7 +3758,7 @@ static cdd_c_error_t status_range_prefix(const char *code) {
 
     return CDD_C_SUCCESS;
 
-  return code[0] - '0';
+  return (cdd_c_error_t)(code[0] - '0');
 }
 
 /**
@@ -3802,8 +3803,8 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (spec) {
-    security_query = codegen_security_requires_query(op, spec);
-    security_cookie = codegen_security_requires_cookie(op, spec);
+    security_query = (int)codegen_security_requires_query(op, spec);
+    security_cookie = (int)codegen_security_requires_cookie(op, spec);
   }
 
   for (i = 0; i < op->n_parameters; ++i) {
@@ -4219,7 +4220,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       continue;
     }
     if (is_status_range_code(resp->code)) {
-      int bucket = status_range_prefix(resp->code);
+      int bucket = (int)status_range_prefix(resp->code);
       if (bucket >= 1 && bucket <= 5) {
         range_resp[bucket] = resp;
         has_range = 1;
