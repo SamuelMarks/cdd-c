@@ -18,10 +18,8 @@
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return CDD_C_ERROR_IO
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup

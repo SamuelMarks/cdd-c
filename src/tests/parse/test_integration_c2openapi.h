@@ -29,7 +29,6 @@ extern "C" {
 
 TEST test_c2openapi_full_flow(void) {
   int rc;
-  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -289,12 +288,12 @@ TEST test_c2openapi_full_flow(void) {
   free(tmp_dir);
   g_fail_io_after = -1;
 
+  (void)rc;
   PASS();
 }
 
 TEST test_c2openapi_with_base_spec(void) {
   int rc;
-  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -407,12 +406,12 @@ TEST test_c2openapi_with_base_spec(void) {
   free(tmp_dir);
   g_fail_io_after = -1;
 
+  (void)rc;
   PASS();
 }
 
 TEST test_c2openapi_with_self_uri(void) {
   int rc;
-  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -469,12 +468,12 @@ TEST test_c2openapi_with_self_uri(void) {
   free(tmp_dir);
   g_fail_io_after = -1;
 
+  (void)rc;
   PASS();
 }
 
 TEST test_c2openapi_global_meta_security_schemes(void) {
   int rc;
-  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -564,12 +563,12 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   free(tmp_dir);
   g_fail_io_after = -1;
 
+  (void)rc;
   PASS();
 }
 
 TEST test_c2o_cli_source_file_checks(void) {
   int rc;
-  (void)rc;
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -614,13 +613,13 @@ TEST test_c2o_cli_source_file_checks(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_doc_sec_unset(void) {
   int rc;
-  (void)rc;
   const char *snippets[] = {
       "/**\n * @securityScheme my_bad_sec\n */\nint foo1(void);\n",
       "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint "
@@ -704,6 +703,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       free(tmp_dir);
       g_fail_io_after = -1;
 
+      (void)rc;
       PASS();
     }
   }
@@ -711,7 +711,6 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
   int rc;
-  (void)rc;
   const char *src = "/**\n"
                     " * @tag duplicated\n"
                     " * @tag duplicated\n"
@@ -752,13 +751,13 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_mappings_errors_find(void) {
   int rc;
-  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -807,13 +806,13 @@ TEST test_c2o_cli_mappings_errors_find(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_set_str_mismatch(void) {
   int rc;
-  (void)rc;
   const char *src = "/**\n"
                     " * @securityScheme my_http [type:http] [scheme:bearer]\n"
                     " * @securityScheme my_http [type:http] [scheme:basic]\n"
@@ -854,13 +853,13 @@ TEST test_c2o_cli_set_str_mismatch(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_server_variables(void) {
   int rc;
-  (void)rc;
   const char *src = "/**\n"
                     " * GLOBAL META:\n"
                     " * @server https://api.com [description:prod]\n"
@@ -903,13 +902,13 @@ TEST test_c2o_cli_server_variables(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_server_variables_validation(void) {
   int rc;
-  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -953,13 +952,13 @@ TEST test_c2o_cli_server_variables_validation(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_merge_oauth_scopes(void) {
   int rc;
-  (void)rc;
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
@@ -1006,13 +1005,13 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
     free(tmp_dir);
     g_fail_io_after = -1;
 
+    (void)rc;
     PASS();
   }
 }
 
 TEST test_c2o_cli_oauth_validation_errors(void) {
   int rc;
-  (void)rc;
   const char *snippets[] = {
       "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
       "*/\nint foo21(void);\n", /* Missing authorizationUrl */
@@ -1075,6 +1074,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       free(tmp_dir);
       g_fail_io_after = -1;
 
+      (void)rc;
       PASS();
     }
   }
@@ -1082,7 +1082,6 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   int rc;
-  (void)rc;
   const char *snippets[] = {
       "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
       "[flow:implicit] [authorizationUrl:https://auth.com/auth1]\n * "
@@ -1152,6 +1151,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       free(tmp_dir);
       g_fail_io_after = -1;
 
+      (void)rc;
       PASS();
     }
   }

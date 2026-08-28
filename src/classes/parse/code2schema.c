@@ -3832,8 +3832,8 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
       return CDD_C_SUCCESS;
     }
   }
-  CDD_SNPRINTF(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
-               (size_t)(index + 1));
+  CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", sanitized,
+               (unsigned long)(index + 1));
   C_CDD_FREE(sanitized);
   c_cdd_strdup(buf, &out);
   if (!out) {
@@ -3849,8 +3849,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     }
   }
   C_CDD_FREE(out);
-  CDD_SNPRINTF(buf, sizeof(buf), "Variant_%" CDD_SIZE_T_FMT "",
-               (size_t)(index + 1));
+  CDD_SNPRINTF(buf, sizeof(buf), "Variant_%lu", (unsigned long)(index + 1));
   {
     c_cdd_strdup(buf, _out_val);
     return CDD_C_SUCCESS;
@@ -6250,8 +6249,7 @@ static cdd_c_error_t collapse_arrays(struct StructFields *sf) {
   if (!sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < sf->size; ++i) {
-    printf("DEBUG FIELD[%zu]: name='%s', type='%s', ref='%s'\n", i,
-           sf->fields[i].name, sf->fields[i].type, sf->fields[i].ref);
+    /* printf */
   }
   for (i = 0; i < sf->size; ++i) {
     if (strncmp(sf->fields[i].name, "n_", 2) == 0) {

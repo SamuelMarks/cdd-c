@@ -70,9 +70,9 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #include <pathcch.h>
 #endif /* !PATHCCH_LIB */
 #if defined(_MSC_VER) && _MSC_VER < 1900
-#include <shlobj.h>
+/* #include <shlobj.h> */
 #else
-#include <shlobj_core.h>
+/* #include <shlobj_core.h> */
 #endif
 #elif defined(__WATCOMC__) || defined(__DOS__)
 #include <direct.h>
@@ -583,7 +583,7 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   while ((nread = read(fd_from, buf, sizeof(buf))) > 0) {
     out_ptr = buf;
     do {
-      nwritten = write(fd_to, out_ptr, (size_t)nread);
+      nwritten = write(fd_to, out_ptr, (unsigned int)nread);
       if (nwritten >= 0) {
         nread -= nwritten;
         out_ptr += nwritten;
@@ -664,6 +664,7 @@ cdd_c_error_t makedirs(const char *path) {
   char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  fprintf(stderr, "makedirs A: %s\n", path ? path : "NULL");
 
   if (path == NULL || *path == '\0') {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -683,7 +684,9 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
+  fprintf(stderr, "makedirs B\n");
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
+  fprintf(stderr, "makedirs C\n");
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -698,6 +701,7 @@ cdd_c_error_t makedirs(const char *path) {
   }
 #endif
 
+  fprintf(stderr, "makedirs D\n");
   for (; *p; ++p) {
     if (*p == '/' || *p == '\\') {
       if (p == dup_path)
@@ -712,8 +716,11 @@ cdd_c_error_t makedirs(const char *path) {
     }
   }
 
+  fprintf(stderr, "makedirs E\n");
   rc = maybe_mkdir(dup_path);
+  fprintf(stderr, "makedirs F\n");
   C_CDD_FREE(dup_path);
+  fprintf(stderr, "makedirs G\n");
   return rc;
 }
 

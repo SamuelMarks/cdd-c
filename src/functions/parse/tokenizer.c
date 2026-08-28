@@ -886,7 +886,7 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 /**
  * @brief Executes the tokenize operation.
  */
-cdd_c_error_t tokenize(const az_span source, struct TokenList **const out) {
+cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
   enum TokenKind _ast_identify_keyword_or_id_57;
   int _ast_token_matches_string_58 = 0;
   int _ast_token_matches_string_59 = 0;

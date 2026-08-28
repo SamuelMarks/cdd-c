@@ -8,7 +8,7 @@ extern "C" {
 /* clang-format off */
 #include <string.h>
 #if _MSC_VER < 1900
-#define snprintf _snprintf
+#define snprintf sprintf_s
 #endif
 #endif
 

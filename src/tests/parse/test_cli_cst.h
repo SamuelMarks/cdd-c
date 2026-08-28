@@ -30,7 +30,6 @@ extern "C" {
  */
 TEST test_cli_cst_extern_c_audit(void) {
   int argc = 4;
-  (void)argc;
   char *argv[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
   int rc;
   const char *content = "void foo();";
@@ -53,7 +52,6 @@ TEST test_cli_cst_extern_c_audit(void) {
  */
 TEST test_cli_cst_extern_c_fix(void) {
   int argc = 4;
-  (void)argc;
   char *argv[] = {"extern_c", "--fix", "test_cli_cst_file.h", NULL};
   int rc;
   const char *content = "void foo();";
@@ -67,7 +65,6 @@ TEST test_cli_cst_extern_c_fix(void) {
   /* Audit should succeed on already fixed file */
   {
     char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
-    (void)argv_audit;
     rc = cli_cst_transformer_main(3, argv_audit);
     ASSERT_EQ(0, rc);
 
@@ -89,7 +86,6 @@ TEST test_cli_cst_extern_c_fix(void) {
  */
 TEST test_cli_cst_extern_c_dry_run(void) {
   int argc = 5;
-  (void)argc;
   char *argv[] = {"extern_c", "--fix", "--dry-run", "test_cli_cst_file.h",
                   NULL};
   int rc;
@@ -160,7 +156,6 @@ TEST test_cli_cst_errors(void) {
  */
 TEST test_cli_standardize_gnu(void) {
   int argc = 7;
-  (void)argc;
   char *argv[] = {
       "--target-c89", "--target-c99", "--fallback-alloca", "--audit",
       "--fix",        "--dry-run",    "test_gnu_file.h",   NULL};
@@ -168,6 +163,7 @@ TEST test_cli_standardize_gnu(void) {
   const char *content = "void foo();";
 
   /* Test no args */
+  (void)argc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cli_standardize_gnu_main(0, argv));
 
   /* Test help */
@@ -239,7 +235,6 @@ extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
  */
 TEST test_cli_cst_process_errors(void) {
   char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
-  (void)argv_audit;
   char *argv_fix[] = {"extern_c", "--fix", "test_cli_cst_file.h", NULL};
   const char *content = "void foo();";
 
@@ -252,6 +247,7 @@ TEST test_cli_cst_process_errors(void) {
     for (i = 1; i <= 500; i++) {
       g_cdd_alloc_fail = i;
       cli_cst_transformer_main(3, argv_fix);
+      (void)argv_audit;
     }
     g_cdd_alloc_fail = 0;
 

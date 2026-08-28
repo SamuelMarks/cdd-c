@@ -162,8 +162,10 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      *e++ = (to_hex(c >> 4, &_ast_to_hex_0), _ast_to_hex_0);
-      *e++ = (to_hex(c & 15, &_ast_to_hex_1), _ast_to_hex_1);
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_0);
+      *e++ = (char)_ast_to_hex_0;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_1);
+      *e++ = (char)_ast_to_hex_1;
     }
   }
   *e = '\0';
@@ -223,8 +225,10 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      *e++ = (to_hex(c >> 4, &_ast_to_hex_2), _ast_to_hex_2);
-      *e++ = (to_hex(c & 15, &_ast_to_hex_3), _ast_to_hex_3);
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_2);
+      *e++ = (char)_ast_to_hex_2;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_3);
+      *e++ = (char)_ast_to_hex_3;
     }
   }
   *e = '\0';
@@ -276,8 +280,10 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
       *e++ = *p;
     } else {
       *e++ = '%';
-      *e++ = (to_hex(c >> 4, &_ast_to_hex_4), _ast_to_hex_4);
-      *e++ = (to_hex(c & 15, &_ast_to_hex_5), _ast_to_hex_5);
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_4);
+      *e++ = (char)_ast_to_hex_4;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_5);
+      *e++ = (char)_ast_to_hex_5;
     }
   }
   *e = '\0';
@@ -341,15 +347,19 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     } else if (is_unreserved_form(c) || is_reserved(c)) {
       if (c == '&' || c == '=' || c == '+') {
         *e++ = '%';
-        *e++ = (to_hex(c >> 4, &_ast_to_hex_6), _ast_to_hex_6);
-        *e++ = (to_hex(c & 15, &_ast_to_hex_7), _ast_to_hex_7);
+        to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_6);
+        *e++ = (char)_ast_to_hex_6;
+        to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_7);
+        *e++ = (char)_ast_to_hex_7;
       } else {
         *e++ = *p;
       }
     } else {
       *e++ = '%';
-      *e++ = (to_hex(c >> 4, &_ast_to_hex_8), _ast_to_hex_8);
-      *e++ = (to_hex(c & 15, &_ast_to_hex_9), _ast_to_hex_9);
+      to_hex((char)(unsigned char)((unsigned char)c >> 4), &_ast_to_hex_8);
+      *e++ = (char)_ast_to_hex_8;
+      to_hex((char)(unsigned char)((unsigned char)c & 15), &_ast_to_hex_9);
+      *e++ = (char)_ast_to_hex_9;
     }
   }
   *e = '\0';

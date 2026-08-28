@@ -33,11 +33,11 @@ TEST test_cmake_modifier_basic(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)f;
-  (void)f2;
-  (void)i;
-  (void)rc;
 
+  (void)rc;
+  (void)i;
+  (void)f2;
+  (void)f;
   ASSERT_EQ(0, cmake_modifier_init(&mod, "CMakeLists.txt", "my_target"));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/W4"));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/WX"));
@@ -77,11 +77,11 @@ TEST test_cmake_modifier_global(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)f;
-  (void)f2;
-  (void)i;
-  (void)rc;
 
+  (void)rc;
+  (void)i;
+  (void)f2;
+  (void)f;
   ASSERT_EQ(0, cmake_modifier_init(&mod, "CMakeLists.txt", NULL));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/W4"));
   ASSERT_EQ(0, cmake_modifier_add_link_lib(&mod, "libm.a"));
@@ -134,10 +134,6 @@ TEST test_cmake_parser_oom(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)f;
-  (void)f2;
-  (void)i;
-  (void)rc;
 
   makedirs("test_cmake_dir");
 #if defined(_MSC_VER)

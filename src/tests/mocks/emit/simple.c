@@ -5,14 +5,16 @@
 #include "simple.h"
 /* clang-format on */
 
-cdd_c_error_t Haz_cleanup(struct Haz *const haz) {
+cdd_c_error_t Haz_cleanup(struct Haz *haz) {
   if (!haz)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+  /* wait, if haz is a struct Haz, and its members need freeing? In simple.c it
+   * just frees haz */
   free(haz);
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t Foo_cleanup(struct Foo *const foo) {
+cdd_c_error_t Foo_cleanup(struct Foo *foo) {
   if (foo == NULL)
     return CDD_C_SUCCESS;
   {

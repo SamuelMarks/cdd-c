@@ -25,8 +25,8 @@ extern "C" {
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 
 static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
-  int *count = (int *)user_data;
   (void)node;
+  int *count = (int *)user_data;
   (*count)++;
   return 0;
 }

@@ -381,11 +381,11 @@ TEST test_strategy_edge_cases(void) {
   /* Test range_to_string with start >= end */
   {
     char *out = NULL;
-    (void)out;
     struct AllocationSite site = allocs.sites[1];
     site.var_name = "p";
     site.spec = &REALLOC_SPEC;
     site.token_index = 16;
+    (void)out;
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(
                   tl, &site, 14, &patches)); /* Not self-assign, early return */

@@ -64,7 +64,6 @@ TEST test_cdd_transform_msvc(void) {
         g_cdd_cst_realloc_fail = i;
 #endif
         rc = cdd_transform_msvc(tree_copy, &config);
-        (void)rc;
 #ifdef CDD_BUILD_TESTS
         g_cdd_cst_realloc_fail = 0;
 #endif

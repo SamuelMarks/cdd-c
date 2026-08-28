@@ -338,7 +338,6 @@ TEST test_ffi_ir_extract_exports_oom(void) {
     ir = NULL;
     g_ffi_extractor_alloc_fail = k;
     rc = cdd_ffi_ir_extract_exports("dummy.h", code, &config, &ir);
-    (void)rc;
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
       cdd_ffi_ir_free(ir);
@@ -381,7 +380,6 @@ TEST test_ffi_ir_extract_inheritance_casting(void) {
           if (ir.nodes[k].base_classes[b].is_virtual) {
             is_virtual_cast = 1;
           }
-          (void)is_virtual_cast;
 
 #if defined(_MSC_VER)
           sprintf_s(up_name, sizeof(up_name), "%s_upcast_to_%s",

@@ -48,10 +48,8 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return CDD_C_ERROR_IO
 
 /* --- Union Implementation --- */
 

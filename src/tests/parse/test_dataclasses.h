@@ -1,3 +1,4 @@
+extern int g_cdd_wine_skip;
 
 /**
  * @file test_dataclasses.h
@@ -116,7 +117,6 @@ TEST test_recursive_deepcopy(void) {
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
-  (void)rc;
 
   ASSERT(head && next);
   head->value = 10;
@@ -168,7 +168,6 @@ TEST test_recursive_eq(void) {
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
-  (void)rc;
 
   rc = FooE_default(&foo0);
   ASSERT_EQ(0, rc);
@@ -196,7 +195,6 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL, *h1 = NULL, *h2 = NULL;
   int rc;
-  (void)rc;
 
   rc = HazE_default(&h0);
   ASSERT_EQ(0, rc);
@@ -227,8 +225,6 @@ TEST test_FooE_json_roundtrip(void) {
   struct FooE *foo_in = NULL;
   char *json_out = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -258,8 +254,6 @@ TEST test_HazE_json_roundtrip(void) {
   struct HazE *haz_in = NULL;
   char *json_out = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -286,7 +280,6 @@ TEST test_HazE_json_roundtrip(void) {
 TEST test_json_parsing_errors(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -315,11 +308,8 @@ TEST test_json_parsing_corner_cases(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -348,7 +338,6 @@ TEST test_json_parsing_corner_cases(void) {
 }
 
 TEST test_null_args_and_errors(void) {
-  extern int g_cdd_wine_skip;
   char *str = NULL;
   struct HazE h = {"", Tank_BIG};
   struct FooE f = {"", 1, NULL};
@@ -413,10 +402,10 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
 
   FooE_default(&foo);
   HazE_default(&haz);
+  (void)rc;
 
 #ifndef _WIN32
   {
@@ -439,6 +428,7 @@ TEST test_display_fail(void) {
 
     fclose(fh);
     remove(tmp_fname);
+    (void)rc;
   }
 #else
   /* MSVC aborts on writing to read-only streams. We test this path on Linux for
@@ -491,7 +481,6 @@ TEST test_Tank_to_str_from_str(void) {
   char *str = NULL;
   enum Tank val;
   int rc;
-  (void)rc;
 
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
@@ -549,8 +538,6 @@ TEST test_to_json_with_null_fields(void) {
   struct FooE foo = {NULL, 12, NULL};
   char *json_out = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -598,10 +585,10 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
 
   FooE_default(&foo);
   HazE_default(&haz);
+  (void)rc;
 
 #ifndef _WIN32
   {
@@ -626,6 +613,7 @@ TEST test_debug_fail(void) {
 
     fclose(fh);
     remove(tmp_fname);
+    (void)rc;
   }
 #else
   /* MSVC aborts on writing to read-only streams. */
@@ -642,7 +630,6 @@ TEST test_debug_fail(void) {
 TEST test_json_parsing_wrong_types(void) {
   struct FooE *f = NULL;
   struct HazE *h = NULL;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -683,7 +670,6 @@ TEST test_deepcopy_null_fields(void) {
   struct FooE foo_in = {NULL, 42, NULL};
   struct FooE *foo_out = NULL;
   int rc;
-  (void)rc;
 
   /* Deepcopy HazE with NULL bzr */
   rc = HazE_deepcopy(&haz_in, &haz_out);
@@ -709,8 +695,6 @@ TEST test_deepcopy_null_fields(void) {
 TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -746,8 +730,6 @@ TEST test_json_parsing_missing_fields(void) {
 TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc;
-  (void)rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 

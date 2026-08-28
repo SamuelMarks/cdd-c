@@ -1,4 +1,13 @@
+#include "c_cdd/safe_crt.h"
 #include "cdd_c_error.h"
+#ifndef va_copy
+#if defined(_MSC_VER) || defined(__GNUC__)
+#define va_copy(dest, src) (dest = src)
+#else
+#define va_copy(dest, src) memcpy(&dest, &src, sizeof(va_list))
+#endif
+#endif
+
 /* clang-format off */#include "c_cdd/safe_crt_msvc.h"
 
 #include <c89stringutils_string_extras.h>
@@ -67,7 +76,7 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
       int len;
       va_list ap2;
       va_copy(ap2, ap);
-      len = vsnprintf(NULL, 0, fmt, ap2);
+      len = CDD_VSNPRINTF(NULL, 0, fmt, ap2);
       va_end(ap2);
       if (len < 0) {
         va_end(ap);
@@ -76,13 +85,13 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
       if (*strp == NULL) {
         new_str = malloc(len + 1);
         if (!new_str) { va_end(ap); return -1; }
-        vsnprintf(new_str, len + 1, fmt, ap);
+        CDD_VSNPRINTF(new_str, len + 1, fmt, ap);
       } else {
         size_t old_len = strlen(*strp);
         new_str = malloc(old_len + len + 1);
         if (!new_str) { free(*strp); *strp = NULL; va_end(ap); return -1; }
         memcpy(new_str, *strp, old_len + 1);
-        vsnprintf(new_str + old_len, len + 1, fmt, ap);
+        CDD_VSNPRINTF(new_str + old_len, len + 1, fmt, ap);
         free(*strp);
       }
       *strp = new_str;
@@ -102,7 +111,7 @@ static int test_jasprintf(char **strp, const char *fmt, ...) {
 
 /* clang-format on */
 
-static cdd_c_error_t quote_or_null(const char *const s, char **s1) {
+static cdd_c_error_t quote_or_null(const char *s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
     if (*s1 == NULL)
@@ -124,7 +133,7 @@ static cdd_c_error_t quote_or_null(const char *const s, char **s1) {
   return CDD_C_SUCCESS;
 }
 
-static cdd_c_error_t c_str_eq(const char *const s0, const char *const s1) {
+static cdd_c_error_t c_str_eq(const char *s0, const char *s1) {
   return ((s0 == NULL && s1 == NULL) ||
           (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
              ? 0
@@ -137,7 +146,7 @@ cdd_c_error_t Tank_default(enum Tank *out) {
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t Tank_to_str(const enum Tank tank, char **const str) {
+cdd_c_error_t Tank_to_str(const enum Tank tank, char **str) {
   if (str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (tank) {
@@ -179,7 +188,7 @@ cdd_c_error_t Tank_from_str(const char *str, enum Tank *val) {
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t HazE_cleanup(struct HazE *const haz_e) {
+cdd_c_error_t HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
     return CDD_C_SUCCESS;
 
@@ -206,7 +215,7 @@ cdd_c_error_t HazE_default(struct HazE **haz_e) {
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t HazE_deepcopy(const struct HazE *const haz_e_original,
+cdd_c_error_t HazE_deepcopy(const struct HazE *haz_e_original,
                             struct HazE **haz_e_dest) {
   if (haz_e_dest == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -232,7 +241,7 @@ cdd_c_error_t HazE_deepcopy(const struct HazE *const haz_e_original,
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t HazE_display(const struct HazE *const haz_e, FILE *fh) {
+cdd_c_error_t HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
   if (rc != 0) {
@@ -250,7 +259,7 @@ cdd_c_error_t HazE_display(const struct HazE *const haz_e, FILE *fh) {
   return rc;
 }
 
-cdd_c_error_t HazE_debug(const struct HazE *const haz_e, FILE *fh) {
+cdd_c_error_t HazE_debug(const struct HazE *haz_e, FILE *fh) {
   int rc;
   if (haz_e == NULL) {
     rc = fputs("<null HazE>\n", fh);
@@ -276,8 +285,7 @@ cdd_c_error_t HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-cdd_c_error_t HazE_eq(const struct HazE *const haz_e0,
-                      const struct HazE *const haz_e1) {
+cdd_c_error_t HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
   if (haz_e0 == NULL || haz_e1 == NULL)
     return haz_e0 == haz_e1 ? 0 : 1;
 
@@ -287,7 +295,7 @@ cdd_c_error_t HazE_eq(const struct HazE *const haz_e0,
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
 
-cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
+cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
   int need_comma = 0;
@@ -300,8 +308,10 @@ cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
   }
 
   c89stringutils_jasprintf(json, "{");
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   if (haz_e->bzr) {
     c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
@@ -310,8 +320,10 @@ cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
     c89stringutils_jasprintf(json, "\"bzr\": null");
     need_comma = 1;
   }
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   if (need_comma) {
     c89stringutils_jasprintf(json, ",");
@@ -326,6 +338,7 @@ cdd_c_error_t HazE_to_json(const struct HazE *const haz_e, char **json) {
   }
   c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
   if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
@@ -338,7 +351,7 @@ cleanup:
   return rc;
 }
 
-cdd_c_error_t HazE_from_jsonObject(const JSON_Object *const jsonObject,
+cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
                                    struct HazE **haz_e) {
   const char *bzr_str = NULL;
   const char *tank_str;
@@ -376,7 +389,7 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *const jsonObject,
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t HazE_from_json(const char *const json, struct HazE **haz_e) {
+cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;
@@ -398,7 +411,7 @@ cdd_c_error_t HazE_from_json(const char *const json, struct HazE **haz_e) {
   return rc;
 }
 
-cdd_c_error_t FooE_cleanup(struct FooE *const foo_e) {
+cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
   free((void *)foo_e->bar);
@@ -431,7 +444,7 @@ cdd_c_error_t FooE_default(struct FooE **foo_e) {
   return CDD_C_SUCCESS;
 }
 
-cdd_c_error_t FooE_deepcopy(const struct FooE *const foo_e_original,
+cdd_c_error_t FooE_deepcopy(const struct FooE *foo_e_original,
                             struct FooE **foo_e_dest) {
   struct FooE *new_foo;
   if (foo_e_dest == NULL)
@@ -488,7 +501,7 @@ cdd_c_error_t FooE_display(const struct FooE *foo_e, FILE *fh) {
   return rc;
 }
 
-cdd_c_error_t FooE_debug(const struct FooE *const foo_e, FILE *fh) {
+cdd_c_error_t FooE_debug(const struct FooE *foo_e, FILE *fh) {
   int rc;
   if (foo_e == NULL) {
     rc = fputs("<null FooE>\n", fh);
@@ -520,8 +533,7 @@ cdd_c_error_t FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-cdd_c_error_t FooE_eq(const struct FooE *const foo_e0,
-                      const struct FooE *const foo_e1) {
+cdd_c_error_t FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
   if (foo_e0 == NULL || foo_e1 == NULL)
     return foo_e0 == foo_e1 ? 0 : 1;
 
@@ -532,7 +544,7 @@ cdd_c_error_t FooE_eq(const struct FooE *const foo_e0,
              : 1;
 }
 
-cdd_c_error_t FooE_to_json(const struct FooE *const foo_e, char **const json) {
+cdd_c_error_t FooE_to_json(const struct FooE *foo_e, char **json) {
   char *haz_e_json = NULL;
   int rc = 0;
 
@@ -544,20 +556,26 @@ cdd_c_error_t FooE_to_json(const struct FooE *const foo_e, char **const json) {
   }
 
   c89stringutils_jasprintf(json, "{");
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   if (foo_e->bar) {
     c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
   } else {
     c89stringutils_jasprintf(json, "\"bar\": null,");
   }
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
-  if (*json == NULL)
+  if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
+  }
 
   if (HazE_to_json(foo_e->haz, &haz_e_json) != 0) {
     goto cleanup;
@@ -565,6 +583,7 @@ cdd_c_error_t FooE_to_json(const struct FooE *const foo_e, char **const json) {
 
   c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
   if (*json == NULL) {
+    rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
@@ -577,8 +596,8 @@ cleanup:
   return rc;
 }
 
-cdd_c_error_t FooE_from_jsonObject(const JSON_Object *const jsonObject,
-                                   struct FooE **const foo_e) {
+cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
+                                   struct FooE **foo_e) {
   int rc = 0;
   const char *bar_str = NULL;
   const JSON_Object *haz_obj = NULL;
@@ -618,8 +637,7 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *const jsonObject,
   return rc;
 }
 
-cdd_c_error_t FooE_from_json(const char *const json,
-                             struct FooE **const foo_e) {
+cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;

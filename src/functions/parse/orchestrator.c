@@ -372,7 +372,7 @@ static cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
 /**
  * @brief Executes the orchestrate fix operation.
  */
-cdd_c_error_t orchestrate_fix(const char *source_code, char **const out_code) {
+cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
   size_t _ast_find_token_in_range_3 = 0;
   char *_ast_extract_func_name_4 = NULL;
   char *_ast_join_tokens_str_5 = NULL;

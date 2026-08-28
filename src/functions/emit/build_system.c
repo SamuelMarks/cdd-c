@@ -539,7 +539,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      sprintf(src_dir, "%s/src", output_path);
+      CDD_SNPRINTF(src_dir, strlen(output_path) + 5, "%s/src", output_path);
       rc = makedirs(src_dir);
       if (rc != 0) {
         goto cleanup_src;
@@ -550,7 +550,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      sprintf(src_cmake, "%s/%s", src_dir, filename);
+      CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s", src_dir, filename);
     } else {
       if (c_cdd_strdup("src", &src_dir) != CDD_C_SUCCESS) {
         rc = CDD_C_ERROR_MEMORY;
@@ -566,7 +566,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup_src;
       }
-      sprintf(src_cmake, "%s/%s", src_dir, filename);
+      CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s", src_dir, filename);
     }
 
 #if defined(_MSC_VER)

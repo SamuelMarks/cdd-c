@@ -122,7 +122,6 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     g_cdd_cst_realloc_fail = 0;
 #endif
     rc = cdd_transform_macros(tree, &config);
-    (void)rc;
 #ifdef CDD_BUILD_TESTS
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = 0;
@@ -140,7 +139,6 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     g_cdd_cst_realloc_fail = k;
 #endif
     rc = cdd_transform_macros(tree, &config);
-    (void)rc;
 #ifdef CDD_BUILD_TESTS
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = 0;

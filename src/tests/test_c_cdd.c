@@ -647,11 +647,9 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(strategy_suite);
   reset_mocks();
-  reset_mocks();
   RUN_SUITE(tokenizer_trigraphs_suite);
   reset_mocks();
   RUN_SUITE(refactor_suite);
-  reset_mocks();
   reset_mocks();
   RUN_SUITE(to_docs_json_suite);
   reset_mocks();
@@ -659,11 +657,9 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(cdd_lexer_suite);
   reset_mocks();
-  reset_mocks();
   RUN_SUITE(cdd_cst_scope_suite);
   reset_mocks();
   RUN_SUITE(project_audit_suite);
-  reset_mocks();
   reset_mocks();
   RUN_SUITE(json_from_and_to_suite);
   reset_mocks();
@@ -702,8 +698,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(c_inspector_types_suite);
   reset_mocks();
   RUN_SUITE(doc_parser_suite);
-  reset_mocks();
-  reset_mocks();
   reset_mocks();
   RUN_SUITE(dataclasses_suite);
   reset_mocks();
@@ -801,7 +795,6 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(codegen_url_suite);
   reset_mocks();
-  reset_mocks();
   RUN_SUITE(codegen_validation_suite);
   reset_mocks();
   RUN_SUITE(serve_json_rpc_suite);
@@ -853,17 +846,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(c2openapi_schema_suite);
   reset_mocks();
   RUN_SUITE(transformer_gnu_standardizer_internals_suite);
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
-  reset_mocks();
   reset_mocks();
   reset_mocks();
 

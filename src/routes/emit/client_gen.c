@@ -29,24 +29,18 @@
  * @brief CHECK_IO_CLEANUP macro
  */
 #define CHECK_IO_CLEANUP(x)                                                    \
-  do {                                                                         \
-    if ((x) < 0) {                                                             \
-      rc = 0;                                                                  \
-      {                                                                        \
-        fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);        \
-        goto cleanup;                                                          \
-      }                                                                        \
-    }                                                                          \
-  } while (0)
+  for (; (x) < 0;) {                                                           \
+    rc = 0;                                                                    \
+    fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);            \
+    goto cleanup;                                                              \
+  }
 
 /* Helper macro for I/O checking */
 /** @brief CHECK_IO macro */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return 0;                                                                \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return 0
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
@@ -2044,13 +2038,13 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
-    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    CDD_SNPRINTF(src_dir, 1024, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
     actual_base =
         malloc(strlen(src_dir) +
                strlen(base_name ? base_name : "generated_client") + 2);
     if (actual_base) {
-      sprintf(actual_base, "%s/%s", src_dir,
+      CDD_SNPRINTF(actual_base, strlen(src_dir) + strlen(base_name ? base_name : "generated_client") + 2, "%s/%s", src_dir,
               base_name ? base_name : "generated_client");
     }
     free(src_dir);
@@ -4512,16 +4506,16 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             if (op->parameters[p].in == OA_PARAM_IN_QUERY ||
                 op->parameters[p].in == OA_PARAM_IN_QUERYSTRING) {
               if (first_query) {
-                strncat(formatted_path, "?",
+                CDD_STRNCAT(formatted_path, sizeof(formatted_path), "?",
                         sizeof(formatted_path) - strlen(formatted_path) - 1);
                 first_query = 0;
               } else {
-                strncat(formatted_path, "&",
+                CDD_STRNCAT(formatted_path, sizeof(formatted_path), "&",
                         sizeof(formatted_path) - strlen(formatted_path) - 1);
               }
-              strncat(formatted_path, op->parameters[p].name,
+              CDD_STRNCAT(formatted_path, sizeof(formatted_path), op->parameters[p].name,
                       sizeof(formatted_path) - strlen(formatted_path) - 1);
-              strncat(formatted_path, "=1",
+              CDD_STRNCAT(formatted_path, sizeof(formatted_path), "=1",
                       sizeof(formatted_path) - strlen(formatted_path) - 1);
             }
           }

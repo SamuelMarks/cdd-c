@@ -578,7 +578,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                           const char *start = writes + 13;
                           const char *end = strchr(start, ')');
                           if (end && (end - start) < 63) {
-                            strncpy(len_buf, start, end - start);
+                            strncpy(len_buf, start, (size_t)(end - start));
                             node->fields[node->fields_count].intent =
                                 CDD_FFI_INTENT_OUT;
                             node->fields[node->fields_count].array_length_ref =

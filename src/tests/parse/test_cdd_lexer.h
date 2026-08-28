@@ -301,7 +301,6 @@ TEST test_lexer_branches(void) {
   int rc;
   const char *code;
   const char *code2;
-  (void)rc;
   code = "int\r\nmain() { /* c1 */ /* c2 */ }";
   rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
   cdd_lexer_free_token_list(list);

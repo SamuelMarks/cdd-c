@@ -1685,7 +1685,6 @@ TEST test_sig_header_param_boolean(void) {
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
   char *_ast_gen_sig_0_uniq = NULL;
-  (void)_ast_gen_sig_0_uniq;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1711,6 +1710,7 @@ TEST test_sig_header_param_boolean(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_0_uniq;
       }
       if (io_code)
         free(io_code);
@@ -1748,7 +1748,6 @@ TEST test_sig_header_param_number(void) {
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
   char *_ast_gen_sig_5_uniq = NULL;
-  (void)_ast_gen_sig_5_uniq;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1774,6 +1773,7 @@ TEST test_sig_header_param_number(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_5_uniq;
       }
       if (io_code)
         free(io_code);
@@ -1811,7 +1811,6 @@ TEST test_sig_header_param_integer(void) {
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
   char *_ast_gen_sig_10_uniq = NULL;
-  (void)_ast_gen_sig_10_uniq;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1837,6 +1836,7 @@ TEST test_sig_header_param_integer(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_10_uniq;
       }
       if (io_code)
         free(io_code);
@@ -1874,7 +1874,6 @@ TEST test_sig_header_param_string(void) {
   struct OpenAPI_Operation op = {0};
   char *code = NULL;
   char *_ast_gen_sig_15_uniq = NULL;
-  (void)_ast_gen_sig_15_uniq;
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
@@ -1900,6 +1899,7 @@ TEST test_sig_header_param_string(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_15_uniq;
       }
       if (io_code)
         free(io_code);
@@ -2060,7 +2060,6 @@ TEST test_sig_media_type_branches(void) {
 
 TEST test_sig_response_array_string_ref(void) {
   char *_ast_gen_sig_20_uniq = NULL;
-  (void)_ast_gen_sig_20_uniq;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2082,6 +2081,7 @@ TEST test_sig_response_array_string_ref(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_20_uniq;
       }
       if (io_code)
         free(io_code);
@@ -2113,7 +2113,6 @@ TEST test_sig_response_array_string_ref(void) {
 
 TEST test_sig_response_array_integer_ref(void) {
   char *_ast_gen_sig_25_uniq = NULL;
-  (void)_ast_gen_sig_25_uniq;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2135,6 +2134,7 @@ TEST test_sig_response_array_integer_ref(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_25_uniq;
       }
       if (io_code)
         free(io_code);
@@ -2166,7 +2166,6 @@ TEST test_sig_response_array_integer_ref(void) {
 
 TEST test_sig_response_array_struct_ref(void) {
   char *_ast_gen_sig_30_uniq = NULL;
-  (void)_ast_gen_sig_30_uniq;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -2188,6 +2187,7 @@ TEST test_sig_response_array_struct_ref(void) {
         if (io_code)
           free(io_code);
         break;
+        (void)_ast_gen_sig_30_uniq;
       }
       if (io_code)
         free(io_code);
@@ -2227,7 +2227,6 @@ TEST test_sig_io_errors(void) {
   int i;
   int success_count = 0;
   char *_ast_gen_sig_35_uniq = NULL;
-  (void)_ast_gen_sig_35_uniq;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -2261,6 +2260,7 @@ TEST test_sig_io_errors(void) {
     } else {
       if (code)
         free(code);
+      (void)_ast_gen_sig_35_uniq;
     }
   }
   g_fail_io_after = -1;
@@ -2269,7 +2269,6 @@ TEST test_sig_io_errors(void) {
 
 TEST test_sig_unsupported_prefix(void) {
   char *_ast_gen_sig_36_uniq = NULL;
-  (void)_ast_gen_sig_36_uniq;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -2283,6 +2282,7 @@ TEST test_sig_unsupported_prefix(void) {
   gen_sig(&op, NULL, &code);
   ASSERT(code);
   free(code);
+  (void)_ast_gen_sig_36_uniq;
   PASS();
 }
 

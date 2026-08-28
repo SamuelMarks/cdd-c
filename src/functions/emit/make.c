@@ -23,16 +23,12 @@ static int test_cdd_check_io_helper_make(int rc) {
   return rc;
 }
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if (test_cdd_check_io_helper_make(x) < 0)                                  \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; test_cdd_check_io_helper_make(x) < 0;)                                \
+  return CDD_C_ERROR_IO
 #else
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return CDD_C_ERROR_IO
 #endif
 
 #ifdef CDD_BUILD_TESTS

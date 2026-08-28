@@ -25,9 +25,7 @@ extern "C" {
  */
 TEST test_cdd_cst_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
-  (void)env;
   cdd_cst_symbol_t *sym = NULL;
-  (void)sym;
 
   {
     cdd_cst_scope_env_t *env2 = NULL;
@@ -64,11 +62,9 @@ TEST test_cdd_cst_scope_basic(void) {
       g_cdd_alloc_fail = i;
       {
         cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
-        (void)rc;
-        (void)rc;
-        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
+        (void)rc;
       }
     }
 
@@ -80,10 +76,9 @@ TEST test_cdd_cst_scope_basic(void) {
       {
         cdd_c_error_t rc = cdd_cst_scope_add_symbol(
             env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
-        (void)rc;
-        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
+        (void)rc;
       }
     }
   }
@@ -135,9 +130,7 @@ TEST test_cdd_cst_scope_basic(void) {
  */
 TEST test_cdd_cst_scope_errors(void) {
   cdd_cst_scope_env_t *env = NULL;
-  (void)env;
   cdd_cst_symbol_t *sym = NULL;
-  (void)sym;
 
   {
     cdd_cst_scope_env_t *env2 = NULL;
@@ -199,9 +192,7 @@ TEST test_cdd_cst_scope_errors(void) {
  */
 TEST test_cdd_cst_scope_tag(void) {
   cdd_cst_scope_env_t *env = NULL;
-  (void)env;
   cdd_cst_symbol_t *sym = NULL;
-  (void)sym;
 
   {
     cdd_cst_scope_env_t *env2 = NULL;
@@ -282,14 +273,14 @@ TEST test_cdd_cst_scope_mem(void) {
 
 TEST test_cdd_cst_scope_oom(void) {
   cdd_cst_scope_env_t *env = NULL;
-  (void)env;
   cdd_cst_symbol_t *sym = NULL;
-  (void)sym;
 
   {
     cdd_cst_scope_env_t *env2 = NULL;
     cdd_cst_scope_env_init(&env2);
     env2->current_scope = NULL;
+    (void)sym;
+    (void)env;
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_scope_leave(env2));
@@ -318,11 +309,9 @@ TEST test_cdd_cst_scope_oom(void) {
       g_cdd_alloc_fail = i;
       {
         cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
-        (void)rc;
-        (void)rc;
-        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
+        (void)rc;
       }
     }
 
@@ -334,10 +323,9 @@ TEST test_cdd_cst_scope_oom(void) {
       {
         cdd_c_error_t rc = cdd_cst_scope_add_symbol(
             env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
-        (void)rc;
-        (void)rc;
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
+        (void)rc;
       }
     }
   }
@@ -347,7 +335,6 @@ TEST test_cdd_cst_scope_oom(void) {
 
 TEST test_scope_invalid_tag(void) {
   cdd_cst_scope_env_t *env = NULL;
-  (void)env;
   cdd_cst_symbol_t *found = NULL;
 
   cdd_cst_scope_env_init(&env);

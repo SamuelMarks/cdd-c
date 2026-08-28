@@ -117,7 +117,7 @@ cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 /**
  * @brief Executes the c cdd str after last operation.
  */
-cdd_c_error_t c_cdd_str_after_last(const char *str, const int delimiter,
+cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
                                    const char **out_s) {
   const char *last_occurrence;
   if (str == NULL) {

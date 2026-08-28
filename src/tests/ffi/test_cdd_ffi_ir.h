@@ -209,7 +209,7 @@ TEST test_ffi_ir_toposort_complex(void) {
     ASSERT(idxC < idxB);
     ASSERT(idxB < idxA);
     ASSERT(idxA < idxM);
-    (void)idxD; /* Just to avoid unused warning */
+    /* Just to avoid unused warning */
 
     cdd_ffi_ir_free(&ir);
     PASS();

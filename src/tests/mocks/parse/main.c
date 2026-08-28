@@ -44,10 +44,8 @@ int main(void) {
   struct HazE *haz_e0 = (struct HazE *)malloc(sizeof(*haz_e0));
   struct FooE *foo_e0 = (struct FooE *)malloc(sizeof(*foo_e0));
 
-  (void)foo_e;
   if (!haz_e0 || !foo_e0)
     return CDD_C_ERROR_MEMORY;
-  (void)t;
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)

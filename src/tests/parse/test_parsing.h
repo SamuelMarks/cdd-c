@@ -29,6 +29,7 @@ TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_unions, const size_t expected_comments,
                   const size_t expected_macros,
                   const size_t expected_whitespace) {
+  (void)expected_whitespace;
   struct TokenList *tokens = NULL;
   struct CstNodeList *cst_nodes =
       (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
@@ -78,7 +79,6 @@ TEST parsing_test(const char *const test_name, const az_span source,
   ASSERT_EQm("union count mismatch", expected_unions, u_count);
   ASSERT_EQm("comment count mismatch", expected_comments, cm_count);
   ASSERT_EQm("macro count mismatch", expected_macros, m_count);
-  (void)expected_whitespace;
 
   printf("Test '%s' passed.\n", test_name);
 

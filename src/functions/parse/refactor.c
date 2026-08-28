@@ -102,7 +102,7 @@ cdd_c_error_t refactor_context_add_function(struct RefactorContext *ctx,
  */
 cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
                                           const char *source_code,
-                                          char **const out_code) {
+                                          char **out_code) {
   struct TokenList *tokens = NULL;
   struct AllocationSiteList allocs = {0};
   cdd_c_error_t rc;
@@ -114,7 +114,7 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-    /* 1. Tokenize */
+  /* 1. Tokenize */
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;

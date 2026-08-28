@@ -80,7 +80,7 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
  */
 cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                                        const struct AllocationSite *site,
-                                       const size_t semi_idx,
+                                       size_t semi_idx,
                                        struct PatchList *patches) {
 
   size_t call_idx;

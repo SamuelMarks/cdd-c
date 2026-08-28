@@ -50,7 +50,8 @@ TEST test_json_to_plain(void) {
     long sz;
     char *content = NULL;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -99,7 +100,8 @@ TEST test_json_from_plain(void) {
     long sz;
     char *content = NULL;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -145,7 +147,8 @@ TEST test_json_recursive_obj(void) {
     char *content = NULL;
     long sz;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     struct_fields_init(&sf);
     struct_fields_add(&sf, "child", "object", "ChildType", NULL, NULL);
 
@@ -188,7 +191,8 @@ TEST test_json_array_logic(void) {
     char *content = NULL;
     long sz;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     struct_fields_init(&sf);
     /* Array of strings */
     struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
@@ -233,7 +237,8 @@ TEST test_json_guards(void) {
     char *content = NULL;
     long sz;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -363,7 +368,8 @@ TEST test_struct_array_from_json(void) {
     char *content = NULL;
     long sz;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", NULL));
 
     fseek(tmp, 0, SEEK_END);
@@ -570,7 +576,8 @@ TEST test_standalone_json_func(void) {
     char *content = NULL;
     long sz;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -857,7 +864,8 @@ TEST test_codegen_json_extra(void) {
     struct StructFields sf;
     struct CodegenJsonConfig config;
 
-    ASSERT(tmp);
+    if (!tmp)
+      FAIL();
     struct_fields_init(&sf);
 
     /* Add fields for missing coverage:

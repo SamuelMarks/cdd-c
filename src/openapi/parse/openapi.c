@@ -2058,7 +2058,7 @@ param_type_is_object_like(const struct OpenAPI_Parameter *p) {
  * @brief Executes the validate parameter style operation.
  */
 static cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
-                                              const int has_content) {
+                                              int has_content) {
   enum OpenAPI_Style style;
   if (!p)
     return CDD_C_SUCCESS;
@@ -2376,7 +2376,7 @@ static cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
  * @brief Parses any array from the given input.
  */
 static cdd_c_error_t parse_any_array(const JSON_Array *arr,
-                                     struct OpenAPI_Any **const out,
+                                     struct OpenAPI_Any **out,
                                      size_t *out_count) {
   size_t i, count;
 
@@ -3051,7 +3051,7 @@ static cdd_c_error_t parse_example_object(const JSON_Object *ex_obj,
                                           const char *name,
                                           struct OpenAPI_Example *out,
                                           const struct OpenAPI_Spec *spec,
-                                          const int resolve_refs) {
+                                          int resolve_refs) {
   struct OpenAPI_Example *_ast_find_component_example_5;
   char *_ast_strdup_28 = NULL;
   char *_ast_strdup_29 = NULL;
@@ -3154,7 +3154,7 @@ static cdd_c_error_t parse_examples_object(const JSON_Object *examples,
                                            struct OpenAPI_Example **out,
                                            size_t *out_count,
                                            const struct OpenAPI_Spec *spec,
-                                           const int resolve_refs) {
+                                           int resolve_refs) {
   size_t count, i;
 
   if (!out || !out_count) {
@@ -3199,7 +3199,7 @@ static cdd_c_error_t
 parse_media_examples(const JSON_Object *media_obj, struct OpenAPI_Any *example,
                      int *example_set, struct OpenAPI_Example **examples,
                      size_t *n_examples, const struct OpenAPI_Spec *spec,
-                     const int resolve_refs) {
+                     int resolve_refs) {
   const JSON_Object *examples_obj;
 
   if (!media_obj)
@@ -8811,7 +8811,7 @@ static cdd_c_error_t parse_security_schemes(const JSON_Object *components,
 static cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
                                          struct OpenAPI_Header *out_hdr,
                                          const struct OpenAPI_Spec *spec,
-                                         const int resolve_refs) {
+                                         int resolve_refs) {
   struct OpenAPI_Header *_ast_find_component_header_53;
   enum OpenAPI_Style _ast_parse_param_style_54;
   struct OpenAPI_MediaType *_ast_find_component_media_type_55;
@@ -8919,7 +8919,7 @@ static cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   content = json_object_get_object(hdr_obj, "content");
   {
     const int has_schema = (schema_val != NULL);
-    const int has_content = (content != NULL);
+    int has_content = (content != NULL);
     if (has_schema && has_content)
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -9150,7 +9150,7 @@ parse_link_parameters(const JSON_Object *params_obj,
 static cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
                                        struct OpenAPI_Link *out_link,
                                        const struct OpenAPI_Spec *spec,
-                                       const int resolve_refs) {
+                                       int resolve_refs) {
   struct OpenAPI_Link *_ast_find_component_link_56;
   char *_ast_strdup_223 = NULL;
   char *_ast_strdup_224 = NULL;
@@ -9286,7 +9286,7 @@ static cdd_c_error_t parse_links_object(const JSON_Object *links,
                                         struct OpenAPI_Link **out_links,
                                         size_t *out_count,
                                         const struct OpenAPI_Spec *spec,
-                                        const int resolve_refs) {
+                                        int resolve_refs) {
   char *_ast_strdup_230 = NULL;
   size_t i, count;
   if (!out_links || !out_count)
@@ -9338,8 +9338,8 @@ static cdd_c_error_t parse_headers_object(const JSON_Object *headers,
                                           struct OpenAPI_Header **out_headers,
                                           size_t *out_count,
                                           const struct OpenAPI_Spec *spec,
-                                          const int resolve_refs,
-                                          const int ignore_content_type) {
+                                          int resolve_refs,
+                                          int ignore_content_type) {
   char *_ast_strdup_231 = NULL;
   size_t i, count, valid = 0;
   if (!out_headers || !out_count)
@@ -9406,7 +9406,7 @@ static cdd_c_error_t parse_headers_object(const JSON_Object *headers,
 static cdd_c_error_t parse_encoding_object(const JSON_Object *enc_obj,
                                            struct OpenAPI_Encoding *out,
                                            const struct OpenAPI_Spec *spec,
-                                           const int resolve_refs) {
+                                           int resolve_refs) {
   enum OpenAPI_Style _ast_parse_param_style_57;
   char *_ast_strdup_232 = NULL;
   const char *content_type;
@@ -9519,7 +9519,7 @@ static cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
                                         struct OpenAPI_Encoding **out,
                                         size_t *out_count,
                                         const struct OpenAPI_Spec *spec,
-                                        const int resolve_refs) {
+                                        int resolve_refs) {
   char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
@@ -9575,7 +9575,7 @@ static cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
                                           struct OpenAPI_Encoding **out,
                                           size_t *out_count,
                                           const struct OpenAPI_Spec *spec,
-                                          const int resolve_refs) {
+                                          int resolve_refs) {
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return CDD_C_SUCCESS;
@@ -9624,7 +9624,7 @@ static cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
 static cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
                                             struct OpenAPI_Parameter *out_param,
                                             const struct OpenAPI_Spec *spec,
-                                            const int resolve_refs) {
+                                            int resolve_refs) {
   struct OpenAPI_Parameter *_ast_find_component_parameter_58;
   enum OpenAPI_ParamIn _ast_parse_param_in_59;
   struct OpenAPI_MediaType *_ast_find_component_media_type_60;
@@ -9752,7 +9752,7 @@ static cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
 
   {
     const int has_schema = (schema_val != NULL);
-    const int has_content = (content != NULL);
+    int has_content = (content != NULL);
     if (has_schema && has_content)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     if (out_param->in == OA_PARAM_IN_QUERYSTRING && !has_content)
@@ -10014,7 +10014,7 @@ static cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
 static cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
                                              struct OpenAPI_MediaType *out,
                                              const struct OpenAPI_Spec *spec,
-                                             const int resolve_refs) {
+                                             int resolve_refs) {
   struct OpenAPI_MediaType *_ast_find_component_media_type_63;
   char *_ast_strdup_241 = NULL;
   const JSON_Value *schema_val;
@@ -10391,7 +10391,7 @@ static cdd_c_error_t parse_content_object(const JSON_Object *content,
                                           struct OpenAPI_MediaType **out,
                                           size_t *out_count,
                                           const struct OpenAPI_Spec *spec,
-                                          const int resolve_refs) {
+                                          int resolve_refs) {
   char *_ast_strdup_242 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
@@ -10520,11 +10520,9 @@ parse_parameters_array(const JSON_Array *arr,
 /**
  * @brief Parses request body object from the given input.
  */
-static cdd_c_error_t
-parse_request_body_object(const JSON_Object *rb_obj,
-                          struct OpenAPI_RequestBody *out_rb,
-                          const struct OpenAPI_Spec *spec,
-                          const int resolve_refs, const char *op_id) {
+static cdd_c_error_t parse_request_body_object(
+    const JSON_Object *rb_obj, struct OpenAPI_RequestBody *out_rb,
+    const struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id) {
   struct OpenAPI_RequestBody *_ast_find_component_request_body_68;
   JSON_Object *_ast_find_media_object_by_name_69;
   char *_ast_build_inline_request_name_70 = NULL;
@@ -10872,8 +10870,7 @@ copy_request_body_fields(struct OpenAPI_RequestBody *dst,
 static cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
                                            struct OpenAPI_Response *out_resp,
                                            const struct OpenAPI_Spec *spec,
-                                           const int resolve_refs,
-                                           const char *op_id,
+                                           int resolve_refs, const char *op_id,
                                            const char *resp_code) {
   struct OpenAPI_Response *_ast_find_component_response_73;
   JSON_Object *_ast_find_media_object_by_name_74;
@@ -11238,7 +11235,7 @@ static cdd_c_error_t parse_responses(const JSON_Object *responses,
 static cdd_c_error_t parse_callback_object(const JSON_Object *cb_obj,
                                            struct OpenAPI_Callback *out_cb,
                                            const struct OpenAPI_Spec *spec,
-                                           const int resolve_refs) {
+                                           int resolve_refs) {
   struct OpenAPI_Callback *_ast_find_component_callback_78;
   char *_ast_strdup_258 = NULL;
   char *_ast_strdup_259 = NULL;
@@ -11301,11 +11298,9 @@ static cdd_c_error_t parse_callback_object(const JSON_Object *cb_obj,
 /**
  * @brief Parses callbacks object from the given input.
  */
-static cdd_c_error_t
-parse_callbacks_object(const JSON_Object *callbacks,
-                       struct OpenAPI_Callback **out_callbacks,
-                       size_t *out_count, const struct OpenAPI_Spec *spec,
-                       const int resolve_refs) {
+static cdd_c_error_t parse_callbacks_object(
+    const JSON_Object *callbacks, struct OpenAPI_Callback **out_callbacks,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs) {
   char *_ast_strdup_261 = NULL;
   size_t i, count;
   if (!out_callbacks || !out_count)
@@ -11357,7 +11352,7 @@ static cdd_c_error_t parse_operation(const char *verb_str,
                                      const JSON_Object *op_obj,
                                      struct OpenAPI_Operation *out_op,
                                      const struct OpenAPI_Spec *spec,
-                                     const int is_additional,
+                                     int is_additional,
                                      const char *route_hint) {
   enum OpenAPI_Verb _ast_parse_verb_79;
   char *_ast_strdup_262 = NULL;

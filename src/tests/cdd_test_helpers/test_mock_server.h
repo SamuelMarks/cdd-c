@@ -66,13 +66,15 @@ static int http_get(int port) {
 #if defined(_WIN32)
   SOCKET sock;
   WSADATA wsa;
-  WSAStartup(MAKEWORD(2, 2), &wsa);
 #else
   int sock;
 #endif
   struct sockaddr_in server_addr;
   const char *msg = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
   char buf[1024];
+#if defined(_WIN32)
+  WSAStartup(MAKEWORD(2, 2), &wsa);
+#endif
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
   server_addr.sin_family = AF_INET;

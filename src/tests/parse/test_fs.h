@@ -77,9 +77,9 @@ TEST test_read_to_file_error(void) {
 }
 
 static cdd_c_error_t mock_walk_cb(const char *path, void *user_data) {
+  (void)path;
   int *count = (int *)user_data;
   (*count)++;
-  (void)path;
   return CDD_C_SUCCESS;
 }
 

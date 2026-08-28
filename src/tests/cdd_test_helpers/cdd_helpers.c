@@ -78,8 +78,7 @@ void cdd_precondition_failed(void) {
  * @param[in] contents The contents to write.
  * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-cdd_c_error_t write_to_file(const char *const filename,
-                            const char *const contents) {
+cdd_c_error_t write_to_file(const char *filename, const char *contents) {
   FILE *fh;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 

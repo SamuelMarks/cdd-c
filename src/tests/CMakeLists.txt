@@ -18,6 +18,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
 endif ()
 
 file(COPY "${greatest_SOURCE_DIR}/greatest.h" DESTINATION "${DOWNLOAD_DIR}")
+
+# Patch greatest.h to prevent C4702 unreachable code warnings from do { return; } while(cond)
+file(READ "${DOWNLOAD_DIR}/greatest.h" GREATEST_CONTENT)
+string(REPLACE "} while (greatest_info.fail_line == 0)" "} while (0)" GREATEST_CONTENT "${GREATEST_CONTENT}")
+file(WRITE "${DOWNLOAD_DIR}/greatest.h" "${GREATEST_CONTENT}")
 ################
 # Test library #
 ################
@@ -173,12 +178,8 @@ add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(test_c_cdd PRIVATE -w)
-        if(TARGET cdd_test_helpers)
-            target_compile_options(cdd_test_helpers PRIVATE -w)
-        endif()
-        if(TARGET simple_mocks)
-            target_compile_options(simple_mocks PRIVATE -w)
-        endif()
+        # Ensure tests use the same strict compiler flags
+    elseif(MSVC)
+        # Ensure tests use the same strict compiler flags
     endif()
 endif()

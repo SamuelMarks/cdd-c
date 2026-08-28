@@ -205,8 +205,6 @@ TEST test_inspector_oom(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
 
@@ -239,8 +237,6 @@ TEST test_inspector_extract_sig_oom(void) {
 #endif
   int i;
   /*  (moved to global) */
-
-  (void)rc;
 
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
@@ -343,8 +339,6 @@ TEST test_inspector_extract_sig_oom_2(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -372,8 +366,6 @@ TEST test_inspector_extract_sig_oom_3(void) {
 #endif
   int i;
   /*  (moved to global) */
-
-  (void)rc;
 
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
@@ -416,8 +408,6 @@ TEST test_inspector_extract_sig_oom_4(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -447,8 +437,6 @@ TEST test_inspector_struct_fields_oom_2(void) {
 #endif
   int i;
   /*  (moved to global) */
-
-  (void)rc;
 
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
@@ -483,8 +471,6 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
 
@@ -518,8 +504,6 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   rc = write_to_file(filename, content);
   ASSERT_EQ(0, rc);
 
@@ -551,8 +535,6 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
   int i;
   /*  (moved to global) */
 
-  (void)rc;
-
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -577,8 +559,6 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
 #endif
   int i;
   /*  (moved to global) */
-
-  (void)rc;
 
   for (i = 40; i < 80; ++i) {
     g_cdd_alloc_fail = i;

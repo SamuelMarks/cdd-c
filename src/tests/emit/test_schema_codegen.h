@@ -832,7 +832,10 @@ TEST test_schema_codegen_main_paths(void) {
 
   /* call once with unknown flag to cover else branch fallthrough */
   {
-    const char *argv_unk[3] = {filename, "main_out", "--unknown-flag"};
+    const char *argv_unk[3];
+    argv_unk[0] = filename;
+    argv_unk[1] = "main_out";
+    argv_unk[2] = "--unknown-flag";
     rc = schema2code_main(3, (char **)argv_unk);
     ASSERT_EQ(0, rc);
   }

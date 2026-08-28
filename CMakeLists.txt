@@ -96,12 +96,6 @@ if(MSVC AND MSVC_VERSION LESS 1800)
     link_directories("C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib")
 endif()
 
-if(MSVC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 19.0)
-    add_compile_definitions(snprintf=_snprintf vsnprintf=_vsnprintf strdup=_strdup)
-endif()
-
-
-
 if(MSVC AND MSVC_VERSION LESS 1800)
     # add_compile_definitions for stdbool removed in favor of include/msvc/stdbool.h
 endif()
@@ -160,6 +154,10 @@ if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
 endif()
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
+
+if(MSVC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 19.0)
+    # snprintf, vsnprintf, and strdup are handled via safe_crt_msvc.h now
+endif()
 
 if(MSVC)
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy )
@@ -349,6 +347,9 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
         if(NOT c89stringutils_RESOLVED)
         FetchDependencyLocalOrArchive(c89stringutils "c89stringutils" "offscale/c89stringutils")
         include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
+        if(TARGET c89stringutils AND MSVC)
+            target_compile_options(c89stringutils PRIVATE /wd4996)
+        endif()
         endif()
     endif()
 

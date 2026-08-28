@@ -29,13 +29,19 @@
 
 /* --- Generators (InMemory) --- */
 
+static FILE *cdd_tmpfile(void) {
 #if defined(__wasm__) || defined(__wasm32__)
-/** @brief CDD_TMPFILE */
-#define CDD_TMPFILE() NULL
+  return NULL;
+#elif defined(_MSC_VER)
+  FILE *f = NULL;
+  if (tmpfile_s(&f) != 0)
+    return NULL;
+  return f;
 #else
-/** @brief CDD_TMPFILE */
-#define CDD_TMPFILE() tmpfile()
+  return tmpfile();
 #endif
+}
+#define CDD_TMPFILE() cdd_tmpfile()
 
 /**
  * @brief Generate signature string.

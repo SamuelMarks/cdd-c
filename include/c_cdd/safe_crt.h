@@ -18,6 +18,8 @@ extern "C" {
 #if defined(_MSC_VER)
 /** @brief Safe sprintf mapping for MSVC */
 #define CDD_SNPRINTF sprintf_s
+#define CDD_STRCAT strcat_s
+#define CDD_STRNCAT strncat_s
 /** @brief Safe vsnprintf mapping for MSVC */
 #define CDD_VSNPRINTF(buffer, sizeOfBuffer, format, argptr)                    \
   vsnprintf_s(buffer, sizeOfBuffer, _TRUNCATE, format, argptr)
@@ -29,6 +31,10 @@ extern "C" {
 #else
 /** @brief Safe sprintf mapping for POSIX/C99 */
 #define CDD_SNPRINTF snprintf
+#define CDD_STRCAT(dest, sz, src) strcat(dest, src)
+#define CDD_STRNCPY(dest, sz, src, n) strncpy(dest, src, n)
+#define CDD_STRCPY(dest, sz, src) strcpy(dest, src)
+#define CDD_STRNCAT(dest, sz, src, n) strncat(dest, src, n)
 /** @brief Safe vsnprintf mapping for POSIX/C99 */
 #define CDD_VSNPRINTF(buffer, sizeOfBuffer, format, argptr)                    \
   vsnprintf(buffer, sizeOfBuffer, format, argptr)

@@ -391,7 +391,6 @@ TEST test_patcher_oom(void) {
 
               g_cdd_alloc_fail = my_alloc;
               rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
-              (void)rc;
               g_cdd_alloc_fail = 0;
               if (out_oom) {
                 free(out_oom);
@@ -1039,7 +1038,6 @@ TEST test_patcher_oom(void) {
                 g_cdd_alloc_fail = my_alloc;
 
                 rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
-                (void)rc;
                 g_cdd_alloc_fail = 0;
                 if (out_oom) {
                   free(out_oom);

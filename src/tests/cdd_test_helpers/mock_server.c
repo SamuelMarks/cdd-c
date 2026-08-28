@@ -78,8 +78,8 @@ static int cond_wait(cond_t *c, mutex_t *m) {
 static void close_socket(socket_t s) { closesocket(s); }
 
 static int platform_init(void) {
-  if (g_accept_fail == 998) return -1;
   WSADATA wsa;
+  if (g_accept_fail == 998) return -1;
   return WSAStartup(MAKEWORD(2, 2), &wsa);
 }
 static cdd_c_error_t platform_cleanup(void) {

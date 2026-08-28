@@ -280,7 +280,6 @@ TEST test_write_forward_decl_bounds(void) {
 TEST test_write_forward_decl_io_fail(void) {
   FILE *tmp = TMPFILE();
   int rc;
-  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   ASSERT(tmp);
@@ -288,6 +287,7 @@ TEST test_write_forward_decl_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
+  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_IO, write_forward_decl(tmp, "X"));
   fclose(tmp);
   g_fail_io_after = -1;
@@ -299,7 +299,6 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
-  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -344,7 +343,6 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
-  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -404,7 +402,6 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
-  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));

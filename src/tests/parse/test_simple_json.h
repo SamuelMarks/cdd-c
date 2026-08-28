@@ -102,7 +102,6 @@ TEST test_foo_e_full_coverage(void) {
 
   printf("DEBUG: test_foo_e_full_coverage started!\n");
   fflush(stdout);
-
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_default(NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_default(NULL));
 

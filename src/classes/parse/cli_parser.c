@@ -167,9 +167,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                          tokens->tokens[prev_idx].kind == TOKEN_WHITESPACE) {
                     prev_idx--;
                   }
-                  printf("DEBUG: j=%zu, prev_idx=%zu, kind=%d, len=%zu\n", j,
-                         prev_idx, tokens->tokens[prev_idx].kind,
-                         tokens->tokens[prev_idx].length);
+                  /* printf */
                   if (tokens->tokens[prev_idx].kind == TOKEN_IDENTIFIER) {
                     cdd_strndup2((const char *)tokens->tokens[prev_idx].start,
                                  tokens->tokens[prev_idx].length,

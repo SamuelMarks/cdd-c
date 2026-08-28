@@ -1,3 +1,4 @@
+extern int g_cdd_wine_skip;
 
 /**
  * @file test_json_from_and_to.h
@@ -27,7 +28,6 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;
   enum Tank tank_val;
   int rc;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 
@@ -62,7 +62,6 @@ TEST test_HazE_to_json_and_from_json(void) {
   haz.tank = Tank_BIG;
   json_str = NULL;
   haz_out = NULL;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 
@@ -98,7 +97,6 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   foo.haz = NULL;
   json_str = NULL;
   foo_out = NULL;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 
@@ -137,7 +135,6 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   foo_in.haz = NULL;
   json_str = NULL;
   foo_out = NULL;
-  extern int g_cdd_wine_skip;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 

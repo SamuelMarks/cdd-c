@@ -78,39 +78,37 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return CDD_C_ERROR_IO
 /** @brief CHECK_RC definition */
 #define CHECK_RC(x)                                                            \
-  do {                                                                         \
+  for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \
     if (err != 0)                                                              \
       return err;                                                              \
-  } while (0)
+    break;                                                                     \
+  }
 
 #define F_CHECK_IO(x)                                                          \
-  do {                                                                         \
-    if ((x) < 0) {                                                             \
-      fclose(fp);                                                              \
-      return CDD_C_ERROR_IO;                                                   \
-    }                                                                          \
-  } while (0)
+  for (; (x) < 0;) {                                                           \
+    fclose(fp);                                                                \
+    return CDD_C_ERROR_IO;                                                     \
+  }
 
 #ifndef CDD_BUILD_TESTS
 #define F_CHECK_RC_TESTABLE(x)                                                 \
-  do {                                                                         \
+  for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \
     if (err != 0) {                                                            \
       fclose(fp);                                                              \
       return err;                                                              \
     }                                                                          \
-  } while (0)
+    break;                                                                     \
+  }
 #else
 C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
 #define F_CHECK_RC_TESTABLE(x)                                                 \
-  do {                                                                         \
+  for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \
     if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
       err = CDD_C_ERROR_MEMORY;                                                \
@@ -118,7 +116,8 @@ C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
       fclose(fp);                                                              \
       return err;                                                              \
     }                                                                          \
-  } while (0)
+    break;                                                                     \
+  }
 #endif
 
 /* Write Header Guard Start */

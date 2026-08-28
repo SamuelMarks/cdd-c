@@ -136,8 +136,15 @@ static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
       break; /* Reached suffix or end */
     }
     low_part = low * 10;
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlong-long"
+#endif
     high_part = high * 10 + (low_part < low ? 1 : 0) +
-                (low / 1844674407370955161UL); /* Roughly */
+                (low / 1844674407370955161ULL); /* Roughly */
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     /* Accurate 128-bit multiply by 10 */
     {
       uint64_t al = low & 0xFFFFFFFF;
@@ -511,7 +518,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                       char *out_p = out_buf;
                       char *in_p = buf;
 
-                      memcpy(out_p, in_p, start_id - in_p);
+                      memcpy(out_p, in_p, (size_t)(start_id - in_p));
                       out_p += (start_id - in_p);
                       in_p = start_id;
 
@@ -525,7 +532,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                         in_p = ellipsis + 3;
                       }
 
-                      memcpy(out_p, in_p, (rparen + 1) - in_p);
+                      memcpy(out_p, in_p, (size_t)((rparen + 1) - in_p));
                       out_p += (rparen + 1) - in_p;
                       in_p = rparen + 1;
 
@@ -542,7 +549,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                             if (strncmp(t, var_name, var_len) == 0 &&
                                 !isalnum((unsigned char)t[var_len]) &&
                                 t[var_len] != '_') {
-                              strcpy(out_p, " __VA_OPT__(,) __VA_ARGS__");
+                              CDD_STRCPY(out_p, (size_t)((buf + 8192) - out_p), " __VA_OPT__(,) __VA_ARGS__");
                               out_p += strlen(" __VA_OPT__(,) __VA_ARGS__");
                               in_p = t + var_len;
                               matched = 1;
@@ -555,7 +562,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                             (in_p == buf ||
                              (!isalnum((unsigned char)in_p[-1]) &&
                               in_p[-1] != '_'))) {
-                          strcpy(out_p, "__VA_ARGS__");
+                          CDD_STRCPY(out_p, (size_t)((buf + 8192) - out_p), "__VA_ARGS__");
                           out_p += strlen("__VA_ARGS__");
                           in_p += var_len;
                           matched = 1;
@@ -985,8 +992,8 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                 char *rb = strchr(buf, ']');
                 if (lb && rb) {
                   int m, ac = 0;
-                  strncpy(base, buf, lb - buf);
-                  strncpy(arr, lb, rb - lb + 1);
+                  strncpy(base, buf, (size_t)(lb - buf));
+                  strncpy(arr, lb, (size_t)(rb - lb + 1));
                   for (m = 0; arr[m]; m++) {
                     if (arr[m] != ' ') {
                       arr_clean[ac++] = arr[m];
@@ -2525,7 +2532,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
 
               for (c_idx = num_cleanups; c_idx > 0; c_idx--) {
-                p += sprintf(p, "%.*s(&%.*s); ",
+                p += CDD_SNPRINTF(p, (size_t)((buf + 8192) - p), "%.*s(&%.*s); ",
                              (int)cleanups[c_idx - 1].func_length,
                              cleanups[c_idx - 1].func_name,
                              (int)cleanups[c_idx - 1].var_length,
@@ -2533,7 +2540,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
               if (config && config->fallback_vla_to_malloc) {
                 for (v_idx = num_vlas; v_idx > 0; v_idx--) {
-                  p += sprintf(p, "free(%.*s); ", (int)vlas[v_idx - 1].length,
+                  p += CDD_SNPRINTF(p, (size_t)((buf + 8192) - p), "free(%.*s); ", (int)vlas[v_idx - 1].length,
                                vlas[v_idx - 1].name);
                 }
               }

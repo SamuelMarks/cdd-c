@@ -382,7 +382,6 @@ TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
       else
         g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
-      (void)rc;
       g_cdd_cst_realloc_fail = 0;
       g_extern_c_bot_node_fail = 0;
       g_extern_c_top_node_fail = 0;
@@ -422,7 +421,6 @@ TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
       else
         g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
-      (void)rc;
       g_cdd_cst_realloc_fail = 0;
       g_extern_c_bot_node_fail = 0;
 
@@ -460,7 +458,6 @@ TEST test_cdd_transform_extern_c_empty_target_parent(void) {
 
       g_cdd_cst_realloc_fail = i;
       rc = cdd_transform_extern_c(tree, &config);
-      (void)rc;
       g_cdd_cst_realloc_fail = 0;
 
       cdd_cst_tree_free(tree);

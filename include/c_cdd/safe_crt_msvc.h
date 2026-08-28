@@ -13,6 +13,7 @@ extern "C" {
 /* clang-format off */
 #include <stdio.h>
 #include <string.h>
+#include "c_cdd/safe_crt.h"
 #include <stdlib.h>
 /* clang-format on */
 
@@ -53,30 +54,9 @@ static __inline FILE *cdd_fopen(const char *path, const char *mode) {
 }
 #define fopen cdd_fopen
 
-/** @brief Macro to replace sprintf with sprintf_s */
-#define sprintf(dest, ...)                                                     \
-  sprintf_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),    \
-            __VA_ARGS__)
-/** @brief Macro to replace strcpy with strcpy_s */
-#define strcpy(dest, src)                                                      \
-  strcpy_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),     \
-           (src))
-/** @brief Macro to replace strncpy with strncpy_s */
-#define strncpy(dest, src, count)                                              \
-  strncpy_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),    \
-            (src), (count))
-/** @brief Macro to replace strcat with strcat_s */
-#define strcat(dest, src)                                                      \
-  strcat_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),     \
-           (src))
-/** @brief Macro to replace strncat with strncat_s */
-#define strncat(dest, src, count)                                              \
-  strncat_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),    \
-            (src), (count))
-/** @brief Macro to replace vsprintf with vsprintf_s */
-#define vsprintf(dest, fmt, args)                                              \
-  vsprintf_s((dest), (sizeof(dest) == sizeof(void *) ? 1024 : sizeof(dest)),   \
-             (fmt), (args))
+#if _MSC_VER < 1900
+#else
+#endif
 
 #endif
 

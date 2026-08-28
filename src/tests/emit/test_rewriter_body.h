@@ -87,18 +87,14 @@ TEST test_propagate_void_stmt(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -111,18 +107,14 @@ TEST test_propagate_void_stmt(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -137,18 +129,14 @@ TEST test_propagate_void_stmt(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -160,18 +148,14 @@ TEST test_propagate_void_stmt(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -215,18 +199,14 @@ TEST test_propagate_ptr_assignment2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -239,18 +219,14 @@ TEST test_propagate_ptr_assignment2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -265,18 +241,14 @@ TEST test_propagate_ptr_assignment2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -288,18 +260,14 @@ TEST test_propagate_ptr_assignment2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -335,18 +303,14 @@ TEST test_propagate_ptr_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -359,18 +323,14 @@ TEST test_propagate_ptr_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -385,18 +345,14 @@ TEST test_propagate_ptr_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -408,18 +364,14 @@ TEST test_propagate_ptr_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -461,18 +413,14 @@ TEST test_propagate_ptr_declaration(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -485,18 +433,14 @@ TEST test_propagate_ptr_declaration(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -511,18 +455,14 @@ TEST test_propagate_ptr_declaration(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -534,18 +474,14 @@ TEST test_propagate_ptr_declaration(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -587,18 +523,14 @@ TEST test_propagate_nested_hoisting(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -611,18 +543,14 @@ TEST test_propagate_nested_hoisting(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -637,18 +565,14 @@ TEST test_propagate_nested_hoisting(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -660,18 +584,14 @@ TEST test_propagate_nested_hoisting(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -716,18 +636,14 @@ TEST test_integration_safety_and_prop(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -740,18 +656,14 @@ TEST test_integration_safety_and_prop(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -766,18 +678,14 @@ TEST test_integration_safety_and_prop(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -789,18 +697,14 @@ TEST test_integration_safety_and_prop(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -843,18 +747,14 @@ TEST test_realloc_safety_injection(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -867,18 +767,14 @@ TEST test_realloc_safety_injection(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -893,18 +789,14 @@ TEST test_realloc_safety_injection(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -916,18 +808,14 @@ TEST test_realloc_safety_injection(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -957,18 +845,14 @@ TEST test_rewriter_body_bounds(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -981,18 +865,14 @@ TEST test_rewriter_body_bounds(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1007,18 +887,14 @@ TEST test_rewriter_body_bounds(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1030,18 +906,14 @@ TEST test_rewriter_body_bounds(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1102,18 +974,14 @@ TEST test_rewriter_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1126,18 +994,14 @@ TEST test_rewriter_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1152,18 +1016,14 @@ TEST test_rewriter_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1175,18 +1035,14 @@ TEST test_rewriter_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1217,18 +1073,14 @@ TEST test_rewriter_body_bounds2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1241,18 +1093,14 @@ TEST test_rewriter_body_bounds2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1267,18 +1115,14 @@ TEST test_rewriter_body_bounds2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1290,18 +1134,14 @@ TEST test_rewriter_body_bounds2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1336,18 +1176,14 @@ TEST test_propagate_void_stmt_return(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1360,18 +1196,14 @@ TEST test_propagate_void_stmt_return(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1386,18 +1218,14 @@ TEST test_propagate_void_stmt_return(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1409,18 +1237,14 @@ TEST test_propagate_void_stmt_return(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1455,18 +1279,14 @@ TEST test_propagate_void_stmt_transform(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1479,18 +1299,14 @@ TEST test_propagate_void_stmt_transform(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1505,18 +1321,14 @@ TEST test_propagate_void_stmt_transform(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1528,18 +1340,14 @@ TEST test_propagate_void_stmt_transform(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1577,18 +1385,14 @@ TEST test_propagate_nested_parens(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1601,18 +1405,14 @@ TEST test_propagate_nested_parens(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1627,18 +1427,14 @@ TEST test_propagate_nested_parens(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1650,18 +1446,14 @@ TEST test_propagate_nested_parens(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1685,11 +1477,9 @@ TEST test_rewrite_body_oom(void) {
     find_allocations(tl, &sites);
 
     g_cdd_alloc_fail = i;
-    g_patcher_test_cap_1 = 1;
     {
       int rc2 = rewrite_body(tl, &sites, NULL, 0, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
 
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
@@ -1715,18 +1505,14 @@ TEST test_rewrite_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1739,18 +1525,14 @@ TEST test_rewrite_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1765,18 +1547,14 @@ TEST test_rewrite_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1788,18 +1566,14 @@ TEST test_rewrite_body_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1824,11 +1598,9 @@ TEST test_rewrite_body_funcs_oom(void) {
 
     /*  (moved to global) */
     g_cdd_alloc_fail = i;
-    g_patcher_test_cap_1 = 1;
     {
       int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
 
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
@@ -1854,18 +1626,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -1878,18 +1646,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -1904,18 +1668,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -1927,18 +1687,14 @@ TEST test_rewrite_body_funcs_oom(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -1964,11 +1720,9 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
 
     /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
     g_cdd_strdup_fail = i;
-    g_patcher_test_cap_1 = 1;
     {
       int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
 
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
@@ -1994,18 +1748,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -2018,18 +1768,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2044,18 +1790,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -2067,18 +1809,14 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -2101,11 +1839,9 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
 
     /*  (moved to global) */
     g_cdd_alloc_fail = i;
-    g_patcher_test_cap_1 = 1;
     {
       int rc2 = rewrite_body(tl, &sites, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
 
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
@@ -2130,18 +1866,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -2154,18 +1886,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2180,18 +1908,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -2203,18 +1927,14 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -2239,11 +1959,9 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
 
     /*  (moved to global) */
     g_cdd_alloc_fail = i;
-    g_patcher_test_cap_1 = 1;
     {
       int rc2 = rewrite_body(tl, &sites, funcs2, 2, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
 
       if (rc2 == CDD_C_ERROR_MEMORY) {
         /* Good, failed as expected */
@@ -2268,18 +1986,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -2292,18 +2006,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2318,18 +2028,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -2341,18 +2047,14 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -2383,18 +2085,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{"
@@ -2418,18 +2116,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2451,18 +2145,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{"
@@ -2481,18 +2171,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2515,18 +2201,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] =
@@ -2546,18 +2228,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2586,19 +2264,15 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{"
@@ -2624,19 +2298,15 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2656,18 +2326,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{"
@@ -2684,18 +2350,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2716,18 +2378,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{"
@@ -2745,18 +2403,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2772,18 +2426,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x)";
@@ -2796,18 +2446,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2825,19 +2471,15 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "void *p = malloc(1); return p;";
@@ -2852,19 +2494,15 @@ TEST test_rewrite_body_corner_cases(void) {
       tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, &sites, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2880,18 +2518,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ my_func(x) {";
@@ -2904,18 +2538,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
   {
@@ -2930,18 +2560,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
     for (i = 1; i < 500; i++) {
       const char code[] = "{ return 1 } w";
@@ -2953,18 +2579,14 @@ TEST test_rewrite_body_corner_cases(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
       g_cdd_alloc_fail = 0;
-      g_patcher_test_cap_1 = 0;
       g_cdd_strdup_fail = 0;
-      g_patcher_test_cap_1 = 0;
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        i = 999;
+        break;
     }
   }
 
@@ -2991,12 +2613,10 @@ TEST test_rewrite_body_corner_oom_2(void) {
       /*  (moved to global) */
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_alloc_fail = i;
-      g_patcher_test_cap_1 = 1;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,
                                c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
         g_cdd_alloc_fail = 0;
-        g_patcher_test_cap_1 = 0;
         free_token_list(tl);
         if (out_code)
           C_CDD_FREE(out_code);
@@ -3015,12 +2635,10 @@ TEST test_rewrite_body_corner_oom_2(void) {
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
       tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_strdup_fail = i;
-      g_patcher_test_cap_1 = 1;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,
                                c == 4 ? &t1 : (c == 2 ? &t2 : NULL), &out_code);
         g_cdd_strdup_fail = 0;
-        g_patcher_test_cap_1 = 0;
         free_token_list(tl);
         if (out_code)
           C_CDD_FREE(out_code);

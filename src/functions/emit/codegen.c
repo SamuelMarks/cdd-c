@@ -38,10 +38,8 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
 /** @brief CHECK_IO definition */
 #ifndef CHECK_IO
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return CDD_C_ERROR_IO;                                                   \
-  } while (0)
+  for (; (x) < 0;)                                                             \
+  return CDD_C_ERROR_IO
 #endif
 
 cdd_c_error_t write_forward_decl(FILE *fp, const char *struct_name) {

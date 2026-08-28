@@ -74,8 +74,8 @@ void patch_list_free(struct PatchList *list) {
 /**
  * @brief Executes the patch list add operation.
  */
-cdd_c_error_t patch_list_add(struct PatchList *list, const size_t start_idx,
-                             const size_t end_idx, char *text) {
+cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
+                             size_t end_idx, char *text) {
   if (!list || !text) {
     if (text)
       C_CDD_FREE(text); /* Prevent leak on bad args */

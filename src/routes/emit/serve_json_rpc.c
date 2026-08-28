@@ -580,7 +580,7 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
       i++;
     } else if ((strcmp(argv[i], "--listen") == 0 || strcmp(argv[i], "-l") == 0)) {
       listen_flag = 1;
-      if (i + 1 < argc && 1) {
+      if (i + 1 < argc) {
         listen_flag = atoi(argv[++i]);
       }
     }
