@@ -2038,14 +2038,17 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char *src_dir = malloc(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
-    CDD_SNPRINTF(src_dir, 1024, "%s/src", dir_name ? dir_name : ".");
+    CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
     actual_base =
         malloc(strlen(src_dir) +
                strlen(base_name ? base_name : "generated_client") + 2);
     if (actual_base) {
-      CDD_SNPRINTF(actual_base, strlen(src_dir) + strlen(base_name ? base_name : "generated_client") + 2, "%s/%s", src_dir,
-              base_name ? base_name : "generated_client");
+      CDD_SNPRINTF(actual_base,
+                   strlen(src_dir) +
+                       strlen(base_name ? base_name : "generated_client") + 2,
+                   "%s/%s", src_dir,
+                   base_name ? base_name : "generated_client");
     }
     free(src_dir);
   }
@@ -4507,16 +4510,19 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                 op->parameters[p].in == OA_PARAM_IN_QUERYSTRING) {
               if (first_query) {
                 CDD_STRNCAT(formatted_path, sizeof(formatted_path), "?",
-                        sizeof(formatted_path) - strlen(formatted_path) - 1);
+                            sizeof(formatted_path) - strlen(formatted_path) -
+                                1);
                 first_query = 0;
               } else {
                 CDD_STRNCAT(formatted_path, sizeof(formatted_path), "&",
-                        sizeof(formatted_path) - strlen(formatted_path) - 1);
+                            sizeof(formatted_path) - strlen(formatted_path) -
+                                1);
               }
-              CDD_STRNCAT(formatted_path, sizeof(formatted_path), op->parameters[p].name,
-                      sizeof(formatted_path) - strlen(formatted_path) - 1);
+              CDD_STRNCAT(formatted_path, sizeof(formatted_path),
+                          op->parameters[p].name,
+                          sizeof(formatted_path) - strlen(formatted_path) - 1);
               CDD_STRNCAT(formatted_path, sizeof(formatted_path), "=1",
-                      sizeof(formatted_path) - strlen(formatted_path) - 1);
+                          sizeof(formatted_path) - strlen(formatted_path) - 1);
             }
           }
           parsed_base_path = "";

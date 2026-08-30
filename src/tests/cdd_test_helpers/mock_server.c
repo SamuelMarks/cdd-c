@@ -277,9 +277,9 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
     /* Read Request */
     {
       char buffer[4096];
-      int bytes_read;
+      ssize_t bytes_read;
       sleep_ms(100); /* Wait for body packets (e.g. from WinHTTP) */
-      bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+      bytes_read = (ssize_t)recv(client_fd, buffer, sizeof(buffer) - 1, 0);
       if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
 
@@ -288,7 +288,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
           free(s->captured_request);
         s->captured_request = (char *)malloc((size_t)bytes_read + 1);
         if (s->captured_request) {
-          memcpy(s->captured_request, buffer, bytes_read + 1);
+          memcpy(s->captured_request, buffer, (size_t)bytes_read + 1);
           s->captured_len = (size_t)bytes_read;
           s->has_request = 1;
           cond_signal(&s->cond_req_ready);
@@ -298,7 +298,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
     }
 
     /* Send Response */
-    send(client_fd, response, (int)strlen(response), 0);
+    send(client_fd, response, (size_t)strlen(response), 0);
 
     close_socket(client_fd);
   }

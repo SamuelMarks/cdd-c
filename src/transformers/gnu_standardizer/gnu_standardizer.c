@@ -137,11 +137,11 @@ static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
     }
     low_part = low * 10;
 #if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlong-long"
+
 #endif
     high_part = high * 10 + (low_part < low ? 1 : 0) +
-                (low / 1844674407370955161ULL); /* Roughly */
+                (low / (((uint64_t)1844674407UL * 1000000000UL) +
+                        370955161UL)); /* Roughly */
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
@@ -549,7 +549,9 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                             if (strncmp(t, var_name, var_len) == 0 &&
                                 !isalnum((unsigned char)t[var_len]) &&
                                 t[var_len] != '_') {
-                              CDD_STRCPY(out_p, (size_t)((buf + 8192) - out_p), " __VA_OPT__(,) __VA_ARGS__");
+                              CDD_STRCPY(out_p,
+                                         out_cap - (size_t)(out_p - out_buf),
+                                         " __VA_OPT__(,) __VA_ARGS__");
                               out_p += strlen(" __VA_OPT__(,) __VA_ARGS__");
                               in_p = t + var_len;
                               matched = 1;
@@ -562,7 +564,8 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                             (in_p == buf ||
                              (!isalnum((unsigned char)in_p[-1]) &&
                               in_p[-1] != '_'))) {
-                          CDD_STRCPY(out_p, (size_t)((buf + 8192) - out_p), "__VA_ARGS__");
+                          CDD_STRCPY(out_p, out_cap - (size_t)(out_p - out_buf),
+                                     "__VA_ARGS__");
                           out_p += strlen("__VA_ARGS__");
                           in_p += var_len;
                           matched = 1;
@@ -992,8 +995,13 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                 char *rb = strchr(buf, ']');
                 if (lb && rb) {
                   int m, ac = 0;
+#if defined(_MSC_VER)
+                  strncpy_s(base, sizeof(base), buf, (size_t)(lb - buf));
+                  strncpy_s(arr, sizeof(arr), lb, (size_t)(rb - lb + 1));
+#else
                   strncpy(base, buf, (size_t)(lb - buf));
                   strncpy(arr, lb, (size_t)(rb - lb + 1));
+#endif
                   for (m = 0; arr[m]; m++) {
                     if (arr[m] != ' ') {
                       arr_clean[ac++] = arr[m];
@@ -2450,7 +2458,11 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
 
           if (appended) {
             char *heap_buf;
+#if defined(_MSC_VER)
+            strcat_s(p, sizeof(buf) - (size_t)(p - buf), " }");
+#else
             strcat(p, " }");
+#endif
             heap_buf = (char *)malloc(strlen(buf) + 1);
             if (heap_buf) {
               size_t child_idx_shadow;
@@ -2460,7 +2472,11 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               if (parent) {
                 const char *pooled;
                 cdd_token_t *new_tok = NULL;
+#if defined(_MSC_VER)
+                strcpy_s(heap_buf, strlen(buf) + 1, buf);
+#else
                 strcpy(heap_buf, buf);
+#endif
                 pooled = pool_string_safe(tree, heap_buf);
                 if (!pooled) {
                   free(heap_buf);
@@ -2512,7 +2528,11 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_replace_token_child(parent, child_idx, new_tok);
                   }
                 }
+#if defined(_MSC_VER)
+                strcpy_s(p, sizeof(buf) - (size_t)(p - buf), "); ");
+#else
                 strcpy(p, "); ");
+#endif
                 p += 3;
               } else {
                 size_t child_idx;
@@ -2532,24 +2552,35 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
 
               for (c_idx = num_cleanups; c_idx > 0; c_idx--) {
-                p += CDD_SNPRINTF(p, (size_t)((buf + 8192) - p), "%.*s(&%.*s); ",
-                             (int)cleanups[c_idx - 1].func_length,
-                             cleanups[c_idx - 1].func_name,
-                             (int)cleanups[c_idx - 1].var_length,
-                             cleanups[c_idx - 1].var_name);
+                p += CDD_SNPRINTF(p, sizeof(buf) - (size_t)(p - buf),
+                                  "%.*s(&%.*s); ",
+                                  (int)cleanups[c_idx - 1].func_length,
+                                  cleanups[c_idx - 1].func_name,
+                                  (int)cleanups[c_idx - 1].var_length,
+                                  cleanups[c_idx - 1].var_name);
               }
               if (config && config->fallback_vla_to_malloc) {
                 for (v_idx = num_vlas; v_idx > 0; v_idx--) {
-                  p += CDD_SNPRINTF(p, (size_t)((buf + 8192) - p), "free(%.*s); ", (int)vlas[v_idx - 1].length,
-                               vlas[v_idx - 1].name);
+                  p += CDD_SNPRINTF(p, sizeof(buf) - (size_t)(p - buf),
+                                    "free(%.*s); ", (int)vlas[v_idx - 1].length,
+                                    vlas[v_idx - 1].name);
                 }
               }
 
               if (has_expr) {
+#if defined(_MSC_VER)
+                strcpy_s(p, sizeof(buf) - (size_t)(p - buf),
+                         "return __cdd_ret; }");
+#else
                 strcpy(p, "return __cdd_ret; }");
+#endif
                 p += 19;
               } else {
+#if defined(_MSC_VER)
+                strcpy_s(p, sizeof(buf) - (size_t)(p - buf), "return; }");
+#else
                 strcpy(p, "return; }");
+#endif
                 p += 9;
               }
               {
@@ -2563,7 +2594,11 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                   if (parent) {
                     const char *pooled;
                     cdd_token_t *new_tok = NULL;
+#if defined(_MSC_VER)
+                    strcpy_s(dup, strlen(buf) + 1, buf);
+#else
                     strcpy(dup, buf);
+#endif
                     pooled = pool_string_safe(tree, dup);
                     if (!pooled) {
                       free(dup);
@@ -2713,7 +2748,12 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               local_labels[num_local_labels].depth = current_depth;
               {
                 char *p = local_labels[num_local_labels].rename;
+#if defined(_MSC_VER)
+                strcpy_s(p, sizeof(local_labels[num_local_labels].rename),
+                         "__cdd_ll_");
+#else
                 strcpy(p, "__cdd_ll_");
+#endif
                 p += 9;
                 memcpy(p, nt->start, nt->length);
                 p += nt->length;
@@ -2816,7 +2856,12 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                 if (parent) {
                   const char *pooled;
                   cdd_token_t *new_tok = NULL;
+#if defined(_MSC_VER)
+                  strcpy_s(dup, strlen(local_labels[j].rename) + 1,
+                           local_labels[j].rename);
+#else
                   strcpy(dup, local_labels[j].rename);
+#endif
                   pooled = pool_string_safe(tree, dup);
                   if (!pooled) {
                     free(dup);
@@ -3368,18 +3413,31 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                    of overlaps is usually left to the underlying compiler, but
                    we add a warning. */
                 if (start_val > end_val) {
+#if defined(_MSC_VER)
+                  strcpy_s(p, alloc_sz - (size_t)(p - heap_buf),
+                           "/* WARNING: Invalid case range */ ");
+#else
                   strcpy(p, "/* WARNING: Invalid case range */ ");
+#endif
                   p += 34;
                 }
                 for (v = start_val; v <= end_val; v++) {
+#if defined(_MSC_VER)
+                  strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), "case ");
+#else
                   strcpy(p, "case ");
+#endif
                   p += 5;
                   if (append_int(p, v, &p) != 0) {
                     free(heap_buf);
                     return CDD_C_ERROR_MEMORY;
                   }
                   if (v != end_val) {
+#if defined(_MSC_VER)
+                    strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), ": ");
+#else
                     strcpy(p, ": ");
+#endif
                     p += 2;
                   }
                 }
@@ -3480,12 +3538,20 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                       free(heap_buf);
                       return CDD_C_ERROR_MEMORY;
                     }
+#if defined(_MSC_VER)
+                    strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), "] = ");
+#else
                     strcpy(p, "] = ");
+#endif
                     p += 4;
                     memcpy(p, assign_val->start, assign_val->length);
                     p += assign_val->length;
                     if (v != end_val) {
+#if defined(_MSC_VER)
+                      strcpy_s(p, alloc_sz - (size_t)(p - heap_buf), ", ");
+#else
                       strcpy(p, ", ");
+#endif
                       p += 2;
                     }
                   }

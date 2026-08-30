@@ -159,7 +159,8 @@ TEST test_sync_code_too_many_defs(void) {
 #endif
   for (i = 0; i < 70; i++)
     fprintf(f, "struct S%d { int i; };\n", i);
-  fclose(f);
+  if (f)
+    fclose(f);
   sync_code_main(2, argv);
   remove(filename);
   remove("too_many.c");
@@ -203,6 +204,7 @@ TEST test_patch_header_basic(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   write_to_file(h_path, ""
                         "void foo();\n");
@@ -237,6 +239,7 @@ TEST test_patch_header_ptr_arg(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   write_to_file(h_path, "char* bar(int x);\n");
 
@@ -274,6 +277,7 @@ TEST test_patch_header_ignore_others(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   write_to_file(h_path, ""
                         "void other();\nvoid foo();\n");
@@ -297,6 +301,7 @@ TEST test_patch_header_bounds(void) {
   const char *h_path = "bounds_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
+  (void)rc;
 
   /* End of file while looking for semicolon */
   write_to_file(h_path, "void foo()");
@@ -335,6 +340,7 @@ TEST test_patch_header_failures(void) {
   const char *h_path = "fail_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
+  (void)rc;
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
    */
@@ -417,7 +423,8 @@ TEST test_sync_oom(void) {
 #endif
     if (f) {
       fprintf(f, "struct A { int a; };\n");
-      fclose(f);
+      if (f)
+        fclose(f);
     }
 
     g_cdd_fprintf_fail = 8001;

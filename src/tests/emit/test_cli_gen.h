@@ -24,6 +24,7 @@ TEST test_cli_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
   FILE *f;
 
   struct OpenAPI_Response resp = {0};
@@ -115,7 +116,8 @@ TEST test_cli_gen_basic(void) {
 #endif
   ASSERT(f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   remove("src/test_cli_cli.c");
   free(spec.paths[0].operations[0].req_body.content_schema);
@@ -134,6 +136,7 @@ TEST test_cli_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -154,6 +157,7 @@ TEST test_cli_gen_full(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = "3.1.0";
@@ -230,6 +234,7 @@ TEST test_cli_gen_malloc_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
   int i;
 
   memset(&spec, 0, sizeof(spec));
@@ -253,6 +258,7 @@ TEST test_cli_gen_partial(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = "3.1.0";
@@ -331,6 +337,7 @@ TEST test_cli_gen_partial2(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = "3.1.0";

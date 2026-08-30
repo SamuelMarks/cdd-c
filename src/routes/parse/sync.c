@@ -29,7 +29,7 @@
 
 /* --- Generators (InMemory) --- */
 
-static FILE *cdd_tmpfile(void) {
+static FILE *make_cdd_tmpfile(void) {
 #if defined(__wasm__) || defined(__wasm32__)
   return NULL;
 #elif defined(_MSC_VER)
@@ -41,7 +41,7 @@ static FILE *cdd_tmpfile(void) {
   return tmpfile();
 #endif
 }
-#define CDD_TMPFILE() cdd_tmpfile()
+#define CDD_TMPFILE() make_cdd_tmpfile()
 
 /**
  * @brief Generate signature string.

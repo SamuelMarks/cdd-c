@@ -5626,13 +5626,15 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
       final_code[0] = '\0';
 
       if (!no_imports) {
-        CDD_STRCAT(final_code, sizeof(final_code), "#include \"generated_client.h\"\n#include "
-                           "<stdio.h>\n\n");
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "#include \"generated_client.h\"\n#include "
+                   "<stdio.h>\n\n");
       }
       if (!no_wrapping) {
-        CDD_STRCAT(final_code, sizeof(final_code), "int main(void) {\n  struct HttpClient client;\n  "
-                           "struct ApiError *err = NULL;\n  api_init(&client, "
-                           "\"https://api.example.com\");\n");
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "int main(void) {\n  struct HttpClient client;\n  "
+                   "struct ApiError *err = NULL;\n  api_init(&client, "
+                   "\"https://api.example.com\");\n");
       }
 
       snprintf(snippet, sizeof(snippet),
@@ -5643,8 +5645,9 @@ C_CDD_EXPORT cdd_c_error_t to_docs_json_cli_main(int argc, char **argv) {
       CDD_STRCAT(final_code, sizeof(final_code), snippet);
 
       if (!no_wrapping) {
-        CDD_STRCAT(final_code, sizeof(final_code), "  api_cleanup(&client);\n  return "
-                           "CDD_C_SUCCESS;\n}\n");
+        CDD_STRCAT(final_code, sizeof(final_code),
+                   "  api_cleanup(&client);\n  return "
+                   "CDD_C_SUCCESS;\n}\n");
       }
 
       json_object_set_string(path_obj, method, final_code);

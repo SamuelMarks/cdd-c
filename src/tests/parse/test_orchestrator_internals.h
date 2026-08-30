@@ -205,7 +205,8 @@ TEST test_orchestrator_internals(void) {
 #endif
     if (f) {
       fputs("void A() { malloc(1); }", f);
-      fclose(f);
+      if (f)
+        fclose(f);
       g_fail_io_after = 1;
       ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback(test_file, &ctx));
       g_fail_io_after = -1;
@@ -226,7 +227,8 @@ TEST test_orchestrator_internals(void) {
 #endif
     if (f) {
       fputs("void A() { malloc(1); }", f);
-      fclose(f);
+      if (f)
+        fclose(f);
       g_force_parse_tokens_fail = 1;
       ASSERT_EQ(CDD_C_SUCCESS, fix_file_callback(test_file, &ctx));
       g_force_parse_tokens_fail = 0;

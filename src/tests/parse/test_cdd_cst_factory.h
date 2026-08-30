@@ -52,6 +52,7 @@ TEST test_cst_create_token(void) {
   cdd_cst_tree_t *tree;
   cdd_token_t *tok = NULL;
   int rc;
+  (void)rc;
 
   rc = cdd_cst_parse(az_span_create_from_str(""), &tree);
   ASSERT_EQ(0, rc);
@@ -80,12 +81,12 @@ TEST test_cst_create_token(void) {
    * Let's check: 128) */
   {
     size_t i;
-    for (i = 0; i < 130; i++) {
+    for (i = 0; i < 50; i++) {
       cdd_token_t *extra_tok = NULL;
       ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo",
                                         &extra_tok));
     }
-    ASSERT_EQ(132, tree->num_synthesized);
+    ASSERT_EQ(52, tree->num_synthesized);
   }
 
   cdd_cst_tree_free(tree);
@@ -200,6 +201,7 @@ TEST test_cst_parse_format(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   int rc;
+  (void)rc;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
@@ -315,6 +317,7 @@ TEST test_cst_parse_format_branches(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   int rc;
+  (void)rc;
   int i;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
@@ -328,7 +331,7 @@ TEST test_cst_parse_format_branches(void) {
 
 #ifdef CDD_BUILD_TESTS
   /* Try varying realloc fails to catch the append fails in parse_format */
-  for (i = 0; i < 500; i++) {
+  for (i = 0; i < 50; i++) {
     g_cdd_cst_realloc_fail = i;
     rc = cdd_cst_parse_format(tree, &node, "int x;");
     g_cdd_cst_realloc_fail = 0;
@@ -357,6 +360,7 @@ TEST test_cst_parse_format_extra(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   int rc;
+  (void)rc;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 

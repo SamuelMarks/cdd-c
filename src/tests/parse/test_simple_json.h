@@ -98,6 +98,7 @@ TEST test_foo_e_full_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
+  (void)rc;
 #endif
 
   printf("DEBUG: test_foo_e_full_coverage started!\n");

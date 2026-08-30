@@ -330,6 +330,7 @@ TEST test_ffi_ir_extract_exports_oom(void) {
   cdd_generate_bindings_config_t config = {0};
   cdd_ffi_ir_t *ir = NULL;
   int rc;
+  (void)rc;
   int k;
   const char *code =
       "struct A { int x; }; void foo(int a); struct Point<int> { int y; };";
@@ -618,6 +619,7 @@ TEST test_ffi_ir_extract_array_out(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
   int rc;
+  (void)rc;
 
   write_to_file("test_array.c", content);
 
@@ -694,7 +696,8 @@ TEST test_ffi_ir_emit_python(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -750,7 +753,8 @@ TEST test_ffi_ir_emit_rust(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -806,7 +810,8 @@ TEST test_ffi_ir_emit_csharp(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -858,7 +863,8 @@ TEST test_ffi_ir_emit_typescript(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -911,7 +917,8 @@ TEST test_ffi_ir_emit_napi(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -968,7 +975,8 @@ TEST test_ffi_ir_emit_java(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1020,7 +1028,8 @@ TEST test_ffi_ir_emit_cpp(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1072,7 +1081,8 @@ TEST test_ffi_ir_emit_go(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1124,7 +1134,8 @@ TEST test_ffi_ir_emit_swift(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1176,7 +1187,8 @@ TEST test_ffi_ir_emit_dart(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1228,7 +1240,8 @@ TEST test_ffi_ir_emit_ruby(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1280,7 +1293,8 @@ TEST test_ffi_ir_emit_kotlin(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1332,7 +1346,8 @@ TEST test_ffi_ir_emit_php(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1384,7 +1399,8 @@ TEST test_ffi_ir_emit_lua(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1436,7 +1452,8 @@ TEST test_ffi_ir_emit_zig(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1492,7 +1509,8 @@ TEST test_ffi_ir_emit_odin(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1544,7 +1562,8 @@ TEST test_ffi_ir_emit_julia(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1596,7 +1615,8 @@ TEST test_ffi_ir_emit_r(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1648,7 +1668,8 @@ TEST test_ffi_ir_emit_matlab(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1700,7 +1721,8 @@ TEST test_ffi_ir_emit_haskell(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);
@@ -1752,7 +1774,8 @@ TEST test_ffi_ir_emit_ocaml(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   cdd_ffi_ir_free(ir);
   free(ir);

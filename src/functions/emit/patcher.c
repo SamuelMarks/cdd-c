@@ -177,8 +177,6 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
         char *tmp;
         out_cap = out_cap * 2 + text_len;
         tmp = (char *)C_CDD_REALLOC(output, out_cap);
-        printf("After REALLOC: g_cdd=%d, tmp=%p\n", g_cdd_alloc_fail,
-               (void *)tmp);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
@@ -217,8 +215,6 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
         tmp = (char *)C_CDD_REALLOC(output, out_cap);
-        printf("After REALLOC: g_cdd=%d, tmp=%p\n", g_cdd_alloc_fail,
-               (void *)tmp);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;

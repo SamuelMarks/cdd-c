@@ -142,15 +142,19 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
     (void)extract_token_text(tokens, comma + 1, rparen, &src);
 
     if (dest && src) {
-      /* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
-       * look up the AST node's type. */
+/* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
+ * look up the AST node's type. */
+#if defined(_MSC_VER)
+      sprintf_s(replacement, sizeof(replacement),
+#else
       sprintf(replacement,
-              "#if defined(_MSC_VER)\n"
-              "  strcpy_s(%s, sizeof(%s), %s);\n"
-              "#else\n"
-              "  strcpy(%s, %s);\n"
-              "#endif\n",
-              dest, dest, src, dest, src);
+#endif
+                "#if defined(_MSC_VER)\n"
+                "  strcpy_s(%s, sizeof(%s), %s);\n"
+                "#else\n"
+                "  strcpy(%s, %s);\n"
+                "#endif\n",
+                dest, dest, src, dest, src);
       add_patch(out, call_start, call_end, replacement);
     }
 
@@ -233,13 +237,17 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
     (void)extract_token_text(tokens, id_idx, id_idx + 1, &dest);
 
     if (path && mode && dest) {
+#if defined(_MSC_VER)
+      sprintf_s(replacement, sizeof(replacement),
+#else
       sprintf(replacement,
-              "#if defined(_MSC_VER)\n"
-              "  fopen_s(&%s, %s, %s);\n"
-              "#else\n"
-              "  %s = fopen(%s, %s);\n"
-              "#endif\n",
-              dest, path, mode, dest, path, mode);
+#endif
+                "#if defined(_MSC_VER)\n"
+                "  fopen_s(&%s, %s, %s);\n"
+                "#else\n"
+                "  %s = fopen(%s, %s);\n"
+                "#endif\n",
+                dest, path, mode, dest, path, mode);
       add_patch(out, assign_idx - 1, call_end, replacement);
     }
     if (path)
@@ -281,13 +289,17 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
     (void)extract_token_text(tokens, comma2 + 1, rparen, &count);
 
     if (dest && src && count) {
+#if defined(_MSC_VER)
+      sprintf_s(replacement, sizeof(replacement),
+#else
       sprintf(replacement,
-              "#if defined(_MSC_VER)\n"
-              "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
-              "#else\n"
-              "  strncpy(%s, %s, %s);\n"
-              "#endif\n",
-              dest, dest, src, count, dest, src, count);
+#endif
+                "#if defined(_MSC_VER)\n"
+                "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
+                "#else\n"
+                "  strncpy(%s, %s, %s);\n"
+                "#endif\n",
+                dest, dest, src, count, dest, src, count);
       add_patch(out, call_start, call_end, replacement);
     }
 
@@ -327,13 +339,17 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
     (void)extract_token_text(tokens, comma1 + 1, rparen, &args);
 
     if (dest && args) {
+#if defined(_MSC_VER)
+      sprintf_s(replacement, sizeof(replacement),
+#else
       sprintf(replacement,
-              "#if defined(_MSC_VER)\n"
-              "  sprintf_s(%s, sizeof(%s), %s);\n"
-              "#else\n"
-              "  sprintf(%s, %s);\n"
-              "#endif",
-              dest, dest, args, dest, args);
+#endif
+                "#if defined(_MSC_VER)\n"
+                "  sprintf_s(%s, sizeof(%s), %s);\n"
+                "#else\n"
+                "  sprintf(%s, %s);\n"
+                "#endif",
+                dest, dest, args, dest, args);
       add_patch(out, call_start, call_end, replacement);
     }
 
@@ -442,14 +458,18 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
 
             if (type_name && var_name && expr) {
               size_t end_stmt = end_bracket;
+#if defined(_MSC_VER)
+              sprintf_s(replacement, sizeof(replacement),
+#else
               sprintf(replacement,
-                      "#if defined(_MSC_VER)\n"
-                      "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
-                      "#else\n"
-                      "  %s %s[%s];\n"
-                      "#endif",
-                      type_name, var_name, type_name, expr, type_name,
-                      type_name, var_name, expr);
+#endif
+                        "#if defined(_MSC_VER)\n"
+                        "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
+                        "#else\n"
+                        "  %s %s[%s];\n"
+                        "#endif",
+                        type_name, var_name, type_name, expr, type_name,
+                        type_name, var_name, expr);
 
               /* statement usually ends with ; */
               while (end_stmt < n->end_token &&

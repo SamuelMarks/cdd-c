@@ -25,7 +25,8 @@ extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
 TEST test_cdd_lexer_basic(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "int main() { /* comment */\n  return 0;\n}";
-  int rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+  int rc =
+      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -170,7 +171,8 @@ TEST test_cdd_lexer_multiline_macro(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#define FOO(x) \\\n  do { \\\n    x++; // incr \\\n  } "
                      "while(0)\nint main(){}";
-  int rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+  int rc =
+      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -193,7 +195,8 @@ TEST test_cdd_lexer_multiline_macro(void) {
 TEST test_cdd_lexer_include_next(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#include_next <stdio.h>\n";
-  int rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+  int rc =
+      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -299,15 +302,17 @@ TEST test_cdd_lexer_oom(void) {
 TEST test_lexer_branches(void) {
   cdd_token_list_t *list = NULL;
   int rc;
+  (void)rc;
   const char *code;
   const char *code2;
   code = "int\r\nmain() { /* c1 */ /* c2 */ }";
-  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
   cdd_lexer_free_token_list(list);
 
   list = NULL;
   code2 = "/* multiline \r\n comment *";
-  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code2), &list);
+  rc =
+      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code2), &list);
   cdd_lexer_free_token_list(list);
 
   list = NULL;
@@ -498,30 +503,31 @@ TEST test_lexer_oom_injected(void) {
   /* extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail; (moved to global) */
   g_cdd_lexer_trivia_fail = 1;
   {
-    int r1 =
-        cdd_lexer_tokenize(az_span_create((uint8_t *)"// trivia", 10), &tl);
+    int r1 = cdd_lexer_tokenize(
+        az_span_create((uint8_t *)(size_t) "// trivia", 10), &tl);
     g_cdd_lexer_trivia_fail = 0;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, r1);
 
     g_cdd_lexer_trivia_fail = 1;
     {
-      int r2 = cdd_lexer_tokenize(az_span_create((uint8_t *)"   ", 3), &tl);
+      int r2 =
+          cdd_lexer_tokenize(az_span_create((uint8_t *)(size_t) "   ", 3), &tl);
       g_cdd_lexer_trivia_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, r2);
 
       /* extern C_CDD_EXPORT int g_cdd_lexer_id_fail; (moved to global) */
       g_cdd_lexer_id_fail = 1;
       {
-        int r3 =
-            cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+        int r3 = cdd_lexer_tokenize(
+            az_span_create((uint8_t *)(size_t) "my_var", 6), &tl);
         g_cdd_lexer_id_fail = 0;
         ASSERT_EQ(CDD_C_ERROR_MEMORY, r3);
 
         /* extern C_CDD_EXPORT int g_cdd_lexer_id2_fail; (moved to global) */
         g_cdd_lexer_id2_fail = 1;
         {
-          int r4 =
-              cdd_lexer_tokenize(az_span_create((uint8_t *)"my_var", 6), &tl);
+          int r4 = cdd_lexer_tokenize(
+              az_span_create((uint8_t *)(size_t) "my_var", 6), &tl);
           g_cdd_lexer_id2_fail = 0;
           ASSERT_EQ(CDD_C_ERROR_MEMORY, r4);
 

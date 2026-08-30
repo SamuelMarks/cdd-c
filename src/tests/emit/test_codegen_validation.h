@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_validation.h
  * @brief Unit tests for validation codegen.
@@ -32,7 +34,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
 static FILE *mock_tmpfile_val(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;
-  return tmpfile();
+  return cdd_test_tmpfile_global();
 }
 static long mock_ftell_val(FILE *stream) {
   if (g_fail_io_after == 999)
@@ -76,7 +78,8 @@ static cdd_c_error_t gen_parse_code(const char *name, struct StructFields *sf,
   }
 
   if (write_struct_from_jsonObject_func(tmp, name, sf, NULL) != 0) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = NULL;
       return 0;
@@ -91,7 +94,8 @@ static cdd_c_error_t gen_parse_code(const char *name, struct StructFields *sf,
   if (sz > 0)
     FREAD(content, 1, (size_t)sz, tmp);
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   {
     *_out_val = content;
     return 0;
@@ -289,7 +293,11 @@ TEST test_string_simple_pattern_prefix(void) {
 #if defined(_MSC_VER)
   strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
+#else
   strcpy(f->pattern, "^prefix");
+#endif
 #endif
 #endif
 #endif
@@ -326,7 +334,11 @@ TEST test_string_simple_pattern_suffix(void) {
 #if defined(_MSC_VER)
   strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
+#else
   strcpy(f->pattern, "suffix$");
+#endif
 #endif
 #endif
 #endif
@@ -363,7 +375,11 @@ TEST test_string_simple_pattern_exact(void) {
 #if defined(_MSC_VER)
   strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
+#else
   strcpy(f->pattern, "^exact$");
+#endif
 #endif
 #endif
 #endif
@@ -400,7 +416,11 @@ TEST test_string_simple_pattern_contains(void) {
 #if defined(_MSC_VER)
   strcpy_s(f->pattern, sizeof(f->pattern), "sub");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(f->pattern, sizeof(f->pattern), "sub");
+#else
   strcpy(f->pattern, "sub");
+#endif
 #endif
 #endif
 #endif

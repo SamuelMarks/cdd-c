@@ -32,9 +32,10 @@ TEST test_cdd_transform_macros(void) {
       "#define FOO(a) a + 1\nint main() {\n  return FOO(42);\n}\n";
   char *out = NULL;
   int rc;
+  (void)rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -63,9 +64,10 @@ TEST test_cdd_transform_macros_operators(void) {
                      "}\n";
   char *out = NULL;
   int rc;
+  (void)rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -98,6 +100,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
                      "  FOO(42);\n"
                      "}\n";
   int rc;
+  (void)rc;
   int k;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
@@ -114,7 +117,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
   for (k = 1; k < 500; k++) {
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
 #ifdef CDD_BUILD_TESTS
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
@@ -131,7 +134,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
   for (k = 1; k < 500; k++) {
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
 #ifdef CDD_BUILD_TESTS
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
@@ -152,7 +155,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
     /* Fail on FOO */
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
     g_cdd_query_err_fail = 1;
     rc = cdd_transform_macros(tree, &config);
     g_cdd_query_err_fail = 0;

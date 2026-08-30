@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_sdk_tests.h
  * @brief Unit tests for SDK Test Generator.
@@ -30,10 +32,10 @@ TEST test_gen_sdk_test_basic(void) {
   struct SdkTestsConfig config;
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     long sz;
@@ -95,7 +97,8 @@ TEST test_gen_sdk_test_basic(void) {
     ASSERT(strstr(content, "RUN_TEST(test_runOp)"));
 
     C_CDD_FREE(content);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -117,10 +120,10 @@ TEST test_gen_sdk_test_exhaustive(void) {
   struct OpenAPI_Response responses[2];
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -178,7 +181,8 @@ TEST test_gen_sdk_test_exhaustive(void) {
     op.req_body.is_array = 1;
     ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }

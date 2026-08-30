@@ -78,13 +78,15 @@ static void write_test_spec(void) {
 #endif
   if (fp) {
     fputs(spec, fp);
-    fclose(fp);
+    if (fp)
+      fclose(fp);
   }
 }
 
 TEST test_to_docs_json_basic(void) {
   char *argv[] = {"to_docs_json", "-i", TEMP_SPEC_FILE};
   int rc;
+  (void)rc;
   int stdout_fd;
   fpos_t pos;
   JSON_Value *val;
@@ -146,6 +148,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i",
                   TEMP_SPEC_FILE};
   int rc;
+  (void)rc;
   int stdout_fd;
   fpos_t pos;
   JSON_Value *val;

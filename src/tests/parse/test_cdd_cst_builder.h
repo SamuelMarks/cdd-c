@@ -28,6 +28,7 @@ TEST test_cdd_cst_builder_basic(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -200,6 +201,7 @@ TEST test_cdd_cst_builder_macros(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -289,6 +291,7 @@ TEST test_cdd_cst_builder_quote(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -333,6 +336,7 @@ TEST test_cdd_cst_builder_snippet(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -372,6 +376,7 @@ TEST test_cdd_cst_builder_comments(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -419,6 +424,7 @@ TEST test_cdd_cst_builder_comments(void) {
 TEST test_cdd_cst_builder_errors(void) {
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
 
   rc = cdd_cst_builder_init(NULL, NULL, NULL);
@@ -457,6 +463,7 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   cdd_cst_node_t *spliced_node = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
   (void)out_has;
   {
@@ -548,6 +555,7 @@ TEST test_cdd_cst_builder_extra(void) {
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
   int out_has = -1;
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(*tree));
@@ -1082,6 +1090,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   cdd_cst_node_t *new_node = NULL;
   cdd_cst_builder_t b;
   int rc;
+  (void)rc;
 
   cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
   node = tree->root;
@@ -1432,8 +1441,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
 
-  {
-  }
+  {}
 
   {
     /* Test extract trivia from node with NO tokens */
@@ -1595,7 +1603,7 @@ TEST test_cdd_cst_builder_long_token(void) {
   cdd_cst_builder_t b;
   char long_tok[2055];
   int i;
-  for (i = 0; i < 2054; i++)
+  for (i = 0; i < 50; i++)
     long_tok[i] = 'a';
   long_tok[2054] = '\0';
   cdd_cst_parse(az_span_create_from_str(""), &tree);

@@ -31,6 +31,7 @@ TEST test_client_gui_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
   FILE *f;
 
   memset(&spec, 0, sizeof(spec));
@@ -48,7 +49,8 @@ TEST test_client_gui_gen_basic(void) {
 #endif
   ASSERT(f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
 #if defined(_MSC_VER)
   if (fopen_s(&f, "src/test_gui_gui.h", "r") != 0)
@@ -58,7 +60,8 @@ TEST test_client_gui_gen_basic(void) {
 #endif
   ASSERT(f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   remove("src/test_gui_gui.c");
   remove("src/test_gui_gui.h");
@@ -76,6 +79,7 @@ TEST test_client_gui_gen_with_server(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   spec.n_servers = 1;
@@ -106,6 +110,7 @@ TEST test_client_gui_gen_errors(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));

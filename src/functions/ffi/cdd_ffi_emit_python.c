@@ -92,8 +92,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 
   /* Use safe CRT if available */
 #if defined(_MSC_VER)
-  sprintf_s(filepath, sizeof(filepath), "%s\\cdd_bindings.py",
-            config->output_dir);
+  CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\cdd_bindings.py",
+               config->output_dir);
   fopen_s(&f, filepath, "w");
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/cdd_bindings.py",
@@ -108,7 +108,9 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 
   {
     if (g_fail_io_after == 1) {
-      fclose(f);
+      if (f) {
+        fclose(f);
+      }
       f = NULL;
     }
   }
@@ -278,7 +280,9 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
             cdd_ffi_type_t base_t;
-            fprintf(f, "        out_%s = ", node->fields[j].name);
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
+            fprintf(f, "        out_%s = ", arg_name);
             base_t = node->fields[j].type;
             if (base_t.pointer_depth > 0)
               base_t.pointer_depth--;
@@ -290,12 +294,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "        err = CddFfiError()\n");
         fprintf(f, "        res = _%s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-            fprintf(f, "ctypes.byref(out_%s), ", node->fields[j].name);
+            fprintf(f, "ctypes.byref(out_%s), ", arg_name);
           } else {
-            const char *arg_name =
-                node->fields[j].name ? node->fields[j].name : "arg";
             fprintf(f, "%s, ", arg_name);
           }
         }
@@ -319,9 +323,11 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         for (j = 0; j < node->fields_count; j++) {
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
+            const char *arg_name =
+                node->fields[j].name ? node->fields[j].name : "arg";
             if (node->fields[j].array_length_ref) {
               cdd_ffi_type_t base_t;
-              fprintf(f, "        out_%s = (", node->fields[j].name);
+              fprintf(f, "        out_%s = (", arg_name);
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
@@ -329,7 +335,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               fprintf(f, " * %s)()\n", node->fields[j].array_length_ref);
             } else {
               cdd_ffi_type_t base_t;
-              fprintf(f, "        out_%s = ", node->fields[j].name);
+              fprintf(f, "        out_%s = ", arg_name);
               base_t = node->fields[j].type;
               if (base_t.pointer_depth > 0)
                 base_t.pointer_depth--;
@@ -337,8 +343,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
               fprintf(f, "()\n");
             }
             if (node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-              fprintf(f, "        out_%s.value = %s\n", node->fields[j].name,
-                      node->fields[j].name);
+              fprintf(f, "        out_%s.value = %s\n", arg_name, arg_name);
             }
           }
         }
@@ -346,12 +351,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
         fprintf(f, "        err = CddFfiError()\n");
         fprintf(f, "        res = _%s(", node->name);
         for (j = 0; j < node->fields_count; j++) {
+          const char *arg_name =
+              node->fields[j].name ? node->fields[j].name : "arg";
           if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
               node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
-            fprintf(f, "ctypes.byref(out_%s), ", node->fields[j].name);
+            fprintf(f, "ctypes.byref(out_%s), ", arg_name);
           } else {
-            const char *arg_name =
-                node->fields[j].name ? node->fields[j].name : "arg";
             fprintf(f, "%s, ", arg_name);
           }
         }
@@ -378,10 +383,12 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
           for (j = 0; j < node->fields_count; j++) {
             if (node->fields[j].intent == CDD_FFI_INTENT_OUT ||
                 node->fields[j].intent == CDD_FFI_INTENT_INOUT) {
+              const char *arg_name =
+                  node->fields[j].name ? node->fields[j].name : "arg";
               if (node->fields[j].array_length_ref) {
-                fprintf(f, "list(out_%s), ", node->fields[j].name);
+                fprintf(f, "list(out_%s), ", arg_name);
               } else {
-                fprintf(f, "out_%s.value, ", node->fields[j].name);
+                fprintf(f, "out_%s.value, ", arg_name);
               }
             }
           }
@@ -402,8 +409,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   {
     FILE *fc = NULL;
 #if defined(_MSC_VER)
-    sprintf_s(filepath, sizeof(filepath), "%s\\cdd_python_wrap.c",
-              config->output_dir);
+    CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\cdd_python_wrap.c",
+                 config->output_dir);
     fopen_s(&fc, filepath, "w");
 #else
     CDD_SNPRINTF(filepath, sizeof(filepath), "%s/cdd_python_wrap.c",
@@ -417,7 +424,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
     {
       if (g_fail_io_after == 2) {
-        fclose(fc);
+        if (fc)
+          fclose(fc);
         fc = NULL;
       }
     }
@@ -447,8 +455,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 
   if (config->generate_tests) {
 #if defined(_MSC_VER)
-    sprintf_s(filepath, sizeof(filepath), "%s\\test_cdd_bindings.py",
-              config->output_dir);
+    CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\test_cdd_bindings.py",
+                 config->output_dir);
     fopen_s(&f, filepath, "w");
 #else
     CDD_SNPRINTF(filepath, sizeof(filepath), "%s/test_cdd_bindings.py",
@@ -462,7 +470,8 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
     {
       if (g_fail_io_after == 3) {
-        fclose(f);
+        if (f)
+          fclose(f);
         f = NULL;
       }
     }

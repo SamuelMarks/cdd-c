@@ -382,6 +382,7 @@ TEST test_build_simple_get(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   /* Setup Signature */
   memset(args, 0, sizeof(args));
@@ -431,6 +432,7 @@ TEST test_build_param_format_from_mapping(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -470,6 +472,7 @@ TEST test_build_param_format_override(void) {
   struct DocParam *params = NULL;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -514,6 +517,7 @@ TEST test_build_response_header_format(void) {
   struct DocResponseHeader *headers = NULL;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(&op, 0, sizeof(op));
   sig.name = "api_ping";
@@ -557,6 +561,7 @@ TEST test_build_default_response_when_missing(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(&op, 0, sizeof(op));
   sig.name = "api_ping";
@@ -590,6 +595,7 @@ TEST test_build_operation_id_override(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -626,6 +632,7 @@ TEST test_build_param_content_type(void) {
   struct DocParam params[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
@@ -669,6 +676,7 @@ TEST test_build_param_example(void) {
   struct DocParam params[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
@@ -713,6 +721,7 @@ TEST test_build_return_content_type(void) {
   struct DocResponse returns[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
@@ -758,6 +767,7 @@ TEST test_build_response_example(void) {
   struct DocResponse returns[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(returns, 0, sizeof(returns));
@@ -806,6 +816,7 @@ TEST test_build_post_with_body(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   /* Sig */
   memset(args, 0, sizeof(args));
@@ -895,6 +906,7 @@ TEST test_build_param_style_flags(void) {
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
@@ -950,6 +962,7 @@ TEST test_build_param_default_styles(void) {
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
@@ -996,6 +1009,7 @@ TEST test_build_reserved_header_param_ignored(void) {
   struct DocParam dparams[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
@@ -1039,6 +1053,7 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -1176,6 +1191,7 @@ TEST test_build_custom_verb_additional(void) {
   struct DocMetadata doc;
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -1213,6 +1229,7 @@ TEST test_build_response_multi_content(void) {
   struct DocResponse resps[2];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(resps, 0, sizeof(resps));
   memset(&op, 0, sizeof(op));
@@ -1261,6 +1278,7 @@ TEST test_build_response_headers(void) {
   struct DocResponseHeader hdrs[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(resps, 0, sizeof(resps));
   memset(hdrs, 0, sizeof(hdrs));
@@ -1317,6 +1335,7 @@ TEST test_build_response_links(void) {
   struct DocLink links[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(&op, 0, sizeof(op));
   sig.name = "get_page";
@@ -1421,6 +1440,7 @@ TEST test_build_op_security_servers_request_body(void) {
   char *server_enum[] = {"prod", "staging"};
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -1506,6 +1526,7 @@ TEST test_build_op_param_deprecated(void) {
   struct DocParam params[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
@@ -1556,6 +1577,7 @@ TEST test_build_request_body_example(void) {
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -1603,6 +1625,7 @@ TEST test_build_request_body_default_content_type(void) {
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
@@ -1645,6 +1668,7 @@ TEST test_build_op_request_body_multi_content(void) {
   struct DocRequestBody bodies[2];
   struct OpenAPI_Operation op;
   int rc;
+  (void)rc;
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));

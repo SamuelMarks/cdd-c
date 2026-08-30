@@ -28,6 +28,7 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;
   enum Tank tank_val;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 
@@ -58,6 +59,7 @@ TEST test_HazE_to_json_and_from_json(void) {
   char *json_str;
   struct HazE *haz_out;
   int rc;
+  (void)rc;
   haz.bzr = "example";
   haz.tank = Tank_BIG;
   json_str = NULL;
@@ -92,6 +94,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   char *json_str;
   struct FooE *foo_out;
   int rc;
+  (void)rc;
   foo.bar = "barval";
   foo.can = 42;
   foo.haz = NULL;
@@ -128,6 +131,7 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   char *json_str;
   struct FooE *foo_out;
   int rc;
+  (void)rc;
   haz_in.bzr = "bzr_data_here";
   haz_in.tank = Tank_BIG;
   foo_in.bar = "bar_data_here";

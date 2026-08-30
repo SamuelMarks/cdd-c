@@ -28,9 +28,8 @@ repos:
     - c++
   - id: compdb
     name: Build Compilation Database
-    entry: env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-      -S . -B build
-    language: system
+    entry: python -c "import os, subprocess, sys; [os.environ.pop(k, None) for k in ['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE']]; sys.exit(subprocess.run(['cmake', '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', '-S', '.', '-B', 'build']).returncode)"
+    language: python
     pass_filenames: false
   - id: build-gcc
     name: Build (GCC)
@@ -106,11 +105,9 @@ repos:
     pass_filenames: false
   - id: check-enum-returns
     name: Check Enum Returns
-    entry: python3 scripts/check_enum_returns_clang.py . --build-dir build --exclude-files
-      "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files
-      "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files
-      "*test_build_dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*"
-    language: system
+    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" -- -Iinclude -Isrc -I../c-fs/include -I../c-str-span/include -I../c89stringutils/include -I../parson -I../greatest
+    language: python
+    additional_dependencies: [libclang]
     pass_filenames: false
   - id: update-shields
     name: Update README Shields

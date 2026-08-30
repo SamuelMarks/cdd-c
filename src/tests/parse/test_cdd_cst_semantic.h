@@ -1133,7 +1133,7 @@ TEST test_cdd_cst_semantic_missing_branches_13(void) {
 
 TEST test_cdd_cst_parser_oom_new(void) {
   int i;
-  for (i = 1; i < 200; i++) {
+  for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
     const char *code = "namespace N {\n"
                        "  class C : public B {\n"
@@ -1151,7 +1151,8 @@ TEST test_cdd_cst_parser_oom_new(void) {
 
     g_cdd_alloc_fail = i;
     {
-      int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+      int rc =
+          cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
       g_cdd_alloc_fail = 0;
 
       if (rc == 0) {

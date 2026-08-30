@@ -33,7 +33,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
   const char *src =
       "void func() {\n      int a = 1;\n  a = 2;\n  int b = 3;\n}\n";
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
   (void)hoist_site_list_init(&list);
 
   ASSERT_EQ(0, scan_for_mixed_declarations(tokens, &list));
@@ -88,7 +88,8 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
   struct TokenList *tl = NULL;
   int rc;
-  tokenize(az_span_create_from_str((char *)src), &tl);
+  (void)rc;
+  tokenize(az_span_create_from_str((char *)(size_t)src), &tl);
   rc = scan_for_mixed_declarations(tl, list);
   free_token_list(tl);
   return rc;

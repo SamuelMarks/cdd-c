@@ -92,7 +92,11 @@ static cdd_c_error_t parse_template_type(const char *c_type,
   base_name = (char *)CDD_MALLOC(base_len + 1);
   if (!base_name)
     return CDD_C_ERROR_MEMORY;
+#if defined(_MSC_VER)
+  strncpy_s(base_name, base_len + 1, c_type, base_len);
+#else
   strncpy(base_name, c_type, base_len);
+#endif
   base_name[base_len] = '\0';
 
   out_type->ref_name = base_name;
@@ -101,7 +105,11 @@ static cdd_c_error_t parse_template_type(const char *c_type,
   inner_type_str = (char *)CDD_MALLOC(inner_len + 1);
   if (!inner_type_str)
     return CDD_C_ERROR_MEMORY;
+#if defined(_MSC_VER)
+  strncpy_s(inner_type_str, inner_len + 1, lt + 1, inner_len);
+#else
   strncpy(inner_type_str, lt + 1, inner_len);
+#endif
   inner_type_str[inner_len] = '\0';
 
   /* For naive implementation, we just assume 1 template arg without commas for
@@ -515,7 +523,11 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                 size_t len = (size_t)(rparen - lparen - 1);
                 if (len >= sizeof(params_str))
                   len = sizeof(params_str) - 1;
+#if defined(_MSC_VER)
+                strncpy_s(params_str, sizeof(params_str), lparen + 1, len);
+#else
                 strncpy(params_str, lparen + 1, len);
+#endif
                 params_str[len] = '\0';
 
 #if defined(_MSC_VER)
@@ -552,9 +564,24 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                       /* Parse intent from doc string or SAL */
                       if (node->doc) {
                         char search_out[128], search_in[128], search_inout[128];
+#if defined(_MSC_VER)
+                        sprintf_s(search_out, sizeof(search_out),
+                                  "@param[out] %s", name);
+#else
                         sprintf(search_out, "@param[out] %s", name);
+#endif
+#if defined(_MSC_VER)
+                        sprintf_s(search_in, sizeof(search_in), "@param[in] %s",
+                                  name);
+#else
                         sprintf(search_in, "@param[in] %s", name);
+#endif
+#if defined(_MSC_VER)
+                        sprintf_s(search_inout, sizeof(search_inout),
+                                  "@param[in,out] %s", name);
+#else
                         sprintf(search_inout, "@param[in,out] %s", name);
+#endif
                         if (strstr(node->doc, search_inout)) {
                           node->fields[node->fields_count].intent =
                               CDD_FFI_INTENT_INOUT;
@@ -578,7 +605,12 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                           const char *start = writes + 13;
                           const char *end = strchr(start, ')');
                           if (end && (end - start) < 63) {
+#if defined(_MSC_VER)
+                            strncpy_s(len_buf, sizeof(len_buf), start,
+                                      (size_t)(end - start));
+#else
                             strncpy(len_buf, start, (size_t)(end - start));
+#endif
                             node->fields[node->fields_count].intent =
                                 CDD_FFI_INTENT_OUT;
                             node->fields[node->fields_count].array_length_ref =

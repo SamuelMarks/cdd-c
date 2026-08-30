@@ -23,6 +23,7 @@ TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
   char *argv[2];
   int rc;
+  (void)rc;
   argv[0] = arg0;
   argv[1] = NULL;
   rc = jsonschema2tests_main(1, argv);
@@ -85,7 +86,8 @@ TEST test_schema2tests_success(void) {
         "\"S\":{\"type\":\"object\",\"properties\":{\"foo\": "
         "{\"type\":\"string\"}}}}}}",
         f);
-  fclose(f);
+  if (f)
+    fclose(f);
 
   rc_main = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc_main);
@@ -102,6 +104,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
   char *argv[3];
   int rc;
+  (void)rc;
   argv[0] = (char *)schema_filename;
   argv[1] = "header.h";
   argv[2] = "";
@@ -133,7 +136,8 @@ TEST test_schema2tests_output_file_open_fail(void) {
 #endif
     ASSERT(f);
 #endif
-    fclose(f);
+    if (f)
+      fclose(f);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     sprintf_s(out_path, sizeof(out_path), "%s%sout.h", out_dir_as_file,
@@ -196,6 +200,7 @@ TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[3];
   int rc;
+  (void)rc;
   argv[0] = (char *)schema_file;
   argv[1] = "header.h";
   argv[2] = "build" PATH_SEP "out.h";
@@ -300,6 +305,7 @@ TEST test_schema2tests_sanitize_names(void) {
                   "build" PATH_SEP "test_sanitize.h"};
   const char *const schema_file = argv[0];
   int rc;
+  (void)rc;
 
   rc = write_to_file(schema_file, "{\"$defs\":{\"E-1\":{\"type\":\"string\","
                                   "\"enum\":[\"val-1\"]}}}");

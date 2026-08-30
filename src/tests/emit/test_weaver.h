@@ -34,7 +34,7 @@ TEST test_weaver_wrap_ifdef_basic(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -66,7 +66,7 @@ TEST test_weaver_wrap_ifdef_else(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -124,7 +124,7 @@ TEST test_weaver_inject_msvc_headers(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -170,7 +170,7 @@ TEST test_weaver_vla_to_alloca(void) {
   size_t end_idx = 0;
   size_t i;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -434,7 +434,7 @@ TEST test_weaver_oom(void) {
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+  tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
@@ -546,7 +546,7 @@ TEST test_weaver_cov(void) {
 
   /* Test # include with spaces and no trailing newline */
   const char *src1 = "#    include <stdio.h>";
-  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -565,7 +565,7 @@ TEST test_weaver_cov(void) {
   /* Test #ident that is not include */
   {
     const char *src2 = "#define X 1";
-    res = tokenize(az_span_create_from_str((char *)src2), &tokens);
+    res = tokenize(az_span_create_from_str((char *)(size_t)src2), &tokens);
     ASSERT_EQ(0, res);
 
     res = patch_list_init(&patches);
@@ -584,7 +584,7 @@ TEST test_weaver_cov(void) {
     /* Test vla_to_alloca edge cases */
     {
       const char *src3 = "int a[5];";
-      res = tokenize(az_span_create_from_str((char *)src3), &tokens);
+      res = tokenize(az_span_create_from_str((char *)(size_t)src3), &tokens);
       ASSERT_EQ(0, res);
 
       res = patch_list_init(&patches);
@@ -617,7 +617,7 @@ TEST test_weaver_cov_more(void) {
 
   /* Test # at the end of file (covers j == tokens->size) */
   const char *src1 = "#";
-  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
   (void)out_code;
   ASSERT_EQ(0, res);
 
@@ -653,7 +653,7 @@ TEST test_weaver_cov_even_more(void) {
 
   /* Test # followed by non-identifier */
   const char *src1 = "# 123";
-  res = tokenize(az_span_create_from_str((char *)src1), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -681,10 +681,14 @@ TEST test_weaver_interactive(void) {
   free(patches.patches);
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
-  tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+  tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
   (void)res;
 
+#if defined(_MSC_VER)
+  sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
+#else
   sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);
+#endif
 #if defined(_MSC_VER)
   if (fopen_s(&fake_stdin, tmp_name, "w+") != 0)
     fake_stdin = NULL;
@@ -708,7 +712,8 @@ TEST test_weaver_interactive(void) {
     f = fopen(tmp_name, "w");
 #endif
     fprintf(f, "n\nN\ny\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     if (freopen(tmp_name, "r", stdin)) {
       (void)res;
     }

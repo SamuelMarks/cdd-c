@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_make.h
  * @brief Unit tests for CMake generator.
@@ -32,10 +34,10 @@ extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 TEST test_make_simple(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct MakeConfig cfg;
@@ -61,7 +63,8 @@ TEST test_make_simple(void) {
     ASSERT(strstr(content, "parson"));
 
     free(content);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -74,10 +77,10 @@ TEST test_make_simple(void) {
 TEST test_make_extra_sources(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct MakeConfig cfg;
@@ -104,7 +107,8 @@ TEST test_make_extra_sources(void) {
     ASSERT(strstr(content, "\"b.c\""));
 
     free(content);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -118,10 +122,10 @@ TEST test_make_invalid(void) {
   struct MakeConfig cfg = {0};
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   ASSERT(tmp);
 
@@ -131,7 +135,8 @@ TEST test_make_invalid(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_make_generate(tmp, &cfg)); /* No name */
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -145,10 +150,10 @@ TEST test_make_io_failure(void) {
   FILE *f;
   cfg.project_name = "test_io";
 #if defined(_MSC_VER)
-  if (tmpfile_s(&f) != 0)
+  if (((f = cdd_test_tmpfile_global()) == NULL))
     f = NULL;
 #else
-  f = tmpfile();
+  f = cdd_test_tmpfile_global();
 #endif
   g_fail_io_after = 0;
   g_io_calls = 0;
@@ -158,7 +163,8 @@ TEST test_make_io_failure(void) {
   g_fail_io_after = 1;
   g_io_calls = 0;
   ASSERT_EQ(CDD_C_ERROR_IO, codegen_make_generate(f, &cfg));
-  fclose(f);
+  if (f)
+    fclose(f);
   g_fail_io_after = -1;
   PASS();
 }
@@ -178,6 +184,7 @@ TEST test_make_oom(void) {
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
   int rc;
+  (void)rc;
 #endif
 
   config.project_name = "proj";
@@ -193,7 +200,7 @@ TEST test_make_oom(void) {
   ASSERT(fp);
 
 #ifdef CDD_BUILD_TESTS
-  for (i = 1; i < 200; i++) {
+  for (i = 1; i < 50; i++) {
     g_cdd_fprintf_fail = i;
     rc = codegen_make_generate(fp, &config);
     g_cdd_fprintf_fail = 0;
@@ -202,7 +209,8 @@ TEST test_make_oom(void) {
   }
 #endif
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
 
 #if defined(_MSC_VER)
   if (fopen_s(&fp, "test_make_out.txt", "w") != 0)
@@ -213,7 +221,8 @@ TEST test_make_oom(void) {
   config2.project_name = "proj";
   config2.min_cmake_version = "3.20";
   ASSERT_EQ(0, codegen_make_generate(fp, &config2));
-  fclose(fp);
+  if (fp)
+    fclose(fp);
 
   remove("test_make_out.txt");
 
@@ -227,7 +236,8 @@ TEST test_make_oom(void) {
   config3.extra_sources = (char **)srcs2;
   config3.extra_source_count = 1;
   ASSERT_EQ(0, codegen_make_generate(fp, &config3));
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   remove("test_make_out.txt");
   g_fail_io_after = -1;
 

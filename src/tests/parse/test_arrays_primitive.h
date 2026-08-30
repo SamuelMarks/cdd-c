@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifndef TEST_ARRAYS_PRIMITIVE_H
 #define TEST_ARRAYS_PRIMITIVE_H
 
@@ -70,9 +72,9 @@ TEST test_generated_copy_logic(void) {
   struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
 
   #if defined(_MSC_VER)
-  if(tmpfile_s(&tmp) != 0) tmp = NULL;
+  if(((tmp = cdd_test_tmpfile_global()) == NULL)) tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   ASSERT(tmp);
 
@@ -98,7 +100,7 @@ TEST test_generated_copy_logic(void) {
   ASSERT(strstr(output_buf, "strdup("));
 
   free(output_buf);
-  fclose(tmp);
+  if (tmp) fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -167,7 +169,8 @@ TEST test_code2schema_array_detection(void) {
     FAILm("OOM");
   fread(json_content, 1, len, f);
   json_content[len] = 0;
-  fclose(f);
+  if (f)
+    fclose(f);
 
   printf("JSON_CONTENT:\n%s\n", json_content);
 

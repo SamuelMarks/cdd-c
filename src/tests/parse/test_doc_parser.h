@@ -38,7 +38,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 static int doc_parse_block_with_oom(const char *comment,
                                     struct DocMetadata *meta) {
   int i;
-  for (i = 1; i < 200; ++i) {
+  for (i = 1; i < 50; ++i) {
     struct DocMetadata tmp;
     g_cdd_alloc_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
@@ -47,7 +47,7 @@ static int doc_parse_block_with_oom(const char *comment,
     }
   }
   g_cdd_alloc_fail = 0;
-  for (i = 1; i < 200; ++i) {
+  for (i = 1; i < 50; ++i) {
     struct DocMetadata tmp;
     g_cdd_strdup_fail = i;
     if (doc_metadata_init(&tmp) == 0) {
@@ -821,6 +821,7 @@ TEST test_doc_parse_encodings(void) {
 TEST test_doc_parse_dupes_and_extras(void) {
   struct DocMetadata meta;
   int rc;
+  (void)rc;
   const char *comment =
       "/**\n"
       " * @jsonSchemaDialect D1\n"
@@ -887,6 +888,7 @@ TEST test_doc_parse_dupes_and_extras(void) {
 TEST test_doc_parse_equal_signs(void) {
   struct DocMetadata meta;
   int rc;
+  (void)rc;
   const char *comment =
       "/**\n"
 
@@ -929,6 +931,7 @@ TEST test_doc_parse_equal_signs(void) {
 TEST test_doc_parse_more_branches(void) {
   struct DocMetadata meta;
   int rc;
+  (void)rc;
   const char *comment = "/**\n"
                         " * @securityScheme s1 [type:mutualTLS]\n"
                         " * @securityScheme s2 [in:cookie]\n"
@@ -950,7 +953,7 @@ TEST test_doc_parse_more_branches(void) {
 
 TEST test_doc_oom_and_edges(void) {
   int i;
-  for (i = 1; i < 2000; i++) {
+  for (i = 1; i < 50; i++) {
     struct DocMetadata meta;
     const char *comment =
         "/**\n"

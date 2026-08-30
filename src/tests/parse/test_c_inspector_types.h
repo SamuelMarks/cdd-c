@@ -37,6 +37,7 @@ TEST test_scan_c23_enum_fixed_type(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -71,6 +72,7 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -101,6 +103,7 @@ TEST test_scan_classic_enum(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -199,6 +202,7 @@ TEST test_inspector_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -232,6 +236,7 @@ TEST test_inspector_extract_sig_oom(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -308,6 +313,7 @@ TEST test_inspector_struct_empty_fields(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -333,6 +339,7 @@ TEST test_inspector_extract_sig_oom_2(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -361,6 +368,7 @@ TEST test_inspector_extract_sig_oom_3(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -402,6 +410,7 @@ TEST test_inspector_extract_sig_oom_4(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -432,6 +441,7 @@ TEST test_inspector_struct_fields_oom_2(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -465,6 +475,7 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -498,6 +509,7 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -529,6 +541,7 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -554,6 +567,7 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -579,6 +593,7 @@ TEST test_inspector_extract_sig_fail_tokenizer(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -598,6 +613,7 @@ TEST test_inspector_extract_sig_fail_parser(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -617,6 +633,7 @@ TEST test_inspector_extract_sig_fail_parser_err(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -646,6 +663,7 @@ TEST test_inspector_strdup_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -686,6 +704,7 @@ TEST test_inspector_io_error_perms(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
+  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif

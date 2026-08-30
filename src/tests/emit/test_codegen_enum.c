@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 /**
@@ -46,10 +48,10 @@ static void setup_basic_enum(struct EnumMembers *em) {
 TEST test_enum_to_str_basic(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   struct EnumMembers em;
   long sz;
@@ -78,7 +80,8 @@ TEST test_enum_to_str_basic(void) {
 
   free(content);
   enum_members_free(&em);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -89,10 +92,10 @@ TEST test_enum_to_str_basic(void) {
 TEST test_enum_from_str_basic(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   struct EnumMembers em;
   long sz;
@@ -121,7 +124,8 @@ TEST test_enum_from_str_basic(void) {
 
   free(content);
   enum_members_free(&em);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -132,10 +136,10 @@ TEST test_enum_from_str_basic(void) {
 TEST test_enum_guards(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   struct EnumMembers em;
   struct CodegenEnumConfig config;
@@ -162,7 +166,8 @@ TEST test_enum_guards(void) {
 
   free(content);
   enum_members_free(&em);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -174,10 +179,10 @@ TEST test_enum_null_safety(void) {
   struct EnumMembers em;
   FILE *f;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&f) != 0)
+  if (((f = cdd_test_tmpfile_global()) == NULL))
     f = NULL;
 #else
-  f = tmpfile();
+  f = cdd_test_tmpfile_global();
 #endif /* Valid file */
 
   setup_basic_enum(&em);
@@ -196,7 +201,8 @@ TEST test_enum_null_safety(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_enum_from_str_func(f, "E", NULL, NULL));
 
-  fclose(f);
+  if (f)
+    fclose(f);
   enum_members_free(&em);
   g_fail_io_after = -1;
   PASS();

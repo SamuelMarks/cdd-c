@@ -925,15 +925,27 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
         char safe_name[256];
         cdd_token_t *ct = NULL;
         if (strcmp(name, "strlen") == 0) {
+#if defined(_MSC_VER)
+          strcpy_s(safe_name, sizeof(safe_name), "strnlen_s");
+#else
           strcpy(safe_name, "strnlen_s");
+#endif
         } else {
+#if defined(_MSC_VER)
+          sprintf_s(safe_name, sizeof(safe_name), "%s_s", name);
+#else
           sprintf(safe_name, "%s_s", name);
+#endif
         }
 
         clone_token(bld->tree, node->tok, &ct);
         if (ct) {
           char *pooled = (char *)malloc(strlen(safe_name) + 1);
+#if defined(_MSC_VER)
+          strcpy_s(pooled, strlen(safe_name) + 1, safe_name);
+#else
           strcpy(pooled, safe_name);
+#endif
           if (tree->num_strings >= tree->string_capacity) {
             tree->string_capacity =
                 tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
@@ -1438,7 +1450,11 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
+#if defined(_MSC_VER)
+          sprintf_s(safe_call, sizeof(safe_call), "%s_s", call_name);
+#else
           sprintf(safe_call, "%s_s", call_name);
+#endif
           while (t && t != node) {
             cdd_token_t *ct = NULL;
             clone_token(bld->tree, t->tok, &ct);
@@ -1466,7 +1482,11 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
+#if defined(_MSC_VER)
+          sprintf_s(safe_call, sizeof(safe_call), "%s_s", call_name);
+#else
           sprintf(safe_call, "%s_s", call_name);
+#endif
 
           if (node->tok->leading_trivia) {
             cdd_token_t *ct_space = NULL;
@@ -1556,7 +1576,11 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
     memcpy(out_indent, last_ws->start, len);
     out_indent[len] = '\0';
   } else {
+#if defined(_MSC_VER)
+    strcpy_s(out_indent, 64, "  ");
+#else
     strcpy(out_indent, "  ");
+#endif
   }
 }
 

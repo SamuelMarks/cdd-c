@@ -64,7 +64,8 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      fclose(pkg_f);
+      if (pkg_f)
+        fclose(pkg_f);
       pkg_f = NULL;
     }
   }

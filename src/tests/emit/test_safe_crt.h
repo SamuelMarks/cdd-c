@@ -34,11 +34,12 @@ TEST test_safe_crt_strcpy(void) {
   struct CstNodeList *nodes = NULL;
   struct SafeCrtPatchList patches;
   int rc;
+  (void)rc;
 
   nodes = calloc(1, sizeof(struct CstNodeList));
 
   {
-    az_span span = az_span_create((uint8_t *)src, strlen(src));
+    az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
     rc = tokenize(span, &tokens);
     ASSERT_EQ(0, rc);
 

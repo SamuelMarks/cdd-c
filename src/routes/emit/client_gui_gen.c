@@ -72,7 +72,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       C_CDD_FREE(src_dir);
       return rc;
     }
+#if defined(_MSC_VER)
+    sprintf_s(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
+#else
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+#endif
     makedirs(src_dir);
     CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
                  base_name ? base_name : "generated_client");

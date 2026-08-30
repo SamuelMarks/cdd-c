@@ -32,6 +32,7 @@ TEST test_macro_evaluator_basic(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
   int rc;
+  (void)rc;
 
   pp_context_init(&ctx);
 
@@ -88,6 +89,7 @@ TEST test_macro_evaluator_all_ops(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
   int rc;
+  (void)rc;
 
   pp_context_init(&ctx);
 
@@ -156,6 +158,7 @@ TEST test_macro_evaluator_errors(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
   int rc;
+  (void)rc;
 
   pp_context_init(&ctx);
 
@@ -251,6 +254,7 @@ TEST test_macro_evaluator_errors(void) {
 TEST test_pp_define_object_like(void) {
   const char *fname = "test_defs.h";
   int rc;
+  (void)rc;
   struct PreprocessorContext ctx;
 
   write_to_file(fname, "#define MAX_SIZE 100\n#define PI 3.14\n");
@@ -280,6 +284,7 @@ TEST test_pp_define_object_like(void) {
 TEST test_pp_define_function_like(void) {
   const char *fname = "test_func_macros.h";
   int rc;
+  (void)rc;
   struct PreprocessorContext ctx;
 
   write_to_file(fname, "#define MIN(a, b) ((a)<(b)?(a):(b))\n");
@@ -309,6 +314,7 @@ TEST test_pp_define_function_like(void) {
 TEST test_pp_define_variadic_standard(void) {
   const char *fname = "test_variadic.h";
   int rc;
+  (void)rc;
   struct PreprocessorContext ctx;
 
   /* Standard C99: trailing ellipsis */
@@ -341,6 +347,7 @@ TEST test_pp_define_variadic_standard(void) {
 TEST test_pp_define_variadic_empty(void) {
   const char *fname = "test_var_empty.h";
   int rc;
+  (void)rc;
   struct PreprocessorContext ctx;
 
   /* #define TRACE(...) */
@@ -369,6 +376,7 @@ TEST test_pp_define_variadic_empty(void) {
 TEST test_pp_define_variadic_gcc(void) {
   const char *fname = "test_var_gcc.h";
   int rc;
+  (void)rc;
   struct PreprocessorContext ctx;
 
   /* GCC named variadic: #define LOG(args...) */
@@ -399,6 +407,7 @@ TEST test_macro_evaluator_uncovered(void) {
   struct PreprocessorContext ctx;
   cdd_macro_eval_result_t res;
   int rc;
+  (void)rc;
   struct MacroDef def;
 
   pp_context_init(&ctx);

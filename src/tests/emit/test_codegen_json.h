@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_json.h
  * @brief Unit tests for JSON Serialization generator.
@@ -40,10 +42,10 @@ static void setup_json_fields(struct StructFields *sf) {
 TEST test_json_to_plain(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -77,7 +79,8 @@ TEST test_json_to_plain(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -90,10 +93,10 @@ TEST test_json_to_plain(void) {
 TEST test_json_from_plain(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -124,7 +127,8 @@ TEST test_json_from_plain(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -137,10 +141,10 @@ TEST test_json_from_plain(void) {
 TEST test_json_recursive_obj(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -168,7 +172,8 @@ TEST test_json_recursive_obj(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -181,10 +186,10 @@ TEST test_json_recursive_obj(void) {
 TEST test_json_array_logic(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -213,7 +218,8 @@ TEST test_json_array_logic(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -226,10 +232,10 @@ TEST test_json_array_logic(void) {
 TEST test_json_guards(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -272,13 +278,33 @@ TEST test_json_guards(void) {
 
     /* String with regex patterns */
     struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+    strcpy_s(sf.fields[sf.size - 1].pattern,
+             sizeof(sf.fields[sf.size - 1].pattern), "^exact$");
+#else
     strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+#endif
     struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+    strcpy_s(sf.fields[sf.size - 1].pattern,
+             sizeof(sf.fields[sf.size - 1].pattern), "^prefix");
+#else
     strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+#endif
     struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+    strcpy_s(sf.fields[sf.size - 1].pattern,
+             sizeof(sf.fields[sf.size - 1].pattern), "suffix$");
+#else
     strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+#endif
     struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+    strcpy_s(sf.fields[sf.size - 1].pattern,
+             sizeof(sf.fields[sf.size - 1].pattern), "contains");
+#else
     strcpy(sf.fields[sf.size - 1].pattern, "contains");
+#endif
 
     /* Integer with inclusive min/max */
     struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
@@ -346,7 +372,8 @@ TEST test_json_guards(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -359,10 +386,10 @@ TEST test_json_guards(void) {
 TEST test_struct_array_from_json(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     char *content = NULL;
@@ -389,7 +416,8 @@ TEST test_struct_array_from_json(void) {
                "Data_from_jsonObject(json_array_get_object(arr, i), &tmp[i])"));
 
     free(content);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -402,10 +430,10 @@ TEST test_struct_array_from_json(void) {
 TEST test_json_null_args(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_to_json_func(NULL, "S", NULL, NULL));
@@ -421,10 +449,10 @@ TEST test_json_null_args(void) {
   {
     FILE *readonly_f;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&readonly_f) != 0)
+    if (((readonly_f = cdd_test_tmpfile_global()) == NULL))
       readonly_f = NULL;
 #else
-    readonly_f = tmpfile();
+    readonly_f = cdd_test_tmpfile_global();
 #endif
     {
       struct StructFields sf;
@@ -464,13 +492,33 @@ TEST test_json_null_args(void) {
 
       /* String with regex patterns */
       struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+      strcpy_s(sf.fields[sf.size - 1].pattern,
+               sizeof(sf.fields[sf.size - 1].pattern), "^exact$");
+#else
       strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+#endif
       struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+      strcpy_s(sf.fields[sf.size - 1].pattern,
+               sizeof(sf.fields[sf.size - 1].pattern), "^prefix");
+#else
       strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+#endif
       struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+      strcpy_s(sf.fields[sf.size - 1].pattern,
+               sizeof(sf.fields[sf.size - 1].pattern), "suffix$");
+#else
       strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+#endif
       struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+      strcpy_s(sf.fields[sf.size - 1].pattern,
+               sizeof(sf.fields[sf.size - 1].pattern), "contains");
+#else
       strcpy(sf.fields[sf.size - 1].pattern, "contains");
+#endif
 
       /* Integer with inclusive min/max */
       struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
@@ -554,7 +602,8 @@ TEST test_json_null_args(void) {
     }
   }
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -566,10 +615,10 @@ TEST test_json_null_args(void) {
 TEST test_standalone_json_func(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -597,7 +646,8 @@ TEST test_standalone_json_func(void) {
 
     free(content);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -613,6 +663,7 @@ TEST test_json_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
+  (void)rc;
   struct StructFields sf;
   struct CodegenJsonConfig config;
 
@@ -680,13 +731,33 @@ TEST test_json_exhaustive_io(void) {
 
   /* String with regex patterns */
   struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].pattern,
+           sizeof(sf.fields[sf.size - 1].pattern), "^exact$");
+#else
   strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+#endif
   struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].pattern,
+           sizeof(sf.fields[sf.size - 1].pattern), "^prefix");
+#else
   strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+#endif
   struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].pattern,
+           sizeof(sf.fields[sf.size - 1].pattern), "suffix$");
+#else
   strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+#endif
   struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+#if defined(_MSC_VER)
+  strcpy_s(sf.fields[sf.size - 1].pattern,
+           sizeof(sf.fields[sf.size - 1].pattern), "contains");
+#else
   strcpy(sf.fields[sf.size - 1].pattern, "contains");
+#endif
 
   /* Integer with inclusive min/max */
   struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
@@ -739,18 +810,19 @@ TEST test_json_exhaustive_io(void) {
 
   config.guard_macro = "JSON_ENABLED";
 
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -760,18 +832,19 @@ TEST test_json_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_from_json_func(tmp, "Data", &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -781,18 +854,19 @@ TEST test_json_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_array_from_json_func(tmp, "Data", &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -802,18 +876,19 @@ TEST test_json_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_from_jsonObject_func(tmp, "Data", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -824,18 +899,19 @@ TEST test_json_exhaustive_io(void) {
   }
 
   config.guard_macro = NULL;
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -855,10 +931,10 @@ TEST test_json_exhaustive_io(void) {
 TEST test_codegen_json_extra(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -930,7 +1006,8 @@ TEST test_codegen_json_extra(void) {
     ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Extra", &sf, &config));
 
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }

@@ -39,7 +39,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
-  (void)tokenize(az_span_create_from_str((char *)code), &tl);
+  (void)tokenize(az_span_create_from_str((char *)(size_t)code), &tl);
   return tl;
 }
 
@@ -73,6 +73,7 @@ TEST test_parse_basic_int(void) {
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   rc = parse_declaration(tl, 0, tl->size, &info);
@@ -96,6 +97,7 @@ TEST test_parse_ptr(void) {
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
+  (void)rc;
 
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
@@ -365,6 +367,7 @@ TEST test_parse_declarator_more_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
   int rc;
+  (void)rc;
   int is_group;
 
   tl = setup_tokens("enum { A, B } x");
@@ -468,6 +471,7 @@ TEST test_parse_declarator_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
   int rc;
+  (void)rc;
 
   /* No explicit base type (implicit int) */
   tl = setup_tokens("*p");
@@ -608,8 +612,8 @@ TEST test_parse_declarator_uncovered_2(void) {
 
 SUITE(declarator_parser_suite) {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  return;
-#endif
+  /* skipped on old msvc */
+#else
 
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
@@ -632,6 +636,7 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_declarator_just_x);
   RUN_TEST(test_parse_declarator_uncovered);
   RUN_TEST(test_parse_declarator_uncovered_2);
+#endif
 }
 
 #ifdef __cplusplus

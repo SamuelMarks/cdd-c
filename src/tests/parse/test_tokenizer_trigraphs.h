@@ -29,7 +29,7 @@ extern "C" {
 static cdd_c_error_t tokenize_string(const char *s,
                                      struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  az_span span = az_span_create_from_str((char *)s);
+  az_span span = az_span_create_from_str((char *)(size_t)s);
   cdd_c_error_t rc = tokenize(span, &tl);
   if (rc != CDD_C_SUCCESS) {
     return rc;

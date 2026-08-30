@@ -120,7 +120,7 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
             size_t flen = tokens->tokens[j].length - 2;
             size_t k;
             for (k = 0; k < flen; ++k) {
-              if (isalpha(flags[k])) {
+              if (isalpha((unsigned char)flags[k])) {
                 struct CliOption *opt = NULL;
                 if (add_option(cmd, &opt) != CDD_C_SUCCESS)
                   return CDD_C_ERROR_MEMORY;

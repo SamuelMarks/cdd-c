@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifdef _MSC_VER
 #define dup2 _dup2
 #define close _close
@@ -49,6 +51,7 @@ TEST test_serve_json_rpc_bind_fail(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12346"};
   int argc = 3;
   int rc;
+  (void)rc;
 
   /* Create a socket holding port 12346 */
 #if defined(_WIN32)
@@ -88,6 +91,7 @@ TEST test_serve_json_rpc_listen_once(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12347", "--listen", "255"};
   int argc = 5;
   int rc;
+  (void)rc;
 
   /* Should break immediately because listen_flag is -1 */
   rc = serve_json_rpc_main(argc, argv);
@@ -107,6 +111,7 @@ TEST test_serve_json_rpc_basic(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12345"};
   int argc = 3;
   int rc;
+  (void)rc;
 
   /* Since we do not pass --listen, it should bind, listen, and immediately exit
    * the loop returning 0 */
@@ -132,6 +137,7 @@ TEST test_serve_json_rpc_bad_port(void) {
   char *argv[] = {"serve_json_rpc_main"};
   int argc = 1;
   int rc;
+  (void)rc;
 
   rc = serve_json_rpc_main(argc, argv);
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
@@ -149,14 +155,15 @@ TEST test_serve_mcp_stdio_main(void) {
   char *argv[] = {"serve_mcp_stdio_main"};
   int argc = 1;
   int rc;
+  (void)rc;
 
   /* Create a temporary file and redirect stdin to it */
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   ASSERT_NEQ(NULL, tmp);
   {
@@ -245,7 +252,8 @@ TEST test_serve_mcp_stdio_main(void) {
     dup2(old_stdout, fileno(stdout));
     close(old_stdin);
     close(old_stdout);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (devnull)
       fclose(devnull);
     ASSERT_EQ(0, rc);

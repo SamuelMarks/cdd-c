@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifndef TEST_CODEGEN_DEFAULTS_H
 #define TEST_CODEGEN_DEFAULTS_H
 
@@ -27,7 +29,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
 static FILE *mock_tmpfile_def(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;
-  return tmpfile();
+  return cdd_test_tmpfile_global();
 }
 static long mock_ftell_def(FILE *stream) {
   if (g_fail_io_after == 999)
@@ -67,7 +69,8 @@ static cdd_c_error_t generate_def_code(const char *struct_name,
   }
 
   if (write_struct_default_func(tmp, struct_name, sf, NULL) != 0) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = NULL;
       return 0;
@@ -82,7 +85,8 @@ static cdd_c_error_t generate_def_code(const char *struct_name,
   if (sz > 0)
     FREAD(content, 1, (size_t)sz, tmp);
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   {
     *_out_val = content;
     return 0;
@@ -272,7 +276,8 @@ TEST test_write_forward_decl_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(NULL, "X"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_forward_decl(tmp, NULL));
   ASSERT_EQ(0, write_forward_decl(tmp, "X"));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -280,6 +285,7 @@ TEST test_write_forward_decl_bounds(void) {
 TEST test_write_forward_decl_io_fail(void) {
   FILE *tmp = TMPFILE();
   int rc;
+  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   ASSERT(tmp);
@@ -289,7 +295,8 @@ TEST test_write_forward_decl_io_fail(void) {
   g_io_calls = 0;
   (void)rc;
   ASSERT_EQ(CDD_C_ERROR_IO, write_forward_decl(tmp, "X"));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -299,6 +306,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
+  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -332,7 +340,8 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   cfg.enum_guard = NULL;
   ASSERT_EQ(0, write_enum_declaration_h(tmp, "E", &sf, &cfg));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -343,6 +352,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
+  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -391,7 +401,8 @@ TEST test_write_struct_declaration_h_io_fail(void) {
     struct_fields_free(&empty_sf);
   }
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -402,6 +413,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct CodegenConfig cfg;
   FILE *tmp = TMPFILE();
   int rc;
+  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
@@ -433,7 +445,8 @@ TEST test_write_union_declaration_h_io_fail(void) {
       ASSERT_EQ(CDD_C_ERROR_IO, rc);
     }
   }
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -468,7 +481,8 @@ TEST test_codegen_h_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             write_struct_declaration_h(tmp, "S", NULL, &cfg));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();

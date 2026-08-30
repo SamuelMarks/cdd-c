@@ -52,6 +52,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_ffi_e2e_out";
   int rc;
+  (void)rc;
   FILE *f;
 
   write_to_file(filename, code);
@@ -82,7 +83,8 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f) {
-    fclose(f);
+    if (f)
+      fclose(f);
   }
 
   /* Assert Rust bindings generated */
@@ -98,7 +100,8 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f) {
-    fclose(f);
+    if (f)
+      fclose(f);
   }
 
   /* Assert C# bindings generated */
@@ -114,7 +117,8 @@ TEST test_ffi_e2e_complex_codebase(void) {
 #endif
   ASSERT_EQ(1, f != NULL);
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 
   remove(filename);
   PASS();

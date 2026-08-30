@@ -24,7 +24,7 @@ extern "C" {
 
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  (void)tokenize(az_span_create_from_str((char *)s), &tl);
+  (void)tokenize(az_span_create_from_str((char *)(size_t)s), &tl);
   {
     *_out_val = tl;
     return 0;
@@ -43,6 +43,7 @@ TEST test_init_simple_positional(void) {
   struct InitList list;
   size_t consumed = 0;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -75,6 +76,7 @@ TEST test_init_designated_fields(void) {
       (tokenize_str(code, &_ast_tokenize_str_1), _ast_tokenize_str_1);
   struct InitList list;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -106,6 +108,7 @@ TEST test_init_array_index(void) {
       (tokenize_str(code, &_ast_tokenize_str_2), _ast_tokenize_str_2);
   struct InitList list;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -137,6 +140,7 @@ TEST test_init_nested(void) {
       (tokenize_str(code, &_ast_tokenize_str_3), _ast_tokenize_str_3);
   struct InitList list;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -178,6 +182,7 @@ TEST test_init_mixed_expressions(void) {
       (tokenize_str(code, &_ast_tokenize_str_4), _ast_tokenize_str_4);
   struct InitList list;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -232,6 +237,7 @@ TEST test_init_trailing_comma(void) {
       (tokenize_str(code, &_ast_tokenize_str_5), _ast_tokenize_str_5);
   struct InitList list;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   init_list_init(&list);
@@ -285,6 +291,7 @@ TEST test_init_oom(void) {
   const char *code = "{ .pt = 1 /* c */, 2, 3, 4, 5, [0] = { 6 }, { 7 } }";
   struct InitList list;
   int rc;
+  (void)rc;
   int i;
   /*  (moved to global) */
 
@@ -318,6 +325,7 @@ TEST test_init_more_errors(void) {
   struct TokenList *tl;
   struct InitList list;
   int rc;
+  (void)rc;
 
   /* Invalid designator ending */
   (void)tokenize_str("{ .x , }", &tl);

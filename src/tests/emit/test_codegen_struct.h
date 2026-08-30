@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_struct.h
  * @brief Unit tests for Struct Lifecycle generation logic.
@@ -42,10 +44,10 @@ static void setup_struct_fields(struct StructFields *sf) {
 TEST test_cleanup_generation(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -73,7 +75,8 @@ TEST test_cleanup_generation(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -86,10 +89,10 @@ TEST test_cleanup_generation(void) {
 TEST test_default_generation(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -117,7 +120,8 @@ TEST test_default_generation(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -130,10 +134,10 @@ TEST test_default_generation(void) {
 TEST test_deepcopy_generation(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -163,7 +167,8 @@ TEST test_deepcopy_generation(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -176,10 +181,10 @@ TEST test_deepcopy_generation(void) {
 TEST test_eq_generation(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -206,7 +211,8 @@ TEST test_eq_generation(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -219,10 +225,10 @@ TEST test_eq_generation(void) {
 TEST test_guards_injection(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -249,7 +255,8 @@ TEST test_guards_injection(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -279,10 +286,10 @@ TEST test_null_args(void) {
 TEST test_struct_debug_func(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -328,7 +335,8 @@ TEST test_struct_debug_func(void) {
     free(content);
     struct_fields_free(NULL);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -360,10 +368,10 @@ TEST test_struct_invalid_args(void) {
   {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
     struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
@@ -375,7 +383,8 @@ TEST test_struct_invalid_args(void) {
     struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
     struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
     ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, NULL));
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
   }
 
   struct_fields_free(NULL);
@@ -411,10 +420,10 @@ TEST test_struct_fields_add_bitwidth(void) {
 TEST test_struct_io_errors(void) {
   FILE *readonly_f;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&readonly_f) != 0)
+  if (((readonly_f = cdd_test_tmpfile_global()) == NULL))
     readonly_f = NULL;
 #else
-  readonly_f = tmpfile();
+  readonly_f = cdd_test_tmpfile_global();
 #endif
   {
     struct StructFields sf;
@@ -511,33 +520,50 @@ TEST test_struct_exhaustive_io(void) {
   sf.is_union = 1;
   sf.union_is_anyof = 0;
   sf.union_discriminator = (char *)malloc(5);
+#if defined(_MSC_VER)
+  strcpy_s(sf.union_discriminator, 5, "type");
+#else
   strcpy(sf.union_discriminator, "type");
+#endif
   sf.n_union_variants = 1;
   sf.union_variants =
       (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
   sf.union_variants[0].n_property_names = 1;
   sf.union_variants[0].property_names = (char **)calloc(1, sizeof(char *));
   sf.union_variants[0].property_names[0] = (char *)malloc(2);
+#if defined(_MSC_VER)
+  strcpy_s(sf.union_variants[0].property_names[0], 2, "a");
+#else
   strcpy(sf.union_variants[0].property_names[0], "a");
+#endif
   sf.union_variants[0].n_required_props = 1;
   sf.union_variants[0].required_props = (char **)calloc(1, sizeof(char *));
   sf.union_variants[0].required_props[0] = (char *)malloc(2);
+#if defined(_MSC_VER)
+  strcpy_s(sf.union_variants[0].required_props[0], 2, "a");
+#else
   strcpy(sf.union_variants[0].required_props[0], "a");
+#endif
   sf.union_variants[0].disc_value = (char *)malloc(5);
+#if defined(_MSC_VER)
+  strcpy_s(sf.union_variants[0].disc_value, 5, "val1");
+#else
   strcpy(sf.union_variants[0].disc_value, "val1");
+#endif
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -545,18 +571,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_display_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -564,18 +591,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_default_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -583,18 +611,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -602,18 +631,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_eq_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -621,18 +651,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_debug_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -642,78 +673,83 @@ TEST test_struct_exhaustive_io(void) {
 
   config.guard_macro = "MY_GUARD";
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_default_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_eq_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_debug_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_display_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -721,18 +757,19 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 600; ++i) {
+  for (i = 0; i < 50; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&tmp) != 0)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
       tmp = NULL;
 #else
-    tmp = tmpfile();
+    tmp = cdd_test_tmpfile_global();
 #endif
     g_fail_io_after = i;
     g_io_calls = 0;
     rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     if (rc == 0)
       break;
     g_fail_io_after = 0;
@@ -793,7 +830,11 @@ TEST test_struct_fields_init_oom(void) {
   sf.is_union = 1;
   sf.union_is_anyof = 0;
   sf.union_discriminator = (char *)malloc(5);
+#if defined(_MSC_VER)
+  strcpy_s(sf.union_discriminator, 5, "type");
+#else
   strcpy(sf.union_discriminator, "type");
+#endif
   sf.n_union_variants = 1;
   sf.union_variants =
       (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));

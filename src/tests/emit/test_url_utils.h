@@ -154,6 +154,7 @@ TEST test_url_encode_null(void) {
 TEST test_query_lifecycle(void) {
   struct UrlQueryParams qp;
   int rc;
+  (void)rc;
 
   rc = url_query_init(&qp);
   ASSERT_EQ(0, rc);
@@ -419,7 +420,8 @@ TEST test_url_utils_write_query_json_param(void) {
 
   /* unsupported array */
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   remove("test_url_json.txt");
   g_fail_io_after = -1;
 

@@ -1,4 +1,6 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
+#include "cdd_c_error.h"
 
 #include "../../include/ffi/cdd_ffi_variadic.h"
 #include <string.h>

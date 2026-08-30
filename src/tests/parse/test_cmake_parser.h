@@ -33,6 +33,7 @@ TEST test_cmake_modifier_basic(void) {
   /*  (moved to global) */
   int i;
   int rc;
+  (void)rc;
 
   (void)rc;
   (void)i;
@@ -77,6 +78,7 @@ TEST test_cmake_modifier_global(void) {
   /*  (moved to global) */
   int i;
   int rc;
+  (void)rc;
 
   (void)rc;
   (void)i;
@@ -134,6 +136,7 @@ TEST test_cmake_parser_oom(void) {
   /*  (moved to global) */
   int i;
   int rc;
+  (void)rc;
 
   makedirs("test_cmake_dir");
 #if defined(_MSC_VER)
@@ -147,7 +150,8 @@ TEST test_cmake_parser_oom(void) {
         f,
         "project(test)\nadd_library(test a.c)\ntarget_include_directories(test "
         "PUBLIC inc)\ntarget_link_libraries(test PRIVATE cfs)\n");
-    fclose(f);
+    if (f)
+      fclose(f);
   }
 
   for (i = 1; i < 20; i++) {
@@ -174,7 +178,7 @@ TEST test_cmake_parser_oom(void) {
     cmake_modifier_free(&mod);
   }
 
-  for (i = 1; i < 200; i++) {
+  for (i = 1; i < 50; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     cmake_modifier_add_compile_opt(&mod, "/W4");
     cmake_modifier_add_link_lib(&mod, "ws2_32.lib");

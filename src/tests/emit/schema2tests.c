@@ -373,7 +373,8 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         rc = get_basename(schema_file, &base);
         if (rc != 0) {
           fprintf(stderr, "Failed to get basename of: %s\n", schema_file);
-          fclose(f);
+          if (f)
+            fclose(f);
           json_value_free(root_val);
           return rc;
         }
@@ -531,7 +532,8 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       FPRINTF(f, "}\n\n#endif /* !%s_TESTS_H */\n", sanitized);
 
-      fclose(f);
+      if (f)
+        fclose(f);
     }
 
     json_value_free(root_val);

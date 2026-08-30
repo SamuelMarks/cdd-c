@@ -29,6 +29,8 @@ CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
  * @param[in] contents The data to write.
  * @return EXIT_SUCCESS on success, EXIT_FAILURE on error.
  */
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
+
 CDD_TEST_HELPERS_EXPORT cdd_c_error_t write_to_file(const char *filename,
                                                     const char *contents);
 

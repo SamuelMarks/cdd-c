@@ -35,6 +35,7 @@ TEST test_diff_generation_basic(void) {
   struct PatchList patch_list;
   char *diff = NULL;
   int rc;
+  (void)rc;
   char *diff2 = NULL;
   char huge_str[5000];
   struct PatchList patch_list2;
@@ -46,7 +47,7 @@ TEST test_diff_generation_basic(void) {
   az_span span;
 
   patch_list_init(&patch_list);
-  span = az_span_create((uint8_t *)src, strlen(src));
+  span = az_span_create((uint8_t *)(size_t)src, strlen(src));
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
 
@@ -67,7 +68,11 @@ TEST test_diff_generation_basic(void) {
 
   {
     char *text = (char *)malloc(5);
+#if defined(_MSC_VER)
+    strcpy_s(text, 5, "void");
+#else
     strcpy(text, "void");
+#endif
     ASSERT_EQ(0, patch_list_add(&patch_list, 0, 1, text));
   }
 

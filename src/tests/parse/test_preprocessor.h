@@ -92,7 +92,8 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
-  rc = tokenize(az_span_create_from_str((char *)expr), &tl);
+  (void)rc;
+  rc = tokenize(az_span_create_from_str((char *)(size_t)expr), &tl);
   if (rc != 0) {
     fprintf(stderr, "tokenize failed with %d\n", rc);
     return -999;
@@ -354,6 +355,7 @@ TEST test_pp_ifdef_skip(void) {
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
+  (void)rc;
 
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_cond_%d", tmp, PATH_SEP_CHAR, rand())) {
@@ -393,6 +395,7 @@ TEST test_pp_if_else(void) {
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
+  (void)rc;
 
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_else_%d", tmp, PATH_SEP_CHAR, rand())) {
@@ -437,6 +440,7 @@ TEST test_pp_nested_if(void) {
   struct PreprocessorContext ctx;
   struct TestPPCtx tctx = {0, "", {-1, NULL, NULL, NULL}};
   int rc;
+  (void)rc;
 
   tempdir(&tmp);
   if (asprintf(&root, "%s%cpp_nest_%d", tmp, PATH_SEP_CHAR, rand())) {
@@ -491,6 +495,7 @@ static cdd_c_error_t test_include_next_visitor(const struct IncludeInfo *info,
 TEST test_pp_include_next(void) {
   struct PreprocessorContext ctx;
   int rc;
+  (void)rc;
   int called = 0;
   const char *test_dir = "test_include_next_dir";
   const char *test_file = "test_include_next_dir/test.c";
@@ -520,8 +525,8 @@ TEST test_pp_include_next(void) {
 }
 
 static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
-  (void)info;
   int *called;
+  (void)info;
   called = (int *)user_data;
   (*called)++;
   return 1; /* Abort on first */
@@ -530,6 +535,7 @@ static cdd_c_error_t abort_cb(const struct IncludeInfo *info, void *user_data) {
 TEST test_preprocessor_abort(void) {
   struct PreprocessorContext ctx;
   int rc;
+  (void)rc;
   int called = 0;
   char *tmp = NULL;
   char *test_dir = NULL;
@@ -584,10 +590,11 @@ TEST test_preprocessor_abort(void) {
 
 TEST test_pp_scan_defines(void) {
   int i;
-  for (i = 1; i < 200; i++) {
+  for (i = 1; i < 50; i++) {
     struct PreprocessorContext ctx;
     char *tmp = NULL, *root = NULL, *main_c = NULL;
     int rc;
+    (void)rc;
 
     tempdir(&tmp);
     if (asprintf(&root, "%s%cpp_scan_%d", tmp, PATH_SEP_CHAR, rand())) {

@@ -70,7 +70,8 @@ TEST test_lift_anonymous_struct(void) {
         FAILm("OOM");
       fread(content, 1, sz, f);
       content[sz] = 0;
-      fclose(f);
+      if (f)
+        fclose(f);
 
       /* We expect a definition for Parent */
       ASSERT(strstr(content, "\"Parent\":"));

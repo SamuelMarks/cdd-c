@@ -28,7 +28,7 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc = tokenize(az_span_create_from_str((char *)code), &tl);
+  int rc = tokenize(az_span_create_from_str((char *)(size_t)code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
     return 0;
@@ -70,6 +70,7 @@ TEST test_patch_basic_replacement(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -107,6 +108,7 @@ TEST test_patch_insertion(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -145,6 +147,7 @@ TEST test_patch_deletion(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -176,6 +179,7 @@ TEST test_patch_multiple_disjoint(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(tl);
   patch_list_init(&pl);
@@ -212,6 +216,7 @@ TEST test_patch_overlap_behavior(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
 
   /* Assert undefined behavior matches implementation (sorted, first wins) */
   ASSERT(tl);
@@ -255,6 +260,7 @@ TEST test_patch_append_end(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
+  (void)rc;
   char huge_str[3000];
 
   ASSERT(tl);
@@ -320,6 +326,7 @@ TEST test_patcher_oom(void) {
       for (j = 1; j < 50; j++) {
         char *tmp = strdup("b");
         int rc;
+        (void)rc;
         g_cdd_alloc_fail = j;
         rc = patch_list_add(&list, 0, 1, tmp);
         g_cdd_alloc_fail = 0;
@@ -375,6 +382,7 @@ TEST test_patcher_oom(void) {
             int j;
             for (j = 1; j < 180; j++) {
               int rc;
+              (void)rc;
               int my_alloc = j;
               if (j == 4)
                 my_alloc = 3000;
@@ -411,6 +419,7 @@ TEST test_patcher_oom(void) {
               int j;
               for (j = 1; j < 180; j++) {
                 int rc;
+                (void)rc;
                 int my_alloc = j;
                 if (j == 4) {
                   my_alloc = 3000;
@@ -1066,6 +1075,7 @@ TEST test_patcher_invalid(void) {
   struct TokenList tl_empty;
   int i;
   int rc;
+  (void)rc;
   /*  (moved to global) */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -1114,7 +1124,11 @@ TEST test_patcher_invalid(void) {
   g_cdd_alloc_fail = 1;
   {
     char *dummy = malloc(5);
+#if defined(_MSC_VER)
+    strcpy_s(dummy, 5, "test");
+#else
     strcpy(dummy, "test");
+#endif
     rc = patch_list_add(&pl2, 0, 1, dummy);
     printf("DEBUG: rc=%d\n", rc);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -1228,7 +1242,7 @@ TEST test_patcher_oom_original_token_copy(void) {
   res = patch_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, res);
 
-  res = tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+  res = tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
   ASSERT_EQ(CDD_C_SUCCESS, res);
 
   /* Add a patch so patch loop logic applies */
@@ -1293,7 +1307,7 @@ TEST test_patcher_oom_no_patches(void) {
   int i;
 
   res = patch_list_init(&list);
-  res = tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
+  res = tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
 
 #ifdef CDD_BUILD_TESTS
   {

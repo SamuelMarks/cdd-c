@@ -24,10 +24,12 @@ extern C_CDD_EXPORT int g_fail_io_after;
 #ifdef CDD_BUILD_TESTS
 /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 static FILE *mock_tmpfile_eq(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;
-  return tmpfile();
+  return cdd_test_tmpfile_global();
 }
 static long mock_ftell_eq(FILE *stream) {
   if (g_fail_io_after == 999)
@@ -61,7 +63,8 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
   }
 
   if (write_struct_eq_func(tmp, struct_name, sf, NULL) != 0) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = NULL;
       return 0;
@@ -80,7 +83,8 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
     content = C_CDD_STRDUP("");
   }
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   {
     *_out_val = content;
     return 0;
@@ -276,22 +280,39 @@ TEST test_eq_array_object(void) {
 TEST test_eq_errors(void) {
   char *_out = NULL;
   struct StructFields sf;
+  printf("test_eq_errors: start\n");
+  fflush(stdout);
   struct_fields_init(&sf);
   struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
 
+  printf("test_eq_errors: setup done\n");
+  fflush(stdout);
   g_io_calls = 0;
   g_fail_io_after = 1;
   ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  printf("test_eq_errors: after generate_eq_code 1\n");
+  fflush(stdout);
   ASSERT_EQ(NULL, _out);
 
   g_io_calls = 0;
   g_fail_io_after = 2;
   ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  printf("test_eq_errors: after generate_eq_code 2\n");
+  fflush(stdout);
   ASSERT_EQ(NULL, _out);
 
   g_io_calls = 0;
   g_fail_io_after = 999;
   ASSERT_EQ(0, generate_eq_code("Prim", &sf, &_out));
+  printf("test_eq_errors: after generate_eq_code 3\n");
+  fflush(stdout);
+  printf("test_eq_errors: _out = %p\n", (void *)_out);
+  fflush(stdout);
+  if (_out) {
+    printf("test_eq_errors: _out content = '%s'\n", _out);
+    fflush(stdout);
+  }
+  ASSERT(_out != NULL);
   ASSERT_STR_EQ("", _out);
   C_CDD_FREE(_out);
   g_fail_io_after = -1;

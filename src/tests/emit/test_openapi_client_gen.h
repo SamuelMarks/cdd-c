@@ -58,6 +58,7 @@ TEST test_gen_client_basic(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -94,6 +95,7 @@ TEST test_gen_client_operation_server_override(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -129,6 +131,7 @@ TEST test_gen_client_text_plain_request_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
@@ -163,6 +166,7 @@ TEST test_gen_client_octet_stream_request_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
@@ -197,6 +201,7 @@ TEST test_gen_client_octet_stream_response_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
   op.responses[0].content_type = "application/octet-stream";
@@ -231,6 +236,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -274,6 +280,7 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -307,6 +314,7 @@ TEST test_gen_client_additional_operation(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   (void)openapi_spec_init(&spec);
   memset(&op, 0, sizeof(op));
@@ -359,6 +367,7 @@ TEST test_gen_client_op_params_only(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -399,6 +408,7 @@ TEST test_gen_client_querystring_param(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -438,6 +448,7 @@ TEST test_gen_client_path_level_params(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -482,6 +493,7 @@ TEST test_gen_client_path_param_override(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
 
@@ -528,6 +540,7 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
   /* Tag string array setup */
   static char *tags[] = {"pet"};
 
@@ -569,6 +582,7 @@ TEST test_gen_client_namespace_only(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   setup_minimal_spec(&spec, &op);
   /* No tags */
@@ -1105,7 +1119,8 @@ TEST test_client_gen_write_docblock(void) {
   free(op.servers[0].variables);
   free(op.servers);
   free(op.parameters);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   remove("test_docblock.txt");
   g_fail_io_after = -1;
 

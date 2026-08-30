@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_url.h
  * @brief Unit tests for the URL Code Generator and Query logic.
@@ -27,10 +29,10 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
                                   size_t n_params, char **_out_val) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     long sz;
@@ -41,7 +43,8 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
       return 0;
     }
     if (codegen_url_write_builder(tmp, tmpl, params, n_params, NULL) != 0) {
-      fclose(tmp);
+      if (tmp)
+        fclose(tmp);
       {
         *_out_val = NULL;
         return 0;
@@ -54,7 +57,8 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
     if (sz > 0)
       if (fread(content, 1, sz, tmp)) {
       }
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = content;
       return 0;
@@ -66,10 +70,10 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
                                     char **_out_val) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     long sz;
@@ -80,7 +84,8 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
       return 0;
     }
     if (codegen_url_write_query_params(tmp, op, 0) != 0) {
-      fclose(tmp);
+      if (tmp)
+        fclose(tmp);
       {
         *_out_val = NULL;
         return 0;
@@ -93,7 +98,8 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
     if (sz > 0)
       if (fread(content, 1, sz, tmp)) {
       }
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = content;
       return 0;
@@ -1252,14 +1258,15 @@ TEST test_codegen_url_coverage_extras(void) {
   {
     FILE *fp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&fp) != 0)
+    if (((fp = cdd_test_tmpfile_global()) == NULL))
       fp = NULL;
 #else
-    fp = tmpfile();
+    fp = cdd_test_tmpfile_global();
 #endif
     if (fp) {
       codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
-      fclose(fp);
+      if (fp)
+        fclose(fp);
     }
   }
 

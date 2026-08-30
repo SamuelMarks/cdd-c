@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 extern int g_cdd_wine_skip;
 
 /**
@@ -117,6 +119,7 @@ TEST test_recursive_deepcopy(void) {
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(head && next);
   head->value = 10;
@@ -168,6 +171,7 @@ TEST test_recursive_eq(void) {
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
+  (void)rc;
 
   rc = FooE_default(&foo0);
   ASSERT_EQ(0, rc);
@@ -195,6 +199,7 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL, *h1 = NULL, *h2 = NULL;
   int rc;
+  (void)rc;
 
   rc = HazE_default(&h0);
   ASSERT_EQ(0, rc);
@@ -225,6 +230,7 @@ TEST test_FooE_json_roundtrip(void) {
   struct FooE *foo_in = NULL;
   char *json_out = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -254,6 +260,7 @@ TEST test_HazE_json_roundtrip(void) {
   struct HazE *haz_in = NULL;
   char *json_out = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -308,6 +315,7 @@ TEST test_json_parsing_corner_cases(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
   if (g_cdd_wine_skip)
@@ -381,18 +389,29 @@ TEST test_null_args_and_errors(void) {
 TEST test_debug_and_display(void) {
   struct HazE *haz = NULL;
   struct FooE *foo = NULL;
+  fprintf(stderr, "A\n");
   FooE_default(&foo);
+  fprintf(stderr, "B\n");
   ASSERT_EQ(0, FooE_debug(foo, stdout));
+  fprintf(stderr, "C\n");
   ASSERT_EQ(0, FooE_debug(NULL, stdout));
+  fprintf(stderr, "D\n");
   ASSERT_EQ(0, FooE_display(foo, stdout));
+  fprintf(stderr, "E\n");
 
   HazE_default(&haz);
+  fprintf(stderr, "F\n");
   ASSERT_EQ(0, HazE_debug(haz, stdout));
+  fprintf(stderr, "G\n");
   ASSERT_EQ(0, HazE_debug(NULL, stdout));
+  fprintf(stderr, "H\n");
   ASSERT_EQ(0, HazE_display(haz, stdout));
+  fprintf(stderr, "I\n");
 
   FooE_cleanup(foo);
+  fprintf(stderr, "J\n");
   HazE_cleanup(haz);
+  fprintf(stderr, "K\n");
   g_fail_io_after = -1;
   PASS();
 }
@@ -402,9 +421,12 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
+  (void)rc;
 
   FooE_default(&foo);
+  fprintf(stderr, "B\n");
   HazE_default(&haz);
+  fprintf(stderr, "F\n");
   (void)rc;
 
 #ifndef _WIN32
@@ -436,7 +458,9 @@ TEST test_display_fail(void) {
 #endif
 
   FooE_cleanup(foo);
+  fprintf(stderr, "J\n");
   HazE_cleanup(haz);
+  fprintf(stderr, "K\n");
   g_fail_io_after = -1;
 
   PASS();
@@ -481,6 +505,7 @@ TEST test_Tank_to_str_from_str(void) {
   char *str = NULL;
   enum Tank val;
   int rc;
+  (void)rc;
 
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
@@ -538,6 +563,7 @@ TEST test_to_json_with_null_fields(void) {
   struct FooE foo = {NULL, 12, NULL};
   char *json_out = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -585,9 +611,12 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
+  (void)rc;
 
   FooE_default(&foo);
+  fprintf(stderr, "B\n");
   HazE_default(&haz);
+  fprintf(stderr, "F\n");
   (void)rc;
 
 #ifndef _WIN32
@@ -620,7 +649,9 @@ TEST test_debug_fail(void) {
 #endif
 
   FooE_cleanup(foo);
+  fprintf(stderr, "J\n");
   HazE_cleanup(haz);
+  fprintf(stderr, "K\n");
   g_fail_io_after = -1;
 
   PASS();
@@ -670,6 +701,7 @@ TEST test_deepcopy_null_fields(void) {
   struct FooE foo_in = {NULL, 42, NULL};
   struct FooE *foo_out = NULL;
   int rc;
+  (void)rc;
 
   /* Deepcopy HazE with NULL bzr */
   rc = HazE_deepcopy(&haz_in, &haz_out);
@@ -695,6 +727,7 @@ TEST test_deepcopy_null_fields(void) {
 TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -730,6 +763,7 @@ TEST test_json_parsing_missing_fields(void) {
 TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
   if (g_cdd_wine_skip)
     SKIPm("Parson crash under Wine 2005 builds");
 
@@ -750,10 +784,10 @@ TEST test_debug_with_empty_strings(void) {
   struct FooE foo = {"", 0, NULL};
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   ASSERT(tmp != NULL);
   foo.haz = &haz;
@@ -761,7 +795,8 @@ TEST test_debug_with_empty_strings(void) {
   ASSERT_EQ(0, HazE_debug(&haz, tmp));
   ASSERT_EQ(0, FooE_debug(&foo, tmp));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -852,43 +887,69 @@ TEST test_FooE_eq_nested_diff(void) {
 }
 
 SUITE(dataclasses_suite) {
+  fprintf(stderr, "Starting test_recursive_cleanup\n");
   RUN_TEST(test_recursive_cleanup);
+  fprintf(stderr, "Starting test_recursive_deepcopy\n");
   RUN_TEST(test_recursive_deepcopy);
+  fprintf(stderr, "Starting test_recursive_eq\n");
   RUN_TEST(test_recursive_eq);
+  fprintf(stderr, "Starting test_FooE_default_deepcopy_eq_cleanup\n");
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
+  fprintf(stderr, "Starting test_HazE_default_deepcopy_eq_cleanup\n");
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
 #if defined(_MSC_VER) && _MSC_VER <= 1400
 #else
+  fprintf(stderr, "Starting test_FooE_json_roundtrip\n");
   RUN_TEST(test_FooE_json_roundtrip);
+  fprintf(stderr, "Starting test_HazE_json_roundtrip\n");
   RUN_TEST(test_HazE_json_roundtrip);
 #endif
 #if defined(_MSC_VER) && _MSC_VER <= 1400
 #else
+  fprintf(stderr, "Starting test_json_parsing_errors\n");
   RUN_TEST(test_json_parsing_errors);
+  fprintf(stderr, "Starting test_null_args_and_errors\n");
   RUN_TEST(test_null_args_and_errors);
+  fprintf(stderr, "Starting test_json_parsing_corner_cases\n");
   RUN_TEST(test_json_parsing_corner_cases);
 #ifdef CDD_ENABLE_EXPERIMENTAL_TESTS
   /* TODO: Get them to work on MSVC and fix macOS segfaults */
 #else
+  fprintf(stderr, "Starting test_display_fail\n");
   RUN_TEST(test_display_fail);
+  fprintf(stderr, "Starting test_debug_fail\n");
   RUN_TEST(test_debug_fail);
 #endif
+  fprintf(stderr, "Starting test_debug_and_display\n");
   RUN_TEST(test_debug_and_display);
+  fprintf(stderr, "Starting test_eq_null_cases\n");
   RUN_TEST(test_eq_null_cases);
+  fprintf(stderr, "Starting test_Tank_to_str_from_str\n");
   RUN_TEST(test_Tank_to_str_from_str);
+  fprintf(stderr, "Starting test_cleanup_null\n");
   RUN_TEST(test_cleanup_null);
 #endif
 #if defined(_MSC_VER) && _MSC_VER <= 1400
 #else
+  fprintf(stderr, "Starting test_to_json_with_null_fields\n");
   RUN_TEST(test_to_json_with_null_fields);
+  fprintf(stderr, "Starting test_json_parsing_wrong_types\n");
   RUN_TEST(test_json_parsing_wrong_types);
+  fprintf(stderr, "Starting test_deepcopy_null_fields\n");
   RUN_TEST(test_deepcopy_null_fields);
+  fprintf(stderr, "Starting test_json_parsing_missing_fields\n");
   RUN_TEST(test_json_parsing_missing_fields);
+  fprintf(stderr, "Starting test_debug_with_null_nested\n");
   RUN_TEST(test_debug_with_null_nested);
+  fprintf(stderr, "Starting test_debug_with_empty_strings\n");
   RUN_TEST(test_debug_with_empty_strings);
+  fprintf(stderr, "Starting test_HazE_deepcopy_alloc_fail\n");
   RUN_TEST(test_HazE_deepcopy_alloc_fail);
+  fprintf(stderr, "Starting test_simple_json_more_eq_cases\n");
   RUN_TEST(test_simple_json_more_eq_cases);
+  fprintf(stderr, "Starting test_simple_json_HazE_more_eq_cases\n");
   RUN_TEST(test_simple_json_HazE_more_eq_cases);
+  fprintf(stderr, "Starting test_FooE_eq_nested_diff\n");
   RUN_TEST(test_FooE_eq_nested_diff);
 #endif
 }

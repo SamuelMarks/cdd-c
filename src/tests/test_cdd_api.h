@@ -91,6 +91,7 @@ TEST test_cdd_serve_json_rpc(void) {
 
 TEST test_bin_cdd(void) {
   int rc;
+  (void)rc;
   rc = system("./bin/cdd-c --help > /dev/null 2>&1");
   PASS();
 }
@@ -133,7 +134,8 @@ TEST test_cdd_generate_bindings(void) {
   f = fopen("test_dummy_bindings.h", "w");
   if (f) {
     fprintf(f, "/* dummy */\nstruct Point { int x; };\n");
-    fclose(f);
+    if (f)
+      fclose(f);
   }
 
   config.input = "test_dummy_bindings.h";
@@ -160,6 +162,7 @@ TEST test_cdd_generate_bindings(void) {
   makedir(config.output_dir);
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
     int rc;
+    (void)rc;
     config.target_langs = langs[i];
     rc = cdd_generate_bindings(&config);
     ASSERT_EQ(0, rc);

@@ -778,11 +778,23 @@ TEST test_schema_constraints_free_branch(void) {
   /* Mock additional properties */
   sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
   sc.additional_properties->name = malloc(4);
+#if defined(_MSC_VER)
+  strcpy_s(sc.additional_properties->name, 4, "foo");
+#else
   strcpy(sc.additional_properties->name, "foo");
+#endif
   sc.additional_properties->type = malloc(4);
+#if defined(_MSC_VER)
+  strcpy_s(sc.additional_properties->type, 4, "bar");
+#else
   strcpy(sc.additional_properties->type, "bar");
+#endif
   sc.additional_properties->ref = malloc(4);
+#if defined(_MSC_VER)
+  strcpy_s(sc.additional_properties->ref, 4, "baz");
+#else
   strcpy(sc.additional_properties->ref, "baz");
+#endif
 
   schema_constraints_free(&sc);
 

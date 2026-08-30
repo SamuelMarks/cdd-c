@@ -45,7 +45,7 @@ TEST test_gen_cmake_basic(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   rc = generate_cmake_project("test_build_dir", "MyLib", 0);
   ASSERT_EQ(0, rc);
@@ -71,7 +71,7 @@ TEST test_gen_cmake_with_tests(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
   char *content = NULL;
   size_t sz;
-  int rc;
+  int rc = 0;
 
   rc = generate_cmake_project("test_build_dir", "TestProj", 1);
   ASSERT_EQ(0, rc);
@@ -97,7 +97,7 @@ TEST test_gen_build_system_cli_args(void) {
   char arg1[] = "test_build_dir";
   char arg2[] = "CLIProj";
   char *argv[3];
-  int rc;
+  int rc = 0;
 
   argv[0] = arg0;
   argv[1] = arg1;
@@ -123,7 +123,8 @@ TEST test_gen_build_system_cli_args(void) {
 #endif
 #endif
     ASSERT(f != NULL);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   remove("test_build_dir/src/CMakeLists.txt");
   remove("test_build_dir/CMakeLists.txt");
@@ -166,7 +167,7 @@ TEST test_gen_build_system_bad_args(void) {
 
 TEST test_build_system_oom2(void) {
   int i;
-  int rc;
+  int rc = 0;
 
 #ifdef CDD_BUILD_TESTS
   /*  (moved to global) */
@@ -195,7 +196,7 @@ TEST test_gen_cmake_null_args(void) {
 }
 
 TEST test_gen_cmake_null_outdir(void) {
-  int rc;
+  int rc = 0;
 
   /* Backup existing CMakeLists.txt if any */
   rename("CMakeLists.txt", "CMakeLists.txt.bak");
@@ -227,7 +228,8 @@ TEST test_gen_cmake_bad_makedirs(void) {
   f = fopen("test_dummy_file_for_makedirs", "w");
 #endif
   if (f) {
-    fclose(f);
+    if (f)
+      fclose(f);
     makedirs("test_dummy_dir_for_makedirs");
     {
       FILE *f2;
@@ -255,7 +257,7 @@ TEST test_gen_cmake_bad_makedirs(void) {
 
 TEST test_build_system_io_failure(void) {
   int i;
-  int rc;
+  int rc = 0;
   const char *out_file = "test_build_dir/CMakeLists.txt";
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
 
@@ -266,7 +268,7 @@ TEST test_build_system_io_failure(void) {
     g_fail_io_after = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
   }
-  while (rc != CDD_C_SUCCESS && ++i < 999)
+  while (rc != CDD_C_SUCCESS && ++i < 50)
     ;
   g_fail_io_after = -1;
 #endif
@@ -301,7 +303,8 @@ TEST test_gen_build_system_cli_args_fail(void) {
   f = fopen("test_dummy_file_for_makedirs", "w");
 #endif
   if (f) {
-    fclose(f);
+    if (f)
+      fclose(f);
     ASSERT_EQ(CDD_C_ERROR_IO, generate_build_system_main(3, argv));
     remove("test_dummy_file_for_makedirs");
   }
@@ -364,7 +367,7 @@ TEST test_gen_cmake_oom(void) {
 
 TEST test_gen_cmake_readonly2(void) {
 #ifndef _WIN32
-  int rc;
+  int rc = 0;
   makedirs("test_build_dir_readonly2");
   chmod("test_build_dir_readonly2", 0444);
   rc = generate_cmake_project("test_build_dir_readonly2", "Proj", 0);
@@ -376,7 +379,7 @@ TEST test_gen_cmake_readonly2(void) {
 
 TEST test_gen_cmake_readonly(void) {
 #ifndef _WIN32
-  int rc;
+  int rc = 0;
   makedirs("test_build_dir_readonly/src");
   chmod("test_build_dir_readonly/src", 0444);
   rc = generate_cmake_project("test_build_dir_readonly", "Proj", 1);

@@ -31,7 +31,8 @@ static cdd_c_error_t find_allocs(const char *code,
                                  struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
   int rc;
-  const az_span source = az_span_create_from_str((char *)code);
+  (void)rc;
+  const az_span source = az_span_create_from_str((char *)(size_t)code);
 
   if (tokenize(source, &tl) != 0)
     return -1;
@@ -49,6 +50,7 @@ TEST test_analysis_find_malloc(void) {
   const char *code = "void *p = malloc(10);";
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
 
   rc = find_allocs(code, &sites);
   ASSERT_EQ(0, rc);
@@ -68,6 +70,7 @@ TEST test_analysis_find_calloc(void) {
   const char *code = "void *p = calloc(1, 10);";
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
 
   rc = find_allocs(code, &sites);
   ASSERT_EQ(0, rc);
@@ -87,6 +90,7 @@ TEST test_analysis_find_realloc(void) {
   const char *code = "void *p = realloc(old_p, 20);";
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
 
   rc = find_allocs(code, &sites);
   ASSERT_EQ(0, rc);
@@ -106,6 +110,7 @@ TEST test_analysis_find_none(void) {
   const char *code = "int a = 1;";
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
 
   rc = find_allocs(code, &sites);
   ASSERT_EQ(0, rc);
@@ -151,6 +156,7 @@ TEST test_analysis_oom(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
 
   /* Test init failure */
   g_cdd_analysis_fail_alloc_init = 1;
@@ -215,6 +221,7 @@ TEST test_analysis_capacity(void) {
 #ifdef CDD_BUILD_TESTS
   struct AllocationSiteList sites = {0};
   int rc;
+  (void)rc;
   int i;
 
   /* Create an initial list with capacity 0 to trigger new_cap = 8 branch */

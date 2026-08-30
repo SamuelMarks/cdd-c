@@ -28,7 +28,7 @@ TEST test_patch_list_to_diff_basic(void) {
   size_t tok_idx = 0;
   int found = 0;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&list);
@@ -49,25 +49,9 @@ TEST test_patch_list_to_diff_basic(void) {
   {
     char *text = (char *)malloc(2);
 #if defined(_MSC_VER)
-    strcpy_s(text, sizeof(text), "1");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(text, sizeof(text), "1");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(text, sizeof(text), "1");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(text, sizeof(text), "1");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(text, sizeof(text), "1");
+    strcpy_s(text, 2, "1");
 #else
     strcpy(text, "1");
-#endif
-#endif
-#endif
-#endif
 #endif
     res = patch_list_add(&list, tok_idx, tok_idx + 1, text);
   }

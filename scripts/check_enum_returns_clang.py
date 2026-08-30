@@ -525,13 +525,13 @@ def main():
         action="store_true",
         help="Disable default symbol exceptions (e.g. EM_JS)",
     )
-    parser.add_argument(
-        "--",
-        dest="compile_args",
-        nargs=argparse.REMAINDER,
-        help="Additional arguments for clang (e.g., -Iinclude)",
-    )
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+
+    compile_args = ["-x", "c", "-DC_CDD_EXPORT="]
+    if unknown:
+        if unknown[0] == "--":
+            unknown = unknown[1:]
+        compile_args.extend(unknown)
 
     # Configure libclang path if provided or search common locations
     if args.libclang_path:
@@ -565,36 +565,23 @@ def main():
                 if found:
                     break
 
-    compile_args = ["-x", "c", "-DC_CDD_EXPORT="]
-    if args.compile_args:
-        # Strip the '--' if it's there
-        compile_args.extend(
-            args.compile_args[1:] if args.compile_args[0] == "--" else args.compile_args
-        )
-
     comp_db = None
     if args.build_dir:
-        try:
-            comp_db = CompilationDatabase.fromDirectory(args.build_dir)
-        except CompilationDatabaseError as e:
+        db_path = os.path.join(args.build_dir, "compile_commands.json")
+        if os.path.exists(db_path):
+            try:
+                comp_db = CompilationDatabase.fromDirectory(args.build_dir)
+            except CompilationDatabaseError as e:
+                print(
+                    f"Warning: Could not load compilation database from '{args.build_dir}'.",
+                    file=sys.stderr,
+                )
+                print(f"Underlying error: {e}", file=sys.stderr)
+        else:
             print(
-                f"Error: Could not load compilation database from '{args.build_dir}'.",
+                f"Warning: 'compile_commands.json' not found in '{args.build_dir}'. Proceeding without compilation database.",
                 file=sys.stderr,
             )
-            print(f"Underlying error: {e}", file=sys.stderr)
-            print(
-                "\nTo fix this, you must generate a 'compile_commands.json' file in your build directory.",
-                file=sys.stderr,
-            )
-            print(
-                "If you are using CMake, configure your project with the following flag:",
-                file=sys.stderr,
-            )
-            print(
-                "    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON <path_to_source>",
-                file=sys.stderr,
-            )
-            sys.exit(1)
 
     files_to_check = gather_files(
         args.paths, args.exclude_files, not args.no_default_exceptions
@@ -616,6 +603,7 @@ def main():
             total_errors += errors
 
     if total_errors > 0:
+        print(f"Total errors: {total_errors}", file=sys.stderr)
         sys.exit(1)
 
 

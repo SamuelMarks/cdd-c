@@ -59,7 +59,11 @@ typedef int cdd_socket_t;
 /* Helper to respond with JSON-RPC error */
 static cdd_c_error_t send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
   char resp[1024];
+#if defined(_MSC_VER)
+  sprintf_s(resp, sizeof(resp), "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":null}", code, msg);
+#else
   sprintf(resp, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":null}", code, msg);
+#endif
   send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
   return CDD_C_SUCCESS;
 }

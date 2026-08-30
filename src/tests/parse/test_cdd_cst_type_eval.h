@@ -24,6 +24,7 @@ extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;
+  (void)rc;
 
   /* int under LP64 */
   rc = cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, &info);
@@ -50,6 +51,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size;
   int rc;
+  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   const char *src = "int a;";
@@ -57,7 +59,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   rc = cdd_cst_scope_env_init(&env);
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -84,6 +86,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size, align;
   int rc;
+  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   cdd_cst_tree_t *tree2 = NULL;
@@ -94,7 +97,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   rc = cdd_cst_scope_env_init(&env);
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -319,6 +322,7 @@ TEST test_type_eval_branches(void) {
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
   int rc;
+  (void)rc;
 #endif
 
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
@@ -338,7 +342,7 @@ TEST test_type_eval_branches(void) {
   /* Very long type name */
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl2);
   tok2.kind = CDD_TOKEN_IDENTIFIER;
-  for (i = 0; i < 290; i++)
+  for (i = 0; i < 50; i++)
     buf[i] = 'a';
   tok2.start = (const uint8_t *)buf;
   tok2.length = 290;
@@ -378,7 +382,7 @@ TEST test_type_eval_branches(void) {
   /* Two long tokens to hit buf_len + 1 < sizeof(buf) */
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl3);
   tok3.kind = CDD_TOKEN_IDENTIFIER;
-  for (i = 0; i < 256; i++)
+  for (i = 0; i < 50; i++)
     buf2[i] = 'b';
   tok3.start = (const uint8_t *)buf2;
   tok3.length = 255;

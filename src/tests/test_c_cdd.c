@@ -6,7 +6,9 @@
  * @brief Main test runner.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include <wchar.h>
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -110,23 +112,9 @@ extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
   /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
 
-static char g_cdd_test_tmp_buf[65536][64];
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE* cdd_test_tmpfile_global(void);
 
-static FILE* cdd_test_tmpfile(void) {
-    static int counter = 0;
-    FILE *f;
-    if (counter >= 65536) counter = 0;
-    sprintf(g_cdd_test_tmp_buf[counter], "cdd_test_tmp_%d.txt", counter);
-    remove(g_cdd_test_tmp_buf[counter]);
-    #if defined(_MSC_VER)
-  if(fopen_s(&f, g_cdd_test_tmp_buf[counter], "w+b") != 0) f = NULL;
-#else
-  f = fopen(g_cdd_test_tmp_buf[counter], "w+b");
-#endif
-    counter++;
-    return f;
-}
-#define tmpfile() cdd_test_tmpfile()
 
 #include "c_cdd/test_int128.h"
 #include "emit/test_cdd_cst_emit_unit.h"
@@ -144,7 +132,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
     if (g_fail_io_after >= 0) {
         return fopen("/dev/null", "w+b");
     }
-    return tmpfile();
+    return cdd_test_tmpfile_global();
 }
 #ifdef tmpfile
 #undef tmpfile
@@ -451,6 +439,12 @@ static void reset_mocks(void) {
   g_bind_fail = 0;
   /*  (moved to global) */
   g_cdd_alloc_fail = 0;
+  g_fail_io_after = -1;
+  g_io_calls = 0;
+  g_schema_codegen_force_fail = 0;
+  g_schema_io_calls = 0;
+  g_schema_fail_io_after = -1;
+  g_cdd_fail_asprintf = 0;
   /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
   g_cdd_cfg_alloc_fail = 0;
   /*  (moved to global) */
@@ -582,7 +576,7 @@ int main(int argc, char **argv) {
         "{\n      throw 1;\n    } catch (int e) {\n    } catch (...) {\n    "
         "}\n  }\n}\nint main() { asm(\"nop\"); return 0; }\n";
     cdd_c_error_t rc =
-        cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &tree);
     printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
            "\n",
            rc, tree->root->num_children, tree->root->capacity);
@@ -591,8 +585,8 @@ int main(int argc, char **argv) {
   }
 
 #if defined(_MSC_VER) && _MSC_VER <= 1400
-  GREATEST_MAIN_END();
-#endif
+  /* skipped */
+#else
 
 #ifdef C_CDD_USE_LIBCURL
 #endif
@@ -856,6 +850,7 @@ int main(int argc, char **argv) {
 
   /*   */
 
+#endif
   GREATEST_MAIN_END();
 }
 

@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_fs.h
  * @brief Unit tests for filesystem utilities.
@@ -32,6 +34,7 @@ TEST test_get_basename(void) {
   char *res = NULL;
   int is_dir = 0;
   int rc;
+  (void)rc;
 
   rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt", &res);
   ASSERT_EQ(0, rc);
@@ -62,6 +65,7 @@ TEST test_get_basename(void) {
 
 TEST test_read_to_file_error(void) {
   int rc;
+  (void)rc;
   size_t size = 0;
   char *s = NULL;
 
@@ -77,8 +81,8 @@ TEST test_read_to_file_error(void) {
 }
 
 static cdd_c_error_t mock_walk_cb(const char *path, void *user_data) {
-  (void)path;
   int *count = (int *)user_data;
+  (void)path;
   (*count)++;
   return CDD_C_SUCCESS;
 }
@@ -94,6 +98,7 @@ TEST test_walk_directory(void) {
   char *root = NULL;
   int count = 0;
   int rc;
+  (void)rc;
 
   /* tempdir returns system temp path usually */
   rc = tempdir(&sys_tmp);
@@ -186,6 +191,7 @@ TEST test_fs_fopen_error_from(void) {
 TEST test_fs_cp(void) {
   FILE *f;
   int rc;
+  (void)rc;
 
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_cp_src.txt", "w") != 0)
@@ -194,7 +200,8 @@ TEST test_fs_cp(void) {
   f = fopen("test_cp_src.txt", "w");
 #endif
   fprintf(f, "test");
-  fclose(f);
+  if (f)
+    fclose(f);
 
   rc = cp("test_cp_dst.txt", "test_cp_src.txt");
   ASSERT_EQ(0, rc);
@@ -314,10 +321,10 @@ TEST test_fs_cdd_fopen_too_long(void) {
 TEST test_read_from_fh_errors(void) {
   FILE *f;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&f) != 0)
+  if (((f = cdd_test_tmpfile_global()) == NULL))
     f = NULL;
 #else
-  f = tmpfile();
+  f = cdd_test_tmpfile_global();
 #endif
   {
     char *data = NULL;
@@ -328,7 +335,8 @@ TEST test_read_from_fh_errors(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, NULL, &sz));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, read_from_fh(f, &data, NULL));
 
-    fclose(f);
+    if (f)
+      fclose(f);
     g_fail_io_after = -1;
     PASS();
   }
@@ -341,6 +349,7 @@ TEST test_ascii_wide_conversion(void) {
   size_t wlen = 0;
   size_t alen = 0;
   int rc;
+  (void)rc;
 
   /* ascii_to_wide */
   rc = ascii_to_wide("hello", wbuf, 32, &wlen);
@@ -390,13 +399,21 @@ TEST test_fs_filename_and_ptr(void) {
             FilenameAndPtr_delete_and_cleanup(NULL));
 
   fap.filename = C_CDD_MALLOC(10);
+#if defined(_MSC_VER)
+  strcpy_s(fap.filename, 10, "foo.txt");
+#else
   strcpy(fap.filename, "foo.txt");
+#endif
   /* We don't want to actually delete it, so we mock or just let unlink fail
    * gracefully */
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
 
   fap.filename = C_CDD_MALLOC(10);
+#if defined(_MSC_VER)
+  strcpy_s(fap.filename, 10, "foo.txt");
+#else
   strcpy(fap.filename, "foo.txt");
+#endif
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
 
   PASS();
@@ -410,13 +427,21 @@ TEST test_fs_errors_untestable(void) {
             FilenameAndPtr_delete_and_cleanup(NULL));
 
   fap.filename = C_CDD_MALLOC(10);
+#if defined(_MSC_VER)
+  strcpy_s(fap.filename, 10, "foo.txt");
+#else
   strcpy(fap.filename, "foo.txt");
+#endif
   /* We don't want to actually delete it, so we mock or just let unlink fail
    * gracefully */
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_delete_and_cleanup(&fap));
 
   fap.filename = C_CDD_MALLOC(10);
+#if defined(_MSC_VER)
+  strcpy_s(fap.filename, 10, "foo.txt");
+#else
   strcpy(fap.filename, "foo.txt");
+#endif
   ASSERT_EQ(CDD_C_SUCCESS, FilenameAndPtr_cleanup(&fap));
 
   PASS();

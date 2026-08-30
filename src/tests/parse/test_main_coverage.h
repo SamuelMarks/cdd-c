@@ -85,7 +85,8 @@ TEST test_main_coverage_from_openapi_valid(void) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
           f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   {
     char *argv_to_sdk[] = {"from_openapi",    "to_sdk", "-i",
@@ -105,7 +106,8 @@ TEST test_main_coverage_from_openapi_invalid(void) {
 #endif
   if (f) {
     fputs("invalid json", f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   {
     char *argv_invalid[] = {"from_openapi",      "to_sdk", "-i",
@@ -127,7 +129,8 @@ TEST test_main_coverage_from_openapi_cli_server(void) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
           f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   {
     char *argv_cli[] = {"from_openapi",    "to_sdk_cli", "-i",
@@ -175,7 +178,8 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
           f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   {
     char *argv_audit[] = {"cdd-c", "audit", "a", "b"};
@@ -218,7 +222,8 @@ TEST test_main_coverage_cdd_main_success(void) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
           f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   {
     char *argv_to_openapi[] = {"cdd-c",        "to_openapi", "-i",

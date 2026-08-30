@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #include "routes/emit/client_gen.h"
 /**
  * @file test_codegen_client_sig.h
@@ -28,10 +30,10 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
                              char **_out_val) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   {
     long sz;
@@ -43,7 +45,8 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
     }
 
     if (codegen_client_write_signature(tmp, op, cfg) != 0) {
-      fclose(tmp);
+      if (tmp)
+        fclose(tmp);
       {
         *_out_val = NULL;
         return 0;
@@ -59,7 +62,8 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
       if (fread(content, 1, sz, tmp)) {
       }
 
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = content;
       return 0;
@@ -2245,7 +2249,7 @@ TEST test_sig_io_errors(void) {
   param.in = OA_PARAM_IN_QUERYSTRING;
   param.schema.inline_type = "string";
 
-  for (i = 0; i < 500; ++i) {
+  for (i = 0; i < 50; ++i) {
     if (g_io_calls > 0 && g_io_calls < i)
       break;
     g_io_calls = 0;

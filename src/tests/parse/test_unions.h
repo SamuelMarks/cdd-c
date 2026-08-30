@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 #ifndef TEST_UNIONS_H
 #define TEST_UNIONS_H
 
@@ -35,10 +37,10 @@ TEST test_write_union_to_json(void) {
   struct StructFields sf;
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   char *content = NULL;
   long sz;
@@ -71,7 +73,8 @@ TEST test_write_union_to_json(void) {
 
   free(content);
   struct_fields_free(&sf);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -80,10 +83,10 @@ TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   char *content = NULL;
   long sz;
@@ -113,7 +116,8 @@ TEST test_write_union_from_json_object(void) {
 
   free(content);
   struct_fields_free(&sf);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -122,10 +126,10 @@ TEST test_write_union_from_json(void) {
   struct StructFields sf;
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   char *content = NULL;
   long sz;
@@ -154,7 +158,8 @@ TEST test_write_union_from_json(void) {
 
   free(content);
   struct_fields_free(&sf);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -162,10 +167,10 @@ TEST test_write_union_cleanup(void) {
   struct StructFields sf;
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   char *content = NULL;
   long sz;
@@ -195,7 +200,8 @@ TEST test_write_union_cleanup(void) {
 
   free(content);
   struct_fields_free(&sf);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }

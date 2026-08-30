@@ -200,7 +200,6 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                    "_safe_tmp; }",
                    call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #ifdef CDD_BUILD_TESTS
-      extern C_CDD_EXPORT int g_cdd_fail_asprintf;
       if (g_cdd_fail_asprintf) {
         free(replacement);
         asprintf_rc = -1;
@@ -229,7 +228,14 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
                 "_safe_tmp; }",
                 call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #endif
-      } else {
+#ifdef CDD_BUILD_TESTS
+        if (g_cdd_fail_asprintf) {
+          free(replacement);
+          replacement = NULL;
+        }
+#endif
+      }
+      if (!replacement) {
         free(call_expr);
         return CDD_C_ERROR_MEMORY;
       }

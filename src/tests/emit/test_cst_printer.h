@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_cst_printer.h
  * @brief Unit tests for CST non-destructive printing.
@@ -37,8 +39,9 @@ TEST test_cst_print_exact(void) {
   char buffer[1024] = {0};
   FILE *f;
   int rc;
+  (void)rc;
 
-  az_span span = az_span_create((uint8_t *)src, strlen(src));
+  az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
 
@@ -58,7 +61,7 @@ TEST test_cst_print_exact(void) {
   ASSERT_EQ(0, rc);
 
   {
-    FILE *readonly_f = tmpfile();
+    FILE *readonly_f = cdd_test_tmpfile_global();
     if (readonly_f) {
       g_fail_io_after = 0;
       g_io_calls = 0;
@@ -76,7 +79,8 @@ TEST test_cst_print_exact(void) {
   fseek(f, 0, SEEK_SET);
   if (fread(buffer, 1, sizeof(buffer) - 1, f)) {
   }
-  fclose(f);
+  if (f)
+    fclose(f);
   remove("test_cst_print.txt");
 
   ASSERT_STR_EQ(src, buffer);

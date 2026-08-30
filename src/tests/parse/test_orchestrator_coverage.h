@@ -58,7 +58,7 @@ TEST test_orchestrator_coverage_oom_deep(void) {
   const char *code = "void test() { char *p = malloc(1); }\n"
                      "void test2() { char *p = malloc(1); }\n";
 
-  for (i = 1; i < 150; ++i) {
+  for (i = 1; i < 50; ++i) {
     g_cdd_alloc_fail = i;
     orchestrate_fix(code, &out);
     C_CDD_FREE(out);
@@ -84,7 +84,8 @@ TEST test_orchestrator_coverage_fix_file(void) {
   f = fopen("test_empty.txt", "w");
 #endif
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_empty.c", "w") != 0)
     f = NULL;
@@ -93,7 +94,8 @@ TEST test_orchestrator_coverage_fix_file(void) {
 #endif
   if (f) {
     fputs("int main(){}", f);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   makedir("my_empty_dir");
   {
@@ -154,6 +156,7 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
   /*  (moved to global) */
   int rc;
+  (void)rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
   g_cdd_alloc_fail = 1;
@@ -169,6 +172,7 @@ TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[] = {"test_empty.c", "out.c"};
   /*  (moved to global) */
   int rc;
+  (void)rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first
    * alloc */

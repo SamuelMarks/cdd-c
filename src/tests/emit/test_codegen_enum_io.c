@@ -13,7 +13,8 @@ cdd_c_error_t main(void) {
   f = fopen("test.txt", "w");
 #endif
   if (f)
-    fclose(f);
+    if (f)
+      fclose(f);
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test.txt", "r") != 0)
     f = NULL;
@@ -24,7 +25,8 @@ cdd_c_error_t main(void) {
     void *ptr = f;
     res = fprintf((FILE *)ptr, "test");
     printf("res=%d\n", res);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
   return 0;
 }

@@ -253,7 +253,8 @@ TEST test_main_from_openapi_cli_options(void) {
 #endif
   fprintf(f, "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"Test\", "
              "\"version\": \"1.0\"}, \"paths\": {}}");
-  fclose(f);
+  if (f)
+    fclose(f);
 
   ASSERT_EQ(0, cdd_main(7, argv_cli));
   ASSERT_EQ(0, cdd_main(7, argv_server));
@@ -374,6 +375,7 @@ TEST test_bin_cdd_executable(void) {
   /* Run the actual executable to cover bin_cdd.c's main() */
   /* The tests might be run from build dir or root dir, so we check both */
   int rc;
+  (void)rc;
   rc = system("build_coverage/bin/cdd-c --help > /dev/null 2>&1");
   if (rc != 0) {
     rc = system("./bin/cdd-c --help > /dev/null 2>&1");

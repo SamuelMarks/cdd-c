@@ -128,3 +128,27 @@ cdd_c_error_t write_to_file(const char *filename, const char *contents) {
 
   return rc;
 }
+#include "cdd_test_helpers_export.h"
+
+char g_cdd_test_tmp_buf[65536][64];
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void) {
+  static int counter = 0;
+  FILE *f;
+  if (counter >= 65536)
+    counter = 0;
+#if defined(_MSC_VER)
+  sprintf_s(g_cdd_test_tmp_buf[counter], sizeof(g_cdd_test_tmp_buf[counter]),
+            "cdd_test_tmp_%d.txt", counter);
+#else
+  sprintf(g_cdd_test_tmp_buf[counter], "cdd_test_tmp_%d.txt", counter);
+#endif
+  remove(g_cdd_test_tmp_buf[counter]);
+#if defined(_MSC_VER)
+  if (fopen_s(&f, g_cdd_test_tmp_buf[counter], "w+b") != 0)
+    f = NULL;
+#else
+  f = fopen(g_cdd_test_tmp_buf[counter], "w+b");
+#endif
+  counter++;
+  return f;
+}

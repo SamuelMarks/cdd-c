@@ -53,7 +53,11 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
       C_CDD_FREE(src_dir);
       return rc;
     }
+#if defined(_MSC_VER)
+    sprintf_s(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
+#else
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+#endif
     makedirs(src_dir);
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
                  base_name ? base_name : "generated_client");

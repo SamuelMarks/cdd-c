@@ -28,6 +28,7 @@ TEST test_server_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
   FILE *f;
 
   memset(&spec, 0, sizeof(spec));
@@ -134,7 +135,8 @@ TEST test_server_gen_basic(void) {
     buf[n] = '\0';
     ASSERT(strstr(buf, "handle_mcp_sse") != NULL);
     ASSERT(strstr(buf, "handle_mcp_message") != NULL);
-    fclose(f);
+    if (f)
+      fclose(f);
   }
 
   remove("src/test_server_server.c");
@@ -166,6 +168,7 @@ TEST test_server_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -206,6 +209,7 @@ TEST test_server_gen_test_fopen_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
@@ -234,6 +238,7 @@ TEST test_server_gen_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
+  (void)rc;
 
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));

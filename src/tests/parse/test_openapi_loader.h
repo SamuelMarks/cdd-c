@@ -29,6 +29,7 @@ static cdd_c_error_t load_spec_str(const char *json_str,
                                    struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
+  (void)rc;
   if (!dyn)
     return -1;
   (void)openapi_spec_init(spec);
@@ -43,6 +44,7 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
                            struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
+  (void)rc;
   if (!dyn)
     return -1;
   (void)openapi_spec_init(spec);
@@ -1173,6 +1175,7 @@ TEST test_load_schema_root_document_with_id(void) {
   struct OpenAPI_DocRegistry registry;
   struct OpenAPI_Spec spec = {0};
   int rc;
+  (void)rc;
 
   (void)openapi_doc_registry_init(&registry);
   rc = load_spec_str_with_context(json, "https://example.com/schema.json",
@@ -3229,6 +3232,7 @@ TEST test_external_component_ref_registry_absolute(void) {
   struct OpenAPI_Spec shared_spec;
   struct OpenAPI_Spec root_spec;
   int rc;
+  (void)rc;
 
   (void)openapi_doc_registry_init(&registry);
 
@@ -3284,6 +3288,7 @@ TEST test_external_component_ref_registry_relative(void) {
   struct OpenAPI_Spec shared_spec;
   struct OpenAPI_Spec root_spec;
   int rc;
+  (void)rc;
 
   (void)openapi_doc_registry_init(&registry);
 

@@ -64,7 +64,8 @@ static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
     op = &op_local;
   }
   if (codegen_security_write_apply(tmp, op, spec) != 0) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     {
       *_out_val = NULL;
       return 0;
@@ -79,7 +80,8 @@ static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
   if (sz > 0)
     FREAD(content, 1, (size_t)sz, tmp);
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   {
     *_out_val = content;
     return 0;
@@ -438,7 +440,8 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
   ASSERT(strstr(content, "c_rest_middleware_basic_auth"));
 
   free(content);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -704,7 +707,8 @@ TEST test_codegen_security_write_apply_nulls(void) {
   op.n_security = 0;
   ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   PASS();
 }
 
@@ -746,7 +750,8 @@ TEST test_codegen_security_write_server_apply_nulls(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             codegen_security_write_server_apply(tmp, &op, &spec));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   PASS();
 }
 

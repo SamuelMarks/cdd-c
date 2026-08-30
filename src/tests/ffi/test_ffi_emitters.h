@@ -744,6 +744,7 @@ TEST test_ffi_emit_objc_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
   int rc;
+  (void)rc;
 
 #ifdef _WIN32
   _mkdir("test_objc_dir");
@@ -775,6 +776,7 @@ TEST test_ffi_emit_perl_dir(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_generate_bindings_config_t config = {0};
   int rc;
+  (void)rc;
 
 #ifdef _WIN32
   _mkdir("test_perl_dir");

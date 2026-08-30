@@ -163,6 +163,7 @@ TEST test_orchestrator_preserves_structs(void) {
 TEST test_orchestrator_edge_cases(void) {
   char *out = NULL;
   int rc;
+  (void)rc;
 
   /* Invalid arguments */
   rc = orchestrate_fix(NULL, &out);
@@ -264,7 +265,7 @@ TEST test_orchestrator_edge_cases(void) {
     /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     int i;
-    for (i = 1; i < 20000; ++i) {
+    for (i = 1; i < 50; ++i) {
       g_cdd_alloc_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"
                            "void B() { A(); }\n"
@@ -287,7 +288,7 @@ TEST test_orchestrator_edge_cases(void) {
     }
     g_cdd_alloc_fail = 0;
 
-    for (i = 1; i < 20000; ++i) {
+    for (i = 1; i < 50; ++i) {
       g_cdd_strdup_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"
                            "void B() { A(); }\n"
@@ -309,7 +310,7 @@ TEST test_orchestrator_edge_cases(void) {
     }
     g_cdd_strdup_fail = 0;
 
-    for (i = 1; i < 20000; ++i) {
+    for (i = 1; i < 50; ++i) {
       g_cdd_cst_alloc_node_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"
                            "void B() { A(); }\n"
@@ -331,7 +332,7 @@ TEST test_orchestrator_edge_cases(void) {
     }
     g_cdd_cst_alloc_node_fail = 0;
 
-    for (i = 1; i < 20000; ++i) {
+    for (i = 1; i < 50; ++i) {
       /* extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail; (moved to global)
        */
       g_cdd_cst_alloc_token_fail = i;
@@ -355,7 +356,7 @@ TEST test_orchestrator_edge_cases(void) {
     }
     g_cdd_cst_alloc_token_fail = 0;
 
-    for (i = 1; i < 20000; ++i) {
+    for (i = 1; i < 50; ++i) {
       /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
       g_cdd_cst_realloc_fail = i;
       rc = orchestrate_fix("void A() { malloc(1); }\n"

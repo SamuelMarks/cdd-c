@@ -646,7 +646,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     new_sites = C_CDD_REALLOC(
                         local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
-                      return CDD_C_ERROR_MEMORY;
+                      rc = CDD_C_ERROR_MEMORY;
+                      goto cleanup;
                     }
                     local_allocs.sites = new_sites;
                     local_allocs.capacity = nc;
@@ -709,6 +710,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 #endif
           C_CDD_FREE(output);
           output = joined;
+          if (!output) {
+            C_CDD_FREE(segment);
+            rc = CDD_C_ERROR_MEMORY;
+            goto cleanup;
+          }
           C_CDD_FREE(segment);
         }
         f_idx++;
@@ -739,6 +745,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 #endif
         C_CDD_FREE(output);
         output = joined;
+        if (!output) {
+          C_CDD_FREE(content);
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
         C_CDD_FREE(content);
       }
     }

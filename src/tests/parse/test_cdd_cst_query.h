@@ -25,8 +25,8 @@ extern "C" {
 extern C_CDD_EXPORT int g_cdd_query_err_fail;
 
 static cdd_c_error_t dummy_visitor(cdd_cst_node_t *node, void *user_data) {
-  (void)node;
   int *count = (int *)user_data;
+  (void)node;
   (*count)++;
   return 0;
 }
@@ -35,7 +35,7 @@ TEST test_cdd_cst_query_types(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  return 0;\n}";
   cdd_cst_query_result_t res;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc =
@@ -141,7 +141,7 @@ TEST test_cdd_cst_query_calls(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  printf(\"hello\");\n  return 0;\n}";
   cdd_cst_query_result_t res;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_find_function_calls_named(tree->root, "printf", &res);

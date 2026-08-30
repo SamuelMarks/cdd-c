@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_build.h
  * @brief Unit tests for CMakeLists generator logic.
@@ -31,7 +33,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
  */
 TEST test_cbuild_null_args(void) {
   struct CodegenBuildConfig config;
-  FILE *tmp = tmpfile();
+  FILE *tmp = cdd_test_tmpfile_global();
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
@@ -55,7 +57,8 @@ TEST test_cbuild_null_args(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -65,7 +68,7 @@ TEST test_cbuild_null_args(void) {
  * @return TEST
  */
 TEST test_cbuild_basic_output(void) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = cdd_test_tmpfile_global();
   struct CodegenBuildConfig config;
   const char *sources[] = {"client.c", "models.c"};
   long sz;
@@ -107,7 +110,8 @@ TEST test_cbuild_basic_output(void) {
                 "target_link_libraries(petstore_lib PRIVATE CURL::libcurl)"));
 
   free(content);
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -132,27 +136,30 @@ TEST test_cbuild_unsupported(void) {
   /* Test branch where src_files is NOT NULL but src_count is 0 */
   config.src_files = sources;
   config.src_count = 0;
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(0, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   config.src_count = 2; /* restore */
 
   /* Test branch where src_files is NULL but src_count is > 0 */
   config.src_files = NULL;
   config.src_count = 2;
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_SUCCESS,
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test type != BUILD_SYS_CMAKE */
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test config->src_files == NULL */
   memset(&config, 0, sizeof(config));
@@ -161,41 +168,46 @@ TEST test_cbuild_unsupported(void) {
   config.src_files = NULL;
   config.src_count = 2;
   config.build_shared_libs = 1;
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_SUCCESS,
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test type != BUILD_SYS_CMAKE */
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test type == BUILD_SYS_MESON */
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test type == BUILD_SYS_MAKEFILE */
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
   /* Test type == 999 (default) */
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
   ASSERT(tmp);
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate((enum CodegenBuildSystem)999, tmp, &config));
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
 
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
@@ -209,7 +221,8 @@ TEST test_cbuild_unsupported(void) {
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -223,6 +236,7 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   int i;
   int rc;
+  (void)rc;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   memset(&config, 0, sizeof(config));
@@ -239,11 +253,13 @@ TEST test_cbuild_io_failure(void) {
     g_fail_io_after = i;
     rc = codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config);
     if (rc == CDD_C_SUCCESS) {
-      fclose(tmp);
+      if (tmp)
+        fclose(tmp);
       break;
     }
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
   }
   g_fail_io_after = -1;
 

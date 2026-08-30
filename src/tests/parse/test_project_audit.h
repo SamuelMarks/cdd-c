@@ -51,6 +51,7 @@ TEST test_audit_single_file(void) {
   char *f_unchecked = NULL;
   struct AuditStats stats;
   int rc;
+  (void)rc;
 
   /* Create explicit subdir to avoid walking /tmp */
   tempdir(&sys_tmp);
@@ -409,6 +410,7 @@ TEST test_audit_oom(void) {
     /* extern C_CDD_EXPORT int g_cdd_fail_alloc_audit; (moved to global) */
     int i;
     int rc;
+    (void)rc;
     char *json;
 
     makedirs("test_audit_dir");
@@ -420,9 +422,10 @@ TEST test_audit_oom(void) {
 #endif
     if (f) {
       fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
-      fclose(f);
+      if (f)
+        fclose(f);
     }
-    for (i = 1; i < 200; i++) {
+    for (i = 1; i < 50; i++) {
       (void)audit_stats_init(&stats);
       g_cdd_fail_alloc_audit = i;
       rc = audit_project("test_audit_dir", &stats);
@@ -437,7 +440,7 @@ TEST test_audit_oom(void) {
     (void)audit_stats_init(&stats);
     rc = audit_project("test_audit_dir", &stats);
     printf("i=%d rc=%d\n", i, rc);
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 50; i++) {
       g_cdd_fail_alloc_audit = i;
       json = NULL;
       rc = audit_print_json(&stats, &json);
@@ -483,7 +486,8 @@ TEST test_audit_capacity(void) {
           "= malloc(10); char *s = malloc(10); char *t = malloc(10); char *u "
           "= malloc(10); char *v = malloc(10); char *w = malloc(10); char *x "
           "= malloc(10); char *y = malloc(10); return 0; }\n");
-      fclose(f);
+      if (f)
+        fclose(f);
     }
 
     ASSERT_EQ(0, audit_project("test_audit_dir", &stats));

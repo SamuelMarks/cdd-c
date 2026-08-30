@@ -30,6 +30,7 @@ TEST test_register_single_struct(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_single.h";
   int rc;
+  (void)rc;
 
   /* Setup */
   (void)openapi_spec_init(&spec);
@@ -160,6 +161,7 @@ TEST test_register_enum_schema(void) {
   struct TypeDefList types;
   char *header_file = "test_reg_enum.h";
   int rc;
+  (void)rc;
 
   (void)openapi_spec_init(&spec);
   type_def_list_init(&types);
@@ -197,6 +199,7 @@ TEST test_register_type_union_copy(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
   int rc;
+  (void)rc;
   char *types_arr[] = {"string", "integer"};
 
   (void)openapi_spec_init(&spec);

@@ -1,9 +1,9 @@
 /* Generated CLI from OpenAPI Specification */
 
-#include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <parson.h>
 /* clang-format off */
 #include "cdd_c_error.h"
 /* clang-format on */
@@ -21,8 +21,7 @@ cdd_c_error_t print_cli_help(void) {
   printf("  --key <path>               TLS Key path\n");
   printf("  --port <int>               Listening port (default 8080)\n");
   printf("  --threads <int>            Number of threads (default 4)\n\n");
-  printf("  %-20s %s\n", "mcp",
-         "Start the Model Context Protocol (MCP) server");
+  printf("  %-20s %s\n", "mcp", "Start the Model Context Protocol (MCP) server");
   printf("Commands:\n");
   return CDD_C_SUCCESS;
 }
@@ -56,11 +55,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (cmd_idx >= argc || strcmp(argv[cmd_idx], "--help") == 0 ||
-      strcmp(argv[cmd_idx], "-h") == 0) {
-    cdd_c_error_t rc = print_cli_help();
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+  if (cmd_idx >= argc || strcmp(argv[cmd_idx], "--help") == 0 || strcmp(argv[cmd_idx], "-h") == 0) {
+    cdd_c_error_t rc = print_cli_help(); if(rc != CDD_C_SUCCESS) return rc;
     return CDD_C_SUCCESS;
   }
 
@@ -74,8 +70,7 @@ int main(int argc, char **argv) {
     char buffer[65536];
     while (fgets(buffer, sizeof(buffer), stdin)) {
       JSON_Value *req_val = json_parse_string(buffer);
-      if (!req_val)
-        continue;
+      if (!req_val) continue;
       JSON_Object *req_obj = json_value_get_object(req_val);
       const char *method = json_object_get_string(req_obj, "method");
       JSON_Value *id_val = json_object_get_value(req_obj, "id");
@@ -83,27 +78,21 @@ int main(int argc, char **argv) {
         if (strcmp(method, "initialize") == 0) {
           printf("{\"jsonrpc\":\"2.0\",\"id\":");
           if (id_val) {
-            char *id_str = json_serialize_to_string(id_val);
-            printf("%s", id_str);
-            json_free_serialized_string(id_str);
-          } else {
-            printf("null");
-          }
-          printf(",\"result\":{\"protocolVersion\":\"2024-11-05\","
-                 "\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":"
-                 "\"cli\",\"version\":\"1.0\"}}}\n");
+             char *id_str = json_serialize_to_string(id_val);
+             printf("%s", id_str);
+             json_free_serialized_string(id_str);
+          } else { printf("null"); }
+          printf(",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"cli\",\"version\":\"1.0\"}}}\n");
           fflush(stdout);
         } else if (strcmp(method, "tools/list") == 0) {
           JSON_Value *tools_val = mcp_get_tools();
           char *tools_str = json_serialize_to_string(tools_val);
           printf("{\"jsonrpc\":\"2.0\",\"id\":");
           if (id_val) {
-            char *id_str = json_serialize_to_string(id_val);
-            printf("%s", id_str);
-            json_free_serialized_string(id_str);
-          } else {
-            printf("null");
-          }
+             char *id_str = json_serialize_to_string(id_val);
+             printf("%s", id_str);
+             json_free_serialized_string(id_str);
+          } else { printf("null"); }
           printf(",\"result\":{\"tools\":%s}}\n", tools_str);
           json_free_serialized_string(tools_str);
           json_value_C_CDD_FREE(tools_val);
@@ -111,43 +100,32 @@ int main(int argc, char **argv) {
         } else if (strcmp(method, "tools/call") == 0) {
           JSON_Object *params = json_object_get_object(req_obj, "params");
           const char *name = json_object_get_string(params, "name");
-          char *args_str = json_serialize_to_string(
-              json_object_get_value(params, "arguments"));
+          char *args_str = json_serialize_to_string(json_object_get_value(params, "arguments"));
           char *out_result = NULL;
           int rc = mcp_execute_tool(name, args_str, &out_result);
-          if (args_str)
-            json_free_serialized_string(args_str);
+          if (args_str) json_free_serialized_string(args_str);
           printf("{\"jsonrpc\":\"2.0\",\"id\":");
           if (id_val) {
-            char *id_str = json_serialize_to_string(id_val);
-            printf("%s", id_str);
-            json_free_serialized_string(id_str);
-          } else {
-            printf("null");
-          }
+             char *id_str = json_serialize_to_string(id_val);
+             printf("%s", id_str);
+             json_free_serialized_string(id_str);
+          } else { printf("null"); }
           if (rc == 0) {
-            printf(",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"%"
-                   "s\"}]}}\n",
-                   out_result ? out_result : "Success");
+            printf(",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"%s\"}]}}\n", out_result ? out_result : "Success");
           } else {
-            printf(",\"result\":{\"isError\":true,\"content\":[{\"type\":"
-                   "\"text\",\"text\":\"%s\"}]}}\n",
-                   out_result ? out_result : "Error executing tool");
+            printf(",\"result\":{\"isError\":true,\"content\":[{\"type\":\"text\",\"text\":\"%s\"}]}}\n", out_result ? out_result : "Error executing tool");
           }
-          if (out_result)
-            C_CDD_FREE(out_result);
+          if (out_result) C_CDD_FREE(out_result);
           fflush(stdout);
         } else if (strcmp(method, "resources/list") == 0) {
           JSON_Value *res_val = mcp_get_resources();
           char *res_str = json_serialize_to_string(res_val);
           printf("{\"jsonrpc\":\"2.0\",\"id\":");
           if (id_val) {
-            char *id_str = json_serialize_to_string(id_val);
-            printf("%s", id_str);
-            json_free_serialized_string(id_str);
-          } else {
-            printf("null");
-          }
+             char *id_str = json_serialize_to_string(id_val);
+             printf("%s", id_str);
+             json_free_serialized_string(id_str);
+          } else { printf("null"); }
           printf(",\"result\":{\"resources\":%s}}\n", res_str);
           json_free_serialized_string(res_str);
           json_value_C_CDD_FREE(res_val);
@@ -159,12 +137,10 @@ int main(int argc, char **argv) {
           char *res_str = json_serialize_to_string(res_val);
           printf("{\"jsonrpc\":\"2.0\",\"id\":");
           if (id_val) {
-            char *id_str = json_serialize_to_string(id_val);
-            printf("%s", id_str);
-            json_free_serialized_string(id_str);
-          } else {
-            printf("null");
-          }
+             char *id_str = json_serialize_to_string(id_val);
+             printf("%s", id_str);
+             json_free_serialized_string(id_str);
+          } else { printf("null"); }
           printf(",\"result\":{\"contents\":%s}}\n", res_str);
           json_free_serialized_string(res_str);
           json_value_C_CDD_FREE(res_val);

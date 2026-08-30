@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_client_body.h
  * @brief Unit tests for Client Body Logic Generator.
@@ -37,17 +39,18 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
   cdd_c_error_t rc;
 
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
   if (!tmp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = codegen_client_write_body(tmp, op, spec, tmpl, base_url_expr);
   if (rc != CDD_C_SUCCESS) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     return rc;
   }
 
@@ -60,7 +63,8 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
     if (fread(content, 1, sz, tmp)) {
     }
 
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   *_out_val = content;
   return CDD_C_SUCCESS;
 }
@@ -2224,10 +2228,10 @@ TEST test_client_body_verb_mapping(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2271,7 +2275,8 @@ TEST test_client_body_verb_mapping(void) {
   op.method = "unknown";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2282,10 +2287,10 @@ TEST test_client_body_mapped_err_code(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2303,7 +2308,8 @@ TEST test_client_body_mapped_err_code(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.responses);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2314,10 +2320,10 @@ TEST test_client_body_media_type_matching(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2340,7 +2346,8 @@ TEST test_client_body_media_type_matching(void) {
   op.req_body.content_type = "text/plain";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2351,10 +2358,10 @@ TEST test_client_body_find_media_type_not_found(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2377,7 +2384,8 @@ TEST test_client_body_find_media_type_not_found(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2389,10 +2397,10 @@ TEST test_client_body_find_encoding_not_found(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2425,8 +2433,28 @@ TEST test_client_body_find_encoding_not_found(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2436,7 +2464,8 @@ TEST test_client_body_find_encoding_not_found(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2447,10 +2476,10 @@ TEST test_client_body_array_items_statics(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2475,28 +2504,158 @@ TEST test_client_body_array_items_statics(void) {
   spec.defined_schemas[0].size = 5;
   spec.defined_schemas[0].fields = calloc(5, sizeof(struct StructField));
 
-  /* Field 0: array of object */
+/* Field 0: array of object */
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "arr_obj");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "arr_obj");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "arr_obj");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "array");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "array");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].ref,
+           sizeof(spec.defined_schemas[0].fields[0].ref), "object");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].ref,
+           sizeof(spec.defined_schemas[0].fields[0].ref), "object");
+#else
   strcpy(spec.defined_schemas[0].fields[0].ref, "object");
+#endif
+#endif
 
-  /* Field 1: array of array */
+/* Field 1: array of array */
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].name,
+           sizeof(spec.defined_schemas[0].fields[1].name), "arr_arr");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].name,
+           sizeof(spec.defined_schemas[0].fields[1].name), "arr_arr");
+#else
   strcpy(spec.defined_schemas[0].fields[1].name, "arr_arr");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].type,
+           sizeof(spec.defined_schemas[0].fields[1].type), "array");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].type,
+           sizeof(spec.defined_schemas[0].fields[1].type), "array");
+#else
   strcpy(spec.defined_schemas[0].fields[1].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].ref,
+           sizeof(spec.defined_schemas[0].fields[1].ref), "array");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[1].ref,
+           sizeof(spec.defined_schemas[0].fields[1].ref), "array");
+#else
   strcpy(spec.defined_schemas[0].fields[1].ref, "array");
+#endif
+#endif
 
-  /* Field 2: array of enum */
+/* Field 2: array of enum */
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].name,
+           sizeof(spec.defined_schemas[0].fields[2].name), "arr_enum");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].name,
+           sizeof(spec.defined_schemas[0].fields[2].name), "arr_enum");
+#else
   strcpy(spec.defined_schemas[0].fields[2].name, "arr_enum");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].type,
+           sizeof(spec.defined_schemas[0].fields[2].type), "array");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].type,
+           sizeof(spec.defined_schemas[0].fields[2].type), "array");
+#else
   strcpy(spec.defined_schemas[0].fields[2].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].ref,
+           sizeof(spec.defined_schemas[0].fields[2].ref), "enum");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[2].ref,
+           sizeof(spec.defined_schemas[0].fields[2].ref), "enum");
+#else
   strcpy(spec.defined_schemas[0].fields[2].ref, "enum");
+#endif
+#endif
 
-  /* Field 3: object */
+/* Field 3: object */
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[3].name,
+           sizeof(spec.defined_schemas[0].fields[3].name), "obj_field");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[3].name,
+           sizeof(spec.defined_schemas[0].fields[3].name), "obj_field");
+#else
   strcpy(spec.defined_schemas[0].fields[3].name, "obj_field");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[3].type,
+           sizeof(spec.defined_schemas[0].fields[3].type), "object");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[3].type,
+           sizeof(spec.defined_schemas[0].fields[3].type), "object");
+#else
   strcpy(spec.defined_schemas[0].fields[3].type, "object");
+#endif
+#endif
 
-  /* Field 4: array with empty ref */
+/* Field 4: array with empty ref */
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[4].name,
+           sizeof(spec.defined_schemas[0].fields[4].name), "arr_str");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[4].name,
+           sizeof(spec.defined_schemas[0].fields[4].name), "arr_str");
+#else
   strcpy(spec.defined_schemas[0].fields[4].name, "arr_str");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[4].type,
+           sizeof(spec.defined_schemas[0].fields[4].type), "array");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[4].type,
+           sizeof(spec.defined_schemas[0].fields[4].type), "array");
+#else
   strcpy(spec.defined_schemas[0].fields[4].type, "array");
+#endif
+#endif
   spec.defined_schemas[0].fields[4].ref[0] = '\0';
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2511,7 +2670,8 @@ TEST test_client_body_array_items_statics(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2522,10 +2682,10 @@ TEST test_client_body_verb_enum_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2545,7 +2705,8 @@ TEST test_client_body_verb_enum_indirect(void) {
   op.verb = OA_VERB_PATCH;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2559,10 +2720,10 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2580,8 +2741,28 @@ TEST test_client_body_header_formatting_indirect(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "1test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "1test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "1test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaHdr";
 
@@ -2620,7 +2801,8 @@ TEST test_client_body_header_formatting_indirect(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2633,10 +2815,10 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2653,8 +2835,28 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaTxtBin";
 
@@ -2711,7 +2913,8 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2725,10 +2928,10 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2745,8 +2948,28 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaMissing";
 
@@ -2783,7 +3006,8 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2796,10 +3020,10 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2816,8 +3040,28 @@ TEST test_client_body_media_type_caps_indirect(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaCaps";
 
@@ -2850,7 +3094,8 @@ TEST test_client_body_media_type_caps_indirect(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2863,10 +3108,10 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2883,8 +3128,28 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaPrefixCaps";
 
@@ -2917,7 +3182,8 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2930,10 +3196,10 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -2950,8 +3216,28 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "test_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "string");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "string");
+#endif
+#endif
 
   op.req_body.ref_name = "MockSchemaShort";
 
@@ -2987,7 +3273,8 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2999,10 +3286,10 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3057,7 +3344,8 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3069,10 +3357,10 @@ TEST test_client_body_write_inline_json_parse_types(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3129,7 +3417,8 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3141,10 +3430,10 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3202,7 +3491,8 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3214,10 +3504,10 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3234,10 +3524,39 @@ TEST test_client_body_form_object_style_form_explode(void) {
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
   spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "obj_prop");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].name,
+           sizeof(spec.defined_schemas[0].fields[0].name), "obj_prop");
+#else
   strcpy(spec.defined_schemas[0].fields[0].name, "obj_prop");
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "object");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].type,
+           sizeof(spec.defined_schemas[0].fields[0].type), "object");
+#else
   strcpy(spec.defined_schemas[0].fields[0].type, "object");
-  strcpy(spec.defined_schemas[0].fields[0].ref,
-         "MockSchemaFormObj"); /* self-ref for test */
+#endif
+#endif
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].ref,
+           sizeof(spec.defined_schemas[0].fields[0].ref), "MockSchemaFormObj");
+#else
+#if defined(_MSC_VER)
+  strcpy_s(spec.defined_schemas[0].fields[0].ref,
+           sizeof(spec.defined_schemas[0].fields[0].ref), "MockSchemaFormObj");
+#else
+  strcpy(spec.defined_schemas[0].fields[0].ref, "MockSchemaFormObj");
+#endif
+#endif /* self-ref for test */
 
   op.req_body.ref_name = "MockSchemaFormObj";
 
@@ -3264,7 +3583,8 @@ TEST test_client_body_form_object_style_form_explode(void) {
     free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3275,10 +3595,10 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3300,7 +3620,8 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.parameters);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3312,10 +3633,10 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3348,7 +3669,8 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3360,10 +3682,10 @@ TEST test_client_body_response_is_textual_string_success(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3385,7 +3707,8 @@ TEST test_client_body_response_is_textual_string_success(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3397,10 +3720,10 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3429,7 +3752,8 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3441,10 +3765,10 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3464,7 +3788,8 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3476,10 +3801,10 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3504,7 +3829,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3516,10 +3842,10 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3551,7 +3877,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3563,10 +3890,10 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3616,7 +3943,8 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(resp.content_media_types);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3624,10 +3952,10 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
 TEST test_client_body_write_joined_form_array_direct(void) {
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
   {
     struct OpenAPI_Operation op = {0};
@@ -3637,9 +3965,33 @@ TEST test_client_body_write_joined_form_array_direct(void) {
     struct StructField f = {0};
     struct OpenAPI_MediaType mt = {0};
     openapi_spec_init(&spec);
+#if defined(_MSC_VER)
+    strcpy_s(f.name, sizeof(f.name), "arr");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(f.name, sizeof(f.name), "arr");
+#else
     strcpy(f.name, "arr");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(f.type, sizeof(f.type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(f.type, sizeof(f.type), "array");
+#else
     strcpy(f.type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(f.ref, sizeof(f.ref), "MyOtherStruct");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(f.ref, sizeof(f.ref), "MyOtherStruct");
+#else
     strcpy(f.ref, "MyOtherStruct");
+#endif
+#endif
     sf.size = 1;
     sf.capacity = 1;
     sf.fields = calloc(1, sizeof(struct StructField));
@@ -3675,27 +4027,78 @@ TEST test_client_body_write_joined_form_array_direct(void) {
 
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
 
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "integer");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "integer");
+#endif
+#endif
     ASSERT_EQ(CDD_C_SUCCESS,
               codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "number");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "number");
+#endif
+#endif
     ASSERT_EQ(CDD_C_SUCCESS,
               codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "boolean");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "boolean");
+#endif
+#endif
     ASSERT_EQ(CDD_C_SUCCESS,
               codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+#endif
+#endif
     ASSERT_EQ(CDD_C_SUCCESS,
               codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "unsupported_type");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "unsupported_type");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "unsupported_type");
+#endif
+#endif
     ASSERT_EQ(CDD_C_SUCCESS,
               codegen_client_write_body(fp, &op, &spec, "/test", NULL));
 
-    fclose(fp);
+    if (fp)
+      fclose(fp);
     free(spec.defined_schemas[0].fields);
     free(spec.defined_schemas);
     free(spec.defined_schema_names[0]);
@@ -3711,10 +4114,10 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
   for (i = 0; i < 50; ++i) {
     FILE *fp;
 #if defined(_MSC_VER)
-    if (tmpfile_s(&fp) != 0)
+    if (((fp = cdd_test_tmpfile_global()) == NULL))
       fp = NULL;
 #else
-    fp = tmpfile();
+    fp = cdd_test_tmpfile_global();
 #endif
     {
       struct OpenAPI_Operation op = {0};
@@ -3724,9 +4127,33 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
       struct StructField f = {0};
       struct OpenAPI_MediaType mt = {0};
       openapi_spec_init(&spec);
+#if defined(_MSC_VER)
+      strcpy_s(f.name, sizeof(f.name), "arr");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(f.name, sizeof(f.name), "arr");
+#else
       strcpy(f.name, "arr");
+#endif
+#endif
+#if defined(_MSC_VER)
+      strcpy_s(f.type, sizeof(f.type), "array");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(f.type, sizeof(f.type), "array");
+#else
       strcpy(f.type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+      strcpy_s(f.ref, sizeof(f.ref), "MyOtherStruct");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(f.ref, sizeof(f.ref), "MyOtherStruct");
+#else
       strcpy(f.ref, "MyOtherStruct");
+#endif
+#endif
       sf.size = 1;
       sf.capacity = 1;
       sf.fields = calloc(1, sizeof(struct StructField));
@@ -3766,32 +4193,85 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
 
       op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
 
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "integer");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "integer");
+#else
       strcpy(spec.defined_schemas[0].fields[0].ref, "integer");
+#endif
+#endif
       g_fail_io_after = i;
       codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "number");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "number");
+#else
       strcpy(spec.defined_schemas[0].fields[0].ref, "number");
+#endif
+#endif
       g_fail_io_after = i;
       codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "boolean");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "boolean");
+#else
       strcpy(spec.defined_schemas[0].fields[0].ref, "boolean");
+#endif
+#endif
       g_fail_io_after = i;
       codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
       strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+#endif
+#endif
       g_fail_io_after = i;
       codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref),
+               "unsupported_type");
+#else
+#if defined(_MSC_VER)
+      strcpy_s(spec.defined_schemas[0].fields[0].ref,
+               sizeof(spec.defined_schemas[0].fields[0].ref),
+               "unsupported_type");
+#else
       strcpy(spec.defined_schemas[0].fields[0].ref, "unsupported_type");
+#endif
+#endif
       g_fail_io_after = i;
       codegen_client_write_body(fp, &op, &spec, "/test", NULL);
       g_fail_io_after = -1;
 
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(spec.defined_schemas[0].fields);
       free(spec.defined_schemas);
       free(spec.defined_schema_names[0]);
@@ -3809,10 +4289,10 @@ TEST test_client_body_write_joined_form_array(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3857,7 +4337,8 @@ TEST test_client_body_write_joined_form_array(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(op.parameters);
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -3869,10 +4350,10 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
 
   FILE *fp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&fp) != 0)
+  if (((fp = cdd_test_tmpfile_global()) == NULL))
     fp = NULL;
 #else
-  fp = tmpfile();
+  fp = cdd_test_tmpfile_global();
 #endif
 
   memset(&spec, 0, sizeof(spec));
@@ -3901,7 +4382,8 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   /* properly. */
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  fclose(fp);
+  if (fp)
+    fclose(fp);
   g_fail_io_after = -1;
   PASS();
 }
@@ -4040,13 +4522,14 @@ TEST test_client_body_all_primitive_types(void) {
       struct OpenAPI_Operation op = {0};
       FILE *fp;
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       {
         int rc;
+        (void)rc;
 
         memset(&spec, 0, sizeof(spec));
         memset(&op, 0, sizeof(op));
@@ -4196,7 +4679,8 @@ TEST test_client_body_all_primitive_types(void) {
         g_fail_io_after = -1;
 
         free(op.parameters);
-        fclose(fp);
+        if (fp)
+          fclose(fp);
         if (rc == CDD_C_SUCCESS)
           break;
       }
@@ -4218,6 +4702,7 @@ TEST test_client_body_inline_response_types(void) {
       struct OpenAPI_Response resp = {0};
       FILE *fp;
       int rc;
+      (void)rc;
       int all_success = 1;
 
       /* integer response */
@@ -4231,16 +4716,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4256,16 +4742,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4281,16 +4768,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4306,16 +4794,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4332,16 +4821,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4358,16 +4848,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4383,16 +4874,17 @@ TEST test_client_body_inline_response_types(void) {
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
       op.req_body_media_types[0].name = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body_media_types);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
@@ -4416,6 +4908,7 @@ TEST test_client_body_inline_types(void) {
       struct OpenAPI_Operation op = {0};
       FILE *fp;
       int rc;
+      (void)rc;
       int all_success = 1;
 
       /* integer */
@@ -4423,16 +4916,17 @@ TEST test_client_body_inline_types(void) {
       op.req_body.inline_type = "integer";
       op.req_body.content_type = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
@@ -4441,16 +4935,17 @@ TEST test_client_body_inline_types(void) {
       op.req_body.inline_type = "boolean";
       op.req_body.content_type = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
@@ -4459,16 +4954,17 @@ TEST test_client_body_inline_types(void) {
       op.req_body.inline_type = "number";
       op.req_body.content_type = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
@@ -4478,16 +4974,17 @@ TEST test_client_body_inline_types(void) {
       op.req_body.inline_type = "integer";
       op.req_body.content_type = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
@@ -4497,16 +4994,17 @@ TEST test_client_body_inline_types(void) {
       op.req_body.inline_type = "boolean";
       op.req_body.content_type = "application/json";
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
@@ -4529,6 +5027,7 @@ TEST test_client_body_form_types(void) {
       struct OpenAPI_Operation op = {0};
       FILE *fp;
       int rc;
+      (void)rc;
       int all_success = 1;
 
       memset(&op, 0, sizeof(op));
@@ -4546,16 +5045,17 @@ TEST test_client_body_form_types(void) {
       op.req_body.multipart_fields[3].type = "boolean";
 
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body.multipart_fields);
 
       if (rc != CDD_C_SUCCESS)
@@ -4579,6 +5079,7 @@ TEST test_client_body_multipart_types(void) {
       struct OpenAPI_Operation op = {0};
       FILE *fp;
       int rc;
+      (void)rc;
       int all_success = 1;
 
       memset(&op, 0, sizeof(op));
@@ -4596,16 +5097,17 @@ TEST test_client_body_multipart_types(void) {
       op.req_body.multipart_fields[3].type = "boolean";
 
 #if defined(_MSC_VER)
-      if (tmpfile_s(&fp) != 0)
+      if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
 #else
-      fp = tmpfile();
+      fp = cdd_test_tmpfile_global();
 #endif
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
       g_fail_io_after = -1;
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       free(op.req_body.multipart_fields);
 
       if (rc != CDD_C_SUCCESS)
@@ -4626,6 +5128,7 @@ TEST test_client_body_form_mega(void) {
     struct OpenAPI_Operation op = {0};
     FILE *fp;
     int rc;
+    (void)rc;
     int all_success = 1;
 
     memset(&op, 0, sizeof(op));
@@ -4647,87 +5150,737 @@ TEST test_client_body_form_mega(void) {
     /* Main schema */
     spec.defined_schemas[0].size = 11;
     spec.defined_schemas[0].fields = calloc(11, sizeof(struct StructField));
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].name,
+             sizeof(spec.defined_schemas[0].fields[0].name), "fArrStrRsv");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].name,
+             sizeof(spec.defined_schemas[0].fields[0].name), "fArrStrRsv");
+#else
     strcpy(spec.defined_schemas[0].fields[0].name, "fArrStrRsv");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].type,
+             sizeof(spec.defined_schemas[0].fields[0].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].type,
+             sizeof(spec.defined_schemas[0].fields[0].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[0].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[0].ref,
+             sizeof(spec.defined_schemas[0].fields[0].ref), "string");
+#else
     strcpy(spec.defined_schemas[0].fields[0].ref, "string");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].name,
+             sizeof(spec.defined_schemas[0].fields[1].name), "fObjExp");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].name,
+             sizeof(spec.defined_schemas[0].fields[1].name), "fObjExp");
+#else
     strcpy(spec.defined_schemas[0].fields[1].name, "fObjExp");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].type,
+             sizeof(spec.defined_schemas[0].fields[1].type), "object");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].type,
+             sizeof(spec.defined_schemas[0].fields[1].type), "object");
+#else
     strcpy(spec.defined_schemas[0].fields[1].type, "object");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].ref,
+             sizeof(spec.defined_schemas[0].fields[1].ref), "ObjType1");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[1].ref,
+             sizeof(spec.defined_schemas[0].fields[1].ref), "ObjType1");
+#else
     strcpy(spec.defined_schemas[0].fields[1].ref, "ObjType1");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].name,
+             sizeof(spec.defined_schemas[0].fields[2].name), "fObjNoExp");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].name,
+             sizeof(spec.defined_schemas[0].fields[2].name), "fObjNoExp");
+#else
     strcpy(spec.defined_schemas[0].fields[2].name, "fObjNoExp");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].type,
+             sizeof(spec.defined_schemas[0].fields[2].type), "object");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].type,
+             sizeof(spec.defined_schemas[0].fields[2].type), "object");
+#else
     strcpy(spec.defined_schemas[0].fields[2].type, "object");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].ref,
+             sizeof(spec.defined_schemas[0].fields[2].ref), "ObjType2");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[2].ref,
+             sizeof(spec.defined_schemas[0].fields[2].ref), "ObjType2");
+#else
     strcpy(spec.defined_schemas[0].fields[2].ref, "ObjType2");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].name,
+             sizeof(spec.defined_schemas[0].fields[3].name), "fObjSpace");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].name,
+             sizeof(spec.defined_schemas[0].fields[3].name), "fObjSpace");
+#else
     strcpy(spec.defined_schemas[0].fields[3].name, "fObjSpace");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].type,
+             sizeof(spec.defined_schemas[0].fields[3].type), "object");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].type,
+             sizeof(spec.defined_schemas[0].fields[3].type), "object");
+#else
     strcpy(spec.defined_schemas[0].fields[3].type, "object");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].ref,
+             sizeof(spec.defined_schemas[0].fields[3].ref), "ObjType3");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[3].ref,
+             sizeof(spec.defined_schemas[0].fields[3].ref), "ObjType3");
+#else
     strcpy(spec.defined_schemas[0].fields[3].ref, "ObjType3");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].name,
+             sizeof(spec.defined_schemas[0].fields[4].name), "fObjPipe");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].name,
+             sizeof(spec.defined_schemas[0].fields[4].name), "fObjPipe");
+#else
     strcpy(spec.defined_schemas[0].fields[4].name, "fObjPipe");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].type,
+             sizeof(spec.defined_schemas[0].fields[4].type), "object");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].type,
+             sizeof(spec.defined_schemas[0].fields[4].type), "object");
+#else
     strcpy(spec.defined_schemas[0].fields[4].type, "object");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].ref,
+             sizeof(spec.defined_schemas[0].fields[4].ref), "ObjType4");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[4].ref,
+             sizeof(spec.defined_schemas[0].fields[4].ref), "ObjType4");
+#else
     strcpy(spec.defined_schemas[0].fields[4].ref, "ObjType4");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].name,
+             sizeof(spec.defined_schemas[0].fields[5].name), "fArrInt");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].name,
+             sizeof(spec.defined_schemas[0].fields[5].name), "fArrInt");
+#else
     strcpy(spec.defined_schemas[0].fields[5].name, "fArrInt");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].type,
+             sizeof(spec.defined_schemas[0].fields[5].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].type,
+             sizeof(spec.defined_schemas[0].fields[5].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[5].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].ref,
+             sizeof(spec.defined_schemas[0].fields[5].ref), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[5].ref,
+             sizeof(spec.defined_schemas[0].fields[5].ref), "integer");
+#else
     strcpy(spec.defined_schemas[0].fields[5].ref, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].name,
+             sizeof(spec.defined_schemas[0].fields[6].name), "fFormArrInt");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].name,
+             sizeof(spec.defined_schemas[0].fields[6].name), "fFormArrInt");
+#else
     strcpy(spec.defined_schemas[0].fields[6].name, "fFormArrInt");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].type,
+             sizeof(spec.defined_schemas[0].fields[6].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].type,
+             sizeof(spec.defined_schemas[0].fields[6].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[6].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].ref,
+             sizeof(spec.defined_schemas[0].fields[6].ref), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[6].ref,
+             sizeof(spec.defined_schemas[0].fields[6].ref), "integer");
+#else
     strcpy(spec.defined_schemas[0].fields[6].ref, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].name,
+             sizeof(spec.defined_schemas[0].fields[7].name), "fFormArrNum");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].name,
+             sizeof(spec.defined_schemas[0].fields[7].name), "fFormArrNum");
+#else
     strcpy(spec.defined_schemas[0].fields[7].name, "fFormArrNum");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].type,
+             sizeof(spec.defined_schemas[0].fields[7].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].type,
+             sizeof(spec.defined_schemas[0].fields[7].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[7].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].ref,
+             sizeof(spec.defined_schemas[0].fields[7].ref), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[7].ref,
+             sizeof(spec.defined_schemas[0].fields[7].ref), "number");
+#else
     strcpy(spec.defined_schemas[0].fields[7].ref, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].name,
+             sizeof(spec.defined_schemas[0].fields[8].name), "fFormArrBool");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].name,
+             sizeof(spec.defined_schemas[0].fields[8].name), "fFormArrBool");
+#else
     strcpy(spec.defined_schemas[0].fields[8].name, "fFormArrBool");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].type,
+             sizeof(spec.defined_schemas[0].fields[8].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].type,
+             sizeof(spec.defined_schemas[0].fields[8].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[8].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].ref,
+             sizeof(spec.defined_schemas[0].fields[8].ref), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[8].ref,
+             sizeof(spec.defined_schemas[0].fields[8].ref), "boolean");
+#else
     strcpy(spec.defined_schemas[0].fields[8].ref, "boolean");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].name,
+             sizeof(spec.defined_schemas[0].fields[9].name), "fArrNum");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].name,
+             sizeof(spec.defined_schemas[0].fields[9].name), "fArrNum");
+#else
     strcpy(spec.defined_schemas[0].fields[9].name, "fArrNum");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].type,
+             sizeof(spec.defined_schemas[0].fields[9].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].type,
+             sizeof(spec.defined_schemas[0].fields[9].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[9].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].ref,
+             sizeof(spec.defined_schemas[0].fields[9].ref), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[9].ref,
+             sizeof(spec.defined_schemas[0].fields[9].ref), "number");
+#else
     strcpy(spec.defined_schemas[0].fields[9].ref, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].name,
+             sizeof(spec.defined_schemas[0].fields[10].name), "fArrBool");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].name,
+             sizeof(spec.defined_schemas[0].fields[10].name), "fArrBool");
+#else
     strcpy(spec.defined_schemas[0].fields[10].name, "fArrBool");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].type,
+             sizeof(spec.defined_schemas[0].fields[10].type), "array");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].type,
+             sizeof(spec.defined_schemas[0].fields[10].type), "array");
+#else
     strcpy(spec.defined_schemas[0].fields[10].type, "array");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].ref,
+             sizeof(spec.defined_schemas[0].fields[10].ref), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[0].fields[10].ref,
+             sizeof(spec.defined_schemas[0].fields[10].ref), "boolean");
+#else
     strcpy(spec.defined_schemas[0].fields[10].ref, "boolean");
+#endif
+#endif
 
     /* ObjType1 (explode=1) */
     spec.defined_schemas[1].size = 4;
     spec.defined_schemas[1].fields = calloc(4, sizeof(struct StructField));
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[0].name,
+             sizeof(spec.defined_schemas[1].fields[0].name), "s");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[0].name,
+             sizeof(spec.defined_schemas[1].fields[0].name), "s");
+#else
     strcpy(spec.defined_schemas[1].fields[0].name, "s");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[0].type,
+             sizeof(spec.defined_schemas[1].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[0].type,
+             sizeof(spec.defined_schemas[1].fields[0].type), "string");
+#else
     strcpy(spec.defined_schemas[1].fields[0].type, "string");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[1].name,
+             sizeof(spec.defined_schemas[1].fields[1].name), "i");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[1].name,
+             sizeof(spec.defined_schemas[1].fields[1].name), "i");
+#else
     strcpy(spec.defined_schemas[1].fields[1].name, "i");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[1].type,
+             sizeof(spec.defined_schemas[1].fields[1].type), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[1].type,
+             sizeof(spec.defined_schemas[1].fields[1].type), "integer");
+#else
     strcpy(spec.defined_schemas[1].fields[1].type, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[2].name,
+             sizeof(spec.defined_schemas[1].fields[2].name), "n");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[2].name,
+             sizeof(spec.defined_schemas[1].fields[2].name), "n");
+#else
     strcpy(spec.defined_schemas[1].fields[2].name, "n");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[2].type,
+             sizeof(spec.defined_schemas[1].fields[2].type), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[2].type,
+             sizeof(spec.defined_schemas[1].fields[2].type), "number");
+#else
     strcpy(spec.defined_schemas[1].fields[2].type, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[3].name,
+             sizeof(spec.defined_schemas[1].fields[3].name), "b");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[3].name,
+             sizeof(spec.defined_schemas[1].fields[3].name), "b");
+#else
     strcpy(spec.defined_schemas[1].fields[3].name, "b");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[3].type,
+             sizeof(spec.defined_schemas[1].fields[3].type), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[1].fields[3].type,
+             sizeof(spec.defined_schemas[1].fields[3].type), "boolean");
+#else
     strcpy(spec.defined_schemas[1].fields[3].type, "boolean");
+#endif
+#endif
 
     /* ObjType2 (explode=0) */
     spec.defined_schemas[2].size = 4;
     spec.defined_schemas[2].fields = calloc(4, sizeof(struct StructField));
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[0].name,
+             sizeof(spec.defined_schemas[2].fields[0].name), "s");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[0].name,
+             sizeof(spec.defined_schemas[2].fields[0].name), "s");
+#else
     strcpy(spec.defined_schemas[2].fields[0].name, "s");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[0].type,
+             sizeof(spec.defined_schemas[2].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[0].type,
+             sizeof(spec.defined_schemas[2].fields[0].type), "string");
+#else
     strcpy(spec.defined_schemas[2].fields[0].type, "string");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[1].name,
+             sizeof(spec.defined_schemas[2].fields[1].name), "i");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[1].name,
+             sizeof(spec.defined_schemas[2].fields[1].name), "i");
+#else
     strcpy(spec.defined_schemas[2].fields[1].name, "i");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[1].type,
+             sizeof(spec.defined_schemas[2].fields[1].type), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[1].type,
+             sizeof(spec.defined_schemas[2].fields[1].type), "integer");
+#else
     strcpy(spec.defined_schemas[2].fields[1].type, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[2].name,
+             sizeof(spec.defined_schemas[2].fields[2].name), "n");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[2].name,
+             sizeof(spec.defined_schemas[2].fields[2].name), "n");
+#else
     strcpy(spec.defined_schemas[2].fields[2].name, "n");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[2].type,
+             sizeof(spec.defined_schemas[2].fields[2].type), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[2].type,
+             sizeof(spec.defined_schemas[2].fields[2].type), "number");
+#else
     strcpy(spec.defined_schemas[2].fields[2].type, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[3].name,
+             sizeof(spec.defined_schemas[2].fields[3].name), "b");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[3].name,
+             sizeof(spec.defined_schemas[2].fields[3].name), "b");
+#else
     strcpy(spec.defined_schemas[2].fields[3].name, "b");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[3].type,
+             sizeof(spec.defined_schemas[2].fields[3].type), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[2].fields[3].type,
+             sizeof(spec.defined_schemas[2].fields[3].type), "boolean");
+#else
     strcpy(spec.defined_schemas[2].fields[3].type, "boolean");
+#endif
+#endif
 
     /* ObjType3 (spaceDelimited) */
     spec.defined_schemas[3].size = 4;
     spec.defined_schemas[3].fields = calloc(4, sizeof(struct StructField));
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[0].name,
+             sizeof(spec.defined_schemas[3].fields[0].name), "s");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[0].name,
+             sizeof(spec.defined_schemas[3].fields[0].name), "s");
+#else
     strcpy(spec.defined_schemas[3].fields[0].name, "s");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[0].type,
+             sizeof(spec.defined_schemas[3].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[0].type,
+             sizeof(spec.defined_schemas[3].fields[0].type), "string");
+#else
     strcpy(spec.defined_schemas[3].fields[0].type, "string");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[1].name,
+             sizeof(spec.defined_schemas[3].fields[1].name), "i");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[1].name,
+             sizeof(spec.defined_schemas[3].fields[1].name), "i");
+#else
     strcpy(spec.defined_schemas[3].fields[1].name, "i");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[1].type,
+             sizeof(spec.defined_schemas[3].fields[1].type), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[1].type,
+             sizeof(spec.defined_schemas[3].fields[1].type), "integer");
+#else
     strcpy(spec.defined_schemas[3].fields[1].type, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[2].name,
+             sizeof(spec.defined_schemas[3].fields[2].name), "n");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[2].name,
+             sizeof(spec.defined_schemas[3].fields[2].name), "n");
+#else
     strcpy(spec.defined_schemas[3].fields[2].name, "n");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[2].type,
+             sizeof(spec.defined_schemas[3].fields[2].type), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[2].type,
+             sizeof(spec.defined_schemas[3].fields[2].type), "number");
+#else
     strcpy(spec.defined_schemas[3].fields[2].type, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[3].name,
+             sizeof(spec.defined_schemas[3].fields[3].name), "b");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[3].name,
+             sizeof(spec.defined_schemas[3].fields[3].name), "b");
+#else
     strcpy(spec.defined_schemas[3].fields[3].name, "b");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[3].type,
+             sizeof(spec.defined_schemas[3].fields[3].type), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[3].fields[3].type,
+             sizeof(spec.defined_schemas[3].fields[3].type), "boolean");
+#else
     strcpy(spec.defined_schemas[3].fields[3].type, "boolean");
+#endif
+#endif
 
     /* ObjType4 (pipeDelimited) */
     spec.defined_schemas[4].size = 4;
     spec.defined_schemas[4].fields = calloc(4, sizeof(struct StructField));
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[0].name,
+             sizeof(spec.defined_schemas[4].fields[0].name), "s");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[0].name,
+             sizeof(spec.defined_schemas[4].fields[0].name), "s");
+#else
     strcpy(spec.defined_schemas[4].fields[0].name, "s");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[0].type,
+             sizeof(spec.defined_schemas[4].fields[0].type), "string");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[0].type,
+             sizeof(spec.defined_schemas[4].fields[0].type), "string");
+#else
     strcpy(spec.defined_schemas[4].fields[0].type, "string");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[1].name,
+             sizeof(spec.defined_schemas[4].fields[1].name), "i");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[1].name,
+             sizeof(spec.defined_schemas[4].fields[1].name), "i");
+#else
     strcpy(spec.defined_schemas[4].fields[1].name, "i");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[1].type,
+             sizeof(spec.defined_schemas[4].fields[1].type), "integer");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[1].type,
+             sizeof(spec.defined_schemas[4].fields[1].type), "integer");
+#else
     strcpy(spec.defined_schemas[4].fields[1].type, "integer");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[2].name,
+             sizeof(spec.defined_schemas[4].fields[2].name), "n");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[2].name,
+             sizeof(spec.defined_schemas[4].fields[2].name), "n");
+#else
     strcpy(spec.defined_schemas[4].fields[2].name, "n");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[2].type,
+             sizeof(spec.defined_schemas[4].fields[2].type), "number");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[2].type,
+             sizeof(spec.defined_schemas[4].fields[2].type), "number");
+#else
     strcpy(spec.defined_schemas[4].fields[2].type, "number");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[3].name,
+             sizeof(spec.defined_schemas[4].fields[3].name), "b");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[3].name,
+             sizeof(spec.defined_schemas[4].fields[3].name), "b");
+#else
     strcpy(spec.defined_schemas[4].fields[3].name, "b");
+#endif
+#endif
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[3].type,
+             sizeof(spec.defined_schemas[4].fields[3].type), "boolean");
+#else
+#if defined(_MSC_VER)
+    strcpy_s(spec.defined_schemas[4].fields[3].type,
+             sizeof(spec.defined_schemas[4].fields[3].type), "boolean");
+#else
     strcpy(spec.defined_schemas[4].fields[3].type, "boolean");
+#endif
+#endif
 
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -4795,16 +5948,17 @@ TEST test_client_body_form_mega(void) {
     op.req_body_media_types[0].encoding[10].style_set = 1;
 
 #if defined(_MSC_VER)
-    if (tmpfile_s(&fp) != 0)
+    if (((fp = cdd_test_tmpfile_global()) == NULL))
       fp = NULL;
 #else
-    fp = tmpfile();
+    fp = cdd_test_tmpfile_global();
 #endif
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
     g_fail_io_after = -1;
-    fclose(fp);
+    if (fp)
+      fclose(fp);
 
     free(spec.defined_schemas[0].fields);
     free(spec.defined_schemas[1].fields);

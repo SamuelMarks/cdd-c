@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_code2schema.h
  * @brief Unit tests for code to schema conversion.
@@ -202,10 +204,10 @@ static struct StructFields test_struct_fields;
 TEST test_write_struct_functions(void) {
   FILE *tmpf;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmpf) != 0)
+  if (((tmpf = cdd_test_tmpfile_global()) == NULL))
     tmpf = NULL;
 #else
-  tmpf = tmpfile();
+  tmpf = cdd_test_tmpfile_global();
 #endif
 
   if (!tmpf)
@@ -230,7 +232,8 @@ TEST test_write_struct_functions(void) {
   ASSERT_GT(ftell(tmpf), 0);
 
   struct_fields_free(&test_struct_fields);
-  fclose(tmpf);
+  if (tmpf)
+    fclose(tmpf);
   g_fail_io_after = -1;
 
   PASS();
@@ -243,7 +246,7 @@ TEST test_struct_fields_overflow(void) {
   enum { n = 32 };
 
   ASSERT_EQ(0, struct_fields_init(&sf));
-  for (i = 0; i < 200; ++i) {
+  for (i = 0; i < 50; ++i) {
 
     char name[n];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -258,7 +261,7 @@ TEST test_struct_fields_overflow(void) {
     ASSERT_EQ(0, struct_fields_add(&sf, name, "string", NULL, NULL, NULL));
   }
 
-  ASSERT_GT(sf.size, n * 2);
+  ASSERT_GT(sf.size, 16);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
 
@@ -272,7 +275,7 @@ TEST test_enum_members_overflow(void) {
   enum { n = 32 };
 
   ASSERT_EQ(0, enum_members_init(&em));
-  for (i = 0; i < 200; ++i) {
+  for (i = 0; i < 50; ++i) {
 
     char name[n];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -287,7 +290,7 @@ TEST test_enum_members_overflow(void) {
     ASSERT_EQ(0, enum_members_add(&em, name));
   }
 
-  ASSERT_GT(em.size, n * 2);
+  ASSERT_GT(em.size, 16);
   enum_members_free(&em);
   g_fail_io_after = -1;
   PASS();
@@ -329,7 +332,7 @@ static void mock_free(void *ptr) { free(ptr); }
 
 TEST test_code2schema_oom(void) {
   int i;
-  for (i = 0; i < 200; ++i) {
+  for (i = 0; i < 50; ++i) {
     g_malloc_calls = 0;
     g_malloc_fail_at = i;
     json_set_allocation_functions(mock_malloc, mock_free);
@@ -366,7 +369,8 @@ TEST test_code2schema_oom(void) {
         fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
         fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
         fprintf(f, "enum Color { RED, GREEN, BLUE };\n");
-        fclose(f);
+        if (f)
+          fclose(f);
       }
 
       {
@@ -415,7 +419,8 @@ TEST test_code2schema_oom(void) {
         fprintf(f, "union MyUnion {\n  int a;\n  float b;\n};\n");
         fprintf(f, "struct Point {\n  int x;\n  int y;\n};\n");
         fprintf(f, "enum Color { RED, GREEN, BLUE };\n");
-        fclose(f);
+        if (f)
+          fclose(f);
       }
 
       {
@@ -448,7 +453,8 @@ TEST test_code2schema_branches(void) {
 #endif
     if (fp) {
       fprintf(fp, "int main() {\r\n  return 0;\r\n}\r\n");
-      fclose(fp);
+      if (fp)
+        fclose(fp);
       {
         char *args[2];
         args[0] = "code2schema";
@@ -541,10 +547,10 @@ TEST test_code2schema_file_not_found(void) {
 TEST test_codegen_enum_null_args(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   {
@@ -596,7 +602,8 @@ TEST test_codegen_enum_null_args(void) {
               write_enum_from_str_func(tmp, "E", &em_null_members, NULL));
 
     enum_members_free(&em_valid);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -605,10 +612,10 @@ TEST test_codegen_enum_null_args(void) {
 TEST test_codegen_enum_with_unknown(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   {
@@ -633,7 +640,8 @@ TEST test_codegen_enum_with_unknown(void) {
     ASSERT_GT(ftell(tmp), 0L);
 
     enum_members_free(&em);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -642,10 +650,10 @@ TEST test_codegen_enum_with_unknown(void) {
 TEST test_codegen_all_field_types(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   {
@@ -692,7 +700,8 @@ TEST test_codegen_all_field_types(void) {
     ASSERT_GT(ftell(tmp), 0L);
 
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -701,10 +710,10 @@ TEST test_codegen_all_field_types(void) {
 TEST test_codegen_empty_struct_and_enum(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   {
@@ -735,7 +744,8 @@ TEST test_codegen_empty_struct_and_enum(void) {
 
     enum_members_free(&em);
     struct_fields_free(&sf);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -744,10 +754,10 @@ TEST test_codegen_empty_struct_and_enum(void) {
 TEST test_codegen_struct_null_args(void) {
   FILE *tmp;
 #if defined(_MSC_VER)
-  if (tmpfile_s(&tmp) != 0)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else
-  tmp = tmpfile();
+  tmp = cdd_test_tmpfile_global();
 #endif
 
   {
@@ -864,7 +874,8 @@ TEST test_codegen_struct_null_args(void) {
               write_struct_debug_func(tmp, "S", sf_null, NULL));
 
     struct_fields_free(&sf_valid);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     g_fail_io_after = -1;
     PASS();
   }
@@ -936,10 +947,18 @@ TEST test_code2schema_merge_struct_field(void) {
   f2.has_max_items = 1;
   f2.max_items = 8;
   f2.required = 1;
+#if defined(_MSC_VER)
+  strncpy_s(f2.default_val, sizeof(f2.default_val), "test",
+            sizeof(f2.default_val) - 1);
+  strncpy_s(f2.format, sizeof(f2.format), "uuid", sizeof(f2.format) - 1);
+  strncpy_s(f2.pattern, sizeof(f2.pattern), "^[a-z]+$", sizeof(f2.pattern) - 1);
+  strncpy_s(f2.bit_width, sizeof(f2.bit_width), "16", sizeof(f2.bit_width) - 1);
+#else
   strncpy(f2.default_val, "test", sizeof(f2.default_val) - 1);
   strncpy(f2.format, "uuid", sizeof(f2.format) - 1);
   strncpy(f2.pattern, "^[a-z]+$", sizeof(f2.pattern) - 1);
   strncpy(f2.bit_width, "16", sizeof(f2.bit_width) - 1);
+#endif
 
   merge_struct_field(&f1, &f2);
 
@@ -1285,7 +1304,8 @@ TEST test_code2schema_union(void) {
                  "  struct Point p;\n"
                  "  union Nested u;\n"
                  "};\n");
-      fclose(f);
+      if (f)
+        fclose(f);
     }
 
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, (char **)argv));

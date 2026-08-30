@@ -52,9 +52,10 @@ TEST test_integration_full_pipeline(void) {
   struct AllocationSiteList allocs = {0};
   char *final_output = NULL;
   int rc;
+  (void)rc;
 
   /* 1. Tokenize */
-  rc = tokenize(az_span_create_from_str((char *)raw_source), &tokens);
+  rc = tokenize(az_span_create_from_str((char *)(size_t)raw_source), &tokens);
   ASSERT_EQ(0, rc);
   ASSERT(tokens != NULL);
 
@@ -100,6 +101,7 @@ TEST test_integration_fix_file_io(void) {
   char *read_back = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   /* 1. Write Input */
   rc = write_to_file(in_file, content);
@@ -136,6 +138,7 @@ TEST test_integration_recursive_fix(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
   int rc;
+  (void)rc;
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand())) {
@@ -213,6 +216,7 @@ TEST test_integration_fix_file_in_place(void) {
   char *read_back = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   write_to_file(in_file, content);
 
@@ -241,6 +245,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   char *sys_tmp = NULL;
   char *root = NULL;
   int rc;
+  (void)rc;
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%sfix_err_test_%d", sys_tmp, PATH_SEP, rand())) {
@@ -302,6 +307,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   char *project_root = NULL;
   char *src_c = NULL;
   int rc;
+  (void)rc;
 
   /* 1. Setup Project Environment */
   tempdir(&sys_tmp);
@@ -414,6 +420,7 @@ TEST test_integration_schema2code_with_guards(void) {
   char *content = NULL;
   size_t sz;
   int rc;
+  (void)rc;
 
   /* 1. Setup */
   write_to_file(schema_file,

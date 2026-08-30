@@ -15,6 +15,7 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[] = {"c2openapi", "src/tests/mocks", "out.json"};
   int rc;
+  (void)rc;
   rc = c2openapi_cli_main(3, argv1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
@@ -31,6 +32,7 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "src/tests/mocks",
                    "out2.json"};
   int rc;
+  (void)rc;
   rc = c2openapi_cli_main(9, argv1);
   if (rc != CDD_C_SUCCESS) {
     printf(
@@ -105,7 +107,8 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, " * @serverVar port [default:8081]\n");
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     {
       char *argv2[] = {"c2openapi", "src/tests/mocks/parse/test_doc_tags.c",
                        "out3.json"};
@@ -125,7 +128,8 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, " * @securityScheme MyAuth14 [type:apiKey] [in:invalid]\n");
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     {
       char *argv2[] = {"c2openapi",
                        "src/tests/mocks/parse/test_doc_tags_invalid2.c",
@@ -167,7 +171,8 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     fprintf(f, " * @securityScheme MyAuth3_unset [type:oauth2]\n");
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     {
       char *argv2[] = {"c2openapi",
                        "src/tests/mocks/parse/test_doc_tags_oauth.c",
@@ -190,7 +195,8 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
         f, " * @securityScheme MyAuth3_invalid [type:oauth2] [flow:invalid]\n");
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     {
       char *argv2[] = {"c2openapi",
                        "src/tests/mocks/parse/test_doc_tags_invalid.c",
@@ -225,7 +231,8 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
                "[paramName:api_key]\n");
     fprintf(f, " */\n");
     fprintf(f, "void my_func(void) {}\n");
-    fclose(f);
+    if (f)
+      fclose(f);
     {
       char *argv2[] = {"c2openapi",
                        "src/tests/mocks/parse/test_doc_tags_oauth_merge.c",

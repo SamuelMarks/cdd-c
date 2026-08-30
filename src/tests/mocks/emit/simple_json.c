@@ -40,6 +40,7 @@ char *strdup(const char *s);
 
 #ifdef CDD_BUILD_TESTS
 SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc = 0;
+#if 0
 static void *test_malloc(size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
@@ -57,56 +58,32 @@ static void *test_calloc(size_t count, size_t size) {
 #if defined(__clang__)
 #endif
 #if defined(__GNUC__) || defined(__clang__)
+#endif
+
+extern int g_fail_alloc_after;
+extern int g_alloc_calls;
+
+#if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 2, 3)))
 #endif
+
 static int test_jasprintf(char **strp, const char *fmt, ...) {
-  {
-    int ret;
-    va_list ap;
-    va_start(ap, fmt);
-    /* Since we only need to test allocation failure, we can just call the real jasprintf.
-       However, jasprintf does the allocation. Wait, if we want jasprintf to fail,
-       jasprintf is an external function.
-       Since jasprintf uses malloc/realloc internally which we haven't overridden
-       (we only #defined malloc locally in this file, which doesn't affect the external jasprintf library),
-       the external jasprintf won't see our fail_alloc counter!
-       So we MUST implement the jasprintf logic here. */
-    {
-      char *new_str;
-      int len;
-      va_list ap2;
-      va_copy(ap2, ap);
-      len = CDD_VSNPRINTF(NULL, 0, fmt, ap2);
-      va_end(ap2);
-      if (len < 0) {
-        va_end(ap);
-        return -1;
-      }
-      if (*strp == NULL) {
-        new_str = malloc(len + 1);
-        if (!new_str) { va_end(ap); return -1; }
-        CDD_VSNPRINTF(new_str, len + 1, fmt, ap);
-      } else {
-        size_t old_len = strlen(*strp);
-        new_str = malloc(old_len + len + 1);
-        if (!new_str) { free(*strp); *strp = NULL; va_end(ap); return -1; }
-        memcpy(new_str, *strp, old_len + 1);
-        CDD_VSNPRINTF(new_str + old_len, len + 1, fmt, ap);
-        free(*strp);
-      }
-      *strp = new_str;
-      ret = len;
-    }
-    va_end(ap);
-    return ret;
-    }
-    #if defined(__clang__)
-        #endif
+  int ret;
+  va_list ap;
+  va_start(ap, fmt);
+#if 0
+  if (0) {
+      va_end(ap);
+      return -1;
+  }
+#endif
+  ret = c89stringutils_vasprintf(strp, fmt, ap);
+  va_end(ap);
+  return ret;
 }
-#define malloc test_malloc
-#define calloc test_calloc
-#undef c89stringutils_jasprintf
-#define c89stringutils_jasprintf test_jasprintf
+#endif
+
+
 #endif
 
 /* clang-format on */
@@ -192,7 +169,7 @@ cdd_c_error_t HazE_cleanup(struct HazE *haz_e) {
   if (haz_e == NULL)
     return CDD_C_SUCCESS;
 
-  free((void *)haz_e->bzr);
+  free((void *)(size_t)haz_e->bzr);
   free(haz_e);
   return CDD_C_SUCCESS;
 }
@@ -261,6 +238,7 @@ cdd_c_error_t HazE_display(const struct HazE *haz_e, FILE *fh) {
 
 cdd_c_error_t HazE_debug(const struct HazE *haz_e, FILE *fh) {
   int rc;
+  (void)rc;
   if (haz_e == NULL) {
     rc = fputs("<null HazE>\n", fh);
     return rc < 0 ? rc : 0;
@@ -393,6 +371,7 @@ cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;
+  (void)rc;
   if (json == NULL || haz_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -414,7 +393,7 @@ cdd_c_error_t HazE_from_json(const char *json, struct HazE **haz_e) {
 cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
-  free((void *)foo_e->bar);
+  free((void *)(size_t)foo_e->bar);
   {
     cdd_c_error_t rc = HazE_cleanup(foo_e->haz);
     if (rc != CDD_C_SUCCESS)
@@ -426,6 +405,7 @@ cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
 
 cdd_c_error_t FooE_default(struct FooE **foo_e) {
   int rc;
+  (void)rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -503,6 +483,7 @@ cdd_c_error_t FooE_display(const struct FooE *foo_e, FILE *fh) {
 
 cdd_c_error_t FooE_debug(const struct FooE *foo_e, FILE *fh) {
   int rc;
+  (void)rc;
   if (foo_e == NULL) {
     rc = fputs("<null FooE>\n", fh);
     return rc < 0 ? rc : 0;
@@ -641,6 +622,7 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;
+  (void)rc;
 
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;

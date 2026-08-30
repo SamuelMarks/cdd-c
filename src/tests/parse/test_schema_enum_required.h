@@ -28,6 +28,7 @@ static cdd_c_error_t load_spec_string(const char *json,
                                       struct OpenAPI_Spec *spec) {
   JSON_Value *root;
   int rc;
+  (void)rc;
   if (!json || !spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   root = json_parse_string(json);
@@ -94,6 +95,7 @@ TEST test_writer_enum_and_required(void) {
   char *names[2];
   char *json = NULL;
   int rc;
+  (void)rc;
 
   names[0] = (char *)"Color";
   names[1] = (char *)"Car";

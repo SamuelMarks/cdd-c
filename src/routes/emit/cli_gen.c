@@ -51,7 +51,11 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
         C_CDD_FREE(dir_name);
       return rc;
     }
+#if defined(_MSC_VER)
+    sprintf_s(src_dir, 512, "%s/src", dir_name);
+#else
     sprintf(src_dir, "%s/src", dir_name);
+#endif
     makedirs(src_dir);
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir, base_name);
     C_CDD_FREE(src_dir);

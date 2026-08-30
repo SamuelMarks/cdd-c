@@ -1,3 +1,5 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
 /**
  * @file test_codegen_root_arrays.h
  * @brief Unit tests for root array codegen.
@@ -32,7 +34,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
 static FILE *mock_tmpfile_ra(void) {
   if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
     return NULL;
-  return tmpfile();
+  return cdd_test_tmpfile_global();
 }
 static long mock_ftell_ra(FILE *stream) {
   if (g_fail_io_after == 999)
@@ -80,29 +82,34 @@ static cdd_c_error_t generate_ra_code(
 
   rc = fn(tmp, name, type, ref, NULL);
   if (rc != CDD_C_SUCCESS) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     return rc;
   }
 
   fseek(tmp, 0, SEEK_END);
   sz = FTELL(tmp);
   if (sz <= 0) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   rewind(tmp);
   content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
   if (!content) {
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     return CDD_C_ERROR_MEMORY;
   }
   if (FREAD(content, 1, (size_t)sz, tmp) != (size_t)sz) {
     C_CDD_FREE(content);
-    fclose(tmp);
+    if (tmp)
+      fclose(tmp);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  fclose(tmp);
+  if (tmp)
+    fclose(tmp);
   *_out_val = content;
   return CDD_C_SUCCESS;
 }
