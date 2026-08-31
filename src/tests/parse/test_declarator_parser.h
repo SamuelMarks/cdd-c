@@ -73,8 +73,8 @@ TEST test_parse_basic_int(void) {
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(tl);
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
@@ -97,9 +97,9 @@ TEST test_parse_ptr(void) {
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
-  (void)rc;
 
   rc = parse_declaration(tl, 0, tl->size, &info);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   ASSERT_STR_EQ("p", info.identifier);
@@ -367,11 +367,11 @@ TEST test_parse_declarator_more_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
   int rc;
-  (void)rc;
   int is_group;
 
   tl = setup_tokens("enum { A, B } x");
   rc = parse_declaration(tl, 0, tl->size, &info);
+  (void)rc;
   ASSERT_EQ(0, rc);
   decl_info_free(&info);
   free_token_list(tl);
@@ -471,11 +471,11 @@ TEST test_parse_declarator_edge_cases(void) {
   struct TokenList *tl;
   struct DeclInfo info;
   int rc;
-  (void)rc;
 
   /* No explicit base type (implicit int) */
   tl = setup_tokens("*p");
   rc = parse_declaration(tl, 0, tl->size, &info);
+  (void)rc;
   ASSERT_EQ(0, rc);
   decl_info_free(&info);
   free_token_list(tl);

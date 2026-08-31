@@ -70,8 +70,8 @@ TEST test_patch_basic_replacement(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -108,8 +108,8 @@ TEST test_patch_insertion(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -147,8 +147,8 @@ TEST test_patch_deletion(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -179,8 +179,8 @@ TEST test_patch_multiple_disjoint(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -216,9 +216,9 @@ TEST test_patch_overlap_behavior(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
 
   /* Assert undefined behavior matches implementation (sorted, first wins) */
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -260,9 +260,9 @@ TEST test_patch_append_end(void) {
   struct PatchList pl;
   char *result = NULL;
   int rc;
-  (void)rc;
   char huge_str[3000];
 
+  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -326,10 +326,10 @@ TEST test_patcher_oom(void) {
       for (j = 1; j < 50; j++) {
         char *tmp = strdup("b");
         int rc;
-        (void)rc;
         g_cdd_alloc_fail = j;
         rc = patch_list_add(&list, 0, 1, tmp);
         g_cdd_alloc_fail = 0;
+        (void)rc;
         if (rc == 0)
           break;
       }
@@ -382,8 +382,8 @@ TEST test_patcher_oom(void) {
             int j;
             for (j = 1; j < 180; j++) {
               int rc;
-              (void)rc;
               int my_alloc = j;
+              (void)rc;
               if (j == 4)
                 my_alloc = 3000;
               if (j == 5)
@@ -419,8 +419,8 @@ TEST test_patcher_oom(void) {
               int j;
               for (j = 1; j < 180; j++) {
                 int rc;
-                (void)rc;
                 int my_alloc = j;
+                (void)rc;
                 if (j == 4) {
                   my_alloc = 3000;
                 }
@@ -1075,9 +1075,9 @@ TEST test_patcher_invalid(void) {
   struct TokenList tl_empty;
   int i;
   int rc;
-  (void)rc;
   /*  (moved to global) */
 
+  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             patch_list_add(NULL, 0, 1, strdup("a")));
 

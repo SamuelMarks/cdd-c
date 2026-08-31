@@ -28,7 +28,6 @@ extern "C" {
 static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);
   int rc;
-  (void)rc;
   if (!dyn)
     return -1;
   (void)openapi_spec_init(spec);
@@ -55,8 +54,8 @@ TEST test_sync_signature_update(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
@@ -91,8 +90,8 @@ TEST test_sync_url_logic_update(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
@@ -131,8 +130,8 @@ TEST test_sync_query_update(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);
@@ -171,8 +170,8 @@ TEST test_sync_header_update(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(src_file, old_code);
   ASSERT_EQ(0, load_spec(spec_json, &spec));
   rc = api_sync_file(src_file, &spec, NULL);

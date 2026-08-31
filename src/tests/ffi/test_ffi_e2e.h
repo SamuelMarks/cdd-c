@@ -52,9 +52,9 @@ TEST test_ffi_e2e_complex_codebase(void) {
   cdd_generate_bindings_config_t config = {0};
   char *output_dir = "test_ffi_e2e_out";
   int rc;
-  (void)rc;
   FILE *f;
 
+  (void)rc;
   write_to_file(filename, code);
   makedir(output_dir);
 

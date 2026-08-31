@@ -48,7 +48,6 @@ TEST test_schema_codegen_circular_refs(void) {
    */
 
   int rc;
-  (void)rc;
   char *header_content = NULL;
   size_t sz;
   const char *const filename = "circular.json";
@@ -60,6 +59,7 @@ TEST test_schema_codegen_circular_refs(void) {
                        "{\"$ref\": \"#/components/schemas/A\"}}}"
                        "}}}";
 
+  (void)rc;
   argv[0] = filename;
   argv[1] = "circular_out";
 
@@ -304,7 +304,6 @@ TEST test_union_config_json_guards(void) {
  */
 TEST test_schema_codegen_union_output(void) {
   int rc;
-  (void)rc;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;
@@ -322,6 +321,7 @@ TEST test_schema_codegen_union_output(void) {
                        "{\"$ref\":\"#/components/schemas/Dog\"}"
                        "],\"discriminator\":{\"propertyName\":\"petType\"}}"
                        "}}}";
+  (void)rc;
   argv[0] = filename;
   argv[1] = "union_out";
 
@@ -360,7 +360,6 @@ TEST test_schema_codegen_union_output(void) {
  */
 TEST test_schema_codegen_union_inline_variants(void) {
   int rc;
-  (void)rc;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;
@@ -377,6 +376,7 @@ TEST test_schema_codegen_union_inline_variants(void) {
       "\"string\"}}"
       "]}"
       "}}}";
+  (void)rc;
   argv[0] = filename;
   argv[1] = "union_inline_out";
 
@@ -415,7 +415,6 @@ TEST test_schema_codegen_union_inline_variants(void) {
  */
 TEST test_schema_codegen_enum_output(void) {
   int rc;
-  (void)rc;
   char *header_content = NULL;
   char *source_content = NULL;
   size_t sz;
@@ -427,6 +426,7 @@ TEST test_schema_codegen_enum_output(void) {
       "\"schemas\":{"
       "\"Color\":{\"type\":\"string\",\"enum\":[\"RED\",\"GREEN\"]}"
       "}}}";
+  (void)rc;
   argv[0] = filename;
   argv[1] = "enum_out";
 
@@ -647,7 +647,6 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
-  (void)rc;
   const char *schema_json = "{"
                             "\"components\": {"
                             "  \"schemas\": {"
@@ -662,14 +661,16 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
                             "}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("test_codegen_schema_io.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   for (i = 0; i < 50; ++i) {
     void *root;
@@ -702,7 +703,6 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
 
 TEST test_schema_codegen_union_arrays(void) {
   int rc;
-  (void)rc;
   const char *const filename = "union_array_schema.json";
   const char *argv[2];
   const char *schema =
@@ -719,6 +719,7 @@ TEST test_schema_codegen_union_arrays(void) {
       "\"UnionRef\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
       "\"$ref\": \"#/components/schemas/Pet\" } } ] }"
       "}}}";
+  (void)rc;
   argv[0] = filename;
   argv[1] = "union_array_out";
 
@@ -747,7 +748,6 @@ TEST test_schema_codegen_union_arrays(void) {
 
 TEST test_schema_codegen_specific_structs(void) {
   int rc;
-  (void)rc;
   const char *const filename = "specific_structs.json";
   const char *argv[2];
   const char *schema =
@@ -761,6 +761,7 @@ TEST test_schema_codegen_specific_structs(void) {
       "\"OAuth2TokenResponse\":{\"type\":\"object\",\"properties\":{\"access_"
       "token\":{\"type\":\"string\"}}}"
       "}}}";
+  (void)rc;
   argv[0] = filename;
   argv[1] = "specific_out";
 
@@ -783,7 +784,6 @@ TEST test_schema_codegen_specific_structs(void) {
 
 TEST test_schema_codegen_main_paths(void) {
   int rc;
-  (void)rc;
   const char *const filename = "main_paths.json";
   const char *argv[5];
   const char *schema_defs =
@@ -804,6 +804,7 @@ TEST test_schema_codegen_main_paths(void) {
 
   /* 1. argc < 2 */
   rc = schema2code_main(1, (char **)argv);
+  (void)rc;
   ASSERT(rc != 0);
 
   /* 2. get_basename fails */
@@ -922,19 +923,20 @@ TEST test_schema_codegen_init_fail(void) {
   void *root;
   void *schemas;
   int rc;
-  (void)rc;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": {\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_init.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("test_codegen_schema_init.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   root = json_parse_file("test_codegen_schema_init.json");
   schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -969,19 +971,20 @@ TEST test_schema_codegen_parse_error(void) {
   void *root;
   void *schemas;
   int rc;
-  (void)rc;
   const char *schema_json =
       "{\"components\": {\"schemas\": {\"MyStruct\": 123}}}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_parse.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("test_codegen_schema_parse.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   root = json_parse_file("test_codegen_schema_parse.json");
   schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -1004,19 +1007,20 @@ TEST test_schema_codegen_source_fail(void) {
   void *root;
   void *schemas;
   int rc;
-  (void)rc;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("test_codegen_schema_io.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   root = json_parse_file("test_codegen_schema_io.json");
   schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -1054,19 +1058,20 @@ TEST test_schema_codegen_system_error(void) {
   void *root;
   void *schemas;
   int rc;
-  (void)rc;
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("test_codegen_schema_io.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   root = json_parse_file("test_codegen_schema_io.json");
   schemas = json_object_get_object(json_value_get_object(root), "components");
@@ -1085,7 +1090,6 @@ TEST test_schema_codegen_system_error(void) {
 
 TEST test_schema_codegen_main_errors(void) {
   int rc;
-  (void)rc;
   char *argv_bad1[] = {"file.json"};
   char *argv_bad2[] = {"file.json", NULL};
   char *argv_bad3[] = {"nonexistent.json", "prefix"};
@@ -1094,14 +1098,16 @@ TEST test_schema_codegen_main_errors(void) {
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
+  (void)rc;
   if (fopen_s(&f, "file.json", "w") != 0)
     f = NULL;
 #else
   f = fopen("file.json", "w");
 #endif
-  fputs(schema_json, f);
-  if (f)
+  if (f) {
+    fputs(schema_json, f);
     fclose(f);
+  }
 
   rc = schema2code_main(1, argv_bad1);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);

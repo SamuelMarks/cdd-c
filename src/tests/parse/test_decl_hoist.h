@@ -34,8 +34,8 @@ TEST test_scan_for_mixed_declarations_basic(void) {
       "void func() {\n      int a = 1;\n  a = 2;\n  int b = 3;\n}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
-  (void)hoist_site_list_init(&list);
 
+  (void)hoist_site_list_init(&list);
   ASSERT_EQ(0, scan_for_mixed_declarations(tokens, &list));
 
   /* Should find 1 mixed declaration: `int b = 3;` */
@@ -64,8 +64,8 @@ TEST test_scan_for_mixed_declarations_errors(void) {
   struct TokenList *tl = NULL;
   struct HoistSiteList list;
   tokenize(az_span_create_from_str("int a = 1;"), &tl);
-  (void)hoist_site_list_init(&list);
 
+  (void)hoist_site_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -97,9 +97,9 @@ static cdd_c_error_t check_hoist(const char *src, struct HoistSiteList *list) {
 
 TEST test_decl_hoist_branches(void) {
   struct HoistSiteList list;
-  (void)hoist_site_list_init(&list);
 
   /* RBRACE with depth == 0 */
+  (void)hoist_site_list_init(&list);
   ASSERT_EQ(0, check_hoist("}", &list));
 
   /* EOF immediately */

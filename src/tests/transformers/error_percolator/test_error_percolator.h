@@ -380,8 +380,8 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
   for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
     int rc;
-    (void)rc;
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+    (void)rc;
     ASSERT_EQ(0, rc);
 
     {

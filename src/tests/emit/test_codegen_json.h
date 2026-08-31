@@ -663,10 +663,10 @@ TEST test_json_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
-  (void)rc;
   struct StructFields sf;
   struct CodegenJsonConfig config;
 
+  (void)rc;
   struct_fields_init(&sf);
   struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
   struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);

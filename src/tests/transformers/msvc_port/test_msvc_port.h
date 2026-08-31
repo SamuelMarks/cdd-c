@@ -45,10 +45,11 @@ TEST test_cdd_transform_msvc(void) {
       "  return 0;\n}\n";
   char *out = NULL;
   int rc;
-  (void)rc;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_msvc(tree, &config);
@@ -131,10 +132,11 @@ TEST test_cdd_transform_msvc_context(void) {
                      "void foo() { struct A a; a.strdup = 1; }\n";
   char *out = NULL;
   int rc;
-  (void)rc;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_msvc(tree, &config);
@@ -158,11 +160,12 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   int rc;
-  (void)rc;
   const char *code =
       "#include <unistd.h>\nvoid f() { __builtin_expect(1, 1); }\n";
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
+  (void)rc;
   cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
 
   cdd_transform_msvc(tree, &config);

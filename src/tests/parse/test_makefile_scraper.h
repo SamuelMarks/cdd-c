@@ -85,7 +85,6 @@ TEST test_scrape_errors(void) {
   char *cmake_str = NULL;
 
   (void)build_info_init(&info);
-
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, build_info_init(NULL));
   build_info_free(NULL);
 
@@ -160,8 +159,8 @@ TEST test_scrape_makefile_oom(void) {
       if (rc == CDD_C_SUCCESS) {
         build_info_free(&info);
         break;
-        (void)cmake_str;
       }
+      (void)cmake_str;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       build_info_free(&info);
     }

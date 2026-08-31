@@ -88,7 +88,7 @@ TEST test_cbuild_basic_output(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   ASSERT(content);
   if (fread(content, 1, sz, tmp)) {
   }
@@ -236,9 +236,9 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   int i;
   int rc;
-  (void)rc;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
+  (void)rc;
   memset(&config, 0, sizeof(config));
   config.project_name = "PetStore";
   config.target_name = "petstore_lib";

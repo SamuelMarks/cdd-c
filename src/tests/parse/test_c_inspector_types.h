@@ -37,12 +37,12 @@ TEST test_scan_c23_enum_fixed_type(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = type_def_list_init(&types);
@@ -72,12 +72,12 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -103,12 +103,12 @@ TEST test_scan_classic_enum(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
 
   rc = write_to_file(filename, "enum Classic { ONE };");
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -202,7 +202,6 @@ TEST test_inspector_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -210,6 +209,7 @@ TEST test_inspector_oom(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 20; ++i) {
@@ -236,13 +236,13 @@ TEST test_inspector_extract_sig_oom(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -313,12 +313,12 @@ TEST test_inspector_struct_empty_fields(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   type_def_list_init(&types);
@@ -339,13 +339,13 @@ TEST test_inspector_extract_sig_oom_2(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -368,13 +368,13 @@ TEST test_inspector_extract_sig_oom_3(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 1; i < 20; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -410,13 +410,13 @@ TEST test_inspector_extract_sig_oom_4(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -441,7 +441,6 @@ TEST test_inspector_struct_fields_oom_2(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -449,6 +448,7 @@ TEST test_inspector_struct_fields_oom_2(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -475,7 +475,6 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -483,6 +482,7 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -509,7 +509,6 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -517,6 +516,7 @@ TEST test_inspector_struct_empty_fields_no_name_oom(void) {
   /*  (moved to global) */
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 30; ++i) {
@@ -541,13 +541,13 @@ TEST test_inspector_extract_sig_oom_tokenize(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 1; i < 40; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -567,13 +567,13 @@ TEST test_inspector_extract_sig_oom_parse_tokens(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   int i;
   /*  (moved to global) */
 
+  (void)rc;
   for (i = 40; i < 80; ++i) {
     g_cdd_alloc_fail = i;
     func_sig_list_init(&out);
@@ -593,10 +593,10 @@ TEST test_inspector_extract_sig_fail_tokenizer(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
+  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int a = \xff\xff;", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -613,10 +613,10 @@ TEST test_inspector_extract_sig_fail_parser(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
+  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -633,10 +633,10 @@ TEST test_inspector_extract_sig_fail_parser_err(void) {
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
+  (void)rc;
   func_sig_list_init(&out);
   rc = c_inspector_extract_signatures("int f( { }", &out);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -663,7 +663,6 @@ TEST test_inspector_strdup_oom(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
@@ -671,6 +670,7 @@ TEST test_inspector_strdup_oom(void) {
   /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
   rc = write_to_file(filename, content);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   for (i = 1; i < 10; ++i) {
@@ -704,12 +704,12 @@ TEST test_inspector_io_error_perms(void) {
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
-  (void)rc;
 #else
   int rc __attribute__((unused));
 #endif
   const char *filename = "test_no_read.h";
 
+  (void)rc;
   write_to_file(filename, "");
 #ifndef _WIN32
   chmod(filename, 0200);

@@ -51,12 +51,12 @@ TEST test_serve_json_rpc_bind_fail(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12346"};
   int argc = 3;
   int rc;
-  (void)rc;
 
   /* Create a socket holding port 12346 */
 #if defined(_WIN32)
   {
     WSADATA wsa;
+    (void)rc;
     WSAStartup(MAKEWORD(2, 2), &wsa);
   }
 #endif
@@ -91,10 +91,10 @@ TEST test_serve_json_rpc_listen_once(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12347", "--listen", "255"};
   int argc = 5;
   int rc;
-  (void)rc;
 
   /* Should break immediately because listen_flag is -1 */
   rc = serve_json_rpc_main(argc, argv);
+  (void)rc;
   ASSERT_EQ(0, rc);
   g_fail_io_after = -1;
 
@@ -111,7 +111,6 @@ TEST test_serve_json_rpc_basic(void) {
   char *argv[] = {"serve_json_rpc_main", "--port", "12345"};
   int argc = 3;
   int rc;
-  (void)rc;
 
   /* Since we do not pass --listen, it should bind, listen, and immediately exit
    * the loop returning 0 */
@@ -119,6 +118,7 @@ TEST test_serve_json_rpc_basic(void) {
   /* Note: Depending on parallel testing or permission, bind might fail if port
      12345 is in use. We can just assert it doesn't crash. If bind succeeds it
      returns 0. If fails, it returns 1. */
+  (void)rc;
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
          rc == CDD_C_ERROR_UNKNOWN);
   g_fail_io_after = -1;
@@ -137,9 +137,9 @@ TEST test_serve_json_rpc_bad_port(void) {
   char *argv[] = {"serve_json_rpc_main"};
   int argc = 1;
   int rc;
-  (void)rc;
 
   rc = serve_json_rpc_main(argc, argv);
+  (void)rc;
   ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_SYSTEM ||
          rc == CDD_C_ERROR_UNKNOWN);
   g_fail_io_after = -1;
@@ -155,11 +155,11 @@ TEST test_serve_mcp_stdio_main(void) {
   char *argv[] = {"serve_mcp_stdio_main"};
   int argc = 1;
   int rc;
-  (void)rc;
 
   /* Create a temporary file and redirect stdin to it */
   FILE *tmp;
 #if defined(_MSC_VER)
+  (void)rc;
   if (((tmp = cdd_test_tmpfile_global()) == NULL))
     tmp = NULL;
 #else

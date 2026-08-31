@@ -45,13 +45,14 @@ TEST test_cli_parser_getopt(void) {
   struct CstNodeList *nodes = NULL;
   struct CliCommand cmd;
   int rc;
-  (void)rc;
 
   nodes = calloc(1, sizeof(struct CstNodeList));
 
   {
-    az_span span = az_span_create((uint8_t *)(size_t)src, strlen(src));
+    az_span span;
+    span = az_span_create((uint8_t *)(size_t)src, strlen(src));
     rc = tokenize(span, &tokens);
+    (void)rc;
     if (rc != 0) {
       free(nodes);
       FAILm("tokenize failed");

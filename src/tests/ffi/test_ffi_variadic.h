@@ -20,6 +20,9 @@ static int dummy_variadic_func_call_count = 0;
 static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
   va_list args;
   const char *p;
+  int val = 0;
+  char *s = NULL;
+  void *ptr = NULL;
 
   dummy_variadic_func_call_count = 0;
   va_start(args, fmt);
@@ -27,20 +30,20 @@ static cdd_c_error_t dummy_variadic_func(const char *fmt, ...) {
     if (*p == '%') {
       p++;
       if (*p == 'd') {
-        int val = va_arg(args, int);
-        (void)val;
+        val = va_arg(args, int);
         dummy_variadic_func_call_count++;
       } else if (*p == 's') {
-        char *s = va_arg(args, char *);
-        (void)s;
+        s = va_arg(args, char *);
         dummy_variadic_func_call_count++;
       } else if (*p == 'p') {
-        void *ptr = va_arg(args, void *);
-        (void)ptr;
+        ptr = va_arg(args, void *);
         dummy_variadic_func_call_count++;
       }
     }
   }
+  (void)ptr;
+  (void)val;
+  (void)s;
   va_end(args);
   return CDD_C_SUCCESS;
 }

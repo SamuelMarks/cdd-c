@@ -18,6 +18,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_WIN32)
+typedef int cdd_ssize_t;
+#else
+typedef ssize_t cdd_ssize_t;
+#endif
+
+
 CDD_TEST_HELPERS_EXPORT int g_getsockname_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail = 0;
 CDD_TEST_HELPERS_EXPORT int g_accept_fail = 0;
@@ -277,9 +284,9 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
     /* Read Request */
     {
       char buffer[4096];
-      ssize_t bytes_read;
+      cdd_ssize_t bytes_read;
       sleep_ms(100); /* Wait for body packets (e.g. from WinHTTP) */
-      bytes_read = (ssize_t)recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+      bytes_read = (cdd_ssize_t)recv(client_fd, buffer, sizeof(buffer) - 1, 0);
       if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
 
@@ -298,7 +305,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
     }
 
     /* Send Response */
-    send(client_fd, response, (size_t)strlen(response), 0);
+    send(client_fd, response, (int)strlen(response), 0);
 
     close_socket(client_fd);
   }

@@ -24,10 +24,10 @@ extern C_CDD_EXPORT int g_cdd_type_eval_ptr_fail;
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;
-  (void)rc;
 
   /* int under LP64 */
   rc = cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, &info);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(4, info.size);
   ASSERT_EQ(4, info.alignment);
@@ -51,12 +51,12 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size;
   int rc;
-  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   const char *src = "int a;";
 
   rc = cdd_cst_scope_env_init(&env);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -86,7 +86,6 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size, align;
   int rc;
-  (void)rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
   cdd_cst_tree_t *tree2 = NULL;
@@ -95,6 +94,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   const char *src = "int *a;";
 
   rc = cdd_cst_scope_env_init(&env);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -322,9 +322,9 @@ TEST test_type_eval_branches(void) {
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
   int rc;
-  (void)rc;
 #endif
 
+  (void)rc;
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
   tok.kind = CDD_TOKEN_KEYWORD___INT128;
   tok.start = (const uint8_t *)"__int128";

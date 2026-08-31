@@ -622,8 +622,8 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   if (json == NULL || foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 

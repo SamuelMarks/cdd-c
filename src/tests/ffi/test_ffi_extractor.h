@@ -330,11 +330,11 @@ TEST test_ffi_ir_extract_exports_oom(void) {
   cdd_generate_bindings_config_t config = {0};
   cdd_ffi_ir_t *ir = NULL;
   int rc;
-  (void)rc;
   int k;
   const char *code =
       "struct A { int x; }; void foo(int a); struct Point<int> { int y; };";
 
+  (void)rc;
   for (k = 1; k < 200; k++) {
     ir = NULL;
     g_ffi_extractor_alloc_fail = k;
@@ -619,8 +619,8 @@ TEST test_ffi_ir_extract_array_out(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file("test_array.c", content);
 
   rc = cdd_ffi_ir_extract_exports("test_array.c", content, &config, &ir);

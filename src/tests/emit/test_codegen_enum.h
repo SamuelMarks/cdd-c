@@ -212,10 +212,10 @@ TEST test_enum_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
-  (void)rc;
   struct EnumMembers em;
   struct CodegenEnumConfig config = {"MY_GUARD"};
 
+  (void)rc;
   enum_members_init(&em);
   enum_members_add(&em, "VAL1");
   enum_members_add(&em, "VAL2");

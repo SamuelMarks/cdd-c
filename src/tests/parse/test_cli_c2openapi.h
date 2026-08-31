@@ -15,8 +15,8 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 TEST test_c2openapi_cli_main_valid_args(void) {
   char *argv1[] = {"c2openapi", "src/tests/mocks", "out.json"};
   int rc;
-  (void)rc;
   rc = c2openapi_cli_main(3, argv1);
+  (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
@@ -32,8 +32,8 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
                    "src/tests/mocks",
                    "out2.json"};
   int rc;
-  (void)rc;
   rc = c2openapi_cli_main(9, argv1);
+  (void)rc;
   if (rc != CDD_C_SUCCESS) {
     printf(
         "test_c2openapi_cli_main_valid_args_with_options failed with rc=%d\n",

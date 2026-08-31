@@ -30,8 +30,8 @@ TEST test_parse_fam_basic(void) {
   struct StructFields sf;
   struct StructField *f;
   int rc;
-  (void)rc;
 
+  (void)rc;
   struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char data[];", &sf);
@@ -58,8 +58,8 @@ TEST test_parse_fam_int(void) {
   struct StructFields sf;
   struct StructField *f;
   int rc;
-  (void)rc;
 
+  (void)rc;
   struct_fields_init(&sf);
 
   /* int items[]; */
@@ -85,8 +85,8 @@ TEST test_parse_ptr_not_fam(void) {
   struct StructFields sf;
   struct StructField *f;
   int rc;
-  (void)rc;
 
+  (void)rc;
   struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char *ptr;", &sf);
@@ -110,8 +110,8 @@ TEST test_parse_fixed_array_not_fam(void) {
   struct StructFields sf;
   struct StructField *f;
   int rc;
-  (void)rc;
 
+  (void)rc;
   struct_fields_init(&sf);
 
   rc = parse_struct_member_line("char buf[10];", &sf);
@@ -140,8 +140,8 @@ TEST test_parse_fixed_array_not_fam(void) {
 TEST test_parse_fam_mixed_lines(void) {
   struct StructFields sf;
   int rc;
-  (void)rc;
 
+  (void)rc;
   struct_fields_init(&sf);
 
   rc = parse_struct_member_line("int len;", &sf);

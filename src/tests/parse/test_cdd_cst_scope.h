@@ -61,30 +61,28 @@ TEST test_cdd_cst_scope_basic(void) {
       cdd_cst_scope_env_init(&env_oom);
       g_cdd_alloc_fail = i;
       {
-        cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        (void)cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
-        (void)rc;
       }
     }
-
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
       cdd_cst_scope_env_init(&env_oom);
       cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
       g_cdd_alloc_fail = i;
       {
-        cdd_c_error_t rc = cdd_cst_scope_add_symbol(
-            env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+        (void)cdd_cst_scope_add_symbol(env_oom, "foo", CDD_CST_SYMBOL_VARIABLE,
+                                       NULL);
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
-        (void)rc;
       }
     }
   }
 #endif
 
   /* Manual free scope NULL test via a dummy scope child */
+
   ASSERT_EQ(0, cdd_cst_scope_env_init(&env));
   env->global_scope->capacity = 1;
   env->global_scope->num_children = 1;
@@ -308,28 +306,26 @@ TEST test_cdd_cst_scope_oom(void) {
       cdd_cst_scope_env_init(&env_oom);
       g_cdd_alloc_fail = i;
       {
-        cdd_c_error_t rc = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        (void)cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
-        (void)rc;
       }
     }
-
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
       cdd_cst_scope_env_init(&env_oom);
       cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
       g_cdd_alloc_fail = i;
       {
-        cdd_c_error_t rc = cdd_cst_scope_add_symbol(
-            env_oom, "foo", CDD_CST_SYMBOL_VARIABLE, NULL);
+        (void)cdd_cst_scope_add_symbol(env_oom, "foo", CDD_CST_SYMBOL_VARIABLE,
+                                       NULL);
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
-        (void)rc;
       }
     }
   }
 #endif
+
   PASS();
 }
 

@@ -33,8 +33,8 @@ TEST test_cmake_modifier_basic(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)rc;
 
+  (void)rc;
   (void)rc;
   (void)i;
   (void)f2;
@@ -78,8 +78,8 @@ TEST test_cmake_modifier_global(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)rc;
 
+  (void)rc;
   (void)rc;
   (void)i;
   (void)f2;
@@ -136,8 +136,8 @@ TEST test_cmake_parser_oom(void) {
   /*  (moved to global) */
   int i;
   int rc;
-  (void)rc;
 
+  (void)rc;
   makedirs("test_cmake_dir");
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_cmake_dir/CMakeLists.txt", "w") != 0)
@@ -165,16 +165,16 @@ TEST test_cmake_parser_oom(void) {
   for (i = 1; i < 20; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_alloc_fail = i;
-    (void)cmake_modifier_add_compile_opt(&mod, "/W4");
     g_cdd_alloc_fail = 0;
+    (void)cmake_modifier_add_compile_opt(&mod, "/W4");
     cmake_modifier_free(&mod);
   }
 
   for (i = 1; i < 20; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_alloc_fail = i;
-    (void)cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
     g_cdd_alloc_fail = 0;
+    (void)cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
     cmake_modifier_free(&mod);
   }
 
@@ -184,8 +184,8 @@ TEST test_cmake_parser_oom(void) {
     cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
 
     g_cdd_alloc_fail = i;
-    (void)cmake_modifier_apply_diff(&mod, &diff_str);
     g_cdd_alloc_fail = 0;
+    (void)cmake_modifier_apply_diff(&mod, &diff_str);
     if (diff_str) {
       free(diff_str);
       diff_str = NULL;

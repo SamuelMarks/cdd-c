@@ -28,9 +28,9 @@ TEST test_server_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
-  (void)rc;
   FILE *f;
 
+  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
   spec.paths =
@@ -168,8 +168,8 @@ TEST test_server_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
-  (void)rc;
 
+  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = "/nonexistent/dir/test_server";
@@ -209,8 +209,8 @@ TEST test_server_gen_test_fopen_fail(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
-  (void)rc;
 
+  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = "test_server";
@@ -238,8 +238,8 @@ TEST test_server_gen_branches(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
-  (void)rc;
 
+  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = "test_build_dir/test_server_branches";

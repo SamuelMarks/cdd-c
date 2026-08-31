@@ -98,8 +98,8 @@ TEST test_ffi_ir_toposort_complex(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ir.nodes_count = 11;
   ir.nodes = (cdd_ffi_ir_node_t *)calloc(11, sizeof(cdd_ffi_ir_node_t));
 
@@ -265,8 +265,8 @@ TEST test_ffi_ir_c_toposort_dfs_errors(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ir.nodes_count = 3;
   ir.nodes = (cdd_ffi_ir_node_t *)calloc(3, sizeof(cdd_ffi_ir_node_t));
 
@@ -321,8 +321,8 @@ TEST test_ffi_ir_c_toposort_oom(void) {
   cdd_ffi_ir_t ir = {0};
   cdd_ffi_ir_node_t *n;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ir.nodes_count = 2;
   ir.nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
 

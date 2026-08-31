@@ -47,8 +47,8 @@ TEST test_scan_for_vlas_basic(void) {
                     "}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
-  (void)vla_site_list_init(&list);
 
+  (void)vla_site_list_init(&list);
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
 
   ASSERT_EQ(5, list.count);
@@ -128,10 +128,10 @@ TEST test_scan_for_vlas_oom(void) {
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
 
   for (i = 0; i < 25; ++i) {
-    (void)vla_site_list_init(&list);
     g_io_calls = 0;
     g_fail_io_after = i;
     res = scan_for_vlas(tokens, &list);
+    (void)vla_site_list_init(&list);
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }

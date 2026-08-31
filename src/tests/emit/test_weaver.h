@@ -682,9 +682,9 @@ TEST test_weaver_interactive(void) {
   patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
 
   tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
-  (void)res;
 
 #if defined(_MSC_VER)
+  (void)res;
   sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
 #else
   sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);
@@ -715,9 +715,9 @@ TEST test_weaver_interactive(void) {
     if (f)
       fclose(f);
     if (freopen(tmp_name, "r", stdin)) {
-      (void)res;
     }
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
+    (void)res;
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);

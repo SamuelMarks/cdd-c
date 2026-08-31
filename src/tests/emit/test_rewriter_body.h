@@ -30,9 +30,9 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   int rc;
-  (void)rc;
   const az_span source = az_span_create_from_str((char *)(size_t)code);
 
+  (void)rc;
   if (!code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -65,9 +65,9 @@ TEST test_propagate_void_stmt(void) {
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;
-  (void)rc;
 
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   printf("OUTPUT: %s\n", output);

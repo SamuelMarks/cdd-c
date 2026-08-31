@@ -31,7 +31,6 @@ TEST test_cdd_cst_cfg_basic(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  (void)rc;
   const char *src = "int main() { return 0; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -82,7 +81,6 @@ TEST test_cdd_cst_cfg_oom(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  (void)rc;
   const char *src = "int main() { return 0; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -160,7 +158,6 @@ TEST test_cdd_cst_cfg_empty(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc;
-  (void)rc;
   const char *src = "void main() { }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -206,7 +203,6 @@ TEST test_cdd_cst_cfg_no_return(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc;
-  (void)rc;
   const char *src = "void main() { int a = 5; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -250,7 +246,6 @@ TEST test_cdd_cst_cfg_extra(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  (void)rc;
   const char *src = "int main() { if (1) { return 0; } else { return 1; } }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);

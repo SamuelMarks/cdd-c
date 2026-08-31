@@ -184,9 +184,9 @@ TEST test_make_oom(void) {
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
   int rc;
-  (void)rc;
 #endif
 
+  (void)rc;
   config.project_name = "proj";
   config.extra_sources = (char **)srcs;
   config.extra_source_count = 2;

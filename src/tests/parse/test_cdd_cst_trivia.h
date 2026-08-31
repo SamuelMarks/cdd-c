@@ -118,8 +118,8 @@ TEST test_cdd_cst_trivia_generate(void) {
   cdd_cst_format_config_t config = {0, 4};
   cdd_cst_format_config_t config_tabs = {1, 1};
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

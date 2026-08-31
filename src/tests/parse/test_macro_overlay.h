@@ -96,14 +96,13 @@ TEST test_macro_overlay_free_with_expanded(void) {
   struct MacroOverlayList list;
   struct CstNodeList *expanded;
 
-  (void)macro_overlay_list_init(&list);
-
   expanded = calloc(1, sizeof(struct CstNodeList));
   expanded->nodes = calloc(1, sizeof(struct CstNode));
   expanded->size = 1;
   expanded->capacity = 1;
 
   /* Manually add a node to hit the free_cst_node_list branch */
+  (void)macro_overlay_list_init(&list);
   list.capacity = 2;
   list.size = 2;
   list.nodes = calloc(2, sizeof(struct MacroOverlayNode));

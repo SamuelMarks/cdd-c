@@ -91,8 +91,8 @@ TEST test_cdd_serve_json_rpc(void) {
 
 TEST test_bin_cdd(void) {
   int rc;
-  (void)rc;
   rc = system("./bin/cdd-c --help > /dev/null 2>&1");
+  (void)rc;
   PASS();
 }
 

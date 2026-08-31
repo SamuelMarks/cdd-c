@@ -35,6 +35,8 @@ TEST test_audit_stats_init(void) {
   /* Set to garbage */
   memset(&stats, 0xFF, sizeof(stats));
   (void)audit_stats_init(&stats);
+
+  printf("FILES_SCANNED=%d\n", (int)stats.files_scanned);
   ASSERT_EQ(0, stats.files_scanned);
   ASSERT_EQ(0, stats.allocations_checked);
   ASSERT_EQ(0, stats.functions_returning_alloc);
@@ -50,10 +52,12 @@ TEST test_audit_single_file(void) {
   char *root = NULL;
   char *f_unchecked = NULL;
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
+
   int rc;
-  (void)rc;
 
   /* Create explicit subdir to avoid walking /tmp */
+  (void)rc;
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand())) {
   }
@@ -70,7 +74,6 @@ TEST test_audit_single_file(void) {
                 "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
                 " char * p = (char *)malloc(1); *p = 0; }");
 
-  (void)audit_stats_init(&stats);
   rc = audit_project(root, &stats);
 
   ASSERT_EQ(0, rc);
@@ -101,6 +104,7 @@ TEST test_audit_ignored_files(void) {
   char *root = NULL;
   char *f_h = NULL;
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand())) {
@@ -113,10 +117,10 @@ TEST test_audit_ignored_files(void) {
   write_to_file(f_h, ""
                      "void f() { char * p = (char *)malloc(1); }");
 
-  (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   /* Should ignore .h files */
+  printf("FILES_SCANNED=%d\n", (int)stats.files_scanned);
   ASSERT_EQ(0, stats.files_scanned);
 
   audit_stats_free(&stats);
@@ -135,6 +139,7 @@ TEST test_audit_return_alloc(void) {
   char *root = NULL;
   char *f_ret = NULL;
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand())) {
@@ -151,7 +156,6 @@ TEST test_audit_return_alloc(void) {
                        "char* f5() { return foobar(); }\n"
                        "char* f6() { return foobarr(); }\n");
 
-  (void)audit_stats_init(&stats);
   audit_project(root, &stats);
 
   ASSERT_EQ(1, stats.files_scanned);
@@ -179,9 +183,10 @@ TEST test_audit_return_alloc(void) {
 
 TEST test_audit_json_output(void) {
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
+
   char *json = NULL;
 
-  (void)audit_stats_init(&stats);
   stats.files_scanned = 10;
   stats.allocations_checked = 20;
   stats.allocations_unchecked = 1;
@@ -229,6 +234,8 @@ TEST test_audit_json_output(void) {
 
 TEST test_audit_stats_null(void) {
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
+
   char *_test_json = (char *)1;
   (void)audit_stats_init(NULL); /* Should do nothing safely */
   audit_stats_free(NULL);       /* Should return safely */
@@ -251,6 +258,7 @@ TEST test_audit_edge_cases(void) {
   char *f_bad_token = NULL;
   char *f_unreadable = NULL;
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_edge_%d", sys_tmp, PATH_SEP, rand())) {
@@ -290,7 +298,6 @@ TEST test_audit_edge_cases(void) {
     }
     write_to_file(f_eof_ret, "void f() { return ");
 
-    (void)audit_stats_init(&stats);
     audit_project(root, &stats);
 
     /* strndup should be counted in functions_returning_alloc */
@@ -327,15 +334,18 @@ TEST test_audit_edge_cases(void) {
 
 TEST test_audit_extras(void) {
   struct AuditStats stats;
+  (void)audit_stats_init(&stats);
+
   char *json = NULL;
 
-  (void)audit_stats_init(&stats);
   /* test tokenize failing */
   {
     char *sys_tmp = NULL;
     char *root = NULL;
     char *f_tok = NULL;
     struct AuditStats stats_tok;
+    (void)audit_stats_init(&stats_tok);
+
     (void)audit_stats_init(&stats_tok);
     tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP,
@@ -366,6 +376,7 @@ TEST test_audit_extras(void) {
     char *root = NULL;
     char *f_find = NULL;
     struct AuditStats stats_find;
+    (void)audit_stats_init(&stats_find);
     (void)audit_stats_init(&stats_find);
     tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP,
@@ -410,9 +421,9 @@ TEST test_audit_oom(void) {
     /* extern C_CDD_EXPORT int g_cdd_fail_alloc_audit; (moved to global) */
     int i;
     int rc;
-    (void)rc;
     char *json;
 
+    (void)rc;
     makedirs("test_audit_dir");
 #if defined(_MSC_VER)
     if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)
@@ -426,9 +437,9 @@ TEST test_audit_oom(void) {
         fclose(f);
     }
     for (i = 1; i < 50; i++) {
-      (void)audit_stats_init(&stats);
       g_cdd_fail_alloc_audit = i;
       rc = audit_project("test_audit_dir", &stats);
+
       printf("i=%d rc=%d\n", i, rc);
       g_cdd_fail_alloc_audit = 0;
       printf("i=%d rc=%d\n", i, rc);
@@ -437,8 +448,8 @@ TEST test_audit_oom(void) {
     }
 
     /* Also test OOM for audit_print_json */
-    (void)audit_stats_init(&stats);
     rc = audit_project("test_audit_dir", &stats);
+
     printf("i=%d rc=%d\n", i, rc);
     for (i = 1; i < 50; i++) {
       g_cdd_fail_alloc_audit = i;
@@ -472,6 +483,7 @@ TEST test_audit_capacity(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
+
     makedirs("test_audit_dir");
 #if defined(_MSC_VER)
     if (fopen_s(&f, "test_audit_dir/test.c", "w") != 0)

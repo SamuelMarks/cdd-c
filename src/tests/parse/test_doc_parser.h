@@ -821,7 +821,6 @@ TEST test_doc_parse_encodings(void) {
 TEST test_doc_parse_dupes_and_extras(void) {
   struct DocMetadata meta;
   int rc;
-  (void)rc;
   const char *comment =
       "/**\n"
       " * @jsonSchemaDialect D1\n"
@@ -877,6 +876,7 @@ TEST test_doc_parse_dupes_and_extras(void) {
       "[contentType:c2] [content:c2_2] [example:e2]\n"
       " */";
 
+  (void)rc;
   doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("rc = %d\n", rc);
@@ -888,7 +888,6 @@ TEST test_doc_parse_dupes_and_extras(void) {
 TEST test_doc_parse_equal_signs(void) {
   struct DocMetadata meta;
   int rc;
-  (void)rc;
   const char *comment =
       "/**\n"
 
@@ -920,6 +919,7 @@ TEST test_doc_parse_equal_signs(void) {
       " * @deprecated\n"
       " */";
 
+  (void)rc;
   doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("test_doc_parse_equal_signs rc: %d\n", rc);
@@ -931,7 +931,6 @@ TEST test_doc_parse_equal_signs(void) {
 TEST test_doc_parse_more_branches(void) {
   struct DocMetadata meta;
   int rc;
-  (void)rc;
   const char *comment = "/**\n"
                         " * @securityScheme s1 [type:mutualTLS]\n"
                         " * @securityScheme s2 [in:cookie]\n"
@@ -943,6 +942,7 @@ TEST test_doc_parse_more_branches(void) {
                         " * @server url nameOnly\n"
                         " * @server url [default:v] noNameOrDesc\n"
                         " */";
+  (void)rc;
   doc_metadata_init(&meta);
   rc = doc_parse_block(comment, &meta);
   printf("rc = %d\n", rc);

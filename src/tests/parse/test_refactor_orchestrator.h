@@ -163,10 +163,10 @@ TEST test_orchestrator_preserves_structs(void) {
 TEST test_orchestrator_edge_cases(void) {
   char *out = NULL;
   int rc;
-  (void)rc;
 
   /* Invalid arguments */
   rc = orchestrate_fix(NULL, &out);
+  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   rc = orchestrate_fix("void A() {}", NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);

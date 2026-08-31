@@ -62,11 +62,11 @@ TEST test_refactor_context_lifecycle(void) {
 TEST test_apply_refactoring_to_string_basic(void) {
   struct RefactorContext ctx;
   int rc;
-  (void)rc;
   const char *src = ""
                     "void my_func() { char * p = (char *)malloc(1); }";
   char *out = NULL;
 
+  (void)rc;
   refactor_context_init(&ctx);
   refactor_context_add_function(&ctx, "my_func", REF_VOID_TO_INT, "void");
 

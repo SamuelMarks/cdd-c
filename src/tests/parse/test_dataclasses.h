@@ -119,8 +119,8 @@ TEST test_recursive_deepcopy(void) {
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT(head && next);
   head->value = 10;
   head->next = next;
@@ -171,9 +171,9 @@ TEST test_recursive_eq(void) {
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
-  (void)rc;
 
   rc = FooE_default(&foo0);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT(foo0 != NULL);
 
@@ -199,9 +199,9 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL, *h1 = NULL, *h2 = NULL;
   int rc;
-  (void)rc;
 
   rc = HazE_default(&h0);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT(h0 != NULL);
 
@@ -421,18 +421,18 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   FooE_default(&foo);
   fprintf(stderr, "B\n");
   HazE_default(&haz);
   fprintf(stderr, "F\n");
-  (void)rc;
 
 #ifndef _WIN32
   {
     const char *const tmp_fname = "display_test.tmp";
     FILE *fh = NULL;
+    (void)rc;
     write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
@@ -450,13 +450,13 @@ TEST test_display_fail(void) {
 
     fclose(fh);
     remove(tmp_fname);
-    (void)rc;
   }
 #else
   /* MSVC aborts on writing to read-only streams. We test this path on Linux for
    * coverage. */
 #endif
 
+  (void)rc;
   FooE_cleanup(foo);
   fprintf(stderr, "J\n");
   HazE_cleanup(haz);
@@ -505,9 +505,9 @@ TEST test_Tank_to_str_from_str(void) {
   char *str = NULL;
   enum Tank val;
   int rc;
-  (void)rc;
 
   rc = Tank_to_str(Tank_BIG, &str);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
   free(str);
@@ -611,18 +611,18 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   FooE_default(&foo);
   fprintf(stderr, "B\n");
   HazE_default(&haz);
   fprintf(stderr, "F\n");
-  (void)rc;
 
 #ifndef _WIN32
   {
     const char *const tmp_fname = "debug_test.tmp";
     FILE *fh = NULL;
+    (void)rc;
     write_to_file(tmp_fname, "content");
 #if defined(_MSC_VER)
     if (fopen_s(&fh, tmp_fname, "r") != 0)
@@ -642,12 +642,12 @@ TEST test_debug_fail(void) {
 
     fclose(fh);
     remove(tmp_fname);
-    (void)rc;
   }
 #else
   /* MSVC aborts on writing to read-only streams. */
 #endif
 
+  (void)rc;
   FooE_cleanup(foo);
   fprintf(stderr, "J\n");
   HazE_cleanup(haz);
@@ -701,10 +701,10 @@ TEST test_deepcopy_null_fields(void) {
   struct FooE foo_in = {NULL, 42, NULL};
   struct FooE *foo_out = NULL;
   int rc;
-  (void)rc;
 
   /* Deepcopy HazE with NULL bzr */
   rc = HazE_deepcopy(&haz_in, &haz_out);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT(haz_out != NULL);
   ASSERT(haz_out->bzr == NULL);

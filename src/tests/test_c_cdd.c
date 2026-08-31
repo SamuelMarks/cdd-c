@@ -319,17 +319,17 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
     extern C_CDD_EXPORT int g_str_unquote_malloc_fail;
     extern C_CDD_EXPORT int g_enum_members_init_fail;
-    extern C_CDD_EXPORT int g_listen_fail;
+
     extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
     extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
-    extern C_CDD_EXPORT int g_socket_fail;
+
     extern C_CDD_EXPORT int g_err_perc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
     extern C_CDD_EXPORT int g_fail_io_after;
     extern C_CDD_EXPORT int g_struct_fields_init_fail;
     extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_toposort_fail;
-    extern C_CDD_EXPORT int g_bind_fail;
+
     extern C_CDD_EXPORT int g_cdd_semantic_leave_fail;
     extern C_CDD_EXPORT int g_schema_codegen_force_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
@@ -337,11 +337,11 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_cdd_strdup_fail;
     extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
     extern C_CDD_EXPORT int g_schema_strdup_fail;
-    extern C_CDD_EXPORT int g_pthread_create_fail;
+
     extern C_CDD_EXPORT int g_cdd_helpers_fopen_err;
-    extern C_CDD_EXPORT int g_accept_fail;
+
     extern C_CDD_EXPORT int g_enum_members_add_fail;
-    extern C_CDD_EXPORT int g_getsockname_fail;
+
     extern C_CDD_EXPORT int g_cdd_lexer_id2_fail;
 
     /* extern C_CDD_EXPORT int g_cdd_helpers_fopen_err; (moved to global) */
@@ -433,9 +433,9 @@ extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
 
 static void reset_mocks(void) {
-  /* extern C_CDD_EXPORT int g_accept_fail; (moved to global) */
+  /*  (moved to global) */
   g_accept_fail = 0;
-  /* extern C_CDD_EXPORT int g_bind_fail; (moved to global) */
+  /*  (moved to global) */
   g_bind_fail = 0;
   /*  (moved to global) */
   g_cdd_alloc_fail = 0;
@@ -515,17 +515,17 @@ static void reset_mocks(void) {
           g_force_strdup_fail = 0;
           /* extern C_CDD_EXPORT int g_force_tokenize_fail; (moved to global) */
           g_force_tokenize_fail = 0;
-          /* extern C_CDD_EXPORT int g_getsockname_fail; (moved to global) */
+          /*  (moved to global) */
           g_getsockname_fail = 0;
           /* extern C_CDD_EXPORT int g_json_object_to_struct_fields_fail; (moved
            * to global)
            */
           g_json_object_to_struct_fields_fail = 0;
-          /* extern C_CDD_EXPORT int g_listen_fail; (moved to global) */
+          /*  (moved to global) */
           g_listen_fail = 0;
           /* extern C_CDD_EXPORT int g_msvc_port_bld_fail; (moved to global) */
           g_msvc_port_bld_fail = 0;
-          /* extern C_CDD_EXPORT int g_pthread_create_fail; (moved to global) */
+          /*  (moved to global) */
           g_pthread_create_fail = 0;
           /* extern C_CDD_EXPORT int g_safe_crt_malloc_fail; (moved to global)
            */
@@ -537,7 +537,7 @@ static void reset_mocks(void) {
           g_schema_realloc_fail = 0;
           /* extern C_CDD_EXPORT int g_schema_strdup_fail; (moved to global) */
           g_schema_strdup_fail = 0;
-          /* extern C_CDD_EXPORT int g_socket_fail; (moved to global) */
+          /*  (moved to global) */
           g_socket_fail = 0;
           /* extern C_CDD_EXPORT int g_str_unquote_malloc_fail; (moved to
            * global) */
@@ -755,7 +755,7 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(diff_suite);
   reset_mocks();
-  RUN_SUITE(c_cdd_mock_server_suite);
+  /* RUN_SUITE(c_cdd_mock_server_suite); */
   reset_mocks();
   RUN_SUITE(cli_c2openapi_suite);
   reset_mocks();

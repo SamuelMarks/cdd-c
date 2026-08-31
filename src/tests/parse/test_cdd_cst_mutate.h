@@ -34,10 +34,10 @@ TEST test_cdd_cst_mutate_replace(void) {
   char *out = NULL;
   cdd_cst_query_result_t res;
   int rc;
-  (void)rc;
   cdd_cst_node_t *target;
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_STATEMENT, &res);
@@ -321,8 +321,8 @@ TEST test_cst_splice_children(void) {
   cdd_token_t *tok = NULL;
   cdd_cst_child_t new_children[1];
   int rc;
-  (void)rc;
 
+  (void)rc;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
   if (tree->root)
     cdd_cst_free_node(tree->root);
@@ -418,8 +418,8 @@ TEST test_cdd_cst_splice_oom(void) {
     cdd_token_t t_new = {0};
     cdd_cst_node_t *n_new = NULL;
     int rc;
-    (void)rc;
 
+    (void)rc;
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
     tree->root = root;
 

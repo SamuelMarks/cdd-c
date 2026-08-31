@@ -26,9 +26,10 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   struct TokenList *tl = NULL;
   char *output = NULL;
   int rc;
-  (void)rc;
-  const az_span source = az_span_create_from_str((char *)(size_t)input);
+  az_span source;
+  source = az_span_create_from_str((char *)(size_t)input);
 
+  (void)rc;
   if (tokenize(source, &tl) != 0)
     return CDD_C_ERROR_UNKNOWN;
 
@@ -55,8 +56,8 @@ static int test_rewrite_error(const char *input) {
   struct TokenList *tl = NULL;
   char *output = NULL;
   int rc;
-  (void)rc;
 
+  (void)rc;
   if (tokenize(az_span_create_from_str((char *)(size_t)input), &tl) != 0)
     return CDD_C_ERROR_UNKNOWN;
 
@@ -554,7 +555,8 @@ TEST test_rewrite_sig_oom(void) {
   for (i = 1; i < 40; i++) {
     char *out_code = NULL;
     struct TokenList *tl = NULL;
-    const az_span source = az_span_create_from_str("int f(int a);");
+    az_span source;
+    source = az_span_create_from_str("int f(int a);");
     tokenize(source, &tl);
 
     g_cdd_alloc_fail = i;

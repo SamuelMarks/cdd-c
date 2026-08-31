@@ -36,9 +36,9 @@ TEST test_cdd_transform_gnu(void) {
                      "}\n";
   char *out = NULL;
   int rc;
-  (void)rc;
   size_t i;
   cdd_transform_config_t config;
+  (void)rc;
   memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
@@ -621,9 +621,9 @@ TEST test_cdd_transform_complex_numbers(void) {
   char *out = NULL;
   cdd_transform_config_t cfg = {0};
   int rc;
-  (void)rc;
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_gnu(tree, &cfg);

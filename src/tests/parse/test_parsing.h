@@ -34,8 +34,8 @@ TEST parsing_test(const char *const test_name, const az_span source,
       (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
   int rc = EXIT_SUCCESS;
-  (void)expected_whitespace;
 
+  (void)expected_whitespace;
   printf("Running test: %s\n", test_name);
 
   if (tokenize(source, &tokens) != 0) {

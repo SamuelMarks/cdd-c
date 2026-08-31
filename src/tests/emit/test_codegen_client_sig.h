@@ -1714,8 +1714,8 @@ TEST test_sig_header_param_boolean(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_0_uniq;
       }
+      (void)_ast_gen_sig_0_uniq;
       if (io_code)
         free(io_code);
     }
@@ -1777,8 +1777,8 @@ TEST test_sig_header_param_number(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_5_uniq;
       }
+      (void)_ast_gen_sig_5_uniq;
       if (io_code)
         free(io_code);
     }
@@ -1840,8 +1840,8 @@ TEST test_sig_header_param_integer(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_10_uniq;
       }
+      (void)_ast_gen_sig_10_uniq;
       if (io_code)
         free(io_code);
     }
@@ -1903,8 +1903,8 @@ TEST test_sig_header_param_string(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_15_uniq;
       }
+      (void)_ast_gen_sig_15_uniq;
       if (io_code)
         free(io_code);
     }
@@ -2085,8 +2085,8 @@ TEST test_sig_response_array_string_ref(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_20_uniq;
       }
+      (void)_ast_gen_sig_20_uniq;
       if (io_code)
         free(io_code);
     }
@@ -2138,8 +2138,8 @@ TEST test_sig_response_array_integer_ref(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_25_uniq;
       }
+      (void)_ast_gen_sig_25_uniq;
       if (io_code)
         free(io_code);
     }
@@ -2191,8 +2191,8 @@ TEST test_sig_response_array_struct_ref(void) {
         if (io_code)
           free(io_code);
         break;
-        (void)_ast_gen_sig_30_uniq;
       }
+      (void)_ast_gen_sig_30_uniq;
       if (io_code)
         free(io_code);
     }
@@ -2264,10 +2264,10 @@ TEST test_sig_io_errors(void) {
     } else {
       if (code)
         free(code);
-      (void)_ast_gen_sig_35_uniq;
     }
   }
   g_fail_io_after = -1;
+  (void)_ast_gen_sig_35_uniq;
   PASS();
 }
 

@@ -32,10 +32,11 @@ TEST test_cdd_transform_macros(void) {
       "#define FOO(a) a + 1\nint main() {\n  return FOO(42);\n}\n";
   char *out = NULL;
   int rc;
-  (void)rc;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -64,10 +65,11 @@ TEST test_cdd_transform_macros_operators(void) {
                      "}\n";
   char *out = NULL;
   int rc;
-  (void)rc;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -100,11 +102,12 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
                      "  FOO(42);\n"
                      "}\n";
   int rc;
-  (void)rc;
   int k;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   /* Null arg */
+  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_macros(NULL, &config));
 
   /* Null root */

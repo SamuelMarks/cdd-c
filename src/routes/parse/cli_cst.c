@@ -130,9 +130,10 @@ cdd_c_error_t cli_cst_transformer_main(int argc, char **argv) {
   int is_fix = 0;
   int is_dry_run = 0;
   const char *toolname = NULL;
-  cdd_transform_config_t config = {0, 2, 0, 1, 0};
+  cdd_transform_config_t config;
   cdd_c_error_t (*transform_fn)(cdd_cst_tree_t *,
                                 const cdd_transform_config_t *) = NULL;
+  memset(&config, 0, sizeof(config));
 
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
@@ -208,7 +209,8 @@ cdd_c_error_t cli_standardize_gnu_main(int argc, char **argv) {
   int is_audit = 0;
   int is_fix = 0;
   int is_dry_run = 0;
-  cdd_transform_config_t config = {0, 2, 0, 0, 0};
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
 
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c standardize-gnu [OPTIONS] <files...>\n");

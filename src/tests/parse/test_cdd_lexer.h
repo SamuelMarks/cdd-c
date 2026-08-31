@@ -260,23 +260,23 @@ TEST test_cdd_lexer_oom(void) {
 
   /* Force token failures to trigger coverage */
   g_cdd_cst_alloc_token_fail = 2;
-  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   /* ASSERT(rc_t1 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 3;
-  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   /* ASSERT(rc_t2 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 1;
-  (void)cdd_lexer_tokenize(az_span_create_from_str("/* comment */"), &tl);
   /* ASSERT(rc_t3 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 1;
   rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
+  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  (void)cdd_lexer_tokenize(az_span_create_from_str("/* comment */"), &tl);
+  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
   tl = NULL;
 
@@ -302,11 +302,11 @@ TEST test_cdd_lexer_oom(void) {
 TEST test_lexer_branches(void) {
   cdd_token_list_t *list = NULL;
   int rc;
-  (void)rc;
   const char *code;
   const char *code2;
   code = "int\r\nmain() { /* c1 */ /* c2 */ }";
   rc = cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
+  (void)rc;
   cdd_lexer_free_token_list(list);
 
   list = NULL;

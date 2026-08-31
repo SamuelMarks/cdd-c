@@ -29,7 +29,6 @@ static void setup_minimal_spec(struct OpenAPI_Spec *spec,
   static struct OpenAPI_Response resp = {0};
 
   (void)openapi_spec_init(spec);
-
   memset(op, 0, sizeof(*op));
   op->operation_id = "test_op";
   op->verb = OA_VERB_GET;
@@ -58,8 +57,8 @@ TEST test_gen_client_basic(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&config, 0, sizeof(config));
@@ -95,8 +94,8 @@ TEST test_gen_client_operation_server_override(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&op_server, 0, sizeof(op_server));
@@ -131,8 +130,8 @@ TEST test_gen_client_text_plain_request_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "text/plain";
@@ -166,8 +165,8 @@ TEST test_gen_client_octet_stream_request_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
   op.req_body.content_type = "application/octet-stream";
@@ -201,8 +200,8 @@ TEST test_gen_client_octet_stream_response_body(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
   op.responses[0].content_type = "application/octet-stream";
 
@@ -236,8 +235,8 @@ TEST test_gen_client_default_base_url_from_server(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&server, 0, sizeof(server));
@@ -280,8 +279,8 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&config, 0, sizeof(config));
@@ -314,8 +313,8 @@ TEST test_gen_client_additional_operation(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   (void)openapi_spec_init(&spec);
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -367,8 +366,8 @@ TEST test_gen_client_op_params_only(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&op_param, 0, sizeof(op_param));
@@ -408,8 +407,8 @@ TEST test_gen_client_querystring_param(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&op_param, 0, sizeof(op_param));
@@ -448,8 +447,8 @@ TEST test_gen_client_path_level_params(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&path_param, 0, sizeof(path_param));
@@ -493,8 +492,8 @@ TEST test_gen_client_path_param_override(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   memset(&path_param, 0, sizeof(path_param));
@@ -540,10 +539,10 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
   /* Tag string array setup */
   static char *tags[] = {"pet"};
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
 
   /* Inject tag manually */
@@ -582,8 +581,8 @@ TEST test_gen_client_namespace_only(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   setup_minimal_spec(&spec, &op);
   /* No tags */
 

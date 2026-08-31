@@ -154,9 +154,9 @@ TEST test_url_encode_null(void) {
 TEST test_query_lifecycle(void) {
   struct UrlQueryParams qp;
   int rc;
-  (void)rc;
 
   rc = url_query_init(&qp);
+  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, qp.count);
 

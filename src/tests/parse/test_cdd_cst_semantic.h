@@ -446,11 +446,11 @@ TEST test_cdd_cst_semantic_extract_null(void) {
       for (i = 0; i < 10; i++) {
         g_fail_io_after = i;
         cdd_cst_build_semantic_info(t2, &env);
-        (void)decl2;
       }
     }
     g_fail_io_after = -1;
 
+    (void)decl2;
     cdd_cst_tree_free(t2);
   }
 
@@ -749,9 +749,9 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
       if (rc == CDD_C_SUCCESS) {
         g_cdd_alloc_fail = 0;
         break;
-        (void)id_node2;
-        (void)decl2;
       }
+      (void)id_node2;
+      (void)decl2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_alloc_fail = 0;

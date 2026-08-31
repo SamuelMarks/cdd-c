@@ -305,10 +305,10 @@ TEST test_schema2tests_sanitize_names(void) {
                   "build" PATH_SEP "test_sanitize.h"};
   const char *const schema_file = argv[0];
   int rc;
-  (void)rc;
 
   rc = write_to_file(schema_file, "{\"$defs\":{\"E-1\":{\"type\":\"string\","
                                   "\"enum\":[\"val-1\"]}}}");
+  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = jsonschema2tests_main(3, argv);

@@ -204,8 +204,8 @@ TEST test_patch_header_basic(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(h_path, ""
                         "void foo();\n");
 
@@ -239,8 +239,8 @@ TEST test_patch_header_ptr_arg(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(h_path, "char* bar(int x);\n");
 
   rc = patch_header_from_source(h_path, src);
@@ -277,8 +277,8 @@ TEST test_patch_header_ignore_others(void) {
   char *content = NULL;
   size_t sz;
   int rc;
-  (void)rc;
 
+  (void)rc;
   write_to_file(h_path, ""
                         "void other();\nvoid foo();\n");
 
@@ -301,9 +301,9 @@ TEST test_patch_header_bounds(void) {
   const char *h_path = "bounds_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
-  (void)rc;
 
   /* End of file while looking for semicolon */
+  (void)rc;
   write_to_file(h_path, "void foo()");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -340,7 +340,6 @@ TEST test_patch_header_failures(void) {
   const char *h_path = "fail_patch.h";
   const char *src = "int foo() { return 0; }";
   int rc;
-  (void)rc;
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
    */
@@ -350,6 +349,7 @@ TEST test_patch_header_failures(void) {
    */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write; (moved to global) */
 
+  (void)rc;
   write_to_file(h_path, "void foo();\n");
 
   /* Test func_sig_list_init failure */

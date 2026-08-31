@@ -32,7 +32,7 @@ TEST test_simple_cleanup_and_null(void) {
     struct Haz *hz = (struct Haz *)malloc(sizeof(*hz));
     if (hz) {
       hz->bzr = strdup("hello");
-      free((char *)hz->bzr);
+      free((void *)(size_t)hz->bzr);
       Haz_cleanup(hz);
     }
   }
@@ -98,9 +98,9 @@ TEST test_foo_e_full_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
-  (void)rc;
 #endif
 
+  (void)rc;
   printf("DEBUG: test_foo_e_full_coverage started!\n");
   fflush(stdout);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_default(NULL));
@@ -174,7 +174,7 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(0, HazE_display(haz_e, f));
   ASSERT_EQ(0, HazE_debug(haz_e, f));
   ASSERT_EQ(0, HazE_debug(NULL, f));
-  free((char *)haz_e->bzr);
+  free((void *)(size_t)haz_e->bzr);
   haz_e->bzr = NULL;
   ASSERT_EQ(0, HazE_debug(haz_e, f));
 
@@ -219,7 +219,7 @@ TEST test_foo_e_full_coverage(void) {
   ASSERT_EQ(0, FooE_display(foo_e, f));
   ASSERT_EQ(0, FooE_debug(foo_e, f));
   ASSERT_EQ(0, FooE_debug(NULL, f));
-  free((char *)foo_e->bar);
+  free((void *)(size_t)foo_e->bar);
   foo_e->bar = NULL;
   ASSERT_EQ(0, FooE_debug(foo_e, f));
 
@@ -292,9 +292,9 @@ TEST test_foo_e_full_coverage(void) {
     HazE_default(&haz_e);
     g_simple_json_fail_alloc = 0;
     haz_e->bzr = malloc(4);
-    memcpy((char *)haz_e->bzr, "foo", 4);
-    printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n", (void *)haz_e->bzr,
-           (void *)"foo");
+    memcpy((void *)(size_t)haz_e->bzr, "foo", 4);
+    printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n",
+           (void *)(size_t)haz_e->bzr, (void *)(size_t) "foo");
     fflush(stdout);
 
     g_simple_json_fail_alloc = i;
@@ -311,7 +311,7 @@ TEST test_foo_e_full_coverage(void) {
       haz_e2 = NULL;
     }
 
-    free((void *)haz_e->bzr);
+    free((void *)(size_t)haz_e->bzr);
     haz_e->bzr = NULL;
     g_simple_json_fail_alloc = i;
     rc = HazE_deepcopy(haz_e, &haz_e2);
@@ -321,9 +321,9 @@ TEST test_foo_e_full_coverage(void) {
     }
     g_simple_json_fail_alloc = 0;
     haz_e->bzr = malloc(4);
-    memcpy((char *)haz_e->bzr, "foo", 4);
-    printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n", (void *)haz_e->bzr,
-           (void *)"foo");
+    memcpy((void *)(size_t)haz_e->bzr, "foo", 4);
+    printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n",
+           (void *)(size_t)haz_e->bzr, (void *)(size_t) "foo");
     fflush(stdout);
 
 #if defined(_MSC_VER)
@@ -369,7 +369,7 @@ TEST test_foo_e_full_coverage(void) {
     g_simple_json_fail_alloc = 0;
     FooE_default(&foo_e);
     foo_e->bar = malloc(5);
-    memcpy((char *)foo_e->bar, "test", 5);
+    memcpy((void *)(size_t)foo_e->bar, "test", 5);
 
     g_simple_json_fail_alloc = i;
     rc = FooE_default(&foo_e2);
@@ -430,10 +430,10 @@ TEST test_foo_e_full_coverage(void) {
     FooE_cleanup(foo_e);
     foo_e = NULL;
   }
-  (void)rc;
   g_simple_json_fail_alloc = 0;
 #endif
 
+  (void)rc;
   PASS();
 }
 
