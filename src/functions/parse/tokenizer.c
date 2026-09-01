@@ -1161,9 +1161,12 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
         }
       }
 
-      rc =
-
-          token_list_add(list, TOKEN_NUMBER_LITERAL, base + start, pos - start);
+      {
+        cdd_c_error_t rc_tk = token_list_add(list, TOKEN_NUMBER_LITERAL,
+                                             base + start, pos - start);
+        if (rc_tk != CDD_C_SUCCESS)
+          return rc_tk;
+      }
 
     } else if (c == '"' || c == '\'') {
 

@@ -216,9 +216,9 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
       }
       {
         cdd_trivia_t *t = NULL;
-        alloc_trivia(is_newline ? TRIVIA_NEWLINE : TRIVIA_WHITESPACE,
-                     base + start, pos - start, &t);
-        if (!t)
+        rc = alloc_trivia(is_newline ? TRIVIA_NEWLINE : TRIVIA_WHITESPACE,
+                          base + start, pos - start, &t);
+        if (rc != CDD_C_SUCCESS)
           goto error;
         if (!is_newline && prev_token && !pending_trivia_head) {
           prev_token->trailing_trivia = t;

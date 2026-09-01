@@ -16,6 +16,10 @@
 
 #include "c_cdd/memory.h"
 
+#include "cdd_oom_mock.h"
+
+int g_cdd_mock_dlopen_success = 0;
+
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
@@ -288,6 +292,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 
 #include "c_cdd/test_int128.h"
 #include "test_cdd_api.h"
+#include "test_log.h"
 /* clang-format on */
 
 #include "transformers/safe_crt/test_safe_crt.h"
@@ -317,7 +322,7 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_cdd_fprintf_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail;
     extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
-    extern C_CDD_EXPORT int g_str_unquote_malloc_fail;
+
     extern C_CDD_EXPORT int g_enum_members_init_fail;
 
     extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
@@ -334,7 +339,7 @@ TEST test_cdd_helpers(void) {
     extern C_CDD_EXPORT int g_schema_codegen_force_fail;
     extern C_CDD_EXPORT int g_cdd_ffi_ir_malloc_fail;
     extern C_CDD_EXPORT int g_io_calls;
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+
     extern C_CDD_EXPORT int g_cdd_lexer_trivia_fail;
     extern C_CDD_EXPORT int g_schema_strdup_fail;
 
@@ -433,12 +438,12 @@ extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
 
 static void reset_mocks(void) {
+  mock_oom_reset_cb(NULL);
   /*  (moved to global) */
   g_accept_fail = 0;
   /*  (moved to global) */
   g_bind_fail = 0;
   /*  (moved to global) */
-  g_cdd_alloc_fail = 0;
   g_fail_io_after = -1;
   g_io_calls = 0;
   g_schema_codegen_force_fail = 0;
@@ -825,6 +830,8 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(main_coverage_suite);
   reset_mocks();
+  RUN_SUITE(log_suite);
+  reset_mocks();
   RUN_SUITE(integration_c2openapi_suite);
   reset_mocks();
   RUN_SUITE(query_projection_suite);
@@ -856,3 +863,4 @@ int main(int argc, char **argv) {
 
 #if defined(__GNUC__) || defined(__clang__)
 #endif
+void mock_set_oom_after_calls(int calls);

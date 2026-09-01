@@ -59,11 +59,6 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_fail_alloc = 0;
-C_CDD_EXPORT int g_cdd_fprintf_fail = 0;
-C_CDD_EXPORT int g_cdd_mock_dlopen_success = 0;
-#endif
 
 #define MAX_ARGS 32
 
@@ -889,4 +884,3 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   return CDD_C_SUCCESS;
 }
-C_CDD_EXPORT int g_cdd_alloc_fail = 0;

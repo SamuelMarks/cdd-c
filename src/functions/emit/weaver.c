@@ -129,7 +129,12 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
       }
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_include = 0;
-        token_matches_string(&tokens->tokens[j], "include", &is_include);
+        {
+          cdd_c_error_t rc_weav =
+              token_matches_string(&tokens->tokens[j], "include", &is_include);
+          if (rc_weav != CDD_C_SUCCESS)
+            return rc_weav;
+        }
         if (is_include) {
           last_include_idx = j;
           found_include = 1;

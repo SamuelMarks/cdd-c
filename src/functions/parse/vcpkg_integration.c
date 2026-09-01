@@ -53,15 +53,29 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
   builder->deps_count = 0;
   builder->deps_capacity = 0;
 
-  my_strdup(project_name, &builder->project_name);
-  if (version_string)
-    my_strdup(version_string, &builder->version_string);
-  else
-    my_strdup("0.0.1", &builder->version_string);
-  if (description)
-    my_strdup(description, &builder->description);
-  else
-    my_strdup("", &builder->description);
+  {
+    cdd_c_error_t rc_vc = my_strdup(project_name, &builder->project_name);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  }
+  if (version_string) {
+    cdd_c_error_t rc_vc = my_strdup(version_string, &builder->version_string);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  } else {
+    cdd_c_error_t rc_vc = my_strdup("0.0.1", &builder->version_string);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  }
+  if (description) {
+    cdd_c_error_t rc_vc = my_strdup(description, &builder->description);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  } else {
+    cdd_c_error_t rc_vc = my_strdup("", &builder->description);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  }
   builder->deps = NULL;
   builder->deps_count = 0;
   builder->deps_capacity = 0;
@@ -127,7 +141,12 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
     builder->deps_capacity = new_cap;
   }
 
-  my_strdup(dep_name, &builder->deps[builder->deps_count].name);
+  {
+    cdd_c_error_t rc_vc =
+        my_strdup(dep_name, &builder->deps[builder->deps_count].name);
+    if (rc_vc != CDD_C_SUCCESS)
+      return rc_vc;
+  }
   if (!builder->deps[builder->deps_count].name)
     return CDD_C_ERROR_MEMORY;
   builder->deps_count++;
@@ -158,7 +177,12 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
         j++;
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         int is_inc = 0;
-        token_matches_string(&tokens->tokens[j], "include", &is_inc);
+        {
+          cdd_c_error_t rc_vc =
+              token_matches_string(&tokens->tokens[j], "include", &is_inc);
+          if (rc_vc != CDD_C_SUCCESS)
+            return rc_vc;
+        }
         if (is_inc) {
           size_t k = j + 1;
           while (k < tokens->size && tokens->tokens[k].kind == TOKEN_WHITESPACE)

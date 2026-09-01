@@ -2039,7 +2039,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
-    makedirs(src_dir);
+    {
+      cdd_c_error_t rc_cg = makedirs(src_dir);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     actual_base =
         malloc(strlen(src_dir) +
                strlen(base_name ? base_name : "generated_client") + 2);
@@ -2217,7 +2221,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   {
     char *mh_base = NULL;
     int print_rc;
-    get_basename(mh_name, &mh_base);
+    {
+      cdd_c_error_t rc_cg = get_basename(mh_name, &mh_base);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     print_rc =
         fprintf(mcfile, "#include \"%s\"\n", mh_base ? mh_base : mh_name);
     if (mh_base)
@@ -2423,7 +2431,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *base = NULL;
-    get_basename(h_name, &base);
+    {
+      cdd_c_error_t rc_cg = get_basename(h_name, &base);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     rc = write_source_preamble(cfile, base ? base : h_name);
     if (base)
       free(base);
@@ -4392,7 +4404,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char tdir[512], tfile[640];
     FILE *tfp;
     CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
-    makedirs(tdir);
+    {
+      cdd_c_error_t rc_cg = makedirs(tdir);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
 #if defined(_MSC_VER)
     if (fopen_s(&tfp, tfile, "w") != 0)

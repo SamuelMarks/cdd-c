@@ -19,7 +19,6 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   cdd_c_error_t rc;
   int found_cpp = 0;
   cdd_cst_node_t *insert_after_node = NULL;
-  (void)config;
 
   if (!tree || !tree->root) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
@@ -84,10 +83,19 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         if (cdd_cst_clone_tree(tree, top_tree->root->children[0].val.node,
                                &cloned) == 0) {
           if (insert_after_node) {
-            cdd_cst_insert_node_after(insert_after_node, cloned);
+            cdd_c_error_t rc_ins =
+                cdd_cst_insert_node_after(insert_after_node, cloned);
+            if (rc_ins != CDD_C_SUCCESS) {
+              cdd_cst_tree_free(top_tree);
+              return rc_ins;
+            }
           } else if (tree->root->num_children > 0) {
-            cdd_cst_insert_node_before(tree->root->children[0].val.node,
-                                       cloned);
+            cdd_c_error_t rc_ins = cdd_cst_insert_node_before(
+                tree->root->children[0].val.node, cloned);
+            if (rc_ins != CDD_C_SUCCESS) {
+              cdd_cst_tree_free(top_tree);
+              return rc_ins;
+            }
           }
         }
       }
@@ -108,7 +116,11 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
           if (tree->root->num_children > 0) {
             cdd_cst_node_t *last_node =
                 tree->root->children[tree->root->num_children - 1].val.node;
-            cdd_cst_insert_node_after(last_node, cloned);
+            cdd_c_error_t rc_ins = cdd_cst_insert_node_after(last_node, cloned);
+            if (rc_ins != CDD_C_SUCCESS) {
+              cdd_cst_tree_free(bot_tree);
+              return rc_ins;
+            }
           }
         }
       }
@@ -124,7 +136,6 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
   cdd_cst_query_result_t res;
   size_t i;
   cdd_c_error_t rc;
-  (void)config;
 
   if (!tree || !tree->root) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;
@@ -231,7 +242,6 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
 cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                                 const cdd_transform_config_t *config) {
   size_t i;
-  (void)config;
 
   if (!tree || !tree->root) {
     rc = CDD_C_ERROR_INVALID_ARGUMENT;

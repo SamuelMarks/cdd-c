@@ -230,14 +230,30 @@ static cdd_c_error_t parse_bool_text(const char *s, int *out) {
   int diff1, diff2, diff3, diff4;
   if (!s || !out)
     return CDD_C_SUCCESS;
-  c_cdd_stricmp(s, "true", &diff1);
-  c_cdd_stricmp(s, "yes", &diff2);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "true", &diff1);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "yes", &diff2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff1 == 0 || strcmp(s, "1") == 0 || diff2 == 0) {
     *out = 1;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "false", &diff3);
-  c_cdd_stricmp(s, "no", &diff4);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "false", &diff3);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "no", &diff4);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff3 == 0 || strcmp(s, "0") == 0 || diff4 == 0) {
     *out = 0;
     return CDD_C_ERROR_UNKNOWN;
@@ -344,42 +360,74 @@ static cdd_c_error_t parse_style_text(const char *s, enum DocParamStyle *out) {
   int diff;
   if (!s || !out)
     return CDD_C_SUCCESS;
-  c_cdd_stricmp(s, "form", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "form", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_FORM;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "simple", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "simple", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_SIMPLE;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "matrix", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "matrix", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_MATRIX;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "label", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "label", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_LABEL;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "spaceDelimited", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "spaceDelimited", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_SPACE_DELIMITED;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "pipeDelimited", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "pipeDelimited", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_PIPE_DELIMITED;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "deepObject", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "deepObject", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_DEEP_OBJECT;
     return CDD_C_ERROR_UNKNOWN;
   }
-  c_cdd_stricmp(s, "cookie", &diff);
+  {
+    cdd_c_error_t rc = c_cdd_stricmp(s, "cookie", &diff);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  }
   if (diff == 0) {
     *out = DOC_PARAM_STYLE_COOKIE;
     return CDD_C_ERROR_UNKNOWN;

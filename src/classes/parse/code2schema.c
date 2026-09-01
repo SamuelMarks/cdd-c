@@ -77,7 +77,11 @@ cdd_c_error_t str_starts_with(const char *str, const char *prefix,
                               int *_out_val) {
   {
     int b = 0;
-    c_cdd_str_starts_with(str, prefix, &b);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_str_starts_with(str, prefix, &b);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (_out_val)
       *_out_val = b;
     return CDD_C_SUCCESS;
@@ -377,7 +381,11 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
 
-      c_cdd_strdup(src[i], &out[i]);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(src[i], &out[i]);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (!out[i]) {
         free_string_array_code2schema(out, src_count);
         return CDD_C_ERROR_MEMORY;
@@ -623,7 +631,11 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
     const char *t = json_array_get_string(arr, i);
     if (!t)
       continue;
-    c_cdd_strdup(t, &types[n]);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(t, &types[n]);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!types[n]) {
       free_string_array_code2schema(types, count);
       return CDD_C_ERROR_MEMORY;
@@ -881,7 +893,11 @@ static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     if (!key || key_in_list(key, skip_keys, skip_count))
       continue;
     val = json_object_get_value(obj, key);
-    clone_json_value(val, &copy);
+    {
+      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!copy) {
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
@@ -903,7 +919,11 @@ static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
   }
-  c_cdd_strdup(serialized, out_json);
+  {
+    cdd_c_error_t rc_c2s = c_cdd_strdup(serialized, out_json);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
   return *out_json ? 0 : ENOMEM;
@@ -948,7 +968,11 @@ static cdd_c_error_t merge_schema_extras_object(JSON_Object *target,
     if (!key || json_object_has_value(target, key))
       continue;
     val = json_object_get_value(extras_obj, key);
-    clone_json_value(val, &copy);
+    {
+      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!copy) {
       json_value_free(extras_val);
       return CDD_C_ERROR_MEMORY;
@@ -1173,7 +1197,11 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
   if (!dest_json || !src_json || src_json[0] == '\0')
     return CDD_C_SUCCESS;
   if (!*dest_json) {
-    c_cdd_strdup(src_json, dest_json);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(src_json, dest_json);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return *dest_json ? 0 : ENOMEM;
   }
 
@@ -1204,7 +1232,11 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
     if (json_object_has_value(dest_obj, key))
       json_object_remove(dest_obj, key);
     val = json_object_get_value(src_obj, key);
-    clone_json_value(val, &copy);
+    {
+      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!copy) {
       json_value_free(dest_val);
       json_value_free(src_val);
@@ -1547,7 +1579,11 @@ cdd_c_error_t parse_struct_member_line(const char *line,
   strncpy(buf, line, sizeof(buf) - 1);
 #endif
   buf[sizeof(buf) - 1] = '\0';
-  trim_trailing(buf);
+  {
+    cdd_c_error_t rc_c2s = trim_trailing(buf);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
 
   {
     char *cmt = strstr(buf, "//");
@@ -1571,7 +1607,11 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       }
 
       *cmt = '\0';
-      trim_trailing(buf);
+      {
+        cdd_c_error_t rc_c2s = trim_trailing(buf);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
     }
   }
 
@@ -1588,7 +1628,11 @@ cdd_c_error_t parse_struct_member_line(const char *line,
       strncpy(bit_width, w, sizeof(bit_width) - 1);
 #endif
       *colon_ptr = '\0';
-      trim_trailing(buf);
+      {
+        cdd_c_error_t rc_c2s = trim_trailing(buf);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
     }
   }
 
@@ -1756,7 +1800,12 @@ cdd_c_error_t parse_struct_member_line(const char *line,
             is_slow_query ? slow_query_ms : 0);
 #endif
         if (cdd_len > 0) {
-          merge_schema_extras_strings(&field->schema_extra_json, cdd_json);
+          {
+            cdd_c_error_t rc_c2s = merge_schema_extras_strings(
+                &field->schema_extra_json, cdd_json);
+            if (rc_c2s != CDD_C_SUCCESS)
+              return rc_c2s;
+          }
         }
       }
 
@@ -3035,7 +3084,11 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   if (!root || !ref)
     return CDD_C_SUCCESS;
   name = NULL;
-  c_cdd_str_after_last(ref, '/', &name);
+  {
+    cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &name);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
   if (!name || !*name)
     return CDD_C_SUCCESS;
   schema_obj = json_object_get_object(root, name);
@@ -3257,7 +3310,11 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
     return CDD_C_SUCCESS;
   }
   name = NULL;
-  c_cdd_str_after_last(ref, '/', &name);
+  {
+    cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &name);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
   if (!name || !*name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -3350,7 +3407,11 @@ static cdd_c_error_t collect_string_array(const JSON_Array *arr, char ***out,
   for (i = 0; i < count; ++i) {
     const char *s = json_array_get_string(arr, i);
     if (s) {
-      c_cdd_strdup(s, &vals[i]);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(s, &vals[i]);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (!vals[i]) {
         free_string_array_code2schema(vals, count);
         return CDD_C_ERROR_MEMORY;
@@ -3573,7 +3634,11 @@ static cdd_c_error_t collect_property_names(const JSON_Object *schema_obj,
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(props, i);
     if (name) {
-      c_cdd_strdup(name, &vals[i]);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(name, &vals[i]);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (!vals[i]) {
         free_string_array_code2schema(vals, count);
         return CDD_C_ERROR_MEMORY;
@@ -3775,7 +3840,11 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   size_t i, len;
   char *out;
   if (!in || !*in) {
-    c_cdd_strdup("Variant", _out_val);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup("Variant", _out_val);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
@@ -3796,7 +3865,11 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   if (!out[0]) {
     C_CDD_FREE(out);
     {
-      c_cdd_strdup("Variant", _out_val);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup("Variant", _out_val);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       return CDD_C_SUCCESS;
     }
   }
@@ -3821,12 +3894,20 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   }
   {
     struct StructField *tmp4 = NULL;
-    sanitize_identifier(base, &sanitized);
+    {
+      cdd_c_error_t rc_c2s = sanitize_identifier(base, &sanitized);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!sanitized) {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
     }
-    struct_fields_get(dest, sanitized, &tmp4);
+    {
+      cdd_c_error_t rc_c2s = struct_fields_get(dest, sanitized, &tmp4);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!tmp4) {
       *_out_val = sanitized;
       return CDD_C_SUCCESS;
@@ -3835,14 +3916,22 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   CDD_SNPRINTF(buf, sizeof(buf), "%s_%lu", sanitized,
                (unsigned long)(index + 1));
   C_CDD_FREE(sanitized);
-  c_cdd_strdup(buf, &out);
+  {
+    cdd_c_error_t rc_c2s = c_cdd_strdup(buf, &out);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
   {
     struct StructField *tmp5 = NULL;
-    struct_fields_get(dest, out, &tmp5);
+    {
+      cdd_c_error_t rc_c2s = struct_fields_get(dest, out, &tmp5);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!tmp5) {
       *_out_val = out;
       return CDD_C_SUCCESS;
@@ -3851,7 +3940,11 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
   C_CDD_FREE(out);
   CDD_SNPRINTF(buf, sizeof(buf), "Variant_%lu", (unsigned long)(index + 1));
   {
-    c_cdd_strdup(buf, _out_val);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(buf, _out_val);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return CDD_C_SUCCESS;
   }
 }
@@ -3873,7 +3966,11 @@ cdd_c_error_t make_inline_schema_name(const char *schema_name,
   else
     CDD_SNPRINTF(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
   {
-    sanitize_identifier(buf, _out_val);
+    {
+      cdd_c_error_t rc_c2s = sanitize_identifier(buf, _out_val);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return CDD_C_SUCCESS;
   }
 }
@@ -3891,7 +3988,12 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   name = NULL;
-  make_inline_schema_name(schema_name, variant_name, suffix, &name);
+  {
+    cdd_c_error_t rc_c2s =
+        make_inline_schema_name(schema_name, variant_name, suffix, &name);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  }
   if (!name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -3899,7 +4001,11 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
 
   if (!json_object_has_value(root, name)) {
     JSON_Value *copy = NULL;
-    clone_json_value(schema_val, &copy);
+    {
+      cdd_c_error_t rc_c2s = clone_json_value(schema_val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!copy) {
       C_CDD_FREE(name);
       return CDD_C_ERROR_MEMORY;
@@ -4115,9 +4221,11 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
     return CDD_C_SUCCESS;
   }
 
-  if (ref)
-    c_cdd_str_after_last(ref, '/', &ref_name);
-  else
+  if (ref) {
+    cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &ref_name);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+  } else
     ref_name = NULL;
 
   if (!disc_obj)
@@ -4134,26 +4242,46 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
     if (!key || !val)
       continue;
     if (ref && strcmp(val, ref) == 0) {
-      c_cdd_strdup(key, _out_val);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       return CDD_C_SUCCESS;
     }
     if (ref_name && strcmp(val, ref_name) == 0) {
-      c_cdd_strdup(key, _out_val);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       return CDD_C_SUCCESS;
     }
     if (schema_name && strcmp(val, schema_name) == 0) {
-      c_cdd_strdup(key, _out_val);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(key, _out_val);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       return CDD_C_SUCCESS;
     }
   }
 
 fallback:
   if (schema_name) {
-    c_cdd_strdup(schema_name, _out_val);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(schema_name, _out_val);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return CDD_C_SUCCESS;
   }
   if (ref_name) {
-    c_cdd_strdup(ref_name, _out_val);
+    {
+      cdd_c_error_t rc_c2s = c_cdd_strdup(ref_name, _out_val);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     return CDD_C_SUCCESS;
   }
   {
@@ -4305,7 +4433,12 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
   for (i = 0; i < src->size; ++i) {
     const struct StructField *src_field = &src->fields[i];
     struct StructField *dest_field = NULL;
-    struct_fields_get(dest, src_field->name, &dest_field);
+    {
+      cdd_c_error_t rc_c2s =
+          struct_fields_get(dest, src_field->name, &dest_field);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
 
     if (!dest_field) {
       const char *ref = src_field->ref[0] ? src_field->ref : NULL;
@@ -4316,7 +4449,12 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
                             bw) != 0)
         return CDD_C_ERROR_MEMORY;
       dest_field = NULL;
-      struct_fields_get(dest, src_field->name, &dest_field);
+      {
+        cdd_c_error_t rc_c2s =
+            struct_fields_get(dest, src_field->name, &dest_field);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (!dest_field) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -4334,16 +4472,24 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
         dest_field->items_type_union = NULL;
         dest_field->n_items_type_union = 0;
         if (src_field->schema_extra_json) {
-          c_cdd_strdup(src_field->schema_extra_json,
-                       &dest_field->schema_extra_json);
+          {
+            cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->schema_extra_json,
+                                                &dest_field->schema_extra_json);
+            if (rc_c2s != CDD_C_SUCCESS)
+              return rc_c2s;
+          }
           if (!dest_field->schema_extra_json) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return CDD_C_ERROR_MEMORY;
           }
         }
         if (src_field->items_extra_json) {
-          c_cdd_strdup(src_field->items_extra_json,
-                       &dest_field->items_extra_json);
+          {
+            cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->items_extra_json,
+                                                &dest_field->items_extra_json);
+            if (rc_c2s != CDD_C_SUCCESS)
+              return rc_c2s;
+          }
           if (!dest_field->items_extra_json) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return CDD_C_ERROR_MEMORY;
@@ -4581,8 +4727,12 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
       continue;
 
     ref = json_object_get_string(sub, "$ref");
-    if (ref && root)
-      resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+    if (ref && root) {
+      cdd_c_error_t rc_c2s =
+          resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!resolved)
       continue;
 
@@ -4813,8 +4963,12 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
       continue;
 
     ref = json_object_get_string(sub, "$ref");
-    if (ref && root)
-      resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+    if (ref && root) {
+      cdd_c_error_t rc_c2s =
+          resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!resolved)
       continue;
 
@@ -5110,9 +5264,17 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     if (!sub)
       continue;
     ref = json_object_get_string(sub, "$ref");
-    if (ref && root)
-      resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
-    detect_union_json_type(resolved, &jtype);
+    if (ref && root) {
+      cdd_c_error_t rc_c2s =
+          resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
+    {
+      cdd_c_error_t rc_c2s = detect_union_json_type(resolved, &jtype);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (jtype == UNION_JSON_ARRAY) {
       if (!allow_inline)
         return CDD_C_SUCCESS;
@@ -5138,7 +5300,11 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     const char *prop = json_object_get_string(disc_obj, "propertyName");
     if (prop && *prop) {
       dest->union_discriminator = NULL;
-      c_cdd_strdup(prop, &dest->union_discriminator);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_strdup(prop, &dest->union_discriminator);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (!dest->union_discriminator) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -5177,14 +5343,26 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
       continue;
 
     ref = json_object_get_string(sub, "$ref");
-    if (ref && root)
-      resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+    if (ref && root) {
+      cdd_c_error_t rc_c2s =
+          resolve_schema_ref_object(root, ref, (JSON_Object **)&resolved);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
 
-    detect_union_json_type(resolved, &jtype);
+    {
+      cdd_c_error_t rc_c2s = detect_union_json_type(resolved, &jtype);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     meta->json_type = jtype;
 
     if (ref) {
-      c_cdd_str_after_last(ref, '/', &name_hint);
+      {
+        cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &name_hint);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
     } else if (resolved) {
       name_hint = json_object_get_string(resolved, "title");
       if (!name_hint)
@@ -5193,7 +5371,12 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     if (!name_hint)
       name_hint = schema_name ? schema_name : "Variant";
 
-    make_unique_variant_name(dest, name_hint, i, &variant_name);
+    {
+      cdd_c_error_t rc_c2s =
+          make_unique_variant_name(dest, name_hint, i, &variant_name);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (!variant_name) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -5320,8 +5503,11 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     {
       const char *ref_al = NULL;
       char *disc_val = NULL;
-      if (ref)
-        c_cdd_str_after_last(ref, '/', &ref_al);
+      if (ref) {
+        cdd_c_error_t rc_c2s = c_cdd_str_after_last(ref, '/', &ref_al);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       discriminator_value_for_variant(disc_obj, ref ? ref_al : name_hint, ref,
                                       &disc_val);
       meta->disc_value = disc_val;
@@ -5546,7 +5732,11 @@ static cdd_c_error_t write_default_value(JSON_Object *pobj,
 
   if (typ && strcmp(typ, "string") == 0) {
     const char *s = NULL;
-    strip_quotes(def, buf, sizeof(buf), &s);
+    {
+      cdd_c_error_t rc_c2s = strip_quotes(def, buf, sizeof(buf), &s);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     json_object_set_string(pobj, "default", s ? s : "");
     return CDD_C_SUCCESS;
   }
@@ -5717,7 +5907,12 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
     if (strcmp(typ, "array") == 0) {
       JSON_Value *items_val = json_value_init_object();
       JSON_Object *items_obj = json_value_get_object(items_val);
-      write_type_union(pobj, "array", field->type_union, field->n_type_union);
+      {
+        cdd_c_error_t rc_c2s = write_type_union(
+            pobj, "array", field->type_union, field->n_type_union);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
       if (field->items_type_union && field->n_items_type_union > 0) {
         write_type_union(items_obj, ref, field->items_type_union,
                          field->n_items_type_union);
@@ -5742,7 +5937,11 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
         return CDD_C_ERROR_MEMORY;
       }
       json_object_set_value(pobj, "items", items_val);
-      write_array_constraints(pobj, field);
+      {
+        cdd_c_error_t rc_c2s = write_array_constraints(pobj, field);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
     } else {
       if (strcmp(typ, "object") == 0 || strcmp(typ, "enum") == 0) {
         char ref_str[128];
@@ -5766,12 +5965,29 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
                            field->n_type_union);
         }
       } else {
-        write_type_union(pobj, typ, field->type_union, field->n_type_union);
+        {
+          cdd_c_error_t rc_c2s = write_type_union(pobj, typ, field->type_union,
+                                                  field->n_type_union);
+          if (rc_c2s != CDD_C_SUCCESS)
+            return rc_c2s;
+        }
       }
     }
-    write_numeric_constraints(pobj, field);
-    write_string_constraints(pobj, field);
-    write_default_value(pobj, field);
+    {
+      cdd_c_error_t rc_c2s = write_numeric_constraints(pobj, field);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
+    {
+      cdd_c_error_t rc_c2s = write_string_constraints(pobj, field);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
+    {
+      cdd_c_error_t rc_c2s = write_default_value(pobj, field);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+    }
     if (field->description[0])
       json_object_set_string(pobj, "description", field->description);
     if (field->format[0])
@@ -6346,7 +6562,12 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
 #else
         if (sscanf(p + 6, "%63s", union_name) == 1) {
 #endif
-          parse_union_and_write(fp, schemas_obj, union_name);
+          {
+            cdd_c_error_t rc_c2s =
+                parse_union_and_write(fp, schemas_obj, union_name);
+            if (rc_c2s != CDD_C_SUCCESS)
+              return rc_c2s;
+          }
         }
       }
     } else if (strncmp(p, "struct ", 7) == 0) {
@@ -6375,7 +6596,11 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 struct StructFields nested_sf;
                 char nested_name[128];
                 char nested_prop_name[64] = {0};
-                struct_fields_init(&nested_sf);
+                {
+                  cdd_c_error_t rc_c2s = struct_fields_init(&nested_sf);
+                  if (rc_c2s != CDD_C_SUCCESS)
+                    return rc_c2s;
+                }
                 while (read_line(fp, subline, sizeof(subline))) {
                   char *nsp = subline;
                   while (isspace((unsigned char)*nsp))
@@ -6391,8 +6616,12 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                     CDD_STRCPY(nested_prop_name, sizeof(nested_prop_name), nsp);
                     break;
                   }
-                  if (*nsp)
-                    parse_struct_member_line(nsp, &nested_sf);
+                  if (*nsp) {
+                    cdd_c_error_t rc_c2s =
+                        parse_struct_member_line(nsp, &nested_sf);
+                    if (rc_c2s != CDD_C_SUCCESS)
+                      return rc_c2s;
+                  }
                 }
 #if defined(_MSC_VER)
                 sprintf_s(nested_name, sizeof(nested_name), "%s_%s",
@@ -6400,7 +6629,11 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
 #else
                 sprintf(nested_name, "%s_%s", struct_name, nested_prop_name);
 #endif
-                (void)collapse_arrays(&nested_sf);
+                cdd_c_error_t rc_coll = collapse_arrays(&nested_sf);
+                if (rc_coll != CDD_C_SUCCESS) {
+                  struct_fields_free(&nested_sf);
+                  return rc_coll;
+                }
                 write_struct_to_json_schema(schemas_obj, nested_name,
                                             &nested_sf);
                 struct_fields_add(&sf, nested_prop_name, "object", nested_name,
@@ -6408,11 +6641,23 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                 struct_fields_free(&nested_sf);
                 continue;
               }
-              if (*sp)
-                parse_struct_member_line(sp, &sf);
+              if (*sp) {
+                cdd_c_error_t rc_c2s = parse_struct_member_line(sp, &sf);
+                if (rc_c2s != CDD_C_SUCCESS)
+                  return rc_c2s;
+              }
             }
-            (void)collapse_arrays(&sf);
-            write_struct_to_json_schema(schemas_obj, struct_name, &sf);
+            cdd_c_error_t rc_coll = collapse_arrays(&sf);
+            if (rc_coll != CDD_C_SUCCESS) {
+              struct_fields_free(&sf);
+              return rc_coll;
+            }
+            {
+              cdd_c_error_t rc_c2s =
+                  write_struct_to_json_schema(schemas_obj, struct_name, &sf);
+              if (rc_c2s != CDD_C_SUCCESS)
+                return rc_c2s;
+            }
             struct_fields_free(&sf);
           }
         }

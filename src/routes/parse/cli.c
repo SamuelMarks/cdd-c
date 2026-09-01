@@ -5453,8 +5453,11 @@ C_CDD_EXPORT cdd_c_error_t c2openapi_cli_main(int argc, char **argv) {
 
   src_dir = argv[argi];
   out_file = argv[argi + 1];
-
-  (void)openapi_spec_init(&spec);
+  {
+    cdd_c_error_t rc_cli = openapi_spec_init(&spec);
+    if (rc_cli != CDD_C_SUCCESS)
+      return rc_cli;
+  }
 
   if (base_file) {
     rc = load_base_spec(base_file, &spec);

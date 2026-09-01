@@ -77,8 +77,7 @@ void build_info_free(struct ExtractedBuildInfo *info) {
     }
     C_CDD_FREE(info->compile_defs);
   }
-
-  (void)build_info_init(info);
+  build_info_init(info);
 }
 
 /**
@@ -158,7 +157,11 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
   if (!info || !makefile_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  my_strdup(makefile_content, &copy);
+  {
+    cdd_c_error_t rc_ms = my_strdup(makefile_content, &copy);
+    if (rc_ms != CDD_C_SUCCESS)
+      return rc_ms;
+  }
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -202,7 +205,11 @@ cdd_c_error_t scrape_configure_ac(
   if (!info || !configure_ac_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  my_strdup(configure_ac_content, &copy);
+  {
+    cdd_c_error_t rc_ms = my_strdup(configure_ac_content, &copy);
+    if (rc_ms != CDD_C_SUCCESS)
+      return rc_ms;
+  }
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

@@ -138,8 +138,18 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma != 0 && rparen != 0) {
-    (void)extract_token_text(tokens, lparen + 1, comma, &dest);
-    (void)extract_token_text(tokens, comma + 1, rparen, &src);
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, lparen + 1, comma, &dest);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, comma + 1, rparen, &src);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
 
     if (dest && src) {
 /* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
@@ -155,7 +165,12 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
                 "  strcpy(%s, %s);\n"
                 "#endif\n",
                 dest, dest, src, dest, src);
-      add_patch(out, call_start, call_end, replacement);
+      {
+        cdd_c_error_t rc_crt =
+            add_patch(out, call_start, call_end, replacement);
+        if (rc_crt != CDD_C_SUCCESS)
+          return rc_crt;
+      }
     }
 
     if (dest)
@@ -223,8 +238,18 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
 
   if (assign_idx != 0 && lparen != 0 && comma1 != 0 && rparen != 0) {
     size_t id_idx = assign_idx;
-    (void)extract_token_text(tokens, lparen + 1, comma1, &path);
-    (void)extract_token_text(tokens, comma1 + 1, rparen, &mode);
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, lparen + 1, comma1, &path);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, comma1 + 1, rparen, &mode);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
 
     /* Go left of '=' to find the identifier */
     while (id_idx > 0) {
@@ -233,8 +258,12 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
         break;
       }
     }
-
-    (void)extract_token_text(tokens, id_idx, id_idx + 1, &dest);
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, id_idx, id_idx + 1, &dest);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
 
     if (path && mode && dest) {
 #if defined(_MSC_VER)
@@ -248,7 +277,12 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
                 "  %s = fopen(%s, %s);\n"
                 "#endif\n",
                 dest, path, mode, dest, path, mode);
-      add_patch(out, assign_idx - 1, call_end, replacement);
+      {
+        cdd_c_error_t rc_crt =
+            add_patch(out, assign_idx - 1, call_end, replacement);
+        if (rc_crt != CDD_C_SUCCESS)
+          return rc_crt;
+      }
     }
     if (path)
       free(path);
@@ -284,9 +318,24 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma1 != 0 && comma2 != 0 && rparen != 0) {
-    (void)extract_token_text(tokens, lparen + 1, comma1, &dest);
-    (void)extract_token_text(tokens, comma1 + 1, comma2, &src);
-    (void)extract_token_text(tokens, comma2 + 1, rparen, &count);
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, lparen + 1, comma1, &dest);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, comma1 + 1, comma2, &src);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, comma2 + 1, rparen, &count);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
 
     if (dest && src && count) {
 #if defined(_MSC_VER)
@@ -300,7 +349,12 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
                 "  strncpy(%s, %s, %s);\n"
                 "#endif\n",
                 dest, dest, src, count, dest, src, count);
-      add_patch(out, call_start, call_end, replacement);
+      {
+        cdd_c_error_t rc_crt =
+            add_patch(out, call_start, call_end, replacement);
+        if (rc_crt != CDD_C_SUCCESS)
+          return rc_crt;
+      }
     }
 
     if (dest)
@@ -335,8 +389,18 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
   }
 
   if (lparen != 0 && comma1 != 0 && rparen != 0) {
-    (void)extract_token_text(tokens, lparen + 1, comma1, &dest);
-    (void)extract_token_text(tokens, comma1 + 1, rparen, &args);
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, lparen + 1, comma1, &dest);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
+    {
+      cdd_c_error_t rc_crt =
+          extract_token_text(tokens, comma1 + 1, rparen, &args);
+      if (rc_crt != CDD_C_SUCCESS)
+        return rc_crt;
+    }
 
     if (dest && args) {
 #if defined(_MSC_VER)
@@ -350,7 +414,12 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
                 "  sprintf(%s, %s);\n"
                 "#endif",
                 dest, dest, args, dest, args);
-      add_patch(out, call_start, call_end, replacement);
+      {
+        cdd_c_error_t rc_crt =
+            add_patch(out, call_start, call_end, replacement);
+        if (rc_crt != CDD_C_SUCCESS)
+          return rc_crt;
+      }
     }
 
     if (dest)
@@ -388,7 +457,12 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
             end++;
           }
           if (end < n->end_token) {
-            generate_strcpy_patch(tokens, j, end + 1, out_patches);
+            {
+              cdd_c_error_t rc_crt =
+                  generate_strcpy_patch(tokens, j, end + 1, out_patches);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
             j = end;
           }
         } else if (len == 7 && strncmp(str, "strncpy", 7) == 0) {
@@ -398,7 +472,12 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
             end++;
           }
           if (end < n->end_token) {
-            generate_strncpy_patch(tokens, j, end + 1, out_patches);
+            {
+              cdd_c_error_t rc_crt =
+                  generate_strncpy_patch(tokens, j, end + 1, out_patches);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
             j = end;
           }
         } else if (len == 7 && strncmp(str, "sprintf", 7) == 0) {
@@ -408,7 +487,12 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
             end++;
           }
           if (end < n->end_token) {
-            generate_sprintf_patch(tokens, j, end + 1, out_patches);
+            {
+              cdd_c_error_t rc_crt =
+                  generate_sprintf_patch(tokens, j, end + 1, out_patches);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
             j = end;
           }
         } else if (len == 5 && strncmp(str, "fopen", 5) == 0) {
@@ -418,7 +502,12 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
             end++;
           }
           if (end < n->end_token) {
-            generate_fopen_patch(tokens, j, end + 1, out_patches);
+            {
+              cdd_c_error_t rc_crt =
+                  generate_fopen_patch(tokens, j, end + 1, out_patches);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
             j = end;
           }
         }
@@ -452,9 +541,24 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
             char *expr = NULL;
             char replacement[1024] = {0};
             /* found a VLA */
-            (void)extract_token_text(tokens, j, j + 1, &type_name);
-            (void)extract_token_text(tokens, j + 1, j + 2, &var_name);
-            (void)extract_token_text(tokens, j + 3, end_bracket, &expr);
+            {
+              cdd_c_error_t rc_crt =
+                  extract_token_text(tokens, j, j + 1, &type_name);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
+            {
+              cdd_c_error_t rc_crt =
+                  extract_token_text(tokens, j + 1, j + 2, &var_name);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
+            {
+              cdd_c_error_t rc_crt =
+                  extract_token_text(tokens, j + 3, end_bracket, &expr);
+              if (rc_crt != CDD_C_SUCCESS)
+                return rc_crt;
+            }
 
             if (type_name && var_name && expr) {
               size_t end_stmt = end_bracket;
@@ -477,7 +581,12 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                 end_stmt++;
               }
               if (end_stmt < n->end_token) {
-                add_patch(out_patches, j, end_stmt + 1, replacement);
+                {
+                  cdd_c_error_t rc_crt =
+                      add_patch(out_patches, j, end_stmt + 1, replacement);
+                  if (rc_crt != CDD_C_SUCCESS)
+                    return rc_crt;
+                }
                 /* Only skip to end_bracket, so we don't skip the rest of the
                  * node loop processing */
                 j = end_bracket;

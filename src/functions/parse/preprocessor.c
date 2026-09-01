@@ -235,7 +235,11 @@ static cdd_c_error_t resolve_path(const struct PreprocessorContext *ctx,
     if (candidate) {
 
       int exists = 0;
-      file_exists(candidate, &exists);
+      {
+        cdd_c_error_t rc_pp = file_exists(candidate, &exists);
+        if (rc_pp != CDD_C_SUCCESS)
+          return rc_pp;
+      }
       if (exists) {
 
         {
@@ -259,7 +263,11 @@ static cdd_c_error_t resolve_path(const struct PreprocessorContext *ctx,
       if (candidate) {
 
         int exists = 0;
-        file_exists(candidate, &exists);
+        {
+          cdd_c_error_t rc_pp = file_exists(candidate, &exists);
+          if (rc_pp != CDD_C_SUCCESS)
+            return rc_pp;
+        }
         if (exists) {
 
           {
@@ -679,7 +687,11 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
             }
           }
 
-          add_macro_internal(ctx, &def);
+          {
+            cdd_c_error_t rc_pp = add_macro_internal(ctx, &def);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
         }
 
         i = name_idx; /* Advance */
@@ -822,7 +834,11 @@ static cdd_c_error_t match(struct ExprState *s, enum TokenKind kind,
   size_t _ast_skip_ws_5 = 0;
   *_out_val = 0;
 
-  skip_ws(s, &_ast_skip_ws_5);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_5);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == kind) {
 
@@ -930,7 +946,11 @@ static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
 
   /* Expect '(' */
 
-  skip_ws(s, &_ast_skip_ws_7);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_7);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (!(match(s, TOKEN_LPAREN, &_ast_match_8) == 0 && _ast_match_8)) {
 
@@ -942,7 +962,11 @@ static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
     }
   }
 
-  skip_ws(s, &_ast_skip_ws_9);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_9);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (s->pos >= s->end) {
 
@@ -1027,7 +1051,11 @@ static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
     s->pos++;
   }
 
-  skip_ws(s, &_ast_skip_ws_11);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_11);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (!(match(s, TOKEN_RPAREN, &_ast_match_12) == 0 && _ast_match_12)) {
     fprintf(stderr, "Missing RPAREN, setting error!\n");
@@ -1085,7 +1113,11 @@ static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
 
   char *attr_name = NULL;
 
-  skip_ws(s, &_ast_skip_ws_14);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_14);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (!(match(s, TOKEN_LPAREN, &_ast_match_15) == 0 && _ast_match_15)) {
 
@@ -1097,7 +1129,11 @@ static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
     }
   }
 
-  skip_ws(s, &_ast_skip_ws_16);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_16);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
@@ -1128,7 +1164,11 @@ static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
 
   /* Support scoping `::` */
 
-  skip_ws(s, &_ast_skip_ws_20);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_20);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (s->pos + 1 < s->end && s->tokens->tokens[s->pos].kind == TOKEN_COLON &&
 
@@ -1140,7 +1180,11 @@ static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
 
     s->pos += 2; /* Skip :: */
 
-    skip_ws(s, &_ast_skip_ws_21);
+    {
+      cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_21);
+      if (rc_pp != CDD_C_SUCCESS)
+        return rc_pp;
+    }
 
     if (s->pos < s->end &&
 
@@ -1203,7 +1247,11 @@ static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
     C_CDD_FREE(attr_name);
   }
 
-  skip_ws(s, &_ast_skip_ws_23);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_23);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (!(match(s, TOKEN_RPAREN, &_ast_match_24) == 0 && _ast_match_24)) {
 
@@ -1233,7 +1281,11 @@ static cdd_c_error_t parse_primary(struct ExprState *s, long *_out_val) {
   long _ast_handle_has_c_attribute_35;
   int _ast_token_matches_string_36 = 0;
 
-  skip_ws(s, &_ast_skip_ws_25);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_25);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if (s->pos >= s->end) {
 
@@ -1404,7 +1456,11 @@ static cdd_c_error_t parse_unary(struct ExprState *s, long *_out_val) {
   int _ast_match_51 = 0;
   long _ast_parse_primary_52;
 
-  skip_ws(s, &_ast_skip_ws_37);
+  {
+    cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_37);
+    if (rc_pp != CDD_C_SUCCESS)
+      return rc_pp;
+  }
 
   if ((match(s, TOKEN_BANG, &_ast_match_38) == 0 && _ast_match_38)) {
 
@@ -1450,13 +1506,21 @@ static cdd_c_error_t parse_unary(struct ExprState *s, long *_out_val) {
 
     s->pos++;
 
-    skip_ws(s, &_ast_skip_ws_47);
+    {
+      cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_47);
+      if (rc_pp != CDD_C_SUCCESS)
+        return rc_pp;
+    }
 
     if ((match(s, TOKEN_LPAREN, &_ast_match_48) == 0 && _ast_match_48))
 
       has_paren = true;
 
-    skip_ws(s, &_ast_skip_ws_49);
+    {
+      cdd_c_error_t rc_pp = skip_ws(s, &_ast_skip_ws_49);
+      if (rc_pp != CDD_C_SUCCESS)
+        return rc_pp;
+    }
 
     if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
@@ -1992,7 +2056,12 @@ static cdd_c_error_t parse_embed_params(const struct TokenList *tokens,
 
         /* Eval logic inside [open_idx + 1, close_idx) */
 
-        pp_eval_expression(tokens, open_idx + 1, close_idx, ctx, &val);
+        {
+          cdd_c_error_t rc_pp =
+              pp_eval_expression(tokens, open_idx + 1, close_idx, ctx, &val);
+          if (rc_pp != CDD_C_SUCCESS)
+            return rc_pp;
+        }
 
         out_params->limit = val;
 
@@ -2293,16 +2362,25 @@ cdd_c_error_t pp_scan_includes(const char *filename,
           }
 
           if (enabled && condition_met) {
-
-            (void)stack_push(&stack, COND_ACTIVE);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_ACTIVE);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else if (enabled && !condition_met) {
-
-            (void)stack_push(&stack, COND_SKIPPING);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SKIPPING);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else {
-
-            (void)stack_push(&stack, COND_SATISFIED);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SATISFIED);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
           }
 
         } else if ((token_matches_string(cmd, "if",
@@ -2322,22 +2400,36 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
             size_t start_expr = next + 1;
 
-            pp_eval_expression(tokens, start_expr, eol, ctx, &val);
+            {
+              cdd_c_error_t rc_pp =
+                  pp_eval_expression(tokens, start_expr, eol, ctx, &val);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
             condition_met = (val != 0);
           }
 
           if (enabled && condition_met) {
-
-            (void)stack_push(&stack, COND_ACTIVE);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_ACTIVE);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else if (enabled && !condition_met) {
-
-            (void)stack_push(&stack, COND_SKIPPING);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SKIPPING);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else {
-
-            (void)stack_push(&stack, COND_SATISFIED);
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SATISFIED);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
           }
 
         } else if ((token_matches_string(cmd, "elif",
@@ -2349,13 +2441,19 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                _ast_stack_peek_108);
 
           int parent_enabled;
-
-          (void)stack_pop(&stack);
+          {
+            cdd_c_error_t rc_pp = stack_pop(&stack);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
 
           parent_enabled = (is_enabled(&stack, &_ast_is_enabled_109) == 0 &&
                             _ast_is_enabled_109);
-
-          (void)stack_push(&stack, current);
+          {
+            cdd_c_error_t rc_pp = stack_push(&stack, current);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
 
           directive_handled = 1;
 
@@ -2364,10 +2462,16 @@ cdd_c_error_t pp_scan_includes(const char *filename,
             /* Keep skipping */
 
           } else if (current == COND_ACTIVE) {
-
-            (void)stack_pop(&stack);
-
-            (void)stack_push(&stack, COND_SATISFIED);
+            {
+              cdd_c_error_t rc_pp = stack_pop(&stack);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SATISFIED);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else if (current == COND_SKIPPING && parent_enabled) {
 
@@ -2375,13 +2479,24 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
             size_t start_expr = next + 1;
 
-            pp_eval_expression(tokens, start_expr, eol, ctx, &val);
+            {
+              cdd_c_error_t rc_pp =
+                  pp_eval_expression(tokens, start_expr, eol, ctx, &val);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
             if (val != 0) {
-
-              (void)stack_pop(&stack);
-
-              (void)stack_push(&stack, COND_ACTIVE);
+              {
+                cdd_c_error_t rc_pp = stack_pop(&stack);
+                if (rc_pp != CDD_C_SUCCESS)
+                  return rc_pp;
+              }
+              {
+                cdd_c_error_t rc_pp = stack_push(&stack, COND_ACTIVE);
+                if (rc_pp != CDD_C_SUCCESS)
+                  return rc_pp;
+              }
             }
           }
 
@@ -2394,27 +2509,45 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                _ast_stack_peek_111);
 
           int parent_enabled;
-
-          (void)stack_pop(&stack);
+          {
+            cdd_c_error_t rc_pp = stack_pop(&stack);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
 
           parent_enabled = (is_enabled(&stack, &_ast_is_enabled_112) == 0 &&
                             _ast_is_enabled_112);
-
-          (void)stack_push(&stack, current);
+          {
+            cdd_c_error_t rc_pp = stack_push(&stack, current);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
 
           directive_handled = 1;
 
           if (current == COND_ACTIVE) {
-
-            (void)stack_pop(&stack);
-
-            (void)stack_push(&stack, COND_SATISFIED);
+            {
+              cdd_c_error_t rc_pp = stack_pop(&stack);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_SATISFIED);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
 
           } else if (current == COND_SKIPPING && parent_enabled) {
-
-            (void)stack_pop(&stack);
-
-            (void)stack_push(&stack, COND_ACTIVE);
+            {
+              cdd_c_error_t rc_pp = stack_pop(&stack);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
+            {
+              cdd_c_error_t rc_pp = stack_push(&stack, COND_ACTIVE);
+              if (rc_pp != CDD_C_SUCCESS)
+                return rc_pp;
+            }
           }
 
         } else if ((token_matches_string(cmd, "endif",
@@ -2422,8 +2555,11 @@ cdd_c_error_t pp_scan_includes(const char *filename,
                     _ast_token_matches_string_113)) {
 
           directive_handled = 1;
-
-          (void)stack_pop(&stack);
+          {
+            cdd_c_error_t rc_pp = stack_pop(&stack);
+            if (rc_pp != CDD_C_SUCCESS)
+              return rc_pp;
+          }
         }
 
         /* --- Includes & Embeds --- */

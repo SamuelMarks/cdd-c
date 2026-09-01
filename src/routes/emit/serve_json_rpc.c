@@ -218,7 +218,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             argv[2] = (char *)input;
             argv[3] = "-o";
             argv[4] = (char *)output;
-            to_openapi_cli_main(5, argv);
+    { cdd_c_error_t rc_rpc = to_openapi_cli_main(5, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             /* Return CallToolResult */
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":null}";
             send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
@@ -245,7 +245,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             if (json_object_get_boolean(arguments, "no_wrapping")) {
                 argv[argc_call++] = "--no-wrapping";
             }
-            to_docs_json_cli_main(argc_call, argv);
+    { cdd_c_error_t rc_rpc = to_docs_json_cli_main(argc_call, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":null}";
             send(client_fd, resp, CDD_SEND_LEN_CAST(strlen(resp)), 0);
         }
@@ -389,7 +389,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
 
   root_val = json_parse_string(body);
   if (!root_val) {
-    send_stdio_rpc_error(NULL, -32700, "Parse error");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(NULL, -32700, "Parse error"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -398,7 +398,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
   id_val = json_object_get_value(root_obj, "id");
 
   if (!method) {
-    send_stdio_rpc_error(id_val, -32600, "Invalid Request");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32600, "Invalid Request"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
     json_value_free(root_val);
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -504,12 +504,12 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
     JSON_Object *arguments = params ? json_object_get_object(params, "arguments") : NULL;
 
     if (!name || !arguments) {
-        send_stdio_rpc_error(id_val, -32602, "Invalid params for tools/call");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32602, "Invalid params for tools/call"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
     } else if (strcmp(name, "to_openapi") == 0) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input || !output) {
-            send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_openapi");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_openapi"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
         } else {
             char *argv[5];
             char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
@@ -518,7 +518,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
             argv[2] = (char *)input;
             argv[3] = "-o";
             argv[4] = (char *)output;
-            to_openapi_cli_main(5, argv);
+    { cdd_c_error_t rc_rpc = to_openapi_cli_main(5, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
             if (id_str) json_free_serialized_string(id_str);
             fflush(stdout);
@@ -527,7 +527,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
         const char *input = json_object_get_string(arguments, "input");
         const char *output = json_object_get_string(arguments, "output");
         if (!input) {
-            send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_docs_json");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_docs_json"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
         } else {
             char *argv[10];
             int argc_call = 0;
@@ -545,16 +545,16 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
             if (json_object_get_boolean(arguments, "no_wrapping")) {
                 argv[argc_call++] = "--no-wrapping";
             }
-            to_docs_json_cli_main(argc_call, argv);
+    { cdd_c_error_t rc_rpc = to_docs_json_cli_main(argc_call, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
             if (id_str) json_free_serialized_string(id_str);
             fflush(stdout);
         }
     } else {
-        send_stdio_rpc_error(id_val, -32601, "Tool not found");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32601, "Tool not found"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
     }
   } else {
-    send_stdio_rpc_error(id_val, -32601, "Method not found");
+    { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32601, "Method not found"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
   }
 
   json_value_free(root_val);
@@ -635,7 +635,7 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
     if (client_fd == INVALID_SOCKET)
       continue;
 
-    handle_request(client_fd);
+    { cdd_c_error_t rc_rpc = handle_request(client_fd); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
 
 #if defined(_WIN32)
     closesocket(client_fd);
@@ -665,7 +665,7 @@ C_CDD_EXPORT cdd_c_error_t serve_mcp_stdio_main(int argc, char **argv) {
   (void)argv;
 
   while (fgets(buffer, sizeof(buffer), stdin)) {
-    handle_stdio_request(buffer);
+    { cdd_c_error_t rc_rpc = handle_stdio_request(buffer); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
   }
   return CDD_C_SUCCESS;
 }

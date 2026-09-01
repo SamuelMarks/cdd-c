@@ -58,7 +58,11 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #else
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
 #endif
-    makedirs(src_dir);
+    {
+      cdd_c_error_t rc_sg = makedirs(src_dir);
+      if (rc_sg != CDD_C_SUCCESS)
+        return rc_sg;
+    }
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
                  base_name ? base_name : "generated_client");
     C_CDD_FREE(src_dir);
@@ -205,7 +209,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
                   (unsigned long)op->n_callbacks);
         }
         if (op->security || spec->security_set) {
-          codegen_security_write_server_apply(fp, op, spec);
+          {
+            cdd_c_error_t rc_sg =
+                codegen_security_write_server_apply(fp, op, spec);
+            if (rc_sg != CDD_C_SUCCESS)
+              return rc_sg;
+          }
         }
 
         fprintf(fp, "    /* c_rest_response_set_status(res, 200); */\n");

@@ -41,7 +41,7 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   if (list->sites) {
     free(list->sites);
   }
-  (void)hoist_site_list_init(list);
+  hoist_site_list_init(list);
 }
 
 /**
@@ -114,7 +114,12 @@ cdd_c_error_t scan_for_mixed_declarations(const struct TokenList *tokens,
     if (depth > 0) {
       /* Identify if this statement is a declaration */
       int is_basic = 0;
-      is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+      {
+        cdd_c_error_t rc_dh =
+            is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+        if (rc_dh != CDD_C_SUCCESS)
+          return rc_dh;
+      }
       if (is_basic) {
         is_decl = 1;
       } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT) {

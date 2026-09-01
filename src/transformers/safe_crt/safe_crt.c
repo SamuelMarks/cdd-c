@@ -1587,12 +1587,11 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
 /** @brief cdd_transform_safe_crt */
 cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
+  (void)config;
   cdd_cst_query_result_t res;
   size_t i;
   cdd_c_error_t rc;
   int replaced_any;
-
-  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

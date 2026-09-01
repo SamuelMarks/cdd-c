@@ -327,12 +327,12 @@ C_CDD_EXPORT int g_err_perc_fail = 0;
 cdd_c_error_t
 cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                const cdd_transform_config_t *config) {
+  (void)config;
   cdd_cst_query_result_t res;
   size_t i, j;
   cdd_c_error_t rc;
   cdd_token_t *modified_funcs[256];
   size_t num_modified = 0;
-  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -943,7 +943,12 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
   C_CDD_FREE(res.nodes);
 
   if (num_modified > 0) {
-    (void)rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
+    {
+      cdd_c_error_t rc_ep =
+          rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
+      if (rc_ep != CDD_C_SUCCESS)
+        return rc_ep;
+    }
   }
 
   return CDD_C_SUCCESS;

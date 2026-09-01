@@ -56,7 +56,11 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   header_filename = argv[0];
   impl_filename = argv[1];
 
-  type_def_list_init(&types);
+  {
+    cdd_c_error_t rc_sync = type_def_list_init(&types);
+    if (rc_sync != CDD_C_SUCCESS)
+      return rc_sync;
+  }
 
   /* 1. Inspect Header */
   rc = c_inspector_scan_file_types(header_filename, &types);
@@ -112,7 +116,11 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   fprintf(out, "#include <parson.h>\n");
   {
     char *base = NULL;
-    get_basename(header_filename, &base);
+    {
+      cdd_c_error_t rc_sync = get_basename(header_filename, &base);
+      if (rc_sync != CDD_C_SUCCESS)
+        return rc_sync;
+    }
 #ifdef CDD_BUILD_TESTS
     {
       extern int g_cdd_fprintf_fail;
@@ -134,21 +142,71 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
 
     if (def->kind == KIND_ENUM) {
       struct EnumMembers *em = def->details.enum_members;
-      write_enum_to_str_func(out, def->name, em, NULL);
-      write_enum_from_str_func(out, def->name, em, NULL);
+      {
+        cdd_c_error_t rc_sync =
+            write_enum_to_str_func(out, def->name, em, NULL);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_enum_from_str_func(out, def->name, em, NULL);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
     } else {
       struct StructFields *sf = def->details.struct_fields;
       /* Emit Lifecycle */
-      write_struct_cleanup_func(out, def->name, sf, &struct_cfg);
-      write_struct_deepcopy_func(out, def->name, sf, &struct_cfg);
-      write_struct_eq_func(out, def->name, sf, &struct_cfg);
-      write_struct_default_func(out, def->name, sf, &struct_cfg);
-      write_struct_debug_func(out, def->name, sf, &struct_cfg);
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_cleanup_func(out, def->name, sf, &struct_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_deepcopy_func(out, def->name, sf, &struct_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_eq_func(out, def->name, sf, &struct_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_default_func(out, def->name, sf, &struct_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_debug_func(out, def->name, sf, &struct_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
 
       /* Emit JSON */
-      write_struct_to_json_func(out, def->name, sf, &json_cfg);
-      write_struct_from_jsonObject_func(out, def->name, sf, &json_cfg);
-      write_struct_from_json_func(out, def->name, &json_cfg);
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_to_json_func(out, def->name, sf, &json_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_from_jsonObject_func(out, def->name, sf, &json_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
+      {
+        cdd_c_error_t rc_sync =
+            write_struct_from_json_func(out, def->name, &json_cfg);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
     }
   }
 
@@ -249,7 +307,12 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 
     for (k = 0; k < hdr_tokens->size; ++k) {
       int matches = 0;
-      token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
+      {
+        cdd_c_error_t rc_sync =
+            token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
+        if (rc_sync != CDD_C_SUCCESS)
+          return rc_sync;
+      }
       if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER && matches) {
 
         /* Look ahead for LPAREN */
@@ -294,7 +357,12 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
             }
 #else
             /* Simple fallback wrapper */
-            c_cdd_strdup(sigs.items[i].sig, &replacement);
+            {
+              cdd_c_error_t rc_sync =
+                  c_cdd_strdup(sigs.items[i].sig, &replacement);
+              if (rc_sync != CDD_C_SUCCESS)
+                return rc_sync;
+            }
 #endif
             /* Note: signatures from extractor don't have semicolon, but we kept
              * semicolon token in Header */
@@ -304,7 +372,12 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
              * effectively replace "void foo()" with "int foo()" and keep the
              * old semicolon. */
 
-            patch_list_add(&patches, start, end, replacement);
+            {
+              cdd_c_error_t rc_sync =
+                  patch_list_add(&patches, start, end, replacement);
+              if (rc_sync != CDD_C_SUCCESS)
+                return rc_sync;
+            }
           }
         }
       }

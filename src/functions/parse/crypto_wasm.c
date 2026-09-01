@@ -117,7 +117,7 @@ static cdd_c_error_t cdd_sha256_update(struct cdd_sha256_ctx *ctx, const uint8_t
     ctx->data[ctx->datalen] = data[i];
     ctx->datalen++;
     if (ctx->datalen == 64) {
-      cdd_sha256_transform(ctx, ctx->data);
+    { cdd_c_error_t rc_cr = cdd_sha256_transform(ctx, ctx->data); if (rc_cr != CDD_C_SUCCESS) return rc_cr; }
       ctx->bitlen += 512;
       ctx->datalen = 0;
     }
@@ -134,7 +134,7 @@ static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx, uint8_t hash[]
   } else {
     ctx->data[i++] = 0x80;
     while (i < 64) ctx->data[i++] = 0x00;
-    cdd_sha256_transform(ctx, ctx->data);
+    { cdd_c_error_t rc_cr = cdd_sha256_transform(ctx, ctx->data); if (rc_cr != CDD_C_SUCCESS) return rc_cr; }
     memset(ctx->data, 0, 56);
   }
   ctx->bitlen += ctx->datalen * 8;
@@ -146,7 +146,7 @@ static cdd_c_error_t cdd_sha256_final(struct cdd_sha256_ctx *ctx, uint8_t hash[]
   ctx->data[58] = (uint8_t)(ctx->bitlen >> 40);
   ctx->data[57] = (uint8_t)(ctx->bitlen >> 48);
   ctx->data[56] = (uint8_t)(ctx->bitlen >> 56);
-  cdd_sha256_transform(ctx, ctx->data);
+    { cdd_c_error_t rc_cr = cdd_sha256_transform(ctx, ctx->data); if (rc_cr != CDD_C_SUCCESS) return rc_cr; }
   for (i = 0; i < 4; ++i) {
     hash[i]      = (uint8_t)((ctx->state[0] >> (24 - i * 8)) & 0x000000ff);
     hash[i + 4]  = (uint8_t)((ctx->state[1] >> (24 - i * 8)) & 0x000000ff);
@@ -174,11 +174,24 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
 
   {
     struct cdd_sha256_ctx ctx;
-    (void)cdd_sha256_init(&ctx);
-    if (data && data_len > 0) {
-      (void)cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_init(&ctx);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
     }
-    (void)cdd_sha256_final(&ctx, out_digest);
+    if (data && data_len > 0) {
+      {
+        cdd_c_error_t rc_cr =
+            cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+        if (rc_cr != CDD_C_SUCCESS)
+          return rc_cr;
+      }
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_final(&ctx, out_digest);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
     return CDD_C_SUCCESS;
   }
 }
@@ -206,9 +219,21 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
 
     if (key_len > 64) {
       struct cdd_sha256_ctx tctx;
-      cdd_sha256_init(&tctx);
-      cdd_sha256_update(&tctx, k, key_len);
-      cdd_sha256_final(&tctx, tk);
+      {
+        cdd_c_error_t rc_cr = cdd_sha256_init(&tctx);
+        if (rc_cr != CDD_C_SUCCESS)
+          return rc_cr;
+      }
+      {
+        cdd_c_error_t rc_cr = cdd_sha256_update(&tctx, k, key_len);
+        if (rc_cr != CDD_C_SUCCESS)
+          return rc_cr;
+      }
+      {
+        cdd_c_error_t rc_cr = cdd_sha256_final(&tctx, tk);
+        if (rc_cr != CDD_C_SUCCESS)
+          return rc_cr;
+      }
       k = tk;
       key_len = 32;
     }
@@ -222,18 +247,49 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
       k_ipad[i] ^= 0x36;
       k_opad[i] ^= 0x5c;
     }
-
-    (void)cdd_sha256_init(&ctx);
-    (void)cdd_sha256_update(&ctx, k_ipad, 64);
-    if (data && data_len > 0) {
-      (void)cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_init(&ctx);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
     }
-    (void)cdd_sha256_final(&ctx, out_digest);
-
-    (void)cdd_sha256_init(&ctx);
-    (void)cdd_sha256_update(&ctx, k_opad, 64);
-    (void)cdd_sha256_update(&ctx, out_digest, 32);
-    (void)cdd_sha256_final(&ctx, out_digest);
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_update(&ctx, k_ipad, 64);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
+    if (data && data_len > 0) {
+      {
+        cdd_c_error_t rc_cr =
+            cdd_sha256_update(&ctx, (const uint8_t *)data, data_len);
+        if (rc_cr != CDD_C_SUCCESS)
+          return rc_cr;
+      }
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_final(&ctx, out_digest);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_init(&ctx);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_update(&ctx, k_opad, 64);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_update(&ctx, out_digest, 32);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
+    {
+      cdd_c_error_t rc_cr = cdd_sha256_final(&ctx, out_digest);
+      if (rc_cr != CDD_C_SUCCESS)
+        return rc_cr;
+    }
 
     return CDD_C_SUCCESS;
   }

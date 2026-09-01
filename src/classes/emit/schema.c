@@ -32,6 +32,7 @@ C_CDD_EXPORT int g_schema_realloc_fail = 0;
 
 cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
                                               const char *field) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!sc || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -63,7 +64,10 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
     sc->required[sc->required_count] = NULL;
   } else {
 #endif
-    c_cdd_strdup(field, &sc->required[sc->required_count]);
+    rc = c_cdd_strdup(field, &sc->required[sc->required_count]);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
 #ifdef CDD_BUILD_TESTS
   }
 #endif

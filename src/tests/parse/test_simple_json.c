@@ -1,4 +1,3 @@
-int g_cdd_alloc_fail = 0;
 /**
  * @file test_simple_json.c
  * @brief Test runner for simple json tests.

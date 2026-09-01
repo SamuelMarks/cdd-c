@@ -534,10 +534,10 @@ static cdd_c_error_t multipart_header_param_name(char *out, size_t outsz,
   if (!field || !header)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   {
-    cdd_c_error_t rc =
+    cdd_c_error_t rc_sig =
         sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    if (rc_sig != CDD_C_SUCCESS)
+      return rc_sig;
   }
   CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
   return CDD_C_SUCCESS;

@@ -317,7 +317,11 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
 
   {
     int is_inside = 0;
-    is_inside_condition(tokens, alloc_idx, &is_inside);
+    {
+      cdd_c_error_t rc_an = is_inside_condition(tokens, alloc_idx, &is_inside);
+      if (rc_an != CDD_C_SUCCESS)
+        return rc_an;
+    }
     if (is_inside) {
       *out_is_checked = 1;
       return CDD_C_SUCCESS;
@@ -342,14 +346,22 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
       if ((token_matches_string(tok, var_name, &_ast_token_matches_string_0),
            _ast_token_matches_string_0)) {
         int is_inside = 0;
-        is_inside_condition(tokens, i, &is_inside);
+        {
+          cdd_c_error_t rc_an = is_inside_condition(tokens, i, &is_inside);
+          if (rc_an != CDD_C_SUCCESS)
+            return rc_an;
+        }
         if (is_inside) {
           *out_is_checked = 1;
           return CDD_C_SUCCESS;
         }
         if (spec->check_style == CHECK_PTR_NULL) {
           int is_deref = 0;
-          is_dereference_use(tokens, i, &is_deref);
+          {
+            cdd_c_error_t rc_an = is_dereference_use(tokens, i, &is_deref);
+            if (rc_an != CDD_C_SUCCESS)
+              return rc_an;
+          }
           if (is_deref) {
             if (used_before_check)
               *used_before_check = 1;
@@ -441,7 +453,12 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
           if (var_name) {
             int used_before = 0;
             int checked = 0;
-            is_checked(tokens, i, var_name, spec, &used_before, &checked);
+            {
+              cdd_c_error_t rc_an =
+                  is_checked(tokens, i, var_name, spec, &used_before, &checked);
+              if (rc_an != CDD_C_SUCCESS)
+                return rc_an;
+            }
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
             free(var_name);
@@ -449,7 +466,11 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
               return rc;
           } else {
             int checked = 0;
-            is_inside_condition(tokens, i, &checked);
+            {
+              cdd_c_error_t rc_an = is_inside_condition(tokens, i, &checked);
+              if (rc_an != CDD_C_SUCCESS)
+                return rc_an;
+            }
             rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
             if (rc != CDD_C_SUCCESS)
               return rc;

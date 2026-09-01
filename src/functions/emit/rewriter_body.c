@@ -117,7 +117,11 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
   char *buf, *p;
 
   if (start >= end) {
-    c_cdd_strdup("", _out_val);
+    {
+      cdd_c_error_t rc_rw = c_cdd_strdup("", _out_val);
+      if (rc_rw != CDD_C_SUCCESS)
+        return rc_rw;
+    }
     return CDD_C_SUCCESS;
   }
 
@@ -196,7 +200,12 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
           patch_list_free(&patches);
           return rc;
         }
-        find_refactored_func(funcs, func_count, name_str, &rf);
+        {
+          cdd_c_error_t rc_rw =
+              find_refactored_func(funcs, func_count, name_str, &rf);
+          if (rc_rw != CDD_C_SUCCESS)
+            return rc_rw;
+        }
         C_CDD_FREE(name_str);
 
         if (rf) {
@@ -342,7 +351,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   }
 
                   /* Append check */
-                  find_semicolon(tokens, rparen, &semi);
+                  {
+                    cdd_c_error_t rc_rw = find_semicolon(tokens, rparen, &semi);
+                    if (rc_rw != CDD_C_SUCCESS)
+                      return rc_rw;
+                  }
                   if (semi < tokens->size) {
                     char *tmp = NULL;
                     rc = c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
@@ -375,7 +388,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                 if (rc != CDD_C_SUCCESS)
                   goto cleanup;
               };
-              find_semicolon(tokens, next, &semi);
+              {
+                cdd_c_error_t rc_rw = find_semicolon(tokens, next, &semi);
+                if (rc_rw != CDD_C_SUCCESS)
+                  return rc_rw;
+              }
               if (semi < tokens->size) {
                 {
                   char *tmp = NULL;
@@ -397,7 +414,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               char *call_args = NULL;
               char *injection = NULL;
               size_t stmt_start = 0;
-              find_stmt_start(tokens, i, &stmt_start);
+              {
+                cdd_c_error_t rc_rw = find_stmt_start(tokens, i, &stmt_start);
+                if (rc_rw != CDD_C_SUCCESS)
+                  return rc_rw;
+              }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(tmp_var, sizeof(tmp_var),
@@ -484,7 +505,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
           }
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
           size_t semi = 0;
-          find_semicolon(tokens, i, &semi);
+          {
+            cdd_c_error_t rc_rw = find_semicolon(tokens, i, &semi);
+            if (rc_rw != CDD_C_SUCCESS)
+              return rc_rw;
+          }
           if (semi < tokens->size) {
             /* Fix: Check for inline unchecked alloc in return statement */
             int contains_alloc = 0;

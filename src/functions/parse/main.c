@@ -104,7 +104,11 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   cdd_c_error_t rc;
   if (argc != 1)
     return CDD_C_ERROR_UNKNOWN;
-  (void)audit_stats_init(&stats);
+  {
+    cdd_c_error_t rc_main = audit_stats_init(&stats);
+    if (rc_main != CDD_C_SUCCESS)
+      return rc_main;
+  }
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -287,12 +291,24 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
     config.func_prefix = "api_";
 
     rc = openapi_client_generate(&spec, &config);
-    openapi_client_gui_generate(&spec, &config);
+    {
+      cdd_c_error_t rc_main = openapi_client_gui_generate(&spec, &config);
+      if (rc_main != CDD_C_SUCCESS)
+        return rc_main;
+    }
     if (is_cli) {
-      openapi_cli_generate(&spec, &config);
+      {
+        cdd_c_error_t rc_main = openapi_cli_generate(&spec, &config);
+        if (rc_main != CDD_C_SUCCESS)
+          return rc_main;
+      }
     }
     if (is_server) {
-      openapi_server_generate(&spec, &config);
+      {
+        cdd_c_error_t rc_main = openapi_server_generate(&spec, &config);
+        if (rc_main != CDD_C_SUCCESS)
+          return rc_main;
+      }
     }
 
     /* Always generate ORM models for to_sdk and to_server */

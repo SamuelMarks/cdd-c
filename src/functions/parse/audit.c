@@ -203,7 +203,11 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
   dot = strrchr(path, '.');
   if (!dot)
     return CDD_C_SUCCESS;
-  c_cdd_stricmp(dot, ".c", &diff);
+  {
+    cdd_c_error_t rc_au = c_cdd_stricmp(dot, ".c", &diff);
+    if (rc_au != CDD_C_SUCCESS)
+      return rc_au;
+  }
   *out_is_source = (diff == 0);
   return CDD_C_SUCCESS;
 }
@@ -271,7 +275,11 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Filter only .c files */
   {
     int is_src = 0;
-    is_c_source(path, &is_src);
+    {
+      cdd_c_error_t rc_au = is_c_source(path, &is_src);
+      if (rc_au != CDD_C_SUCCESS)
+        return rc_au;
+    }
     if (!is_src)
       return CDD_C_SUCCESS;
   }
@@ -335,7 +343,11 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
   /* Custom analysis for return-alloc patterns */
   {
     int count = 0;
-    count_returning_allocs(tokens, &count);
+    {
+      cdd_c_error_t rc_au = count_returning_allocs(tokens, &count);
+      if (rc_au != CDD_C_SUCCESS)
+        return rc_au;
+    }
     stats->functions_returning_alloc += (size_t)count;
   }
 

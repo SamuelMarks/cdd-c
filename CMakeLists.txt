@@ -20,6 +20,29 @@ else()
     option(C_CDD_BUILD_TESTS "Build tests" OFF)
 endif()
 
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+if(ENABLE_COVERAGE)
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -O0 -g")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+
+        find_program(GCOVR_PATH gcovr)
+        if(GCOVR_PATH)
+            add_custom_target(coverage
+                COMMAND ctest --output-on-failure
+                COMMAND ${GCOVR_PATH} -r ${CMAKE_SOURCE_DIR} --html --html-details -o coverage.html --fail-under-line 100 --fail-under-branch 100
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                COMMENT "Running gcovr and asserting 100% coverage"
+            )
+        endif()
+    elseif(MSVC)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Zi")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEBUG")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG")
+    endif()
+endif()
+
 if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -zm -zc -mh")
 endif()

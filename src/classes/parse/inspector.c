@@ -95,7 +95,11 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
 
   item = &list->items[list->size];
   item->kind = kind;
-  c_cdd_strdup(name, &item->name);
+  {
+    cdd_c_error_t rc_str = c_cdd_strdup(name, &item->name);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   if (!item->name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -163,8 +167,16 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
       if (state == ST_NONE) {
         int starts1 = false, starts2 = false;
-        c_cdd_str_starts_with(p, "enum ", &starts1);
-        c_cdd_str_starts_with(p, "struct ", &starts2);
+        {
+          cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
+          if (rc_str != CDD_C_SUCCESS)
+            return rc_str;
+        }
+        {
+          cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "struct ", &starts2);
+          if (rc_str != CDD_C_SUCCESS)
+            return rc_str;
+        }
         if (starts1 || starts2) {
           char *brace = strchr(p, '{');
 
@@ -250,7 +262,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && *p) {
           char *copy = NULL;
-          c_cdd_strdup(p, &copy);
+          {
+            cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
+            if (rc_str != CDD_C_SUCCESS)
+              return rc_str;
+          }
           if (copy) {
             char *ctx = NULL;
 #ifdef _WIN32
@@ -265,8 +281,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               c_cdd_str_trim_trailing_whitespace(tok);
               while (*tok && isspace((unsigned char)*tok))
                 tok++;
-              if (*tok)
-                enum_members_add(curr_em, tok);
+              if (*tok) {
+                cdd_c_error_t rc_str = enum_members_add(curr_em, tok);
+                if (rc_str != CDD_C_SUCCESS)
+                  return rc_str;
+              }
 #ifdef _WIN32
               tok = strtok_s(NULL, ",", &ctx);
 #else
@@ -279,7 +298,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           if (*p) {
             /* Support multiple fields on same line separated by semicolon */
             char *copy = NULL;
-            c_cdd_strdup(p, &copy);
+            {
+              cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
+              if (rc_str != CDD_C_SUCCESS)
+                return rc_str;
+            }
             if (copy) {
               char *ctx = NULL;
 #ifdef _WIN32
@@ -292,8 +315,11 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 char *chk = tok;
                 while (*chk && isspace((unsigned char)*chk))
                   chk++;
-                if (*chk)
-                  parse_struct_member_line(tok, curr_sf);
+                if (*chk) {
+                  cdd_c_error_t rc_str = parse_struct_member_line(tok, curr_sf);
+                  if (rc_str != CDD_C_SUCCESS)
+                    return rc_str;
+                }
 #ifdef _WIN32
                 tok = strtok_s(NULL, ";", &ctx);
 #else

@@ -101,6 +101,7 @@ void enum_members_free(struct EnumMembers *em) {
 }
 
 cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   if (!em || !name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (em->size >= em->capacity) {
@@ -127,7 +128,10 @@ cdd_c_error_t enum_members_add(struct EnumMembers *em, const char *name) {
     em->members[em->size] = NULL;
   } else {
 #endif
-    c_cdd_strdup(name, &em->members[em->size]);
+    rc = c_cdd_strdup(name, &em->members[em->size]);
+    if (rc != CDD_C_SUCCESS) {
+      return rc;
+    }
 #ifdef CDD_BUILD_TESTS
   }
 #endif

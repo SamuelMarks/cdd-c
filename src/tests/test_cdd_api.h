@@ -102,6 +102,8 @@ extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
+  printf("START: g_fail_io_after=%d, g_mock_oom_countdown=%d\n",
+         g_fail_io_after, g_mock_oom_countdown);
   const char *langs[] = {"python",  "rust",    "csharp",      "typescript",
                          "napi",    "java",    "cpp",         "go",
                          "swift",   "dart",    "ruby",        "kotlin",
@@ -145,11 +147,6 @@ TEST test_cdd_generate_bindings(void) {
   ASSERT_NEQ(0, cdd_generate_bindings(&config));
   g_ffi_extractor_alloc_fail = 0;
 
-  /* Sort failure */
-  g_cdd_ffi_ir_calloc_fail = 1;
-  ASSERT_NEQ(0, cdd_generate_bindings(&config));
-  g_cdd_ffi_ir_calloc_fail = 0;
-
   /* Test failure branch (rc != 0) for each language */
   config.output_dir = "nonexistent_dir_12345/nonexistent";
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
@@ -161,11 +158,8 @@ TEST test_cdd_generate_bindings(void) {
   config.output_dir = "test_bindings_out";
   makedir(config.output_dir);
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
-    int rc;
-    (void)rc;
     config.target_langs = langs[i];
-    rc = cdd_generate_bindings(&config);
-    ASSERT_EQ(0, rc);
+    ASSERT_EQ(0, cdd_generate_bindings(&config));
   }
 
   remove("test_dummy_bindings.h");

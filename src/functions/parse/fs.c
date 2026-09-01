@@ -822,7 +822,11 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
     /* Ideally we unlink before freeing memory */
     unlink(file->filename);
   }
-  (void)FilenameAndPtr_cleanup(file);
+  {
+    cdd_c_error_t rc_fs = FilenameAndPtr_cleanup(file);
+    if (rc_fs != CDD_C_SUCCESS)
+      return rc_fs;
+  }
   return CDD_C_SUCCESS;
 }
 
@@ -978,7 +982,6 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   }
 
   (void)full_path;
-  (void)rc;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {

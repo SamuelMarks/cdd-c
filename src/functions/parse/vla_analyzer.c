@@ -78,7 +78,7 @@ void vla_site_list_free(struct VLASiteList *list) {
     }
     free(list->sites);
   }
-  (void)vla_site_list_init(list);
+  vla_site_list_init(list);
 }
 
 /**
@@ -133,7 +133,12 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
     start_idx = i;
 
     /* 1. Identify type start (e.g. `int`, `struct S`, `char`) */
-    is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+    {
+      cdd_c_error_t rc_vla =
+          is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+      if (rc_vla != CDD_C_SUCCESS)
+        return rc_vla;
+    }
     if (is_basic) {
       is_type = 1;
     } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
@@ -164,7 +169,12 @@ cdd_c_error_t scan_for_vlas(const struct TokenList *tokens,
       /* Consume type modifiers */
       while (i < tokens->size) {
         is_basic = 0;
-        is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+        {
+          cdd_c_error_t rc_vla =
+              is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+          if (rc_vla != CDD_C_SUCCESS)
+            return rc_vla;
+        }
         if (!(is_basic || tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
               tokens->tokens[i].kind == TOKEN_WHITESPACE ||
               tokens->tokens[i].kind == TOKEN_STAR ||

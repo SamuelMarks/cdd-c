@@ -185,7 +185,12 @@ static cdd_c_error_t parse_designator(const struct TokenList *tokens,
   *out_next = i + 1; /* Skip = */
 
   *out_str = NULL;
-  join_tokens_skipping_ws(tokens, start, end_desig, out_str);
+  {
+    cdd_c_error_t rc_str =
+        join_tokens_skipping_ws(tokens, start, end_desig, out_str);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   if (!*out_str)
     return CDD_C_ERROR_MEMORY;
 
@@ -235,7 +240,11 @@ static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
   }
 
   *out_str = NULL;
-  join_tokens_skipping_ws(tokens, start, i, out_str);
+  {
+    cdd_c_error_t rc_str = join_tokens_skipping_ws(tokens, start, i, out_str);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   if (!*out_str)
     return CDD_C_ERROR_MEMORY;
 
@@ -255,7 +264,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  skip_ws(tokens, start_idx, end_idx, &i);
+  {
+    cdd_c_error_t rc_str = skip_ws(tokens, start_idx, end_idx, &i);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
 
   /* Expect opening brace */
   if (i >= end_idx || tokens->tokens[i].kind != TOKEN_LBRACE) {
@@ -267,7 +280,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     char *desig_str = NULL;
     struct InitValue *val_obj = NULL;
 
-    skip_ws(tokens, i, end_idx, &i);
+    {
+      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
 
     if (i >= end_idx)
       break;
@@ -289,7 +306,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       i = next_after_desig;
     }
 
-    skip_ws(tokens, i, end_idx, &i);
+    {
+      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
 
     /* Allocate Value Object */
     val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));
@@ -357,7 +378,11 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       goto error;
     }
 
-    skip_ws(tokens, i, end_idx, &i);
+    {
+      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
 
     /* Consume comma if present */
     if (i < end_idx && tokens->tokens[i].kind == TOKEN_COMMA) {

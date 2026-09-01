@@ -414,7 +414,11 @@ cdd_ffi_emit_csharp(cdd_ffi_ir_t *ir,
   if (!ir || !config || !config->output_dir)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  makedir(config->output_dir);
+  {
+    cdd_c_error_t rc_cs = makedir(config->output_dir);
+    if (rc_cs != CDD_C_SUCCESS && errno != EEXIST)
+      return rc_cs;
+  }
 
   rc = emit_csharp_bindings(ir, config);
   if (rc != 0)

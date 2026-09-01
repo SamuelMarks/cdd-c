@@ -145,7 +145,12 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     stmt_start++;
 
   /* 3. Check arguments: realloc(ptr, size) */
-  find_next_token_idx(tokens, call_idx, TOKEN_LPAREN, &lparen_idx);
+  {
+    cdd_c_error_t rc_st =
+        find_next_token_idx(tokens, call_idx, TOKEN_LPAREN, &lparen_idx);
+    if (rc_st != CDD_C_SUCCESS)
+      return rc_st;
+  }
   if (lparen_idx >= tokens->size)
     return CDD_C_SUCCESS;
 
@@ -173,7 +178,12 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     char *replacement = NULL;
 
     /* Extract "realloc(p, n)" text */
-    range_to_string(tokens, call_idx, semi_idx, &call_expr);
+    {
+      cdd_c_error_t rc_st =
+          range_to_string(tokens, call_idx, semi_idx, &call_expr);
+      if (rc_st != CDD_C_SUCCESS)
+        return rc_st;
+    }
     if (!call_expr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -276,7 +286,12 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     if (site->is_checked)
       continue;
 
-    find_next_token_idx(tokens, site->token_index, TOKEN_SEMICOLON, &semi_idx);
+    {
+      cdd_c_error_t rc_st = find_next_token_idx(tokens, site->token_index,
+                                                TOKEN_SEMICOLON, &semi_idx);
+      if (rc_st != CDD_C_SUCCESS)
+        return rc_st;
+    }
     if (semi_idx >= tokens->size)
       continue;
 

@@ -362,7 +362,11 @@ static cdd_c_error_t propagate_refactor_mark(struct DependencyGraph *g,
   /* Recurse to all callers */
   for (i = 0; i < node->num_callers; i++) {
     size_t caller_idx = node->callers[i];
-    propagate_refactor_mark(g, caller_idx);
+    {
+      cdd_c_error_t rc_or = propagate_refactor_mark(g, caller_idx);
+      if (rc_or != CDD_C_SUCCESS)
+        return rc_or;
+    }
   }
   return CDD_C_SUCCESS;
 }
@@ -534,7 +538,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
     struct FuncNode *n = &graph.nodes[i];
     /* Seed: Function contains allocations and returns unsafe type */
     if (n->contains_allocs && (n->returns_void || n->returns_ptr)) {
-      propagate_refactor_mark(&graph, i);
+      {
+        cdd_c_error_t rc_or = propagate_refactor_mark(&graph, i);
+        if (rc_or != CDD_C_SUCCESS)
+          return rc_or;
+      }
     }
   }
 
@@ -627,7 +635,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
             {
               struct AllocationSiteList local_allocs;
               size_t k;
-              allocation_site_list_init(&local_allocs);
+              {
+                cdd_c_error_t rc_or = allocation_site_list_init(&local_allocs);
+                if (rc_or != CDD_C_SUCCESS)
+                  return rc_or;
+              }
               for (k = 0; k < allocs.size; k++) {
                 if (allocs.sites[k].token_index >= node->body_start &&
                     allocs.sites[k].token_index < end_idx) {
@@ -796,7 +808,11 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_src) {
   dot = strrchr(path, '.');
   if (!dot)
     return CDD_C_SUCCESS;
-  c_cdd_stricmp(dot, ".c", &diff);
+  {
+    cdd_c_error_t rc_or = c_cdd_stricmp(dot, ".c", &diff);
+    if (rc_or != CDD_C_SUCCESS)
+      return rc_or;
+  }
   *out_is_src = (diff == 0);
   return CDD_C_SUCCESS;
 }
@@ -815,7 +831,11 @@ static cdd_c_error_t fix_file_callback(const char *path, void *user_data) {
 
   {
     int is_src = 0;
-    is_c_source(path, &is_src);
+    {
+      cdd_c_error_t rc_or = is_c_source(path, &is_src);
+      if (rc_or != CDD_C_SUCCESS)
+        return rc_or;
+    }
     if (!is_src)
       return CDD_C_SUCCESS;
   }
@@ -888,7 +908,11 @@ cdd_c_error_t fix_code_main(int argc, char **argv) {
   } else {
     /* Implicit single file or error? Assume directory implicit checking */
     int is_dir = 0;
-    fs_is_directory(target, &is_dir);
+    {
+      cdd_c_error_t rc_or = fs_is_directory(target, &is_dir);
+      if (rc_or != CDD_C_SUCCESS)
+        return rc_or;
+    }
     if (is_dir) {
       fprintf(stderr, "Directory requires --in-place\n");
       return CDD_C_ERROR_UNKNOWN;

@@ -77,7 +77,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 #else
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
 #endif
-    makedirs(src_dir);
+    {
+      cdd_c_error_t rc_cgg = makedirs(src_dir);
+      if (rc_cgg != CDD_C_SUCCESS)
+        return rc_cgg;
+    }
     CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
                  base_name ? base_name : "generated_client");
     CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
@@ -134,7 +138,11 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "/* Generated GUI & Token Flow Implementation */\n");
   {
     char *base = NULL;
-    get_basename(config->filename_base, &base);
+    {
+      cdd_c_error_t rc_cgg = get_basename(config->filename_base, &base);
+      if (rc_cgg != CDD_C_SUCCESS)
+        return rc_cgg;
+    }
     fprintf(fp_c, "#include \"%s_gui.h\"\n",
             base ? base : config->filename_base);
     if (base)

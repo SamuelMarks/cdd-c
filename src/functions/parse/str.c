@@ -22,10 +22,6 @@
 #endif
 
 #include "functions/parse/str.h"
-
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_cdd_strdup_fail = 0;
-#endif
 /* clang-format on */
 
 /**
@@ -36,15 +32,6 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_strdup_fail;
-    if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
-      *out_s = NULL;
-      return CDD_C_ERROR_MEMORY;
-    }
-  }
-#endif
 #ifdef _WIN32
   *out_s = _strdup(s);
 
@@ -138,7 +125,11 @@ cdd_c_error_t c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
     *out_b = false;
     return CDD_C_SUCCESS;
   }
-  c_cdd_str_after_last(ref, '/', &extracted);
+  {
+    cdd_c_error_t rc_st = c_cdd_str_after_last(ref, '/', &extracted);
+    if (rc_st != CDD_C_SUCCESS)
+      return rc_st;
+  }
   return c_cdd_str_equal(extracted, type, out_b);
 }
 
@@ -164,9 +155,6 @@ void c_cdd_str_trim_trailing_whitespace(char *str) {
 /**
  * @brief Executes the c cdd destringize operation.
  */
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_str_unquote_malloc_fail = 0;
-#endif
 
 cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
   size_t len, i, j;
@@ -195,15 +183,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
     return CDD_C_SUCCESS;
   }
 
-#ifdef CDD_BUILD_TESTS
-  if (g_str_unquote_malloc_fail) {
-    out = NULL;
-  } else {
-#endif
-    out = (char *)C_CDD_MALLOC(len + 1);
-#ifdef CDD_BUILD_TESTS
-  }
-#endif
+  out = (char *)C_CDD_MALLOC(len + 1);
   if (!out) {
     *out_s = NULL;
     return CDD_C_SUCCESS;

@@ -1714,7 +1714,11 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
     int _is_reserved = 0;
 
     memset(&curr_param, 0, sizeof(curr_param));
-    (void)c_mapping_init(&type_map);
+    {
+      cdd_c_error_t rc_op_tmp = c_mapping_init(&type_map);
+      if (rc_op_tmp != CDD_C_SUCCESS)
+        return rc_op_tmp;
+    }
 
     /* --- Heuristic: Role Detection --- */
 

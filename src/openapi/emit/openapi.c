@@ -969,7 +969,12 @@ static void write_example_fields(JSON_Object *parent,
   if (!parent)
     return;
   if (examples && n_examples > 0) {
-    (void)write_examples_object(parent, "examples", examples, n_examples);
+    {
+      cdd_c_error_t rc_oa_tmp =
+          write_examples_object(parent, "examples", examples, n_examples);
+      if (rc_oa_tmp != CDD_C_SUCCESS)
+        return;
+    }
   } else if (example_set && example) {
     JSON_Value *val = (any_to_json_value(example, &_ast_any_to_json_value_4),
                        _ast_any_to_json_value_4);

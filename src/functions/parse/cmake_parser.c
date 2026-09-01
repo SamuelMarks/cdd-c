@@ -95,7 +95,12 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
     return CDD_C_ERROR_MEMORY;
   }
 
-  my_strdup(opt, &mod->compile_opts[mod->compile_opts_n]);
+  {
+    cdd_c_error_t rc_cm =
+        my_strdup(opt, &mod->compile_opts[mod->compile_opts_n]);
+    if (rc_cm != CDD_C_SUCCESS)
+      return rc_cm;
+  }
   if (!mod->compile_opts[mod->compile_opts_n])
     return CDD_C_ERROR_MEMORY;
 
@@ -129,7 +134,11 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
     return CDD_C_ERROR_MEMORY;
   }
 
-  my_strdup(lib, &mod->link_libs[mod->link_libs_n]);
+  {
+    cdd_c_error_t rc_cm = my_strdup(lib, &mod->link_libs[mod->link_libs_n]);
+    if (rc_cm != CDD_C_SUCCESS)
+      return rc_cm;
+  }
   if (!mod->link_libs[mod->link_libs_n])
     return CDD_C_ERROR_MEMORY;
 
@@ -247,11 +256,19 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   int lines_count = 0;
   char *str_buf;
   size_t str_buf_len = 0;
-  read_file_to_string(mod->filepath, &len, &src);
+  {
+    cdd_c_error_t rc_cm = read_file_to_string(mod->filepath, &len, &src);
+    if (rc_cm != CDD_C_SUCCESS)
+      return rc_cm;
+  }
 
   if (!src) {
     /* If file doesn't exist, we just simulate appending to empty */
-    my_strdup("", &src);
+    {
+      cdd_c_error_t rc_cm = my_strdup("", &src);
+      if (rc_cm != CDD_C_SUCCESS)
+        return rc_cm;
+    }
     len = 0;
   }
 

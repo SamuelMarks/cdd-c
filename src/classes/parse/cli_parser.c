@@ -169,9 +169,13 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                   }
                   /* printf */
                   if (tokens->tokens[prev_idx].kind == TOKEN_IDENTIFIER) {
-                    cdd_strndup2((const char *)tokens->tokens[prev_idx].start,
-                                 tokens->tokens[prev_idx].length,
-                                 &cmd->options[opt_idx].mapped_struct_field);
+                    cdd_c_error_t rc_str = cdd_strndup2(
+                        (const char *)tokens->tokens[prev_idx].start,
+                        tokens->tokens[prev_idx].length,
+                        &cmd->options[opt_idx].mapped_struct_field);
+                    if (rc_str != CDD_C_SUCCESS) {
+                      return rc_str;
+                    }
                   }
                   break;
                 }

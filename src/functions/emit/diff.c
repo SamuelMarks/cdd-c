@@ -258,14 +258,23 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     return CDD_C_SUCCESS;
   }
 
-  patch_list_sort(list);
+  {
+    cdd_c_error_t rc_diff = patch_list_sort(list);
+    if (rc_diff != CDD_C_SUCCESS)
+      return rc_diff;
+  }
 
   if (tokens->size > 0) {
     orig_src = (const char *)tokens->tokens[0].start;
     orig_len = (size_t)((tokens->tokens[tokens->size - 1].start +
                          tokens->tokens[tokens->size - 1].length) -
                         (const uint8_t *)orig_src);
-    (void)split_lines(orig_src, orig_len, &old_lines, &old_line_count);
+    {
+      cdd_c_error_t rc_diff =
+          split_lines(orig_src, orig_len, &old_lines, &old_line_count);
+      if (rc_diff != CDD_C_SUCCESS)
+        return rc_diff;
+    }
   } else {
     *out_diff = (char *)malloc(1);
     if (*out_diff)
@@ -326,7 +335,12 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
 
     if (rc != CDD_C_SUCCESS || !new_text)
       break;
-    (void)split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
+    {
+      cdd_c_error_t rc_diff =
+          split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
+      if (rc_diff != CDD_C_SUCCESS)
+        return rc_diff;
+    }
 
     (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
                          "@@ -%" CDD_PRIz ",%" CDD_PRIz " +%" CDD_PRIz

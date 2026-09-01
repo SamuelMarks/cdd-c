@@ -56,7 +56,11 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #else
     sprintf(src_dir, "%s/src", dir_name);
 #endif
-    makedirs(src_dir);
+    {
+      cdd_c_error_t rc_cg = makedirs(src_dir);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
     C_CDD_FREE(dir_name);
@@ -94,7 +98,11 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
               "on */\n");
   {
     char *base = NULL;
-    get_basename(config->filename_base, &base);
+    {
+      cdd_c_error_t rc_cg = get_basename(config->filename_base, &base);
+      if (rc_cg != CDD_C_SUCCESS)
+        return rc_cg;
+    }
     fprintf(fp, "#include \"%s.h\"\n\n", base);
     C_CDD_FREE(base);
   }

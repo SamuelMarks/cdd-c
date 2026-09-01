@@ -49,13 +49,21 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
 static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
                                    const char *type, const char *fmt) {
   out->kind = OA_TYPE_PRIMITIVE;
-  c_cdd_strdup(type, &out->oa_type);
+  {
+    cdd_c_error_t rc_str = c_cdd_strdup(type, &out->oa_type);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   if (!out->oa_type) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
   if (fmt) {
-    c_cdd_strdup(fmt, &out->oa_format);
+    {
+      cdd_c_error_t rc_str = c_cdd_strdup(fmt, &out->oa_format);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
     if (!out->oa_format) {
       free(out->oa_type);
       out->oa_type = NULL;
@@ -73,7 +81,11 @@ static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
      The ref_name holds the target. */
-  c_cdd_strdup(ref, &out->ref_name);
+  {
+    cdd_c_error_t rc_str = c_cdd_strdup(ref, &out->ref_name);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   if (!out->ref_name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -142,14 +154,22 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int is_ptr = 0;
   int is_array = 0;
   cdd_c_error_t rc = 0;
-  skip_qualifiers(c_type_in, &c_type);
+  {
+    cdd_c_error_t rc_str = skip_qualifiers(c_type_in, &c_type);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
   printf("DEBUG c_mapping_map_type: c_type_in='%s', c_type='%s'\n", c_type_in,
          c_type);
 
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  c_mapping_init(out);
+  {
+    cdd_c_error_t rc_str = c_mapping_init(out);
+    if (rc_str != CDD_C_SUCCESS)
+      return rc_str;
+  }
 
   /* Pointer/Array detection works on raw type */
   if (strchr(c_type, '*'))
@@ -204,8 +224,16 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   /* Structs / Enums */
   else {
     int starts1 = false, starts2 = false;
-    c_cdd_str_starts_with(c_type, "struct ", &starts1);
-    c_cdd_str_starts_with(c_type, "enum ", &starts2);
+    {
+      cdd_c_error_t rc_str = c_cdd_str_starts_with(c_type, "struct ", &starts1);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
+    {
+      cdd_c_error_t rc_str = c_cdd_str_starts_with(c_type, "enum ", &starts2);
+      if (rc_str != CDD_C_SUCCESS)
+        return rc_str;
+    }
     if (starts1 || starts2) {
       clean = NULL;
       rc = clean_type_str(c_type, &clean);
@@ -265,8 +293,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
      */
     out->kind = OA_TYPE_ARRAY;
     /* Ensure we kept the item type info. It's already in oa_type/ref_name. */
-    (void)inner_ref;
-    (void)inner_type;
+
     if (inner_ref)
       free(inner_ref);
     if (inner_type)

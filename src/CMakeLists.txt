@@ -134,6 +134,7 @@ set(Header_Files
 source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files
+        "log.c"
         "functions/parse/analysis.c"
         "classes/parse/inspector.c"
         "routes/parse/cli.c"
@@ -301,10 +302,13 @@ source_group("Source Files" FILES "${Source_Files}")
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
-endif()
-
-if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_MOCK_ALLOCATIONS)
+    target_include_directories("${LIBRARY_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    if(MSVC)
+        target_compile_options("${LIBRARY_NAME}" PRIVATE /FI"tests/cdd_test_helpers/mock_overrides.h")
+    else()
+        target_compile_options("${LIBRARY_NAME}" PRIVATE -include "tests/cdd_test_helpers/mock_overrides.h")
+    endif()
 endif()
 
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)
@@ -567,6 +571,9 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_link_libraries("${EXEC_NAME}" PRIVATE cdd_test_helpers)
+endif()
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 add_test(NAME test_cdd_c_help COMMAND "${EXEC_NAME}" --help)

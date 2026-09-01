@@ -242,7 +242,11 @@ C_CDD_EXPORT cdd_c_error_t is_grouping_paren(const struct TokenList *tokens,
   if (!out_is_grouping)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_grouping = 0;
-  skip_ws(tokens, paren_idx + 1, limit, &i);
+  {
+    cdd_c_error_t rc_dc = skip_ws(tokens, paren_idx + 1, limit, &i);
+    if (rc_dc != CDD_C_SUCCESS)
+      return rc_dc;
+  }
   if (i >= limit)
     return CDD_C_SUCCESS;
   if (tokens->tokens[i].kind == TOKEN_STAR ||
@@ -276,22 +280,44 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
         k == TOKEN_KEYWORD_ENUM) {
       size_t j;
-      skip_ws(tokens, i + 1, end, &j);
+      {
+        cdd_c_error_t rc_dc = skip_ws(tokens, i + 1, end, &j);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        skip_ws(tokens, j + 1, end, &j);
+        {
+          cdd_c_error_t rc_dc = skip_ws(tokens, j + 1, end, &j);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
       }
       if (tokens->tokens[j].kind == TOKEN_LBRACE) {
-        skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
+        {
+          cdd_c_error_t rc_dc =
+              skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         continue;
       }
     }
     /* Skip parameterized specifiers like typeof() or _Atomic() */
     else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
       size_t j;
-      skip_ws(tokens, i + 1, end, &j);
+      {
+        cdd_c_error_t rc_dc = skip_ws(tokens, i + 1, end, &j);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       if (tokens->tokens[j].kind == TOKEN_LPAREN) {
         /* _Atomic(int) ... */
-        skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+        {
+          cdd_c_error_t rc_dc =
+              skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         continue;
       }
     }
@@ -299,7 +325,11 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
     /* Abstract Pivot Logic */
     if (k == TOKEN_LPAREN) {
       int is_grouping = 0;
-      is_grouping_paren(tokens, i, end, &is_grouping);
+      {
+        cdd_c_error_t rc_dc = is_grouping_paren(tokens, i, end, &is_grouping);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       if (is_grouping) {
         current_depth++;
       } else {
@@ -307,7 +337,12 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
           best_depth = current_depth;
           best_pivot = i;
         }
-        skip_group(tokens, i, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+        {
+          cdd_c_error_t rc_dc =
+              skip_group(tokens, i, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         continue;
       }
     } else if (k == TOKEN_RPAREN) {
@@ -317,7 +352,12 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
     } else if (k == TOKEN_LBRACKET) {
       best_depth = current_depth;
       best_pivot = i;
-      skip_group(tokens, i, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &i);
+      {
+        cdd_c_error_t rc_dc =
+            skip_group(tokens, i, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &i);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       continue;
     }
     i++;
@@ -351,19 +391,41 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
         k == TOKEN_KEYWORD_ENUM) {
       size_t j;
-      skip_ws(tokens, i + 1, end, &j);
+      {
+        cdd_c_error_t rc_dc = skip_ws(tokens, i + 1, end, &j);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        skip_ws(tokens, j + 1, end, &j);
+        {
+          cdd_c_error_t rc_dc = skip_ws(tokens, j + 1, end, &j);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
       }
       if (tokens->tokens[j].kind == TOKEN_LBRACE) {
-        skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
+        {
+          cdd_c_error_t rc_dc =
+              skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         continue;
       }
     } else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
       size_t j;
-      skip_ws(tokens, i + 1, end, &j);
+      {
+        cdd_c_error_t rc_dc = skip_ws(tokens, i + 1, end, &j);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
       if (tokens->tokens[j].kind == TOKEN_LPAREN) {
-        skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+        {
+          cdd_c_error_t rc_dc =
+              skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         continue;
       }
     } else if (k == TOKEN_IDENTIFIER) {
@@ -383,7 +445,11 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
   /* 2. Abstract Declarator search */
   *is_abstract = 1;
   {
-    find_abstract_pivot(tokens, start, end, _out_val);
+    {
+      cdd_c_error_t rc_dc = find_abstract_pivot(tokens, start, end, _out_val);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
     return CDD_C_SUCCESS;
   }
 }
@@ -402,28 +468,56 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
 
   if (!tokens || !out_info)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-
-  (void)decl_info_init(out_info);
+  {
+    cdd_c_error_t rc_dc = decl_info_init(out_info);
+    if (rc_dc != CDD_C_SUCCESS)
+      return rc_dc;
+  }
 
   /* 1. Find Pivot */
-  find_pivot(tokens, start, end, &is_abstract, &pivot);
+  {
+    cdd_c_error_t rc_dc = find_pivot(tokens, start, end, &is_abstract, &pivot);
+    if (rc_dc != CDD_C_SUCCESS)
+      return rc_dc;
+  }
 
   if (!is_abstract) {
-    join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
+    {
+      cdd_c_error_t rc_dc =
+          join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
     if (!out_info->identifier) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
-    skip_ws_back(tokens, pivot, start, &left);
-    skip_ws(tokens, pivot + 1, end, &right);
+    {
+      cdd_c_error_t rc_dc = skip_ws_back(tokens, pivot, start, &left);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
+    {
+      cdd_c_error_t rc_dc = skip_ws(tokens, pivot + 1, end, &right);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
   } else {
     out_info->identifier = NULL; /* Abstract */
     if (pivot > start) {
-      skip_ws_back(tokens, pivot, start, &left);
+      {
+        cdd_c_error_t rc_dc = skip_ws_back(tokens, pivot, start, &left);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
     } else {
       left = SIZE_MAX;
     }
-    skip_ws(tokens, pivot, end, &right);
+    {
+      cdd_c_error_t rc_dc = skip_ws(tokens, pivot, end, &right);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
   }
 
   /* 2. Spiral Walk */
@@ -435,8 +529,17 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
       if (k == TOKEN_LBRACKET) { /* Array [] */
         struct DeclType *node = NULL;
         size_t close = 0;
-        create_node(DECL_ARRAY, &node);
-        skip_group(tokens, right, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &close);
+        {
+          cdd_c_error_t rc_dc = create_node(DECL_ARRAY, &node);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
+        {
+          cdd_c_error_t rc_dc = skip_group(tokens, right, end, TOKEN_LBRACKET,
+                                           TOKEN_RBRACKET, &close);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         if (!node) {
           rc = CDD_C_ERROR_MEMORY;
           goto error;
@@ -448,15 +551,31 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
         } else {
           node->data.array.size_expr = NULL; /* [] */
         }
-
-        (void)add_type_node(out_info, &tail, node);
-        skip_ws(tokens, close, end, &right);
+        {
+          cdd_c_error_t rc_dc = add_type_node(out_info, &tail, node);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
+        {
+          cdd_c_error_t rc_dc = skip_ws(tokens, close, end, &right);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
 
       } else if (k == TOKEN_LPAREN) { /* Function () */
         struct DeclType *node = NULL;
         size_t close = 0;
-        create_node(DECL_FUNC, &node);
-        skip_group(tokens, right, end, TOKEN_LPAREN, TOKEN_RPAREN, &close);
+        {
+          cdd_c_error_t rc_dc = create_node(DECL_FUNC, &node);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
+        {
+          cdd_c_error_t rc_dc = skip_group(tokens, right, end, TOKEN_LPAREN,
+                                           TOKEN_RPAREN, &close);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
         if (!node) {
           rc = CDD_C_ERROR_MEMORY;
           goto error;
@@ -468,9 +587,16 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
         } else {
           node->data.func.args_str = NULL;
         }
-
-        (void)add_type_node(out_info, &tail, node);
-        skip_ws(tokens, close, end, &right);
+        {
+          cdd_c_error_t rc_dc = add_type_node(out_info, &tail, node);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
+        {
+          cdd_c_error_t rc_dc = skip_ws(tokens, close, end, &right);
+          if (rc_dc != CDD_C_SUCCESS)
+            return rc_dc;
+        }
       } else {
         break; /* Not a suffix */
       }
@@ -486,7 +612,11 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
 
         if (k == TOKEN_STAR) {
           struct DeclType *node = NULL;
-          create_node(DECL_PTR, &node);
+          {
+            cdd_c_error_t rc_dc = create_node(DECL_PTR, &node);
+            if (rc_dc != CDD_C_SUCCESS)
+              return rc_dc;
+          }
           if (!node) {
             rc = CDD_C_ERROR_MEMORY;
             goto error;
@@ -496,17 +626,28 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
             join_tokens_range(tokens, qual_start, qual_end,
                               &node->data.ptr.qualifiers);
           }
+          {
+            cdd_c_error_t rc_dc = add_type_node(out_info, &tail, node);
+            if (rc_dc != CDD_C_SUCCESS)
+              return rc_dc;
+          }
 
-          (void)add_type_node(out_info, &tail, node);
-
-          skip_ws_back(tokens, left, left_limit, &left);
+          {
+            cdd_c_error_t rc_dc = skip_ws_back(tokens, left, left_limit, &left);
+            if (rc_dc != CDD_C_SUCCESS)
+              return rc_dc;
+          }
           qual_end = (left != SIZE_MAX) ? left + 1 : 0;
           qual_start = qual_end;
 
         } else if (k == TOKEN_KEYWORD_CONST || k == TOKEN_KEYWORD_VOLATILE ||
                    k == TOKEN_KEYWORD_RESTRICT || k == TOKEN_KEYWORD_ATOMIC) {
           qual_start = left;
-          skip_ws_back(tokens, left, left_limit, &left);
+          {
+            cdd_c_error_t rc_dc = skip_ws_back(tokens, left, left_limit, &left);
+            if (rc_dc != CDD_C_SUCCESS)
+              return rc_dc;
+          }
         } else {
           break; /* Not a pointer or qualifier */
         }
@@ -515,8 +656,16 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
 
     /* Phase Unnest: Handle Grouping Parens */
     if (left != SIZE_MAX && tokens->tokens[left].kind == TOKEN_LPAREN) {
-      skip_ws_back(tokens, left, left_limit, &left);
-      skip_ws(tokens, right + 1, end, &right);
+      {
+        cdd_c_error_t rc_dc = skip_ws_back(tokens, left, left_limit, &left);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
+      {
+        cdd_c_error_t rc_dc = skip_ws(tokens, right + 1, end, &right);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
     } else {
       break; /* Done or stuck */
     }
@@ -525,19 +674,35 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
   /* 3. Base Type */
   {
     struct DeclType *node = NULL;
-    create_node(DECL_BASE, &node);
+    {
+      cdd_c_error_t rc_dc = create_node(DECL_BASE, &node);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
     if (!node) {
       rc = CDD_C_ERROR_MEMORY;
       goto error;
     }
 
     if (left != SIZE_MAX) {
-      join_tokens_range(tokens, left_limit, left + 1, &node->data.base.name);
+      {
+        cdd_c_error_t rc_dc = join_tokens_range(tokens, left_limit, left + 1,
+                                                &node->data.base.name);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      }
     } else {
-      c_cdd_strdup("int", &node->data.base.name); /* Implicit or error */
+      {
+        cdd_c_error_t rc_dc = c_cdd_strdup("int", &node->data.base.name);
+        if (rc_dc != CDD_C_SUCCESS)
+          return rc_dc;
+      } /* Implicit or error */
     }
-
-    (void)add_type_node(out_info, &tail, node);
+    {
+      cdd_c_error_t rc_dc = add_type_node(out_info, &tail, node);
+      if (rc_dc != CDD_C_SUCCESS)
+        return rc_dc;
+    }
   }
 
   return CDD_C_SUCCESS;

@@ -90,7 +90,10 @@ cdd_c_error_t get_type_from_ref(const char *ref, char **_out_val) {
   {
     {
       const char *after = NULL;
-      c_cdd_str_after_last(ref, '/', &after);
+      cdd_c_error_t rc_after = c_cdd_str_after_last(ref, '/', &after);
+      if (rc_after != CDD_C_SUCCESS) {
+        return rc_after;
+      }
       *_out_val = (char *)after;
     }
     return CDD_C_SUCCESS;
@@ -357,9 +360,18 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
                   strcmp(r, "number") != 0)) {
         {
           char *tn = NULL;
-          get_type_from_ref(r, &tn);
-          CHECK_IO(FPRINTF_HOOK(
-              fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n));
+          cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
+          int io_rc;
+          if (rc_ref != CDD_C_SUCCESS) {
+            if (tn)
+              free(tn);
+            return rc_ref;
+          }
+          io_rc = FPRINTF_HOOK(
+              fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n);
+          if (tn)
+            free(tn);
+          CHECK_IO(io_rc);
         }
       }
       CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
@@ -463,7 +475,12 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
     char *r = NULL;
-    get_type_from_ref(sf->fields[i].ref, &r);
+    cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
+    if (rc_ref != CDD_C_SUCCESS) {
+      if (r)
+        free(r);
+      return rc_ref;
+    }
 
     if (strcmp(t, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
@@ -562,7 +579,12 @@ write_struct_default_func(FILE *fp, const char *struct_name,
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
       char *r = NULL;
-      get_type_from_ref(sf->fields[i].ref, &r);
+      cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
+      if (rc_ref != CDD_C_SUCCESS) {
+        if (r)
+          free(r);
+        return rc_ref;
+      }
 
       if (strcmp(t, "string") == 0) {
         if (strcmp(def, "nullptr") == 0) {
@@ -659,7 +681,12 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
     char *r = NULL;
-    get_type_from_ref(sf->fields[i].ref, &r);
+    cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
+    if (rc_ref != CDD_C_SUCCESS) {
+      if (r)
+        free(r);
+      return rc_ref;
+    }
 
     if (strcmp(t, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(

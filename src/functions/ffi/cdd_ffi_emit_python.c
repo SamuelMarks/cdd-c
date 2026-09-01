@@ -94,13 +94,18 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\cdd_bindings.py",
                config->output_dir);
-  fopen_s(&f, filepath, "w");
+  if (fopen_s(&f, filepath, "w") != 0) {
+    printf("MSVC fopen_s failed for %s, errno=%d\n", filepath, errno);
+    f = NULL;
+  }
 #else
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s/cdd_bindings.py",
                config->output_dir);
 #if defined(_MSC_VER)
-  if (fopen_s(&f, filepath, "w") != 0)
+  if (fopen_s(&f, filepath, "w") != 0) {
+    printf("fopen_s failed for %s, errno=%d\n", filepath, errno);
     f = NULL;
+  }
 #else
   f = fopen(filepath, "w");
 #endif

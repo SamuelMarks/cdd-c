@@ -75,7 +75,7 @@ void desig_init_list_free(struct DesigInitList *list) {
     }
     free(list->sites);
   }
-  (void)desig_init_list_init(list);
+  desig_init_list_init(list);
 }
 
 /**

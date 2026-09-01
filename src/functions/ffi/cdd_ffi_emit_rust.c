@@ -382,6 +382,16 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
   return CDD_C_SUCCESS;
 }
 
+static cdd_c_error_t maybe_mkdir(const char *path) {
+  cdd_c_error_t rc = makedir(path);
+  if (rc == CDD_C_SUCCESS)
+    return CDD_C_SUCCESS;
+  if (errno == EEXIST) {
+    return CDD_C_SUCCESS;
+  }
+  return rc;
+}
+
 cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
                                 const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc;
@@ -399,8 +409,16 @@ cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
   CDD_SNPRINTF(tests_dir, sizeof(tests_dir), "%s/tests", config->output_dir);
 #endif
 
-  makedir(src_dir);
-  makedir(tests_dir);
+  {
+    cdd_c_error_t rc_rs = maybe_mkdir(src_dir);
+    if (rc_rs != CDD_C_SUCCESS)
+      return rc_rs;
+  }
+  {
+    cdd_c_error_t rc_rs = maybe_mkdir(tests_dir);
+    if (rc_rs != CDD_C_SUCCESS)
+      return rc_rs;
+  }
 
   rc = emit_cargo_toml(config);
   /* In tests we don't mock emit_sys_rs failing inside cdd_ffi_emit_rust if it

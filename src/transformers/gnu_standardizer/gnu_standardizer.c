@@ -385,7 +385,6 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};
-  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

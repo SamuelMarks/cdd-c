@@ -134,7 +134,12 @@ static cdd_c_error_t parse_template_type(const char *c_type,
   if (out_type->template_args[0].kind == CDD_FFI_KIND_STRUCT_REF ||
       out_type->template_args[0].kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
     if (out_type->template_args[0].kind == CDD_FFI_KIND_TEMPLATE_STRUCT_REF) {
-      parse_template_type(inner_type_str, &out_type->template_args[0]);
+      {
+        cdd_c_error_t rc_ex =
+            parse_template_type(inner_type_str, &out_type->template_args[0]);
+        if (rc_ex != CDD_C_SUCCESS)
+          return rc_ex;
+      }
     } else {
       out_type->template_args[0].ref_name = CDD_STRDUP(inner_type_str);
     }
@@ -284,11 +289,10 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  (void)config;
   size_t i;
   struct TypeDefList types;
   struct FuncSigList sigs;
-
-  (void)config;
 
   rc = type_def_list_init(&types);
   if (rc == CDD_C_SUCCESS) {
@@ -474,7 +478,12 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                              CDD_FFI_KIND_STD_SHARED_PTR ||
                          node->fields[j].type.kind ==
                              CDD_FFI_KIND_STD_UNIQUE_PTR) {
-                parse_template_type(target_c_type, &node->fields[j].type);
+                {
+                  cdd_c_error_t rc_ex =
+                      parse_template_type(target_c_type, &node->fields[j].type);
+                  if (rc_ex != CDD_C_SUCCESS)
+                    return rc_ex;
+                }
               }
             }
           }
@@ -759,6 +768,8 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
 
           rc =
               ir_add_node(ir, CDD_FFI_NODE_FUNCTION, down_name, &downcast_node);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
           if (rc == CDD_C_SUCCESS && downcast_node) {
             downcast_node->return_or_base_type.kind = CDD_FFI_KIND_STRUCT_REF;
             downcast_node->return_or_base_type.ref_name =
@@ -987,7 +998,12 @@ static cdd_c_error_t instantiate_templates(cdd_ffi_ir_t *ir) {
               }
 
               if (!already_inst) {
-                ir_add_node(ir, CDD_FFI_NODE_STRUCT, inst_name, &new_node);
+                {
+                  cdd_c_error_t rc_ex = ir_add_node(ir, CDD_FFI_NODE_STRUCT,
+                                                    inst_name, &new_node);
+                  if (rc_ex != CDD_C_SUCCESS)
+                    return rc_ex;
+                }
                 base_struct = &ir->nodes[k];
 
                 new_node->fields_count = base_struct->fields_count;
@@ -1031,6 +1047,7 @@ cdd_c_error_t
 cdd_ffi_ir_extract_exports(const char *filename, const char *content,
                            const cdd_generate_bindings_config_t *config,
                            cdd_ffi_ir_t **out_ir) {
+  (void)config;
   cdd_ffi_ir_t *ir;
   struct IncludeMergeCtx ctx;
   struct PreprocessorContext pp_ctx;

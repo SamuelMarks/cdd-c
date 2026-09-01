@@ -247,7 +247,11 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 
   if (!tokens || !out_code)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  (void)parsed_sig_init(&sig);
+  {
+    cdd_c_error_t rc_rw = parsed_sig_init(&sig);
+    if (rc_rw != CDD_C_SUCCESS)
+      return rc_rw;
+  }
 
   /* 1. Attributes (C23 [[...]]) */
   /* Skip whitespace/comments */
@@ -259,7 +263,12 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     if (i + 1 < tokens->size && tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
       /* Found [[ */
       size_t end_attr = 0;
-      find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET, &end_attr);
+      {
+        cdd_c_error_t rc_rw = find_balanced_end(tokens, i, TOKEN_LBRACKET,
+                                                TOKEN_RBRACKET, &end_attr);
+        if (rc_rw != CDD_C_SUCCESS)
+          return rc_rw;
+      }
 
       if (end_attr < tokens->size) {
         attr_end_idx = end_attr + 1; /* Past the closing ] */
@@ -377,7 +386,12 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   /* 5. Extract Arguments */
   {
     size_t rparen = 0;
-    find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN, &rparen);
+    {
+      cdd_c_error_t rc_rw = find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN,
+                                              TOKEN_RPAREN, &rparen);
+      if (rc_rw != CDD_C_SUCCESS)
+        return rc_rw;
+    }
     if (rparen >= tokens->size) {
       rc = CDD_C_ERROR_INVALID_ARGUMENT;
       goto cleanup;

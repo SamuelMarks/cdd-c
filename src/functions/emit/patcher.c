@@ -156,7 +156,11 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Ensure patches are ordered so we can iterate linearly */
-  (void)patch_list_sort(list);
+  {
+    cdd_c_error_t rc_patch = patch_list_sort(list);
+    if (rc_patch != CDD_C_SUCCESS)
+      return rc_patch;
+  }
 
   output = (char *)C_CDD_MALLOC(out_cap);
   if (!output) {

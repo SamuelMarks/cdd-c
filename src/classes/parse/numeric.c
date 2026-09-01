@@ -231,7 +231,11 @@ cdd_c_error_t parse_numeric_literal(const char *str, struct NumericValue *out) {
     errno = 0;
 
     if (is_bin) {
-      parse_binary_str(start_digits, &end_ptr, &val);
+      {
+        cdd_c_error_t rc = parse_binary_str(start_digits, &end_ptr, &val);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
+      }
       out->data.integer.base = 2;
     } else {
       /* Handle hex/oct/dec via strtoull */
