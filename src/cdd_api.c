@@ -157,11 +157,7 @@ cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
   argv[argc++] = "serve_json_rpc";
 
   if (config->port > 0) {
-#if defined(_MSC_VER)
-    sprintf_s(port_str, sizeof(port_str), "%d", config->port);
-#else
-    sprintf(port_str, "%d", config->port);
-#endif
+    CDD_SNPRINTF(port_str, sizeof(port_str), "%d", config->port);
     argv[argc++] = "-p";
     argv[argc++] = port_str;
   }

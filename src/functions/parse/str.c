@@ -27,14 +27,23 @@
 /**
  * @brief Executes the c cdd strdup operation.
  */
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
+
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
+
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
+#if 1
+  if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
+    *out_s = NULL;
+    return CDD_C_ERROR_MEMORY;
+  }
+#endif
 #ifdef _WIN32
   *out_s = _strdup(s);
-
 #else
   *out_s = strdup(s);
 #endif
@@ -186,7 +195,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
   out = (char *)C_CDD_MALLOC(len + 1);
   if (!out) {
     *out_s = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   for (i = 0, j = 0; i < len; i++) {

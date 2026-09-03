@@ -92,7 +92,7 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
-  rc = tokenize(az_span_create_from_str((char *)(size_t)expr), &tl);
+  rc = tokenize(az_span_create_from_str(expr), &tl);
   (void)rc;
   if (rc != 0) {
     fprintf(stderr, "tokenize failed with %d\n", rc);

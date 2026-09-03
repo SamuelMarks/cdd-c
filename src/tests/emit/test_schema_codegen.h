@@ -186,9 +186,9 @@ TEST test_codegen_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
-    if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check Guards exist */
@@ -277,9 +277,9 @@ TEST test_union_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
-    if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "#ifdef UNION_GUARD"));
@@ -521,9 +521,9 @@ TEST test_codegen_config_utils_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
 
-    if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Just sample checks */
@@ -1091,7 +1091,7 @@ TEST test_schema_codegen_system_error(void) {
 TEST test_schema_codegen_main_errors(void) {
   int rc;
   char *argv_bad1[] = {"file.json"};
-  char *argv_bad2[] = {"file.json", NULL};
+  char *argv_bad2[] = {"file.json", (char *)(char *)NULL};
   char *argv_bad3[] = {"nonexistent.json", "prefix"};
   char *argv_bad4[] = {"file.json", "/invalid/path/prefix"};
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "

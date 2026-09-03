@@ -64,8 +64,8 @@ TEST test_json_to_plain(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check structure */
@@ -115,8 +115,8 @@ TEST test_json_from_plain(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check parson usage */
@@ -161,8 +161,8 @@ TEST test_json_recursive_obj(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check recursive call pattern */
@@ -207,8 +207,8 @@ TEST test_json_array_logic(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check array loop extraction */
@@ -363,8 +363,8 @@ TEST test_json_guards(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "#ifdef JSON_ENABLED"));
@@ -402,8 +402,8 @@ TEST test_struct_array_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content,
@@ -637,8 +637,8 @@ TEST test_standalone_json_func(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "Data_parse_json(char *json"));

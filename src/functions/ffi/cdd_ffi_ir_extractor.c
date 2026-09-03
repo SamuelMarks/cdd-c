@@ -289,10 +289,10 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                             const char *content,
                             const cdd_generate_bindings_config_t *config) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  (void)config;
   size_t i;
   struct TypeDefList types;
   struct FuncSigList sigs;
+  (void)config;
 
   rc = type_def_list_init(&types);
   if (rc == CDD_C_SUCCESS) {
@@ -1047,12 +1047,12 @@ cdd_c_error_t
 cdd_ffi_ir_extract_exports(const char *filename, const char *content,
                            const cdd_generate_bindings_config_t *config,
                            cdd_ffi_ir_t **out_ir) {
-  (void)config;
   cdd_ffi_ir_t *ir;
   struct IncludeMergeCtx ctx;
   struct PreprocessorContext pp_ctx;
   size_t k;
   cdd_c_error_t rc;
+  (void)config;
 
   if (!filename || !content || !out_ir) {
     return CDD_C_ERROR_INVALID_ARGUMENT;

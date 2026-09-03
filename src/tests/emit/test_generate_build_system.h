@@ -93,9 +93,9 @@ TEST test_gen_cmake_with_tests(void) {
  * @return TEST
  */
 TEST test_gen_build_system_cli_args(void) {
-  char arg0[] = "cmake";
-  char arg1[] = "test_build_dir";
-  char arg2[] = "CLIProj";
+  char *arg0 = "cmake";
+  char *arg1 = "test_build_dir";
+  char *arg2 = "CLIProj";
   char *argv[3];
   int rc = 0;
 
@@ -137,13 +137,13 @@ TEST test_gen_build_system_cli_args(void) {
  * @return TEST
  */
 TEST test_gen_build_system_bad_args(void) {
-  char arg0_short[] = "cmake";
-  char arg1_short[] = ".";
+  char *arg0_short = "cmake";
+  char *arg1_short = ".";
   char *argv_short[2];
 
-  char arg0_bad[] = "ninja";
-  char arg1_bad[] = ".";
-  char arg2_bad[] = "Name";
+  char *arg0_bad = "ninja";
+  char *arg1_bad = ".";
+  char *arg2_bad = "Name";
   char *argv_bad[3];
 
   argv_short[0] = arg0_short;

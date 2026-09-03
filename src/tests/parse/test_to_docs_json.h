@@ -84,16 +84,16 @@ static void write_test_spec(void) {
 }
 
 TEST test_to_docs_json_basic(void) {
-  char *argv[] = {"to_docs_json", "-i", TEMP_SPEC_FILE};
+  char *argv[] = {"to_docs_json", "-i", (char *)(char *)TEMP_SPEC_FILE};
   int rc;
   (void)rc;
-  int stdout_fd;
-  fpos_t pos;
+  int stdout_fd = 0;
   JSON_Value *val;
   JSON_Object *root_obj;
   JSON_Object *endpoints_obj;
   JSON_Object *pet_obj;
   const char *code_str;
+  fpos_t pos;
 
   memset(&pos, 0, sizeof(pos));
 
@@ -103,7 +103,20 @@ TEST test_to_docs_json_basic(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  if (CDD_FREOPEN(TEMP_OUT_FILE, "w", stdout)) {
+  {
+    FILE *f_tmp = NULL;
+#if defined(_MSC_VER)
+    if (fopen_s(&f_tmp, TEMP_OUT_FILE, "w") == 0) {
+      dup2(fileno(f_tmp), fileno(stdout));
+      fclose(f_tmp);
+    }
+#else
+    f_tmp = fopen(TEMP_OUT_FILE, "w");
+    if (f_tmp) {
+      dup2(fileno(f_tmp), fileno(stdout));
+      fclose(f_tmp);
+    }
+#endif
   }
 
   rc = to_docs_json_cli_main(3, argv);
@@ -146,16 +159,16 @@ TEST test_to_docs_json_basic(void) {
 
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
   char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i",
-                  TEMP_SPEC_FILE};
+                  (char *)(char *)TEMP_SPEC_FILE};
   int rc;
   (void)rc;
-  int stdout_fd;
-  fpos_t pos;
+  int stdout_fd = 0;
   JSON_Value *val;
   JSON_Object *root_obj;
   JSON_Object *endpoints_obj;
   JSON_Object *pet_obj;
   const char *code_str;
+  fpos_t pos;
 
   memset(&pos, 0, sizeof(pos));
 
@@ -165,7 +178,20 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   fflush(stdout);
   fgetpos(stdout, &pos);
   stdout_fd = dup(fileno(stdout));
-  if (CDD_FREOPEN(TEMP_OUT_FILE, "w", stdout)) {
+  {
+    FILE *f_tmp = NULL;
+#if defined(_MSC_VER)
+    if (fopen_s(&f_tmp, TEMP_OUT_FILE, "w") == 0) {
+      dup2(fileno(f_tmp), fileno(stdout));
+      fclose(f_tmp);
+    }
+#else
+    f_tmp = fopen(TEMP_OUT_FILE, "w");
+    if (f_tmp) {
+      dup2(fileno(f_tmp), fileno(stdout));
+      fclose(f_tmp);
+    }
+#endif
   }
 
   rc = to_docs_json_cli_main(5, argv);

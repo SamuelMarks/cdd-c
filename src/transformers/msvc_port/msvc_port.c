@@ -204,12 +204,11 @@ C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
 
 cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                                  const cdd_transform_config_t *config) {
-  (void)config;
   cdd_cst_query_result_t res;
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-
   int added_compat = 0;
+  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

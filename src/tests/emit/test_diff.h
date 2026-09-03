@@ -28,7 +28,7 @@ TEST test_patch_list_to_diff_basic(void) {
   size_t tok_idx = 0;
   int found = 0;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&list);

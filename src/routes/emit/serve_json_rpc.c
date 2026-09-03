@@ -390,7 +390,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
   root_val = json_parse_string(body);
   if (!root_val) {
     { cdd_c_error_t rc_rpc = send_stdio_rpc_error(NULL, -32700, "Parse error"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_SUCCESS;
   }
 
   root_obj = json_value_get_object(root_val);
@@ -400,7 +400,7 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
   if (!method) {
     { cdd_c_error_t rc_rpc = send_stdio_rpc_error(id_val, -32600, "Invalid Request"); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
     json_value_free(root_val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+    return CDD_C_SUCCESS;
   }
 
   if (strcmp(method, "version") == 0) {

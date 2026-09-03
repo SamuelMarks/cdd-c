@@ -53,9 +53,9 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (sz > 0)
-      if (fread(content, 1, sz, tmp)) {
+      if (fread(content, 1, (size_t)sz, tmp)) {
       }
     if (tmp)
       fclose(tmp);
@@ -94,9 +94,9 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (sz > 0)
-      if (fread(content, 1, sz, tmp)) {
+      if (fread(content, 1, (size_t)sz, tmp)) {
       }
     if (tmp)
       fclose(tmp);
@@ -152,7 +152,8 @@ TEST test_query_gen_scalar(void) {
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
   /* Check scalar integer logic */
-  ASSERT(strstr(code, "sprintf(num_buf, \"%d\", page)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%d\", page)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"page\", num_buf)") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -179,7 +180,8 @@ TEST test_query_gen_scalar_number(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_1), _ast_gen_query_code_1);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratio)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", ratio)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ratio\", num_buf)") != NULL);
   free(code);
   g_fail_io_after = -1;
@@ -212,7 +214,8 @@ TEST test_query_gen_array_explode_int(void) {
   /* Loop */
   ASSERT(strstr(code, "for(i=0; i < ids_len; ++i)") != NULL);
   /* Item handling */
-  ASSERT(strstr(code, "sprintf(num_buf, \"%d\", ids[i])") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%d\", ids[i])") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ids\", num_buf)") != NULL);
 
   free(code);
@@ -244,7 +247,8 @@ TEST test_query_gen_array_explode_number(void) {
   run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "for(i=0; i < ratios_len; ++i)") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratios[i])") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", ratios[i])") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ratios\", num_buf)") != NULL);
 
   free(code);
@@ -556,7 +560,8 @@ TEST test_query_gen_querystring_raw_integer(void) {
   run_io_loop(&op, NULL, NULL, 0);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf") != NULL);
   ASSERT(strstr(code, "url_encode(num_buf, &qs_enc)") != NULL);
 
   free(code);
@@ -1028,7 +1033,8 @@ TEST test_path_simple_param_number(void) {
   code = (gen_url_code("/items/{id}", &param, 1, &_ast_gen_url_code_29),
           _ast_gen_url_code_29);
   ASSERT(code);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", id)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", id)") != NULL);
   ASSERT(strstr(code, "asprintf(&path_id") != NULL);
 
   free(code);

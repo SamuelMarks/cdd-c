@@ -62,8 +62,8 @@ TEST test_write_union_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Check for switch on tag */
@@ -113,8 +113,8 @@ TEST test_write_union_from_json_object(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
@@ -166,8 +166,8 @@ TEST test_write_union_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "json_parse_string"));
@@ -212,8 +212,8 @@ TEST test_write_union_array_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "case ArrU_vals:"));
@@ -255,8 +255,8 @@ TEST test_write_union_array_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "case JSONArray"));
@@ -298,8 +298,8 @@ TEST test_write_union_array_cleanup(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "case ArrU_vals:"));
@@ -341,8 +341,8 @@ TEST test_write_union_cleanup_switch(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "switch (obj->tag)"));
@@ -384,8 +384,8 @@ TEST test_root_array_string_cleanup(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(
@@ -424,8 +424,8 @@ TEST test_root_array_int_from_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "cdd_c_error_t IntArr_from_json(const char *json, "
@@ -464,8 +464,8 @@ TEST test_root_array_obj_to_json(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "Obj_to_json(in[i], &tmp)"));
@@ -507,8 +507,8 @@ TEST test_union_guards(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "#ifdef JSON_G"));
@@ -1732,8 +1732,13 @@ TEST test_types_uncovered(void) {
     int t_idx;
     const char *arr_types[] = {"integer", "number",  "string", "object",
                                "boolean", "unknown", "enum"};
-    const char *arr_refs[] = {NULL, NULL, NULL,    "ObjType",
-                              NULL, NULL, "MyEnum"};
+    const char *arr_refs[] = {(char *)(char *)NULL,
+                              (char *)(char *)NULL,
+                              (char *)(char *)NULL,
+                              "ObjType",
+                              (char *)(char *)NULL,
+                              (char *)(char *)NULL,
+                              "MyEnum"};
     for (t_idx = 0; t_idx < 7; ++t_idx) {
       struct_fields_init(&sf);
       struct_fields_add(&sf, "arr", "array", arr_types[t_idx], arr_refs[t_idx],

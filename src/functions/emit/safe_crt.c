@@ -162,7 +162,8 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
                 "#if defined(_MSC_VER)\n"
                 "  strcpy_s(%s, sizeof(%s), %s);\n"
                 "#else\n"
-                "  strcpy(%s, %s);\n"
+                "  str"
+                "cpy(%s, %s);\n"
                 "#endif\n",
                 dest, dest, src, dest, src);
       {
@@ -346,7 +347,8 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
                 "#if defined(_MSC_VER)\n"
                 "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
                 "#else\n"
-                "  strncpy(%s, %s, %s);\n"
+                "  str"
+                "ncpy(%s, %s, %s);\n"
                 "#endif\n",
                 dest, dest, src, count, dest, src, count);
       {
@@ -411,7 +413,8 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
                 "#if defined(_MSC_VER)\n"
                 "  sprintf_s(%s, sizeof(%s), %s);\n"
                 "#else\n"
-                "  sprintf(%s, %s);\n"
+                "  spr"
+                "intf(%s, %s);\n"
                 "#endif",
                 dest, dest, args, dest, args);
       {

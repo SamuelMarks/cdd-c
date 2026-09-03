@@ -36,7 +36,7 @@ TEST test_cdd_cst_mutate_replace(void) {
   int rc;
   cdd_cst_node_t *target;
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 

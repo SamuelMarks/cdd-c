@@ -28,7 +28,7 @@ extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
  * @return TEST
  */
 TEST test_sync_code_wrong_args(void) {
-  char *argv[] = {"program", NULL};
+  char *argv[] = {"program", (char *)(char *)NULL};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();

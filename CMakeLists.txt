@@ -1,7 +1,7 @@
 message(STATUS "RUNNING cdd-c CMakeLists.txt")
 
 cmake_minimum_required(VERSION 3.11)
-project(c_cdd VERSION 0.0.2 LANGUAGES C)
+project(c_cdd VERSION 0.0.2 LANGUAGES C CXX)
 
 string(TOUPPER "${PROJECT_NAME}" PROJECT_PREFIX)
 string(REPLACE "-" "_" PROJECT_PREFIX "${PROJECT_PREFIX}")
@@ -183,9 +183,10 @@ if(MSVC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 19.0)
 endif()
 
 if(MSVC)
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /Gy )
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /WX /Gy)
 else()
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -pedantic  -Wdeclaration-after-statement )
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -Werror -pedantic -Wdeclaration-after-statement)
+    target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE __STDC_VERSION__=0)
 endif()
 
 if((${PROJECT_NAME_UPPER}_CHARSET STREQUAL "Unicode"))

@@ -32,7 +32,7 @@ static cdd_c_error_t find_allocs(const char *code,
   struct TokenList *tl = NULL;
   int rc;
   az_span source;
-  source = az_span_create_from_str((char *)(size_t)code);
+  source = az_span_create_from_str(code);
 
   (void)rc;
   if (tokenize(source, &tl) != 0)

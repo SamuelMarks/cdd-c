@@ -96,8 +96,8 @@ TEST test_writer_enum_and_required(void) {
   int rc;
 
   (void)rc;
-  names[0] = (char *)"Color";
-  names[1] = (char *)"Car";
+  names[0] = "Color";
+  names[1] = "Car";
 
   struct_fields_init(&schemas[0]);
   schemas[0].is_enum = 1;

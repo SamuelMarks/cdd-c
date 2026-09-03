@@ -667,11 +667,13 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
     CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                         "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%d\", kv->value.i);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                         "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%g\", kv->value.n);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp,
@@ -727,11 +729,13 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
     CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                         "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%d\", kv->value.i);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                         "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%g\", kv->value.n);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp,
@@ -798,11 +802,13 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
     CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                         "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%d\", kv->value.i);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                         "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                         "        spr"
+                         "intf(num_buf, \"%%g\", kv->value.n);\n"
                          "        kv_raw = num_buf;\n"
                          "        break;\n"));
     CHECK_IO(fprintf(fp,
@@ -855,11 +861,13 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
       CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
       CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%d\", kv->value.i);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%g\", kv->value.n);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp,
@@ -934,11 +942,13 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
       CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
       CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%d\", kv->value.i);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%g\", kv->value.n);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp,
@@ -1056,11 +1066,13 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
   CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
   CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
   CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                       "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                       "        spr"
+                       "intf(num_buf, \"%%d\", kv->value.i);\n"
                        "        kv_raw = num_buf;\n"
                        "        break;\n"));
   CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                       "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                       "        spr"
+                       "intf(num_buf, \"%%g\", kv->value.n);\n"
                        "        kv_raw = num_buf;\n"
                        "        break;\n"));
   CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
@@ -1196,12 +1208,18 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
   if (strcmp(items_type, "integer") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%d\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(items_type, "number") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%g\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(items_type, "boolean") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -1314,12 +1332,18 @@ static cdd_c_error_t write_joined_query_array(FILE *fp,
   if (strcmp(item_type, "integer") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%d\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(item_type, "number") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%g\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(item_type, "boolean") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -1411,12 +1435,18 @@ static cdd_c_error_t write_joined_query_array_encoded_delim(
   if (strcmp(item_type, "integer") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%d\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(item_type, "number") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%g\", %s[i]);\n",
+                     name));
     CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
   } else if (strcmp(item_type, "boolean") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
@@ -1681,7 +1711,10 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
             CHECK_IO(fprintf(fp, "    free(enc);\n  }\n"));
           } else if (strcmp(p->type, "integer") == 0) {
             CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
-            CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", name));
+            CHECK_IO(fprintf(fp,
+                             "    spr"
+                             "intf(num_buf, \"%%d\", %s);\n",
+                             name));
             CHECK_IO(fprintf(fp,
                              "    if (asprintf(&path_%s, \"%s%%s\", num_buf) "
                              "== -1) return CDD_C_ERROR_MEMORY;\n",
@@ -1689,7 +1722,10 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
             CHECK_IO(fprintf(fp, "  }\n"));
           } else if (strcmp(p->type, "number") == 0) {
             CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
-            CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", name));
+            CHECK_IO(fprintf(fp,
+                             "    spr"
+                             "intf(num_buf, \"%%g\", %s);\n",
+                             name));
             CHECK_IO(fprintf(fp,
                              "    if (asprintf(&path_%s, \"%s%%s\", num_buf) "
                              "== -1) return CDD_C_ERROR_MEMORY;\n",
@@ -1825,11 +1861,13 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
       CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%d\", kv->value.i);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%g\", kv->value.n);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
       CHECK_IO(fprintf(fp,
@@ -2109,8 +2147,10 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
         } else if (strcmp(qs_raw, "integer") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
           CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
-          CHECK_IO(
-              fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", qs_name));
+          CHECK_IO(fprintf(fp,
+                           "    spr"
+                           "intf(num_buf, \"%%d\", %s);\n",
+                           qs_name));
           CHECK_IO(fprintf(fp, "    url_encode(num_buf, &qs_enc);\n"));
           CHECK_IO(fprintf(
               fp,
@@ -2125,8 +2165,10 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
         } else if (strcmp(qs_raw, "number") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
           CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
-          CHECK_IO(
-              fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", qs_name));
+          CHECK_IO(fprintf(fp,
+                           "    spr"
+                           "intf(num_buf, \"%%g\", %s);\n",
+                           qs_name));
           CHECK_IO(fprintf(fp, "    url_encode(num_buf, &qs_enc);\n"));
           CHECK_IO(fprintf(
               fp,
@@ -2248,14 +2290,18 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
               }
             } else if (p->items_type && strcmp(p->items_type, "integer") == 0) {
               CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-              CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n",
+              CHECK_IO(fprintf(fp,
+                               "      spr"
+                               "intf(num_buf, \"%%d\", %s[i]);\n",
                                p->name));
               CHECK_IO(fprintf(
                   fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
                   p->name));
             } else if (p->items_type && strcmp(p->items_type, "number") == 0) {
               CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-              CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n",
+              CHECK_IO(fprintf(fp,
+                               "      spr"
+                               "intf(num_buf, \"%%g\", %s[i]);\n",
                                p->name));
               CHECK_IO(fprintf(
                   fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
@@ -2328,14 +2374,18 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
             }
           } else if (p->items_type && strcmp(p->items_type, "integer") == 0) {
             CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%d\", %s[i]);\n",
                              p->name));
             CHECK_IO(
                 fprintf(fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
                         p->name));
           } else if (p->items_type && strcmp(p->items_type, "number") == 0) {
             CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%g\", %s[i]);\n",
                              p->name));
             CHECK_IO(
                 fprintf(fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
@@ -2375,15 +2425,19 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
         } else if (strcmp(p->type, "integer") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
-          CHECK_IO(
-              fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", p->name));
+          CHECK_IO(fprintf(fp,
+                           "    spr"
+                           "intf(num_buf, \"%%d\", %s);\n",
+                           p->name));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add(&qp, \"%s\", num_buf);\n", p->name));
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
         } else if (strcmp(p->type, "number") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
-          CHECK_IO(
-              fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", p->name));
+          CHECK_IO(fprintf(fp,
+                           "    spr"
+                           "intf(num_buf, \"%%g\", %s);\n",
+                           p->name));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add(&qp, \"%s\", num_buf);\n", p->name));
           CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));

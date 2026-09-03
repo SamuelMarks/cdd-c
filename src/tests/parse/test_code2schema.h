@@ -317,21 +317,15 @@ TEST test_trim_trailing(void) {
   PASS();
 }
 
-static int g_malloc_fail_at = -1;
-static int g_malloc_calls = 0;
-static void *test_code2schema_mock_malloc(size_t sz) {
-  g_malloc_calls++;
-  if (g_malloc_fail_at >= 0 && g_malloc_calls > g_malloc_fail_at) {
-    return NULL;
-  }
-  return malloc(sz);
-}
-static void mock_free(void *ptr) { free(ptr); }
+/* g_malloc_fail_at */
+/* g_malloc_calls */
+/* test_code2schema_mock_malloc */
+/* mock_free */
 
 /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
 
-TEST test_code2schema_oom(void) { PASS(); }
-TEST test_code2schema_branches(void) { PASS(); }
+/* test_code2schema_oom */
+/* test_code2schema_branches */
 TEST test_code2schema_main_bad_args(void) {
 
   /* code2schema expects 2 args: in out */

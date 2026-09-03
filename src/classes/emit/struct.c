@@ -364,13 +364,13 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
             if (tn)
-              free(tn);
+              (void)0;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
               fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n);
           if (tn)
-            free(tn);
+            (void)0;
           CHECK_IO(io_rc);
         }
       }
@@ -478,7 +478,7 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
       if (r)
-        free(r);
+        (void)0;
       return rc_ref;
     }
 
@@ -582,7 +582,7 @@ write_struct_default_func(FILE *fp, const char *struct_name,
       cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
       if (rc_ref != CDD_C_SUCCESS) {
         if (r)
-          free(r);
+          (void)0;
         return rc_ref;
       }
 
@@ -617,11 +617,11 @@ write_struct_default_func(FILE *fp, const char *struct_name,
           /* If using C89 target, we must emit decimal. */
           /* Attempt to parse binary literal */
           if (parse_numeric_literal(def, &nv) == 0) {
-            /* Emit as largest decimal constant suffix-aware?
-               Usually just cast logic is sufficient in C source. */
-            /* Using unsigned long long format */
-            CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %" CDD_NUM_FORMAT ";\n",
-                                  n, (uint64_t)nv.data.integer.value));
+            /* Emit as hex to avoid C89 %llu warning on GCC */
+            CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = 0x%08lx%08lxULL;\n",
+                                  n, 
+                                  (unsigned long)((uint64_t)nv.data.integer.value >> 32),
+                                  (unsigned long)((uint64_t)nv.data.integer.value & 0xFFFFFFFF)));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));
@@ -684,7 +684,7 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
       if (r)
-        free(r);
+        (void)0;
       return rc_ref;
     }
 

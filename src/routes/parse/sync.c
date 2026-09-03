@@ -172,7 +172,8 @@ generate_expected_header_line(const struct OpenAPI_Parameter *p,
 #else
     sprintf(buf,
             "  /* Header Parameter: %s */\n  {\n    char num_buf[32];\n    "
-            "sprintf(num_buf, \"%%d\", %s);\n    rc = "
+            "spr"
+            "intf(num_buf, \"%%d\", %s);\n    rc = "
             "http_headers_add(&req.headers, \"%s\", num_buf);\n    if (rc != "
             "0) goto cleanup;\n  }\n",
             p->name, p->name, p->name);

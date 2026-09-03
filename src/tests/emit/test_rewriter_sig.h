@@ -27,7 +27,7 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   char *output = NULL;
   int rc;
   az_span source;
-  source = az_span_create_from_str((char *)(size_t)input);
+  source = az_span_create_from_str(input);
 
   (void)rc;
   if (tokenize(source, &tl) != 0)
@@ -58,7 +58,7 @@ static int test_rewrite_error(const char *input) {
   int rc;
 
   (void)rc;
-  if (tokenize(az_span_create_from_str((char *)(size_t)input), &tl) != 0)
+  if (tokenize(az_span_create_from_str(input), &tl) != 0)
     return CDD_C_ERROR_UNKNOWN;
 
   rc = rewrite_signature(tl, &output);

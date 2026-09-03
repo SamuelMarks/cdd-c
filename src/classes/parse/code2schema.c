@@ -6629,10 +6629,12 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
 #else
                 sprintf(nested_name, "%s_%s", struct_name, nested_prop_name);
 #endif
-                cdd_c_error_t rc_coll = collapse_arrays(&nested_sf);
-                if (rc_coll != CDD_C_SUCCESS) {
-                  struct_fields_free(&nested_sf);
-                  return rc_coll;
+                {
+                  cdd_c_error_t rc_coll = collapse_arrays(&nested_sf);
+                  if (rc_coll != CDD_C_SUCCESS) {
+                    struct_fields_free(&nested_sf);
+                    return rc_coll;
+                  }
                 }
                 write_struct_to_json_schema(schemas_obj, nested_name,
                                             &nested_sf);
@@ -6647,10 +6649,12 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                   return rc_c2s;
               }
             }
-            cdd_c_error_t rc_coll = collapse_arrays(&sf);
-            if (rc_coll != CDD_C_SUCCESS) {
-              struct_fields_free(&sf);
-              return rc_coll;
+            {
+              cdd_c_error_t rc_coll = collapse_arrays(&sf);
+              if (rc_coll != CDD_C_SUCCESS) {
+                struct_fields_free(&sf);
+                return rc_coll;
+              }
             }
             {
               cdd_c_error_t rc_c2s =

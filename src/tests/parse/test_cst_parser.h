@@ -1190,8 +1190,7 @@ TEST test_cst_parser_extra(void) {
       size_t j;
       for (j = 0; j < sizeof(abrupts) / sizeof(abrupts[0]); j++) {
         cdd_cst_tree_t *t_abrupt = NULL;
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t)abrupts[j]),
-                      &t_abrupt);
+        cdd_cst_parse(az_span_create_from_str(abrupts[j]), &t_abrupt);
         if (t_abrupt)
           cdd_cst_tree_free(t_abrupt);
       }
@@ -1275,7 +1274,7 @@ TEST test_cst_parser_extra(void) {
 
       cdd_cst_tree_t *t_dummy = NULL;
       g_cdd_cst_realloc_fail = 1000000;
-      cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &t_dummy);
+      cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
       printf("Total REALLOCs in snippet: %d\n",
              1000000 - g_cdd_cst_realloc_fail);
       g_cdd_cst_realloc_fail = 0;
@@ -1285,8 +1284,8 @@ TEST test_cst_parser_extra(void) {
       g_cdd_alloc_fail = 1000000;
       t_dummy = NULL;
       {
-        int debug_rc = cdd_cst_parse(
-            az_span_create_from_str((char *)(size_t)snippet), &t_dummy);
+        int debug_rc =
+            cdd_cst_parse(az_span_create_from_str(snippet), &t_dummy);
         printf("Total ALLOCs in snippet: %d, RC=%d\n",
                1000000 - g_cdd_alloc_fail, debug_rc);
       }
@@ -1303,8 +1302,7 @@ TEST test_cst_parser_extra(void) {
           cdd_c_error_t rc;
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
+          rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           if (tree)
             cdd_cst_tree_free(tree);
           if (rc == CDD_C_SUCCESS)
@@ -1316,8 +1314,7 @@ TEST test_cst_parser_extra(void) {
           cdd_c_error_t rc;
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
+          rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           if (tree)
             cdd_cst_tree_free(tree);
           if (rc == CDD_C_SUCCESS)
@@ -1329,8 +1326,7 @@ TEST test_cst_parser_extra(void) {
           cdd_c_error_t rc;
           tree = NULL;
           g_cdd_cst_alloc_token_fail = i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
+          rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           if (tree)
             cdd_cst_tree_free(tree);
           if (rc == CDD_C_SUCCESS)
@@ -1342,8 +1338,7 @@ TEST test_cst_parser_extra(void) {
           cdd_c_error_t parse_rc;
           tree = NULL;
           g_cdd_cst_realloc_fail = i;
-          parse_rc = cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)snippet), &tree);
+          parse_rc = cdd_cst_parse(az_span_create_from_str(snippet), &tree);
           if (tree)
             cdd_cst_tree_free(tree);
           if (parse_rc == CDD_C_SUCCESS)

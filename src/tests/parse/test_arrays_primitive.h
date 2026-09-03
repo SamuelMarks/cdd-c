@@ -81,7 +81,7 @@ TEST test_generated_copy_logic(void) {
   write_struct_from_jsonObject_func(tmp, "ArrayStruct", &sf, NULL);
   /* Rewind and read */
   fseek(tmp, 0, SEEK_END);
-  output_len = ftell(tmp);
+  output_len = (size_t)ftell(tmp);
   rewind(tmp);
 
   output_buf = malloc(output_len + 1); if (!output_buf) FAILm("OOM");
@@ -138,7 +138,7 @@ TEST test_code2schema_array_detection(void) {
     char *argv[2];
     cdd_c_error_t result;
     argv[0] = "test_array.h";
-    argv[1] = (char *)json_out_file;
+    argv[1] = json_out_file;
     /* clang-format on */
     result = code2schema_main(2, argv);
     printf("code2schema_main returned %d\n", result);
@@ -162,7 +162,7 @@ TEST test_code2schema_array_detection(void) {
 #endif
   ASSERT(f);
   fseek(f, 0, SEEK_END);
-  len = ftell(f);
+  len = (size_t)ftell(f);
   rewind(f);
   json_content = (char *)malloc(len + 1);
   if (!json_content)

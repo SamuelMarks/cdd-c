@@ -28,7 +28,7 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc = tokenize(az_span_create_from_str((char *)(size_t)code), &tl);
+  int rc = tokenize(az_span_create_from_str(code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
     return 0;

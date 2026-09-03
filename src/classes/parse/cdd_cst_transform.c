@@ -75,8 +75,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
     cdd_cst_tree_t *top_tree = NULL;
     const char *top_str =
         "\n#ifdef __cplusplus\nextern \"C\" {\n#endif /* __cplusplus */\n";
-    if (cdd_cst_parse(az_span_create_from_str((char *)top_str), &top_tree) ==
-        0) {
+    if (cdd_cst_parse(az_span_create_from_str((char *)(char *)top_str),
+                      &top_tree) == 0) {
       if (top_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
         /* Insert all children of the parsed fragment */
@@ -107,8 +107,8 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   {
     cdd_cst_tree_t *bot_tree = NULL;
     const char *bot_str = "\n#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n";
-    if (cdd_cst_parse(az_span_create_from_str((char *)bot_str), &bot_tree) ==
-        0) {
+    if (cdd_cst_parse(az_span_create_from_str((char *)(char *)bot_str),
+                      &bot_tree) == 0) {
       if (bot_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
         if (cdd_cst_clone_tree(tree, bot_tree->root->children[0].val.node,
@@ -156,11 +156,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           if (inc_tok->length == 10 &&
               memcmp(inc_tok->start, "<unistd.h>", 10) == 0) {
             cdd_cst_tree_t *wrap_tree = NULL;
-            if (cdd_cst_parse(
-                    az_span_create_from_str("#ifndef _MSC_VER\n#include "
-                                            "<unistd.h>\n#else\n#include "
-                                            "\"win_compat_sym.h\"\n#endif\n"),
-                    &wrap_tree) == 0) {
+            if (cdd_cst_parse(az_span_create_from_str(
+                                  (char *)"#ifndef _MSC_VER\n#include "
+                                          "<unistd.h>\n#else\n#include "
+                                          "\"win_compat_sym.h\"\n#endif\n"),
+                              &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
                 rc = cdd_cst_clone_tree(
@@ -182,11 +182,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
           } else if (inc_tok->length == 12 &&
                      memcmp(inc_tok->start, "<sys/time.h>", 12) == 0) {
             cdd_cst_tree_t *wrap_tree = NULL;
-            if (cdd_cst_parse(
-                    az_span_create_from_str("#ifndef _MSC_VER\n#include "
-                                            "<sys/time.h>\n#else\n#include "
-                                            "\"win_compat_sym.h\"\n#endif\n"),
-                    &wrap_tree) == 0) {
+            if (cdd_cst_parse(az_span_create_from_str(
+                                  (char *)"#ifndef _MSC_VER\n#include "
+                                          "<sys/time.h>\n#else\n#include "
+                                          "\"win_compat_sym.h\"\n#endif\n"),
+                              &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
                 rc = cdd_cst_clone_tree(

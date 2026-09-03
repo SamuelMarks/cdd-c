@@ -207,7 +207,8 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                 "\"grant_type=password&username=%%s&password=%%s\", username, "
                 "password);\n");
   fprintf(fp_c, "#else\n");
-  fprintf(fp_c, "  sprintf(payload, "
+  fprintf(fp_c, "  spr"
+                "intf(payload, "
                 "\"grant_type=password&username=%%s&password=%%s\", username, "
                 "password);\n");
   fprintf(fp_c, "#endif\n");

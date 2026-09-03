@@ -34,7 +34,7 @@ TEST test_weaver_wrap_ifdef_basic(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -66,7 +66,7 @@ TEST test_weaver_wrap_ifdef_else(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -124,7 +124,7 @@ TEST test_weaver_inject_msvc_headers(void) {
   int res;
   char *out_code = NULL;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -170,7 +170,7 @@ TEST test_weaver_vla_to_alloca(void) {
   size_t end_idx = 0;
   size_t i;
 
-  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
+  res = tokenize(az_span_create_from_str(src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -546,7 +546,7 @@ TEST test_weaver_cov(void) {
 
   /* Test # include with spaces and no trailing newline */
   const char *src1 = "#    include <stdio.h>";
-  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);
@@ -565,7 +565,7 @@ TEST test_weaver_cov(void) {
   /* Test #ident that is not include */
   {
     const char *src2 = "#define X 1";
-    res = tokenize(az_span_create_from_str((char *)(size_t)src2), &tokens);
+    res = tokenize(az_span_create_from_str(src2), &tokens);
     ASSERT_EQ(0, res);
 
     res = patch_list_init(&patches);
@@ -584,7 +584,7 @@ TEST test_weaver_cov(void) {
     /* Test vla_to_alloca edge cases */
     {
       const char *src3 = "int a[5];";
-      res = tokenize(az_span_create_from_str((char *)(size_t)src3), &tokens);
+      res = tokenize(az_span_create_from_str(src3), &tokens);
       ASSERT_EQ(0, res);
 
       res = patch_list_init(&patches);
@@ -617,7 +617,7 @@ TEST test_weaver_cov_more(void) {
 
   /* Test # at the end of file (covers j == tokens->size) */
   const char *src1 = "#";
-  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   (void)out_code;
   ASSERT_EQ(0, res);
 
@@ -653,7 +653,7 @@ TEST test_weaver_cov_even_more(void) {
 
   /* Test # followed by non-identifier */
   const char *src1 = "# 123";
-  res = tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens);
+  res = tokenize(az_span_create_from_str(src1), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&patches);

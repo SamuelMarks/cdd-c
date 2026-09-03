@@ -35,7 +35,7 @@ TEST test_cdd_transform_macros(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -68,7 +68,7 @@ TEST test_cdd_transform_macros_operators(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -120,7 +120,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
   for (k = 1; k < 500; k++) {
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+    cdd_cst_parse(az_span_create_from_str(code), &tree);
 #ifdef CDD_BUILD_TESTS
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
@@ -137,7 +137,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
   for (k = 1; k < 500; k++) {
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+    cdd_cst_parse(az_span_create_from_str(code), &tree);
 #ifdef CDD_BUILD_TESTS
     /* extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail; (moved to global) */
     /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
@@ -158,7 +158,7 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
 
     /* Fail on FOO */
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+    cdd_cst_parse(az_span_create_from_str(code), &tree);
     g_cdd_query_err_fail = 1;
     rc = cdd_transform_macros(tree, &config);
     g_cdd_query_err_fail = 0;

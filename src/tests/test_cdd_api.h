@@ -17,8 +17,8 @@ extern "C" {
 TEST test_cdd_generate_from_openapi(void) {
   cdd_from_openapi_config_t config = {0};
 
-  config.input = "nonexistent.json";
-  config.output = "out";
+  config.input = (char *)"nonexistent.json";
+  config.output = (char *)"out";
   config.subcommand = "to_sdk";
   cdd_generate_from_openapi(&config);
 
@@ -59,7 +59,7 @@ TEST test_cdd_generate_to_openapi(void) {
 TEST test_cdd_generate_docs_json(void) {
   cdd_docs_json_config_t config = {0};
 
-  config.input = "nonexistent.json";
+  config.input = (char *)"nonexistent.json";
   config.output = "out.json";
   config.no_imports = 1;
   config.no_wrapping = 1;
@@ -99,9 +99,13 @@ TEST test_bin_cdd(void) {
 extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
+#include "cdd_test_helpers_export.h"
+extern CDD_TEST_HELPERS_EXPORT int g_mock_oom_countdown;
+
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
+  size_t i;
   printf("START: g_fail_io_after=%d, g_mock_oom_countdown=%d\n",
          g_fail_io_after, g_mock_oom_countdown);
   const char *langs[] = {"python",  "rust",    "csharp",      "typescript",
@@ -116,7 +120,6 @@ TEST test_cdd_generate_bindings(void) {
                          "tcl",     "fortran", "delphi",      "pascal",
                          "ada",     "objc",    "objective-c", "crystal",
                          "all",     "*"};
-  size_t i;
 
   /* NULL config / args */
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(NULL));

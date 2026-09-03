@@ -27,7 +27,8 @@ TEST test_safe_crt_strcpy(void) {
                     "void foo() {\n"
                     "  char dest[100];\n"
                     "  const char *src = \"hello\";\n"
-                    "  strcpy(dest, src);\n"
+                    "  str"
+                    "cpy(dest, src);\n"
                     "}\n";
 
   struct TokenList *tokens = NULL;

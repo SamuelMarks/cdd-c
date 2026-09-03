@@ -13,13 +13,18 @@ extern "C" {
 #include <c_cdd_export.h>
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
-#if 0
-#else
-#define C_CDD_MALLOC(sz) malloc(sz)
-#define C_CDD_CALLOC(n, sz) calloc((n), (sz))
-#define C_CDD_REALLOC(p, sz) realloc((p), (sz))
+#if 1
+#define C_CDD_MALLOC(sz)                                                       \
+  ((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL : malloc(sz))
+#define C_CDD_CALLOC(n, sz)                                                    \
+  ((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL : calloc((n), (sz)))
+#define C_CDD_REALLOC(p, sz)                                                   \
+  ((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL : realloc((p), (sz)))
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 #define C_CDD_STRDUP(s)                                                        \
-  ((char *)memcpy(malloc(strlen(s) + 1), (s), strlen(s) + 1))
+  ((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)                               \
+       ? NULL                                                                  \
+       : ((char *)memcpy(malloc(strlen(s) + 1), (s), strlen(s) + 1)))
 #endif /* CDD_BUILD_TESTS */
 
 #define C_CDD_FREE(p) free(p)

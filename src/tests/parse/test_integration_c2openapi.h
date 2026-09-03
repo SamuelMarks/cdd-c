@@ -40,14 +40,13 @@ TEST test_c2openapi_full_flow(void) {
   tempdir((char **)&tmp_dir);
   /* Use %c for PATH_SEP_C */
   asprintf((char **)&src_dir, "%s%cc2o_test_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   /* 1. Write Data Models */
-  write_to_file((char *)(size_t)h_file,
-                (char *)(size_t) "struct User { int id; char *name; };\n");
+  write_to_file(h_file, "struct User { int id; char *name; };\n");
 
   /* 2. Write Implementation with Annotations */
   write_to_file(
@@ -114,7 +113,7 @@ TEST test_c2openapi_full_flow(void) {
 
   /* 4. Verify JSON */
   {
-    JSON_Value *root = json_parse_file((char *)(size_t)out_json);
+    JSON_Value *root = json_parse_file(out_json);
     JSON_Object *obj;
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
@@ -279,10 +278,10 @@ TEST test_c2openapi_full_flow(void) {
   }
 
   /* Cleanup */
-  remove((char *)(size_t)c_file);
-  remove((char *)(size_t)h_file);
-  remove((char *)(size_t)out_json);
-  _rmdir((char *)(size_t)src_dir);
+  remove(c_file);
+  remove(h_file);
+  remove(out_json);
+  rmdir(src_dir);
   free((void *)(size_t)c_file);
   free((void *)(size_t)h_file);
   free((void *)(size_t)out_json);
@@ -306,53 +305,49 @@ TEST test_c2openapi_with_base_spec(void) {
   (void)rc;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_base_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
   asprintf(&base_json, "%s%cbase.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)h_file,
-                (char *)(size_t) "struct User { int id; char *name; };\n");
+  write_to_file(h_file, "struct User { int id; char *name; };\n");
 
-  write_to_file(
-      (char *)(size_t)c_file,
-      (char *)(size_t) "#include \"models.h\"\n"
-                       "/**\n"
-                       " * @route GET /users/{id}\n"
-                       " * @summary Get a user by ID\n"
-                       " * @tag users\n"
-                       " * @param id [in:path] The user ID\n"
-                       " */\n"
-                       ""
-                       "int api_get_user(int id, struct User **out) {\n"
-                       "  return 0;\n"
-                       "}\n");
+  write_to_file(c_file, "#include \"models.h\"\n"
+                        "/**\n"
+                        " * @route GET /users/{id}\n"
+                        " * @summary Get a user by ID\n"
+                        " * @tag users\n"
+                        " * @param id [in:path] The user ID\n"
+                        " */\n"
+                        ""
+                        "int api_get_user(int id, struct User **out) {\n"
+                        "  return 0;\n"
+                        "}\n");
 
-  write_to_file(
-      (char *)(size_t)base_json,
-      (char *)(size_t) "{\n"
-                       "  \"openapi\": \"3.2.0\",\n"
-                       "  \"$self\": \"https://example.com/openapi.json\",\n"
-                       "  \"jsonSchemaDialect\": "
-                       "\"https://spec.openapis.org/oas/3.1/dialect/base\",\n"
-                       "  \"info\": {\"title\": \"Base API\", \"version\": "
-                       "\"9.9.9\", "
-                       "\"summary\": \"Base summary\"},\n"
-                       "  \"servers\": [{\"url\": "
-                       "\"https://api.example.com/v1\", "
-                       "\"name\": \"prod\"}],\n"
-                       "  \"tags\": [{\"name\": \"users\", \"description\": "
-                       "\"User "
-                       "operations\", \"kind\": \"nav\"}],\n"
-                       "  \"components\": {\n"
-                       "    \"securitySchemes\": {\n"
-                       "      \"api_key\": {\"type\": \"apiKey\", \"name\": "
-                       "\"X-API-Key\", \"in\": \"header\"}\n"
-                       "    }\n"
-                       "  },\n"
-                       "  \"paths\": {}\n"
-                       "}\n");
+  write_to_file(base_json,
+                "{\n"
+                "  \"openapi\": \"3.2.0\",\n"
+                "  \"$self\": \"https://example.com/openapi.json\",\n"
+                "  \"jsonSchemaDialect\": "
+                "\"https://spec.openapis.org/oas/3.1/dialect/base\",\n"
+                "  \"info\": {\"title\": \"Base API\", \"version\": "
+                "\"9.9.9\", "
+                "\"summary\": \"Base summary\"},\n"
+                "  \"servers\": [{\"url\": "
+                "\"https://api.example.com/v1\", "
+                "\"name\": \"prod\"}],\n"
+                "  \"tags\": [{\"name\": \"users\", \"description\": "
+                "\"User "
+                "operations\", \"kind\": \"nav\"}],\n"
+                "  \"components\": {\n"
+                "    \"securitySchemes\": {\n"
+                "      \"api_key\": {\"type\": \"apiKey\", \"name\": "
+                "\"X-API-Key\", \"in\": \"header\"}\n"
+                "    }\n"
+                "  },\n"
+                "  \"paths\": {}\n"
+                "}\n");
 
   {
     char *argv[5]; /* ... */
@@ -367,7 +362,7 @@ TEST test_c2openapi_with_base_spec(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file((char *)(size_t)out_json);
+    JSON_Value *root = json_parse_file(out_json);
     JSON_Object *obj;
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
@@ -403,11 +398,11 @@ TEST test_c2openapi_with_base_spec(void) {
     json_value_free(root);
   }
 
-  remove((char *)(size_t)c_file);
-  remove((char *)(size_t)h_file);
-  remove((char *)(size_t)out_json);
-  remove((char *)(size_t)base_json);
-  _rmdir((char *)(size_t)src_dir);
+  remove(c_file);
+  remove(h_file);
+  remove(out_json);
+  remove(base_json);
+  rmdir(src_dir);
   free((void *)(size_t)c_file);
   free((void *)(size_t)h_file);
   free((void *)(size_t)out_json);
@@ -431,22 +426,20 @@ TEST test_c2openapi_with_self_uri(void) {
   (void)rc;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_self_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&h_file, "%s%cmodels.h", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)h_file,
-                (char *)(size_t) "struct User { int id; char *name; };\n");
-  write_to_file(
-      (char *)(size_t)c_file,
-      (char *)(size_t) "#include \"models.h\"\n"
-                       "/**\n"
-                       " * @route GET /users\n"
-                       " * @summary List users\n"
-                       " */\n"
-                       ""
-                       "int api_list_users(struct User **out) { return 0; }\n");
+  write_to_file(h_file, "struct User { int id; char *name; };\n");
+  write_to_file(c_file,
+                "#include \"models.h\"\n"
+                "/**\n"
+                " * @route GET /users\n"
+                " * @summary List users\n"
+                " */\n"
+                ""
+                "int api_list_users(struct User **out) { return 0; }\n");
 
   {
     char *argv[5]; /* ... */
@@ -461,7 +454,7 @@ TEST test_c2openapi_with_self_uri(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file((char *)(size_t)out_json);
+    JSON_Value *root = json_parse_file(out_json);
     JSON_Object *obj;
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
@@ -470,10 +463,10 @@ TEST test_c2openapi_with_self_uri(void) {
     json_value_free(root);
   }
 
-  remove((char *)(size_t)c_file);
-  remove((char *)(size_t)h_file);
-  remove((char *)(size_t)out_json);
-  _rmdir((char *)(size_t)src_dir);
+  remove(c_file);
+  remove(h_file);
+  remove(out_json);
+  rmdir(src_dir);
   free((void *)(size_t)c_file);
   free((void *)(size_t)h_file);
   free((void *)(size_t)out_json);
@@ -495,7 +488,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   (void)rc;
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_global_%d", tmp_dir, PATH_SEP_C, rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
@@ -527,7 +520,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   }
 
   {
-    JSON_Value *root = json_parse_file((char *)(size_t)out_json);
+    JSON_Value *root = json_parse_file(out_json);
     JSON_Object *obj;
     JSON_Object *scheme;
     JSON_Array *sec_arr;
@@ -568,9 +561,9 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     json_value_free(root);
   }
 
-  remove((char *)(size_t)c_file);
-  remove((char *)(size_t)out_json);
-  _rmdir((char *)(size_t)src_dir);
+  remove(c_file);
+  remove(out_json);
+  rmdir(src_dir);
   free((void *)(size_t)c_file);
   free((void *)(size_t)out_json);
   free((void *)(size_t)src_dir);
@@ -594,13 +587,13 @@ TEST test_c2o_cli_source_file_checks(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&txt_file, "%s%cnotes.txt", src_dir, PATH_SEP_C);
   asprintf(&no_ext_file, "%s%cREADME", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t) "int foo(void);\n");
+  write_to_file(c_file, "int foo(void);\n");
   write_to_file(txt_file, "just some notes");
   write_to_file(no_ext_file, "no extension here");
 
@@ -616,11 +609,11 @@ TEST test_c2o_cli_source_file_checks(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
+    remove(c_file);
     remove(txt_file);
     remove(no_ext_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free(txt_file);
     free(no_ext_file);
@@ -639,7 +632,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   const char *snippets[] = {
       "/**\n * @securityScheme my_bad_sec\n */\nint foo1(void);\n",
       "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint "
-      "foo2(void);\n",
+      "foo2(void);\n"
       "/**\n * @securityScheme my_http [type:http] [in:unknownIn]\n */\nint "
       "foo3(void);\n",
       "/**\n * @securityScheme my_apikey [type:apiKey] [in:unknownIn]\n "
@@ -684,7 +677,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -693,7 +686,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                i);
-      write_to_file((char *)(size_t)c_file, (char *)(size_t)snippets[i]);
+      write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
 
@@ -713,11 +706,11 @@ TEST test_c2o_cli_doc_sec_unset(void) {
         char *c_file = NULL;
         asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                  i);
-        remove((char *)(size_t)c_file);
+        remove(c_file);
         free((void *)(size_t)c_file);
       }
-      remove((char *)(size_t)out_json);
-      _rmdir((char *)(size_t)src_dir);
+      remove(out_json);
+      rmdir(src_dir);
       free((void *)(size_t)out_json);
       free((void *)(size_t)src_dir);
       free((void *)(size_t)tmp_dir);
@@ -746,11 +739,11 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -764,9 +757,9 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -803,11 +796,11 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -821,9 +814,9 @@ TEST test_c2o_cli_mappings_errors_find(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -852,11 +845,11 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -870,9 +863,9 @@ TEST test_c2o_cli_set_str_mismatch(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -903,11 +896,11 @@ TEST test_c2o_cli_server_variables(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -921,9 +914,9 @@ TEST test_c2o_cli_server_variables(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -955,11 +948,11 @@ TEST test_c2o_cli_server_variables_validation(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -973,9 +966,9 @@ TEST test_c2o_cli_server_variables_validation(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -1010,11 +1003,11 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
-  write_to_file((char *)(size_t)c_file, (char *)(size_t)src);
+  write_to_file(c_file, src);
 
   {
     char *argv[3]; /* ... */
@@ -1028,9 +1021,9 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
     }
     ASSERT_EQ(0, rc);
 
-    remove((char *)(size_t)c_file);
-    remove((char *)(size_t)out_json);
-    _rmdir((char *)(size_t)src_dir);
+    remove(c_file);
+    remove(out_json);
+    rmdir(src_dir);
     free((void *)(size_t)c_file);
     free((void *)(size_t)out_json);
     free((void *)(size_t)src_dir);
@@ -1046,7 +1039,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   int rc;
   const char *snippets[] = {
       "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
-      "*/\nint foo21(void);\n", /* Missing authorizationUrl */
+      "*/\nint foo21(void);\n" /* Missing authorizationUrl */
       "/**\n * @securityScheme oauth_bad2 [type:oauth2] [flow:password]\n "
       "*/\nint foo22(void);\n", /* Missing tokenUrl */
       "/**\n * @securityScheme oauth_bad3 [type:oauth2] "
@@ -1071,7 +1064,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -1080,7 +1073,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                i);
-      write_to_file((char *)(size_t)c_file, (char *)(size_t)snippets[i]);
+      write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
 
@@ -1100,11 +1093,11 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
         char *c_file = NULL;
         asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                  i);
-        remove((char *)(size_t)c_file);
+        remove(c_file);
         free((void *)(size_t)c_file);
       }
-      remove((char *)(size_t)out_json);
-      _rmdir((char *)(size_t)src_dir);
+      remove(out_json);
+      rmdir(src_dir);
       free((void *)(size_t)out_json);
       free((void *)(size_t)src_dir);
       free((void *)(size_t)tmp_dir);
@@ -1152,7 +1145,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   tempdir((char **)&tmp_dir);
   asprintf((char **)&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C,
            rand());
-  makedir((char *)(size_t)src_dir);
+  makedir(src_dir);
   asprintf((char **)&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
 
   {
@@ -1161,7 +1154,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       char *c_file = NULL;
       asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                i);
-      write_to_file((char *)(size_t)c_file, (char *)(size_t)snippets[i]);
+      write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
 
@@ -1181,11 +1174,11 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
         char *c_file = NULL;
         asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
                  i);
-        remove((char *)(size_t)c_file);
+        remove(c_file);
         free((void *)(size_t)c_file);
       }
-      remove((char *)(size_t)out_json);
-      _rmdir((char *)(size_t)src_dir);
+      remove(out_json);
+      rmdir(src_dir);
       free((void *)(size_t)out_json);
       free((void *)(size_t)src_dir);
       free((void *)(size_t)tmp_dir);

@@ -27,9 +27,16 @@ extern "C" {
 #define CDD_PRIz "u"
 #endif
 #else
+#if (defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__) || defined(__LP64__) || defined(_LP64)) && !defined(_WIN32)
+#define CDD_PRId64 "ld"
+#define CDD_PRIu64 "lu"
+#define CDD_PRIx64 "lx"
+#else
 #define CDD_PRId64 "lld"
 #define CDD_PRIu64 "llu"
 #define CDD_PRIx64 "llx"
+#endif
+
 #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
 #if defined(_WIN32) /* MinGW64 */
 #define CDD_PRIz "llu"

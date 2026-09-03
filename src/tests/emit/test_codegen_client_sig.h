@@ -57,9 +57,9 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
+    content = (char *)calloc(1, (size_t)sz + 1);
     if (sz > 0)
-      if (fread(content, 1, sz, tmp)) {
+      if (fread(content, 1, (size_t)sz, tmp)) {
       }
 
     if (tmp)
@@ -137,7 +137,7 @@ TEST test_sig_verify_apierror(void) {
   char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
-  op.operation_id = (char *)"do";
+  op.operation_id = "do";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
   ASSERT(code);

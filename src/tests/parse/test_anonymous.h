@@ -63,7 +63,7 @@ TEST test_lift_anonymous_struct(void) {
 #endif
       ASSERT(f);
       fseek(f, 0, SEEK_END);
-      sz = ftell(f);
+      sz = (size_t)ftell(f);
       rewind(f);
       content = (char *)malloc(sz + 1);
       if (!content)

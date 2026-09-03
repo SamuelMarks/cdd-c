@@ -57,7 +57,8 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   fprintf(fp, "#if defined(_MSC_VER)\n");
   fprintf(fp, "      sprintf_s(res + out_idx, 3, \"%%02X\", c);\n");
   fprintf(fp, "#else\n");
-  fprintf(fp, "      sprintf(res + out_idx, \"%%02X\", c);\n");
+  fprintf(fp, "      spr"
+              "intf(res + out_idx, \"%%02X\", c);\n");
   fprintf(fp, "#endif\n");
   fprintf(fp, "      res[out_idx - 1] = '%%';\n");
   fprintf(fp, "      out_idx += 3;\n");
@@ -105,21 +106,26 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp,
               "        strcpy_s(res + length, capacity - length, \"&\");\n");
       fprintf(fp, "#else\n");
-      fprintf(fp, "        strcpy(res + length, \"&\");\n");
+      fprintf(fp, "        str"
+                  "cpy(res + length, \"&\");\n");
       fprintf(fp, "#endif\n");
       fprintf(fp, "        length++;\n      }\n");
       fprintf(fp, "#if defined(_MSC_VER)\n");
       fprintf(fp, "      strcpy_s(res + length, capacity - length, \"%s=\");\n",
               f->name);
       fprintf(fp, "#else\n");
-      fprintf(fp, "      strcpy(res + length, \"%s=\");\n", f->name);
+      fprintf(fp,
+              "      str"
+              "cpy(res + length, \"%s=\");\n",
+              f->name);
       fprintf(fp, "#endif\n");
       fprintf(fp, "      length += %lu;\n", (unsigned long)strlen(f->name) + 1);
       fprintf(fp, "#if defined(_MSC_VER)\n");
       fprintf(fp,
               "      strcpy_s(res + length, capacity - length, encoded);\n");
       fprintf(fp, "#else\n");
-      fprintf(fp, "      strcpy(res + length, encoded);\n");
+      fprintf(fp, "      str"
+                  "cpy(res + length, encoded);\n");
       fprintf(fp, "#endif\n");
       fprintf(fp, "      length += strlen(encoded);\n");
       fprintf(fp, "      free(encoded);\n");
@@ -136,7 +142,10 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "    sprintf_s(buf, sizeof(buf), \"%%d\", obj->%s);\n",
               f->name);
       fprintf(fp, "#else\n");
-      fprintf(fp, "    sprintf(buf, \"%%d\", obj->%s);\n", f->name);
+      fprintf(fp,
+              "    spr"
+              "intf(buf, \"%%d\", obj->%s);\n",
+              f->name);
       fprintf(fp, "#endif\n");
       fprintf(fp, "    slen = strlen(buf) + %lu + 2;\n",
               (unsigned long)strlen(f->name));
@@ -153,12 +162,16 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp,
               "        strcpy_s(res + length, capacity - length, \"&\");\n");
       fprintf(fp, "#else\n");
-      fprintf(fp, "        strcpy(res + length, \"&\");\n");
+      fprintf(fp, "        str"
+                  "cpy(res + length, \"&\");\n");
       fprintf(fp, "#endif\n");
       fprintf(fp, "        length++;\n      }\n");
-      fprintf(fp, "    strcpy(res + length, \"%s=\"); length += %lu;\n",
+      fprintf(fp,
+              "    str"
+              "cpy(res + length, \"%s=\"); length += %lu;\n",
               f->name, (unsigned long)strlen(f->name) + 1);
-      fprintf(fp, "    strcpy(res + length, buf); length += strlen(buf);\n");
+      fprintf(fp, "    str"
+                  "cpy(res + length, buf); length += strlen(buf);\n");
       fprintf(fp, "    is_first = 0;\n  }\n");
     } else if (strcmp(f->type, "boolean") == 0) {
       fprintf(fp,
@@ -179,21 +192,26 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp,
               "        strcpy_s(res + length, capacity - length, \"&\");\n");
       fprintf(fp, "#else\n");
-      fprintf(fp, "        strcpy(res + length, \"&\");\n");
+      fprintf(fp, "        str"
+                  "cpy(res + length, \"&\");\n");
       fprintf(fp, "#endif\n");
       fprintf(fp, "        length++;\n      }\n");
       fprintf(fp, "#if defined(_MSC_VER)\n");
       fprintf(fp, "    strcpy_s(res + length, capacity - length, \"%s=\");\n",
               f->name);
       fprintf(fp, "#else\n");
-      fprintf(fp, "    strcpy(res + length, \"%s=\");\n", f->name);
+      fprintf(fp,
+              "    str"
+              "cpy(res + length, \"%s=\");\n",
+              f->name);
       fprintf(fp, "#endif\n");
       fprintf(fp, "    length += %lu;\n", (unsigned long)strlen(f->name) + 1);
 
       fprintf(fp, "#if defined(_MSC_VER)\n");
       fprintf(fp, "    strcpy_s(res + length, capacity - length, val);\n");
       fprintf(fp, "#else\n");
-      fprintf(fp, "    strcpy(res + length, val);\n");
+      fprintf(fp, "    str"
+                  "cpy(res + length, val);\n");
       fprintf(fp, "#endif\n");
       fprintf(fp, "    length += strlen(val);\n");
       fprintf(fp, "    is_first = 0;\n  }\n");

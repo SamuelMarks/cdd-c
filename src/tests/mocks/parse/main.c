@@ -34,6 +34,7 @@ static const char *const foo_e_mock0 =
  */
 int main(void) {
   const enum Tank t = Tank_BIG;
+  enum cdd_c_error rc;
 
   char *tank_as_str = NULL;
   struct HazE haz_e = {"some_bzr", Tank_SMALL};
@@ -51,24 +52,38 @@ int main(void) {
   if (haz_e0 == NULL || foo_e0 == NULL)
     return CDD_C_ERROR_MEMORY;
 
-  assert(Tank_to_str(t, &tank_as_str) == CDD_C_SUCCESS);
+  rc = Tank_to_str(t, &tank_as_str);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   assert(strcmp(tank_as_str, "BIG") == 0);
   free(tank_as_str);
 
-  assert(HazE_to_json(&haz_e, &haz_e_json) == CDD_C_SUCCESS);
+  rc = HazE_to_json(&haz_e, &haz_e_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   assert(strcmp(haz_e_json, haz_e_mock0) == 0);
   free(haz_e_json);
 
-  assert(HazE_from_json(haz_e_mock0, &haz_e0) == CDD_C_SUCCESS);
-  assert(HazE_eq(haz_e0, &haz_e) == CDD_C_SUCCESS);
+  rc = HazE_from_json(haz_e_mock0, &haz_e0);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = HazE_eq(haz_e0, &haz_e);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   free(haz_e0);
 
-  assert(FooE_to_json(&foo_e, &foo_e_json) == CDD_C_SUCCESS);
+  rc = FooE_to_json(&foo_e, &foo_e_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   assert(strcmp(foo_e_json, foo_e_mock0) == 0);
   free(foo_e_json);
 
-  assert(FooE_from_json(foo_e_mock0, &foo_e0) == CDD_C_SUCCESS);
-  assert(FooE_eq(foo_e0, &foo_e) == CDD_C_SUCCESS);
+  rc = FooE_from_json(foo_e_mock0, &foo_e0);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = FooE_eq(foo_e0, &foo_e);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   free(foo_e0);
 
   return EXIT_SUCCESS;

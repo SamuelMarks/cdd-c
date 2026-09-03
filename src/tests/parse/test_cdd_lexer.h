@@ -25,8 +25,7 @@ extern C_CDD_EXPORT int g_cdd_lexer_id_fail;
 TEST test_cdd_lexer_basic(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "int main() { /* comment */\n  return 0;\n}";
-  int rc =
-      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
+  int rc = cdd_lexer_tokenize(az_span_create_from_str(code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -171,8 +170,7 @@ TEST test_cdd_lexer_multiline_macro(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#define FOO(x) \\\n  do { \\\n    x++; // incr \\\n  } "
                      "while(0)\nint main(){}";
-  int rc =
-      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
+  int rc = cdd_lexer_tokenize(az_span_create_from_str(code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -195,8 +193,7 @@ TEST test_cdd_lexer_multiline_macro(void) {
 TEST test_cdd_lexer_include_next(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#include_next <stdio.h>\n";
-  int rc =
-      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
+  int rc = cdd_lexer_tokenize(az_span_create_from_str(code), &list);
 
   ASSERT_EQ(0, rc);
   ASSERT(list != NULL);
@@ -305,14 +302,13 @@ TEST test_lexer_branches(void) {
   const char *code;
   const char *code2;
   code = "int\r\nmain() { /* c1 */ /* c2 */ }";
-  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code), &list);
+  rc = cdd_lexer_tokenize(az_span_create_from_str(code), &list);
   (void)rc;
   cdd_lexer_free_token_list(list);
 
   list = NULL;
   code2 = "/* multiline \r\n comment *";
-  rc =
-      cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)code2), &list);
+  rc = cdd_lexer_tokenize(az_span_create_from_str(code2), &list);
   cdd_lexer_free_token_list(list);
 
   list = NULL;

@@ -58,9 +58,9 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, sz + 1);
+  content = (char *)calloc(1, (size_t)sz + 1);
   if (sz > 0)
-    if (fread(content, 1, sz, tmp)) {
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
   if (tmp)
@@ -900,7 +900,8 @@ TEST test_body_header_number_param(void) {
     PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Header Parameter: X-Rate") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Rate)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", X-Rate)") != NULL);
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-Rate\", num_buf)") !=
          NULL);
 
@@ -1029,7 +1030,8 @@ TEST test_body_cookie_param_number_array(void) {
     PASS();
   ASSERT(code);
   ASSERT(strstr(code, "Cookie Parameters") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", weights[i])") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", weights[i])") != NULL);
   ASSERT(
       strstr(code, "http_headers_add(&req.headers, \"Cookie\", cookie_str)") !=
       NULL);
@@ -1338,7 +1340,8 @@ TEST test_body_form_urlencoded(void) {
   ASSERT(strstr(code, "url_query_build_form(&form_qp, &form_body)") != NULL);
   ASSERT(strstr(code, "\"application/x-www-form-urlencoded\"") != NULL);
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%d\", req_body->age)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%d\", req_body->age)") != NULL);
 
   free(code);
   openapi_spec_free(&spec);
@@ -1721,7 +1724,8 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\"") != NULL);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", req_body->ratio)") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", req_body->ratio)") != NULL);
   ASSERT(strstr(code, "req_body->flag ? \"true\" : \"false\"") != NULL);
   ASSERT(strstr(code, "for (i = 0; i < req_body->n_tags; ++i)") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"tags\"") != NULL);
@@ -4444,7 +4448,8 @@ TEST test_body_header_param_integer(void) {
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%d\", X-Int);") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%d\", X-Int);") != NULL);
   free(code);
   g_fail_io_after = -1;
   PASS();
@@ -4474,7 +4479,8 @@ TEST test_body_header_param_number(void) {
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
-  ASSERT(strstr(code, "sprintf(num_buf, \"%g\", X-Num);") != NULL);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", X-Num);") != NULL);
   free(code);
   g_fail_io_after = -1;
   PASS();

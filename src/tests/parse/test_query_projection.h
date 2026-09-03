@@ -31,8 +31,8 @@ TEST test_query_projection_add_field(void) {
 
   ASSERT_EQ(0, cdd_c_query_projection_init(&proj));
 
-  field.name = (char *)"id";
-  field.original_name = (char *)"user_id";
+  field.name = "id";
+  field.original_name = "user_id";
   field.type = SQL_TYPE_INT;
   field.is_aggregate = 0;
 

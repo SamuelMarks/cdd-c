@@ -72,7 +72,12 @@ TEST test_cbuild_basic_output(void) {
   struct CodegenBuildConfig config;
   const char *sources[] = {"client.c", "models.c"};
   long sz;
-  char *content = NULL;
+  char *content_str = NULL;
+  (void)config;
+  (void)sources;
+
+  (void)sz;
+  (void)content_str;
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
@@ -88,28 +93,30 @@ TEST test_cbuild_basic_output(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
-  ASSERT(content);
-  if (fread(content, 1, sz, tmp)) {
+  content_str = (char *)calloc(1, (size_t)sz + 1);
+  ASSERT(content_str);
+  if (fread(content_str, 1, (size_t)sz, tmp)) {
   }
 
   /* Verification */
-  ASSERT(strstr(content, "project(PetStore C)"));
-  ASSERT(strstr(content, "add_library(petstore_lib client.c models.c)"));
-  ASSERT(strstr(content, "option(BUILD_SHARED_LIBS \"Build shared libs\" ON)"));
+  ASSERT(strstr(content_str, "project(PetStore C)"));
+  ASSERT(strstr(content_str, "add_library(petstore_lib client.c models.c)"));
+  ASSERT(strstr(content_str,
+                "option(BUILD_SHARED_LIBS \"Build shared libs\" ON)"));
 
   /* Backend logic check */
-  ASSERT(strstr(
-      content, "target_compile_definitions(petstore_lib PRIVATE USE_WININET)"));
-  ASSERT(strstr(content, "elseif(ANDROID)"));
-  ASSERT(strstr(content, "find_library(log-lib log)"));
-  ASSERT(strstr(content, "elseif(APPLE)"));
-  ASSERT(strstr(content, "find_library(CFNETWORK_LIBRARY CFNetwork)"));
-  ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
-  ASSERT(strstr(content,
+  ASSERT(
+      strstr(content_str,
+             "target_compile_definitions(petstore_lib PRIVATE USE_WININET)"));
+  ASSERT(strstr(content_str, "elseif(ANDROID)"));
+  ASSERT(strstr(content_str, "find_library(log-lib log)"));
+  ASSERT(strstr(content_str, "elseif(APPLE)"));
+  ASSERT(strstr(content_str, "find_library(CFNETWORK_LIBRARY CFNetwork)"));
+  ASSERT(strstr(content_str, "find_package(CURL REQUIRED)"));
+  ASSERT(strstr(content_str,
                 "target_link_libraries(petstore_lib PRIVATE CURL::libcurl)"));
 
-  free(content);
+  free(content_str);
   if (tmp)
     fclose(tmp);
   g_fail_io_after = -1;
@@ -125,6 +132,12 @@ TEST test_cbuild_unsupported(void) {
   FILE *tmp;
   struct CodegenBuildConfig config;
   const char *sources[] = {"client.c", "models.c"};
+  long sz;
+  char *content_str = NULL;
+  (void)config;
+  (void)sources;
+  (void)sz;
+  (void)content_str;
 
   memset(&config, 0, sizeof(config));
   config.project_name = "PetStore";
@@ -234,8 +247,16 @@ TEST test_cbuild_io_failure(void) {
   FILE *tmp;
   struct CodegenBuildConfig config;
   const char *sources[] = {"client.c", "models.c"};
+  long sz;
+  char *content_str = NULL;
+  (void)config;
+  (void)sources;
+  (void)config;
+  (void)sources;
   int i;
   int rc;
+  (void)sz;
+  (void)content_str;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   (void)rc;

@@ -491,7 +491,7 @@ TEST test_schema_keyword_passthrough(void) {
 
     {
 
-      JSON_Object *pattern_props;
+      JSON_Object *pattern_props; (void)pattern_props;
       pattern_props = json_object_get_object(spec, "patternProperties");
       /* ASSERT(pattern_props != NULL); */
       /* pat_schema = json_object_get_object(pattern_props, "^x-");
@@ -608,7 +608,7 @@ TEST test_schema_allof_keyword_merge(void) {
 
       JSON_Object *props;
       JSON_Object *id_prop;
-      JSON_Object *pattern_props;
+      JSON_Object *pattern_props; (void)pattern_props;
       merged = json_object_get_object(schemas_obj, "Merged");
       ASSERT(merged != NULL);
       /* ASSERT(json_object_has_value(merged, "additionalProperties"));

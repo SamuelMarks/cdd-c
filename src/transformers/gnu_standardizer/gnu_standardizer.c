@@ -1165,14 +1165,14 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, "(");
               {
                 char tb2[128];
-                CDD_SNPRINTF(tb2, 128, "0x%" CDD_PRIx64 "ULL", (uint64_t)high);
+                CDD_SNPRINTF(tb2, 128, "0x%08lx%08lxULL", (unsigned long)(high >> 32), (unsigned long)(high & 0xFFFFFFFF));
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
               {
                 char tb2[128];
-                CDD_SNPRINTF(tb2, 128, "0x%" CDD_PRIx64 "ULL", (uint64_t)low);
+                CDD_SNPRINTF(tb2, 128, "0x%08lx%08lxULL", (unsigned long)(low >> 32), (unsigned long)(low & 0xFFFFFFFF));
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ")");

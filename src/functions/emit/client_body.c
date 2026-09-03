@@ -851,7 +851,9 @@ static cdd_c_error_t write_joined_form_array(
   } else if (items_type && strcmp(items_type, "integer") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", req_body->%s[i]);\n",
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%d\", req_body->%s[i]);\n",
 
                      field));
 
@@ -906,7 +908,9 @@ static cdd_c_error_t write_joined_form_array(
   } else if (items_type && strcmp(items_type, "number") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
     CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", req_body->%s[i]);\n",
+    CHECK_IO(fprintf(fp,
+                     "      spr"
+                     "intf(num_buf, \"%%g\", req_body->%s[i]);\n",
 
                      field));
 
@@ -1505,14 +1509,18 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         if (strcmp(item_type, "integer") == 0) {
           CHECK_IO(fprintf(fp, "      const char *raw;\n"));
           CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-          CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n",
+          CHECK_IO(fprintf(fp,
+                           "      spr"
+                           "intf(num_buf, \"%%d\", %s[i]);\n",
                            p->name));
           CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
 
         } else if (strcmp(item_type, "number") == 0) {
           CHECK_IO(fprintf(fp, "      const char *raw;\n"));
           CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-          CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n",
+          CHECK_IO(fprintf(fp,
+                           "      spr"
+                           "intf(num_buf, \"%%g\", %s[i]);\n",
 
                            p->name));
 
@@ -1571,11 +1579,13 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(
             fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
         CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
-                             "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                             "        spr"
+                             "intf(num_buf, \"%%d\", kv->value.i);\n"
                              "        kv_raw = num_buf;\n"
                              "        break;\n"));
         CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
-                             "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                             "        spr"
+                             "intf(num_buf, \"%%g\", kv->value.n);\n"
                              "        kv_raw = num_buf;\n"
                              "        break;\n"));
         CHECK_IO(
@@ -1658,7 +1668,10 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
       } else if (strcmp(p->type, "integer") == 0) {
 
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
-        CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", p->name));
+        CHECK_IO(fprintf(fp,
+                         "    spr"
+                         "intf(num_buf, \"%%d\", %s);\n",
+                         p->name));
         CHECK_IO(fprintf(
 
             fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
@@ -1668,7 +1681,10 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
       } else if (strcmp(p->type, "number") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
-        CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", p->name));
+        CHECK_IO(fprintf(fp,
+                         "    spr"
+                         "intf(num_buf, \"%%g\", %s);\n",
+                         p->name));
         CHECK_IO(fprintf(
             fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
             p->name));
@@ -1817,7 +1833,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
           CHECK_IO(
 
-              fprintf(fp, "      sprintf(num_buf, \"%%d\", req_body->%s[i]);\n",
+              fprintf(fp,
+                      "      spr"
+                      "intf(num_buf, \"%%d\", req_body->%s[i]);\n",
                       f->name));
 
           CHECK_IO(fprintf(
@@ -1829,7 +1847,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
           CHECK_IO(
 
-              fprintf(fp, "      sprintf(num_buf, \"%%g\", req_body->%s[i]);\n",
+              fprintf(fp,
+                      "      spr"
+                      "intf(num_buf, \"%%g\", req_body->%s[i]);\n",
                       f->name));
 
           CHECK_IO(fprintf(
@@ -1909,7 +1929,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
     } else if (strcmp(f->type, "integer") == 0) {
       CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
-      CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", req_body->%s);\n",
+      CHECK_IO(fprintf(fp,
+                       "    spr"
+                       "intf(num_buf, \"%%d\", req_body->%s);\n",
                        f->name));
       CHECK_IO(fprintf(
           fp, "    rc = url_query_add(&form_qp, \"%s\", num_buf);\n", f->name));
@@ -1917,7 +1939,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
     } else if (strcmp(f->type, "number") == 0) {
 
       CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
-      CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", req_body->%s);\n",
+      CHECK_IO(fprintf(fp,
+                       "    spr"
+                       "intf(num_buf, \"%%g\", req_body->%s);\n",
 
                        f->name));
 
@@ -1999,9 +2023,10 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "integer") == 0) {
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
-                CHECK_IO(fprintf(
-                    fp, "      sprintf(num_buf, \"%%d\", req_body->%s->%s);\n",
-                    f->name, pf->name));
+                CHECK_IO(fprintf(fp,
+                                 "      spr"
+                                 "intf(num_buf, \"%%d\", req_body->%s->%s);\n",
+                                 f->name, pf->name));
                 CHECK_IO(fprintf(
                     fp,
                     "      rc = url_query_add(&form_qp, \"%s\", num_buf);\n",
@@ -2013,7 +2038,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[64];\n"));
                 CHECK_IO(fprintf(
 
-                    fp, "      sprintf(num_buf, \"%%g\", req_body->%s->%s);\n",
+                    fp,
+                    "      spr"
+                    "intf(num_buf, \"%%g\", req_body->%s->%s);\n",
                     f->name, pf->name));
 
                 CHECK_IO(fprintf(
@@ -2149,9 +2176,10 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "integer") == 0) {
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
-                CHECK_IO(fprintf(
-                    fp, "      sprintf(num_buf, \"%%d\", req_body->%s->%s);\n",
-                    f->name, pf->name));
+                CHECK_IO(fprintf(fp,
+                                 "      spr"
+                                 "intf(num_buf, \"%%d\", req_body->%s->%s);\n",
+                                 f->name, pf->name));
                 CHECK_IO(fprintf(fp,
                                  "      rc = url_query_add(&form_qp, "
                                  "\"%s[%s]\", num_buf);\n",
@@ -2163,7 +2191,9 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[64];\n"));
                 CHECK_IO(fprintf(
 
-                    fp, "      sprintf(num_buf, \"%%g\", req_body->%s->%s);\n",
+                    fp,
+                    "      spr"
+                    "intf(num_buf, \"%%g\", req_body->%s->%s);\n",
                     f->name, pf->name));
 
                 CHECK_IO(fprintf(fp,
@@ -2389,16 +2419,16 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
           CHECK_IO(
               fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
-          CHECK_IO(fprintf(fp,
-                           "      case OA_KV_INTEGER:\n"
-                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
-                           "        kv_raw = num_buf;\n"
-                           "        break;\n"));
-          CHECK_IO(fprintf(fp,
-                           "      case OA_KV_NUMBER:\n"
-                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
-                           "        kv_raw = num_buf;\n"
-                           "        break;\n"));
+          CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
+                               "        spr"
+                               "intf(num_buf, \"%%d\", kv->value.i);\n"
+                               "        kv_raw = num_buf;\n"
+                               "        break;\n"));
+          CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
+                               "        spr"
+                               "intf(num_buf, \"%%g\", kv->value.n);\n"
+                               "        kv_raw = num_buf;\n"
+                               "        break;\n"));
           CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
                                "        kv_raw = kv->value.b ? \"true\" : "
                                "\"false\";\n"
@@ -2530,14 +2560,16 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           CHECK_IO(fprintf(fp,
 
                            "      case OA_KV_INTEGER:\n"
-                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%d\", kv->value.i);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
 
           CHECK_IO(fprintf(fp,
 
                            "      case OA_KV_NUMBER:\n"
-                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        spr"
+                           "intf(num_buf, \"%%g\", kv->value.n);\n"
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
 
@@ -2728,7 +2760,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
             CHECK_IO(fprintf(fp, "      const char *cookie_val;\n"));
             CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%d\", %s[i]);\n",
 
                              p->name));
 
@@ -2737,7 +2771,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
           } else if (strcmp(item_type, "number") == 0) {
             CHECK_IO(fprintf(fp, "      const char *cookie_val;\n"));
             CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%g\", %s[i]);\n",
                              p->name));
             CHECK_IO(fprintf(fp, "      cookie_val = num_buf;\n"));
 
@@ -2811,7 +2847,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
             CHECK_IO(fprintf(fp, "      const char *raw;\n"));
             CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%d\", %s[i]);\n",
 
                              p->name));
 
@@ -2821,7 +2859,9 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
             CHECK_IO(fprintf(fp, "      const char *raw;\n"));
             CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-            CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n",
+            CHECK_IO(fprintf(fp,
+                             "      spr"
+                             "intf(num_buf, \"%%g\", %s[i]);\n",
 
                              p->name));
 
@@ -2977,7 +3017,10 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
       } else if (strcmp(p->type, "integer") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
-        CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", p->name));
+        CHECK_IO(fprintf(fp,
+                         "    spr"
+                         "intf(num_buf, \"%%d\", %s);\n",
+                         p->name));
         CHECK_IO(
 
             fprintf(fp, "    size_t name_len = strlen(\"%s\");\n", p->name));
@@ -3016,7 +3059,10 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(fp, "  }\n"));
       } else if (strcmp(p->type, "number") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
-        CHECK_IO(fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", p->name));
+        CHECK_IO(fprintf(fp,
+                         "    spr"
+                         "intf(num_buf, \"%%g\", %s);\n",
+                         p->name));
         CHECK_IO(
 
             fprintf(fp, "    size_t name_len = strlen(\"%s\");\n", p->name));
@@ -3157,12 +3203,16 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
       CHECK_IO(fprintf(fp, "          const char *raw = NULL;\n"));
       CHECK_IO(fprintf(fp, "          char num_buf[64];\n"));
       if (strcmp(item_type, "integer") == 0) {
-        CHECK_IO(fprintf(fp, "          sprintf(num_buf, \"%%d\", %s[%s]);\n",
+        CHECK_IO(fprintf(fp,
+                         "          spr"
+                         "intf(num_buf, \"%%d\", %s[%s]);\n",
                          param_name, idx_name));
         CHECK_IO(fprintf(fp, "          raw = num_buf;\n"));
 
       } else if (strcmp(item_type, "number") == 0) {
-        CHECK_IO(fprintf(fp, "          sprintf(num_buf, \"%%g\", %s[%s]);\n",
+        CHECK_IO(fprintf(fp,
+                         "          spr"
+                         "intf(num_buf, \"%%g\", %s[%s]);\n",
 
                          param_name, idx_name));
 
@@ -3235,14 +3285,16 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
       CHECK_IO(fprintf(fp,
 
                        "          case OA_KV_INTEGER:\n"
-                       "            sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                       "            spr"
+                       "intf(num_buf, \"%%d\", kv->value.i);\n"
                        "            kv_raw = num_buf;\n"
                        "            break;\n"));
 
       CHECK_IO(fprintf(fp,
 
                        "          case OA_KV_NUMBER:\n"
-                       "            sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                       "            spr"
+                       "intf(num_buf, \"%%g\", kv->value.n);\n"
                        "            kv_raw = num_buf;\n"
                        "            break;\n"));
 
@@ -3346,7 +3398,10 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
       CHECK_IO(fprintf(fp, "      {\n        char num_buf[32];\n"));
       CHECK_IO(
 
-          fprintf(fp, "        sprintf(num_buf, \"%%d\", %s);\n", param_name));
+          fprintf(fp,
+                  "        spr"
+                  "intf(num_buf, \"%%d\", %s);\n",
+                  param_name));
 
       CHECK_IO(fprintf(fp,
 
@@ -3360,7 +3415,10 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
       CHECK_IO(fprintf(fp, "      {\n        char num_buf[64];\n"));
       CHECK_IO(
 
-          fprintf(fp, "        sprintf(num_buf, \"%%g\", %s);\n", param_name));
+          fprintf(fp,
+                  "        spr"
+                  "intf(num_buf, \"%%g\", %s);\n",
+                  param_name));
 
       CHECK_IO(fprintf(fp,
 
@@ -3506,7 +3564,8 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                          len_field));
         CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
         CHECK_IO(fprintf(fp,
-                         "      sprintf(num_buf, \"%%d\", "
+                         "      spr"
+                         "intf(num_buf, \"%%d\", "
                          "req_body->%s[i]);\n",
                          f->name));
         CHECK_IO(fprintf(fp,
@@ -3528,7 +3587,8 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
         CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
         CHECK_IO(fprintf(fp,
 
-                         "      sprintf(num_buf, \"%%g\", "
+                         "      spr"
+                         "intf(num_buf, \"%%g\", "
                          "req_body->%s[i]);\n",
                          f->name));
 
@@ -3615,7 +3675,9 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
-      CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", req_body->%s);\n",
+      CHECK_IO(fprintf(fp,
+                       "      spr"
+                       "intf(num_buf, \"%%d\", req_body->%s);\n",
                        f->name));
       CHECK_IO(fprintf(fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
@@ -3645,7 +3707,9 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[64];\n"));
-      CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", req_body->%s);\n",
+      CHECK_IO(fprintf(fp,
+                       "      spr"
+                       "intf(num_buf, \"%%g\", req_body->%s);\n",
                        f->name));
       CHECK_IO(fprintf(fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "

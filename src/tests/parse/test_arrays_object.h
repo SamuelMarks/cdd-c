@@ -60,7 +60,7 @@ TEST test_generated_obj_array_logic(void) {
   write_struct_from_jsonObject_func(tmp, "Container", &sf, NULL);
 
   fseek(tmp, 0, SEEK_END);
-  output_len = ftell(tmp);
+  output_len = (size_t)ftell(tmp);
   rewind(tmp);
 
   output_buf = malloc(output_len + 1); if (!output_buf) FAILm("OOM");
@@ -121,7 +121,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
     /* clang-format on */
     char *argv[2];
     argv[0] = "test_obj_array.h";
-    argv[1] = (char *)json_out_file;
+    argv[1] = json_out_file;
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 
@@ -142,7 +142,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
 #endif
   ASSERT(f);
   fseek(f, 0, SEEK_END);
-  len = ftell(f);
+  len = (size_t)ftell(f);
   rewind(f);
   json_content = (char *)malloc(len + 1);
   if (!json_content)
@@ -190,7 +190,7 @@ TEST test_arrays_object_cleanup_generation(void) {
   write_struct_cleanup_func(tmp, "Container", &sf, NULL);
 
   fseek(tmp, 0, SEEK_END);
-  output_len = ftell(tmp);
+  output_len = (size_t)ftell(tmp);
   rewind(tmp);
 
   output_buf = malloc(output_len + 1);

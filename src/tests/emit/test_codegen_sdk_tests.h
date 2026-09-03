@@ -77,8 +77,8 @@ TEST test_gen_sdk_test_basic(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)C_CDD_CALLOC(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     /* Preamble check */

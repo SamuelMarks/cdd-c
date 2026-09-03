@@ -48,13 +48,12 @@ TEST test_audit_stats_init(void) {
 }
 
 TEST test_audit_single_file(void) {
+  int rc;
   char *sys_tmp = NULL;
   char *root = NULL;
   char *f_unchecked = NULL;
   struct AuditStats stats;
   (void)audit_stats_init(&stats);
-
-  int rc;
 
   /* Create explicit subdir to avoid walking /tmp */
   (void)rc;
@@ -182,10 +181,11 @@ TEST test_audit_return_alloc(void) {
 }
 
 TEST test_audit_json_output(void) {
-  struct AuditStats stats;
-  (void)audit_stats_init(&stats);
-
+  int rc;
   char *json = NULL;
+  struct AuditStats stats;
+  (void)rc;
+  (void)audit_stats_init(&stats);
 
   stats.files_scanned = 10;
   stats.allocations_checked = 20;
@@ -233,10 +233,10 @@ TEST test_audit_json_output(void) {
 }
 
 TEST test_audit_stats_null(void) {
+  char *_test_json = NULL;
   struct AuditStats stats;
   (void)audit_stats_init(&stats);
 
-  char *_test_json = (char *)1;
   (void)audit_stats_init(NULL); /* Should do nothing safely */
   audit_stats_free(NULL);       /* Should return safely */
 
@@ -333,10 +333,9 @@ TEST test_audit_edge_cases(void) {
 #endif
 
 TEST test_audit_extras(void) {
+  char *json = NULL;
   struct AuditStats stats;
   (void)audit_stats_init(&stats);
-
-  char *json = NULL;
 
   /* test tokenize failing */
   {
@@ -422,6 +421,7 @@ TEST test_audit_oom(void) {
     int i;
     int rc;
     char *json;
+    (void)rc;
 
     (void)rc;
     makedirs("test_audit_dir");

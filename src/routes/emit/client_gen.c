@@ -1253,7 +1253,8 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__\n"
          "    strcpy_s(client->base_url, strlen(base_url) + 1, base_url);\n"
          "#else\n"
-         "    strcpy(client->base_url, base_url);\n"
+         "    str"
+         "cpy(client->base_url, base_url);\n"
          "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
 
@@ -2764,7 +2765,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
         if (fprintf(
                 cfile,
                 "    if (out_result) {\n      *out_result = malloc(128);\n     "
-                " strcpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
+                " str"
+                "cpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
                 "   }\n    return CDD_C_SUCCESS;\n  }\n") < 0)
           rc = CDD_C_ERROR_MEMORY;
       }

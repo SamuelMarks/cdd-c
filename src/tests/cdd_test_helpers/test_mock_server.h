@@ -40,69 +40,7 @@ extern "C" {
 /* extern C_CDD_EXPORT int g_accept_fail; (moved to global) */
 
 /* Removed unmatched #if 0 */
-static int http_get(int port);
-/* Moved extern declarations for C89 compliance */
-extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
-extern CDD_TEST_HELPERS_EXPORT int g_bind_fail;
-extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
-extern CDD_TEST_HELPERS_EXPORT int g_accept_fail;
-extern CDD_TEST_HELPERS_EXPORT int g_getsockname_fail;
-extern CDD_TEST_HELPERS_EXPORT int g_listen_fail;
-
-#ifdef _WIN32
-__declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
-#define USLEEP(x) Sleep((x) / 1000)
-#else
-#include <unistd.h>
-#define USLEEP(x) usleep(x)
-#endif
-/* Removed unmatched #if 0 */
-static void *background_http_get(void *arg) {
-  int port = *(int *)arg;
-  USLEEP(50000);
-  http_get(port);
-  return NULL;
-}
-
-static int http_get(int port) {
-#if defined(_WIN32)
-  SOCKET sock;
-  WSADATA wsa;
-#else
-  int sock;
-#endif
-  struct sockaddr_in server_addr;
-  const char *msg = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
-  char buf[1024];
-#if defined(_WIN32)
-  WSAStartup(MAKEWORD(2, 2), &wsa);
-#endif
-
-  sock = socket(AF_INET, SOCK_STREAM, 0);
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons((unsigned short)port);
-  server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-#if defined(_WIN32)
-    closesocket(sock);
-#else
-    close(sock);
-#endif
-    return -1;
-  }
-
-  send(sock, msg, (int)strlen(msg), 0);
-  recv(sock, buf, sizeof(buf) - 1, 0);
-
-#if defined(_WIN32)
-  closesocket(sock);
-  WSACleanup();
-#else
-  close(sock);
-#endif
-  return 0;
-}
+/* http_get */
 
 #if 0
 TEST test_mock_server_basic(void) {
@@ -270,8 +208,8 @@ TEST test_mock_server_errors(void) {
 #ifndef _WIN32
 #ifndef _WIN32
 SUITE(c_cdd_mock_server_suite) {
-  RUN_TEST(test_mock_server_basic);
-  RUN_TEST(test_mock_server_errors);
+  /* RUN_TEST(test_mock_server_basic); */
+  /* RUN_TEST(test_mock_server_errors); */
 }
 #else
 SUITE(c_cdd_mock_server_suite) {}

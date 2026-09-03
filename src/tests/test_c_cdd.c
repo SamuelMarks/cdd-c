@@ -13,6 +13,14 @@
 #include "c_cdd_export.h"
 #include <errno.h>
 
+void mock_set_oom_after_calls(int calls);
+void mock_oom_reset_cb(void (*cb)(void));
+
+
+void mock_set_oom_after_calls(int calls);
+void mock_oom_reset_cb(void (*cb)(void));
+
+
 
 #include "c_cdd/memory.h"
 
@@ -568,20 +576,65 @@ int main(int argc, char **argv) {
 
   {
     cdd_cst_tree_t *tree = NULL;
-    const char *snippet =
-        "#ifdef A\n#elif B\n#else\n{ int z1; }\n{ int z2; }\n{ int z3; }\n{ "
-        "int z4; }\n{ int z5; }\n{ int z6; }\n{ int z7; }\n{ int z8; }\n{ int "
-        "z9; }\n{ int z10; }\n#endif\n#ifndef C\n{ int w; }\n#endif\n#define D "
-        "1\n#include <stdio.h>\n#pragma once\ntemplate <typename T1, typename "
-        "T2, typename T3, typename T4, typename T5, typename T6, typename T7, "
-        "typename T8, typename T9, typename T10>\nclass Foo : public Bar, "
-        "private Baz {\npublic:\n  void baz() noexcept(true) {}\n  ~Foo();\n  "
-        "int operator+(int);\nprotected:\n  int x;\nprivate:\n  int "
-        "y;\n};\nnamespace N {\n  using namespace std;\n  void f() {\n    try "
-        "{\n      throw 1;\n    } catch (int e) {\n    } catch (...) {\n    "
-        "}\n  }\n}\nint main() { asm(\"nop\"); return 0; }\n";
-    cdd_c_error_t rc =
-        cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &tree);
+    const char snippet[] = {
+        '#',  'i',  'f', 'd',  'e',  'f',  ' ',  'A',  '\n', '#',  'e',  'l',
+        'i',  'f',  ' ', 'B',  '\n', '#',  'e',  'l',  's',  'e',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '1',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '2',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '3',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '4',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '5',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '6',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '7',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '8',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '9',  ';',  ' ',  '}',  '\n', '{',
+        ' ',  'i',  'n', 't',  ' ',  'z',  '1',  '0',  ';',  ' ',  '}',  '\n',
+        '#',  'e',  'n', 'd',  'i',  'f',  '\n', '#',  'i',  'f',  'n',  'd',
+        'e',  'f',  ' ', 'C',  '\n', '{',  ' ',  'i',  'n',  't',  ' ',  'w',
+        ';',  ' ',  '}', '\n', '#',  'e',  'n',  'd',  'i',  'f',  '\n', '#',
+        'd',  'e',  'f', 'i',  'n',  'e',  ' ',  'D',  ' ',  '1',  '\n', '#',
+        'i',  'n',  'c', 'l',  'u',  'd',  'e',  ' ',  '<',  's',  't',  'd',
+        'i',  'o',  '.', 'h',  '>',  '\n', '#',  'p',  'r',  'a',  'g',  'm',
+        'a',  ' ',  'o', 'n',  'c',  'e',  '\n', 't',  'e',  'm',  'p',  'l',
+        'a',  't',  'e', ' ',  '<',  't',  'y',  'p',  'e',  'n',  'a',  'm',
+        'e',  ' ',  'T', '1',  ',',  ' ',  't',  'y',  'p',  'e',  'n',  'a',
+        'm',  'e',  ' ', 'T',  '2',  ',',  ' ',  't',  'y',  'p',  'e',  'n',
+        'a',  'm',  'e', ' ',  'T',  '3',  ',',  ' ',  't',  'y',  'p',  'e',
+        'n',  'a',  'm', 'e',  ' ',  'T',  '4',  ',',  ' ',  't',  'y',  'p',
+        'e',  'n',  'a', 'm',  'e',  ' ',  'T',  '5',  ',',  ' ',  't',  'y',
+        'p',  'e',  'n', 'a',  'm',  'e',  ' ',  'T',  '6',  ',',  ' ',  't',
+        'y',  'p',  'e', 'n',  'a',  'm',  'e',  ' ',  'T',  '7',  ',',  ' ',
+        't',  'y',  'p', 'e',  'n',  'a',  'm',  'e',  ' ',  'T',  '8',  ',',
+        ' ',  't',  'y', 'p',  'e',  'n',  'a',  'm',  'e',  ' ',  'T',  '9',
+        ',',  ' ',  't', 'y',  'p',  'e',  'n',  'a',  'm',  'e',  ' ',  'T',
+        '1',  '0',  '>', '\n', 'c',  'l',  'a',  's',  's',  ' ',  'F',  'o',
+        'o',  ' ',  ':', ' ',  'p',  'u',  'b',  'l',  'i',  'c',  ' ',  'B',
+        'a',  'r',  ',', ' ',  'p',  'r',  'i',  'v',  'a',  't',  'e',  ' ',
+        'B',  'a',  'z', ' ',  '{',  '\n', 'p',  'u',  'b',  'l',  'i',  'c',
+        ':',  '\n', ' ', ' ',  'v',  'o',  'i',  'd',  ' ',  'b',  'a',  'z',
+        '(',  ')',  ' ', 'n',  'o',  'e',  'x',  'c',  'e',  'p',  't',  '(',
+        't',  'r',  'u', 'e',  ')',  ' ',  '{',  '}',  '\n', ' ',  ' ',  '~',
+        'F',  'o',  'o', '(',  ')',  ';',  '\n', ' ',  ' ',  'i',  'n',  't',
+        ' ',  'o',  'p', 'e',  'r',  'a',  't',  'o',  'r',  '+',  '(',  'i',
+        'n',  't',  ')', ';',  '\n', 'p',  'r',  'o',  't',  'e',  'c',  't',
+        'e',  'd',  ':', '\n', ' ',  ' ',  'i',  'n',  't',  ' ',  'x',  ';',
+        '\n', 'p',  'r', 'i',  'v',  'a',  't',  'e',  ':',  '\n', ' ',  ' ',
+        'i',  'n',  't', ' ',  'y',  ';',  '\n', '}',  ';',  '\n', 'n',  'a',
+        'm',  'e',  's', 'p',  'a',  'c',  'e',  ' ',  'N',  ' ',  '{',  '\n',
+        ' ',  ' ',  'u', 's',  'i',  'n',  'g',  ' ',  'n',  'a',  'm',  'e',
+        's',  'p',  'a', 'c',  'e',  ' ',  's',  't',  'd',  ';',  '\n', ' ',
+        ' ',  'v',  'o', 'i',  'd',  ' ',  'f',  '(',  ')',  ' ',  '{',  '\n',
+        ' ',  ' ',  ' ', ' ',  't',  'r',  'y',  ' ',  '{',  '\n', ' ',  ' ',
+        ' ',  ' ',  ' ', ' ',  't',  'h',  'r',  'o',  'w',  ' ',  '1',  ';',
+        '\n', ' ',  ' ', ' ',  ' ',  '}',  ' ',  'c',  'a',  't',  'c',  'h',
+        ' ',  '(',  'i', 'n',  't',  ' ',  'e',  ')',  ' ',  '{',  '\n', ' ',
+        ' ',  ' ',  ' ', '}',  ' ',  'c',  'a',  't',  'c',  'h',  ' ',  '(',
+        '.',  '.',  '.', ')',  ' ',  '{',  '\n', ' ',  ' ',  ' ',  ' ',  '}',
+        '\n', ' ',  ' ', '}',  '\n', '}',  '\n', 'i',  'n',  't',  ' ',  'm',
+        'a',  'i',  'n', '(',  ')',  ' ',  '{',  ' ',  'a',  's',  'm',  '(',
+        '"',  'n',  'o', 'p',  '"',  ')',  ';',  ' ',  'r',  'e',  't',  'u',
+        'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
+    cdd_c_error_t rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
     printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
            "\n",
            rc, tree->root->num_children, tree->root->capacity);

@@ -183,8 +183,10 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
   long size;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  if (fopen_s(&f, filename, "rb") != 0)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (fopen_s(&f, filename, "rb") != 0) {
+    *out_val = NULL;
+    return CDD_C_SUCCESS;
+  }
 #else
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "rb");
@@ -441,7 +443,7 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
       char *line_start = str_buf;
       while (*line_start) {
         char *nl = strchr(line_start, '\n');
-        {
+        if (nl) {
           int l_len = (int)(nl - line_start);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
@@ -451,6 +453,15 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                            "+%.*s\n", l_len, line_start);
 #endif
           line_start = nl + 1;
+        } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
+                                  _TRUNCATE, "+%s\n", line_start);
+#else
+          diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
+                                           "+%s\n", line_start);
+#endif
+          break;
         }
       }
     }

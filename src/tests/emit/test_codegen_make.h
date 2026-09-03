@@ -53,8 +53,8 @@ TEST test_make_simple(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "project(test_client"));
@@ -99,8 +99,8 @@ TEST test_make_extra_sources(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "\"a.c\""));
@@ -179,7 +179,7 @@ TEST test_make_oom(void) {
   FILE *fp;
   struct MakeConfig config2 = {0};
   struct MakeConfig config3 = {0};
-  const char *srcs2[] = {NULL};
+  const char *srcs2[] = {(char *)(char *)NULL};
 #ifdef CDD_BUILD_TESTS
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;
@@ -188,7 +188,7 @@ TEST test_make_oom(void) {
 
   (void)rc;
   config.project_name = "proj";
-  config.extra_sources = (char **)srcs;
+  config.extra_sources = (char **)(size_t)srcs;
   config.extra_source_count = 2;
 
 #if defined(_MSC_VER)
@@ -233,7 +233,7 @@ TEST test_make_oom(void) {
   fp = fopen("test_make_out.txt", "w");
 #endif
   config3.project_name = "proj";
-  config3.extra_sources = (char **)srcs2;
+  config3.extra_sources = (char **)(size_t)srcs2;
   config3.extra_source_count = 1;
   ASSERT_EQ(0, codegen_make_generate(fp, &config3));
   if (fp)

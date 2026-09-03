@@ -31,10 +31,10 @@
  */
 C_CDD_EXPORT cdd_c_error_t cdd_transform_macros(
     cdd_cst_tree_t *tree, const cdd_transform_config_t *config) {
-  (void)config;
   cdd_cst_query_result_t calls;
   size_t i;
   cdd_c_error_t rc;
+  (void)config;
 
   if (!tree || !tree->root)
     return CDD_C_ERROR_INVALID_ARGUMENT;

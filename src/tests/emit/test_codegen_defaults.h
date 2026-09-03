@@ -257,8 +257,8 @@ TEST test_default_binary_literal(void) {
   /* Should emit decimal values for C89 compatibility */
   /* Note: Assumes numeric_parser available and linked */
   /* Verify conversion */
-  ASSERT(strstr(code, "(*out)->bin_val = 5;"));
-  ASSERT(strstr(code, "(*out)->bin_cap = 3;"));
+  ASSERT(strstr(code, "(*out)->bin_val = 0x0000000000000005ULL;"));
+  ASSERT(strstr(code, "(*out)->bin_cap = 0x0000000000000003ULL;"));
 
   C_CDD_FREE(code);
   struct_fields_free(&sf);

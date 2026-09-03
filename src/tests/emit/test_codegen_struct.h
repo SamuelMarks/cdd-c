@@ -63,8 +63,8 @@ TEST test_cleanup_generation(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "cdd_c_error_t User_cleanup(struct User *obj)"));
@@ -107,8 +107,8 @@ TEST test_default_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
@@ -152,8 +152,8 @@ TEST test_deepcopy_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
@@ -199,8 +199,8 @@ TEST test_eq_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(
@@ -245,8 +245,8 @@ TEST test_guards_injection(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "#ifdef MY_GUARD"));
@@ -321,8 +321,8 @@ TEST test_struct_debug_func(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, sz + 1);
-    if (fread(content, 1, sz, tmp)) {
+    content = (char *)calloc(1, (size_t)sz + 1);
+    if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
     ASSERT(strstr(content, "TestStruct_debug"));

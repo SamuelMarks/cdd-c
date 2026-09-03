@@ -151,11 +151,11 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
           if (tn)
-            free(tn);
+            (void)0;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n);
-        free(tn);
+        (void)0;
         CHECK_IO(io_rc);
       }
       CHECK_IO(FPRINTF_HOOK(fp, "    if (rc) { free(s); return rc; }\n"));
@@ -174,14 +174,14 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
           if (tn)
-            free(tn);
+            (void)0;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(fp,
                              "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if "
                              "(rc) { free(s); return rc; }\n",
                              tn, n);
-        free(tn);
+        (void)0;
         CHECK_IO(io_rc);
       }
       CHECK_IO(FPRINTF_HOOK(fp,
@@ -211,7 +211,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
             if (tn)
-              free(tn);
+              (void)0;
             return rc_ref;
           }
           io_rc =
@@ -219,7 +219,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
                            "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
                            "if (rc) { free(s); return rc; }\n",
                            tn, n);
-          free(tn);
+          (void)0;
           CHECK_IO(io_rc);
         }
         CHECK_IO(FPRINTF_HOOK(fp, "      c89stringutils_jasprintf(json, "
@@ -605,12 +605,12 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
           if (tn)
-            free(tn);
+            (void)0;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(
             fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n", tn, n);
-        free(tn);
+        (void)0;
         CHECK_IO(io_rc);
       }
       CHECK_IO(FPRINTF_HOOK(
@@ -628,12 +628,12 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
           if (tn)
-            free(tn);
+            (void)0;
           return rc_ref;
         }
         io_rc =
             FPRINTF_HOOK(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n);
-        free(tn);
+        (void)0;
         CHECK_IO(io_rc);
       }
       CHECK_IO(FPRINTF_HOOK(
@@ -668,13 +668,13 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
             if (tn)
-              free(tn);
+              (void)0;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
               fp, "      ret->%s = calloc(ret->n_%s, sizeof(struct %s*));\n", n,
               n, tn);
-          free(tn);
+          (void)0;
           CHECK_IO(io_rc);
         }
         CHECK_IO(FPRINTF_HOOK(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
@@ -684,7 +684,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
             if (tn)
-              free(tn);
+              (void)0;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
@@ -692,7 +692,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
               "        rc = %s_from_jsonObject(json_array_get_object(arr, i), "
               "&ret->%s[i]);\n",
               tn, n);
-          free(tn);
+          (void)0;
           CHECK_IO(io_rc);
         }
         CHECK_IO(

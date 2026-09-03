@@ -41,7 +41,7 @@ TEST test_cdd_transform_gnu(void) {
   (void)rc;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->base_tokens->size; i++) {
@@ -81,8 +81,7 @@ TEST test_gnu_standardizer_stmt_expr(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "int a =  int b = 1; b;") != NULL);
@@ -99,8 +98,7 @@ TEST test_gnu_standardizer_computed_goto(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "goto *ptr;") != NULL);
@@ -118,8 +116,7 @@ TEST test_gnu_standardizer_case_ranges(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "case 1: case 2: case 3: case 4: case 5") != NULL);
@@ -137,8 +134,7 @@ TEST test_gnu_standardizer_range_init(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "[2] = 1, [3] = 1, [4] = 1, [5] = 1") != NULL);
@@ -162,8 +158,7 @@ TEST test_gnu_standardizer_local_labels(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -191,8 +186,7 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
   config.fallback_vla_to_malloc = 1;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   printf("test_gnu_standardizer_vla_malloc: parsed\n");
   fflush(stdout);
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
@@ -226,8 +220,7 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
   config.fallback_vla_to_malloc = 1;
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -246,8 +239,7 @@ TEST test_gnu_standardizer_trailing_comma(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "A, B, C  }") != NULL || strstr(out, "A, B, C }") != NULL);
@@ -267,8 +259,7 @@ TEST test_gnu_standardizer_zero_length_array(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "int data[1];") != NULL);
@@ -285,8 +276,7 @@ TEST test_gnu_standardizer_empty_initializer(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "{ 1, {") != NULL);
@@ -308,14 +298,17 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   /* 18446744073709551616 is 2^64, so high=1, low=0 */
   printf("OUT: %s\n", out);
-  ASSERT(strstr(out, "cdd_make_uint128(0x1ULL, 0x0ULL)") != NULL);
+  ASSERT(
+      strstr(
+          out,
+          "cdd_make_uint128(0x0000000000000001ULL, 0x0000000000000000ULL)") !=
+      NULL);
 
   free(out);
   cdd_cst_tree_free(tree);
@@ -329,8 +322,7 @@ TEST test_gnu_standardizer_vla_params(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -349,8 +341,7 @@ TEST test_gnu_standardizer_return_void_expr(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -370,8 +361,7 @@ TEST test_gnu_standardizer_overlapping_case_ranges(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -392,8 +382,7 @@ TEST test_gnu_standardizer_empty_fallthrough_block(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -416,8 +405,7 @@ TEST test_gnu_standardizer_attributes(void) {
   cdd_transform_config_t config;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
   memset(&config, 0, sizeof(config));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
@@ -445,8 +433,7 @@ TEST test_gnu_standardizer_magic_identifiers(void) {
   cdd_transform_config_t config;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
   memset(&config, 0, sizeof(config));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
@@ -472,8 +459,7 @@ TEST test_gnu_standardizer_trampoline(void) {
                      "}\n";
   cdd_transform_config_t config;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
   memset(&config, 0, sizeof(config));
   ASSERT_EQ(129, cdd_transform_gnu(tree, &config));
@@ -492,8 +478,7 @@ TEST test_gnu_standardizer_shuffle(void) {
   cdd_transform_config_t config;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
   memset(&config, 0, sizeof(config));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
@@ -521,8 +506,7 @@ TEST test_gnu_standardizer_cleanup(void) {
   cdd_transform_config_t config;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
 
   memset(&config, 0, sizeof(config));
   {
@@ -555,8 +539,7 @@ TEST test_gnu_standardizer_typeof(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -588,8 +571,7 @@ TEST test_gnu_standardizer_variadic_macros(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -622,7 +604,7 @@ TEST test_cdd_transform_complex_numbers(void) {
   cdd_transform_config_t cfg = {0};
   int rc;
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -665,8 +647,7 @@ TEST test_gnu_standardizer_comment_preservation(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
@@ -695,8 +676,7 @@ TEST test_gnu_standardizer_float_extensions(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "float a;") != NULL);
@@ -719,8 +699,7 @@ TEST test_gnu_standardizer_lvalue_cast(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   printf("LVALUE OUT: %s\n", out);
@@ -742,8 +721,7 @@ TEST test_gnu_standardizer_omitted_conditional(void) {
   char *out = NULL;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
   ASSERT(strstr(out, "a ? a  : b") != NULL);

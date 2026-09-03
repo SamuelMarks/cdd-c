@@ -59,7 +59,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   (void)rc;
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -97,7 +97,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   (void)rc;
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -445,6 +445,7 @@ TEST test_cdd_cst_type_eval_branches(void) {
   cdd_cst_scope_env_init(&env);
   {
     cdd_c_error_t rc;
+    (void)rc;
     {
       enum cdd_cst_abi_model_t abi = CDD_CST_ABI_LP64;
       cdd_cst_node_t dummy_node = {0};

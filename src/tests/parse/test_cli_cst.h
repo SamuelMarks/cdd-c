@@ -30,13 +30,14 @@ extern "C" {
  */
 TEST test_cli_cst_extern_c_audit(void) {
   int argc = 4;
-  char *argv[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
+  char *argv[] = {"extern_c", "--audit", "test_cli_cst_file.h",
+                  (char *)(char *)NULL};
   int rc;
   (void)rc;
-  const char *content = "void foo();";
+  /* void foo */
 
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
@@ -57,13 +58,14 @@ TEST test_cli_cst_extern_c_audit(void) {
  */
 TEST test_cli_cst_extern_c_fix(void) {
   int argc = 4;
-  char *argv[] = {"extern_c", "--fix", "test_cli_cst_file.h", NULL};
+  char *argv[] = {"extern_c", "--fix", "test_cli_cst_file.h",
+                  (char *)(char *)NULL};
   int rc;
   (void)rc;
-  const char *content = "void foo();";
+  /* void foo */
 
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
@@ -74,7 +76,8 @@ TEST test_cli_cst_extern_c_fix(void) {
 
   /* Audit should succeed on already fixed file */
   {
-    char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
+    char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h",
+                          (char *)(char *)NULL};
     rc = cli_cst_transformer_main(3, argv_audit);
     /* ASSERT_EQ(0, rc); */
 
@@ -97,13 +100,13 @@ TEST test_cli_cst_extern_c_fix(void) {
 TEST test_cli_cst_extern_c_dry_run(void) {
   int argc = 5;
   char *argv[] = {"extern_c", "--fix", "--dry-run", "test_cli_cst_file.h",
-                  NULL};
+                  (char *)(char *)NULL};
   int rc;
   (void)rc;
-  const char *content = "void foo();";
+  /* void foo */
 
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
@@ -111,10 +114,10 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   rc = cli_cst_transformer_main(argc - 1, argv);
   /* ASSERT_EQ(0, rc); */
   /* Test dry-run with no changes needed */
-  content = "#ifdef __cplusplus\nextern \"C\" {\n#endif\nvoid foo();\n#ifdef "
-            "__cplusplus\n}\n#endif\n";
+  /* content */
+  /* void foo */
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
@@ -132,18 +135,19 @@ TEST test_cli_cst_extern_c_dry_run(void) {
  * @return The result of the test.
  */
 TEST test_cli_cst_errors(void) {
-  char *argv_no_args[] = {NULL};
-  char *argv_unknown[] = {"unknown_tool", NULL};
-  char *argv_help1[] = {"--help", NULL};
-  char *argv_help1b[] = {"-h", NULL};
-  char *argv_help2[] = {"extern_c", "--help", NULL};
-  char *argv_help2b[] = {"extern_c", "-h", NULL};
-  char *argv_nofix[] = {"extern_c", "file.h", NULL};
-  char *argv_badfile[] = {"extern_c", "--fix", "does_not_exist_file.h", NULL};
-  char *argv_msvc[] = {"msvc_port", "--help", NULL};
-  char *argv_gnu[] = {"gnu_standardizer", "--help", NULL};
-  char *argv_percolate[] = {"error_percolator", "--help", NULL};
-  char *argv_safe[] = {"safe_crt", "--help", NULL};
+  char *argv_no_args[] = {(char *)(char *)NULL};
+  char *argv_unknown[] = {"unknown_tool", (char *)(char *)NULL};
+  char *argv_help1[] = {"--help", (char *)(char *)NULL};
+  char *argv_help1b[] = {"-h", (char *)(char *)NULL};
+  char *argv_help2[] = {"extern_c", "--help", (char *)(char *)NULL};
+  char *argv_help2b[] = {"extern_c", "-h", (char *)(char *)NULL};
+  char *argv_nofix[] = {"extern_c", "file.h", (char *)(char *)NULL};
+  char *argv_badfile[] = {"extern_c", "--fix", "does_not_exist_file.h",
+                          (char *)(char *)NULL};
+  char *argv_msvc[] = {"msvc_port", "--help", (char *)(char *)NULL};
+  char *argv_gnu[] = {"gnu_standardizer", "--help", (char *)(char *)NULL};
+  char *argv_percolate[] = {"error_percolator", "--help", (char *)(char *)NULL};
+  char *argv_safe[] = {"safe_crt", "--help", (char *)(char *)NULL};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(0, argv_no_args));
@@ -175,12 +179,17 @@ TEST test_cli_cst_errors(void) {
  */
 TEST test_cli_standardize_gnu(void) {
   int argc = 7;
-  char *argv[] = {
-      "--target-c89", "--target-c99", "--fallback-alloca", "--audit",
-      "--fix",        "--dry-run",    "test_gnu_file.h",   NULL};
+  char *argv[] = {"--target-c89",
+                  "--target-c99",
+                  "--fallback-alloca",
+                  "--audit",
+                  "--fix",
+                  "--dry-run",
+                  "test_gnu_file.h",
+                  (char *)(char *)NULL};
   int rc;
   (void)rc;
-  const char *content = "void foo();";
+  /* void foo */
 
   /* Test no args */
   (void)argc;
@@ -204,20 +213,22 @@ TEST test_cli_standardize_gnu(void) {
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   cli_standardize_gnu_main(1, argv_missing));
 
-        write_to_file("test_gnu_file.h", content);
+        write_to_file("test_gnu_file.h", "void foo();");
 
         /* Test valid args */
         rc = cli_standardize_gnu_main(7, argv);
         /* ASSERT_EQ(0, rc); */
 
         {
-          char *argv_fixonly[] = {"--fix", "test_gnu_file.h", NULL};
+          char *argv_fixonly[] = {"--fix", "test_gnu_file.h",
+                                  (char *)(char *)NULL};
           ASSERT_EQ(0, cli_standardize_gnu_main(2, argv_fixonly));
 
           /* Test unknown flag */
           {
             char *argv_unknown_flag[] = {"--audit", "--unknown-flag",
-                                         "test_gnu_file.h", NULL};
+                                         "test_gnu_file.h",
+                                         (char *)(char *)NULL};
             rc = cli_standardize_gnu_main(3, argv_unknown_flag);
             /* ASSERT_EQ(0, rc); */
 
@@ -254,12 +265,14 @@ extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
  * @return The result of the test.
  */
 TEST test_cli_cst_process_errors(void) {
-  char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
-  char *argv_fix[] = {"extern_c", "--fix", "test_cli_cst_file.h", NULL};
-  const char *content = "void foo();";
+  char *argv_audit[] = {"extern_c", "--audit", "test_cli_cst_file.h",
+                        (char *)(char *)NULL};
+  char *argv_fix[] = {"extern_c", "--fix", "test_cli_cst_file.h",
+                      (char *)(char *)NULL};
+  /* void foo */
 
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
@@ -299,7 +312,7 @@ TEST test_cli_cst_process_errors(void) {
   /* By creating a directory with the same name, fopen for write will fail */
   remove("test_cli_cst_file.h");
   makedir("test_cli_cst_file.h");
-  write_to_file("test_cli_cst_file.h/foo", content); /* just something */
+  write_to_file("test_cli_cst_file.h/foo", "void foo();"); /* just something */
 
   /* The tool opens it for read first. But it's a directory, so read fails?
    * If read succeeds but write fails, we hit the write error.
@@ -311,7 +324,7 @@ TEST test_cli_cst_process_errors(void) {
   remove("test_cli_cst_file.h");
 
   {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", content);
+    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
     if (w_rc != CDD_C_SUCCESS)
       printf("write_to_file failed with %d\n", w_rc);
   }
