@@ -39,7 +39,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
       "{ { { { { { { { { { { { { { { { { { { { .x = 10 } } } } } } } } } } } } "
       "} } } } } } } } };";
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
   (void)desig_init_list_init(&list);
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   ASSERT_EQ(3, list.count);
@@ -47,7 +47,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
   free_token_list(tokens);
 
   tokens = NULL;
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(long_src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)long_src), &tokens));
   (void)desig_init_list_init(&list);
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   desig_init_list_free(&list);
@@ -61,7 +61,7 @@ TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
   (void)desig_init_list_init(&list);
-  ASSERT_EQ(0, tokenize(az_span_create_from_str("int x = 1;"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)"int x = 1;"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_designated_initializers(NULL, &list));
@@ -83,7 +83,7 @@ TEST test_scan_for_designated_initializers_oom(void) {
   int i;
   int res;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
 
   for (i = 1; i < 20; ++i) {
     (void)desig_init_list_init(&list);
@@ -111,7 +111,7 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
   int i;
   int res;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(long_src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)long_src), &tokens));
 
   for (i = 1; i < 30; ++i) {
     (void)desig_init_list_init(&list);

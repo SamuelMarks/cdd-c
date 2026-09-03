@@ -634,7 +634,8 @@ int main(int argc, char **argv) {
         'a',  'i',  'n', '(',  ')',  ' ',  '{',  ' ',  'a',  's',  'm',  '(',
         '"',  'n',  'o', 'p',  '"',  ')',  ';',  ' ',  'r',  'e',  't',  'u',
         'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
-    cdd_c_error_t rc = cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+    cdd_c_error_t rc =
+        cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
     printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
            "\n",
            rc, tree->root->num_children, tree->root->capacity);

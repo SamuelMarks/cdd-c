@@ -32,7 +32,7 @@ static cdd_c_error_t find_allocs(const char *code,
   struct TokenList *tl = NULL;
   int rc;
   az_span source;
-  source = az_span_create_from_str(code);
+  source = az_span_create_from_str((char *)code);
 
   (void)rc;
   if (tokenize(source, &tl) != 0)
@@ -410,7 +410,7 @@ TEST test_analysis_edge_cases(void) {
     struct AllocatorSpec spec = {"malloc", ALLOC_STYLE_RETURN_PTR,
                                  CHECK_PTR_NULL, 0};
     int checked = 0;
-    tokenize(az_span_create_from_str("p = malloc(10); p[0] = 1;"), &tl);
+    tokenize(az_span_create_from_str((char *)"p = malloc(10); p[0] = 1;"), &tl);
     is_checked(tl, 2, "p", &spec, NULL, &checked);
     free_token_list(tl);
   }

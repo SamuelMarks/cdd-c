@@ -25,7 +25,7 @@ TEST test_cdd_transform_percolate_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
@@ -147,7 +147,7 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
@@ -175,7 +175,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_transform_percolate_errors(NULL, &config));
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   {
     int rc = cdd_transform_percolate_errors(tree, &config);
     ASSERT(rc == 0 || rc == CDD_C_ERROR_PARSE);
@@ -203,44 +203,46 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   g_err_perc_fail = 1;
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   cdd_transform_percolate_errors(tree, &config);
 
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(
-        az_span_create_from_str("CDD_VOID edge_void() { malloc(1); }"), &t);
+        az_span_create_from_str((char *)"CDD_VOID edge_void() { malloc(1); }"),
+        &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
     cdd_cst_parse(az_span_create_from_str(
-                      "int /* comment */ edge_void2() { malloc(1); }"),
+                      (char *)"int /* comment */ edge_void2() { malloc(1); }"),
                   &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
-        az_span_create_from_str("void edge_void3() { malloc(1); malloc(1); }"),
-        &t);
+    cdd_cst_parse(az_span_create_from_str(
+                      (char *)"void edge_void3() { malloc(1); malloc(1); }"),
+                  &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
-        az_span_create_from_str("void edge_void4() { if (1) malloc(1); }"), &t);
+    cdd_cst_parse(az_span_create_from_str(
+                      (char *)"void edge_void4() { if (1) malloc(1); }"),
+                  &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
   {
     cdd_cst_tree_t *t = NULL;
-    cdd_cst_parse(
-        az_span_create_from_str("void edge_void5() { if (1) { malloc(1); } }"),
-        &t);
+    cdd_cst_parse(az_span_create_from_str(
+                      (char *)"void edge_void5() { if (1) { malloc(1); } }"),
+                  &t);
     cdd_transform_percolate_errors(t, &config);
     cdd_cst_tree_free(t);
   }
@@ -249,7 +251,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   g_err_perc_fail = 2; /* Custom trigger for cleanup node */
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
 
   /* Mock an unknown block node manually to hit the unknown branch logic */
   unknown_node = calloc(1, sizeof(cdd_cst_node_t));
@@ -281,13 +283,13 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   tree = NULL;
 
   g_err_perc_fail = 3; /* For return builder mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   cdd_transform_percolate_errors(tree, &config);
   cdd_cst_tree_free(tree);
   tree = NULL;
 
   g_err_perc_fail = 4; /* For tmp_name malloc mock */
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(code), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   cdd_transform_percolate_errors(tree, &config);
   cdd_cst_tree_free(tree);
   tree = NULL;
@@ -373,7 +375,7 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
   for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
     int rc;
-    rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
     (void)rc;
     ASSERT_EQ(0, rc);
 

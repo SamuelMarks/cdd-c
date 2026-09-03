@@ -1,5 +1,7 @@
 #ifdef _MSC_VER
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 /**
  * @file test_c2openapi_op.h

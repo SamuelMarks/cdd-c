@@ -3,6 +3,8 @@
  * @brief Implementation of OOM mocking utilities.
  */
 
+#define CDD_OOM_MOCK_IMPL
+
 /* clang-format off */
 #include "cdd_oom_mock.h"
 #include <stdlib.h>
@@ -11,8 +13,8 @@
 
 int g_mock_oom_countdown = -1;
 
-void mock_oom_reset_cb(void *data) {
-  (void)data;
+void mock_oom_reset_cb(void (*cb)(void)) {
+  (void)cb;
   g_mock_oom_countdown = -1;
 }
 

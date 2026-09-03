@@ -29,7 +29,7 @@ TEST test_tokenize_pragma_op(void) {
   struct TokenList *tl = NULL;
   /* _Pragma ( "pack(1)" ) */
   const char *code = "_Pragma(\"pack(1)\")";
-  az_span span = az_span_create_from_str(code);
+  az_span span = az_span_create_from_str((char *)code);
   int rc = tokenize(span, &tl);
 
   ASSERT_EQ(0, rc);

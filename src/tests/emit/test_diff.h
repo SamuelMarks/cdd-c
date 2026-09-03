@@ -28,7 +28,7 @@ TEST test_patch_list_to_diff_basic(void) {
   size_t tok_idx = 0;
   int found = 0;
 
-  res = tokenize(az_span_create_from_str(src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&list);
@@ -81,7 +81,7 @@ TEST test_patch_list_to_diff_empty(void) {
   char *diff_str = NULL;
 
   patch_list_init(&list);
-  tokenize(az_span_create_from_str(""), &tokens);
+  tokenize(az_span_create_from_str((char *)""), &tokens);
 
   ASSERT_EQ(0, patch_list_to_diff(&list, tokens, "empty.c", &diff_str));
   ASSERT_STR_EQ("", diff_str);

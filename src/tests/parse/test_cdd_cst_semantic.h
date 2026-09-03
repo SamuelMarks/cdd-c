@@ -1151,7 +1151,7 @@ TEST test_cdd_cst_parser_oom_new(void) {
 
     g_cdd_alloc_fail = i;
     {
-      int rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+      int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
       g_cdd_alloc_fail = 0;
 
       if (rc == 0) {

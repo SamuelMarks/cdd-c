@@ -1,6 +1,10 @@
 #ifndef TEST_CLI_C2OPENAPI_H
 #define TEST_CLI_C2OPENAPI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "routes/parse/cli.h"
 #include <greatest.h>
@@ -256,4 +260,9 @@ SUITE(cli_c2openapi_suite) {
   RUN_TEST(test_generate_bindings_cli_main_help);
   RUN_TEST(test_c2openapi_cli_main_doc_tags);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif /* TEST_CLI_C2OPENAPI_H */

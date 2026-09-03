@@ -618,10 +618,10 @@ write_struct_default_func(FILE *fp, const char *struct_name,
           /* Attempt to parse binary literal */
           if (parse_numeric_literal(def, &nv) == 0) {
             /* Emit as hex to avoid C89 %llu warning on GCC */
-            CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = 0x%08lx%08lxULL;\n",
-                                  n, 
-                                  (unsigned long)((uint64_t)nv.data.integer.value >> 32),
-                                  (unsigned long)((uint64_t)nv.data.integer.value & 0xFFFFFFFF)));
+            CHECK_IO(FPRINTF_HOOK(
+                fp, "  (*out)->%s = 0x%08lx%08lxULL;\n", n,
+                (unsigned long)((uint64_t)nv.data.integer.value >> 32),
+                (unsigned long)((uint64_t)nv.data.integer.value & 0xFFFFFFFF)));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));

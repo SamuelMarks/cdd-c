@@ -1,6 +1,10 @@
 #ifndef TEST_CODE2SCHEMA_OOM_H
 #define TEST_CODE2SCHEMA_OOM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "classes/parse/code2schema.h"
 #include <greatest.h>
@@ -25,4 +29,9 @@ TEST test_code2schema_oom_simulate(void) {
   json_set_allocation_functions(malloc, free);
   PASS();
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif

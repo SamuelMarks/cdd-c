@@ -1091,7 +1091,7 @@ TEST test_schema_codegen_system_error(void) {
 TEST test_schema_codegen_main_errors(void) {
   int rc;
   char *argv_bad1[] = {"file.json"};
-  char *argv_bad2[] = {"file.json", (char *)(char *)NULL};
+  char *argv_bad2[] = {"file.json", (char *)NULL};
   char *argv_bad3[] = {"nonexistent.json", "prefix"};
   char *argv_bad4[] = {"file.json", "/invalid/path/prefix"};
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "

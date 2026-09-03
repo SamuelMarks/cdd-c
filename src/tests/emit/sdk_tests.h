@@ -38,8 +38,7 @@ struct SdkTestsConfig {
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 2, 3)))
 #endif
-static int
-mock_fprintf(FILE *fp, const char *fmt, ...) {
+static int mock_fprintf(FILE *fp, const char *fmt, ...) {
   int ret;
   va_list args;
   if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)

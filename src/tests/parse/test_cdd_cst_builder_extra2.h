@@ -1,3 +1,8 @@
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "c_cdd_export.h"
 /* clang-format on */
@@ -93,3 +98,7 @@ TEST test_cdd_cst_builder_all_errors(void) {
 
   PASS();
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

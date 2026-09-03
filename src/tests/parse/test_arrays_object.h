@@ -120,8 +120,8 @@ extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
     /* clang-format on */
     char *argv[2];
-    argv[0] = "test_obj_array.h";
-    argv[1] = json_out_file;
+    argv[0] = (char *)"test_obj_array.h";
+    argv[1] = (char *)json_out_file;
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 

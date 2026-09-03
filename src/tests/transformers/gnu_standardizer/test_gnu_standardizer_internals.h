@@ -1,6 +1,11 @@
 #ifdef _MSC_VER
 #ifndef strdup
 #define strdup _strdup
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #endif
 #endif
 #ifndef TEST_GNU_STANDARDIZER_INTERNALS_H
@@ -187,5 +192,9 @@ SUITE(transformer_gnu_standardizer_internals_suite) {
 #undef malloc
 #undef realloc
 #undef strdup
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_GNU_STANDARDIZER_INTERNALS_H */

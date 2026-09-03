@@ -33,7 +33,7 @@ TEST test_cdd_cst_cfg_basic(void) {
   int rc;
   const char *src = "int main() { return 0; }";
 
-  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -83,7 +83,7 @@ TEST test_cdd_cst_cfg_oom(void) {
   int rc;
   const char *src = "int main() { return 0; }";
 
-  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
   func = tree->root;
 
@@ -104,7 +104,7 @@ TEST test_cdd_cst_cfg_oom(void) {
         "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
-    rc = cdd_cst_parse(az_span_create_from_str(long_src), &t2);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
@@ -117,7 +117,7 @@ TEST test_cdd_cst_cfg_oom(void) {
     const char *ret_src = "int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
+    cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_cfg_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
@@ -160,7 +160,7 @@ TEST test_cdd_cst_cfg_empty(void) {
   int rc;
   const char *src = "void main() { }";
 
-  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -205,7 +205,7 @@ TEST test_cdd_cst_cfg_no_return(void) {
   int rc;
   const char *src = "void main() { int a = 5; }";
 
-  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -248,7 +248,7 @@ TEST test_cdd_cst_cfg_extra(void) {
   int rc;
   const char *src = "int main() { if (1) { return 0; } else { return 1; } }";
 
-  rc = cdd_cst_parse(az_span_create_from_str(src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
   func = tree->root->children[0].val.node; /* get function node */
 
@@ -283,7 +283,7 @@ TEST test_cdd_cst_cfg_extra(void) {
         "if(1){} if(1){} if(1){} if(1){} if(1){} }";
     cdd_cst_tree_t *t2 = NULL;
     cdd_cst_cfg_t *cfg2 = NULL;
-    rc = cdd_cst_parse(az_span_create_from_str(long_src), &t2);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);
     ASSERT_EQ(0, rc);
     rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
     ASSERT_EQ(0, rc);
@@ -296,7 +296,7 @@ TEST test_cdd_cst_cfg_extra(void) {
     const char *ret_src = "int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
-    cdd_cst_parse(az_span_create_from_str(ret_src), &ret_t);
+    cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);
     for (i = 1; i < 50; ++i) {
       g_cdd_cfg_alloc_fail = i;
       rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);

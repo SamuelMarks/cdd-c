@@ -84,7 +84,7 @@ static void write_test_spec(void) {
 }
 
 TEST test_to_docs_json_basic(void) {
-  char *argv[] = {"to_docs_json", "-i", (char *)(char *)TEMP_SPEC_FILE};
+  char *argv[] = {"to_docs_json", "-i", (char *)TEMP_SPEC_FILE};
   int rc;
   (void)rc;
   int stdout_fd = 0;
@@ -159,7 +159,7 @@ TEST test_to_docs_json_basic(void) {
 
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
   char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i",
-                  (char *)(char *)TEMP_SPEC_FILE};
+                  (char *)TEMP_SPEC_FILE};
   int rc;
   (void)rc;
   int stdout_fd = 0;

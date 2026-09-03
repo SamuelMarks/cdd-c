@@ -31,6 +31,7 @@ extern "C" {
 #include <unistd.h>
 #endif
 #endif
+/* clang-format on */
 
 /* extern C_CDD_EXPORT int g_socket_fail; (moved to global) */
 /* extern C_CDD_EXPORT int g_bind_fail; (moved to global) */

@@ -22,7 +22,9 @@ extern "C" {
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 #else
 #include <errno.h>

@@ -87,7 +87,7 @@ TEST test_propagate_void_stmt(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -107,7 +107,7 @@ TEST test_propagate_void_stmt(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -129,7 +129,7 @@ TEST test_propagate_void_stmt(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -148,7 +148,7 @@ TEST test_propagate_void_stmt(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -199,7 +199,7 @@ TEST test_propagate_ptr_assignment2(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -219,7 +219,7 @@ TEST test_propagate_ptr_assignment2(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -241,7 +241,7 @@ TEST test_propagate_ptr_assignment2(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -260,7 +260,7 @@ TEST test_propagate_ptr_assignment2(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -303,7 +303,7 @@ TEST test_propagate_ptr_assignment(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -323,7 +323,7 @@ TEST test_propagate_ptr_assignment(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -345,7 +345,7 @@ TEST test_propagate_ptr_assignment(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -364,7 +364,7 @@ TEST test_propagate_ptr_assignment(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -413,7 +413,7 @@ TEST test_propagate_ptr_declaration(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -433,7 +433,7 @@ TEST test_propagate_ptr_declaration(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -455,7 +455,7 @@ TEST test_propagate_ptr_declaration(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -474,7 +474,7 @@ TEST test_propagate_ptr_declaration(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -523,7 +523,7 @@ TEST test_propagate_nested_hoisting(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -543,7 +543,7 @@ TEST test_propagate_nested_hoisting(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -565,7 +565,7 @@ TEST test_propagate_nested_hoisting(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -584,7 +584,7 @@ TEST test_propagate_nested_hoisting(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -636,7 +636,7 @@ TEST test_integration_safety_and_prop(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -656,7 +656,7 @@ TEST test_integration_safety_and_prop(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -678,7 +678,7 @@ TEST test_integration_safety_and_prop(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -697,7 +697,7 @@ TEST test_integration_safety_and_prop(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -747,7 +747,7 @@ TEST test_realloc_safety_injection(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -767,7 +767,7 @@ TEST test_realloc_safety_injection(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -789,7 +789,7 @@ TEST test_realloc_safety_injection(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -808,7 +808,7 @@ TEST test_realloc_safety_injection(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -845,7 +845,7 @@ TEST test_rewriter_body_bounds(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -865,7 +865,7 @@ TEST test_rewriter_body_bounds(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -887,7 +887,7 @@ TEST test_rewriter_body_bounds(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -906,7 +906,7 @@ TEST test_rewriter_body_bounds(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -929,7 +929,7 @@ TEST test_rewriter_body_oom(void) {
 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
-  const az_span source = az_span_create_from_str(input);
+  const az_span source = az_span_create_from_str((char *)input);
 
   ASSERT_EQ(0, tokenize(source, &tl));
   ASSERT_EQ(0, find_allocations(tl, &sites));
@@ -974,7 +974,7 @@ TEST test_rewriter_body_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -994,7 +994,7 @@ TEST test_rewriter_body_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1016,7 +1016,7 @@ TEST test_rewriter_body_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1035,7 +1035,7 @@ TEST test_rewriter_body_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1073,7 +1073,7 @@ TEST test_rewriter_body_bounds2(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1093,7 +1093,7 @@ TEST test_rewriter_body_bounds2(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1115,7 +1115,7 @@ TEST test_rewriter_body_bounds2(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1134,7 +1134,7 @@ TEST test_rewriter_body_bounds2(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1176,7 +1176,7 @@ TEST test_propagate_void_stmt_return(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1196,7 +1196,7 @@ TEST test_propagate_void_stmt_return(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1218,7 +1218,7 @@ TEST test_propagate_void_stmt_return(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1237,7 +1237,7 @@ TEST test_propagate_void_stmt_return(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1279,7 +1279,7 @@ TEST test_propagate_void_stmt_transform(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1299,7 +1299,7 @@ TEST test_propagate_void_stmt_transform(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1321,7 +1321,7 @@ TEST test_propagate_void_stmt_transform(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1340,7 +1340,7 @@ TEST test_propagate_void_stmt_transform(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1385,7 +1385,7 @@ TEST test_propagate_nested_parens(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1405,7 +1405,7 @@ TEST test_propagate_nested_parens(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs_inner, 1, NULL, &out_code);
@@ -1427,7 +1427,7 @@ TEST test_propagate_nested_parens(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1446,7 +1446,7 @@ TEST test_propagate_nested_parens(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1474,7 +1474,7 @@ TEST test_rewrite_body_oom(void) {
     struct TokenList *tl = NULL;
     struct AllocationSiteList sites = {0};
     const az_span source = az_span_create_from_str(
-        "int f() { int a = 1; void *p = malloc(1); return 0; }");
+        (char *)"int f() { int a = 1; void *p = malloc(1); return 0; }");
     tokenize(source, &tl);
     find_allocations(tl, &sites);
 
@@ -1505,7 +1505,7 @@ TEST test_rewrite_body_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1525,7 +1525,7 @@ TEST test_rewrite_body_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1547,7 +1547,7 @@ TEST test_rewrite_body_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1566,7 +1566,7 @@ TEST test_rewrite_body_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1589,8 +1589,8 @@ TEST test_rewrite_body_funcs_oom(void) {
     struct TokenList *tl = NULL;
     struct AllocationSiteList sites = {0};
     const az_span source = az_span_create_from_str(
-        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
-        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+        (char *)"void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+                "my_strdup(\"b\"); outer(inner(\"x\")); }");
     struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
@@ -1626,7 +1626,7 @@ TEST test_rewrite_body_funcs_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1646,7 +1646,7 @@ TEST test_rewrite_body_funcs_oom(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1668,7 +1668,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1687,7 +1687,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1711,8 +1711,8 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
     struct TokenList *tl = NULL;
     struct AllocationSiteList sites = {0};
     const az_span source = az_span_create_from_str(
-        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
-        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+        (char *)"void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+                "my_strdup(\"b\"); outer(inner(\"x\")); }");
     struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
@@ -1748,7 +1748,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1768,7 +1768,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1790,7 +1790,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1809,7 +1809,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1831,8 +1831,8 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
     char *out_code = NULL;
     struct TokenList *tl = NULL;
     struct AllocationSiteList sites = {0};
-    const az_span source =
-        az_span_create_from_str("void f() { char *s; s=my_strdup(\"c\"); }");
+    const az_span source = az_span_create_from_str(
+        (char *)"void f() { char *s; s=my_strdup(\"c\"); }");
     struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
 
@@ -1866,7 +1866,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1886,7 +1886,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -1908,7 +1908,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1927,7 +1927,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -1950,8 +1950,8 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
     struct TokenList *tl = NULL;
     struct AllocationSiteList sites = {0};
     const az_span source = az_span_create_from_str(
-        "void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
-        "my_strdup(\"b\"); outer(inner(\"x\")); }");
+        (char *)"void f() { char *s; s = my_strdup(\"a\"); char *s2 = "
+                "my_strdup(\"b\"); outer(inner(\"x\")); }");
     struct RefactoredFunction funcs2[] = {
         {"my_strdup", REF_PTR_TO_INT_OUT, "char *"},
         {"inner", REF_PTR_TO_INT_OUT, "char *"}};
@@ -1986,7 +1986,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2006,7 +2006,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2028,7 +2028,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2047,7 +2047,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2085,7 +2085,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2116,7 +2116,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2145,7 +2145,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2171,7 +2171,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2201,7 +2201,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2228,7 +2228,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2263,7 +2263,7 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
@@ -2297,7 +2297,7 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
@@ -2326,7 +2326,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2350,7 +2350,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2378,7 +2378,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2403,7 +2403,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct RefactoredFunction funcs2[] = {{"do_work", REF_VOID_TO_INT, NULL}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2426,7 +2426,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2446,7 +2446,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2470,7 +2470,7 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
@@ -2493,7 +2493,7 @@ TEST test_rewrite_body_corner_cases(void) {
                                      "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       find_allocations(tl2, &sites);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
@@ -2518,7 +2518,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2538,7 +2538,7 @@ TEST test_rewrite_body_corner_cases(void) {
           {"my_func", REF_PTR_TO_INT_OUT, "char *"}};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, funcs2, 1, NULL, &out_code);
@@ -2560,7 +2560,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = i;
       g_cdd_strdup_fail = 0;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2579,7 +2579,7 @@ TEST test_rewrite_body_corner_cases(void) {
       struct SignatureTransform t = {TRANSFORM_VOID_TO_INT, "a", "b", "c", "d"};
       /*  (moved to global) */
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(code), &tl2);
+      tokenize(az_span_create_from_str((char *)code), &tl2);
       g_cdd_alloc_fail = 0;
       g_cdd_strdup_fail = i;
       rc2 = rewrite_body(tl2, NULL, NULL, 0, &t, &out_code);
@@ -2613,7 +2613,7 @@ TEST test_rewrite_body_corner_oom_2(void) {
       struct TokenList *tl = NULL;
       char *out_code = NULL;
       /*  (moved to global) */
-      tokenize(az_span_create_from_str(cases[c]), &tl);
+      tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_alloc_fail = i;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,
@@ -2635,7 +2635,7 @@ TEST test_rewrite_body_corner_oom_2(void) {
       struct TokenList *tl = NULL;
       char *out_code = NULL;
       /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-      tokenize(az_span_create_from_str(cases[c]), &tl);
+      tokenize(az_span_create_from_str((char *)cases[c]), &tl);
       g_cdd_strdup_fail = i;
       {
         int rc2 = rewrite_body(tl, NULL, funcs2, 2,

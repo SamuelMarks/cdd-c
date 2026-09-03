@@ -39,7 +39,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
-  (void)tokenize(az_span_create_from_str(code), &tl);
+  (void)tokenize(az_span_create_from_str((char *)code), &tl);
   return tl;
 }
 

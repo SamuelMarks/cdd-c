@@ -44,7 +44,7 @@ TEST test_cdd_transform_extern_c(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -113,7 +113,7 @@ TEST test_cdd_transform_extern_c_empty_c_file(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -140,7 +140,7 @@ TEST test_cdd_transform_extern_c_malformed_ifdef(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -204,7 +204,7 @@ TEST test_cdd_transform_extern_c_inner_ifdef(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -485,7 +485,7 @@ TEST test_cdd_transform_extern_c_append_fails(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -493,7 +493,7 @@ TEST test_cdd_transform_extern_c_append_fails(void) {
     int i;
     for (i = 0; i < 50; i++) {
       cdd_cst_tree_t *tree_copy = NULL;
-      rc = cdd_cst_parse(az_span_create_from_str(code), &tree_copy);
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
       ASSERT_EQ(0, rc);
 
       if (tree_copy && tree_copy->root) {
@@ -518,7 +518,7 @@ TEST test_cdd_transform_extern_c_append_fails(void) {
 
     for (i = 0; i < 50; i++) {
       cdd_cst_tree_t *tree_copy = NULL;
-      rc = cdd_cst_parse(az_span_create_from_str(code), &tree_copy);
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
       ASSERT_EQ(0, rc);
 
       g_fail_io_after = i;
@@ -540,7 +540,7 @@ TEST test_cdd_transform_extern_c_insert_fails(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -551,7 +551,7 @@ TEST test_cdd_transform_extern_c_insert_fails(void) {
     int i;
     for (i = 0; i < 50; i++) {
       cdd_cst_tree_t *tree_copy = NULL;
-      rc = cdd_cst_parse(az_span_create_from_str(code), &tree_copy);
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
       ASSERT_EQ(0, rc);
 
       if (tree_copy && tree_copy->root) {
@@ -576,7 +576,7 @@ TEST test_cdd_transform_extern_c_insert_fails(void) {
 
     for (i = 0; i < 50; i++) {
       cdd_cst_tree_t *tree_copy = NULL;
-      rc = cdd_cst_parse(az_span_create_from_str(code), &tree_copy);
+      rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
       ASSERT_EQ(0, rc);
 
       g_fail_io_after = i;
@@ -720,7 +720,7 @@ TEST test_extern_c_late_include(void) {
   char *out = NULL;
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -762,7 +762,7 @@ TEST test_cdd_transform_extern_c_builder_fails(void) {
   const char *code = "void func();";
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -788,7 +788,7 @@ TEST test_extern_c_bot_node_insert_oom(void) {
   cdd_token_t *eof_tok = NULL;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -837,7 +837,7 @@ TEST test_extern_c_bot_node_append_oom(void) {
   int rc;
   cdd_transform_config_t config = {0, 2, 0, 1, 0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -858,7 +858,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   int final_rc = 0;
   cdd_transform_config_t config = {0};
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_NEQ(NULL, tree);
@@ -889,7 +889,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   {
     cdd_cst_tree_t *tree2 = NULL;
     const char *code2 = "#include <stdio.h>\nint main() { return 0; }\n";
-    rc = cdd_cst_parse(az_span_create_from_str(code2), &tree2);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code2), &tree2);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     g_extern_c_helper_fail = -1;
@@ -914,7 +914,7 @@ TEST test_extern_c_top_node_oom(void) {
   for (i = 1; i < 50; i++) {
     cdd_cst_tree_t *tree = NULL;
     int rc;
-    rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
     (void)rc;
     ASSERT_EQ(0, rc);
 
@@ -938,7 +938,7 @@ TEST test_extern_c_extra_coverage2(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
   int rc;
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -956,7 +956,7 @@ TEST test_extern_c_extra_coverage3(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
   int rc;
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -965,7 +965,7 @@ TEST test_extern_c_extra_coverage3(void) {
 
   {
     const char *code2 = "int main() { return 0; }\n";
-    rc = cdd_cst_parse(az_span_create_from_str(code2), &tree);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code2), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     /* mock tree_has_decl returning false for unknown child token to trigger
      * that branch? actually we just need a cst unknown with something else. */
@@ -981,7 +981,7 @@ TEST test_extern_c_extra_coverage4(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
   int rc;
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -990,7 +990,7 @@ TEST test_extern_c_extra_coverage4(void) {
 
   {
     const char *code2 = "int main() { return 0; }\n";
-    rc = cdd_cst_parse(az_span_create_from_str(code2), &tree);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code2), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     /* mock tree_has_decl returning false for unknown child token to trigger
      * that branch? actually we just need a cst unknown with something else. */
@@ -1006,7 +1006,7 @@ TEST test_extern_c_extra_coverage5(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_transform_config_t config = {0};
   int rc;
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = cdd_transform_extern_c(tree, &config);
@@ -1015,7 +1015,7 @@ TEST test_extern_c_extra_coverage5(void) {
 
   {
     const char *code2 = "int main() { return 0; }\n";
-    rc = cdd_cst_parse(az_span_create_from_str(code2), &tree);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)code2), &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     cdd_cst_tree_free(tree);
     PASS();

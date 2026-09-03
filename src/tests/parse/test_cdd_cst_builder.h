@@ -476,15 +476,16 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
     cdd_cst_tree_t *replacement_node_tree = NULL;
     (void)rc;
     (void)out_has;
-    cdd_cst_parse(az_span_create_from_str("/* L1 */ /* L2 */ int x; /* T1 */"),
-                  &tree);
+    cdd_cst_parse(
+        az_span_create_from_str((char *)"/* L1 */ /* L2 */ int x; /* T1 */"),
+        &tree);
     root = tree->root;
     target_node = tree->root->children[0].val.node;
     cdd_cst_builder_init(&b, tree, tree->root);
 
-    cdd_cst_parse(
-        az_span_create_from_str("/* NL1 */ float y; /* NT1 */ /* NT2 */"),
-        &replacement_node_tree);
+    cdd_cst_parse(az_span_create_from_str(
+                      (char *)"/* NL1 */ float y; /* NT1 */ /* NT2 */"),
+                  &replacement_node_tree);
     replacement_node = replacement_node_tree->root->children[0].val.node;
 
     rc = cdd_cst_extract_leading_trivia(target_node, &lead);
@@ -661,7 +662,7 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_node_t *root = NULL;
   (void)root;
 
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)""), &tree);
   if (tree->root)
     cdd_cst_free_node(tree->root);
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -1103,7 +1104,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   int rc;
 
   (void)rc;
-  cdd_cst_parse(az_span_create_from_str("int x;"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)"int x;"), &tree);
   node = tree->root;
   cdd_cst_builder_init(&b, tree, node);
 
@@ -1242,7 +1243,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_tree_t *empty_tree = NULL;
     cdd_cst_node_t *empty_root = NULL;
     cdd_cst_builder_t empty_b;
-    cdd_cst_parse(az_span_create_from_str(""), &empty_tree);
+    cdd_cst_parse(az_span_create_from_str((char *)""), &empty_tree);
     cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &empty_root);
     cdd_cst_builder_init(&empty_b, empty_tree, empty_root);
 
@@ -1300,7 +1301,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
   /* Replace node preserve trivia */
   cdd_cst_tree_free(tree);
   tree = NULL;
-  cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)"int y;"), &tree);
   cdd_cst_builder_init(&b, tree, tree->root->children[0].val.node);
   node = tree->root->children[0].val.node;
   new_node = tree->root->children[0].val.node;
@@ -1323,7 +1324,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_node_t *new_n2 = NULL;
     cdd_cst_tree_free(tree);
     tree = NULL;
-    cdd_cst_parse(az_span_create_from_str("int y;"), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)"int y;"), &tree);
     cdd_cst_builder_init(&b, tree, tree->root);
 
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
@@ -1452,7 +1453,8 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   }
 
-  {}
+  {
+  }
 
   {
     /* Test extract trivia from node with NO tokens */
@@ -1617,7 +1619,7 @@ TEST test_cdd_cst_builder_long_token(void) {
   for (i = 0; i < 50; i++)
     long_tok[i] = 'a';
   long_tok[2054] = '\0';
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)""), &tree);
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
   tree->root = node;
   cdd_cst_builder_init(&b, tree, node);

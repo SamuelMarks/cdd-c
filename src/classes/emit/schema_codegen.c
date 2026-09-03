@@ -35,7 +35,9 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 #define PATH_MAX _MAX_PATH
 #else

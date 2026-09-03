@@ -28,7 +28,7 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc = tokenize(az_span_create_from_str(code), &tl);
+  int rc = tokenize(az_span_create_from_str((char *)code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
     return 0;
@@ -371,7 +371,7 @@ TEST test_patcher_oom(void) {
       patch_list_init(&p_oom);
       {
         struct TokenList *tl_alloc = NULL;
-        tokenize(az_span_create_from_str("int main(){}"), &tl_alloc);
+        tokenize(az_span_create_from_str((char *)"int main(){}"), &tl_alloc);
 
         {
           char huge_oom[3000];
@@ -1190,7 +1190,7 @@ TEST test_patcher_cov(void) {
 
   /* test patch_list_apply OOM in copy original token content loop */
   patch_list_init(&pl);
-  tokenize(az_span_create_from_str("int a;"), &tl);
+  tokenize(az_span_create_from_str((char *)"int a;"), &tl);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -1212,7 +1212,7 @@ TEST test_patcher_cov_extra(void) {
   struct TokenList *tl = NULL;
 
   patch_list_init(&pl);
-  tokenize(az_span_create_from_str("int"), &tl); /* 1 token */
+  tokenize(az_span_create_from_str((char *)"int"), &tl); /* 1 token */
 
   /* Patch 0: replaces token 0 up to 3 (which exceeds size 1), making
    * current_token = 3 */

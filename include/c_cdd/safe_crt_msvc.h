@@ -32,12 +32,26 @@ static __inline char *cdd_getenv(const char *name) {
   }
   return 0;
 }
+#ifndef getenv
 #define getenv cdd_getenv
+#endif
+#ifndef strdup
+#ifndef strdup
 #define strdup _strdup
+#endif
+#endif
+#ifndef stricmp
 #define stricmp _stricmp
+#endif
+#ifndef strnicmp
 #define strnicmp _strnicmp
+#endif
+#ifndef strcasecmp
 #define strcasecmp _stricmp
+#endif
+#ifndef strncasecmp
 #define strncasecmp _strnicmp
+#endif
 
 /**
  * @brief Safely wrapper for fopen using fopen_s.
@@ -52,7 +66,9 @@ static __inline FILE *cdd_fopen(const char *path, const char *mode) {
   }
   return 0;
 }
+#ifndef fopen
 #define fopen cdd_fopen
+#endif
 
 #if _MSC_VER < 1900
 #else

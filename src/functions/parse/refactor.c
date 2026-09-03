@@ -18,7 +18,9 @@
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 #else
 #include "c_cdd/log.h"
@@ -114,7 +116,7 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-    /* 1. Tokenize */
+  /* 1. Tokenize */
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;

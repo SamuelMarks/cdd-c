@@ -36,7 +36,7 @@ TEST test_cdd_cst_mutate_replace(void) {
   int rc;
   cdd_cst_node_t *target;
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -178,7 +178,7 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_token_t mock_token2;
   cdd_cst_node_t *parent_node = NULL;
 
-  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)""), &tree);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node2);
 
@@ -212,12 +212,12 @@ TEST test_cdd_cst_mutate_errors(void) {
      cdd_cst_insert_node_after expects target to have a parent. Let's just use
      the tree. */
 
-  cdd_cst_parse(az_span_create_from_str("int x;"), &tree3);
+  cdd_cst_parse(az_span_create_from_str((char *)"int x;"), &tree3);
   valid_child = tree3->root->children[0].val.node;
   ASSERT_EQ(0, cdd_cst_detach_node(tree3, valid_child));
 
   cdd_cst_tree_free(tree3);
-  cdd_cst_parse(az_span_create_from_str("int y;"), &tree4);
+  cdd_cst_parse(az_span_create_from_str((char *)"int y;"), &tree4);
   splice_root = tree4->root;
 
   new_children[0].kind = CDD_CST_CHILD_NODE;
@@ -323,7 +323,7 @@ TEST test_cst_splice_children(void) {
   int rc;
 
   (void)rc;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
   if (tree->root)
     cdd_cst_free_node(tree->root);
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &root));
@@ -520,7 +520,7 @@ TEST test_cdd_cst_insert_node_after_success(void) {
   cdd_cst_node_t *child1 = NULL;
   cdd_cst_node_t *child2 = NULL;
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
 
   cdd_cst_alloc_node(CDD_CST_BLOCK, &parent);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child1);
@@ -564,7 +564,7 @@ TEST test_cdd_cst_insert_node_before_success(void) {
   cdd_cst_node_t *child1 = NULL;
   cdd_cst_node_t *child2 = NULL;
 
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
 
   cdd_cst_alloc_node(CDD_CST_BLOCK, &parent);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child1);

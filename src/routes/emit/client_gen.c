@@ -43,7 +43,9 @@
   return 0
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 
 /**
@@ -931,7 +933,7 @@ cdd_c_error_t write_source_preamble(FILE *fp, const char *header_name) {
 
   /* Compatibility defines */
   CHECK_IO(fprintf(fp, "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)\n"
-                       "#define strdup _strdup\n"
+                       "#ifndef strdup\\n#define strdup _strdup\\n#endif\n"
                        "#endif\n\n"));
 
   /* OpenAPI 3.2.0 coverage expansion:

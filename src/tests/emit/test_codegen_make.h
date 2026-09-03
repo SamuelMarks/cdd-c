@@ -179,7 +179,7 @@ TEST test_make_oom(void) {
   FILE *fp;
   struct MakeConfig config2 = {0};
   struct MakeConfig config3 = {0};
-  const char *srcs2[] = {(char *)(char *)NULL};
+  const char *srcs2[] = {(char *)NULL};
 #ifdef CDD_BUILD_TESTS
   /* extern C_CDD_EXPORT int g_cdd_fprintf_fail; (moved to global) */
   int i;

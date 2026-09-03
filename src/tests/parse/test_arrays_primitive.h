@@ -137,8 +137,8 @@ TEST test_code2schema_array_detection(void) {
     */
     char *argv[2];
     cdd_c_error_t result;
-    argv[0] = "test_array.h";
-    argv[1] = json_out_file;
+    argv[0] = (char *)"test_array.h";
+    argv[1] = (char *)json_out_file;
     /* clang-format on */
     result = code2schema_main(2, argv);
     printf("code2schema_main returned %d\n", result);

@@ -1,3 +1,8 @@
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
@@ -31,3 +36,7 @@ TEST test_preprocessor_abort(void) {
   g_fail_io_after = -1;
   PASS();
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

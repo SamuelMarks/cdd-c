@@ -24,7 +24,7 @@ extern "C" {
 
 static cdd_c_error_t tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  cdd_c_error_t rc = tokenize(az_span_create_from_str(s), &tl);
+  cdd_c_error_t rc = tokenize(az_span_create_from_str((char *)s), &tl);
   if (rc != CDD_C_SUCCESS) {
     printf("tokenize failed with %d for string '%s'\n", rc, s);
   }

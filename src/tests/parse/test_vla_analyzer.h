@@ -46,7 +46,7 @@ TEST test_scan_for_vlas_basic(void) {
                     "  int const c_vla[n];\n"
                     "}\n";
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
 
   (void)vla_site_list_init(&list);
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -88,7 +88,7 @@ TEST test_scan_for_vlas_errors(void) {
   struct TokenList *tl = NULL;
   struct VLASiteList list;
   (void)vla_site_list_init(&list);
-  ASSERT_EQ(0, tokenize(az_span_create_from_str("int x[n];"), &tl));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)"int x[n];"), &tl));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(tl, NULL));
@@ -125,7 +125,7 @@ TEST test_scan_for_vlas_oom(void) {
   int i;
   int res;
 
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(src), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
 
   for (i = 0; i < 25; ++i) {
     g_io_calls = 0;
@@ -149,7 +149,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
   /* Empty array size */
   const char *src1 = "int arr[]; int arr2[ ];";
-  ASSERT_EQ(0, tokenize(az_span_create_from_str(src1), &tokens));
+  ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src1), &tokens));
   (void)vla_site_list_init(&list);
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
   ASSERT_EQ(0, list.count); /* Not a VLA */
@@ -161,7 +161,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
    */
   {
     const char *src2 = "MyType arr[n]; MyType *arr2[n]; MyType   arr3[n];";
-    ASSERT_EQ(0, tokenize(az_span_create_from_str(src2), &tokens));
+    ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src2), &tokens));
     (void)vla_site_list_init(&list);
     ASSERT_EQ(0, scan_for_vlas(tokens, &list));
     ASSERT_EQ(3, list.count);
@@ -172,7 +172,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
     /* Missing variable name (syntax error but we should not crash) */
     {
       const char *src3 = "int [n];";
-      ASSERT_EQ(0, tokenize(az_span_create_from_str(src3), &tokens));
+      ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src3), &tokens));
       (void)vla_site_list_init(&list);
       ASSERT_EQ(0, scan_for_vlas(tokens, &list));
       vla_site_list_free(&list);
@@ -182,7 +182,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
       /* Missing semicolon */
       {
         const char *src4 = "int arr[n]";
-        ASSERT_EQ(0, tokenize(az_span_create_from_str(src4), &tokens));
+        ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src4), &tokens));
         (void)vla_site_list_init(&list);
         ASSERT_EQ(0, scan_for_vlas(tokens, &list));
         vla_site_list_free(&list);
@@ -192,7 +192,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
         /* Missing array bracket closing */
         {
           const char *src5 = "int arr[n";
-          ASSERT_EQ(0, tokenize(az_span_create_from_str(src5), &tokens));
+          ASSERT_EQ(0,
+                    tokenize(az_span_create_from_str((char *)src5), &tokens));
           (void)vla_site_list_init(&list);
           ASSERT_EQ(0, scan_for_vlas(tokens, &list));
           vla_site_list_free(&list);
@@ -202,7 +203,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
           /* Type modifiers with whitespace */
           {
             const char *src6 = "const  int  arr [ n ] ;";
-            ASSERT_EQ(0, tokenize(az_span_create_from_str(src6), &tokens));
+            ASSERT_EQ(0,
+                      tokenize(az_span_create_from_str((char *)src6), &tokens));
             (void)vla_site_list_init(&list);
             ASSERT_EQ(0, scan_for_vlas(tokens, &list));
             ASSERT_EQ(1, list.count);
@@ -215,7 +217,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
               const char *src7 =
                   "void f(int n) { int a[n]; int b[n]; int c[n]; int d[n]; "
                   "int e[n]; int f[n]; }";
-              ASSERT_EQ(0, tokenize(az_span_create_from_str(src7), &tokens));
+              ASSERT_EQ(
+                  0, tokenize(az_span_create_from_str((char *)src7), &tokens));
               (void)vla_site_list_init(&list);
               ASSERT_EQ(0, scan_for_vlas(tokens, &list));
               ASSERT_EQ(6, list.count);
@@ -234,7 +237,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
                 for (i = 0; i < sizeof(abrupt_cases) / sizeof(abrupt_cases[0]);
                      i++) {
                   ASSERT_EQ(0, tokenize(az_span_create_from_str(
-                                            (char *)abrupt_cases[i]),
+                                            (char *)(char *)abrupt_cases[i]),
                                         &tokens));
                   (void)vla_site_list_init(&list);
                   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -277,7 +280,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
                   /* Test 4: Semicolon, LBRACE, RBRACE to hit line 209-211 */
                   ASSERT_EQ(0, tokenize(az_span_create_from_str(
-                                            "int a[; int a[{ int a[}"),
+                                            (char *)"int a[; int a[{ int a[}"),
                                         &tokens));
                   (void)vla_site_list_init(&list);
                   scan_for_vlas(tokens, &list);

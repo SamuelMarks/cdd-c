@@ -63,7 +63,9 @@ static int test_cdd_fputs_hook(const char *s, FILE *stream) {
   return CDD_C_ERROR_IO
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 
 /**

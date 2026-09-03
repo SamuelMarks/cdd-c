@@ -29,7 +29,9 @@ C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 #else
 #endif

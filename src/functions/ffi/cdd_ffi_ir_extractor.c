@@ -14,7 +14,9 @@
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 /* clang-format on */
 

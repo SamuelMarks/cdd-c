@@ -48,7 +48,7 @@ TEST test_cdd_transform_msvc(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -60,7 +60,7 @@ TEST test_cdd_transform_msvc(void) {
     for (i = 0; i < 50; i++) {
       if (0) {
         cdd_cst_tree_t *tree_copy = NULL;
-        rc = cdd_cst_parse(az_span_create_from_str(code), &tree_copy);
+        rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
         if (rc == 0 && tree_copy) {
 #ifdef CDD_BUILD_TESTS
           /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global)
@@ -134,7 +134,7 @@ TEST test_cdd_transform_msvc_context(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str(code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -165,14 +165,14 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   memset(&config, 0, sizeof(config));
 
   (void)rc;
-  cdd_cst_parse(az_span_create_from_str(code), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 
   cdd_transform_msvc(tree, &config);
 
   /* We need a fresh tree since tokens get replaced */
   cdd_cst_tree_free(tree);
   tree = NULL;
-  cdd_cst_parse(az_span_create_from_str(code), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
 
   g_msvc_port_bld_fail = 2;
   rc = cdd_transform_msvc(tree, &config);
@@ -188,7 +188,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     /*  (moved to global) */
     int fail_idx;
     for (fail_idx = 1; fail_idx < 30; fail_idx++) {
-      cdd_cst_parse(az_span_create_from_str(code), &tree);
+      cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
       g_cdd_alloc_fail = fail_idx;
       cdd_transform_msvc(tree, &config);
       g_cdd_alloc_fail = 0;
@@ -222,7 +222,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
         "struct X *mkdir;\n"
         "union Y *rmdir;\n"
         "enum Z *getcwd;\n";
-    cdd_cst_parse(az_span_create_from_str(misc), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)misc), &tree);
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     cdd_cst_tree_free(tree);
@@ -232,7 +232,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   /* Check NULL prev_prev_token */
   {
     const char *misc2 = "* strdup;";
-    cdd_cst_parse(az_span_create_from_str(misc2), &tree);
+    cdd_cst_parse(az_span_create_from_str((char *)misc2), &tree);
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     cdd_cst_tree_free(tree);
@@ -263,7 +263,8 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     for (i = 0; i < sizeof(fails) / sizeof(fails[0]); i++) {
       /* extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail; (moved to global)
        */
-      int parse_rc = cdd_cst_parse(az_span_create_from_str(fails[i]), &tree);
+      int parse_rc =
+          cdd_cst_parse(az_span_create_from_str((char *)fails[i]), &tree);
       if (parse_rc != 0 || tree == NULL) {
         printf("PARSE FAILED FOR %s\n", fails[i]);
       }

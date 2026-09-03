@@ -1732,12 +1732,8 @@ TEST test_types_uncovered(void) {
     int t_idx;
     const char *arr_types[] = {"integer", "number",  "string", "object",
                                "boolean", "unknown", "enum"};
-    const char *arr_refs[] = {(char *)(char *)NULL,
-                              (char *)(char *)NULL,
-                              (char *)(char *)NULL,
-                              "ObjType",
-                              (char *)(char *)NULL,
-                              (char *)(char *)NULL,
+    const char *arr_refs[] = {(char *)NULL, (char *)NULL, (char *)NULL,
+                              "ObjType",    (char *)NULL, (char *)NULL,
                               "MyEnum"};
     for (t_idx = 0; t_idx < 7; ++t_idx) {
       struct_fields_init(&sf);

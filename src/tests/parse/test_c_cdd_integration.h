@@ -54,7 +54,7 @@ TEST test_integration_full_pipeline(void) {
   int rc;
 
   /* 1. Tokenize */
-  rc = tokenize(az_span_create_from_str(raw_source), &tokens);
+  rc = tokenize(az_span_create_from_str((char *)raw_source), &tokens);
   (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT(tokens != NULL);

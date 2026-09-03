@@ -125,7 +125,7 @@ TEST test_diff_generation_basic(void) {
 
     /* Trigger realloc failure in the other branch */
     /* For the other branch, we need a huge token! */
-    tokenize(az_span_create_from_str(huge_str), &tokens2);
+    tokenize(az_span_create_from_str((char *)huge_str), &tokens2);
 
     patch_list_init(&patch_list3);
     patch_list_add(&patch_list3, 0, 1, strdup("small"));

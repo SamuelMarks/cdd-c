@@ -63,7 +63,9 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 
 /* <windows_utils> */
 #ifndef strdup
+#ifndef strdup
 #define strdup _strdup
+#endif
 #endif
 
 #ifdef PATHCCH_LIB

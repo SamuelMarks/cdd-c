@@ -175,9 +175,8 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 4, 5)))
 #endif
-static cdd_c_error_t
-append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
-               const char *format, ...) {
+static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
+                                    size_t *diff_cap, const char *format, ...) {
   va_list args;
   int printed;
   if (!*diff_str) {

@@ -1,6 +1,10 @@
 #ifndef TEST_ORCHESTRATOR_INTERNALS_H
 #define TEST_ORCHESTRATOR_INTERNALS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
@@ -241,6 +245,10 @@ TEST test_orchestrator_internals(void) {
 }
 
 SUITE(orchestrator_internals_suite) { RUN_TEST(test_orchestrator_internals); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_ORCHESTRATOR_INTERNALS_H */
 
