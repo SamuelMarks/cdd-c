@@ -296,7 +296,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
     JSON_Object *schemas_obj = NULL;
     FILE *f;
     char sanitized[128];
-    cdd_c_error_t rc = 0;
+    cdd_c_error_t rc = CDD_C_SUCCESS;
 
     root_val = json_parse_file(schema_file);
     if (!root_val) {

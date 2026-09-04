@@ -4,7 +4,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <ctype.h>

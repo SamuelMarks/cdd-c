@@ -3,7 +3,8 @@
  * @brief Implementation of client code generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "routes/emit/client_gen.h"
 #include "c_cdd/log.h"
@@ -22,15 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
+
 /**
  * @def CHECK_IO_CLEANUP
  * @brief CHECK_IO_CLEANUP macro
  */
 #define CHECK_IO_CLEANUP(x)                                                    \
   for (; (x) < 0;) {                                                           \
-    rc = 0;                                                                    \
+    rc = CDD_C_SUCCESS;                                                        \
     fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);            \
     goto cleanup;                                                              \
   }
@@ -1238,7 +1239,7 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(
       c, "  if (!client) return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */\n"));
   CHECK_IO(fprintf(c, "  rc = http_client_init(client);\n"));
-  CHECK_IO(fprintf(c, "  if (rc != 0) return rc;\n"));
+  CHECK_IO(fprintf(c, "  if (rc != CDD_C_SUCCESS) return rc;\n"));
   if (default_url_literal) {
     CHECK_IO(fprintf(c, "  if (!base_url || base_url[0] == '\\0') {\n"));
     CHECK_IO(fprintf(c, "    base_url = default_url;\n"));
@@ -1858,7 +1859,7 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   merge_rc =
       build_effective_parameters(path, op, &effective_params, &effective_count);
-  if (merge_rc != 0)
+  if (merge_rc != CDD_C_SUCCESS)
     return merge_rc;
 
   effective_op = *op;
@@ -2128,7 +2129,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!hfile || !cfile || !mhfile || !mcfile) {
-    rc = 0;
+    rc = CDD_C_ERROR_IO;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2179,7 +2180,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   /* --- Write Models Preamble --- */
   if (fprintf(mhfile, "#ifndef %s\n", model_guard) < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2187,7 +2188,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#define %s\n\n", model_guard) < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2196,7 +2197,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
   if (fprintf(mhfile,
               "#include <c_cdd_stdbool.h>\n#include <cdd_c_error.h>\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2205,7 +2206,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
   if (fprintf(mhfile, "#include <stddef.h>\n#include <stdio.h>\n#include "
                       "\"lib_export.h\"\n\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2213,7 +2214,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2234,7 +2235,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     if (mh_base)
       free(mh_base);
     if (print_rc < 0) {
-      rc = 0;
+      rc = CDD_C_SUCCESS;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2246,7 +2247,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
               "#include <stdlib.h>\n#include <string.h>\n#include "
               "<stdio.h>\n#include <errno.h>\n#include <parson.h>\n#include "
               "<c89stringutils_string_extras.h>\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2254,7 +2255,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mcfile, "#include <string.h>\n\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2281,7 +2282,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
         continue;
 
       rc = write_forward_decl(mhfile, name);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
         goto cleanup;
@@ -2289,7 +2290,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
 
     if (fprintf(mhfile, "\n") < 0) {
-      rc = 0;
+      rc = CDD_C_SUCCESS;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2305,101 +2306,101 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
       if (sf->is_enum) {
         rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else if (sf->is_union) {
         rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
         rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else {
         rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
         rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_from_json_func(mcfile, name, &json_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
         rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
@@ -2409,7 +2410,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (fprintf(mhfile, "\n#ifdef __cplusplus\n}\n#endif\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2417,7 +2418,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#endif /* %s */\n", model_guard) < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2442,7 +2443,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     rc = write_source_preamble(cfile, base ? base : h_name);
     if (base)
       free(base);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
       goto cleanup;
@@ -2462,7 +2463,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
         goto cleanup;
@@ -2471,7 +2472,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     for (j = 0; j < path->n_additional_operations; ++j) {
       struct OpenAPI_Operation *op = &path->additional_operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
         goto cleanup;
@@ -3113,7 +3114,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = CDD_C_ERROR_MEMORY;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -3121,7 +3122,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
-    rc = 0;
+    rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -4605,7 +4606,8 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
                     "            rc = %s_from_json(body_str, "
                     "&out);\n",
                     op->responses[0].schema.ref_name);
-            fprintf(tfp, "            if (rc != 0) { fprintf(stderr, \"Parse "
+            fprintf(tfp, "            if (rc != CDD_C_SUCCESS) { "
+                         "fprintf(stderr, \"Parse "
                          "failed\\n\");  }\n");
             fprintf(tfp, "            free(body_str);\n");
             fprintf(tfp, "        }\n");
@@ -4628,7 +4630,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     rc = generate_cmake_project(dir_name ? dir_name : ".",
                                 base_name ? base_name : "generated_client",
                                 config->create_tests_and_mocks);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
       goto cleanup;

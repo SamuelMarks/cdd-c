@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/enum.h"
 #include "c_cdd/log.h"
@@ -15,7 +16,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS

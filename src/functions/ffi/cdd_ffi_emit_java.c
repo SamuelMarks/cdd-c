@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_java.h"
 #include "c_cdd/format_specifiers.h"
@@ -8,7 +9,6 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 static const char *get_java_primitive(cdd_ffi_type_t type) {
@@ -485,7 +485,7 @@ cdd_c_error_t cdd_ffi_emit_java(cdd_ffi_ir_t *ir,
   }
 
   rc = emit_java_file(ir, config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   return emit_pom_xml(config);

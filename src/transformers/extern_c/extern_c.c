@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
@@ -128,7 +129,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   /* 1. Check if __cplusplus is already checked globally */
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_CONDITIONAL, &res);
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     for (i = 0; i < res.size; i++) {
       int is_global = 0;
       cdd_cst_node_t *dir = res.nodes[i];
@@ -159,7 +160,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
   if (!found_cpp) {
     rc =
         cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
-    if (rc == 0) {
+    if (rc == CDD_C_SUCCESS) {
       for (i = 0; i < res.size; i++) {
         int is_global = 0;
         cdd_cst_node_t *dir = res.nodes[i];

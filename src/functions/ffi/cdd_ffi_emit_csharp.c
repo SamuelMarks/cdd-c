@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_csharp.h"
 #include "../parse/fs.h"
@@ -8,7 +9,6 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 static const char *get_csharp_primitive(cdd_ffi_primitive_kind_t kind) {
@@ -421,16 +421,16 @@ cdd_ffi_emit_csharp(cdd_ffi_ir_t *ir,
   }
 
   rc = emit_csharp_bindings(ir, config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = emit_csproj(config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (config->generate_tests) {
     rc = emit_csharp_tests(ir, config);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 

@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -14,8 +15,8 @@
 #include <string.h>
 
 #include "functions/emit/weaver.h"
-/* clang-format on */
 #include "c_cdd/memory.h"
+/* clang-format on */
 
 /**
  * @brief Executes the weaver wrap ifdef operation.

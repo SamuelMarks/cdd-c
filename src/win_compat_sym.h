@@ -27,8 +27,8 @@ extern "C" {
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <inttypes.h>
-#endif
 /* clang-format on */
+#endif
 #define CDD_SIZE_T_FMT "zu"
 #define CDD_NUM_FORMAT PRIu64
 #elif defined(__LP64__) || defined(_LP64) || defined(__wasm__) ||              \

@@ -433,7 +433,8 @@ TEST test_c_cdd_stricmp(void) {
   ASSERT(diff > 0);
   ASSERT_EQ(0, c_cdd_stricmp(NULL, "hello", &diff));
   ASSERT(diff < 0);
-  ASSERT_EQ(22, c_cdd_stricmp("hello", "hello", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            c_cdd_stricmp("hello", "hello", NULL));
   g_fail_io_after = -1;
 
   PASS();

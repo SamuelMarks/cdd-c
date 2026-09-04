@@ -1,3 +1,4 @@
+/* clang-format off */
 #include "c_cdd/memory.h"
 /**
  * @file doc.c
@@ -6,7 +7,7 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <ctype.h>
@@ -210,7 +211,7 @@ static cdd_c_error_t parse_tags_line(const char *line, const char *end,
           (trim_segment(cursor, &_ast_trim_segment_3), _ast_trim_segment_3);
       if (tag && *tag) {
         rc = add_tag(out, tag);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           break;
       }
     }
@@ -1609,7 +1610,7 @@ static cdd_c_error_t parse_security_line(const char *line, const char *end,
 
   rest = (extract_rest(cur, end, &_ast_extract_rest_65), _ast_extract_rest_65);
   rc = split_scopes(rest, &scopes, &n_scopes);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(scheme);
     if (rest)
       C_CDD_FREE(rest);
@@ -1757,7 +1758,7 @@ static cdd_c_error_t parse_oauth_scopes(const char *input,
   *out_count = 0;
 
   rc = split_scopes(input, &names, &n);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
   if (n == 0)
     return CDD_C_SUCCESS;
@@ -2680,11 +2681,11 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
         /* Dispatch */
         if (strcmp(cmd, "route") == 0) {
           rc = parse_route_line(cmd_end, line_end, out);
-          if (rc == 0)
+          if (rc == CDD_C_SUCCESS)
             out->is_webhook = 0;
         } else if (strcmp(cmd, "webhook") == 0) {
           rc = parse_route_line(cmd_end, line_end, out);
-          if (rc == 0)
+          if (rc == CDD_C_SUCCESS)
             out->is_webhook = 1;
         } else if (strcmp(cmd, "param") == 0) {
           rc = parse_param_line(cmd_end, line_end, out);
@@ -2794,7 +2795,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
         }
 
         C_CDD_FREE(cmd);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           goto cleanup;
       }
     } else {

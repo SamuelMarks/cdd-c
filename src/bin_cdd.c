@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_c_error.h"
 #include "functions/parse/main.h"
@@ -16,7 +17,7 @@
 static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
   cdd_c_error_t rc;
   rc = cdd_main(argc, argv);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return CDD_C_ERROR_UNKNOWN;
   }
   return CDD_C_SUCCESS;

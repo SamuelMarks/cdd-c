@@ -3,7 +3,8 @@
  * @brief Implementation of schema constraint handling.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/schema.h"
 #include "c_cdd/log.h"

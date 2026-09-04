@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/emit/codegen.h"
 #include <errno.h>
@@ -6,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS

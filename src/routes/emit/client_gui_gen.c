@@ -3,7 +3,8 @@
  * @brief Implementation of OAuth2 client GUI generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "routes/emit/client_gui_gen.h"
 #include "c_cdd/memory.h"
@@ -108,7 +109,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_IO;
   }
 
   /* Header Generation */
@@ -227,7 +228,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
                 "\"application/x-www-form-urlencoded\");\n");
   fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n");
-  fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
+  fprintf(fp_c, "  if (rc == CDD_C_SUCCESS && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
   fprintf(fp_c, "    C_CDD_FREE(res.body);\n");
   fprintf(fp_c, "  }\n");

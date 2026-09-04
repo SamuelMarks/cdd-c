@@ -8,9 +8,9 @@ extern "C" {
 /* clang-format off */
 #include <stdlib.h>
 #include <string.h>
-/* clang-format on */
 
 #include <c_cdd_export.h>
+/* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_alloc_fail;
 #if 1

@@ -45,9 +45,9 @@ typedef unsigned __int64 uint64_t;
 #include "msvc/stdint.h"
 #else
 #include <stdint.h>
-#endif
-#endif
 /* clang-format on */
+#endif
+#endif
 
 /* Fallback for Pre-C99 environments missing stdint.h */
 #if !defined(UINT64_MAX)

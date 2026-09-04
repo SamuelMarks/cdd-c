@@ -6,7 +6,8 @@
  * Appends standard `struct ApiError **api_error` argument to all operations.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>

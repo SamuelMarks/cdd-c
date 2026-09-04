@@ -1,7 +1,8 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_cdd_cst_alloc_token_fail;
 #endif
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_lexer.h"
 #include "c_cdd/log.h"

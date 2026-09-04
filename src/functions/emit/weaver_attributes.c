@@ -3,7 +3,8 @@
  * @brief Implementation of GNU attribute weaving.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -92,7 +93,7 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
         cdd_c_error_t rc = patch_list_add(patches, node->start_token,
                                           node->end_token, replacement);
         /* LCOV_EXCL_START */
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(attr_text);
           return rc;
         }

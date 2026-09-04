@@ -1,11 +1,12 @@
 #define _CRT_RAND_S
+/* clang-format off */
 #include "c_cdd/memory.h"
 #include <stdlib.h>
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define _CRT_RAND_S
 #endif
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/str.h"
 /**
@@ -96,9 +97,9 @@ static cdd_c_error_t errno_to_cdd_error(int err) {
 #else
 #include "c_cdd/log.h"
 #include <unistd.h>
+/* clang-format on */
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
-/* clang-format on */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -529,7 +530,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     rc = errno_to_cdd_error(errno);
     /* If errno is not set by fread failure (rare but possible), default to EIO
      */
-    if (rc == 0)
+    if (rc == CDD_C_SUCCESS)
       rc = CDD_C_ERROR_IO;
     C_CDD_FREE(buffer);
     return rc;
@@ -710,7 +711,7 @@ cdd_c_error_t makedirs(const char *path) {
         continue;
       *p = '\0';
       rc = maybe_mkdir(dup_path);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(dup_path);
         return rc;
       }
@@ -847,7 +848,7 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = tempdir(&tmpdir_path);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   for (i = 9; i != 0; --i) {
@@ -1025,7 +1026,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
       }
       C_CDD_FREE(full_path);
 
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         _findclose(handle);
         return rc;
       }
@@ -1070,7 +1071,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
       C_CDD_FREE(full_path);
 
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         closedir(d);
         return rc;
       }

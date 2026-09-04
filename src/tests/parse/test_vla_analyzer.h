@@ -130,8 +130,8 @@ TEST test_scan_for_vlas_oom(void) {
   for (i = 0; i < 25; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
+    vla_site_list_init(&list);
     res = scan_for_vlas(tokens, &list);
-    (void)vla_site_list_init(&list);
     if (res != 0) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }

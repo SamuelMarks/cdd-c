@@ -3,7 +3,8 @@
  * @brief Implementation of parsing strategies.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -300,7 +301,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
       size_t old_size = patches->size;
       cdd_c_error_t rc =
           strategy_rewrite_realloc(tokens, site, semi_idx, patches);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
       /* If matched and patched, skip standard injection logic */
       if (patches->size > old_size)

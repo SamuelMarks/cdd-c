@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_builder.h"
 #include "c_cdd/log.h"

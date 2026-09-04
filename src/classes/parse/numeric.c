@@ -9,7 +9,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,7 +27,7 @@
 #define UINT64_MAX _UI64_MAX
 #else
 /** @brief UINT64_MAX macro */
-#define UINT64_MAX ((uint64_t)-1)
+#define UINT64_MAX ((uint64_t) - 1)
 #endif
 #endif
 

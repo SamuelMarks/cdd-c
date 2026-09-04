@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_nim.h"
 
@@ -9,7 +10,6 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 static const char *map_nim_type(cdd_ffi_type_t *t) {

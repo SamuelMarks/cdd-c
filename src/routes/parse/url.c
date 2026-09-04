@@ -3,7 +3,8 @@
  * @brief Implementation of URL parsing.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>

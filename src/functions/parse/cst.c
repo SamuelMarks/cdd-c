@@ -17,7 +17,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd_export.h"
 #include <errno.h>
@@ -506,7 +507,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         rc = cst_list_add(out, CST_NODE_GCC_ATTRIBUTE, tok->start, byte_len, i,
                           attr_end);
 
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           return rc;
         i = attr_end;
         continue;
@@ -534,7 +535,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_DECLSPEC, tok->start, byte_len, i,
                           attr_end);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           return rc;
         i = attr_end;
         continue;
@@ -557,7 +558,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_ATTRIBUTE, tok->start, byte_len, i,
                           attr_end);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           return rc;
         i = attr_end;
         continue;
@@ -579,7 +580,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
         rc = cst_list_add(out, CST_NODE_STATIC_ASSERT, tok->start, byte_len, i,
                           sa_end);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           return rc;
         i = sa_end;
         continue;
@@ -618,7 +619,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         rc = cst_list_add(out, CST_NODE_GENERIC_SELECTION, tok->start, byte_len,
                           i, gen_end);
 
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           return rc;
         i = gen_end;
         continue;
@@ -647,7 +648,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
           size_t byte_len = (size_t)((last->start + last->length) - tok->start);
           rc = cst_list_add(out, CST_NODE_FUNCTION, tok->start, byte_len, i,
                             func_end);
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             return rc;
           i = func_end;
           continue;
@@ -725,7 +726,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
           byte_len = (size_t)((last->start + last->length) - tok->start);
 
           rc = cst_list_add(out, nk, tok->start, byte_len, i, block_end);
-          if (rc != 0)
+          if (rc != CDD_C_SUCCESS)
             return rc;
 
           if (body_start_idx > 0) {
@@ -765,7 +766,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
               size_t byte_len =
                   (size_t)((last->start + last->length) - tok->start);
               rc = cst_list_add(out, nk, tok->start, byte_len, i, decl_end);
-              if (rc != 0)
+              if (rc != CDD_C_SUCCESS)
                 return rc;
             }
           }
@@ -778,7 +779,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
     if (tok->kind == TOKEN_COMMENT) {
       rc = cst_list_add(out, CST_NODE_COMMENT, tok->start, tok->length, i,
                         i + 1);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
       i++;
       continue;
@@ -794,7 +795,7 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
         j++;
       }
       rc = cst_list_add(out, CST_NODE_MACRO, tok->start, tok->length, i, j);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
       i = j;
       continue;

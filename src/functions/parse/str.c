@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include <ctype.h>
@@ -231,7 +232,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
 cdd_c_error_t c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;
   if (!out_diff)
-    return 22; /* EINVAL */
+    return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
   if (a == b) {
     *out_diff = 0;
     return CDD_C_SUCCESS;

@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_api.h"
 #include "c_cdd/memory.h"
@@ -205,20 +206,20 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   /* Read file to string */
   rc = read_to_file(config->input, "rb", &file_content, &file_size);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   /* Extract exports into FFI IR */
   rc = cdd_ffi_ir_extract_exports(config->input, file_content, config, &ir);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(file_content);
     return rc;
   }
 
   /* Sort IR dependencies */
   rc = cdd_ffi_ir_topological_sort(ir);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     cdd_ffi_ir_free(ir);
     C_CDD_FREE(ir);
     C_CDD_FREE(file_content);
@@ -234,10 +235,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_python(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter python with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed at python, rc = %d\n", rc);
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
@@ -250,10 +251,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_rust(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter rust with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -266,10 +267,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_csharp(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter csharp with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -282,10 +283,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_typescript(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter typescript with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -297,10 +298,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_napi(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter napi with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -312,10 +313,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_java(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter java with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -327,10 +328,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_cpp(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter cpp with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -342,10 +343,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_go(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter go with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -358,10 +359,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_swift(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter swift with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -373,10 +374,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_dart(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter dart with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -388,10 +389,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ruby(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter ruby with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -404,10 +405,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_kotlin(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter kotlin with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -419,10 +420,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_php(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter php with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -434,10 +435,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_lua(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter lua with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -449,10 +450,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_zig(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter zig with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -464,10 +465,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_odin(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter odin with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -480,10 +481,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_julia(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter julia with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -495,10 +496,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_r(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter r with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -511,10 +512,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_matlab(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter matlab with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -527,10 +528,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_haskell(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter haskell with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -543,10 +544,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ocaml(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter ocaml with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -559,10 +560,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_elixir(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter elixir with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -575,10 +576,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_erlang(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter erlang with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -591,10 +592,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_common_lisp(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter common_lisp with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -607,10 +608,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_racket(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter racket with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -623,10 +624,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scheme(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter scheme with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -639,10 +640,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scala(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter scala with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -655,10 +656,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fsharp(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter fsharp with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -671,10 +672,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_clojure(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter clojure with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -687,10 +688,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_groovy(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter groovy with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -704,10 +705,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_webassembly(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter webassembly with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -719,10 +720,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_nim(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter nim with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -735,10 +736,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_vlang(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter vlang with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -751,10 +752,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_d(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter d with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -766,10 +767,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_perl(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter perl with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -781,10 +782,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_tcl(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter tcl with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -797,10 +798,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fortran(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter fortran with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -814,10 +815,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_delphi(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter delphi with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -829,10 +830,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ada(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter ada with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -845,10 +846,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_objc(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter objc with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);
@@ -861,10 +862,10 @@ cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_crystal(ir, config);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         printf("Failed emitter crystal with %d\n", rc);
       }
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         cdd_ffi_ir_free(ir);
         C_CDD_FREE(ir);
         C_CDD_FREE(file_content);

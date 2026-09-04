@@ -145,7 +145,6 @@ static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
                 (low / (((uint64_t)1844674407UL * 1000000000UL) +
                         370955161UL)); /* Roughly */
 #if defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif
     /* Accurate 128-bit multiply by 10 */
     {
@@ -448,7 +447,8 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
            */
           if (res.nodes)
             free(res.nodes);
-          return 129; /* ENOTSUP isn't defined everywhere in old MSVC */
+          return CDD_C_ERROR_SYSTEM; /* ENOTSUP isn't defined everywhere in old
+                                        MSVC */
         }
 
       /* Non-trampoline nested function (called directly)

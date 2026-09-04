@@ -3,7 +3,8 @@
  * @brief Implementation of OpenAPI generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -2515,7 +2516,7 @@ static void write_callback_object(JSON_Object *cb_obj,
       JSON_Object *item_obj = json_value_get_object(item_val);
 
       rc = write_path_item_object(item_obj, p);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         json_value_free(item_val);
         continue;
       }
@@ -2615,7 +2616,7 @@ write_operation_object(JSON_Object *op_obj,
   }
   rc = write_security_requirements(op_obj, "security", op->security,
                                    op->n_security, op->security_set);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
@@ -2630,28 +2631,28 @@ write_operation_object(JSON_Object *op_obj,
   }
 
   rc = write_parameters(op_obj, op->parameters, op->n_parameters);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   rc = write_request_body(op_obj, op);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   rc = write_responses(op_obj, op);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   rc = write_callbacks(op_obj, op);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
   if (op->n_servers > 0 && op->servers) {
     rc = write_server_array(op_obj, "servers", op->servers, op->n_servers);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       return rc;
     }
   }
@@ -2685,7 +2686,7 @@ static cdd_c_error_t write_operations(JSON_Object *path_item,
     op_obj = json_value_get_object(op_val);
 
     rc = write_operation_object(op_obj, op);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(op_val);
       return rc;
     }
@@ -2734,7 +2735,7 @@ write_additional_operations(JSON_Object *path_item,
     op_obj = json_value_get_object(op_val);
 
     rc = write_operation_object(op_obj, op);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(op_val);
       json_value_free(add_val);
       return rc;
@@ -2765,22 +2766,22 @@ static cdd_c_error_t write_path_item_object(JSON_Object *item_obj,
     json_object_set_string(item_obj, "$ref", path->ref);
   if (path->n_parameters > 0) {
     rc = write_parameters(item_obj, path->parameters, path->n_parameters);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
   if (path->n_servers > 0 && path->servers) {
     rc =
         write_server_array(item_obj, "servers", path->servers, path->n_servers);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
   rc = write_operations(item_obj, path);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = write_additional_operations(item_obj, path);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (path->extensions_json)
@@ -2823,11 +2824,11 @@ static cdd_c_error_t write_paths(JSON_Object *root_obj,
     }
 
     rc = write_path_item_object(item_obj, p);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       break;
   }
 
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     json_object_set_value(root_obj, "paths", paths_val);
   } else {
     json_value_free(paths_val);
@@ -2966,13 +2967,13 @@ static cdd_c_error_t write_webhooks(JSON_Object *root_obj,
     JSON_Object *item_obj = json_value_get_object(item_val);
 
     rc = write_path_item_object(item_obj, p);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       break;
 
     json_object_set_value(hooks_obj, route, item_val);
   }
 
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     json_object_set_value(root_obj, "webhooks", hooks_val);
   } else {
     json_value_free(hooks_val);
@@ -3475,7 +3476,7 @@ write_component_path_items(JSON_Object *components,
     }
 
     rc = write_path_item_object(item_obj, p);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(item_val);
       json_value_free(paths_val);
       return rc;
@@ -3575,7 +3576,7 @@ static cdd_c_error_t write_components(JSON_Object *root_obj,
         rc = write_struct_to_json_schema(schemas_obj,
                                          spec->defined_schema_names[i],
                                          &spec->defined_schemas[i]);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           json_value_free(comps_val);
           json_value_free(schemas_val);
           return rc;
@@ -3602,7 +3603,7 @@ static cdd_c_error_t write_components(JSON_Object *root_obj,
   /* Security Schemes */
   if (spec->n_security_schemes > 0) {
     rc = write_security_schemes(comps_obj, spec);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(comps_val);
       return rc;
     }
@@ -3610,63 +3611,63 @@ static cdd_c_error_t write_components(JSON_Object *root_obj,
 
   /* Parameters */
   rc = write_component_parameters(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Responses */
   rc = write_component_responses(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Headers */
   rc = write_component_headers(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Request Bodies */
   rc = write_component_request_bodies(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Media Types */
   rc = write_component_media_types(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Examples */
   rc = write_component_examples(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Links */
   rc = write_component_links(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Callbacks */
   rc = write_component_callbacks(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
 
   /* Path Items */
   rc = write_component_path_items(comps_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(comps_val);
     return rc;
   }
@@ -3720,39 +3721,39 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   if (spec->external_docs.url)
     write_external_docs(root_obj, "externalDocs", &spec->external_docs);
   rc = write_tags(root_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(root_val);
     return rc;
   }
 
   rc = write_security_requirements(root_obj, "security", spec->security,
                                    spec->n_security, spec->security_set);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(root_val);
     return rc;
   }
 
   rc = write_servers(root_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(root_val);
     return rc;
   }
 
   rc = write_components(root_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(root_val);
     return rc;
   }
 
   rc = write_webhooks(root_obj, spec);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     json_value_free(root_val);
     return rc;
   }
 
   if (spec->n_paths > 0 || spec->paths_extensions_json) {
     rc = write_paths(root_obj, spec);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(root_val);
       return rc;
     }

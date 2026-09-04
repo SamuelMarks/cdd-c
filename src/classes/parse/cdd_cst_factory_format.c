@@ -3,7 +3,8 @@
  * @brief Implementation of formatting CST factory allocation functions.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/log.h"
 #include "c_cdd/safe_crt.h"

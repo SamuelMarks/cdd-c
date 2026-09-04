@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_go.h"
 #include "c_cdd/format_specifiers.h"
@@ -319,7 +320,7 @@ cdd_c_error_t cdd_ffi_emit_go(cdd_ffi_ir_t *ir,
   }
 
   rc = emit_go_file(ir, config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   return emit_go_mod(config);

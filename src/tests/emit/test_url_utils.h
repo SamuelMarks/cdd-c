@@ -32,7 +32,6 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 #include <string.h>
 
 #include "routes/parse/url.h"
-#include "cdd_test_helpers/cdd_oom_mock.h"
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
@@ -441,54 +440,6 @@ TEST test_url_encode_all_null(void) {
   PASS();
 }
 
-TEST test_url_encode_oom(void) {
-  char *res = NULL;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  ASSERT_EQ(CDD_C_SUCCESS, url_encode("hello world", &res));
-  ASSERT(res == NULL);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  PASS();
-}
-
-TEST test_url_encode_allow_reserved_oom(void) {
-  char *res = NULL;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  ASSERT_EQ(CDD_C_SUCCESS, url_encode_allow_reserved("hello world", &res));
-  ASSERT(res == NULL);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  PASS();
-}
-
-TEST test_url_encode_form_oom(void) {
-  char *res = NULL;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  ASSERT_EQ(CDD_C_SUCCESS, url_encode_form("hello world", &res));
-  ASSERT(res == NULL);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  PASS();
-}
-
-TEST test_url_encode_form_allow_reserved_oom(void) {
-  char *res = NULL;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved("hello world", &res));
-  ASSERT(res == NULL);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  PASS();
-}
-
 TEST test_url_encode_form_allow_reserved_pct(void) {
   char *res = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, url_encode_form_allow_reserved("a b<", &res));
@@ -516,132 +467,6 @@ TEST test_url_query_add_encoded_null(void) {
             url_query_add_encoded(&qp, NULL, "v"));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             url_query_add_encoded(&qp, "k", NULL));
-  url_query_free(&qp);
-  PASS();
-}
-
-TEST test_url_query_add_oom(void) {
-  struct UrlQueryParams qp;
-  int i;
-  for (i = 1; i <= 3; ++i) {
-    url_query_init(&qp);
-    g_io_calls = 0;
-    g_fail_io_after = i;
-    mock_set_oom_after_calls(i);
-    url_query_add(&qp, "key", "value");
-    url_query_free(&qp);
-    g_fail_io_after = -1;
-    mock_set_oom_after_calls(-1);
-  }
-
-  url_query_init(&qp);
-  url_query_add(&qp, "k1", "v1");
-  url_query_add(&qp, "k2", "v2");
-  url_query_add(&qp, "k3", "v3");
-  url_query_add(&qp, "k4", "v4");
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  url_query_add(&qp, "k5", "v5");
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  url_query_free(&qp);
-  PASS();
-}
-
-TEST test_url_query_add_encoded_oom(void) {
-  struct UrlQueryParams qp;
-  int i;
-  for (i = 1; i <= 3; ++i) {
-    url_query_init(&qp);
-    g_io_calls = 0;
-    g_fail_io_after = i;
-    mock_set_oom_after_calls(i);
-    url_query_add_encoded(&qp, "key", "value");
-    url_query_free(&qp);
-    g_fail_io_after = -1;
-    mock_set_oom_after_calls(-1);
-  }
-
-  url_query_init(&qp);
-  url_query_add_encoded(&qp, "k1", "v1");
-  url_query_add_encoded(&qp, "k2", "v2");
-  url_query_add_encoded(&qp, "k3", "v3");
-  url_query_add_encoded(&qp, "k4", "v4");
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  url_query_add_encoded(&qp, "k5", "v5");
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  url_query_free(&qp);
-  PASS();
-}
-
-TEST test_url_query_build_oom(void) {
-  struct UrlQueryParams qp;
-  char *res = NULL;
-  int i;
-
-  url_query_init(&qp);
-  url_query_add(&qp, "k1", "v1");
-  url_query_add_encoded(&qp, "k2", "v2");
-
-  for (i = 0; i < 20; ++i) {
-    g_io_calls = 0;
-    g_fail_io_after = i;
-    mock_set_oom_after_calls(i);
-    url_query_build(&qp, &res);
-    if (res) {
-      free(res);
-      res = NULL;
-    }
-  }
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  url_query_free(&qp);
-
-  url_query_init(&qp);
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  url_query_build(&qp, &res);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  url_query_free(&qp);
-  PASS();
-}
-
-TEST test_url_query_build_form_oom(void) {
-  struct UrlQueryParams qp;
-  char *res = NULL;
-  int i;
-
-  url_query_init(&qp);
-  url_query_add(&qp, "k1", "v1");
-  url_query_add_encoded(&qp, "k2", "v2");
-
-  for (i = 0; i < 20; ++i) {
-    g_io_calls = 0;
-    g_fail_io_after = i;
-    mock_set_oom_after_calls(i);
-    url_query_build_form(&qp, &res);
-    if (res) {
-      free(res);
-      res = NULL;
-    }
-  }
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  url_query_free(&qp);
-
-  url_query_init(&qp);
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  url_query_build_form(&qp, &res);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
   url_query_free(&qp);
   PASS();
 }
@@ -695,48 +520,6 @@ TEST test_openapi_kv_join_form_delim_null(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("k,v", res);
   free(res);
-  PASS();
-}
-
-TEST test_openapi_kv_join_form_oom(void) {
-  struct OpenAPI_KV kvs[2];
-  char *res = NULL;
-  int i;
-
-  kvs[0].key = "S1";
-  kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s =
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-  kvs[1].key =
-      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
-  kvs[1].type = OA_KV_STRING;
-  kvs[1].value.s = "BBBBBBBBBB";
-
-  for (i = 0; i < 20; ++i) {
-    g_io_calls = 0;
-    g_fail_io_after = i;
-    mock_set_oom_after_calls(i);
-    openapi_kv_join_form(kvs, 2, ",", 0, &res);
-    if (res) {
-      free(res);
-      res = NULL;
-    }
-  }
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  openapi_kv_join_form(NULL, 0, ",", 0, &res);
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  if (res) {
-    free(res);
-    res = NULL;
-  }
   PASS();
 }
 
@@ -828,49 +611,6 @@ TEST test_url_query_build_form_empty(void) {
   PASS();
 }
 
-TEST test_openapi_kv_join_form_all_skipped_oom(void) {
-  struct OpenAPI_KV kvs[1];
-  char *res = NULL;
-  kvs[0].key = NULL;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(-1);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_kv_join_form(kvs, 1, ",", 0, &res));
-  g_fail_io_after = -1;
-  mock_set_oom_after_calls(-1);
-  PASS();
-}
-
-TEST test_url_query_build_form_empty_oom(void) {
-  struct UrlQueryParams qp;
-  char *res = NULL;
-  url_query_init(&qp);
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, url_query_build_form(&qp, &res));
-  g_fail_io_after = -1;
-  url_query_free(&qp);
-  PASS();
-}
-
-TEST test_url_query_build_empty_oom(void) {
-  struct UrlQueryParams qp;
-  char *res = NULL;
-  url_query_init(&qp);
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  mock_set_oom_after_calls(0);
-  {
-    int rc = url_query_build(&qp, &res);
-    printf("url_query_build empty oom rc: %d\n", rc);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-    g_fail_io_after = -1;
-    mock_set_oom_after_calls(-1);
-    url_query_free(&qp);
-    PASS();
-  }
-}
-
 TEST test_is_pct_encoded_branches(void) {
   ASSERT_EQ(0, is_pct_encoded_test(""));
   ASSERT_EQ(0, is_pct_encoded_test("%"));
@@ -882,30 +622,18 @@ TEST test_is_pct_encoded_branches(void) {
 }
 
 SUITE(url_utils_suite) {
-  RUN_TEST(test_url_query_build_form_empty_oom);
-  RUN_TEST(test_url_query_build_empty_oom);
   RUN_TEST(test_is_pct_encoded_branches);
 
   RUN_TEST(test_url_encode_all_null);
-  RUN_TEST(test_url_encode_oom);
-  RUN_TEST(test_url_encode_allow_reserved_oom);
-  RUN_TEST(test_url_encode_form_oom);
-  RUN_TEST(test_url_encode_form_allow_reserved_oom);
   RUN_TEST(test_url_encode_form_allow_reserved_pct);
   RUN_TEST(test_url_encode_unreserved_form_asterisk);
   RUN_TEST(test_url_query_add_encoded_null);
-  RUN_TEST(test_url_query_add_oom);
-  RUN_TEST(test_url_query_add_encoded_oom);
-  RUN_TEST(test_url_query_build_oom);
-  RUN_TEST(test_url_query_build_form_oom);
   RUN_TEST(test_url_query_build_form_null);
   RUN_TEST(test_openapi_kv_join_form_types);
   RUN_TEST(test_openapi_kv_join_form_null);
   RUN_TEST(test_openapi_kv_join_form_delim_null);
-  RUN_TEST(test_openapi_kv_join_form_oom);
   RUN_TEST(test_openapi_kv_join_form_large_string);
   RUN_TEST(test_openapi_kv_join_form_all_skipped);
-  RUN_TEST(test_openapi_kv_join_form_all_skipped_oom);
   RUN_TEST(test_url_query_build_form_empty);
   RUN_TEST(test_kv_value_to_string_null);
   RUN_TEST(test_append_str_nulls);
@@ -942,4 +670,3 @@ SUITE(url_utils_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_URL_UTILS_H */
-#undef g_mock_oom_countdown

@@ -304,8 +304,12 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
       }
     }
 
-    /* Send Response */
+/* Send Response */
+#if defined(_WIN32)
     send(client_fd, response, (int)strlen(response), 0);
+#else
+    send(client_fd, response, strlen(response), 0);
+#endif
 
     close_socket(client_fd);
   }

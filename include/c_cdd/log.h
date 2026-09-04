@@ -1,8 +1,8 @@
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
-
 /* clang-format on */
+
 /**
  * @file log.h
  * @brief Logging utilities.
@@ -21,7 +21,7 @@ extern "C" {
  * @param fmt Format string.
  * @param ... Arguments.
  */
-cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
+C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 #define C_CDD_LOG_DEBUG c_cdd_log_debug
 #else
 /**
@@ -29,7 +29,7 @@ cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
  * @param fmt Format string.
  * @param ... Arguments.
  */
-cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
+C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 #if defined(__GNUC__)
 #pragma GCC system_header
 #define C_CDD_LOG_DEBUG(...) ((void)0)

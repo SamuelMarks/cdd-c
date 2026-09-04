@@ -10,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -369,7 +370,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         }
       }
     }
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       break;
   }
 
@@ -466,10 +467,10 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = tokenize(az_span_create_from_str((char *)source_code), &tl);
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     rc = parse_tokens(tl, &cst);
   }
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     if (tl)
       free_token_list(tl);
     return rc;

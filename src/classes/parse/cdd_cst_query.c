@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_query.h"
 #include "c_cdd/memory.h"
@@ -23,14 +24,14 @@ cdd_c_error_t cdd_cst_traverse_preorder(cdd_cst_node_t *root,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = visitor(root, user_data);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   for (i = 0; i < root->num_children; i++) {
     if (root->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = cdd_cst_traverse_preorder(root->children[i].val.node, visitor,
                                      user_data);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
@@ -50,7 +51,7 @@ cdd_c_error_t cdd_cst_traverse_postorder(cdd_cst_node_t *root,
     if (root->children[i].kind == CDD_CST_CHILD_NODE) {
       rc = cdd_cst_traverse_postorder(root->children[i].val.node, visitor,
                                       user_data);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }

@@ -1,7 +1,8 @@
 extern volatile int g_fail_io_after;
 #ifdef CDD_BUILD_TESTS
 #endif
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_common_lisp.h"
 
@@ -12,7 +13,6 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 static void lispify_name(const char *c_name, char *out_name, size_t out_sz) {

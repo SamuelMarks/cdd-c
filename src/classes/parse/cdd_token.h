@@ -21,9 +21,9 @@ typedef unsigned __int64 uint64_t;
 #include "msvc/stdint.h"
 #else
 #include <stdint.h>
-#endif
-#endif
 /* clang-format on */
+#endif
+#endif
 
 /**
  * @brief Classifies non-semantic characters.

@@ -3,7 +3,8 @@
  * @brief CST emit implementation
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_emit.h"
 #include "c_cdd/log.h"
@@ -86,7 +87,7 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
 static cdd_c_error_t emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   while (t) {
     cdd_c_error_t rc = append_str(ctx, t->start, t->length);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     t = t->next;
   }
@@ -109,11 +110,11 @@ static cdd_c_error_t emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
   }
 
   rc = emit_trivia(ctx, tok->leading_trivia);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = append_str(ctx, tok->start, tok->length);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   return emit_trivia(ctx, tok->trailing_trivia);
@@ -131,14 +132,14 @@ static cdd_c_error_t emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
     return CDD_C_SUCCESS;
 
   for (i = 0; i < node->num_children; i++) {
-    cdd_c_error_t rc = 0;
+    cdd_c_error_t rc = CDD_C_SUCCESS;
     cdd_cst_child_t *child = &node->children[i];
     if (child->kind == CDD_CST_CHILD_TOKEN) {
       rc = emit_token(ctx, child->val.token);
     } else if (child->kind == CDD_CST_CHILD_NODE) {
       rc = emit_node(ctx, child->val.node);
     }
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
   return CDD_C_SUCCESS;
@@ -152,7 +153,7 @@ cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = emit_node(&ctx, tree->root);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     if (ctx.buf)
       free(ctx.buf);
     return rc;

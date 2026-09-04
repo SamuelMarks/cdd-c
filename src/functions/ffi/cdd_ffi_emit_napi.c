@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_napi.h"
 #include "c_cdd/format_specifiers.h"
@@ -317,7 +318,7 @@ cdd_c_error_t cdd_ffi_emit_napi(cdd_ffi_ir_t *ir,
   }
 
   rc = emit_napi_c(ir, config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   return emit_binding_gyp(config);

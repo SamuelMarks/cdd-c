@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -185,14 +186,14 @@ static cdd_c_error_t method_str_to_enum_str(const char *method,
 /**
  * @brief Executes the mapped err code operation.
  */
-static cdd_c_error_t mapped_err_code(int status) {
+static const char *mapped_err_code(int status) {
   if (status == 400)
-    return 22; /* EINVAL */
+    return "CDD_C_ERROR_INVALID_ARGUMENT";
   if (status == 401 || status == 403)
-    return 13; /* EACCES */
+    return "CDD_C_ERROR_SYSTEM"; /* EACCES */
   if (status == 404)
-    return 2; /* ENOENT */
-  return 5;   /* EIO generic */
+    return "CDD_C_ERROR_NOT_FOUND";
+  return "CDD_C_ERROR_IO"; /* generic */
 }
 
 /**
@@ -619,12 +620,12 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
     CHECK_IO(fprintf(fp, "        size_t count = 0;\n"));
     CHECK_IO(fprintf(
         fp, "        if (!val) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
-    CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
+    CHECK_IO(fprintf(fp, "        if (rc == CDD_C_SUCCESS) {\n"));
     CHECK_IO(fprintf(fp, "          arr = json_value_get_array(val);\n"));
     CHECK_IO(fprintf(
         fp, "          if (!arr) rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     CHECK_IO(fprintf(fp, "        }\n"));
-    CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
+    CHECK_IO(fprintf(fp, "        if (rc == CDD_C_SUCCESS) {\n"));
     CHECK_IO(fprintf(fp, "          count = json_array_get_count(arr);\n"));
     CHECK_IO(fprintf(fp, "          *out_len = count;\n"));
     CHECK_IO(fprintf(fp, "          if (count == 0) {\n"));
@@ -636,7 +637,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
-      CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
       CHECK_IO(fprintf(fp, "                const char *s = "
                            "json_array_get_string(arr, i);\n"));
@@ -648,7 +649,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
               "}\n"));
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
-      CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "              *out = tmp;\n"));
       CHECK_IO(fprintf(fp, "            } else if (tmp) {\n"));
       CHECK_IO(fprintf(fp, "              size_t k;\n"));
@@ -662,7 +663,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
-      CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
       CHECK_IO(fprintf(
           fp, "                if "
@@ -674,15 +675,15 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
                        "arr, i);\n"));
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
-      CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) *out = tmp; "
+                           "else free(tmp);\n"));
     } else if (strcmp(type, "number") == 0) {
       CHECK_IO(fprintf(fp, "            double *tmp = (double *)calloc(count, "
                            "sizeof(double));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
-      CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
       CHECK_IO(fprintf(
           fp, "                if "
@@ -694,15 +695,15 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
                        "i);\n"));
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
-      CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) *out = tmp; "
+                           "else free(tmp);\n"));
     } else if (strcmp(type, "boolean") == 0) {
       CHECK_IO(fprintf(fp, "            int *tmp = (int *)calloc(count, "
                            "sizeof(int));\n"));
       CHECK_IO(fprintf(fp, "            size_t i;\n"));
       CHECK_IO(
           fprintf(fp, "            if (!tmp) { rc = CDD_C_ERROR_MEMORY; }\n"));
-      CHECK_IO(fprintf(fp, "            if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "              for (i = 0; i < count; ++i) {\n"));
       CHECK_IO(fprintf(
           fp, "                if "
@@ -714,8 +715,8 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
                        "i) ? 1 : 0;\n"));
       CHECK_IO(fprintf(fp, "              }\n"));
       CHECK_IO(fprintf(fp, "            }\n"));
-      CHECK_IO(fprintf(
-          fp, "            if (rc == 0) *out = tmp; else free(tmp);\n"));
+      CHECK_IO(fprintf(fp, "            if (rc == CDD_C_SUCCESS) *out = tmp; "
+                           "else free(tmp);\n"));
     } else {
       CHECK_IO(fprintf(fp, "            rc = CDD_C_ERROR_INVALID_ARGUMENT;\n"));
     }
@@ -729,13 +730,13 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
                          "char*)res->body);\n"));
     CHECK_IO(fprintf(
         fp, "        if (!val) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
-    CHECK_IO(fprintf(fp, "        if (rc == 0) {\n"));
+    CHECK_IO(fprintf(fp, "        if (rc == CDD_C_SUCCESS) {\n"));
     if (strcmp(type, "string") == 0) {
       CHECK_IO(fprintf(
           fp, "          const char *s = json_value_get_string(val);\n"));
       CHECK_IO(fprintf(
           fp, "          if (!s) { rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
-      CHECK_IO(fprintf(fp, "          if (rc == 0) {\n"));
+      CHECK_IO(fprintf(fp, "          if (rc == CDD_C_SUCCESS) {\n"));
       CHECK_IO(fprintf(fp, "            *out = strdup(s);\n"));
       CHECK_IO(
           fprintf(fp, "            if (!*out) rc = CDD_C_ERROR_MEMORY;\n"));
@@ -744,7 +745,7 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
       CHECK_IO(fprintf(fp,
                        "          if (json_value_get_type(val) != JSONNumber) "
                        "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
-      CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
+      CHECK_IO(fprintf(fp, "          if (rc == CDD_C_SUCCESS) *out = "
                            "(int)json_value_get_number(val);\n"));
     } else if (strcmp(type, "number") == 0) {
 
@@ -753,14 +754,14 @@ write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
                        "          if (json_value_get_type(val) != JSONNumber) "
                        "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
 
-      CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
+      CHECK_IO(fprintf(fp, "          if (rc == CDD_C_SUCCESS) *out = "
 
                            "json_value_get_number(val);\n"));
     } else if (strcmp(type, "boolean") == 0) {
       CHECK_IO(fprintf(fp,
                        "          if (json_value_get_type(val) != JSONBoolean) "
                        "{ rc = CDD_C_ERROR_INVALID_ARGUMENT; }\n"));
-      CHECK_IO(fprintf(fp, "          if (rc == 0) *out = "
+      CHECK_IO(fprintf(fp, "          if (rc == CDD_C_SUCCESS) *out = "
                            "json_value_get_boolean(val) ? 1 : 0;\n"));
     } else {
 
@@ -798,7 +799,7 @@ static cdd_c_error_t write_joined_form_array(
 
                      items_type, field));
 
-    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
@@ -1083,7 +1084,7 @@ static cdd_c_error_t write_joined_form_array(
   }
 
   CHECK_IO(fprintf(fp, "      free(joined);\n"));
-  CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "    }\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 
@@ -1201,7 +1202,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                 fprintf(fp, "    json_free_serialized_string(hdr_json);\n"));
 
-            CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
           } else if (item_type && strcmp(item_type, "object") != 0) {
             CHECK_IO(fprintf(
@@ -1250,7 +1252,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                              item_type, p->name));
 
-            CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(
 
                 fp, "      item_val = json_parse_string(item_json);\n"));
@@ -1288,7 +1291,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                 fprintf(fp, "    json_free_serialized_string(hdr_json);\n"));
 
-            CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
 
           } else {
@@ -1310,13 +1314,15 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             CHECK_IO(fprintf(fp, "    char *hdr_json = NULL;\n"));
             CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &hdr_json);\n",
                              ref_name, p->name));
-            CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(
                 fp,
                 "    rc = http_headers_add(&req.headers, \"%s\", hdr_json);\n",
                 p->name));
             CHECK_IO(fprintf(fp, "    free(hdr_json);\n"));
-            CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
 
           } else if (p->type && strcmp(p->type, "object") == 0) {
@@ -1413,7 +1419,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                 fprintf(fp, "    json_free_serialized_string(hdr_json);\n"));
 
-            CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
 
           } else {
@@ -1483,7 +1490,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
 
                   fprintf(fp, "    json_free_serialized_string(hdr_json);\n"));
 
-              CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+              CHECK_IO(
+                  fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
               if (strcmp(prim, "string") == 0) {
                 CHECK_IO(fprintf(fp, "  }\n"));
 
@@ -1561,7 +1569,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
             p->name));
         CHECK_IO(fprintf(fp, "      free(joined);\n"));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
       } else if (strcmp(p->type, "object") == 0) {
@@ -1653,7 +1661,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             fp, "      rc = http_headers_add(&req.headers, \"%s\", joined);\n",
             p->name));
         CHECK_IO(fprintf(fp, "      free(joined);\n"));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
       } else if (strcmp(p->type, "string") == 0) {
@@ -1664,7 +1672,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             fp, "    rc = http_headers_add(&req.headers, \"%s\", %s);\n",
             p->name, p->name));
 
-        CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  }\n"));
 
       } else if (strcmp(p->type, "integer") == 0) {
@@ -1679,7 +1687,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
             fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
             p->name));
 
-        CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+        CHECK_IO(
+            fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
 
       } else if (strcmp(p->type, "number") == 0) {
         CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
@@ -1690,7 +1699,8 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
         CHECK_IO(fprintf(
             fp, "    rc = http_headers_add(&req.headers, \"%s\", num_buf);\n",
             p->name));
-        CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+        CHECK_IO(
+            fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
 
       } else if (strcmp(p->type, "boolean") == 0) {
         CHECK_IO(fprintf(fp,
@@ -1699,7 +1709,7 @@ write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
                          "\"true\" : \"false\");\n",
                          p->name, p->name));
 
-        CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       }
     }
   }
@@ -1742,7 +1752,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   CHECK_IO(fprintf(fp, "  /* Form URL-Encoded Body Construction */\n"));
   CHECK_IO(fprintf(fp, "  rc = url_query_init(&form_qp);\n"));
-  CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
@@ -1787,7 +1797,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(
             fprintf(fp, "      rc = %s_to_json(req_body->%s[i], &item_json);\n",
                     items_type, f->name));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "      enc = %s(item_json);\n", enc_fn));
         CHECK_IO(fprintf(fp, "      free(item_json);\n"));
         CHECK_IO(fprintf(
@@ -1797,7 +1807,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
             fp, "      rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
             f->name));
         CHECK_IO(fprintf(fp, "      free(enc);\n"));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "    }\n  }\n"));
       } else if (style == OA_STYLE_FORM && explode) {
         CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
@@ -1869,7 +1879,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(
               fp, "      /* Unsupported array item type for %s */\n", f->name));
         }
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n    }\n  }\n"));
+        CHECK_IO(fprintf(
+            fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n    }\n  }\n"));
 
       } else if (style == OA_STYLE_FORM && !explode) {
         add_encoded = 1;
@@ -1928,7 +1939,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
             fp, "    rc = url_query_add(&form_qp, \"%s\", req_body->%s);\n",
             f->name, f->name));
       }
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
     } else if (strcmp(f->type, "integer") == 0) {
       CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
       CHECK_IO(fprintf(fp,
@@ -1937,7 +1949,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                        f->name));
       CHECK_IO(fprintf(
           fp, "    rc = url_query_add(&form_qp, \"%s\", num_buf);\n", f->name));
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
     } else if (strcmp(f->type, "number") == 0) {
 
       CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
@@ -1951,7 +1964,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
 
           fp, "    rc = url_query_add(&form_qp, \"%s\", num_buf);\n", f->name));
 
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
 
     } else if (strcmp(f->type, "boolean") == 0) {
 
@@ -1961,7 +1975,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                        "\"true\" : \"false\");\n",
                        f->name, f->name));
 
-      CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
 
     } else if (strcmp(f->type, "object") == 0) {
       if (f->ref[0] != '\0') {
@@ -2021,7 +2035,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                    "req_body->%s->%s);\n",
                                    pf->name, f->name, pf->name));
                 }
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "integer") == 0) {
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
@@ -2033,7 +2048,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                     fp,
                     "      rc = url_query_add(&form_qp, \"%s\", num_buf);\n",
                     pf->name));
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
 
               } else if (strcmp(pf->type, "number") == 0) {
@@ -2051,7 +2067,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                     "      rc = url_query_add(&form_qp, \"%s\", num_buf);\n",
                     pf->name));
 
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "boolean") == 0) {
                 CHECK_IO(fprintf(fp,
@@ -2060,7 +2077,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                  "req_body->%s->%s ? \"true\" : \"false\");\n",
                                  pf->name, f->name, pf->name));
 
-                CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
               }
             }
             CHECK_IO(fprintf(fp, "  }\n"));
@@ -2135,7 +2153,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 "      rc = url_query_add_encoded(&form_qp, \"%s\", joined);\n",
                 f->name));
             CHECK_IO(fprintf(fp, "      free(joined);\n"));
-            CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
           } else if (obj_style == OA_STYLE_DEEP_OBJECT && obj_explode) {
@@ -2174,7 +2193,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                    "\"%s[%s]\", req_body->%s->%s);\n",
                                    f->name, pf->name, f->name, pf->name));
                 }
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "integer") == 0) {
                 CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
@@ -2186,7 +2206,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                  "      rc = url_query_add(&form_qp, "
                                  "\"%s[%s]\", num_buf);\n",
                                  f->name, pf->name));
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
 
               } else if (strcmp(pf->type, "number") == 0) {
@@ -2204,7 +2225,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                  "\"%s[%s]\", num_buf);\n",
                                  f->name, pf->name));
 
-                CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
                 CHECK_IO(fprintf(fp, "    }\n"));
               } else if (strcmp(pf->type, "boolean") == 0) {
                 CHECK_IO(fprintf(fp,
@@ -2213,7 +2235,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                                  "req_body->%s->%s ? \"true\" : \"false\");\n",
                                  f->name, pf->name, f->name, pf->name));
 
-                CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+                CHECK_IO(fprintf(
+                    fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
               }
             }
             CHECK_IO(fprintf(fp, "  }\n"));
@@ -2318,7 +2341,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
                 f->name));
 
             CHECK_IO(fprintf(fp, "      free(joined);\n"));
-            CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+            CHECK_IO(
+                fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
             CHECK_IO(fprintf(fp, "    }\n"));
             CHECK_IO(fprintf(fp, "  }\n"));
 
@@ -2338,7 +2362,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp,
                            "    rc = %s_to_json(req_body->%s, &obj_json);\n",
                            f->ref, f->name));
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+          CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
           CHECK_IO(fprintf(fp, "    enc = %s(obj_json);\n", enc_fn));
           CHECK_IO(fprintf(fp, "    free(obj_json);\n"));
           CHECK_IO(fprintf(
@@ -2348,7 +2372,8 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
               fp, "    rc = url_query_add_encoded(&form_qp, \"%s\", enc);\n",
               f->name));
           CHECK_IO(fprintf(fp, "    free(enc);\n"));
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
         }
       } else {
         CHECK_IO(fprintf(fp,
@@ -2365,7 +2390,7 @@ write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   CHECK_IO(fprintf(fp, "  rc = url_query_build_form(&form_qp, &form_body);\n"));
-  CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "  req.body = form_body;\n"));
   CHECK_IO(fprintf(fp, "  req.body_len = strlen(form_body);\n"));
   CHECK_IO(fprintf(
@@ -3152,7 +3177,7 @@ write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
   CHECK_IO(fprintf(
       fp,
       "    rc = http_headers_add(&req.headers, \"Cookie\", cookie_str);\n"));
-  CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 
   return CDD_C_SUCCESS;
@@ -3257,7 +3282,8 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", %s);\n",
                        hdr->name, joined_name));
       CHECK_IO(fprintf(fp, "          free(%s);\n", joined_name));
-      CHECK_IO(fprintf(fp, "          if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(
+          fprintf(fp, "          if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "        }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
     } else if (strcmp(hdr_type, "object") == 0) {
@@ -3383,7 +3409,8 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        hdr->name, joined_name));
 
       CHECK_IO(fprintf(fp, "          free(%s);\n", joined_name));
-      CHECK_IO(fprintf(fp, "          if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(
+          fprintf(fp, "          if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "        }\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
 
@@ -3393,7 +3420,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "        rc = http_request_add_part_header_last(&req, "
                        "\"%s\", %s);\n",
                        hdr->name, param_name));
-      CHECK_IO(fprintf(fp, "        if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
 
     } else if (strcmp(hdr_type, "integer") == 0) {
@@ -3411,7 +3438,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", num_buf);\n",
                        hdr->name));
 
-      CHECK_IO(fprintf(fp, "        if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
     } else if (strcmp(hdr_type, "number") == 0) {
       CHECK_IO(fprintf(fp, "      {\n        char num_buf[64];\n"));
@@ -3428,7 +3455,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", num_buf);\n",
                        hdr->name));
 
-      CHECK_IO(fprintf(fp, "        if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
     } else if (strcmp(hdr_type, "boolean") == 0) {
       CHECK_IO(fprintf(fp,
@@ -3437,7 +3464,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", %s ? \"true\" : \"false\");\n",
                        hdr->name, param_name));
 
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
 
     } else {
 
@@ -3448,7 +3475,7 @@ write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
                        "\"%s\", %s);\n",
                        hdr->name, param_name));
 
-      CHECK_IO(fprintf(fp, "        if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "        if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      }\n"));
     }
   }
@@ -3533,13 +3560,13 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
         CHECK_IO(
             fprintf(fp, "      rc = %s_to_json(req_body->%s[i], &part_json);\n",
                     items_type, f->name));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, part_json, strlen(part_json));\n",
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
           return CDD_C_ERROR_IO;
@@ -3555,7 +3582,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, val, strlen(val));\n",
                          f->name, ct_arg));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
           return CDD_C_ERROR_IO;
@@ -3574,7 +3601,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, num_buf, strlen(num_buf));\n",
                          f->name, ct_arg));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
           return CDD_C_ERROR_IO;
@@ -3600,7 +3627,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                          "NULL, %s, num_buf, strlen(num_buf));\n",
                          f->name, ct_arg));
 
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
           return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -3623,7 +3650,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                          "NULL, %s, val, strlen(val));\n",
                          f->name, ct_arg));
 
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
           return CDD_C_ERROR_IO;
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -3653,7 +3680,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
                        "%s, req_body->%s, strlen(req_body->%s));\n",
                        f->name, ct_arg, f->name, f->name));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
         return CDD_C_ERROR_IO;
@@ -3685,7 +3712,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
                        "%s, num_buf, strlen(num_buf));\n",
                        f->name, ct_arg));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
         return CDD_C_ERROR_IO;
@@ -3717,7 +3744,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
                        "%s, num_buf, strlen(num_buf));\n",
                        f->name, ct_arg));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
         return CDD_C_ERROR_IO;
@@ -3748,7 +3775,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
                        "%s, val, strlen(val));\n",
                        f->name, ct_arg));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       if (write_multipart_part_headers(fp, enc) != 0)
 
         return CDD_C_ERROR_IO;
@@ -3777,13 +3804,13 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
         CHECK_IO(fprintf(fp,
                          "      rc = %s_to_json(req_body->%s, &part_json);\n",
                          f->ref, f->name));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
                          "NULL, %s, part_json, strlen(part_json));\n",
                          f->name, ct_arg));
         CHECK_IO(fprintf(fp, "      free(part_json);\n"));
-        CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         if (write_multipart_part_headers(fp, enc) != 0)
 
           return CDD_C_ERROR_IO;
@@ -3798,7 +3825,7 @@ static cdd_c_error_t write_multipart_body(FILE *fp,
     }
   }
   CHECK_IO(fprintf(fp, "  rc = http_request_flatten_parts(&req);\n"));
-  CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n\n"));
+  CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n\n"));
   return CDD_C_SUCCESS;
 }
 
@@ -3893,7 +3920,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
   /* --- 1. Declarations --- */
   CHECK_IO(fprintf(fp, "  struct HttpRequest req;\n"));
   CHECK_IO(fprintf(fp, "  struct HttpResponse *res = NULL;\n"));
-  CHECK_IO(fprintf(fp, "  int rc = 0;\n"));
+  CHECK_IO(fprintf(fp, "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"));
   CHECK_IO(fprintf(fp, "  int attempt = 0;\n"));
   CHECK_IO(fprintf(fp, "  int handled = 0;\n"));
 
@@ -4026,10 +4053,10 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       fp, "  if (!ctx || !ctx->send) return CDD_C_ERROR_INVALID_ARGUMENT;\n"));
   if (op->req_body.is_array) {
     CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
-                         "*/\n  return 95; /* ENOTSUP */\n"));
+                         "*/\n  return CDD_C_ERROR_SYSTEM; /* ENOTSUP */\n"));
   }
   CHECK_IO(fprintf(fp, "  rc = http_request_init(&req);\n"));
-  CHECK_IO(fprintf(fp, "  if (rc != 0) return rc;\n\n"));
+  CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) return rc;\n\n"));
 
   if (spec) {
     if (codegen_security_write_apply(fp, op, spec) != 0)
@@ -4074,7 +4101,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
             op->req_body.ref_name, op->req_body.ref_name,
             op->req_body.is_array ? "body" : "req_body"));
 
-        CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+        CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
         CHECK_IO(fprintf(fp, "  http_headers_add(&req.headers, "
@@ -4266,10 +4293,10 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
 
   CHECK_IO(fprintf(fp, "    rc = ctx->send(ctx->transport, &req, &res);\n"));
   CHECK_IO(fprintf(fp, "    attempt++;\n"));
-  CHECK_IO(fprintf(
-      fp, "  } while (rc != 0 && attempt <= ctx->config.retry_count);\n\n"));
+  CHECK_IO(fprintf(fp, "  } while (rc != CDD_C_SUCCESS && attempt <= "
+                       "ctx->config.retry_count);\n\n"));
 
-  CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(
       fprintf(fp, "  if (!res) { rc = CDD_C_ERROR_IO; goto cleanup; }\n\n"));
 
@@ -4380,7 +4407,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
       CHECK_IO(fprintf(fp, "      break;\n"));
     } else {
       CHECK_IO(
-          fprintf(fp, "      rc = %d;\n", mapped_err_code(atoi(resp->code))));
+          fprintf(fp, "      rc = %s;\n", mapped_err_code(atoi(resp->code))));
       CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
       CHECK_IO(fprintf(
           fp, "        cdd_c_error_t api_rc = ApiError_from_json((const "
@@ -4439,7 +4466,7 @@ cdd_c_error_t codegen_client_write_body(FILE *fp,
         CHECK_IO(fprintf(fp, "      handled = 1;\n"));
         CHECK_IO(
 
-            fprintf(fp, "      rc = %d;\n", mapped_err_code((int)(i * 100))));
+            fprintf(fp, "      rc = %s;\n", mapped_err_code((int)(i * 100))));
 
         CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
         CHECK_IO(fprintf(fp, "        cdd_c_error_t api_rc = "

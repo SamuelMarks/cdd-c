@@ -462,7 +462,7 @@ TEST test_gnu_standardizer_trampoline(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
 
   memset(&config, 0, sizeof(config));
-  ASSERT_EQ(129, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, cdd_transform_gnu(tree, &config));
 
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;

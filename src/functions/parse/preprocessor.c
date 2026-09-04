@@ -3,7 +3,8 @@
  * @brief Implementation of the C preprocessor.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 
@@ -46,9 +47,9 @@
 
 #include "c_cdd/log.h"
 #include <errno.h>
+/* clang-format on */
 
 #endif
-/* clang-format on */
 
 /* Standard IO / FS helpers */
 
@@ -492,13 +493,13 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
 
   rc = read_to_file(filename, "r", &content, &sz);
 
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
 
     return rc;
 
   rc = tokenize(az_span_create_from_str(content), &tokens);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
 
     C_CDD_FREE(content);
 
@@ -2235,13 +2236,13 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
   rc = read_to_file(filename, "r", &content, &sz);
 
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
 
     return rc;
 
   rc = tokenize(az_span_create_from_str(content), &tokens);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
 
     C_CDD_FREE(content);
 
@@ -2250,7 +2251,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
   rc = get_dirname(filename, &dir_name);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
 
     free_token_list(tokens);
 

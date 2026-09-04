@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -64,7 +65,7 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
 
   /* 1. Inspect Header */
   rc = c_inspector_scan_file_types(header_filename, &types);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     type_def_list_free(&types);
     return rc;
   }
@@ -243,7 +244,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 #else
   rc = func_sig_list_init(&sigs);
 #endif
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
 #ifdef CDD_BUILD_TESTS
@@ -257,7 +258,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 #else
   rc = patch_list_init(&patches);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     func_sig_list_free(&sigs);
     return rc;
   }
@@ -274,7 +275,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 #else
   rc = c_inspector_extract_signatures(refactored_source, &sigs);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     goto cleanup;
   }
 
@@ -294,7 +295,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 #else
   rc = tokenize(az_span_create_from_str(hdr_content), &hdr_tokens);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     goto cleanup;
   }
 
@@ -396,7 +397,7 @@ cdd_c_error_t patch_header_from_source(const char *header_path,
 #else
   rc = patch_list_apply(&patches, hdr_tokens, &new_header);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     goto cleanup;
   }
 

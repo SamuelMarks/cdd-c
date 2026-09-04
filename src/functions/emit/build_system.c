@@ -10,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
@@ -452,7 +453,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
-  cdd_c_error_t rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!project_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -461,7 +462,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   if (output_path) {
     size_t len;
     rc = makedirs(output_path);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
 
     len = strlen(output_path) + strlen(filename) + 2;
@@ -543,7 +544,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
       }
       CDD_SNPRINTF(src_dir, strlen(output_path) + 5, "%s/src", output_path);
       rc = makedirs(src_dir);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         goto cleanup_src;
       }
       src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
@@ -560,7 +561,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
         goto cleanup_src;
       }
       rc = makedirs(src_dir);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         goto cleanup_src;
       }
       src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
@@ -622,7 +623,7 @@ cdd_c_error_t generate_build_system_main(int argc, char **argv) {
 
   if (strcmp(sys_type, "cmake") == 0) {
     cdd_c_error_t rc = generate_cmake_project(out_dir, name, has_tests);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to generate CMakeLists.txt (error %d)\n", rc);
       return CDD_C_ERROR_IO;
     }

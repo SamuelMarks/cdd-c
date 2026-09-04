@@ -54,36 +54,36 @@ int main(void) {
 
   rc = Tank_to_str(t, &tank_as_str);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   assert(strcmp(tank_as_str, "BIG") == 0);
   free(tank_as_str);
 
   rc = HazE_to_json(&haz_e, &haz_e_json);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   assert(strcmp(haz_e_json, haz_e_mock0) == 0);
   free(haz_e_json);
 
   rc = HazE_from_json(haz_e_mock0, &haz_e0);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   rc = HazE_eq(haz_e0, &haz_e);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   free(haz_e0);
 
   rc = FooE_to_json(&foo_e, &foo_e_json);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   assert(strcmp(foo_e_json, foo_e_mock0) == 0);
   free(foo_e_json);
 
   rc = FooE_from_json(foo_e_mock0, &foo_e0);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   rc = FooE_eq(foo_e0, &foo_e);
   if (rc != CDD_C_SUCCESS)
-    return rc;
+    return (int)rc;
   free(foo_e0);
 
   return EXIT_SUCCESS;

@@ -10,7 +10,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/struct.h"
 #include "c_cdd/log.h"
@@ -24,7 +25,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 /* Select correct strdup function name for generated code */
@@ -601,9 +601,10 @@ write_struct_default_func(FILE *fp, const char *struct_name,
       } else if (strcmp(t, "enum") == 0) {
         CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r,
                               def, n));
-        CHECK_IO(FPRINTF_HOOK(
-            fp, "  if (rc != 0) { %s_cleanup(*out); *out=NULL; return rc; }\n",
-            struct_name));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  if (rc != CDD_C_SUCCESS) { %s_cleanup(*out); "
+                              "*out=NULL; return rc; }\n",
+                              struct_name));
       } else {
         /* Primitives (integer/boolean/number) */
         /* Check for C23 nullptr -> NULL pointer mapping */

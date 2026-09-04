@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -130,7 +131,7 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
 
   /* Remove pointer asterisk */
   rc = c_cdd_strdup(in, &buf);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   p = strchr(buf, '*');
@@ -153,7 +154,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   const char *c_type = NULL;
   int is_ptr = 0;
   int is_array = 0;
-  cdd_c_error_t rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
   {
     cdd_c_error_t rc_str = skip_qualifiers(c_type_in, &c_type);
     if (rc_str != CDD_C_SUCCESS)
@@ -237,7 +238,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
     if (starts1 || starts2) {
       clean = NULL;
       rc = clean_type_str(c_type, &clean);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
       }
@@ -267,7 +268,7 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
     }
   }
 
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
@@ -277,12 +278,12 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
     /* It's an array of the resolved type */
     if (out->ref_name) {
       rc = c_cdd_strdup(out->ref_name, &inner_ref);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
     if (out->oa_type) {
       rc = c_cdd_strdup(out->oa_type, &inner_type);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
     /* Move current mapping to "items" logic? */

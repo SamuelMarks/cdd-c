@@ -3,7 +3,8 @@
  * @brief Implementation of sync parsing.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -151,12 +152,13 @@ generate_expected_header_line(const struct OpenAPI_Parameter *p,
     sprintf_s(buf, 512,
               "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
               "http_headers_add(&req.headers, \"%s\", %s);\n    if "
-              "(rc != 0) goto cleanup;\n  }\n",
+              "(rc != CDD_C_SUCCESS) goto cleanup;\n  }\n",
               p->name, p->name, p->name, p->name);
 #else
     sprintf(buf,
             "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
-            "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != 0) "
+            "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != "
+            "CDD_C_SUCCESS) "
             "goto cleanup;\n  }\n",
             p->name, p->name, p->name, p->name);
 #endif
@@ -644,7 +646,7 @@ static cdd_c_error_t apply_updates(const char *filename,
   rc = patch_list_apply(&patches, tokens, &result);
   patch_list_free(&patches);
 
-  if (rc == 0 && result) {
+  if (rc == CDD_C_SUCCESS && result) {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
@@ -694,7 +696,7 @@ cdd_c_error_t api_sync_file(const char *filename,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = read_to_file(filename, "r", &content, &sz);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if ((rc = tokenize(az_span_create_from_str(content), &tokens)) != 0) {

@@ -1,3 +1,4 @@
+/* clang-format off */
 #include "c_cdd/memory.h"
 /**
  * @file orchestrator.c
@@ -15,7 +16,7 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -44,8 +45,8 @@
 #else
 #include "c_cdd/log.h"
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 /* --- Graph Data Structures --- */
 
@@ -483,7 +484,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 
         rc = graph_add_node(&graph, f_idx, name);
         C_CDD_FREE(name);
-        if (rc != 0)
+        if (rc != CDD_C_SUCCESS)
           goto cleanup;
 
         analyze_signature_tokens(tokens, start_idx, fn->body_start,
@@ -525,7 +526,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
               if (token_eq_str(&tokens->tokens[t],
                                graph.nodes[target_idx].name)) {
                 rc = graph_add_edge(&graph, f_idx, target_idx);
-                if (rc != 0)
+                if (rc != CDD_C_SUCCESS)
                   goto cleanup;
               }
             }
@@ -851,7 +852,7 @@ static cdd_c_error_t fix_file_callback(const char *path, void *user_data) {
   rc = orchestrate_fix(content, &result);
   C_CDD_FREE(content);
 
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Refactoring failed for %s (code %d)\n", path, rc);
     ctx->error_count++;
     return CDD_C_SUCCESS;

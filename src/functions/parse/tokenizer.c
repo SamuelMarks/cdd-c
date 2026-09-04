@@ -3,7 +3,8 @@
  * @brief Implementation of the C tokenizer.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #if defined(__clang__)
 #endif
@@ -1639,7 +1640,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
   check_rc:
 
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
 
       free_token_list(list);
 

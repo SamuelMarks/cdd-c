@@ -19,13 +19,13 @@ extern C_CDD_EXPORT int g_cdd_mock_dlopen_success;
 
 TEST test_db_loader_basic(void) {
   int avail;
-  ASSERT_EQ(0, check_libpq_available(&avail));
-  ASSERT_EQ(0, check_sqlite3_available(&avail));
-  ASSERT_EQ(0, check_mysql_available(&avail));
+  ASSERT_EQ(CDD_C_SUCCESS, check_libpq_available(&avail));
+  ASSERT_EQ(CDD_C_SUCCESS, check_sqlite3_available(&avail));
+  ASSERT_EQ(CDD_C_SUCCESS, check_mysql_available(&avail));
 
-  ASSERT_EQ(22, check_libpq_available(NULL));
-  ASSERT_EQ(22, check_sqlite3_available(NULL));
-  ASSERT_EQ(22, check_mysql_available(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, check_libpq_available(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, check_sqlite3_available(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, check_mysql_available(NULL));
   g_fail_io_after = -1;
 
   PASS();

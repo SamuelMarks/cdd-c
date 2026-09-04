@@ -3,7 +3,8 @@
  * @brief Implementation of URL generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -452,7 +453,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
       CHECK_IO(fprintf(
           fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
       CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "  }\n"));
       return CDD_C_SUCCESS;
     }
@@ -484,7 +485,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "      }\n"));
     CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
                      item_type, name));
-    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "      item_val = json_parse_string(item_json);\n"));
     CHECK_IO(fprintf(fp, "      free(item_json);\n"));
     CHECK_IO(fprintf(fp, "      if (!item_val) { rc = "
@@ -506,7 +507,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(
         fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
     CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -517,7 +518,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
     CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &q_json);\n",
                      p->schema.ref_name, name));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
     CHECK_IO(fprintf(fp, "    free(q_json);\n"));
     CHECK_IO(fprintf(
@@ -525,7 +526,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(
         fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
     CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -585,7 +586,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(
         fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
     CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -623,7 +624,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
     CHECK_IO(fprintf(
         fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
     CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -710,7 +711,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           fprintf(fp, "      rc = url_query_add(&qp, deep_key, kv_raw);\n"));
     }
     CHECK_IO(fprintf(fp, "      free(deep_key);\n"));
-    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "    }\n  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -786,7 +787,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     CHECK_IO(fprintf(
         fp, "      rc = url_query_add_encoded(&qp, \"%s\", joined);\n", name));
     CHECK_IO(fprintf(fp, "      free(joined);\n"));
-    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "    }\n"));
     CHECK_IO(fprintf(fp, "  }\n"));
     return CDD_C_SUCCESS;
@@ -838,7 +839,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     } else {
       CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, kv_key, kv_raw);\n"));
     }
-    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "    }\n  }\n"));
     return CDD_C_SUCCESS;
   }
@@ -927,7 +928,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           fp, "      rc = url_query_add_encoded(&qp, \"%s\", joined);\n",
           name));
       CHECK_IO(fprintf(fp, "      free(joined);\n"));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "  }\n"));
     } else {
@@ -987,7 +988,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
       CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, \"%s\", joined);\n",
                        name));
       CHECK_IO(fprintf(fp, "      free(joined);\n"));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "  }\n"));
     }
@@ -1404,7 +1405,7 @@ static cdd_c_error_t write_joined_query_array(FILE *fp,
         fprintf(fp, "      rc = url_query_add(&qp, \"%s\", joined);\n", name));
   }
   CHECK_IO(fprintf(fp, "      free(joined);\n"));
-  CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "    }\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
 
@@ -1487,7 +1488,7 @@ static cdd_c_error_t write_joined_query_array_encoded_delim(
   CHECK_IO(fprintf(
       fp, "      rc = url_query_add_encoded(&qp, \"%s\", joined);\n", name));
   CHECK_IO(fprintf(fp, "      free(joined);\n"));
-  CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
   CHECK_IO(fprintf(fp, "    }\n"));
   CHECK_IO(fprintf(fp, "  }\n"));
   return CDD_C_SUCCESS;
@@ -1852,7 +1853,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "    size_t i;\n"));
       CHECK_IO(fprintf(fp, "    char *qs_form_body = NULL;\n"));
       CHECK_IO(fprintf(fp, "    rc = url_query_init(&qp);\n"));
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", qs_name));
       CHECK_IO(fprintf(fp, "      const struct OpenAPI_KV *kv = &%s[i];\n",
                        qs_name));
@@ -1881,11 +1882,11 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
       CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, kv_key, kv_raw);\n"));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "    rc = url_query_build_form(&qp, "
                            "&qs_form_body);\n"));
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    if (qs_form_body && qs_form_body[0] != "
                            "'\\0') {\n"));
       CHECK_IO(fprintf(
@@ -1934,7 +1935,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
                        qs_json_obj, qs_name));
-      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "      item_val = json_parse_string(item_json);\n"));
       CHECK_IO(fprintf(fp, "      free(item_json);\n"));
       CHECK_IO(fprintf(fp, "      if (!item_val) { rc = "
@@ -2102,7 +2103,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
       CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &qs_json);\n",
                        querystring_param->schema.ref_name, qs_name));
-      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
       CHECK_IO(fprintf(fp, "    url_encode(qs_json, &qs_enc);\n"));
       CHECK_IO(fprintf(fp, "    free(qs_json);\n"));
       CHECK_IO(fprintf(
@@ -2207,7 +2208,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       }
     }
     CHECK_IO(fprintf(fp, "  rc = url_query_init(&qp);\n"));
-    CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  /* Querystring Parameter: %s */\n", qs_name));
     CHECK_IO(fprintf(fp, "  if (%s && %s[0] != '\\0') {\n", qs_name, qs_name));
     CHECK_IO(fprintf(fp, "    if (%s[0] == '?') {\n", qs_name));
@@ -2240,12 +2241,12 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
         if (qp_tracking) {
           CHECK_IO(fprintf(fp, "  if (!qp_initialized) {\n"));
           CHECK_IO(fprintf(fp, "    rc = url_query_init(&qp);\n"));
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+          CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
           CHECK_IO(fprintf(fp, "    qp_initialized = 1;\n"));
           CHECK_IO(fprintf(fp, "  }\n"));
         } else {
           CHECK_IO(fprintf(fp, "  rc = url_query_init(&qp);\n"));
-          CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+          CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         }
         has_query = 1;
       }
@@ -2314,8 +2315,9 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                                "\"true\" : \"false\");\n",
                                p->name, p->name));
             }
-            CHECK_IO(
-                fprintf(fp, "      if (rc != 0) goto cleanup;\n    }\n  }\n"));
+            CHECK_IO(fprintf(
+                fp,
+                "      if (rc != CDD_C_SUCCESS) goto cleanup;\n    }\n  }\n"));
           } else {
             /* === form + explode=false (CSV) === */
             {
@@ -2398,8 +2400,9 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                              "\"true\" : \"false\");\n",
                              p->name, p->name));
           }
-          CHECK_IO(
-              fprintf(fp, "      if (rc != 0) goto cleanup;\n    }\n  }\n"));
+          CHECK_IO(fprintf(
+              fp,
+              "      if (rc != CDD_C_SUCCESS) goto cleanup;\n    }\n  }\n"));
         } else {
           CHECK_IO(fprintf(fp, "  /* Array style not yet supported for %s */\n",
                            p->name));
@@ -2424,7 +2427,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
             CHECK_IO(fprintf(fp, "    rc = url_query_add(&qp, \"%s\", %s);\n",
                              p->name, p->name));
           }
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
         } else if (strcmp(p->type, "integer") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
           CHECK_IO(fprintf(fp,
@@ -2433,7 +2437,8 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                            p->name));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add(&qp, \"%s\", num_buf);\n", p->name));
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
         } else if (strcmp(p->type, "number") == 0) {
           CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
           CHECK_IO(fprintf(fp,
@@ -2442,13 +2447,14 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
                            p->name));
           CHECK_IO(fprintf(
               fp, "    rc = url_query_add(&qp, \"%s\", num_buf);\n", p->name));
-          CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n  }\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
         } else if (strcmp(p->type, "boolean") == 0) {
           CHECK_IO(fprintf(fp,
                            "  rc = url_query_add(&qp, \"%s\", %s ? \"true\" : "
                            "\"false\");\n",
                            p->name, p->name));
-          CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+          CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
         }
       }
     }
@@ -2456,11 +2462,11 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
 
   if (has_query) {
     CHECK_IO(fprintf(fp, "  rc = url_query_build(&qp, &query_str);\n"));
-    CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n\n"));
+    CHECK_IO(fprintf(fp, "  if (rc != CDD_C_SUCCESS) goto cleanup;\n\n"));
   } else if (qp_tracking) {
     CHECK_IO(fprintf(fp, "  if (qp_initialized) {\n"));
     CHECK_IO(fprintf(fp, "    rc = url_query_build(&qp, &query_str);\n"));
-    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  }\n\n"));
   }
 

@@ -9,14 +9,6 @@ extern "C" {
 #include <stddef.h>
 /* clang-format on */
 
-/**
- * @file format_specifiers.h
- * @brief Cross-platform format specifiers for printf and formatting strings.
- *
- * Provides macros like CDD_PRId64, CDD_PRIu64, CDD_PRIz to abstract over MSVC
- * vs GCC/Clang differences in formatting 64-bit integers and size_t.
- */
-
 #if defined(_MSC_VER)
 #define CDD_PRId64 "I64d"
 #define CDD_PRIu64 "I64u"
@@ -26,6 +18,11 @@ extern "C" {
 #else
 #define CDD_PRIz "u"
 #endif
+#elif defined(__APPLE__)
+#define CDD_PRId64 "lld"
+#define CDD_PRIu64 "llu"
+#define CDD_PRIx64 "llx"
+#define CDD_PRIz "lu"
 #else
 #if (defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__) ||      \
      defined(__LP64__) || defined(_LP64)) &&                                   \

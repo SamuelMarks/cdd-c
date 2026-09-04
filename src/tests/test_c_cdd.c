@@ -13,20 +13,14 @@
 #include "c_cdd_export.h"
 #include <errno.h>
 
-void mock_set_oom_after_calls(int calls);
-void mock_oom_reset_cb(void (*cb)(void));
 
 
-void mock_set_oom_after_calls(int calls);
-void mock_oom_reset_cb(void (*cb)(void));
 
 
 
 #include "c_cdd/memory.h"
 
-#include "cdd_oom_mock.h"
 
-int g_cdd_mock_dlopen_success = 0;
 
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
@@ -301,6 +295,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "c_cdd/test_int128.h"
 #include "test_cdd_api.h"
 #include "test_log.h"
+#include "test_cdd_c_error.h"
 /* clang-format on */
 
 #include "transformers/safe_crt/test_safe_crt.h"
@@ -446,7 +441,6 @@ extern CDD_TEST_HELPERS_EXPORT int g_pthread_create_fail;
 extern CDD_TEST_HELPERS_EXPORT int g_socket_fail;
 
 static void reset_mocks(void) {
-  mock_oom_reset_cb(NULL);
   /*  (moved to global) */
   g_accept_fail = 0;
   /*  (moved to global) */
@@ -902,6 +896,7 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(transformer_gnu_standardizer_internals_suite);
   reset_mocks();
+  RUN_SUITE(cdd_c_error_suite);
   reset_mocks();
 
   /*  */
@@ -917,4 +912,3 @@ int main(int argc, char **argv) {
 
 #if defined(__GNUC__) || defined(__clang__)
 #endif
-void mock_set_oom_after_calls(int calls);

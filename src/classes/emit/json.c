@@ -23,7 +23,6 @@ extern int g_io_calls;
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
 #include <stdarg.h>
-
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
@@ -268,7 +267,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
       "cdd_c_error_t %s_from_json(const char *json_str, struct %s **const "
       "out) {\n"
       "  JSON_Value *val = json_parse_string(json_str);\n"
-      "  int rc = 0;\n"
+      "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"
       "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  rc = %s_from_jsonObject(json_value_get_object(val), out);\n"
       "  json_value_free(val);\n"
@@ -304,7 +303,7 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "  JSON_Array *arr = NULL;\n"
       "  size_t i, count;\n"
       "  struct %s **tmp = NULL;\n"
-      "  int rc = 0;\n"
+      "  cdd_c_error_t rc = CDD_C_SUCCESS;\n"
       "  if (!val) return CDD_C_ERROR_INVALID_ARGUMENT;\n"
       "  arr = json_value_get_array(val);\n"
       "  if (!arr) { json_value_free(val); return "
@@ -324,13 +323,13 @@ write_struct_array_from_json_func(FILE *fp, const char *struct_name,
       "  if (!tmp) { json_value_free(val); return CDD_C_ERROR_MEMORY; }\n"
       "  for (i = 0; i < count; ++i) {\n"
       "    rc = %s_from_jsonObject(json_array_get_object(arr, i), &tmp[i]);\n"
-      "    if (rc != 0) break;\n"
+      "    if (rc != CDD_C_SUCCESS) break;\n"
       "  }\n",
       struct_name, struct_name, struct_name));
 
   CHECK_IO(
       FPRINTF_HOOK(fp,
-                   "  if (rc == 0) {\n"
+                   "  if (rc == CDD_C_SUCCESS) {\n"
                    "    *out = tmp;\n"
                    "    *out_len = count;\n"
                    "  } else {\n"

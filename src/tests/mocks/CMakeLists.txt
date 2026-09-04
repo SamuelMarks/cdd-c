@@ -78,3 +78,9 @@ target_include_directories(
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
 )
 target_include_directories("mocks" PRIVATE "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/src>")
+if(NOT MSVC)
+    set_source_files_properties(emit/simple_json.c PROPERTIES COMPILE_FLAGS "-Wno-error")
+endif()
+if(NOT MSVC)
+    set_source_files_properties(parse/main.c PROPERTIES COMPILE_FLAGS "-Wno-error")
+endif()

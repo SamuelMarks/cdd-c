@@ -1,5 +1,6 @@
+/* clang-format off */
 #include "cdd_c_error.h"
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "../../include/ffi/cdd_ffi_ir.h"
 #include <errno.h>

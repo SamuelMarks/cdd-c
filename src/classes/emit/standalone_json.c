@@ -3,7 +3,8 @@
  * @brief Zero-allocation JSON parser code generator implementation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>

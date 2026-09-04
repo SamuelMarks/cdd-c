@@ -72,7 +72,8 @@ TEST test_propagate_void_stmt(void) {
 
   printf("OUTPUT: %s\n", output);
   ASSERT(strstr(output, "cdd_c_error_t rc = CDD_C_SUCCESS;") != NULL);
-  ASSERT(strstr(output, "rc = do_work(); if (rc != 0) return rc;") != NULL);
+  ASSERT(strstr(output,
+                "rc = do_work(); if (rc != CDD_C_SUCCESS) return rc;") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -184,7 +185,7 @@ TEST test_propagate_ptr_assignment2(void) {
 
   ASSERT(strstr(output, "rc =my_strdup(\"a\", &s);") != NULL ||
          strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
-  ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
+  ASSERT(strstr(output, "if (rc != CDD_C_SUCCESS) return rc;") != NULL);
 
   free(output);
   g_fail_io_after = -1;
@@ -288,7 +289,7 @@ TEST test_propagate_ptr_assignment(void) {
 
   /* s = my_strdup(\"a\") -> rc = my_strdup("a", &s); if(rc) ... */
   ASSERT(strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
-  ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
+  ASSERT(strstr(output, "if (rc != CDD_C_SUCCESS) return rc;") != NULL);
 
   free(output);
   g_fail_io_after = -1;

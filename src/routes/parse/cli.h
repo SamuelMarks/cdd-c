@@ -8,9 +8,9 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "cdd_c_error.h"
+/* clang-format on */
 struct OpenAPI_Spec;
 struct TypeDefList;
-/* clang-format on */
 
 extern C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
     struct OpenAPI_Spec *spec, const struct TypeDefList *types);

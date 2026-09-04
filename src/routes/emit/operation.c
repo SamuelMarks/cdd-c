@@ -3,7 +3,8 @@
  * @brief Implementation of operation logic.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -836,7 +837,7 @@ cdd_c_error_t add_link_to_response(struct OpenAPI_Response *resp,
   if (dl->parameters_json) {
     cdd_c_error_t rc = parse_link_params_json(
         dl->parameters_json, &link->parameters, &link->n_parameters);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
   if (dl->request_body_json) {
@@ -1466,7 +1467,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
   const struct C2OpenAPI_ParsedSig *sig = ctx->sig;
   const struct DocMetadata *doc = ctx->doc;
   size_t i;
-  cdd_c_error_t rc = 0;
+  cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!ctx || !out_op || !sig)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -1693,7 +1694,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
       if (src->n_variables > 0) {
         cdd_c_error_t vrc =
             copy_doc_server_variables_op(&out_op->servers[s], src);
-        if (vrc != 0)
+        if (vrc != CDD_C_SUCCESS)
           return vrc;
       }
     }
@@ -1766,7 +1767,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
     /* Analyze Type using C Mapper */
     rc = c_mapping_map_type(arg->type, arg->name, &type_map);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       return rc;
     }
 
@@ -1892,7 +1893,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         return CDD_C_ERROR_MEMORY;
       }
       rc = set_querystring_schema_from_type_map(&curr_param, &type_map);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     } else if (type_map.kind == OA_TYPE_ARRAY) {
       curr_param.is_array = 1;
@@ -1999,7 +2000,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
     rc = add_param_to_op(out_op, &curr_param);
     c_mapping_free(&type_map);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
@@ -2146,7 +2147,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             cdd_c_error_t add_rc = add_response_media_type(
                 &out_op->responses[k], doc->returns[i].content_type,
                 doc->returns[i].item_schema);
-            if (add_rc != 0)
+            if (add_rc != CDD_C_SUCCESS)
               return add_rc;
             if (!out_op->responses[k].content_type) {
               out_op->responses[k].content_type =
@@ -2160,7 +2161,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
             cdd_c_error_t ex_rc = apply_example_to_response(
                 &out_op->responses[k], doc->returns[i].example,
                 doc->returns[i].content_type);
-            if (ex_rc != 0)
+            if (ex_rc != CDD_C_SUCCESS)
               return ex_rc;
           }
           break;
@@ -2201,7 +2202,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         if (doc->returns[i].content_type) {
           cdd_c_error_t add_rc = add_response_media_type(
               r, doc->returns[i].content_type, doc->returns[i].item_schema);
-          if (add_rc != 0)
+          if (add_rc != CDD_C_SUCCESS)
             return add_rc;
           r->content_type =
               (c_cdd_strdup(doc->returns[i].content_type, &_ast_strdup_99),
@@ -2214,7 +2215,7 @@ cdd_c_error_t c2openapi_build_operation(const struct OpBuilderContext *ctx,
         if (doc->returns[i].example) {
           cdd_c_error_t ex_rc = apply_example_to_response(
               r, doc->returns[i].example, doc->returns[i].content_type);
-          if (ex_rc != 0)
+          if (ex_rc != CDD_C_SUCCESS)
             return ex_rc;
         }
         /* Schema for error is usually generic Error struct, logic outside scope

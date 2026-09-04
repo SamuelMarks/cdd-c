@@ -14,6 +14,7 @@ extern "C" {
 #include "msvc/stdbool.h"
 #else
 #include <stdbool.h>
+/* clang-format on */
 #endif
 #else
 typedef size_t _c_cdd_bool;
@@ -32,7 +33,6 @@ typedef size_t _c_cdd_bool;
 #define true 1
 #define false 0
 #endif
-/* clang-format on */
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include <stdlib.h>
@@ -190,13 +191,13 @@ enum cdd_c_error HazE_deepcopy(const struct HazE *haz_e_original,
 enum cdd_c_error HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(s);
     return rc;
   }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
-    rc = 0;
+    rc = CDD_C_SUCCESS;
   C_CDD_FREE(s);
   return rc;
 }
@@ -217,7 +218,7 @@ enum cdd_c_error HazE_debug(const struct HazE *haz_e, FILE *fh) {
   {
     char *quoted = NULL;
     rc = quote_or_null(haz_e->bzr, &quoted);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     rc = fprintf(fh, "  /* const char * */ bzr = %s,\n", quoted);
     C_CDD_FREE(quoted);
@@ -318,7 +319,7 @@ enum cdd_c_error HazE_from_jsonObject(const JSON_Object *jsonObject,
   if (tank_str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   rc = Tank_from_str(tank_str, &tank_val);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   new_haz = C_CDD_MALLOC(sizeof(*new_haz));
@@ -396,7 +397,7 @@ enum cdd_c_error FooE_default(struct FooE **foo_e) {
   memset(*foo_e, 0, sizeof(**foo_e));
 
   rc = HazE_default(&(*foo_e)->haz);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(*foo_e);
     return CDD_C_ERROR_MEMORY;
   }
@@ -448,13 +449,13 @@ enum cdd_c_error FooE_deepcopy(const struct FooE *foo_e_original,
 enum cdd_c_error FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(s);
     return rc;
   }
   rc = fprintf(fh, "%s\n", s);
   if (rc > 0)
-    rc = 0;
+    rc = CDD_C_SUCCESS;
   C_CDD_FREE(s);
   return rc;
 }
@@ -476,7 +477,7 @@ enum cdd_c_error FooE_debug(const struct FooE *foo_e, FILE *fh) {
   {
     char *quoted = NULL;
     rc = quote_or_null(foo_e->bar, &quoted);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     rc = fprintf(fh, "  /* const char * */ bar = %s,\n", quoted);
     C_CDD_FREE(quoted);
@@ -593,7 +594,7 @@ enum cdd_c_error FooE_from_jsonObject(const JSON_Object *jsonObject,
   haz_obj = json_object_get_object(jsonObject, "haz");
   if (haz_obj != NULL) {
     rc = HazE_from_jsonObject(haz_obj, &new_foo->haz);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       FooE_cleanup(new_foo);
       return rc;
     }

@@ -3,7 +3,8 @@
  * @brief Implementation of CST factory allocation and construction functions.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_factory.h"
 #include "c_cdd/log.h"

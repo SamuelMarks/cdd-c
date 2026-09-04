@@ -3,7 +3,8 @@
  * @brief Implementation of security code generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -295,7 +296,7 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
       fprintf(fp, "  if (bearer_token) {\n");
       fprintf(fp, "    rc = http_request_set_auth_bearer(&req, "
                   "NULL /* bearer_token */);\n");
-      fprintf(fp, "    if (rc != 0) goto cleanup;\n");
+      fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
       fprintf(fp, "  }\n");
       has_security = 1;
     }
@@ -305,7 +306,7 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
       fprintf(fp, "  if (0 /* basic_token */) {\n");
       fprintf(fp, "    rc = http_request_set_auth_basic(&req, "
                   "NULL /* basic_token */);\n");
-      fprintf(fp, "    if (rc != 0) goto cleanup;\n");
+      fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
       fprintf(fp, "  }\n");
       has_security = 1;
     }
@@ -315,14 +316,14 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
         fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
         fprintf(fp, "    if (!qp_initialized) {\n");
         fprintf(fp, "      rc = url_query_init(&qp);\n");
-        fprintf(fp, "      if (rc != 0) goto cleanup;\n");
+        fprintf(fp, "      if (rc != CDD_C_SUCCESS) goto cleanup;\n");
         fprintf(fp, "      qp_initialized = 1;\n");
         fprintf(fp, "    }\n");
         fprintf(fp,
                 "    rc = url_query_add(&qp, \"%s\", "
                 "NULL /* api_key_%s */);\n",
                 sch->key_name, sch->name);
-        fprintf(fp, "    if (rc != 0) goto cleanup;\n");
+        fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n");
         fprintf(fp, "  }\n");
         has_security = 1;
       }
@@ -409,7 +410,7 @@ codegen_security_write_server_apply(FILE *fp,
       fprintf(fp, "    if (c_rest_middleware_bearer_auth(conn) != 0) {\n");
       fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
                   "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
-      fprintf(fp, "      return 401;\n");
+      fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
       fprintf(fp, "    }\n");
       has_security = 1;
     } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
@@ -418,7 +419,7 @@ codegen_security_write_server_apply(FILE *fp,
       fprintf(fp, "    if (c_rest_middleware_basic_auth(conn) != 0) {\n");
       fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
                   "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
-      fprintf(fp, "      return 401;\n");
+      fprintf(fp, "      return CDD_C_ERROR_SYSTEM; /* 401 */\n");
       fprintf(fp, "    }\n");
       has_security = 1;
     }

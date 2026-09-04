@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/cdd_cst_parser.h"
@@ -18,10 +19,10 @@
 #define strdup _strdup
 #endif
 #endif
-/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 #include "c_cdd_export.h"
+/* clang-format on */
 C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 #define CDD_MALLOC(sz)                                                         \
   ((g_ffi_extractor_alloc_fail && --g_ffi_extractor_alloc_fail == 0)           \
@@ -283,7 +284,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
 #endif
 
   *out_mangled = mangled;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 static cdd_c_error_t

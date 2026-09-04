@@ -113,7 +113,7 @@ TEST test_sec_bearer_token(void) {
   ASSERT(strstr(code,
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
   /* Check error handling */
-  ASSERT(strstr(code, "if (rc != 0) goto cleanup;"));
+  ASSERT(strstr(code, "if (rc != CDD_C_SUCCESS) goto cleanup;"));
 
   C_CDD_FREE(code);
   g_fail_io_after = -1;

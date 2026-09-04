@@ -3,7 +3,8 @@
  * @brief Implementation of the error percolator transformer.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/format_specifiers.h"
 #include "c_cdd/memory.h"
@@ -339,7 +340,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   for (i = 0; i < res.size; i++) {
@@ -801,8 +802,8 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                   stmt->children[semi_idx - 1].val.token == ret_tok) {
                 if (allocs_seen > 0) {
                   ret_tok->start =
-                      (const uint8_t
-                           *)"rc = 0; goto cleanup;\ncleanup:\n  return rc;";
+                      (const uint8_t *)"rc = CDD_C_SUCCESS; goto "
+                                       "cleanup;\ncleanup:\n  return rc;";
                   ret_tok->length = 43;
                 } else {
                   ret_tok->start = (const uint8_t *)"return 0";

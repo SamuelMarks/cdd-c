@@ -3,7 +3,8 @@
  * @brief Dynamic loader checking for DB clients
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/db_loader.h"
 #include <stddef.h>
@@ -16,8 +17,8 @@
 #include <winsock2.h>
 #else
 #include <dlfcn.h>
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Internal function to check if a dynamic library can be loaded.
@@ -32,7 +33,7 @@ static cdd_c_error_t check_lib(const char *win_name, const char *posix_name,
   (void)win_name;
   (void)posix_name;
   if (!out_avail)
-    return 22; /* EINVAL */
+    return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
   *out_avail = 0;
 #if defined(_WIN32)
 #ifdef CDD_BUILD_TESTS

@@ -1,5 +1,6 @@
+/* clang-format off */
 #include "c_cdd/memory.h"
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "macro_evaluator.h"
 #include <ctype.h>

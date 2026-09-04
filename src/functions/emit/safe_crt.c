@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -156,9 +157,6 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
  * look up the AST node's type. */
 #if defined(_MSC_VER)
       sprintf_s(replacement, sizeof(replacement),
-#else
-      sprintf(replacement,
-#endif
                 "#if defined(_MSC_VER)\n"
                 "  strcpy_s(%s, sizeof(%s), %s);\n"
                 "#else\n"
@@ -166,6 +164,16 @@ static cdd_c_error_t generate_strcpy_patch(const struct TokenList *tokens,
                 "cpy(%s, %s);\n"
                 "#endif\n",
                 dest, dest, src, dest, src);
+#else
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  strcpy_s(%s, sizeof(%s), %s);\n"
+              "#else\n"
+              "  str"
+              "cpy(%s, %s);\n"
+              "#endif\n",
+              dest, dest, src, dest, src);
+#endif
       {
         cdd_c_error_t rc_crt =
             add_patch(out, call_start, call_end, replacement);
@@ -269,15 +277,21 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
     if (path && mode && dest) {
 #if defined(_MSC_VER)
       sprintf_s(replacement, sizeof(replacement),
-#else
-      sprintf(replacement,
-#endif
                 "#if defined(_MSC_VER)\n"
                 "  fopen_s(&%s, %s, %s);\n"
                 "#else\n"
                 "  %s = fopen(%s, %s);\n"
                 "#endif\n",
                 dest, path, mode, dest, path, mode);
+#else
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  fopen_s(&%s, %s, %s);\n"
+              "#else\n"
+              "  %s = fopen(%s, %s);\n"
+              "#endif\n",
+              dest, path, mode, dest, path, mode);
+#endif
       {
         cdd_c_error_t rc_crt =
             add_patch(out, assign_idx - 1, call_end, replacement);
@@ -341,9 +355,6 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
     if (dest && src && count) {
 #if defined(_MSC_VER)
       sprintf_s(replacement, sizeof(replacement),
-#else
-      sprintf(replacement,
-#endif
                 "#if defined(_MSC_VER)\n"
                 "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
                 "#else\n"
@@ -351,6 +362,16 @@ static cdd_c_error_t generate_strncpy_patch(const struct TokenList *tokens,
                 "ncpy(%s, %s, %s);\n"
                 "#endif\n",
                 dest, dest, src, count, dest, src, count);
+#else
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  strncpy_s(%s, sizeof(%s), %s, %s);\n"
+              "#else\n"
+              "  str"
+              "ncpy(%s, %s, %s);\n"
+              "#endif\n",
+              dest, dest, src, count, dest, src, count);
+#endif
       {
         cdd_c_error_t rc_crt =
             add_patch(out, call_start, call_end, replacement);
@@ -407,9 +428,6 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
     if (dest && args) {
 #if defined(_MSC_VER)
       sprintf_s(replacement, sizeof(replacement),
-#else
-      sprintf(replacement,
-#endif
                 "#if defined(_MSC_VER)\n"
                 "  sprintf_s(%s, sizeof(%s), %s);\n"
                 "#else\n"
@@ -417,6 +435,16 @@ static cdd_c_error_t generate_sprintf_patch(const struct TokenList *tokens,
                 "intf(%s, %s);\n"
                 "#endif",
                 dest, dest, args, dest, args);
+#else
+      sprintf(replacement,
+              "#if defined(_MSC_VER)\n"
+              "  sprintf_s(%s, sizeof(%s), %s);\n"
+              "#else\n"
+              "  spr"
+              "intf(%s, %s);\n"
+              "#endif",
+              dest, dest, args, dest, args);
+#endif
       {
         cdd_c_error_t rc_crt =
             add_patch(out, call_start, call_end, replacement);
@@ -567,9 +595,6 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
               size_t end_stmt = end_bracket;
 #if defined(_MSC_VER)
               sprintf_s(replacement, sizeof(replacement),
-#else
-              sprintf(replacement,
-#endif
                         "#if defined(_MSC_VER)\n"
                         "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
                         "#else\n"
@@ -577,6 +602,16 @@ cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                         "#endif",
                         type_name, var_name, type_name, expr, type_name,
                         type_name, var_name, expr);
+#else
+              sprintf(replacement,
+                      "#if defined(_MSC_VER)\n"
+                      "  %s *%s = (%s*)_alloca((%s) * sizeof(%s));\n"
+                      "#else\n"
+                      "  %s %s[%s];\n"
+                      "#endif",
+                      type_name, var_name, type_name, expr, type_name,
+                      type_name, var_name, expr);
+#endif
 
               /* statement usually ends with ; */
               while (end_stmt < n->end_token &&

@@ -4,7 +4,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/refactor.h"
 #include "c_cdd/log.h"
@@ -25,8 +26,8 @@
 #else
 #include "c_cdd/log.h"
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_fail_alloc_refactor_add = 0;
@@ -116,19 +117,19 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  /* 1. Tokenize */
+    /* 1. Tokenize */
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
     if (g_cdd_audit_fail_tokenize)
-      rc = 1;
+      rc = CDD_C_ERROR_SYSTEM;
     else
       rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
   }
 #else
   rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     return rc;
   }
 
@@ -137,14 +138,14 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_find;
     if (g_cdd_audit_fail_find)
-      rc = 1;
+      rc = CDD_C_ERROR_SYSTEM;
     else
       rc = find_allocations(tokens, &allocs);
   }
 #else
   rc = find_allocations(tokens, &allocs);
 #endif
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     free_token_list(tokens);
     return rc;
   }

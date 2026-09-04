@@ -4,14 +4,14 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/emit/make.h"
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 /** @brief CHECK_IO definition */

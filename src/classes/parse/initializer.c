@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -301,7 +302,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     if (is_designator_start(tokens->tokens[i].kind)) {
       size_t next_after_desig;
       rc = parse_designator(tokens, i, end_idx, &desig_str, &next_after_desig);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         goto error;
       i = next_after_desig;
     }
@@ -340,7 +341,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       val_obj->data.compound = nested_list;
 
       rc = parse_initializer(tokens, i, end_idx, nested_list, &sub_consumed);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(val_obj);
         init_list_free(nested_list);
         C_CDD_FREE(nested_list);
@@ -357,7 +358,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
 
       rc =
           parse_expression_str(tokens, i, end_idx, &expr_str, &next_after_expr);
-      if (rc != 0) {
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(val_obj);
         if (desig_str)
           C_CDD_FREE(desig_str);

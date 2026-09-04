@@ -3,7 +3,8 @@
  * @brief Implementation of CLI code generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cli_gen.h"
 #include "c_cdd/memory.h"
@@ -12,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/* clang-format on */
 
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf
@@ -82,13 +82,14 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_IO;
   }
 
   fprintf(fp, "/* Generated CLI from OpenAPI Specification */\n\n");
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
 #include "c_cdd/memory.h"
+  /* clang-format on */
   fprintf(fp, "#include <string.h>\n");
   fprintf(fp, "#include <parson.h>\n");
   fprintf(fp, "/* clang-format "
@@ -100,8 +101,10 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
     char *base = NULL;
     {
       cdd_c_error_t rc_cg = get_basename(config->filename_base, &base);
-      if (rc_cg != CDD_C_SUCCESS)
+      if (rc_cg != CDD_C_SUCCESS) {
+        fclose(fp);
         return rc_cg;
+      }
     }
     fprintf(fp, "#include \"%s.h\"\n\n", base);
     C_CDD_FREE(base);
@@ -302,7 +305,7 @@ cdd_c_error_t openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "             printf(\"%%s\", id_str);\n");
   fprintf(fp, "             json_free_serialized_string(id_str);\n");
   fprintf(fp, "          } else { printf(\"null\"); }\n");
-  fprintf(fp, "          if (rc == 0) {\n");
+  fprintf(fp, "          if (rc == CDD_C_SUCCESS) {\n");
   fprintf(fp, "            "
               "printf(\",\\\"result\\\":{\\\"content\\\":[{\\\"type\\\":"
               "\\\"text\\\",\\\"text\\\":\\\"%%s\\\"}]}}\\n\", out_result ? "

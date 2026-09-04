@@ -3,7 +3,8 @@
  * @brief Implementation of server code generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "server_gen.h"
 #include "c_cdd/memory.h"
@@ -87,7 +88,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_IO;
   }
 
   fprintf(fp, "/* Generated Server from OpenAPI Specification */\n\n");
@@ -151,11 +152,12 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 
         fprintf(fp, " * \\return HTTP Status Code\n");
         fprintf(fp, " */\n");
-        fprintf(fp,
-                "static int handle_%s(struct c_rest_request *req, struct "
-                "c_rest_response *res, void "
-                "*user_data) {\n",
-                opId);
+        fprintf(
+            fp,
+            "static cdd_c_error_t handle_%s(struct c_rest_request *req, struct "
+            "c_rest_response *res, void "
+            "*user_data) {\n",
+            opId);
         fprintf(
             fp,
             "    const char *resp = \"{\\\"status\\\": \\\"%s called\\\"}\";\n",
@@ -221,7 +223,6 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
         fprintf(
             fp,
             "    /* c_rest_response_set_body(res, resp, strlen(resp)); */\n");
-        fprintf(fp, "    return 200;\n");
         fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
       }
     }
@@ -290,21 +291,22 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 
   /* Register MCP endpoints */
   fprintf(fp, "    /* MCP Transports: Server-Sent Events (sse) */\n");
-  fprintf(fp, "static int handle_mcp_sse(struct c_rest_request *req, struct "
-              "c_rest_response *res, void *user_data) {\n");
+  fprintf(
+      fp,
+      "static cdd_c_error_t handle_mcp_sse(struct c_rest_request *req, struct "
+      "c_rest_response *res, void *user_data) {\n");
   fprintf(fp, "    (void)req;\n");
   fprintf(fp, "    (void)user_data;\n");
   fprintf(fp, "    res->status_code = 200;\n");
   fprintf(fp, "    /* c_rest_response_add_header is pseudo; just printing "
               "headers manually or using standard HTTP framework */\n");
-  fprintf(fp, "    return res->status_code;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
-  fprintf(fp, "static int handle_mcp_message(struct c_rest_request *req, "
-              "struct c_rest_response *res, void *user_data) {\n");
+  fprintf(fp,
+          "static cdd_c_error_t handle_mcp_message(struct c_rest_request *req, "
+          "struct c_rest_response *res, void *user_data) {\n");
   fprintf(fp, "    (void)req;\n");
   fprintf(fp, "    (void)user_data;\n");
   fprintf(fp, "    res->status_code = 202;\n");
-  fprintf(fp, "    return res->status_code;\n");
   fprintf(fp, "    return CDD_C_SUCCESS;\n}\n\n");
   fprintf(fp, "            /* MCP SSE Endpoint Registration */\n");
   fprintf(fp, "            c_rest_router_add(router, \"GET\", \"/mcp/sse\", "
@@ -399,10 +401,11 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
             fprintf(fp_test, "  struct c_rest_response res;\n");
             fprintf(fp_test, "  memset(&req, 0, sizeof(req));\n");
             fprintf(fp_test, "  memset(&res, 0, sizeof(res));\n");
-            fprintf(fp_test,
-                    "  /* int status = handle_%s(&req, &res, NULL); */\n",
-                    opId);
-            fprintf(fp_test, "  /* ASSERT_EQ(200, status); */\n");
+            fprintf(
+                fp_test,
+                "  /* cdd_c_error_t status = handle_%s(&req, &res, NULL); */\n",
+                opId);
+            fprintf(fp_test, "  /* ASSERT_EQ(CDD_C_SUCCESS, status); */\n");
             fprintf(fp_test, "  PASS();\n");
             fprintf(fp_test, "}\n\n");
           }

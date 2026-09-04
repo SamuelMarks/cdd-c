@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -1262,7 +1263,7 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
     char *dup = NULL;
     cdd_c_error_t rc = c_cdd_strdup(serialized, &dup);
     json_free_serialized_string(serialized);
-    if (rc != 0 || !dup) {
+    if (rc != CDD_C_SUCCESS || !dup) {
       json_value_free(dest_val);
       json_value_free(src_val);
       return CDD_C_ERROR_MEMORY;
@@ -1739,7 +1740,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
 
   /* --- Use Mapper --- */
   rc = c_mapping_map_type(type_raw, name, &mapping);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   /* Translate Mapper Result to StructFields format */
@@ -2083,7 +2084,7 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
   all_of = json_object_get_array(o, "allOf");
   if (all_of) {
     rc = apply_allof_to_struct_fields(all_of, f, root);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
@@ -2091,11 +2092,11 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
   if (any_of) {
     rc = apply_union_to_struct_fields_ex(any_of, f, root, schema_name, 1, o,
                                          allow_inline_union);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     if (!f->is_union) {
       rc = apply_union_to_struct_fields_fallback(any_of, f, root);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
@@ -2104,11 +2105,11 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
   if (one_of) {
     rc = apply_union_to_struct_fields_ex(one_of, f, root, schema_name, 0, o,
                                          allow_inline_union);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
     if (!f->is_union) {
       rc = apply_union_to_struct_fields_fallback(one_of, f, root);
-      if (rc != 0)
+      if (rc != CDD_C_SUCCESS)
         return rc;
     }
   }
@@ -2176,7 +2177,7 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
         const char *primary = NULL;
         rc = parse_type_union_array_code2schema(type_arr, &type_union,
                                                 &n_type_union, &primary, NULL);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           free_string_array_code2schema(type_union, n_type_union);
           return rc;
         }
@@ -2204,7 +2205,7 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
             rc = parse_type_union_array_code2schema(
                 item_type_arr, &items_type_union, &n_items_type_union, &primary,
                 NULL);
-            if (rc != 0) {
+            if (rc != CDD_C_SUCCESS) {
               free_string_array_code2schema(type_union, n_type_union);
               free_string_array_code2schema(items_type_union,
                                             n_items_type_union);
@@ -4739,18 +4740,18 @@ cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
       continue;
 
     rc = struct_fields_init(&tmp);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
 
     rc = json_object_to_struct_fields(resolved, &tmp, root);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       struct_fields_free(&tmp);
       return rc;
     }
 
     rc = merge_struct_fields(dest, &tmp);
     struct_fields_free(&tmp);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 
@@ -4975,11 +4976,11 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
       continue;
 
     rc = struct_fields_init(&tmp);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
 
     rc = json_object_to_struct_fields(resolved, &tmp, root);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       struct_fields_free(&tmp);
       return rc;
     }
@@ -5388,7 +5389,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
       if (allow_inline && root && sub_val) {
         rc = register_inline_schema_c2s(root, schema_name, variant_name, NULL,
                                         sub_val, &inline_ref_name);
-        if (rc != 0) {
+        if (rc != CDD_C_SUCCESS) {
           C_CDD_FREE(variant_name);
           return rc;
         }
@@ -5414,7 +5415,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
             rc = parse_type_union_array_code2schema(
                 item_type_arr, &items_type_union, &n_items_type_union,
                 &item_type, NULL);
-            if (rc != 0) {
+            if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(variant_name);
               C_CDD_FREE(inline_ref_name);
               return rc;
@@ -5428,7 +5429,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
             rc =
                 register_inline_schema_c2s(root, schema_name, variant_name,
                                            "Item", items_val, &inline_item_ref);
-            if (rc != 0) {
+            if (rc != CDD_C_SUCCESS) {
               C_CDD_FREE(variant_name);
               C_CDD_FREE(inline_ref_name);
               free_string_array_code2schema(items_type_union,

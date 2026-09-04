@@ -175,7 +175,7 @@ TEST test_server_gen_fail_open(void) {
   config.filename_base = "/nonexistent/dir/test_server";
 
   rc = openapi_server_generate(&spec, &config);
-  ASSERT_EQ(0, rc);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
   g_fail_io_after = -1;
 
   g_cdd_alloc_fail = 1;

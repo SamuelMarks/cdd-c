@@ -100,14 +100,12 @@ extern C_CDD_EXPORT volatile int g_ffi_extractor_alloc_fail;
 /* extern C_CDD_EXPORT int g_cdd_ffi_ir_calloc_fail; (moved to global) */
 
 #include "cdd_test_helpers_export.h"
-extern CDD_TEST_HELPERS_EXPORT int g_mock_oom_countdown;
+extern CDD_TEST_HELPERS_EXPORT int g_cdd_alloc_fail;
 
 TEST test_cdd_generate_bindings(void) {
   cdd_generate_bindings_config_t config = {0};
   FILE *f;
   size_t i;
-  printf("START: g_fail_io_after=%d, g_mock_oom_countdown=%d\n",
-         g_fail_io_after, g_mock_oom_countdown);
   const char *langs[] = {"python",  "rust",    "csharp",      "typescript",
                          "napi",    "java",    "cpp",         "go",
                          "swift",   "dart",    "ruby",        "kotlin",

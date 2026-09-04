@@ -171,9 +171,8 @@ TEST test_default_enum(void) {
 
   /* Expect from_str call */
   ASSERT(strstr(code, "rc = Color_from_str(\"RED\", &(*out)->e);"));
-  ASSERT(strstr(
-      code,
-      "if (rc != 0) { EnumStruct_cleanup(*out); *out=NULL; return rc; }"));
+  ASSERT(strstr(code, "if (rc != CDD_C_SUCCESS) { EnumStruct_cleanup(*out); "
+                      "*out=NULL; return rc; }"));
 
   C_CDD_FREE(code);
   struct_fields_free(&sf);

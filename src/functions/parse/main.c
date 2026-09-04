@@ -8,7 +8,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -271,7 +272,7 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 
     json_value_free(root);
 
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "Failed to load openapi spec from %s\n", input_file);
       return rc;
     }

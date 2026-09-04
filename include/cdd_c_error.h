@@ -12,6 +12,7 @@ extern "C" {
  * @brief Global error enumeration for cdd-c project.
  */
 typedef enum cdd_c_error {
+  CDD_C_ERROR_FORCE_SIGNED = -1,
   CDD_C_SUCCESS = 0,
   CDD_C_ERROR_MEMORY = 1,
   CDD_C_ERROR_INVALID_ARGUMENT = 2,
@@ -21,6 +22,16 @@ typedef enum cdd_c_error {
   CDD_C_ERROR_PARSE = 6,
   CDD_C_ERROR_UNKNOWN = 7
 } cdd_c_error_t;
+
+/**
+ * @brief Converts a cdd_c_error_t to a string.
+ *
+ * @param[in] err The error code.
+ * @param[out] out The output string pointer.
+ * @return cdd_c_error_t CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT
+ * otherwise.
+ */
+cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out);
 
 #ifdef __cplusplus
 }

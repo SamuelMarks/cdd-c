@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_rust.h"
 #include "../parse/fs.h"
@@ -8,7 +9,6 @@ extern volatile int g_fail_io_after;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 static const char *get_rust_primitive(cdd_ffi_primitive_kind_t kind) {
@@ -423,20 +423,20 @@ cdd_c_error_t cdd_ffi_emit_rust(cdd_ffi_ir_t *ir,
   rc = emit_cargo_toml(config);
   /* In tests we don't mock emit_sys_rs failing inside cdd_ffi_emit_rust if it
    * already fails within emit_sys_rs */
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = emit_sys_rs(ir, config->output_dir);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   rc = emit_lib_rs(ir, config->output_dir);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   if (config->generate_tests) {
     rc = emit_integration_tests(ir, config);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
   }
 

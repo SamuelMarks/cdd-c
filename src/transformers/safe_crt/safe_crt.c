@@ -3,7 +3,8 @@
  * @brief Implementation of the Safe CRT transformer.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_builder.h"
@@ -1604,7 +1605,7 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
   do {
     replaced_any = 0;
     rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
-    if (rc != 0) {
+    if (rc != CDD_C_SUCCESS) {
       arena_free_all();
       current_tree = NULL;
       return (cdd_c_error_t)rc;

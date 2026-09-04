@@ -6,7 +6,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "functions/parse/audit.h"
 #include "c_cdd/log.h"
@@ -20,7 +21,6 @@
 #include <parson.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
@@ -288,7 +288,7 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 
   /* Read */
   rc = read_to_file(path, "r", &content, &sz);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     fprintf(stderr, "Warning: Failed to read %s\n", path);
     return CDD_C_SUCCESS;
   }
@@ -299,9 +299,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
     if (g_cdd_audit_fail_tokenize)
-      tok_rc = 1;
+      tok_rc = CDD_C_ERROR_SYSTEM;
 #endif
-    if (tok_rc != 0) {
+    if (tok_rc != CDD_C_SUCCESS) {
       free_token_list(tokens);
       free(content);
       return CDD_C_SUCCESS; /* Tokenization fail - skip */
@@ -314,9 +314,9 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_audit_fail_find;
     if (g_cdd_audit_fail_find)
-      find_rc = 1;
+      find_rc = CDD_C_ERROR_SYSTEM;
 #endif
-    if (find_rc == 0) {
+    if (find_rc == CDD_C_SUCCESS) {
       stats->files_scanned++;
 
       for (i = 0; i < sites.size; ++i) {

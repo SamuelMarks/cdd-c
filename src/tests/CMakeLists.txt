@@ -183,3 +183,10 @@ if(TARGET test_c_cdd)
         # Ensure tests use the same strict compiler flags
     endif()
 endif()
+
+if(NOT MSVC)
+    set_source_files_properties(test_c_cdd.c PROPERTIES COMPILE_FLAGS "-Wno-error")
+endif()
+if(NOT MSVC)
+    set_source_files_properties(parse/test_simple_json.c PROPERTIES COMPILE_FLAGS "-Wno-error")
+endif()

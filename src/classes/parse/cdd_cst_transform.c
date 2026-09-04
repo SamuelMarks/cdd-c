@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_transform.h"
 #include "c_str_span.h"
@@ -27,7 +28,7 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* 1. Check if __cplusplus is already checked */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     for (i = 0; i < res.size; i++) {
       cdd_cst_node_t *dir = res.nodes[i];
       if (dir->num_children > 0 &&
@@ -144,7 +145,7 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
 
   /* 1. Wrap unistd.h and sys/time.h */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
-  if (rc == 0) {
+  if (rc == CDD_C_SUCCESS) {
     for (i = 0; i < res.size; i++) {
       cdd_cst_node_t *dir = res.nodes[i];
       if (dir->num_children > 0 &&
@@ -165,11 +166,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                 cdd_cst_node_t *cloned = NULL;
                 rc = cdd_cst_clone_tree(
                     tree, wrap_tree->root->children[0].val.node, &cloned);
-                if (rc == 0) {
+                if (rc == CDD_C_SUCCESS) {
                   rc = cdd_cst_replace_node(tree, dir, cloned);
-                  if (rc == 0)
+                  if (rc == CDD_C_SUCCESS)
                     cdd_cst_free_node(dir);
-                  if (rc != 0) {
+                  if (rc != CDD_C_SUCCESS) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
                   }
@@ -191,11 +192,11 @@ cdd_c_error_t cdd_transform_msvc(cdd_cst_tree_t *tree,
                 cdd_cst_node_t *cloned = NULL;
                 rc = cdd_cst_clone_tree(
                     tree, wrap_tree->root->children[0].val.node, &cloned);
-                if (rc == 0) {
+                if (rc == CDD_C_SUCCESS) {
                   rc = cdd_cst_replace_node(tree, dir, cloned);
-                  if (rc == 0)
+                  if (rc == CDD_C_SUCCESS)
                     cdd_cst_free_node(dir);
-                  if (rc != 0) {
+                  if (rc != CDD_C_SUCCESS) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
                   }

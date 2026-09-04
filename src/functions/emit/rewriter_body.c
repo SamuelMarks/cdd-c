@@ -4,7 +4,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include "c_cdd_export.h"
@@ -358,7 +359,8 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   }
                   if (semi < tokens->size) {
                     char *tmp = NULL;
-                    rc = c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
+                    rc = c_cdd_strdup(" if (rc != CDD_C_SUCCESS) return rc;",
+                                      &tmp);
                     if (rc != CDD_C_SUCCESS)
                       goto cleanup;
                     rc = patch_list_add(&patches, semi + 1, semi + 1, tmp);
@@ -396,7 +398,8 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               if (semi < tokens->size) {
                 {
                   char *tmp = NULL;
-                  rc = c_cdd_strdup(" if (rc != 0) return rc;", &tmp);
+                  rc = c_cdd_strdup(" if (rc != CDD_C_SUCCESS) return rc;",
+                                    &tmp);
                   if (rc != CDD_C_SUCCESS)
                     goto cleanup;
                   rc = patch_list_add(&patches, semi + 1, semi + 1, tmp);

@@ -5,7 +5,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/types.h"
 #include "c_cdd/log.h"
@@ -16,7 +17,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
 /* clang-format on */
 
 /* Wrapper for fprintf to check errors tersely */
@@ -128,29 +128,29 @@ write_union_to_json_func(FILE *fp, const char *union_name,
       CHECK_IO(FPRINTF_HOOK(fp, "      } else { c89stringutils_jasprintf("
                                 "json, \"null\"); }\n"));
     } else if (strcmp(type, "enum") == 0) {
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
-                       "&s); if (rc != 0) { free(s); return rc; }\n",
-                       (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
-                        _ast_get_type_from_ref_0),
-                       name));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
+          "&s); if (rc != CDD_C_SUCCESS) { free(s); return rc; }\n",
+          (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
+           _ast_get_type_from_ref_0),
+          name));
       CHECK_IO(FPRINTF_HOOK(fp, "        c89stringutils_jasprintf(json, "
                                 "\"\\\"%%s\\\"\", s); free(s); "
                                 "}\n"));
     } else if (strcmp(type, "object") == 0) {
-      CHECK_IO(
-          FPRINTF_HOOK(fp,
-                       "      {\n"
-                       "        char *sub = NULL;\n"
-                       "        rc = %s_to_json(obj->data.%s, &sub);\n"
-                       "        if (rc != 0) { free(sub); return rc; }\n"
-                       "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
-                       "        free(sub);\n"
-                       "      }\n",
-                       (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
-                        _ast_get_type_from_ref_1),
-                       name));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      {\n"
+          "        char *sub = NULL;\n"
+          "        rc = %s_to_json(obj->data.%s, &sub);\n"
+          "        if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
+          "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+          "        free(sub);\n"
+          "      }\n",
+          (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
+           _ast_get_type_from_ref_1),
+          name));
     } else if (strcmp(type, "array") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
@@ -193,7 +193,7 @@ write_union_to_json_func(FILE *fp, const char *union_name,
             "          {\n"
             "            char *sub = NULL;\n"
             "            rc = %s_to_json(obj->data.%s.%s[i], &sub);\n"
-            "            if (rc != 0) { free(sub); return rc; }\n"
+            "            if (rc != CDD_C_SUCCESS) { free(sub); return rc; }\n"
             "            c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "            free(sub);\n"
             "          }\n",
@@ -289,16 +289,17 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                             disc_val));
       CHECK_IO(
           FPRINTF_HOOK(fp, "        ret->tag = %s_%s;\n", union_name, name));
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "        rc = %s_from_jsonObject(jsonObject, "
-                            "&ret->data.%s);\n"
-                            "        if (rc != 0) { free(ret); return rc; }\n"
-                            "        *out = ret;\n"
-                            "        return CDD_C_SUCCESS;\n"
-                            "      }\n",
-                            (get_type_from_ref(ref, &_ast_get_type_from_ref_3),
-                             _ast_get_type_from_ref_3),
-                            name));
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "        rc = %s_from_jsonObject(jsonObject, "
+          "&ret->data.%s);\n"
+          "        if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n"
+          "        *out = ret;\n"
+          "        return CDD_C_SUCCESS;\n"
+          "      }\n",
+          (get_type_from_ref(ref, &_ast_get_type_from_ref_3),
+           _ast_get_type_from_ref_3),
+          name));
     }
     CHECK_IO(FPRINTF_HOOK(fp, "    }\n  }\n"));
   }
@@ -375,14 +376,15 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       continue;
     CHECK_IO(FPRINTF_HOOK(fp, "    case %" CDD_SIZE_T_FMT ":\n", (size_t)i));
     CHECK_IO(FPRINTF_HOOK(fp, "      ret->tag = %s_%s;\n", union_name, name));
-    CHECK_IO(FPRINTF_HOOK(fp,
-                          "      rc = %s_from_jsonObject(jsonObject, "
-                          "&ret->data.%s);\n"
-                          "      if (rc != 0) { free(ret); return rc; }\n"
-                          "      break;\n",
-                          (get_type_from_ref(ref, &_ast_get_type_from_ref_4),
-                           _ast_get_type_from_ref_4),
-                          name));
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "      rc = %s_from_jsonObject(jsonObject, "
+        "&ret->data.%s);\n"
+        "      if (rc != CDD_C_SUCCESS) { free(ret); return rc; }\n"
+        "      break;\n",
+        (get_type_from_ref(ref, &_ast_get_type_from_ref_4),
+         _ast_get_type_from_ref_4),
+        name));
   }
 
   CHECK_IO(FPRINTF_HOOK(fp, "    default:\n"
@@ -608,7 +610,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
           "          for (i = 0; i < count; ++i) {\n"
           "            rc = %s_from_jsonObject(json_array_get_object(arr, i), "
           "&ret->data.%s.%s[i]);\n"
-          "            if (rc != 0) {\n",
+          "            if (rc != CDD_C_SUCCESS) {\n",
           name, name, ref, name, name, ref, name, name));
       CHECK_IO(FPRINTF_HOOK(
           fp,
@@ -1018,17 +1020,17 @@ write_root_array_to_json_func(FILE *fp, const char *name, const char *item_type,
     CHECK_IO(FPRINTF_HOOK(fp, "    c89stringutils_jasprintf(json_out, "
                               "\"\\\"%%s\\\"\", in[i]);\n"));
   } else if (strcmp(item_type, "object") == 0) {
-    CHECK_IO(
-        FPRINTF_HOOK(fp,
-                     "    {\n"
-                     "      char *tmp = NULL;\n"
-                     "      int rc = %s_to_json(in[i], &tmp);\n"
-                     "      if (rc != 0) { free(tmp); return rc; }\n"
-                     "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
-                     "      free(tmp);\n"
-                     "    }\n",
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_10),
-                      _ast_get_type_from_ref_10)));
+    CHECK_IO(FPRINTF_HOOK(
+        fp,
+        "    {\n"
+        "      char *tmp = NULL;\n"
+        "      int rc = %s_to_json(in[i], &tmp);\n"
+        "      if (rc != CDD_C_SUCCESS) { free(tmp); return rc; }\n"
+        "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
+        "      free(tmp);\n"
+        "    }\n",
+        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_10),
+         _ast_get_type_from_ref_10)));
   }
   CHECK_IO(FPRINTF_HOOK(
       fp, "    if (!*json_out) return CDD_C_ERROR_MEMORY;\n  }\n"));
@@ -1141,7 +1143,7 @@ write_root_array_from_json_func(FILE *fp, const char *name,
         fp,
         "    int rc = %s_from_jsonObject(json_array_get_object(arr, i), "
         "&(*out)[i]);\n"
-        "    if (rc != 0) {\n"
+        "    if (rc != CDD_C_SUCCESS) {\n"
         "      size_t j;\n"
         "      for(j=0; j<i; j++) %s_cleanup((*out)[j]);\n"
         "      free(*out); *out=NULL; json_value_free(val); return rc;\n"

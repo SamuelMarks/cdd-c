@@ -1,10 +1,11 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/log.h"
 #include <stdarg.h>
 #include <stdio.h>
 /* clang-format on */
-cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
+C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...) {
 #ifdef DEBUG
   va_list args;
   va_start(args, fmt);

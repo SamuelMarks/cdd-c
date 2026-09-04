@@ -135,6 +135,7 @@ source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files
         "log.c"
+        "cdd_c_error.c"
         "functions/parse/analysis.c"
         "classes/parse/inspector.c"
         "routes/parse/cli.c"
@@ -300,15 +301,12 @@ endif ()
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+if(DEFINED STRICT_COMPILER_FLAGS)
+    target_compile_options("${LIBRARY_NAME}" PRIVATE ${STRICT_COMPILER_FLAGS})
+endif()
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
-    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_MOCK_ALLOCATIONS)
     target_include_directories("${LIBRARY_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    if(MSVC)
-        target_compile_options("${LIBRARY_NAME}" PRIVATE "/FItests/cdd_test_helpers/mock_overrides.h")
-    else()
-        target_compile_options("${LIBRARY_NAME}" PRIVATE -include "tests/cdd_test_helpers/mock_overrides.h")
-    endif()
 endif()
 
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)

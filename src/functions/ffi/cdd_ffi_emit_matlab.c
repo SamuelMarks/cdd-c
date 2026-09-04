@@ -1,5 +1,6 @@
 extern volatile int g_fail_io_after;
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_ffi_emit_matlab.h"
 #include "c_cdd/format_specifiers.h"
@@ -216,7 +217,7 @@ cdd_ffi_emit_matlab(cdd_ffi_ir_t *ir,
   }
 
   rc = emit_matlab_mex(ir, config);
-  if (rc != 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
   return emit_matlab_m(ir, config);

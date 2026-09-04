@@ -1,5 +1,3 @@
-/* clang-format off */
-/* clang-format on */
 /**
  * @file stdbool.h
  * @brief MSVC stdbool port.

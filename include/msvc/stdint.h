@@ -1,5 +1,3 @@
-/* clang-format off */
-/* clang-format on */
 /**
  * @file stdint.h
  * @brief MSVC stdint port.

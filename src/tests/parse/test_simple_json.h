@@ -97,7 +97,7 @@ TEST test_foo_e_full_coverage(void) {
   FILE *f;
 #ifdef CDD_BUILD_TESTS
   int i;
-  int rc;
+  cdd_c_error_t rc;
 #endif
 
   (void)rc;
@@ -294,7 +294,7 @@ TEST test_foo_e_full_coverage(void) {
     haz_e->bzr = malloc(4);
     memcpy((void *)(size_t)haz_e->bzr, "foo", 4);
     printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n",
-           (void *)(size_t)haz_e->bzr, (void *)(size_t)"foo");
+           (void *)(size_t)haz_e->bzr, (void *)(size_t) "foo");
     fflush(stdout);
 
     g_simple_json_fail_alloc = i;
@@ -323,7 +323,7 @@ TEST test_foo_e_full_coverage(void) {
     haz_e->bzr = malloc(4);
     memcpy((void *)(size_t)haz_e->bzr, "foo", 4);
     printf("DEBUG: haz_e->bzr = %p, literal foo = %p\n",
-           (void *)(size_t)haz_e->bzr, (void *)(size_t)"foo");
+           (void *)(size_t)haz_e->bzr, (void *)(size_t) "foo");
     fflush(stdout);
 
 #if defined(_MSC_VER)

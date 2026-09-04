@@ -6,6 +6,7 @@
  */
 
 #ifndef FS_H
+/* clang-format off */
 #include "c_cdd/no_discard.h"
 #define FS_H
 
@@ -13,7 +14,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* clang-format off */
 #include <errno.h>
 #include "cdd_c_error.h"
 #include <stdio.h>
@@ -93,8 +93,8 @@ extern C_CDD_EXPORT cdd_c_error_t wide_to_ascii(const wchar_t *ws, char *s, size
 #include <io.h>
 #else
 #include <unistd.h>
-#endif
 /* clang-format on */
+#endif
 
 /** @brief c_stat definition */
 typedef struct stat c_stat;

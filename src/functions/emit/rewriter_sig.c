@@ -11,7 +11,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/memory.h"
 #include <ctype.h>
@@ -31,8 +32,8 @@
 #else
 #include "c_cdd/log.h"
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Internal component structure for a parsed signature.

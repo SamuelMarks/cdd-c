@@ -9,7 +9,8 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/emit/schema_codegen.h"
 #include "classes/emit/enum.h"
@@ -30,8 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
+/* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
@@ -42,7 +42,6 @@
 #define PATH_MAX _MAX_PATH
 #else
 #endif
-/* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_schema_fail_io_after = -1;
@@ -274,7 +273,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
   F_CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
   F_CHECK_RC_TESTABLE(print_header_guard_end(fp, basename));
   fclose(fp);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -402,7 +401,7 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
     struct_fields_free(&sf);
   }
   fclose(fp);
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 /**

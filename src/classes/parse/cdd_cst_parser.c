@@ -1,4 +1,5 @@
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "cdd_cst_parser.h"
 #include "c_cdd/log.h"
@@ -125,7 +126,7 @@ C_CDD_EXPORT cdd_c_error_t peek(parser_state_t *s, cdd_token_t **out_tok) {
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos];
-    return 0;
+    return CDD_C_SUCCESS;
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
@@ -135,7 +136,7 @@ C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   *out_tok = NULL;
   if (s->pos < s->list->size) {
     *out_tok = &s->list->tokens[s->pos++];
-    return 0;
+    return CDD_C_SUCCESS;
   }
   return CDD_C_ERROR_NOT_FOUND;
 }
@@ -1114,7 +1115,7 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   }
 
   rc = cdd_lexer_tokenize(source, &tree->base_tokens);
-  if (rc != 0) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(tree);
     return rc;
   }

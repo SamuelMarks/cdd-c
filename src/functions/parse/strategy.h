@@ -32,7 +32,8 @@ extern "C" {
  * Policies:
  * - NULL pointer check: `if (!ptr) { return CDD_C_ERROR_MEMORY; }`
  * - Negative Int check: `if (rc < 0) { return CDD_C_ERROR_MEMORY; }`
- * - Non-zero Int check: `if (rc != 0) { return CDD_C_ERROR_MEMORY; }`
+ * - Non-zero Int check: `if (rc != CDD_C_SUCCESS) { return CDD_C_ERROR_MEMORY;
+ * }`
  *
  * @param[in] tokens The token stream of the function body.
  * @param[in] allocs The list of allocation sites identified by analysis.

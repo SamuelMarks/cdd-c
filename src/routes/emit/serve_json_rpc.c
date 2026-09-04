@@ -3,7 +3,8 @@
  * @brief Implementation of JSON-RPC server generation.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #ifndef __wasi__
 #include "serve_json_rpc.h"

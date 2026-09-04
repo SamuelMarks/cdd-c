@@ -3,7 +3,8 @@
  * @brief Implementation of CST splicing and searching functions.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
 #include "c_cdd/log.h"
 #include "cdd_cst_factory.h"
