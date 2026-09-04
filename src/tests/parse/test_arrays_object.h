@@ -104,7 +104,7 @@ TEST test_code2schema_obj_array_detection(void) {
       "  struct Item **items;\n"
       "  size_t n_items;\n"
       "};\n";
-  const char *json_out_file = "test_obj_array_detect.json";
+  const char *json_out_file = (char *)(size_t)"test_obj_array_detect.json";
   FILE *f;
   char *json_content;
   size_t len;

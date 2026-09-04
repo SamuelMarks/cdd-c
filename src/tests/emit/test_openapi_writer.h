@@ -58,24 +58,24 @@ static void setup_test_spec(struct OpenAPI_Spec *spec,
   if (path) {
     spec->paths = path;
     spec->n_paths = 1;
-    path->route = "/test/route";
+    path->route = (char *)(size_t)"/test/route";
     if (op) {
       path->operations = op;
       path->n_operations = 1;
       op->verb = OA_VERB_GET;
-      op->operation_id = "testOp";
+      op->operation_id = (char *)(size_t)"testOp";
       if (param) {
         op->parameters = param;
         op->n_parameters = 1;
-        param->name = "p1";
+        param->name = (char *)(size_t)"p1";
         param->in = OA_PARAM_IN_QUERY;
-        param->type = "string";
+        param->type = (char *)(size_t)"string";
       }
       if (response) {
         op->responses = response;
         op->n_responses = 1;
-        response->code = "200";
-        response->schema.ref_name = "TestModel";
+        response->code = (char *)(size_t)"200";
+        response->schema.ref_name = (char *)(size_t)"TestModel";
       }
     }
   }
@@ -186,20 +186,21 @@ TEST test_writer_root_metadata_and_tags(void) {
 
   (void)rc;
   memset(tags, 0, sizeof(tags));
-  spec.openapi_version = "3.2.0";
-  spec.self_uri = "https://example.com/openapi.json";
-  spec.json_schema_dialect = "https://spec.openapis.org/oas/3.1/dialect/base";
-  spec.external_docs.url = "https://example.com/docs";
-  spec.external_docs.description = "Root docs";
+  spec.openapi_version = (char *)(size_t)"3.2.0";
+  spec.self_uri = (char *)(size_t)"https://example.com/openapi.json";
+  spec.json_schema_dialect =
+      (char *)(size_t)"https://spec.openapis.org/oas/3.1/dialect/base";
+  spec.external_docs.url = (char *)(size_t)"https://example.com/docs";
+  spec.external_docs.description = (char *)(size_t)"Root docs";
   spec.tags = tags;
   spec.n_tags = 1;
-  tags[0].name = "pets";
-  tags[0].summary = "Pets";
-  tags[0].description = "Pet ops";
-  tags[0].parent = "animals";
-  tags[0].kind = "nav";
-  tags[0].external_docs.url = "https://example.com/tags/pets";
-  tags[0].external_docs.description = "Tag docs";
+  tags[0].name = (char *)(size_t)"pets";
+  tags[0].summary = (char *)(size_t)"Pets";
+  tags[0].description = (char *)(size_t)"Pet ops";
+  tags[0].parent = (char *)(size_t)"animals";
+  tags[0].kind = (char *)(size_t)"nav";
+  tags[0].external_docs.url = (char *)(size_t)"https://example.com/tags/pets";
+  tags[0].external_docs.description = (char *)(size_t)"Tag docs";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -262,23 +263,23 @@ TEST test_writer_path_ref_and_servers(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = "/pets";
-  path.ref = "#/components/pathItems/Pets";
+  path.route = (char *)(size_t)"/pets";
+  path.ref = (char *)(size_t)"#/components/pathItems/Pets";
   path.servers = path_servers;
   path.n_servers = 1;
-  path_servers[0].url = "https://path.example.com";
+  path_servers[0].url = (char *)(size_t)"https://path.example.com";
 
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "listPets";
+  op.operation_id = (char *)(size_t)"listPets";
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "OK";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"OK";
   op.servers = op_servers;
   op.n_servers = 1;
-  op_servers[0].url = "https://op.example.com";
+  op_servers[0].url = (char *)(size_t)"https://op.example.com";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -331,15 +332,15 @@ TEST test_writer_webhooks(void) {
   spec.webhooks = &hook;
   spec.n_webhooks = 1;
 
-  hook.route = "petEvent";
+  hook.route = (char *)(size_t)"petEvent";
   hook.operations = &op;
   hook.n_operations = 1;
   op.verb = OA_VERB_POST;
-  op.operation_id = "onPetEvent";
+  op.operation_id = (char *)(size_t)"onPetEvent";
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "OK";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"OK";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -445,7 +446,7 @@ TEST test_writer_parameter_metadata(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  param.description = "Search term";
+  param.description = (char *)(size_t)"Search term";
   param.deprecated_set = 1;
   param.deprecated = 1;
   param.allow_reserved_set = 1;
@@ -535,12 +536,12 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   op.verb = OA_VERB_POST;
-  op.req_body.ref_name = "User";
-  op.req_body.content_type = "application/json";
+  op.req_body.ref_name = (char *)(size_t)"User";
+  op.req_body.content_type = (char *)(size_t)"application/json";
   op.req_body_required_set = 1;
   op.req_body_required = 0;
-  op.req_body_description = "Payload";
-  resp.description = "Created";
+  op.req_body_description = (char *)(size_t)"Payload";
+  resp.description = (char *)(size_t)"Created";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -586,16 +587,16 @@ TEST test_writer_info_metadata(void) {
   json = NULL;
 
   (void)rc;
-  spec.info.title = "Example API";
-  spec.info.summary = "Short";
-  spec.info.description = "Long";
-  spec.info.terms_of_service = "https://example.com/terms";
-  spec.info.version = "2.1.0";
-  spec.info.contact.name = "Support";
-  spec.info.contact.url = "https://example.com";
-  spec.info.contact.email = "support@example.com";
-  spec.info.license.name = "Apache 2.0";
-  spec.info.license.identifier = "Apache-2.0";
+  spec.info.title = (char *)(size_t)"Example API";
+  spec.info.summary = (char *)(size_t)"Short";
+  spec.info.description = (char *)(size_t)"Long";
+  spec.info.terms_of_service = (char *)(size_t)"https://example.com/terms";
+  spec.info.version = (char *)(size_t)"2.1.0";
+  spec.info.contact.name = (char *)(size_t)"Support";
+  spec.info.contact.url = (char *)(size_t)"https://example.com";
+  spec.info.contact.email = (char *)(size_t)"support@example.com";
+  spec.info.license.name = (char *)(size_t)"Apache 2.0";
+  spec.info.license.identifier = (char *)(size_t)"Apache-2.0";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -643,11 +644,12 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   json = NULL;
 
   (void)rc;
-  spec.info.title = "Example API";
-  spec.info.version = "1.0";
-  spec.info.license.name = "Apache 2.0";
-  spec.info.license.identifier = "Apache-2.0";
-  spec.info.license.url = "https://www.apache.org/licenses/LICENSE-2.0.html";
+  spec.info.title = (char *)(size_t)"Example API";
+  spec.info.version = (char *)(size_t)"1.0";
+  spec.info.license.name = (char *)(size_t)"Apache 2.0";
+  spec.info.license.identifier = (char *)(size_t)"Apache-2.0";
+  spec.info.license.url =
+      (char *)(size_t)"https://www.apache.org/licenses/LICENSE-2.0.html";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -664,9 +666,9 @@ TEST test_writer_server_url_query_rejected(void) {
   json = NULL;
 
   (void)rc;
-  spec.info.title = "Example API";
-  spec.info.version = "1.0";
-  server.url = "https://example.com/api?x=1";
+  spec.info.title = (char *)(size_t)"Example API";
+  spec.info.version = (char *)(size_t)"1.0";
+  server.url = (char *)(size_t)"https://example.com/api?x=1";
   spec.servers = &server;
   spec.n_servers = 1;
 
@@ -687,8 +689,8 @@ TEST test_writer_operation_metadata(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
-  op.summary = "Summary text";
-  op.description = "Longer description";
+  op.summary = (char *)(size_t)"Summary text";
+  op.description = (char *)(size_t)"Longer description";
   op.deprecated = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -728,8 +730,8 @@ TEST test_writer_response_content_type(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.content_type = "text/plain";
-  resp.schema.ref_name = "Message";
+  resp.content_type = (char *)(size_t)"text/plain";
+  resp.schema.ref_name = (char *)(size_t)"Message";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -777,7 +779,7 @@ TEST test_writer_inline_response_schema_primitive(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = "string";
+  resp.schema.inline_type = (char *)(size_t)"string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -824,7 +826,7 @@ TEST test_writer_inline_response_schema_array(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
-  resp.schema.inline_type = "integer";
+  resp.schema.inline_type = (char *)(size_t)"integer";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -873,10 +875,10 @@ TEST test_writer_inline_schema_format_and_content(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = "string";
-  resp.schema.format = "uuid";
-  resp.schema.content_media_type = "image/png";
-  resp.schema.content_encoding = "base64";
+  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.schema.format = (char *)(size_t)"uuid";
+  resp.schema.content_media_type = (char *)(size_t)"image/png";
+  resp.schema.content_encoding = (char *)(size_t)"base64";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -927,10 +929,10 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
-  resp.schema.inline_type = "string";
-  resp.schema.items_format = "uuid";
-  resp.schema.items_content_media_type = "image/png";
-  resp.schema.items_content_encoding = "base64";
+  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.schema.items_format = (char *)(size_t)"uuid";
+  resp.schema.items_content_media_type = (char *)(size_t)"image/png";
+  resp.schema.items_content_encoding = (char *)(size_t)"base64";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -986,23 +988,26 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
 
   resp.schema.ref_name = NULL;
-  resp.schema.inline_type = "string";
+  resp.schema.inline_type = (char *)(size_t)"string";
   resp.schema.external_docs_set = 1;
-  resp.schema.external_docs.url = "https://example.com/schema-doc";
-  resp.schema.external_docs.description = "Schema external docs";
+  resp.schema.external_docs.url =
+      (char *)(size_t)"https://example.com/schema-doc";
+  resp.schema.external_docs.description =
+      (char *)(size_t)"Schema external docs";
   resp.schema.discriminator_set = 1;
-  resp.schema.discriminator.property_name = "kind";
-  resp.schema.discriminator.default_mapping = "#/components/schemas/Base";
-  map.value = "cat";
-  map.schema = "#/components/schemas/Cat";
+  resp.schema.discriminator.property_name = (char *)(size_t)"kind";
+  resp.schema.discriminator.default_mapping =
+      (char *)(size_t)"#/components/schemas/Base";
+  map.value = (char *)(size_t)"cat";
+  map.schema = (char *)(size_t)"#/components/schemas/Cat";
   resp.schema.discriminator.mapping = &map;
   resp.schema.discriminator.n_mapping = 1;
   resp.schema.xml_set = 1;
   resp.schema.xml.node_type_set = 1;
   resp.schema.xml.node_type = OA_XML_NODE_ATTRIBUTE;
-  resp.schema.xml.name = "id";
-  resp.schema.xml.namespace_uri = "https://example.com/ns";
-  resp.schema.xml.prefix = "p";
+  resp.schema.xml.name = (char *)(size_t)"id";
+  resp.schema.xml.namespace_uri = (char *)(size_t)"https://example.com/ns";
+  resp.schema.xml.prefix = (char *)(size_t)"p";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1076,13 +1081,13 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   (void)rc;
   memset(examples, 0, sizeof(examples));
   examples[0].type = OA_ANY_STRING;
-  examples[0].string = "fast";
+  examples[0].string = (char *)(size_t)"fast";
   examples[1].type = OA_ANY_STRING;
-  examples[1].string = "slow";
+  examples[1].string = (char *)(size_t)"slow";
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.inline_type = "string";
-  resp.schema.description = "Mode";
+  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.schema.description = (char *)(size_t)"Mode";
   resp.schema.deprecated_set = 1;
   resp.schema.deprecated = 1;
   resp.schema.read_only_set = 1;
@@ -1091,7 +1096,7 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   resp.schema.write_only = 0;
   resp.schema.const_value_set = 1;
   resp.schema.const_value.type = OA_ANY_STRING;
-  resp.schema.const_value.string = "fast";
+  resp.schema.const_value.string = (char *)(size_t)"fast";
   resp.schema.examples = examples;
   resp.schema.n_examples = 2;
 
@@ -1283,9 +1288,9 @@ TEST test_writer_schema_ref_summary_description(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.schema.ref_name = "Mode";
-  resp.schema.summary = "Mode summary";
-  resp.schema.description = "Mode description";
+  resp.schema.ref_name = (char *)(size_t)"Mode";
+  resp.schema.summary = (char *)(size_t)"Mode summary";
+  resp.schema.description = (char *)(size_t)"Mode description";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1331,9 +1336,9 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   json = NULL;
 
   (void)rc;
-  spec.info.title = "Example";
-  spec.info.version = "1.0";
-  spec.info.license.identifier = "Apache-2.0";
+  spec.info.title = (char *)(size_t)"Example";
+  spec.info.version = (char *)(size_t)"1.0";
+  spec.info.license.identifier = (char *)(size_t)"Apache-2.0";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -1353,13 +1358,13 @@ TEST test_writer_options_trace_verbs(void) {
   (void)rc;
   memset(&path, 0, sizeof(path));
   memset(ops, 0, sizeof(ops));
-  path.route = "/verbs";
+  path.route = (char *)(size_t)"/verbs";
   path.operations = ops;
   path.n_operations = 2;
   ops[0].verb = OA_VERB_OPTIONS;
-  ops[0].operation_id = "opt";
+  ops[0].operation_id = (char *)(size_t)"opt";
   ops[1].verb = OA_VERB_TRACE;
-  ops[1].operation_id = "tr";
+  ops[1].operation_id = (char *)(size_t)"tr";
   spec.paths = &path;
   spec.n_paths = 1;
 
@@ -1395,9 +1400,9 @@ TEST test_writer_query_and_external_docs(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_QUERY;
-  op.operation_id = "querySearch";
-  op.external_docs.url = "https://example.com/op";
-  op.external_docs.description = "Op docs";
+  op.operation_id = (char *)(size_t)"querySearch";
+  op.external_docs.url = (char *)(size_t)"https://example.com/op";
+  op.external_docs.description = (char *)(size_t)"Op docs";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1573,17 +1578,17 @@ TEST test_writer_parameter_content_any(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/headers";
+  path.route = (char *)(size_t)"/headers";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "getHeader";
+  op.operation_id = (char *)(size_t)"getHeader";
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = "X-Foo";
+  param.name = (char *)(size_t)"X-Foo";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = "string";
-  param.content_type = "text/plain";
+  param.type = (char *)(size_t)"string";
+  param.content_type = (char *)(size_t)"text/plain";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1639,24 +1644,24 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/content";
+  path.route = (char *)(size_t)"/content";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "getContent";
+  op.operation_id = (char *)(size_t)"getContent";
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
   param.content_media_types = &param_media;
   param.n_content_media_types = 1;
-  param_media.name = "application/x-www-form-urlencoded";
+  param_media.name = (char *)(size_t)"application/x-www-form-urlencoded";
   param_media.schema_set = 1;
-  param_media.schema.inline_type = "object";
+  param_media.schema.inline_type = (char *)(size_t)"object";
   param_media.encoding = &enc;
   param_media.n_encoding = 1;
-  enc.name = "id";
-  enc.content_type = "text/plain";
+  enc.name = (char *)(size_t)"id";
+  enc.content_type = (char *)(size_t)"text/plain";
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 1;
@@ -1664,16 +1669,16 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
   resp.headers = &header;
   resp.n_headers = 1;
-  header.name = "X-Rate";
+  header.name = (char *)(size_t)"X-Rate";
   header.content_media_types = &header_media;
   header.n_content_media_types = 1;
-  header_media.name = "text/plain";
+  header_media.name = (char *)(size_t)"text/plain";
   header_media.schema_set = 1;
-  header_media.schema.inline_type = "string";
+  header_media.schema.inline_type = (char *)(size_t)"string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1747,9 +1752,9 @@ TEST test_writer_parameter_examples_object(void) {
   (void)rc;
   memset(&ex, 0, sizeof(ex));
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  ex.name = "basic";
+  ex.name = (char *)(size_t)"basic";
   ex.data_value.type = OA_ANY_STRING;
-  ex.data_value.string = "hello";
+  ex.data_value.string = (char *)(size_t)"hello";
   ex.data_value_set = 1;
   param.examples = &ex;
   param.n_examples = 1;
@@ -1800,9 +1805,9 @@ TEST test_writer_parameter_examples_media(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
-  param.content_type = "application/json";
+  param.content_type = (char *)(size_t)"application/json";
   param.example.type = OA_ANY_STRING;
-  param.example.string = "hi";
+  param.example.string = (char *)(size_t)"hi";
   param.example_set = 1;
   param.example_location = OA_EXAMPLE_LOC_MEDIA;
 
@@ -1849,13 +1854,13 @@ TEST test_writer_component_examples(void) {
 
   (void)rc;
   memset(&ex, 0, sizeof(ex));
-  names[0] = "ex1";
+  names[0] = (char *)(size_t)"ex1";
   spec.component_examples = &ex;
   spec.component_example_names = names;
   spec.n_component_examples = 1;
-  ex.summary = "Example";
+  ex.summary = (char *)(size_t)"Example";
   ex.value.type = OA_ANY_STRING;
-  ex.value.string = "v";
+  ex.value.string = (char *)(size_t)"v";
   ex.value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -1896,13 +1901,13 @@ TEST test_writer_oauth2_flows(void) {
   memset(&flow, 0, sizeof(flow));
   memset(&scope, 0, sizeof(scope));
 
-  scope.name = "read";
-  scope.description = "Read";
+  scope.name = (char *)(size_t)"read";
+  scope.description = (char *)(size_t)"Read";
   flow.type = OA_OAUTH_FLOW_PASSWORD;
-  flow.token_url = "https://token.example.com";
+  flow.token_url = (char *)(size_t)"https://token.example.com";
   flow.scopes = &scope;
   flow.n_scopes = 1;
-  scheme.name = "oauth";
+  scheme.name = (char *)(size_t)"oauth";
   scheme.type = OA_SEC_OAUTH2;
   scheme.flows = &flow;
   scheme.n_flows = 1;
@@ -1951,13 +1956,13 @@ TEST test_writer_servers(void) {
 
   (void)rc;
   memset(servers, 0, sizeof(servers));
-  servers[0].url = "https://api.example.com";
-  servers[0].description = "Prod";
-  servers[0].name = "prod";
+  servers[0].url = (char *)(size_t)"https://api.example.com";
+  servers[0].description = (char *)(size_t)"Prod";
+  servers[0].name = (char *)(size_t)"prod";
 
   spec.servers = servers;
   spec.n_servers = 1;
-  spec.openapi_version = "3.1.2";
+  spec.openapi_version = (char *)(size_t)"3.1.2";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -1999,17 +2004,17 @@ TEST test_writer_querystring_param(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/search";
+  path.route = (char *)(size_t)"/search";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "search";
+  op.operation_id = (char *)(size_t)"search";
   op.parameters = &param;
   op.n_parameters = 1;
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "string";
-  param.content_type = "application/x-www-form-urlencoded";
+  param.type = (char *)(size_t)"string";
+  param.content_type = (char *)(size_t)"application/x-www-form-urlencoded";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2061,21 +2066,21 @@ TEST test_writer_ignores_reserved_header_params(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/h";
+  path.route = (char *)(size_t)"/h";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "getH";
+  op.operation_id = (char *)(size_t)"getH";
   op.parameters = params;
   op.n_parameters = 2;
 
-  params[0].name = "Accept";
+  params[0].name = (char *)(size_t)"Accept";
   params[0].in = OA_PARAM_IN_HEADER;
-  params[0].type = "string";
+  params[0].type = (char *)(size_t)"string";
 
-  params[1].name = "q";
+  params[1].name = (char *)(size_t)"q";
   params[1].in = OA_PARAM_IN_QUERY;
-  params[1].type = "string";
+  params[1].type = (char *)(size_t)"string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2117,24 +2122,24 @@ TEST test_writer_ignores_content_type_response_header(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/r";
+  path.route = (char *)(size_t)"/r";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "getR";
+  op.operation_id = (char *)(size_t)"getR";
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
   resp.headers = headers;
   resp.n_headers = 2;
 
-  headers[0].name = "Content-Type";
-  headers[0].type = "string";
+  headers[0].name = (char *)(size_t)"Content-Type";
+  headers[0].type = (char *)(size_t)"string";
 
-  headers[1].name = "X-Rate";
-  headers[1].type = "integer";
+  headers[1].name = (char *)(size_t)"X-Rate";
+  headers[1].type = (char *)(size_t)"integer";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2177,19 +2182,19 @@ TEST test_writer_path_level_parameters(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/pets";
-  path.summary = "Pets";
-  path.description = "All pets";
+  path.route = (char *)(size_t)"/pets";
+  path.summary = (char *)(size_t)"Pets";
+  path.description = (char *)(size_t)"All pets";
   path.parameters = &pparam;
   path.n_parameters = 1;
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "listPets";
+  op.operation_id = (char *)(size_t)"listPets";
 
-  pparam.name = "x-trace";
+  pparam.name = (char *)(size_t)"x-trace";
   pparam.in = OA_PARAM_IN_HEADER;
-  pparam.type = "string";
+  pparam.type = (char *)(size_t)"string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2231,16 +2236,16 @@ TEST test_writer_server_variables(void) {
   json = NULL;
 
   (void)rc;
-  enum_vals[0] = "prod";
-  enum_vals[1] = "staging";
+  enum_vals[0] = (char *)(size_t)"prod";
+  enum_vals[1] = (char *)(size_t)"staging";
 
-  var.name = "env";
-  var.default_value = "prod";
-  var.description = "Environment";
+  var.name = (char *)(size_t)"env";
+  var.default_value = (char *)(size_t)"prod";
+  var.description = (char *)(size_t)"Environment";
   var.enum_values = enum_vals;
   var.n_enum_values = 2;
 
-  server.url = "https://{env}.example.com";
+  server.url = (char *)(size_t)"https://{env}.example.com";
   server.variables = &var;
   server.n_variables = 1;
 
@@ -2295,21 +2300,21 @@ TEST test_writer_security_schemes(void) {
   memset(&s2, 0, sizeof(s2));
   memset(&s3, 0, sizeof(s3));
 
-  s1.name = "bearerAuth";
+  s1.name = (char *)(size_t)"bearerAuth";
   s1.type = OA_SEC_HTTP;
-  s1.scheme = "bearer";
-  s1.bearer_format = "Opaque";
+  s1.scheme = (char *)(size_t)"bearer";
+  s1.bearer_format = (char *)(size_t)"Opaque";
 
-  s2.name = "apiKeyAuth";
+  s2.name = (char *)(size_t)"apiKeyAuth";
   s2.type = OA_SEC_APIKEY;
   s2.in = OA_SEC_IN_HEADER;
-  s2.key_name = "X-Api-Key";
+  s2.key_name = (char *)(size_t)"X-Api-Key";
 
   schemes[0] = s1;
   schemes[1] = s2;
-  s3.name = "mtlsAuth";
+  s3.name = (char *)(size_t)"mtlsAuth";
   s3.type = OA_SEC_MUTUALTLS;
-  s3.description = "mTLS only";
+  s3.description = (char *)(size_t)"mTLS only";
   schemes[2] = s3;
 
   spec.security_schemes = schemes;
@@ -2384,7 +2389,7 @@ TEST test_writer_security_requirements(void) {
   memset(&op_set, 0, sizeof(op_set));
   memset(&op_req, 0, sizeof(op_req));
 
-  root_req.scheme = "bearerAuth";
+  root_req.scheme = (char *)(size_t)"bearerAuth";
   root_set.requirements = &root_req;
   root_set.n_requirements = 1;
 
@@ -2392,7 +2397,7 @@ TEST test_writer_security_requirements(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  op_req.scheme = "ApiKeyAuth";
+  op_req.scheme = (char *)(size_t)"ApiKeyAuth";
   op_set.requirements = &op_req;
   op_set.n_requirements = 1;
   op.security = &op_set;
@@ -2450,14 +2455,14 @@ TEST test_writer_multipart_schema(void) {
 
   (void)rc;
   memset(&parts, 0, sizeof(parts));
-  parts[0].name = "file";
+  parts[0].name = (char *)(size_t)"file";
   parts[0].is_binary = 1; /* File upload */
-  parts[1].name = "desc";
-  parts[1].type = "string";
+  parts[1].name = (char *)(size_t)"desc";
+  parts[1].type = (char *)(size_t)"string";
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = "multipart/form-data";
+  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
   op.req_body.multipart_fields = parts;
   op.req_body.n_multipart_fields = 2;
 
@@ -2530,47 +2535,47 @@ TEST test_writer_components_and_response_headers(void) {
   (void)rc;
   memset(responses, 0, sizeof(responses));
 
-  param_names[0] = "LimitParam";
-  resp_names[0] = "NotFound";
-  hdr_names[0] = "RateLimit";
+  param_names[0] = (char *)(size_t)"LimitParam";
+  resp_names[0] = (char *)(size_t)"NotFound";
+  hdr_names[0] = (char *)(size_t)"RateLimit";
 
-  comp_param.name = "limit";
+  comp_param.name = (char *)(size_t)"limit";
   comp_param.in = OA_PARAM_IN_QUERY;
-  comp_param.type = "integer";
+  comp_param.type = (char *)(size_t)"integer";
   spec.component_parameters = &comp_param;
   spec.component_parameter_names = param_names;
   spec.n_component_parameters = 1;
 
-  comp_resp.description = "missing";
+  comp_resp.description = (char *)(size_t)"missing";
   spec.component_responses = &comp_resp;
   spec.component_response_names = resp_names;
   spec.n_component_responses = 1;
 
-  comp_hdr.type = "integer";
+  comp_hdr.type = (char *)(size_t)"integer";
   spec.component_headers = &comp_hdr;
   spec.component_header_names = hdr_names;
   spec.n_component_headers = 1;
 
-  op_param.ref = "#/components/parameters/LimitParam";
+  op_param.ref = (char *)(size_t)"#/components/parameters/LimitParam";
   op.parameters = &op_param;
   op.n_parameters = 1;
 
-  responses[0].code = "200";
-  responses[0].description = "ok";
-  resp_hdr.name = "X-Rate";
-  resp_hdr.ref = "#/components/headers/RateLimit";
+  responses[0].code = (char *)(size_t)"200";
+  responses[0].description = (char *)(size_t)"ok";
+  resp_hdr.name = (char *)(size_t)"X-Rate";
+  resp_hdr.ref = (char *)(size_t)"#/components/headers/RateLimit";
   responses[0].headers = &resp_hdr;
   responses[0].n_headers = 1;
 
-  responses[1].code = "404";
-  responses[1].ref = "#/components/responses/NotFound";
+  responses[1].code = (char *)(size_t)"404";
+  responses[1].ref = (char *)(size_t)"#/components/responses/NotFound";
 
   op.responses = responses;
   op.n_responses = 2;
   op.verb = OA_VERB_GET;
-  op.operation_id = "listItems";
+  op.operation_id = (char *)(size_t)"listItems";
 
-  path.route = "/items";
+  path.route = (char *)(size_t)"/items";
   path.operations = &op;
   path.n_operations = 1;
 
@@ -2659,15 +2664,15 @@ TEST test_writer_components_request_bodies(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
-  op.req_body_ref = "#/components/requestBodies/CreatePet";
+  op.req_body_ref = (char *)(size_t)"#/components/requestBodies/CreatePet";
 
-  comp_rb.description = "Create";
+  comp_rb.description = (char *)(size_t)"Create";
   comp_rb.required_set = 1;
   comp_rb.required = 1;
-  comp_rb.schema.content_type = "application/json";
-  comp_rb.schema.ref_name = "Pet";
+  comp_rb.schema.content_type = (char *)(size_t)"application/json";
+  comp_rb.schema.ref_name = (char *)(size_t)"Pet";
 
-  rb_names[0] = "CreatePet";
+  rb_names[0] = (char *)(size_t)"CreatePet";
   spec.component_request_bodies = &comp_rb;
   spec.component_request_body_names = rb_names;
   spec.n_component_request_bodies = 1;
@@ -2724,7 +2729,7 @@ TEST test_writer_components_schemas(void) {
   struct StructFields sf;
   char *name;
   char *json;
-  name = "MyModel";
+  name = (char *)(size_t)"MyModel";
   json = NULL;
 
   (void)rc;
@@ -2770,9 +2775,11 @@ TEST test_writer_components_schemas_raw(void) {
   int rc;
   char *json;
   struct OpenAPI_Spec spec = {0};
-  char *names[3] = {"Token", "Flag", "Nums"};
-  char *raw[3] = {"{\"type\":\"string\"}", "true",
-                  "{\"type\":\"array\",\"items\":{\"type\":\"integer\"}}"};
+  char *names[3] = {(char *)(size_t)"Token", (char *)(size_t)"Flag",
+                    (char *)(size_t)"Nums"};
+  char *raw[3] = {
+      (char *)(size_t)"{\"type\":\"string\"}", (char *)(size_t)"true",
+      (char *)(size_t)"{\"type\":\"array\",\"items\":{\"type\":\"integer\"}}"};
   json = NULL;
 
   (void)rc;
@@ -2827,7 +2834,7 @@ TEST test_writer_schema_ref_external(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
-  resp.schema.ref = "https://example.com/schemas/Pet";
+  resp.schema.ref = (char *)(size_t)"https://example.com/schemas/Pet";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2877,7 +2884,7 @@ TEST test_writer_schema_dynamic_ref_external(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
-  resp.schema.ref = "https://example.com/schemas/Pet";
+  resp.schema.ref = (char *)(size_t)"https://example.com/schemas/Pet";
   resp.schema.ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -2929,7 +2936,7 @@ TEST test_writer_schema_items_ref_external(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
-  resp.schema.items_ref = "https://example.com/schemas/Pet";
+  resp.schema.items_ref = (char *)(size_t)"https://example.com/schemas/Pet";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -2983,7 +2990,7 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
-  resp.schema.items_ref = "https://example.com/schemas/Pet";
+  resp.schema.items_ref = (char *)(size_t)"https://example.com/schemas/Pet";
   resp.schema.items_ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -3037,18 +3044,18 @@ TEST test_writer_additional_operations(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/copy";
+  path.route = (char *)(size_t)"/copy";
   path.additional_operations = &add_op;
   path.n_additional_operations = 1;
 
-  add_op.method = "COPY";
+  add_op.method = (char *)(size_t)"COPY";
   add_op.is_additional = 1;
-  add_op.operation_id = "copyItem";
+  add_op.operation_id = (char *)(size_t)"copyItem";
   add_op.responses = &resp;
   add_op.n_responses = 1;
 
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3090,29 +3097,30 @@ TEST test_writer_component_media_types_and_content_ref(void) {
   json = NULL;
 
   (void)rc;
-  media_names[0] = "application/vnd.acme+json";
+  media_names[0] = (char *)(size_t)"application/vnd.acme+json";
   spec.component_media_types = &mt;
   spec.component_media_type_names = media_names;
   spec.n_component_media_types = 1;
 
-  mt.name = "application/vnd.acme+json";
+  mt.name = (char *)(size_t)"application/vnd.acme+json";
   mt.schema_set = 1;
-  mt.schema.ref_name = "Pet";
+  mt.schema.ref_name = (char *)(size_t)"Pet";
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "getPet";
+  op.operation_id = (char *)(size_t)"getPet";
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = "200";
-  resp.description = "ok";
-  resp.content_type = "application/vnd.acme+json";
-  resp.content_ref = "#/components/mediaTypes/application~1vnd.acme+json";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
+  resp.content_type = (char *)(size_t)"application/vnd.acme+json";
+  resp.content_ref =
+      (char *)(size_t)"#/components/mediaTypes/application~1vnd.acme+json";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3174,14 +3182,14 @@ TEST test_writer_response_multiple_content(void) {
   memset(contents, 0, sizeof(contents));
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  resp.description = "ok";
+  resp.description = (char *)(size_t)"ok";
 
-  contents[0].name = "application/json";
+  contents[0].name = (char *)(size_t)"application/json";
   contents[0].schema_set = 1;
-  contents[0].schema.ref_name = "TestModel";
-  contents[1].name = "text/plain";
+  contents[0].schema.ref_name = (char *)(size_t)"TestModel";
+  contents[1].name = (char *)(size_t)"text/plain";
   contents[1].schema_set = 1;
-  contents[1].schema.inline_type = "string";
+  contents[1].schema.inline_type = (char *)(size_t)"string";
 
   resp.content_media_types = contents;
   resp.n_content_media_types = 2;
@@ -3236,11 +3244,11 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
-  enc_hdr.name = "X-Rate-Limit-Limit";
-  enc_hdr.type = "integer";
+  enc_hdr.name = (char *)(size_t)"X-Rate-Limit-Limit";
+  enc_hdr.type = (char *)(size_t)"integer";
 
-  enc[0].name = "file";
-  enc[0].content_type = "image/png";
+  enc[0].name = (char *)(size_t)"file";
+  enc[0].content_type = (char *)(size_t)"image/png";
   enc[0].explode_set = 1;
   enc[0].explode = 1;
   enc[0].allow_reserved_set = 1;
@@ -3248,9 +3256,9 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   enc[0].headers = &enc_hdr;
   enc[0].n_headers = 1;
 
-  media[0].name = "multipart/form-data";
+  media[0].name = (char *)(size_t)"multipart/form-data";
   media[0].schema_set = 1;
-  media[0].schema.inline_type = "object";
+  media[0].schema.inline_type = (char *)(size_t)"object";
   media[0].encoding = enc;
   media[0].n_encoding = 1;
 
@@ -3320,25 +3328,25 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   memset(prefix, 0, sizeof(prefix));
   memset(nested, 0, sizeof(nested));
 
-  media_names[0] = "multipart/mixed";
+  media_names[0] = (char *)(size_t)"multipart/mixed";
   spec.component_media_type_names = media_names;
-  media[0].name = "multipart/mixed";
+  media[0].name = (char *)(size_t)"multipart/mixed";
   media[0].schema_set = 1;
-  media[0].schema.inline_type = "array";
+  media[0].schema.inline_type = (char *)(size_t)"array";
 
-  prefix[0].content_type = "application/json";
-  prefix_hdr.name = "X-Pos";
-  prefix_hdr.type = "string";
-  prefix[1].content_type = "image/png";
+  prefix[0].content_type = (char *)(size_t)"application/json";
+  prefix_hdr.name = (char *)(size_t)"X-Pos";
+  prefix_hdr.type = (char *)(size_t)"string";
+  prefix[1].content_type = (char *)(size_t)"image/png";
   prefix[1].headers = &prefix_hdr;
   prefix[1].n_headers = 1;
 
   media[0].prefix_encoding = prefix;
   media[0].n_prefix_encoding = 2;
 
-  nested[0].name = "meta";
-  nested[0].content_type = "text/plain";
-  item.content_type = "application/octet-stream";
+  nested[0].name = (char *)(size_t)"meta";
+  nested[0].content_type = (char *)(size_t)"text/plain";
+  item.content_type = (char *)(size_t)"application/octet-stream";
   item.encoding = nested;
   item.n_encoding = 1;
 
@@ -3412,19 +3420,19 @@ TEST test_writer_component_path_items(void) {
   json = NULL;
 
   (void)rc;
-  path_item.route = "FooItem";
-  path_item.summary = "foo";
+  path_item.route = (char *)(size_t)"FooItem";
+  path_item.summary = (char *)(size_t)"foo";
   path_item.operations = &op;
   path_item.n_operations = 1;
 
   op.verb = OA_VERB_GET;
-  op.operation_id = "getFoo";
+  op.operation_id = (char *)(size_t)"getFoo";
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
 
-  path_item_names[0] = "FooItem";
+  path_item_names[0] = (char *)(size_t)"FooItem";
   spec.component_path_items = &path_item;
   spec.component_path_item_names = path_item_names;
   spec.n_component_path_items = 1;
@@ -3476,35 +3484,35 @@ TEST test_writer_response_links(void) {
 
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "listPets";
+  op.operation_id = (char *)(size_t)"listPets";
   op.responses = &resp;
   op.n_responses = 1;
 
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
   resp.links = &link;
   resp.n_links = 1;
 
-  link.name = "next";
-  link.operation_id = "listPets";
+  link.name = (char *)(size_t)"next";
+  link.operation_id = (char *)(size_t)"listPets";
   link.parameters = params;
   link.n_parameters = 2;
-  params[0].name = "limit";
+  params[0].name = (char *)(size_t)"limit";
   params[0].value.type = OA_ANY_NUMBER;
   params[0].value.number = 50;
-  params[1].name = "offset";
+  params[1].name = (char *)(size_t)"offset";
   params[1].value.type = OA_ANY_STRING;
-  params[1].value.string = "$response.body#/offset";
+  params[1].value.string = (char *)(size_t)"$response.body#/offset";
 
   link.request_body_set = 1;
   link.request_body.type = OA_ANY_STRING;
-  link.request_body.string = "payload";
+  link.request_body.string = (char *)(size_t)"payload";
 
-  link_server.url = "https://api.example.com";
+  link_server.url = (char *)(size_t)"https://api.example.com";
   link.server = &link_server;
   link.server_set = 1;
 
@@ -3567,31 +3575,31 @@ TEST test_writer_callbacks(void) {
   (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
   op.verb = OA_VERB_GET;
-  op.operation_id = "listPets";
+  op.operation_id = (char *)(size_t)"listPets";
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
 
   op.callbacks = &cb;
   op.n_callbacks = 1;
-  cb.name = "onEvent";
+  cb.name = (char *)(size_t)"onEvent";
   cb.paths = &cb_path;
   cb.n_paths = 1;
 
-  cb_path.route = "{$request.body#/url}";
+  cb_path.route = (char *)(size_t)"{$request.body#/url}";
   cb_path.operations = &cb_op;
   cb_path.n_operations = 1;
   cb_op.verb = OA_VERB_POST;
-  cb_op.operation_id = "cbPost";
+  cb_op.operation_id = (char *)(size_t)"cbPost";
   cb_op.responses = &cb_resp;
   cb_op.n_responses = 1;
-  cb_resp.code = "200";
-  cb_resp.description = "ok";
+  cb_resp.code = (char *)(size_t)"200";
+  cb_resp.description = (char *)(size_t)"ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3642,7 +3650,7 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
 
@@ -3650,24 +3658,24 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   op.parameters = params;
   op.n_parameters = 2;
 
-  params[0].name = "pet";
+  params[0].name = (char *)(size_t)"pet";
   params[0].in = OA_PARAM_IN_QUERY;
-  params[0].type = "Pet";
+  params[0].type = (char *)(size_t)"Pet";
 
-  params[1].name = "tags";
+  params[1].name = (char *)(size_t)"tags";
   params[1].in = OA_PARAM_IN_QUERY;
   params[1].is_array = 1;
-  params[1].type = "array";
-  params[1].items_type = "Tag";
+  params[1].type = (char *)(size_t)"array";
+  params[1].items_type = (char *)(size_t)"Tag";
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
   resp.headers = &hdr;
   resp.n_headers = 1;
-  hdr.name = "X-Rate";
-  hdr.type = "Rate";
+  hdr.name = (char *)(size_t)"X-Rate";
+  hdr.type = (char *)(size_t)"Rate";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3738,27 +3746,27 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
 
   op.verb = OA_VERB_GET;
-  op.operation_id = "getPets";
+  op.operation_id = (char *)(size_t)"getPets";
   op.parameters = &param;
   op.n_parameters = 1;
 
-  param.name = "id";
+  param.name = (char *)(size_t)"id";
   param.in = OA_PARAM_IN_QUERY;
   param.schema_set = 1;
-  param.schema.inline_type = "string";
-  param.schema.format = "uuid";
-  param.schema.content_media_type = "text/plain";
-  param.schema.content_encoding = "base64";
+  param.schema.inline_type = (char *)(size_t)"string";
+  param.schema.format = (char *)(size_t)"uuid";
+  param.schema.content_media_type = (char *)(size_t)"text/plain";
+  param.schema.content_encoding = (char *)(size_t)"base64";
 
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3808,18 +3816,18 @@ TEST test_writer_request_body_ref_with_description(void) {
   spec.paths = &path;
   spec.n_paths = 1;
 
-  path.route = "/pets";
+  path.route = (char *)(size_t)"/pets";
   path.operations = &op;
   path.n_operations = 1;
 
   op.verb = OA_VERB_POST;
-  op.operation_id = "createPet";
-  op.req_body_ref = "#/components/requestBodies/CreatePet";
-  op.req_body_description = "Override";
+  op.operation_id = (char *)(size_t)"createPet";
+  op.req_body_ref = (char *)(size_t)"#/components/requestBodies/CreatePet";
+  op.req_body_description = (char *)(size_t)"Override";
   op.responses = &resp;
   op.n_responses = 1;
-  resp.code = "200";
-  resp.description = "ok";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -3861,10 +3869,10 @@ TEST test_writer_security_scheme_deprecated(void) {
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
-  scheme.name = "oldKey";
+  scheme.name = (char *)(size_t)"oldKey";
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_HEADER;
-  scheme.key_name = "X-Old";
+  scheme.key_name = (char *)(size_t)"X-Old";
   scheme.deprecated_set = 1;
   scheme.deprecated = 1;
 
@@ -3904,16 +3912,16 @@ TEST test_writer_schema_enum_default_nullable(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   param.schema.nullable = 1;
   enum_vals[0].type = OA_ANY_STRING;
-  enum_vals[0].string = "on";
+  enum_vals[0].string = (char *)(size_t)"on";
   enum_vals[1].type = OA_ANY_STRING;
-  enum_vals[1].string = "off";
+  enum_vals[1].string = (char *)(size_t)"off";
   param.schema.enum_values = enum_vals;
   param.schema.n_enum_values = 2;
   param.schema.default_value.type = OA_ANY_STRING;
-  param.schema.default_value.string = "on";
+  param.schema.default_value.string = (char *)(size_t)"on";
   param.schema.default_value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -3963,13 +3971,14 @@ TEST test_writer_schema_type_union(void) {
   char *json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *types[] = {"string", "integer", "null"};
+  char *types[] = {(char *)(size_t)"string", (char *)(size_t)"integer",
+                   (char *)(size_t)"null"};
   json = NULL;
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   param.schema.nullable = 1;
   param.schema.type_union = types;
   param.schema.n_type_union = 3;
@@ -4022,12 +4031,12 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   param.schema.items_nullable = 1;
   enum_vals[0].type = OA_ANY_STRING;
-  enum_vals[0].string = "a";
+  enum_vals[0].string = (char *)(size_t)"a";
   enum_vals[1].type = OA_ANY_STRING;
-  enum_vals[1].string = "b";
+  enum_vals[1].string = (char *)(size_t)"b";
   param.schema.items_enum_values = enum_vals;
   param.schema.n_items_enum_values = 2;
 
@@ -4079,14 +4088,14 @@ TEST test_writer_schema_items_type_union(void) {
   char *json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *types[] = {"string", "integer"};
+  char *types[] = {(char *)(size_t)"string", (char *)(size_t)"integer"};
   json = NULL;
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   param.schema.items_type_union = types;
   param.schema.n_items_type_union = 2;
 
@@ -4183,7 +4192,7 @@ TEST test_writer_schema_numeric_enum(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = "integer";
+  param.schema.inline_type = (char *)(size_t)"integer";
   enum_vals[0].type = OA_ANY_NUMBER;
   enum_vals[0].number = 1.0;
   enum_vals[1].type = OA_ANY_NUMBER;
@@ -4238,11 +4247,11 @@ TEST test_writer_schema_items_examples(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   item_examples[0].type = OA_ANY_STRING;
-  item_examples[0].string = "a";
+  item_examples[0].string = (char *)(size_t)"a";
   item_examples[1].type = OA_ANY_STRING;
-  item_examples[1].string = "b";
+  item_examples[1].string = (char *)(size_t)"b";
   param.schema.items_examples = item_examples;
   param.schema.n_items_examples = 2;
 
@@ -4341,7 +4350,7 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
-  param.schema.inline_type = "number";
+  param.schema.inline_type = (char *)(size_t)"number";
   param.schema.has_min = 1;
   param.schema.min_val = 1;
   param.schema.has_max = 1;
@@ -4394,7 +4403,7 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
   param.schema.has_min_items = 1;
   param.schema.min_items = 1;
   param.schema.has_max_items = 1;
@@ -4404,10 +4413,10 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   param.schema.items_min_len = 2;
   param.schema.items_has_max_len = 1;
   param.schema.items_max_len = 5;
-  param.schema.items_pattern = "^[a-z]+$";
+  param.schema.items_pattern = (char *)(size_t)"^[a-z]+$";
   param.schema.items_example_set = 1;
   param.schema.items_example.type = OA_ANY_STRING;
-  param.schema.items_example.string = "ab";
+  param.schema.items_example.string = (char *)(size_t)"ab";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -4543,27 +4552,27 @@ TEST test_writer_extensions_non_schema(void) {
   (void)rc;
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
-  spec.extensions_json = "{\"x-root\":1}";
-  spec.info.title = "Spec";
-  spec.info.version = "1";
-  spec.info.extensions_json = "{\"x-info\":\"info\"}";
-  spec.info.contact.name = "Support";
-  spec.info.contact.extensions_json = "{\"x-contact\":true}";
-  spec.info.license.name = "MIT";
-  spec.info.license.extensions_json = "{\"x-license\":\"lic\"}";
-  spec.external_docs.url = "https://example.com";
-  spec.external_docs.extensions_json = "{\"x-ext\":\"ext\"}";
+  spec.extensions_json = (char *)(size_t)"{\"x-root\":1}";
+  spec.info.title = (char *)(size_t)"Spec";
+  spec.info.version = (char *)(size_t)"1";
+  spec.info.extensions_json = (char *)(size_t)"{\"x-info\":\"info\"}";
+  spec.info.contact.name = (char *)(size_t)"Support";
+  spec.info.contact.extensions_json = (char *)(size_t)"{\"x-contact\":true}";
+  spec.info.license.name = (char *)(size_t)"MIT";
+  spec.info.license.extensions_json = (char *)(size_t)"{\"x-license\":\"lic\"}";
+  spec.external_docs.url = (char *)(size_t)"https://example.com";
+  spec.external_docs.extensions_json = (char *)(size_t)"{\"x-ext\":\"ext\"}";
 
-  path.extensions_json = "{\"x-path\":6}";
-  op.extensions_json = "{\"x-op\":7}";
-  op.responses_extensions_json = "{\"x-responses\":1}";
-  op.req_body.inline_type = "string";
-  op.req_body.content_type = "application/json";
+  path.extensions_json = (char *)(size_t)"{\"x-path\":6}";
+  op.extensions_json = (char *)(size_t)"{\"x-op\":7}";
+  op.responses_extensions_json = (char *)(size_t)"{\"x-responses\":1}";
+  op.req_body.inline_type = (char *)(size_t)"string";
+  op.req_body.content_type = (char *)(size_t)"application/json";
   op.req_body_required_set = 1;
   op.req_body_required = 1;
-  op.req_body_extensions_json = "{\"x-rb-op\":true}";
-  param.extensions_json = "{\"x-param\":\"param\"}";
-  resp.extensions_json = "{\"x-resp\":true}";
+  op.req_body_extensions_json = (char *)(size_t)"{\"x-rb-op\":true}";
+  param.extensions_json = (char *)(size_t)"{\"x-param\":\"param\"}";
+  resp.extensions_json = (char *)(size_t)"{\"x-resp\":true}";
 
   memset(&cb, 0, sizeof(cb));
   memset(&cb_path, 0, sizeof(cb_path));
@@ -4571,58 +4580,58 @@ TEST test_writer_extensions_non_schema(void) {
   memset(&cb_resp, 0, sizeof(cb_resp));
   op.callbacks = &cb;
   op.n_callbacks = 1;
-  cb.name = "onEvent";
-  cb.extensions_json = "{\"x-cb\":\"cb\"}";
+  cb.name = (char *)(size_t)"onEvent";
+  cb.extensions_json = (char *)(size_t)"{\"x-cb\":\"cb\"}";
   cb.paths = &cb_path;
   cb.n_paths = 1;
-  cb_path.route = "{$request.body#/url}";
+  cb_path.route = (char *)(size_t)"{$request.body#/url}";
   cb_path.operations = &cb_op;
   cb_path.n_operations = 1;
   cb_op.verb = OA_VERB_POST;
   cb_op.responses = &cb_resp;
   cb_op.n_responses = 1;
-  cb_resp.code = "200";
-  cb_resp.description = "ok";
+  cb_resp.code = (char *)(size_t)"200";
+  cb_resp.description = (char *)(size_t)"ok";
 
   memset(&tag, 0, sizeof(tag));
-  tag.name = "pet";
-  tag.extensions_json = "{\"x-tag\":\"tag\"}";
+  tag.name = (char *)(size_t)"pet";
+  tag.extensions_json = (char *)(size_t)"{\"x-tag\":\"tag\"}";
   spec.tags = &tag;
   spec.n_tags = 1;
 
   memset(&scheme, 0, sizeof(scheme));
   memset(&flow, 0, sizeof(flow));
   memset(&scope, 0, sizeof(scope));
-  scope.name = "read";
-  scope.description = "Read";
+  scope.name = (char *)(size_t)"read";
+  scope.description = (char *)(size_t)"Read";
   flow.type = OA_OAUTH_FLOW_PASSWORD;
-  flow.token_url = "https://token.example.com";
+  flow.token_url = (char *)(size_t)"https://token.example.com";
   flow.scopes = &scope;
   flow.n_scopes = 1;
-  flow.extensions_json = "{\"x-flow\":1}";
-  scheme.name = "oauth";
+  flow.extensions_json = (char *)(size_t)"{\"x-flow\":1}";
+  scheme.name = (char *)(size_t)"oauth";
   scheme.type = OA_SEC_OAUTH2;
   scheme.flows = &flow;
   scheme.n_flows = 1;
-  scheme.extensions_json = "{\"x-sec\":1}";
+  scheme.extensions_json = (char *)(size_t)"{\"x-sec\":1}";
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   memset(&sec_req, 0, sizeof(sec_req));
   memset(&sec_set, 0, sizeof(sec_set));
-  sec_req.scheme = "oauth";
+  sec_req.scheme = (char *)(size_t)"oauth";
   sec_set.requirements = &sec_req;
   sec_set.n_requirements = 1;
-  sec_set.extensions_json = "{\"x-sec-req\":1}";
+  sec_set.extensions_json = (char *)(size_t)"{\"x-sec-req\":1}";
   spec.security = &sec_set;
   spec.n_security = 1;
   spec.security_set = 1;
 
   memset(&comp_rb, 0, sizeof(comp_rb));
-  rb_names[0] = "CompRB";
-  comp_rb.description = "desc";
-  comp_rb.schema.inline_type = "string";
-  comp_rb.extensions_json = "{\"x-rb\":1}";
+  rb_names[0] = (char *)(size_t)"CompRB";
+  comp_rb.description = (char *)(size_t)"desc";
+  comp_rb.schema.inline_type = (char *)(size_t)"string";
+  comp_rb.extensions_json = (char *)(size_t)"{\"x-rb\":1}";
   spec.component_request_bodies = &comp_rb;
   spec.component_request_body_names = rb_names;
   spec.n_component_request_bodies = 1;
@@ -4726,13 +4735,14 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 
   (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
-  spec.info.title = "Spec";
-  spec.info.version = "1";
-  resp.description = "ok";
+  spec.info.title = (char *)(size_t)"Spec";
+  spec.info.version = (char *)(size_t)"1";
+  resp.description = (char *)(size_t)"ok";
 
-  spec.paths_extensions_json = "{\"x-paths\":true}";
-  spec.webhooks_extensions_json = "{\"x-hooks\":1}";
-  spec.components_extensions_json = "{\"x-comps\":{\"meta\":\"yes\"}}";
+  spec.paths_extensions_json = (char *)(size_t)"{\"x-paths\":true}";
+  spec.webhooks_extensions_json = (char *)(size_t)"{\"x-hooks\":1}";
+  spec.components_extensions_json =
+      (char *)(size_t)"{\"x-comps\":{\"meta\":\"yes\"}}";
   spec.webhooks = NULL;
   spec.n_webhooks = 0;
 
@@ -4798,27 +4808,27 @@ TEST test_writer_methods_and_styles(void) {
   /* Test parameter styles */
   path.operations[0].n_parameters = 6;
   path.operations[0].parameters = calloc(6, sizeof(struct OpenAPI_Parameter));
-  path.operations[0].parameters[0].name = "p1";
+  path.operations[0].parameters[0].name = (char *)(size_t)"p1";
   path.operations[0].parameters[0].in = OA_PARAM_IN_COOKIE;
   path.operations[0].parameters[0].style = OA_STYLE_COOKIE;
 
-  path.operations[0].parameters[1].name = "p2";
+  path.operations[0].parameters[1].name = (char *)(size_t)"p2";
   path.operations[0].parameters[1].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[1].style = OA_STYLE_LABEL;
 
-  path.operations[0].parameters[2].name = "p3";
+  path.operations[0].parameters[2].name = (char *)(size_t)"p3";
   path.operations[0].parameters[2].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[2].style = OA_STYLE_SPACE_DELIMITED;
 
-  path.operations[0].parameters[3].name = "p4";
+  path.operations[0].parameters[3].name = (char *)(size_t)"p4";
   path.operations[0].parameters[3].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[3].style = OA_STYLE_PIPE_DELIMITED;
 
-  path.operations[0].parameters[4].name = "p5";
+  path.operations[0].parameters[4].name = (char *)(size_t)"p5";
   path.operations[0].parameters[4].in = OA_PARAM_IN_QUERY;
   path.operations[0].parameters[4].style = OA_STYLE_DEEP_OBJECT;
 
-  path.operations[0].parameters[5].name = "p6";
+  path.operations[0].parameters[5].name = (char *)(size_t)"p6";
   path.operations[0].parameters[5].in = OA_PARAM_IN_QUERYSTRING;
 
   rc = openapi_write_spec_to_json(&spec, &json);
@@ -4842,24 +4852,26 @@ TEST test_writer_xml_and_oauth(void) {
 
   (void)rc;
   (void)openapi_spec_init(&spec);
-  spec.openapi_version = "3.2.0";
-  spec.info.title = "test";
-  spec.info.version = "1";
+  spec.openapi_version = (char *)(size_t)"3.2.0";
+  spec.info.title = (char *)(size_t)"test";
+  spec.info.version = (char *)(size_t)"1";
 
   spec.n_security_schemes = 1;
   spec.security_schemes = calloc(1, sizeof(struct OpenAPI_SecurityScheme));
-  spec.security_schemes[0].name = "oauth2_all";
+  spec.security_schemes[0].name = (char *)(size_t)"oauth2_all";
   spec.security_schemes[0].type = OA_SEC_OAUTH2;
 
   spec.security_schemes[0].n_flows = 3;
   spec.security_schemes[0].flows = calloc(3, sizeof(struct OpenAPI_OAuthFlow));
   spec.security_schemes[0].flows[0].type = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  spec.security_schemes[0].flows[0].token_url = "https://a.b";
+  spec.security_schemes[0].flows[0].token_url = (char *)(size_t)"https://a.b";
   spec.security_schemes[0].flows[1].type = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
-  spec.security_schemes[0].flows[1].token_url = "https://a.b";
-  spec.security_schemes[0].flows[1].authorization_url = "https://a.b";
+  spec.security_schemes[0].flows[1].token_url = (char *)(size_t)"https://a.b";
+  spec.security_schemes[0].flows[1].authorization_url =
+      (char *)(size_t)"https://a.b";
   spec.security_schemes[0].flows[2].type = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
-  spec.security_schemes[0].flows[2].device_authorization_url = "https://a.b";
+  spec.security_schemes[0].flows[2].device_authorization_url =
+      (char *)(size_t)"https://a.b";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -4885,41 +4897,41 @@ TEST test_writer_xml_types(void) {
 
   (void)rc;
   (void)openapi_spec_init(&spec);
-  spec.openapi_version = "3.2.0";
-  spec.info.title = "test";
-  spec.info.version = "1";
+  spec.openapi_version = (char *)(size_t)"3.2.0";
+  spec.info.title = (char *)(size_t)"test";
+  spec.info.version = (char *)(size_t)"1";
 
   spec.n_paths = 1;
   spec.paths = &path;
-  path.route = "/xml";
+  path.route = (char *)(size_t)"/xml";
   path.n_operations = 1;
   path.operations = &op;
   op.verb = OA_VERB_GET;
-  op.operation_id = "xmlOp";
+  op.operation_id = (char *)(size_t)"xmlOp";
 
   op.n_responses = 1;
   op.responses = &resp;
-  resp.code = "200";
-  resp.description = "OK";
+  resp.code = (char *)(size_t)"200";
+  resp.description = (char *)(size_t)"OK";
   resp.n_content_media_types = 4;
   resp.content_media_types = calloc(4, sizeof(struct OpenAPI_MediaType));
 
-  resp.content_media_types[0].name = "application/xml";
+  resp.content_media_types[0].name = (char *)(size_t)"application/xml";
   resp.content_media_types[0].schema_set = 1;
   resp.content_media_types[0].schema.xml.node_type_set = 1;
   resp.content_media_types[0].schema.xml.node_type = OA_XML_NODE_ELEMENT;
 
-  resp.content_media_types[1].name = "text/xml";
+  resp.content_media_types[1].name = (char *)(size_t)"text/xml";
   resp.content_media_types[1].schema_set = 1;
   resp.content_media_types[1].schema.xml.node_type_set = 1;
   resp.content_media_types[1].schema.xml.node_type = OA_XML_NODE_TEXT;
 
-  resp.content_media_types[2].name = "application/cdata";
+  resp.content_media_types[2].name = (char *)(size_t)"application/cdata";
   resp.content_media_types[2].schema_set = 1;
   resp.content_media_types[2].schema.xml.node_type_set = 1;
   resp.content_media_types[2].schema.xml.node_type = OA_XML_NODE_CDATA;
 
-  resp.content_media_types[3].name = "application/none";
+  resp.content_media_types[3].name = (char *)(size_t)"application/none";
   resp.content_media_types[3].schema_set = 1;
   resp.content_media_types[3].schema.xml.node_type_set = 1;
   resp.content_media_types[3].schema.xml.node_type = OA_XML_NODE_NONE;
@@ -4964,38 +4976,38 @@ TEST test_openapi_utils(void) {
   memset(&p, 0, sizeof(p));
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = "Accept";
+  p.name = (char *)(size_t)"Accept";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
 
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = "Accept";
+  p.name = (char *)(size_t)"Accept";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Content-Type";
+  p.name = (char *)(size_t)"Content-Type";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Authorization";
+  p.name = (char *)(size_t)"Authorization";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Content-Type";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-
-  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
-  p.in = OA_PARAM_IN_HEADER;
-  p.name = "Accept";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Content-Type";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Authorization";
-  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Authorization";
+  p.name = (char *)(size_t)"Content-Type";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
 
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;
-  p.name = "Accept";
+  p.name = (char *)(size_t)"Accept";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Content-Type";
+  p.name = (char *)(size_t)"Content-Type";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
-  p.name = "Authorization";
+  p.name = (char *)(size_t)"Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = (char *)(size_t)"Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = (char *)(size_t)"Accept";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = (char *)(size_t)"Content-Type";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = (char *)(size_t)"Authorization";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
   g_fail_io_after = -1;
 

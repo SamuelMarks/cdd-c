@@ -10,8 +10,8 @@ TEST test_client_sig_utils(void) {
   struct OpenAPI_MediaType mts[2];
 
   memset(&mts, 0, sizeof(mts));
-  mts[0].name = "text/plain";
-  mts[1].name = "application/json";
+  mts[0].name = (char *)(size_t)"text/plain";
+  mts[1].name = (char *)(size_t)"application/json";
 
   /* test is_primitive_type */
   is_primitive_type("integer", &out);
@@ -24,7 +24,7 @@ TEST test_client_sig_utils(void) {
     struct OpenAPI_Parameter p;
     memset(&p, 0, sizeof(p));
     p.in = OA_PARAM_IN_QUERY;
-    p.type = "object";
+    p.type = (char *)(size_t)"object";
     param_is_object_kv(&p, &out);
     ASSERT_EQ(1, out);
     p.in = OA_PARAM_IN_BODY;

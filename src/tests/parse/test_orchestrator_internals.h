@@ -72,10 +72,11 @@ TEST test_orchestrator_internals(void) {
   size_t out = 0;
   char *name = NULL;
   struct FixWalkContext ctx = {0};
-  char *argv3[] = {"1", "2", "3"};
+  char *argv3[] = {(char *)(size_t)"1", (char *)(size_t)"2",
+                   (char *)(size_t)"3"};
   int is_src = 0;
 
-  tokenize(AZ_SPAN_FROM_STR("int a = 1;"), &tl);
+  tokenize(AZ_SPAN_FROM_STR((char *)(size_t)"int a = 1;"), &tl);
 
   /* Test get_token_slice error */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_token_slice(tl, 100, 10, &dst));
@@ -96,7 +97,7 @@ TEST test_orchestrator_internals(void) {
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(AZ_SPAN_FROM_STR("()"), &tl_paren);
+    tokenize(AZ_SPAN_FROM_STR((char *)(size_t)"()"), &tl_paren);
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
@@ -106,7 +107,7 @@ TEST test_orchestrator_internals(void) {
   {
     /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
-    tokenize(AZ_SPAN_FROM_STR("foo()"), &tl_paren);
+    tokenize(AZ_SPAN_FROM_STR((char *)(size_t)"foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
@@ -119,7 +120,7 @@ TEST test_orchestrator_internals(void) {
   {
     /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
-    tokenize(AZ_SPAN_FROM_STR("void foo()"), &tl_paren);
+    tokenize(AZ_SPAN_FROM_STR((char *)(size_t)"void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               join_tokens_str(tl_paren, 0, tl_paren->size, &name));
@@ -135,7 +136,7 @@ TEST test_orchestrator_internals(void) {
     struct TokenList *my_tl = NULL;
     int is_ptr = 0, is_void = 0;
     char *type_str = NULL;
-    tokenize(AZ_SPAN_FROM_STR("void foo()"), &my_tl);
+    tokenize(AZ_SPAN_FROM_STR((char *)(size_t)"void foo()"), &my_tl);
     /* Change the keyword void to identifier to test the fallback */
     my_tl->tokens[0].kind = TOKEN_IDENTIFIER;
 
@@ -179,7 +180,7 @@ TEST test_orchestrator_internals(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, internal_fix_code_main(3, argv3));
 
   {
-    char *argv_dir[1] = {"."};
+    char *argv_dir[1] = {(char *)(size_t)"."};
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, internal_fix_code_main(1, argv_dir));
   }
 
@@ -198,7 +199,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback write failure */
   {
-    const char *test_file = "test_orchestrator_internals.c";
+    const char *test_file = (char *)(size_t)"test_orchestrator_internals.c";
     FILE *f;
     ctx.single_output_file = NULL;
 #if defined(_MSC_VER)
@@ -220,7 +221,7 @@ TEST test_orchestrator_internals(void) {
 
   /* Test fix_file_callback orchestrator failure */
   {
-    const char *test_file = "test_orchestrator_internals2.c";
+    const char *test_file = (char *)(size_t)"test_orchestrator_internals2.c";
     FILE *f;
     ctx.single_output_file = NULL;
 #if defined(_MSC_VER)

@@ -1204,7 +1204,7 @@ TEST test_load_schema_root_document_with_id(void) {
 
 TEST test_load_schema_root_boolean(void) {
 
-  const char *json = "false";
+  const char *json = (char *)(size_t)"false";
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str_with_context(json, "https://example.com/boolean.json",

@@ -150,7 +150,8 @@ TEST test_orchestrator_no_alloc(void) {
 
 TEST test_orchestrator_preserves_structs(void) {
   /* Ensure non-function nodes like structs are preserved */
-  const char *input = "struct S { int x; }; int f() { return 0; }";
+  const char *input =
+      (char *)(size_t)"struct S { int x; }; int f() { return 0; }";
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
   ASSERT_EQ(0, rc);

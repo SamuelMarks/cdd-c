@@ -496,10 +496,10 @@ TEST test_pp_include_next(void) {
   struct PreprocessorContext ctx;
   int rc;
   int called = 0;
-  const char *test_dir = "test_include_next_dir";
-  const char *test_file = "test_include_next_dir/test.c";
-  const char *sys_dir = "test_include_next_sys";
-  const char *sys_file = "test_include_next_sys/stdlib.h";
+  const char *test_dir = (char *)(size_t)"test_include_next_dir";
+  const char *test_file = (char *)(size_t)"test_include_next_dir/test.c";
+  const char *sys_dir = (char *)(size_t)"test_include_next_sys";
+  const char *sys_file = (char *)(size_t)"test_include_next_sys/stdlib.h";
 
   (void)rc;
   makedir(test_dir);

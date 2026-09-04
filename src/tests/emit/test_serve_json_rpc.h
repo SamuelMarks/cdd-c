@@ -48,7 +48,8 @@ TEST test_serve_json_rpc_bind_fail(void) {
   int server_fd;
 #endif
   struct sockaddr_in addr;
-  char *argv[] = {"serve_json_rpc_main", "--port", "12346"};
+  char *argv[] = {(char *)(size_t)"serve_json_rpc_main",
+                  (char *)(size_t)"--port", (char *)(size_t)"12346"};
   int argc = 3;
   int rc;
 
@@ -88,7 +89,9 @@ TEST test_serve_json_rpc_bind_fail(void) {
  * @return The result of the test.
  */
 TEST test_serve_json_rpc_listen_once(void) {
-  char *argv[] = {"serve_json_rpc_main", "--port", "12347", "--listen", "255"};
+  char *argv[] = {(char *)(size_t)"serve_json_rpc_main",
+                  (char *)(size_t)"--port", (char *)(size_t)"12347",
+                  (char *)(size_t)"--listen", (char *)(size_t)"255"};
   int argc = 5;
   int rc;
 
@@ -108,7 +111,8 @@ TEST test_serve_json_rpc_listen_once(void) {
  * @return The result of the test.
  */
 TEST test_serve_json_rpc_basic(void) {
-  char *argv[] = {"serve_json_rpc_main", "--port", "12345"};
+  char *argv[] = {(char *)(size_t)"serve_json_rpc_main",
+                  (char *)(size_t)"--port", (char *)(size_t)"12345"};
   int argc = 3;
   int rc;
 
@@ -134,7 +138,7 @@ TEST test_serve_json_rpc_basic(void) {
 TEST test_serve_json_rpc_bad_port(void) {
   /* Try to bind to port 80 or something privileged or duplicate to force bind
      error if we want? Actually we can just run it without args. */
-  char *argv[] = {"serve_json_rpc_main"};
+  char *argv[] = {(char *)(size_t)"serve_json_rpc_main"};
   int argc = 1;
   int rc;
 
@@ -152,7 +156,7 @@ TEST test_serve_json_rpc_bad_port(void) {
  */
 #ifndef __EMSCRIPTEN__
 TEST test_serve_mcp_stdio_main(void) {
-  char *argv[] = {"serve_mcp_stdio_main"};
+  char *argv[] = {(char *)(size_t)"serve_mcp_stdio_main"};
   int argc = 1;
   int rc;
 

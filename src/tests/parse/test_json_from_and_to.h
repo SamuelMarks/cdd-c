@@ -60,7 +60,7 @@ TEST test_HazE_to_json_and_from_json(void) {
   struct HazE *haz_out;
   int rc;
   (void)rc;
-  haz.bzr = "example";
+  haz.bzr = (char *)(size_t)"example";
   haz.tank = Tank_BIG;
   json_str = NULL;
   haz_out = NULL;
@@ -95,7 +95,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   struct FooE *foo_out;
   int rc;
   (void)rc;
-  foo.bar = "barval";
+  foo.bar = (char *)(size_t)"barval";
   foo.can = 42;
   foo.haz = NULL;
   json_str = NULL;
@@ -132,9 +132,9 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   struct FooE *foo_out;
   int rc;
   (void)rc;
-  haz_in.bzr = "bzr_data_here";
+  haz_in.bzr = (char *)(size_t)"bzr_data_here";
   haz_in.tank = Tank_BIG;
-  foo_in.bar = "bar_data_here";
+  foo_in.bar = (char *)(size_t)"bar_data_here";
   foo_in.can = 777;
   foo_in.haz = NULL;
   json_str = NULL;

@@ -29,10 +29,10 @@ extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
  */
 TEST test_cdd_cst_trivia_detect(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "int main() {\n    return 0;\n}";
+  const char *code = (char *)(size_t)"int main() {\n    return 0;\n}";
   cdd_cst_format_config_t config;
   cdd_cst_tree_t tree2;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   memset(&tree2, 0, sizeof(tree2));
@@ -53,7 +53,7 @@ TEST test_cdd_cst_trivia_detect(void) {
 
   tree = NULL;
   code = "int main() {\n  return 0;\n}";
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -64,7 +64,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   /* Test fallback to 4 spaces */
   tree = NULL;
   code = "int main() {\n     return 0;\n}"; /* 5 spaces avg >= 3 -> 4 spaces */
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -75,7 +75,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   /* Test spaces > 8 ignored from sum */
   tree = NULL;
   code = "int main() {\n         return 0;\n}"; /* 9 spaces ignored */
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
@@ -94,9 +94,9 @@ TEST test_cdd_cst_trivia_detect(void) {
  */
 TEST test_cdd_cst_trivia_detect_tabs(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "int main() {\n\t\treturn 0;\n}";
+  const char *code = (char *)(size_t)"int main() {\n\t\treturn 0;\n}";
   cdd_cst_format_config_t config;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_detect_format_config(tree, &config);
@@ -140,7 +140,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(TRIVIA_WHITESPACE, t->next->kind);
   ASSERT_EQ(8, t->next->length);
 
-  free((void *)t->next->start);
+  free((void *)(size_t)t->next->start);
   free(t->next);
   free(t);
 
@@ -153,7 +153,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   ASSERT_EQ(2, t->next->length);
   ASSERT_EQ('\t', t->next->start[0]);
 
-  free((void *)t->next->start);
+  free((void *)(size_t)t->next->start);
   free(t->next);
   free(t);
   g_fail_io_after = -1;

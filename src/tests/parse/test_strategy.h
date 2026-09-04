@@ -87,7 +87,7 @@ TEST test_strategy_errors(void) {
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
 
     /* out of bounds token index */
-    site.var_name = "p";
+    site.var_name = (char *)(size_t)"p";
     site.token_index = 9999;
     ASSERT_EQ(CDD_C_SUCCESS,
               strategy_rewrite_realloc(tl_dummy, &site, 0, &patches));
@@ -146,7 +146,7 @@ TEST test_strategy_errors(void) {
     tokenize(az_span_create_from_str((char *)"p = malloc(10)"), &tl_dummy);
     site.token_index = find_token_index(tl_dummy, "malloc");
     site.spec = &MALLOC_SPEC;
-    site.var_name = "p";
+    site.var_name = (char *)(size_t)"p";
     {
       struct AllocationSiteList single_alloc;
       memset(&single_alloc, 0, sizeof(single_alloc));
@@ -197,27 +197,27 @@ TEST test_strategy_injection(void) {
 
   /* malloc site */
   allocs.sites[0].token_index = find_token_index(tl, "malloc");
-  allocs.sites[0].var_name = "p";
+  allocs.sites[0].var_name = (char *)(size_t)"p";
   allocs.sites[0].spec = &MALLOC_SPEC;
 
   /* realloc site */
   allocs.sites[1].token_index = find_token_index(tl, "realloc");
-  allocs.sites[1].var_name = "p";
+  allocs.sites[1].var_name = (char *)(size_t)"p";
   allocs.sites[1].spec = &REALLOC_SPEC;
 
   /* asprintf site */
   allocs.sites[2].token_index = find_token_index(tl, "asprintf");
-  allocs.sites[2].var_name = "rc";
+  allocs.sites[2].var_name = (char *)(size_t)"rc";
   allocs.sites[2].spec = &ASPRINTF_SPEC;
 
   /* _mkdir site */
   allocs.sites[3].token_index = find_token_index(tl, "_mkdir");
-  allocs.sites[3].var_name = "rc";
+  allocs.sites[3].var_name = (char *)(size_t)"rc";
   allocs.sites[3].spec = &MKDIR_SPEC;
 
   /* unknown site */
   allocs.sites[4].token_index = find_token_index(tl, "unknown");
-  allocs.sites[4].var_name = "p";
+  allocs.sites[4].var_name = (char *)(size_t)"p";
   allocs.sites[4].spec = &UNKNOWN_SPEC;
 
   /* realloc site (not self assignment) */
@@ -231,7 +231,7 @@ TEST test_strategy_injection(void) {
       }
     }
   }
-  allocs.sites[5].var_name = "p";
+  allocs.sites[5].var_name = (char *)(size_t)"p";
   allocs.sites[5].spec = &REALLOC_SPEC;
 
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -266,22 +266,22 @@ TEST test_strategy_injection_ooms(void) {
 
   /* malloc site */
   allocs.sites[0].token_index = find_token_index(tl, "malloc");
-  allocs.sites[0].var_name = "p";
+  allocs.sites[0].var_name = (char *)(size_t)"p";
   allocs.sites[0].spec = &MALLOC_SPEC;
 
   /* realloc site */
   allocs.sites[1].token_index = find_token_index(tl, "realloc");
-  allocs.sites[1].var_name = "p";
+  allocs.sites[1].var_name = (char *)(size_t)"p";
   allocs.sites[1].spec = &REALLOC_SPEC;
 
   /* asprintf site */
   allocs.sites[2].token_index = find_token_index(tl, "asprintf");
-  allocs.sites[2].var_name = "rc";
+  allocs.sites[2].var_name = (char *)(size_t)"rc";
   allocs.sites[2].spec = &ASPRINTF_SPEC;
 
   /* _mkdir site */
   allocs.sites[3].token_index = find_token_index(tl, "_mkdir");
-  allocs.sites[3].var_name = "rc";
+  allocs.sites[3].var_name = (char *)(size_t)"rc";
   allocs.sites[3].spec = &MKDIR_SPEC;
 
   /* Test malloc OOMs */
@@ -364,17 +364,17 @@ TEST test_strategy_edge_cases(void) {
 
   /* Missing semi colon malloc */
   allocs.sites[0].token_index = 2;
-  allocs.sites[0].var_name = "p";
+  allocs.sites[0].var_name = (char *)(size_t)"p";
   allocs.sites[0].spec = &MALLOC_SPEC;
 
   /* Missing semi colon realloc */
   allocs.sites[1].token_index = 8;
-  allocs.sites[1].var_name = "p";
+  allocs.sites[1].var_name = (char *)(size_t)"p";
   allocs.sites[1].spec = &REALLOC_SPEC;
 
   /* Realloc without assignment */
   allocs.sites[2].token_index = 16;
-  allocs.sites[2].var_name = "p";
+  allocs.sites[2].var_name = (char *)(size_t)"p";
   allocs.sites[2].spec = &REALLOC_SPEC;
 
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -384,7 +384,7 @@ TEST test_strategy_edge_cases(void) {
   {
     char *out = NULL;
     struct AllocationSite site = allocs.sites[1];
-    site.var_name = "p";
+    site.var_name = (char *)(size_t)"p";
     site.spec = &REALLOC_SPEC;
     site.token_index = 16;
     (void)out;
@@ -396,7 +396,7 @@ TEST test_strategy_edge_cases(void) {
   /* Various boundary conditions for strategy_rewrite_realloc backward search */
   {
     struct AllocationSite site = {0};
-    site.var_name = "p";
+    site.var_name = (char *)(size_t)"p";
     site.spec = &REALLOC_SPEC;
 
     /* At index 0 */

@@ -21,7 +21,7 @@ extern "C" {
  * headlessly and successfully process a complete realistic codebase.
  */
 TEST test_ffi_e2e_complex_codebase(void) {
-  const char *filename = "dummy_complex_lib.h";
+  const char *filename = (char *)(size_t)"dummy_complex_lib.h";
   const char *code =
       "/* Dummy Complex Codebase for E2E Testing */\n"
       "\n"
@@ -50,7 +50,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
       "cdd_c_error_t complex_cleanup(struct complex_context_t *ctx);\n";
 
   cdd_generate_bindings_config_t config = {0};
-  char *output_dir = "test_ffi_e2e_out";
+  char *output_dir = (char *)(size_t)"test_ffi_e2e_out";
   int rc;
   FILE *f;
 
@@ -60,11 +60,11 @@ TEST test_ffi_e2e_complex_codebase(void) {
 
   config.input = filename;
   config.output_dir = output_dir;
-  config.library_name = "complex_lib";
+  config.library_name = (char *)(size_t)"complex_lib";
   config.generate_tests = 1;
 
   /* Run extraction and emission headlessly for multiple core languages */
-  config.target_langs = "python,rust,csharp";
+  config.target_langs = (char *)(size_t)"python,rust,csharp";
 
   /* cdd_generate_bindings is the high-level API entry point */
   rc = cdd_generate_bindings(&config);

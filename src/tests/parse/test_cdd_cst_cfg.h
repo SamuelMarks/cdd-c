@@ -31,7 +31,7 @@ TEST test_cdd_cst_cfg_basic(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  const char *src = "int main() { return 0; }";
+  const char *src = (char *)(size_t)"int main() { return 0; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
@@ -81,7 +81,7 @@ TEST test_cdd_cst_cfg_oom(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  const char *src = "int main() { return 0; }";
+  const char *src = (char *)(size_t)"int main() { return 0; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
@@ -114,7 +114,7 @@ TEST test_cdd_cst_cfg_oom(void) {
   {
     /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
-    const char *ret_src = "int f() { return 0; }";
+    const char *ret_src = (char *)(size_t)"int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);
@@ -158,7 +158,7 @@ TEST test_cdd_cst_cfg_empty(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc;
-  const char *src = "void main() { }";
+  const char *src = (char *)(size_t)"void main() { }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
@@ -203,7 +203,7 @@ TEST test_cdd_cst_cfg_no_return(void) {
   size_t i;
   cdd_cst_node_t *func = NULL;
   int rc;
-  const char *src = "void main() { int a = 5; }";
+  const char *src = (char *)(size_t)"void main() { int a = 5; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
@@ -246,7 +246,8 @@ TEST test_cdd_cst_cfg_extra(void) {
   cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
-  const char *src = "int main() { if (1) { return 0; } else { return 1; } }";
+  const char *src =
+      (char *)(size_t)"int main() { if (1) { return 0; } else { return 1; } }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
@@ -293,7 +294,7 @@ TEST test_cdd_cst_cfg_extra(void) {
   {
     /* extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail; (moved to global) */
     int i;
-    const char *ret_src = "int f() { return 0; }";
+    const char *ret_src = (char *)(size_t)"int f() { return 0; }";
     cdd_cst_tree_t *ret_t = NULL;
     cdd_cst_cfg_t *ret_cfg = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);

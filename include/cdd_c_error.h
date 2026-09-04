@@ -1,5 +1,6 @@
 /* clang-format off */
 #include "c_cdd/no_discard.h"
+#include "c_cdd_export.h"
 /* clang-format on */
 #ifndef CDD_C_ERROR_H
 #define CDD_C_ERROR_H
@@ -31,7 +32,7 @@ typedef enum cdd_c_error {
  * @return cdd_c_error_t CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT
  * otherwise.
  */
-cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out);
+C_CDD_EXPORT cdd_c_error_t cdd_c_strerror(cdd_c_error_t err, char **out);
 
 #ifdef __cplusplus
 }

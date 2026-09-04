@@ -238,7 +238,7 @@ TEST test_guards_injection(void) {
 
     ASSERT(tmp);
     setup_struct_fields(&sf);
-    cfg.guard_macro = "MY_GUARD";
+    cfg.guard_macro = (char *)(size_t)"MY_GUARD";
 
     ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));
 
@@ -671,7 +671,7 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  config.guard_macro = "MY_GUARD";
+  config.guard_macro = (char *)(size_t)"MY_GUARD";
 
   for (i = 0; i < 50; ++i) {
     FILE *tmp;

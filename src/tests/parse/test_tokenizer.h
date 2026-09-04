@@ -41,10 +41,10 @@ static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
 }
 
 TEST tokenize_all_tokens(void) {
-  const az_span code =
-      AZ_SPAN_FROM_STR("struct union enum identifier 123 'a' \"string\" "
-                       "/* block */ // line \n # \n"
-                       "{} ; , / ");
+  const az_span code = az_span_create_from_str(
+      (char *)(size_t)"struct union enum identifier 123 'a' \"string\" "
+                      "/* block */ // line \n # \n"
+                      "{} ; , / ");
   struct TokenList *tl = NULL;
   int ret;
   size_t i = 0;
@@ -111,7 +111,8 @@ TEST tokenize_c23_digit_separators(void) {
   char *_ast_token_to_cstr_1 = NULL;
   char *_ast_token_to_cstr_2 = NULL;
   /* Test 123'456 */
-  const az_span code = AZ_SPAN_FROM_STR("123'456 0xAB'CD 0b10'10");
+  const az_span code =
+      az_span_create_from_str((char *)(size_t)"123'456 0xAB'CD 0b10'10");
   struct TokenList *tl = NULL;
   int rc;
   char buf[32];
@@ -190,7 +191,8 @@ TEST tokenize_digit_separator_edge_case(void) {
   /* Then loop breaks. ' remains. */
   /* Next iteration: ' starts a char literal probably. */
 
-  const az_span code = AZ_SPAN_FROM_STR("123' 456"); /* Space after ' */
+  const az_span code =
+      az_span_create_from_str((char *)(size_t)"123' 456"); /* Space after ' */
   struct TokenList *tl = NULL;
   char buf[32];
   int rc;

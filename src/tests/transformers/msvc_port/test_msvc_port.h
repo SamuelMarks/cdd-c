@@ -48,7 +48,7 @@ TEST test_cdd_transform_msvc(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -60,7 +60,8 @@ TEST test_cdd_transform_msvc(void) {
     for (i = 0; i < 50; i++) {
       if (0) {
         cdd_cst_tree_t *tree_copy = NULL;
-        rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree_copy);
+        rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code),
+                           &tree_copy);
         if (rc == 0 && tree_copy) {
 #ifdef CDD_BUILD_TESTS
           /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global)
@@ -134,7 +135,7 @@ TEST test_cdd_transform_msvc_context(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -159,20 +160,20 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
   int rc;
-  const char *code =
-      "#include <unistd.h>\nvoid f() { __builtin_expect(1, 1); }\n";
+  const char *code = (char *)(size_t)"#include <unistd.h>\nvoid f() { "
+                                     "__builtin_expect(1, 1); }\n";
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
   (void)rc;
-  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
 
   cdd_transform_msvc(tree, &config);
 
   /* We need a fresh tree since tokens get replaced */
   cdd_cst_tree_free(tree);
   tree = NULL;
-  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
 
   g_msvc_port_bld_fail = 2;
   rc = cdd_transform_msvc(tree, &config);
@@ -188,7 +189,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
     /*  (moved to global) */
     int fail_idx;
     for (fail_idx = 1; fail_idx < 30; fail_idx++) {
-      cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+      cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
       g_cdd_alloc_fail = fail_idx;
       cdd_transform_msvc(tree, &config);
       g_cdd_alloc_fail = 0;
@@ -231,7 +232,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
 
   /* Check NULL prev_prev_token */
   {
-    const char *misc2 = "* strdup;";
+    const char *misc2 = (char *)(size_t)"* strdup;";
     cdd_cst_parse(az_span_create_from_str((char *)misc2), &tree);
     rc = cdd_transform_msvc(tree, &config);
     ASSERT_EQ(CDD_C_SUCCESS, rc);

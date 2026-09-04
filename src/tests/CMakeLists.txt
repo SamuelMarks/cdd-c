@@ -173,20 +173,16 @@ target_include_directories(
         test_simple_json
         PRIVATE
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
 add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        # Ensure tests use the same strict compiler flags
+        target_compile_options(test_c_cdd PRIVATE "-Wno-overlength-strings" "-Wno-cast-qual")
     elseif(MSVC)
         # Ensure tests use the same strict compiler flags
     endif()
 endif()
 
-if(NOT MSVC)
-    set_source_files_properties(test_c_cdd.c PROPERTIES COMPILE_FLAGS "-Wno-error")
-endif()
-if(NOT MSVC)
-    set_source_files_properties(parse/test_simple_json.c PROPERTIES COMPILE_FLAGS "-Wno-error")
-endif()
+

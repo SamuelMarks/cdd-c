@@ -498,7 +498,7 @@ TEST test_union_guards(void) {
     struct_fields_init(&sf);
     struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-    cfg.json_guard = "JSON_G";
+    cfg.json_guard = (char *)(size_t)"JSON_G";
     cfg.utils_guard = NULL;
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "GuardedU", &sf, &cfg));
@@ -753,8 +753,8 @@ TEST test_types_exhaustive_io(void) {
 #endif
 
   sf.union_variants[1].n_property_names = 0;
-  config.json_guard = "ENABLE_JSON";
-  config.utils_guard = "ENABLE_UTILS";
+  config.json_guard = (char *)(size_t)"ENABLE_JSON";
+  config.utils_guard = (char *)(size_t)"ENABLE_UTILS";
 
   sf.union_is_anyof = 0;
 

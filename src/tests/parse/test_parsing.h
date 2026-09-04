@@ -100,7 +100,8 @@ TEST test_precondition_failure(void) {
 TEST test_parsing_struct(void) {
 
   CHECK_CALL(parsing_test("Struct parsing",
-                          AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
+                          az_span_create_from_str((
+                              char *)(size_t)"struct Point { int x; int y; };"),
                           1, 0, 0, 0, 0, 1));
   g_fail_io_after = -1;
   PASS();
@@ -108,9 +109,11 @@ TEST test_parsing_struct(void) {
 
 TEST test_parsing_enum(void) {
 
-  CHECK_CALL(parsing_test("Enum parsing",
-                          AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"),
-                          0, 1, 0, 0, 0, 1));
+  CHECK_CALL(
+      parsing_test("Enum parsing",
+                   az_span_create_from_str(
+                       (char *)(size_t)"enum Color { RED, GREEN, BLUE };"),
+                   0, 1, 0, 0, 0, 1));
   g_fail_io_after = -1;
   PASS();
 }
@@ -118,7 +121,8 @@ TEST test_parsing_enum(void) {
 TEST test_parsing_union(void) {
 
   CHECK_CALL(parsing_test("Union parsing",
-                          AZ_SPAN_FROM_STR("union Data { int i; float f; };"),
+                          az_span_create_from_str((
+                              char *)(size_t)"union Data { int i; float f; };"),
                           0, 0, 1, 0, 0, 1));
   g_fail_io_after = -1;
   PASS();
@@ -128,17 +132,19 @@ TEST test_parsing_comments(void) {
 
   CHECK_CALL(parsing_test(
       "Comments parsing",
-      AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"), 0, 0, 0,
-      2, 0, 3));
+      az_span_create_from_str(
+          (char *)(size_t)"/* comment block */\n// line comment\nint x;"),
+      0, 0, 0, 2, 0, 3));
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_parsing_macros(void) {
 
-  CHECK_CALL(parsing_test("Macros parsing",
-                          AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0, 0, 0,
-                          0, 1, 2));
+  CHECK_CALL(parsing_test(
+      "Macros parsing",
+      az_span_create_from_str((char *)(size_t)"#define MAX 100\nint a;"), 0, 0,
+      0, 0, 1, 2));
   g_fail_io_after = -1;
   PASS();
 }
@@ -147,13 +153,14 @@ TEST test_parsing_complex(void) {
 
   CHECK_CALL(parsing_test(
       "Complex parsing",
-      AZ_SPAN_FROM_STR("/* block comment */\n"
-                       "#include <stdio.h>\n"
-                       "struct S { int a; union U { float f; int i; } u; };\n"
-                       "enum E { X, Y, Z };\n"
-                       "// single line comment\n"
-                       ""
-                       "int main() { return 0; }\n"),
+      az_span_create_from_str((
+          char *)(size_t)"/* block comment */\n"
+                         "#include <stdio.h>\n"
+                         "struct S { int a; union U { float f; int i; } u; };\n"
+                         "enum E { X, Y, Z };\n"
+                         "// single line comment\n"
+                         ""
+                         "int main() { return 0; }\n"),
       1, 1, 1, 2, 1, 7));
   g_fail_io_after = -1;
   PASS();
@@ -161,8 +168,9 @@ TEST test_parsing_complex(void) {
 
 TEST test_parsing_empty(void) {
 
-  CHECK_CALL(
-      parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0));
+  CHECK_CALL(parsing_test("Empty string",
+                          az_span_create_from_str((char *)(size_t)""), 0, 0, 0,
+                          0, 0, 0));
   g_fail_io_after = -1;
   PASS();
 }
@@ -170,7 +178,8 @@ TEST test_parsing_empty(void) {
 TEST test_parsing_struct_with_anonymous_union(void) {
 
   CHECK_CALL(parsing_test("Struct with anonymous union",
-                          AZ_SPAN_FROM_STR("struct S { union { int i; }; };"),
+                          az_span_create_from_str((
+                              char *)(size_t)"struct S { union { int i; }; };"),
                           1, /* structs */
                           0, /* enums */
                           1, /* unions */

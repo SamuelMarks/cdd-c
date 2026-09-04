@@ -46,7 +46,7 @@ TEST test_make_simple(void) {
 
     ASSERT(tmp);
     memset(&cfg, 0, sizeof(cfg));
-    cfg.project_name = "test_client";
+    cfg.project_name = (char *)(size_t)"test_client";
 
     ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
 
@@ -85,13 +85,13 @@ TEST test_make_extra_sources(void) {
   {
     struct MakeConfig cfg;
     char *content = NULL;
-    char *extras[] = {"a.c", "b.c"};
+    const char *extras[] = {"a.c", "b.c"};
     long sz;
 
     ASSERT(tmp);
     memset(&cfg, 0, sizeof(cfg));
-    cfg.project_name = "w_extras";
-    cfg.extra_sources = (char **)extras;
+    cfg.project_name = (char *)(size_t)"w_extras";
+    cfg.extra_sources = (char **)(size_t)extras;
     cfg.extra_source_count = 2;
 
     ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
@@ -148,7 +148,7 @@ TEST test_make_invalid(void) {
 TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
   FILE *f;
-  cfg.project_name = "test_io";
+  cfg.project_name = (char *)(size_t)"test_io";
 #if defined(_MSC_VER)
   if (((f = cdd_test_tmpfile_global()) == NULL))
     f = NULL;
@@ -187,7 +187,7 @@ TEST test_make_oom(void) {
 #endif
 
   (void)rc;
-  config.project_name = "proj";
+  config.project_name = (char *)(size_t)"proj";
   config.extra_sources = (char **)(size_t)srcs;
   config.extra_source_count = 2;
 
@@ -218,8 +218,8 @@ TEST test_make_oom(void) {
 #else
   fp = fopen("test_make_out.txt", "w");
 #endif
-  config2.project_name = "proj";
-  config2.min_cmake_version = "3.20";
+  config2.project_name = (char *)(size_t)"proj";
+  config2.min_cmake_version = (char *)(size_t)"3.20";
   ASSERT_EQ(0, codegen_make_generate(fp, &config2));
   if (fp)
     fclose(fp);
@@ -232,7 +232,7 @@ TEST test_make_oom(void) {
 #else
   fp = fopen("test_make_out.txt", "w");
 #endif
-  config3.project_name = "proj";
+  config3.project_name = (char *)(size_t)"proj";
   config3.extra_sources = (char **)(size_t)srcs2;
   config3.extra_source_count = 1;
   ASSERT_EQ(0, codegen_make_generate(fp, &config3));

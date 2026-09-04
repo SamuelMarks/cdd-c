@@ -47,12 +47,12 @@ TEST test_cbuild_null_args(void) {
             codegen_build_generate(BUILD_SYS_CMAKE, NULL, &config));
 
   /* Missing project name */
-  config.target_name = "mylib";
+  config.target_name = (char *)(size_t)"mylib";
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
   /* Missing library target */
-  config.project_name = "MyProject";
+  config.project_name = (char *)(size_t)"MyProject";
   config.target_name = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
@@ -81,8 +81,8 @@ TEST test_cbuild_basic_output(void) {
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
-  config.project_name = "PetStore";
-  config.target_name = "petstore_lib";
+  config.project_name = (char *)(size_t)"PetStore";
+  config.target_name = (char *)(size_t)"petstore_lib";
   config.src_files = sources;
   config.src_count = 2;
   config.build_shared_libs = 1;
@@ -140,8 +140,8 @@ TEST test_cbuild_unsupported(void) {
   (void)content_str;
 
   memset(&config, 0, sizeof(config));
-  config.project_name = "PetStore";
-  config.target_name = "petstore_lib";
+  config.project_name = (char *)(size_t)"PetStore";
+  config.target_name = (char *)(size_t)"petstore_lib";
   config.src_files = sources;
   config.src_count = 2;
   config.build_shared_libs = 1;
@@ -176,8 +176,8 @@ TEST test_cbuild_unsupported(void) {
 
   /* Test config->src_files == NULL */
   memset(&config, 0, sizeof(config));
-  config.project_name = "PetStore";
-  config.target_name = "petstore_lib";
+  config.project_name = (char *)(size_t)"PetStore";
+  config.target_name = (char *)(size_t)"petstore_lib";
   config.src_files = NULL;
   config.src_count = 2;
   config.build_shared_libs = 1;
@@ -224,8 +224,8 @@ TEST test_cbuild_unsupported(void) {
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));
-  config.project_name = "PetStore";
-  config.target_name = "petstore_lib";
+  config.project_name = (char *)(size_t)"PetStore";
+  config.target_name = (char *)(size_t)"petstore_lib";
 
   ASSERT_EQ(CDD_C_ERROR_SYSTEM,
             codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
@@ -249,20 +249,18 @@ TEST test_cbuild_io_failure(void) {
   const char *sources[] = {"client.c", "models.c"};
   long sz;
   char *content_str = NULL;
-  (void)config;
-  (void)sources;
-  (void)config;
-  (void)sources;
   int i;
   int rc;
+  (void)config;
+  (void)sources;
   (void)sz;
   (void)content_str;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
   (void)rc;
   memset(&config, 0, sizeof(config));
-  config.project_name = "PetStore";
-  config.target_name = "petstore_lib";
+  config.project_name = (char *)(size_t)"PetStore";
+  config.target_name = (char *)(size_t)"petstore_lib";
   config.src_files = sources;
   config.src_count = 2;
   config.build_shared_libs = 1;

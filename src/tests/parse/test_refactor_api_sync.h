@@ -38,7 +38,7 @@ static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
 
 TEST test_sync_signature_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = "sync_sig.c";
+  const char *src_file = (char *)(size_t)"sync_sig.c";
   const char *old_code = "#include \"client.h\"\n"
                          ""
                          "int get_pet(struct HttpClient *ctx) {\n"
@@ -72,7 +72,7 @@ TEST test_sync_signature_update(void) {
 
 TEST test_sync_url_logic_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = "sync_url.c";
+  const char *src_file = (char *)(size_t)"sync_url.c";
   const char *old_code =
       ""
       "int get_pet(struct HttpClient *ctx, int id) {\n"
@@ -110,7 +110,7 @@ TEST test_sync_url_logic_update(void) {
 
 TEST test_sync_query_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = "sync_query.c";
+  const char *src_file = (char *)(size_t)"sync_query.c";
   const char *old_code = ""
                          "int list_pets(struct HttpClient *ctx) {\n"
                          "  /* Old logic */\n"
@@ -152,7 +152,7 @@ TEST test_sync_query_update(void) {
 
 TEST test_sync_header_update(void) {
   /* SKIPm("fix me"); */
-  const char *src_file = "sync_header.c";
+  const char *src_file = (char *)(size_t)"sync_header.c";
   const char *old_code = ""
                          "int op(struct HttpClient *ctx, const char *key) {\n"
                          "  /* Header Parameter: key */\n"

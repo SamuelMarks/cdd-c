@@ -150,7 +150,7 @@ TEST test_enum_guards(void) {
   setup_basic_enum(&em);
 
   memset(&config, 0, sizeof(config));
-  config.guard_macro = "USE_ENUMS";
+  config.guard_macro = (char *)(size_t)"USE_ENUMS";
 
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "Color", &em, &config));
 

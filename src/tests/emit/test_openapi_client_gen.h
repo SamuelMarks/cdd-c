@@ -30,16 +30,16 @@ static void setup_minimal_spec(struct OpenAPI_Spec *spec,
 
   (void)openapi_spec_init(spec);
   memset(op, 0, sizeof(*op));
-  op->operation_id = "test_op";
+  op->operation_id = (char *)(size_t)"test_op";
   op->verb = OA_VERB_GET;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = "200";
+  resp.code = (char *)(size_t)"200";
   op->responses = &resp;
   op->n_responses = 1;
 
   memset(&path, 0, sizeof(path));
-  path.route = "/test";
+  path.route = (char *)(size_t)"/test";
   path.operations = op;
   path.n_operations = 1;
 
@@ -52,8 +52,8 @@ TEST test_gen_client_basic(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_test";
-  char *h_file = "build/test_out/src/gen_client_test.h";
-  char *c_file = "build/test_out/src/gen_client_test.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_client_test.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_client_test.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -63,8 +63,8 @@ TEST test_gen_client_basic(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
-  config.model_header = "my_models.h";
+  config.func_prefix = (char *)(size_t)"api_";
+  config.model_header = (char *)(size_t)"my_models.h";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -89,8 +89,8 @@ TEST test_gen_client_operation_server_override(void) {
   struct OpenAPI_Server op_server;
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_op_server";
-  char *h_file = "build/test_out/src/gen_client_op_server.h";
-  char *c_file = "build/test_out/src/gen_client_op_server.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_client_op_server.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_client_op_server.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -99,13 +99,13 @@ TEST test_gen_client_operation_server_override(void) {
   setup_minimal_spec(&spec, &op);
 
   memset(&op_server, 0, sizeof(op_server));
-  op_server.url = "https://op.example.com/api";
+  op_server.url = (char *)(size_t)"https://op.example.com/api";
   op.servers = &op_server;
   op.n_servers = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -125,8 +125,10 @@ TEST test_gen_client_text_plain_request_body(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_text_plain_req";
-  char *h_file = "build/test_out/src/gen_client_text_plain_req.h";
-  char *c_file = "build/test_out/src/gen_client_text_plain_req.c";
+  char *h_file =
+      (char *)(size_t)"build/test_out/src/gen_client_text_plain_req.h";
+  char *c_file =
+      (char *)(size_t)"build/test_out/src/gen_client_text_plain_req.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -134,12 +136,12 @@ TEST test_gen_client_text_plain_request_body(void) {
   (void)rc;
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = "text/plain";
-  op.req_body.inline_type = "string";
+  op.req_body.content_type = (char *)(size_t)"text/plain";
+  op.req_body.inline_type = (char *)(size_t)"string";
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -160,8 +162,8 @@ TEST test_gen_client_octet_stream_request_body(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_octet_req";
-  char *h_file = "build/test_out/src/gen_client_octet_req.h";
-  char *c_file = "build/test_out/src/gen_client_octet_req.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_client_octet_req.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_client_octet_req.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -169,11 +171,11 @@ TEST test_gen_client_octet_stream_request_body(void) {
   (void)rc;
   setup_minimal_spec(&spec, &op);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = "application/octet-stream";
+  op.req_body.content_type = (char *)(size_t)"application/octet-stream";
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -195,19 +197,19 @@ TEST test_gen_client_octet_stream_response_body(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_octet_resp";
-  char *h_file = "build/test_out/src/gen_client_octet_resp.h";
-  char *c_file = "build/test_out/src/gen_client_octet_resp.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_client_octet_resp.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_client_octet_resp.c";
   char *content = NULL;
   size_t sz;
   int rc;
 
   (void)rc;
   setup_minimal_spec(&spec, &op);
-  op.responses[0].content_type = "application/octet-stream";
+  op.responses[0].content_type = (char *)(size_t)"application/octet-stream";
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -230,8 +232,8 @@ TEST test_gen_client_default_base_url_from_server(void) {
   struct OpenAPI_Server server;
   struct OpenAPI_ServerVariable var;
   const char *base = "build/test_out/gen_client_default_url";
-  char *h_file = "build/test_out/src/gen_client_default_url.h";
-  char *c_file = "build/test_out/src/gen_client_default_url.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_client_default_url.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_client_default_url.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -241,9 +243,9 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
   memset(&server, 0, sizeof(server));
   memset(&var, 0, sizeof(var));
-  server.url = "https://{env}.example.com/v1";
-  var.name = "env";
-  var.default_value = "api";
+  server.url = (char *)(size_t)"https://{env}.example.com/v1";
+  var.name = (char *)(size_t)"env";
+  var.default_value = (char *)(size_t)"api";
   server.variables = &var;
   server.n_variables = 1;
   spec.servers = &server;
@@ -251,7 +253,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -274,8 +276,10 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_client_default_url_none";
-  char *h_file = "build/test_out/src/gen_client_default_url_none.h";
-  char *c_file = "build/test_out/src/gen_client_default_url_none.c";
+  char *h_file =
+      (char *)(size_t)"build/test_out/src/gen_client_default_url_none.h";
+  char *c_file =
+      (char *)(size_t)"build/test_out/src/gen_client_default_url_none.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -285,7 +289,7 @@ TEST test_gen_client_default_base_url_no_servers(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -308,8 +312,8 @@ TEST test_gen_client_additional_operation(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Path path;
   const char *base = "build/test_out/gen_additional_op";
-  char *h_file = "build/test_out/src/gen_additional_op.h";
-  char *c_file = "build/test_out/src/gen_additional_op.c";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_additional_op.h";
+  char *c_file = (char *)(size_t)"build/test_out/src/gen_additional_op.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -320,15 +324,15 @@ TEST test_gen_client_additional_operation(void) {
   memset(&resp, 0, sizeof(resp));
   memset(&path, 0, sizeof(path));
 
-  op.operation_id = "custom_connect";
+  op.operation_id = (char *)(size_t)"custom_connect";
   op.verb = OA_VERB_UNKNOWN;
   op.is_additional = 1;
-  op.method = "CONNECT";
-  resp.code = "200";
+  op.method = (char *)(size_t)"CONNECT";
+  resp.code = (char *)(size_t)"200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  path.route = "/custom";
+  path.route = (char *)(size_t)"/custom";
   path.additional_operations = &op;
   path.n_additional_operations = 1;
 
@@ -337,7 +341,7 @@ TEST test_gen_client_additional_operation(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -362,7 +366,7 @@ TEST test_gen_client_op_params_only(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_op_params";
-  char *h_file = "build/test_out/src/gen_op_params.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_op_params.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -371,15 +375,15 @@ TEST test_gen_client_op_params_only(void) {
   setup_minimal_spec(&spec, &op);
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = "limit";
+  op_param.name = (char *)(size_t)"limit";
   op_param.in = OA_PARAM_IN_QUERY;
-  op_param.type = "integer";
+  op_param.type = (char *)(size_t)"integer";
   op.parameters = &op_param;
   op.n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -403,7 +407,7 @@ TEST test_gen_client_querystring_param(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_querystring_param";
-  char *h_file = "build/test_out/src/gen_querystring_param.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_querystring_param.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -412,15 +416,15 @@ TEST test_gen_client_querystring_param(void) {
   setup_minimal_spec(&spec, &op);
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = "qs";
+  op_param.name = (char *)(size_t)"qs";
   op_param.in = OA_PARAM_IN_QUERYSTRING;
-  op_param.type = "string";
+  op_param.type = (char *)(size_t)"string";
   op.parameters = &op_param;
   op.n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -443,7 +447,7 @@ TEST test_gen_client_path_level_params(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
   const char *base = "build/test_out/gen_path_params";
-  char *h_file = "build/test_out/src/gen_path_params.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_path_params.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -452,16 +456,16 @@ TEST test_gen_client_path_level_params(void) {
   setup_minimal_spec(&spec, &op);
 
   memset(&path_param, 0, sizeof(path_param));
-  path_param.name = "x_trace";
+  path_param.name = (char *)(size_t)"x_trace";
   path_param.in = OA_PARAM_IN_HEADER;
-  path_param.type = "string";
+  path_param.type = (char *)(size_t)"string";
 
   spec.paths[0].parameters = &path_param;
   spec.paths[0].n_parameters = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -488,7 +492,7 @@ TEST test_gen_client_path_param_override(void) {
   struct OpenAPI_Parameter path_param;
   struct OpenAPI_Parameter op_param;
   const char *base = "build/test_out/gen_path_override";
-  char *h_file = "build/test_out/src/gen_path_override.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_path_override.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -497,14 +501,14 @@ TEST test_gen_client_path_param_override(void) {
   setup_minimal_spec(&spec, &op);
 
   memset(&path_param, 0, sizeof(path_param));
-  path_param.name = "id";
+  path_param.name = (char *)(size_t)"id";
   path_param.in = OA_PARAM_IN_PATH;
-  path_param.type = "integer";
+  path_param.type = (char *)(size_t)"integer";
 
   memset(&op_param, 0, sizeof(op_param));
-  op_param.name = "id";
+  op_param.name = (char *)(size_t)"id";
   op_param.in = OA_PARAM_IN_PATH;
-  op_param.type = "string";
+  op_param.type = (char *)(size_t)"string";
 
   spec.paths[0].parameters = &path_param;
   spec.paths[0].n_parameters = 1;
@@ -513,7 +517,7 @@ TEST test_gen_client_path_param_override(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
+  config.func_prefix = (char *)(size_t)"api_";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -535,24 +539,24 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_group_ns_test";
-  char *h_file = "build/test_out/src/gen_group_ns_test.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_group_ns_test.h";
   char *content = NULL;
   size_t sz;
   int rc;
   /* Tag string array setup */
-  static char *tags[] = {"pet"};
+  static const char *tags[] = {"pet"};
 
   (void)rc;
   setup_minimal_spec(&spec, &op);
 
   /* Inject tag manually */
-  op.tags = tags;
+  op.tags = (char **)(size_t)tags;
   op.n_tags = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
-  config.namespace_prefix = "Foo";
+  config.func_prefix = (char *)(size_t)"api_";
+  config.namespace_prefix = (char *)(size_t)"Foo";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -577,7 +581,7 @@ TEST test_gen_client_namespace_only(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "build/test_out/gen_ns_only_test";
-  char *h_file = "build/test_out/src/gen_ns_only_test.h";
+  char *h_file = (char *)(size_t)"build/test_out/src/gen_ns_only_test.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -588,8 +592,8 @@ TEST test_gen_client_namespace_only(void) {
 
   memset(&config, 0, sizeof(config));
   config.filename_base = base;
-  config.func_prefix = "api_";
-  config.namespace_prefix = "Bar";
+  config.func_prefix = (char *)(size_t)"api_";
+  config.namespace_prefix = (char *)(size_t)"Bar";
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -634,7 +638,7 @@ TEST test_gen_client_file_error(void) {
   struct OpenApiClientConfig config = {0};
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "/this_dir_does_not_exist/file";
+  config.filename_base = (char *)(size_t)"/this_dir_does_not_exist/file";
 
   ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
   g_fail_io_after = -1;
@@ -649,7 +653,7 @@ TEST test_gen_client_defaults(void) {
   size_t sz;
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "build/test_out/gen_def";
+  config.filename_base = (char *)(size_t)"build/test_out/gen_def";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
@@ -691,7 +695,7 @@ TEST test_gen_transport_selection(void) {
   size_t sz;
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "build/test_out/gen_transport";
+  config.filename_base = (char *)(size_t)"build/test_out/gen_transport";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
@@ -742,7 +746,7 @@ TEST test_client_gen_find_server_variable(void) {
   srv.n_variables = 1;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
-  srv.variables[0].name = "test";
+  srv.variables[0].name = (char *)(size_t)"test";
 
   ASSERT_EQ(0, find_server_variable(&srv, "test", &out));
   ASSERT(out == &srv.variables[0]);
@@ -774,21 +778,21 @@ TEST test_client_gen_render_server_url_default(void) {
   ASSERT_EQ(0, render_server_url_default(NULL, &out));
   ASSERT(out == NULL);
 
-  srv.url = "http://test";
+  srv.url = (char *)(size_t)"http://test";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://test", out);
   free(out);
   out = NULL;
 
   /* With variables */
-  srv.url = "http://{domain}:{port}/v1";
+  srv.url = (char *)(size_t)"http://{domain}:{port}/v1";
   srv.n_variables = 2;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(2, sizeof(*srv.variables));
-  srv.variables[0].name = "domain";
-  srv.variables[0].default_value = "localhost";
-  srv.variables[1].name = "port";
-  srv.variables[1].default_value = "8080";
+  srv.variables[0].name = (char *)(size_t)"domain";
+  srv.variables[0].default_value = (char *)(size_t)"localhost";
+  srv.variables[1].name = (char *)(size_t)"port";
+  srv.variables[1].default_value = (char *)(size_t)"8080";
 
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT_STR_EQ("http://localhost:8080/v1", out);
@@ -796,28 +800,28 @@ TEST test_client_gen_render_server_url_default(void) {
   out = NULL;
 
   /* Unmatched variable */
-  srv.url = "http://{missing}/test";
+  srv.url = (char *)(size_t)"http://{missing}/test";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Missing closing brace */
-  srv.url = "http://{missing/test";
+  srv.url = (char *)(size_t)"http://{missing/test";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Empty braces */
-  srv.url = "http://{}/test";
+  srv.url = (char *)(size_t)"http://{}/test";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
   /* Valid var but missing default */
   if (srv.variables)
     free(srv.variables);
-  srv.url = "http://{noval}/test";
+  srv.url = (char *)(size_t)"http://{noval}/test";
   srv.n_variables = 1;
   srv.variables =
       (struct OpenAPI_ServerVariable *)calloc(1, sizeof(*srv.variables));
-  srv.variables[0].name = "noval";
+  srv.variables[0].name = (char *)(size_t)"noval";
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
@@ -944,13 +948,13 @@ TEST test_client_gen_param_keys_match(void) {
   ASSERT_EQ(0, param_keys_match(NULL, NULL));
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  a.name = "test";
+  a.name = (char *)(size_t)"test";
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  b.name = "test2";
+  b.name = (char *)(size_t)"test2";
   ASSERT_EQ(0, param_keys_match(&a, &b));
 
-  b.name = "test";
+  b.name = (char *)(size_t)"test";
   a.in = OA_PARAM_IN_HEADER;
   b.in = OA_PARAM_IN_PATH;
   ASSERT_EQ(0, param_keys_match(&a, &b));
@@ -983,7 +987,7 @@ TEST test_client_gen_build_effective_parameters(void) {
   path.n_parameters = 1;
   path.parameters =
       (struct OpenAPI_Parameter *)calloc(1, sizeof(*path.parameters));
-  path.parameters[0].name = "p1";
+  path.parameters[0].name = (char *)(size_t)"p1";
   path.parameters[0].in = OA_PARAM_IN_PATH;
 
   ASSERT_EQ(0, build_effective_parameters(&path, NULL, &out, &count));
@@ -995,10 +999,10 @@ TEST test_client_gen_build_effective_parameters(void) {
   /* Op params overrides */
   op.n_parameters = 2;
   op.parameters = (struct OpenAPI_Parameter *)calloc(2, sizeof(*op.parameters));
-  op.parameters[0].name = "p1";
+  op.parameters[0].name = (char *)(size_t)"p1";
   op.parameters[0].in = OA_PARAM_IN_PATH;
-  op.parameters[0].description = "overridden";
-  op.parameters[1].name = "p2";
+  op.parameters[0].description = (char *)(size_t)"overridden";
+  op.parameters[1].name = (char *)(size_t)"p2";
   op.parameters[1].in = OA_PARAM_IN_QUERY;
 
   ASSERT_EQ(0, build_effective_parameters(&path, &op, &out, &count));
@@ -1071,12 +1075,12 @@ TEST test_client_gen_write_docblock(void) {
   ASSERT_EQ(0, write_docblock(fp, NULL, &op));
 
   /* Various branch hits */
-  op.summary = "sum";
-  op.operation_id = "opId";
-  op.description = "desc";
-  path.route = "/test";
+  op.summary = (char *)(size_t)"sum";
+  op.operation_id = (char *)(size_t)"opId";
+  op.description = (char *)(size_t)"desc";
+  path.route = (char *)(size_t)"/test";
   op.verb = OA_VERB_POST;
-  op.external_docs.url = "http://doc";
+  op.external_docs.url = (char *)(size_t)"http://doc";
   op.callbacks =
       (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
   op.n_responses = 1;
@@ -1092,8 +1096,8 @@ TEST test_client_gen_write_docblock(void) {
 
   op.n_parameters = 1;
   op.parameters = (struct OpenAPI_Parameter *)calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = "p";
-  op.parameters[0].description = "desc p";
+  op.parameters[0].name = (char *)(size_t)"p";
+  op.parameters[0].description = (char *)(size_t)"desc p";
   op.parameters[0].allow_empty_value = 1;
   op.parameters[0].allow_reserved = 1;
   op.deprecated = 1;
@@ -1102,10 +1106,10 @@ TEST test_client_gen_write_docblock(void) {
   op.parameters = (struct OpenAPI_Parameter *)realloc(
       op.parameters, 3 * sizeof(*op.parameters));
   memset(&op.parameters[1], 0, sizeof(*op.parameters));
-  op.parameters[1].name = "cookiep";
+  op.parameters[1].name = (char *)(size_t)"cookiep";
   op.parameters[1].in = OA_PARAM_IN_COOKIE;
   memset(&op.parameters[2], 0, sizeof(*op.parameters));
-  op.parameters[2].name = "unkp";
+  op.parameters[2].name = (char *)(size_t)"unkp";
   op.parameters[2].in = OA_PARAM_IN_UNKNOWN;
 
   /* we will just execute all branches */

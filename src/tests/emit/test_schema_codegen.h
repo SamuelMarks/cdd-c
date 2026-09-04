@@ -67,7 +67,7 @@ TEST test_schema_codegen_circular_refs(void) {
 
   ASSERT_EQ(0, rc);
 
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
 
   ASSERT_EQ(0, rc);
 
@@ -166,7 +166,7 @@ TEST test_codegen_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = "ENABLE_JSON";
+    config.guard_macro = (char *)(size_t)"ENABLE_JSON";
 
     /* Generate */
 
@@ -263,7 +263,7 @@ TEST test_union_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.json_guard = "UNION_GUARD";
+    config.json_guard = (char *)(size_t)"UNION_GUARD";
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
 
@@ -328,7 +328,7 @@ TEST test_schema_codegen_union_output(void) {
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
 
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT_EQ(0, rc);
 
   rc = read_to_file("union_out.h", "r", &header_content, &sz);
@@ -383,7 +383,7 @@ TEST test_schema_codegen_union_inline_variants(void) {
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
 
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT_EQ(0, rc);
 
   rc = read_to_file("union_inline_out.h", "r", &header_content, &sz);
@@ -433,7 +433,7 @@ TEST test_schema_codegen_enum_output(void) {
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
 
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT_EQ(0, rc);
 
   rc = read_to_file("enum_out.h", "r", &header_content, &sz);
@@ -499,7 +499,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = "DATA_UTILS";
+    config.guard_macro = (char *)(size_t)"DATA_UTILS";
 
     /* Generate helpers */
 
@@ -768,7 +768,7 @@ TEST test_schema_codegen_specific_structs(void) {
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
 
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT_EQ(0, rc);
 
   remove(filename);
@@ -803,7 +803,7 @@ TEST test_schema_codegen_main_paths(void) {
       "}}";
 
   /* 1. argc < 2 */
-  rc = schema2code_main(1, (char **)argv);
+  rc = schema2code_main(1, (char **)(size_t)argv);
   (void)rc;
   ASSERT(rc != 0);
 
@@ -815,7 +815,7 @@ TEST test_schema_codegen_main_paths(void) {
 #include <c_cdd_export.h>
     /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
     g_cdd_strdup_fail = 1;
-    rc = schema2code_main(2, (char **)argv);
+    rc = schema2code_main(2, (char **)(size_t)argv);
     ASSERT(rc != 0);
     g_cdd_strdup_fail = 0;
   }
@@ -837,7 +837,7 @@ TEST test_schema_codegen_main_paths(void) {
     for (io_i = 1; io_i < 50; io_i++) {
       g_fail_io_after = io_i;
       g_io_calls = 0;
-      rc = schema2code_main(5, (char **)argv);
+      rc = schema2code_main(5, (char **)(size_t)argv);
       if (rc == 0)
         break;
     }
@@ -845,14 +845,14 @@ TEST test_schema_codegen_main_paths(void) {
 
     for (io_i = 1; io_i < 50; io_i++) {
       g_schema_codegen_force_fail = io_i;
-      rc = schema2code_main(5, (char **)argv);
+      rc = schema2code_main(5, (char **)(size_t)argv);
       if (rc == 0)
         break;
     }
     g_schema_codegen_force_fail = 0;
   }
 #else
-  rc = schema2code_main(5, (char **)argv);
+  rc = schema2code_main(5, (char **)(size_t)argv);
   ASSERT_EQ(0, rc);
 #endif
 
@@ -862,7 +862,7 @@ TEST test_schema_codegen_main_paths(void) {
     argv_unk[0] = filename;
     argv_unk[1] = "main_out";
     argv_unk[2] = "--unknown-flag";
-    rc = schema2code_main(3, (char **)argv_unk);
+    rc = schema2code_main(3, (char **)(size_t)argv_unk);
     ASSERT_EQ(0, rc);
   }
 
@@ -871,13 +871,13 @@ TEST test_schema_codegen_main_paths(void) {
 
   /* 4. json_parse_file fails */
   argv[0] = "does_not_exist.json";
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT(rc != 0);
 
   /* 5. missing schemas */
   write_to_file(filename, "{}");
   argv[0] = filename;
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT(rc != 0);
 
   /* 6. generate_header / generate_source fails */
@@ -885,12 +885,12 @@ TEST test_schema_codegen_main_paths(void) {
   write_to_file(filename, schema_defs);
   g_schema_fail_io_after = 0;
   g_schema_io_calls = 0;
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT(rc != 0);
 
   g_schema_fail_io_after = 3; /* Succeed header start, fail later */
   g_schema_io_calls = 0;
-  rc = schema2code_main(2, (char **)argv);
+  rc = schema2code_main(2, (char **)(size_t)argv);
   ASSERT(rc != 0);
 
   g_schema_fail_io_after = -1;
@@ -1039,7 +1039,8 @@ TEST test_schema_codegen_source_fail(void) {
 
   /* Call main which calls generate_header and generate_source */
   {
-    char *argv_bad[] = {"test_codegen_schema_io.json", "test_out_source"};
+    char *argv_bad[] = {(char *)(size_t)"test_codegen_schema_io.json",
+                        (char *)(size_t)"test_out_source"};
     rc = schema2code_main(2, argv_bad);
 #ifndef _MSC_VER
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
@@ -1090,10 +1091,12 @@ TEST test_schema_codegen_system_error(void) {
 
 TEST test_schema_codegen_main_errors(void) {
   int rc;
-  char *argv_bad1[] = {"file.json"};
-  char *argv_bad2[] = {"file.json", (char *)NULL};
-  char *argv_bad3[] = {"nonexistent.json", "prefix"};
-  char *argv_bad4[] = {"file.json", "/invalid/path/prefix"};
+  char *argv_bad1[] = {(char *)(size_t)"file.json"};
+  char *argv_bad2[] = {(char *)(size_t)"file.json", (char *)NULL};
+  char *argv_bad3[] = {(char *)(size_t)"nonexistent.json",
+                       (char *)(size_t)"prefix"};
+  char *argv_bad4[] = {(char *)(size_t)"file.json",
+                       (char *)(size_t)"/invalid/path/prefix"};
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;

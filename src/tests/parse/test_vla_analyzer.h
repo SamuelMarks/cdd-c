@@ -148,7 +148,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
   struct VLASiteList list;
 
   /* Empty array size */
-  const char *src1 = "int arr[]; int arr2[ ];";
+  const char *src1 = (char *)(size_t)"int arr[]; int arr2[ ];";
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src1), &tokens));
   (void)vla_site_list_init(&list);
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -160,7 +160,8 @@ TEST test_scan_for_vlas_edge_cases(void) {
   /* Type alias / Typedef name as type: e.g. MyType arr[n]; or MyType *arr[n];
    */
   {
-    const char *src2 = "MyType arr[n]; MyType *arr2[n]; MyType   arr3[n];";
+    const char *src2 =
+        (char *)(size_t)"MyType arr[n]; MyType *arr2[n]; MyType   arr3[n];";
     ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src2), &tokens));
     (void)vla_site_list_init(&list);
     ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -171,7 +172,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
     /* Missing variable name (syntax error but we should not crash) */
     {
-      const char *src3 = "int [n];";
+      const char *src3 = (char *)(size_t)"int [n];";
       ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src3), &tokens));
       (void)vla_site_list_init(&list);
       ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -181,7 +182,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
       /* Missing semicolon */
       {
-        const char *src4 = "int arr[n]";
+        const char *src4 = (char *)(size_t)"int arr[n]";
         ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src4), &tokens));
         (void)vla_site_list_init(&list);
         ASSERT_EQ(0, scan_for_vlas(tokens, &list));
@@ -191,7 +192,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
         /* Missing array bracket closing */
         {
-          const char *src5 = "int arr[n";
+          const char *src5 = (char *)(size_t)"int arr[n";
           ASSERT_EQ(0,
                     tokenize(az_span_create_from_str((char *)src5), &tokens));
           (void)vla_site_list_init(&list);
@@ -202,7 +203,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
 
           /* Type modifiers with whitespace */
           {
-            const char *src6 = "const  int  arr [ n ] ;";
+            const char *src6 = (char *)(size_t)"const  int  arr [ n ] ;";
             ASSERT_EQ(0,
                       tokenize(az_span_create_from_str((char *)src6), &tokens));
             (void)vla_site_list_init(&list);

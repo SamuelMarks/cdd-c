@@ -53,7 +53,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   int rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
-  const char *src = "int a;";
+  const char *src = (char *)(size_t)"int a;";
 
   rc = cdd_cst_scope_env_init(&env);
   (void)rc;
@@ -91,7 +91,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_tree_t *tree2 = NULL;
   cdd_cst_node_t *decl2 = NULL;
   cdd_cst_node_t *empty_node = NULL;
-  const char *src = "int *a;";
+  const char *src = (char *)(size_t)"int *a;";
 
   rc = cdd_cst_scope_env_init(&env);
   (void)rc;

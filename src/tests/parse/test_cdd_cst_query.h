@@ -35,7 +35,7 @@ TEST test_cdd_cst_query_types(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  return 0;\n}";
   cdd_cst_query_result_t res;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc =
@@ -141,7 +141,7 @@ TEST test_cdd_cst_query_calls(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  printf(\"hello\");\n  return 0;\n}";
   cdd_cst_query_result_t res;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_find_function_calls_named(tree->root, "printf", &res);
@@ -281,7 +281,7 @@ TEST test_cdd_cst_query_extra(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_traverse_postorder(NULL, NULL, NULL));
 
-  cdd_cst_parse(az_span_create_from_str((char *)"int x;"), &tree_tmp);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x;"), &tree_tmp);
   ASSERT_EQ(0, cdd_cst_traverse_postorder(tree_tmp->root, dummy_visitor,
                                           &post_count));
   ASSERT(post_count > 0);

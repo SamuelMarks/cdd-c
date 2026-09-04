@@ -389,17 +389,17 @@ TEST test_build_simple_get(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   /* Setup Doc */
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
   doc.verb = strdup("GET");
-  doc.summary = "Get a user";
+  doc.summary = (char *)(size_t)"Get a user";
 
   /* Setup Context */
   memset(&ctx, 0, sizeof(ctx));
@@ -438,11 +438,11 @@ TEST test_build_param_format_from_mapping(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "long";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"long";
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
@@ -478,11 +478,11 @@ TEST test_build_param_format_override(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
@@ -522,7 +522,7 @@ TEST test_build_response_header_format(void) {
 
   (void)rc;
   memset(&op, 0, sizeof(op));
-  sig.name = "api_ping";
+  sig.name = (char *)(size_t)"api_ping";
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -566,7 +566,7 @@ TEST test_build_default_response_when_missing(void) {
 
   (void)rc;
   memset(&op, 0, sizeof(op));
-  sig.name = "api_ping";
+  sig.name = (char *)(size_t)"api_ping";
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -601,16 +601,16 @@ TEST test_build_operation_id_override(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
   doc.route = strdup("/user/{id}");
   doc.verb = strdup("GET");
-  doc.operation_id = "getUserById";
+  doc.operation_id = (char *)(size_t)"getUserById";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -639,11 +639,11 @@ TEST test_build_param_content_type(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_search";
+  sig.name = (char *)(size_t)"api_user_search";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "payload";
-  args[0].type = "const char *";
+  args[0].name = (char *)(size_t)"payload";
+  args[0].type = (char *)(size_t)"const char *";
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
@@ -651,9 +651,9 @@ TEST test_build_param_content_type(void) {
   doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
-  doc.params[0].name = "payload";
-  doc.params[0].in_loc = "query";
-  doc.params[0].content_type = "application/json";
+  doc.params[0].name = (char *)(size_t)"payload";
+  doc.params[0].in_loc = (char *)(size_t)"query";
+  doc.params[0].content_type = (char *)(size_t)"application/json";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -683,11 +683,11 @@ TEST test_build_param_example(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
@@ -695,9 +695,9 @@ TEST test_build_param_example(void) {
   doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
-  doc.params[0].name = "id";
-  doc.params[0].in_loc = "path";
-  doc.params[0].example = "123";
+  doc.params[0].name = (char *)(size_t)"id";
+  doc.params[0].in_loc = (char *)(size_t)"path";
+  doc.params[0].example = (char *)(size_t)"123";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -727,20 +727,20 @@ TEST test_build_return_content_type(void) {
   (void)rc;
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_status";
+  sig.name = (char *)(size_t)"api_status";
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
-  doc.route = "/status";
+  doc.route = (char *)(size_t)"/status";
   doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
-  doc.returns[0].code = "200";
-  doc.returns[0].summary = "Status";
-  doc.returns[0].description = "OK";
-  doc.returns[0].content_type = "text/plain";
+  doc.returns[0].code = (char *)(size_t)"200";
+  doc.returns[0].summary = (char *)(size_t)"Status";
+  doc.returns[0].description = (char *)(size_t)"OK";
+  doc.returns[0].content_type = (char *)(size_t)"text/plain";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -774,11 +774,11 @@ TEST test_build_response_example(void) {
   memset(args, 0, sizeof(args));
   memset(returns, 0, sizeof(returns));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_get";
+  sig.name = (char *)(size_t)"api_user_get";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
@@ -786,10 +786,10 @@ TEST test_build_response_example(void) {
   doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
-  doc.returns[0].code = "200";
-  doc.returns[0].description = "OK";
-  doc.returns[0].content_type = "application/json";
-  doc.returns[0].example = "{\"ok\":true}";
+  doc.returns[0].code = (char *)(size_t)"200";
+  doc.returns[0].description = (char *)(size_t)"OK";
+  doc.returns[0].content_type = (char *)(size_t)"application/json";
+  doc.returns[0].example = (char *)(size_t)"{\"ok\":true}";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -823,11 +823,11 @@ TEST test_build_post_with_body(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_pet_create";
+  sig.name = (char *)(size_t)"api_pet_create";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "p";
-  args[0].type = "const struct Pet *";
+  args[0].name = (char *)(size_t)"p";
+  args[0].type = (char *)(size_t)"const struct Pet *";
 
   /* Doc (minimal) */
   ctx.sig = &sig;
@@ -868,19 +868,19 @@ TEST test_build_params_explicit(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "list";
+  sig.name = (char *)(size_t)"list";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "limit";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"limit";
+  args[0].type = (char *)(size_t)"int";
 
   /* Doc */
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = "limit";
-  dparams[0].in_loc = "query";
-  dparams[0].description = "Max items";
+  dparams[0].name = (char *)(size_t)"limit";
+  dparams[0].in_loc = (char *)(size_t)"query";
+  dparams[0].description = (char *)(size_t)"Max items";
   dparams[0].required = 0;
 
   ctx.sig = &sig;
@@ -913,18 +913,18 @@ TEST test_build_param_style_flags(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "search";
+  sig.name = (char *)(size_t)"search";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "tags";
-  args[0].type = "char **";
+  args[0].name = (char *)(size_t)"tags";
+  args[0].type = (char *)(size_t)"char **";
 
   memset(&doc, 0, sizeof(doc));
   memset(dparams, 0, sizeof(dparams));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = "tags";
-  dparams[0].in_loc = "query";
+  dparams[0].name = (char *)(size_t)"tags";
+  dparams[0].in_loc = (char *)(size_t)"query";
   dparams[0].style = DOC_PARAM_STYLE_SPACE_DELIMITED;
   dparams[0].style_set = 1;
   dparams[0].explode = 0;
@@ -969,21 +969,21 @@ TEST test_build_param_default_styles(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "get_item";
+  sig.name = (char *)(size_t)"get_item";
   sig.n_args = 2;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
-  args[1].name = "token";
-  args[1].type = "char *";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
+  args[1].name = (char *)(size_t)"token";
+  args[1].type = (char *)(size_t)"char *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/items/{id}";
+  doc.route = (char *)(size_t)"/items/{id}";
   doc.params = dparams;
   doc.n_params = 1;
   memset(dparams, 0, sizeof(dparams));
-  dparams[0].name = "token";
-  dparams[0].in_loc = "header";
+  dparams[0].name = (char *)(size_t)"token";
+  dparams[0].in_loc = (char *)(size_t)"header";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -1016,21 +1016,21 @@ TEST test_build_reserved_header_param_ignored(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "get_item";
+  sig.name = (char *)(size_t)"get_item";
   sig.n_args = 2;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
-  args[1].name = "Accept";
-  args[1].type = "char *";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
+  args[1].name = (char *)(size_t)"Accept";
+  args[1].type = (char *)(size_t)"char *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/items/{id}";
+  doc.route = (char *)(size_t)"/items/{id}";
   doc.params = dparams;
   doc.n_params = 1;
   memset(dparams, 0, sizeof(dparams));
-  dparams[0].name = "Accept";
-  dparams[0].in_loc = "header";
+  dparams[0].name = (char *)(size_t)"Accept";
+  dparams[0].in_loc = (char *)(size_t)"header";
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -1059,21 +1059,21 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_list";
+  sig.name = (char *)(size_t)"api_user_list";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "limit";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"limit";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
-  doc.summary = "List users";
-  doc.description = "Longer description text";
+  doc.summary = (char *)(size_t)"List users";
+  doc.description = (char *)(size_t)"Longer description text";
   doc.deprecated_set = 1;
   doc.deprecated = 1;
-  doc.external_docs_url = "https://example.com/docs";
-  doc.external_docs_description = "External docs";
+  doc.external_docs_url = (char *)(size_t)"https://example.com/docs";
+  doc.external_docs_description = (char *)(size_t)"External docs";
   {
-    static char *tags[] = {"users", "admin"};
+    static char *tags[] = {(char *)(size_t)"users", (char *)(size_t)"admin"};
     doc.tags = tags;
     doc.n_tags = 2;
   }
@@ -1114,18 +1114,18 @@ TEST test_build_params_querystring(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "search";
+  sig.name = (char *)(size_t)"search";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "qs";
-  args[0].type = "const char *";
+  args[0].name = (char *)(size_t)"qs";
+  args[0].type = (char *)(size_t)"const char *";
 
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = "qs";
-  dparams[0].in_loc = "querystring";
-  dparams[0].description = "Serialized query string";
+  dparams[0].name = (char *)(size_t)"qs";
+  dparams[0].in_loc = (char *)(size_t)"querystring";
+  dparams[0].description = (char *)(size_t)"Serialized query string";
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -1156,18 +1156,18 @@ TEST test_build_params_querystring_json_struct(void) {
   memset(args, 0, sizeof(args));
   memset(dparams, 0, sizeof(dparams));
   memset(&op, 0, sizeof(op));
-  sig.name = "search_query";
+  sig.name = (char *)(size_t)"search_query";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "qs";
-  args[0].type = "struct Query *";
+  args[0].name = (char *)(size_t)"qs";
+  args[0].type = (char *)(size_t)"struct Query *";
 
   memset(&doc, 0, sizeof(doc));
   doc.params = dparams;
   doc.n_params = 1;
-  dparams[0].name = "qs";
-  dparams[0].in_loc = "querystring";
-  dparams[0].content_type = "application/json";
+  dparams[0].name = (char *)(size_t)"qs";
+  dparams[0].in_loc = (char *)(size_t)"querystring";
+  dparams[0].content_type = (char *)(size_t)"application/json";
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -1197,14 +1197,14 @@ TEST test_build_custom_verb_additional(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "copy_user";
+  sig.name = (char *)(size_t)"copy_user";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "id";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"id";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/users/{id}";
+  doc.route = (char *)(size_t)"/users/{id}";
   doc.verb = strdup("COPY");
 
   ctx.sig = &sig;
@@ -1235,7 +1235,7 @@ TEST test_build_response_multi_content(void) {
   (void)rc;
   memset(resps, 0, sizeof(resps));
   memset(&op, 0, sizeof(op));
-  sig.name = "get_report";
+  sig.name = (char *)(size_t)"get_report";
   sig.n_args = 0;
   sig.args = NULL;
 
@@ -1245,12 +1245,12 @@ TEST test_build_response_multi_content(void) {
   doc.returns = resps;
   doc.n_returns = 2;
 
-  resps[0].code = "200";
-  resps[0].description = "OK json";
-  resps[0].content_type = "application/json";
-  resps[1].code = "200";
-  resps[1].description = "OK text";
-  resps[1].content_type = "text/plain";
+  resps[0].code = (char *)(size_t)"200";
+  resps[0].description = (char *)(size_t)"OK json";
+  resps[0].content_type = (char *)(size_t)"application/json";
+  resps[1].code = (char *)(size_t)"200";
+  resps[1].description = (char *)(size_t)"OK text";
+  resps[1].content_type = (char *)(size_t)"text/plain";
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -1285,24 +1285,24 @@ TEST test_build_response_headers(void) {
   memset(resps, 0, sizeof(resps));
   memset(hdrs, 0, sizeof(hdrs));
   memset(&op, 0, sizeof(op));
-  sig.name = "get_user";
+  sig.name = (char *)(size_t)"get_user";
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
   doc.returns = resps;
   doc.n_returns = 1;
-  resps[0].code = "200";
-  resps[0].description = "OK";
+  resps[0].code = (char *)(size_t)"200";
+  resps[0].description = (char *)(size_t)"OK";
 
   doc.response_headers = hdrs;
   doc.n_response_headers = 1;
-  hdrs[0].code = "200";
-  hdrs[0].name = "X-Request-Id";
-  hdrs[0].type = "string";
-  hdrs[0].content_type = "application/xml";
-  hdrs[0].description = "Request identifier";
-  hdrs[0].example = "42";
+  hdrs[0].code = (char *)(size_t)"200";
+  hdrs[0].name = (char *)(size_t)"X-Request-Id";
+  hdrs[0].type = (char *)(size_t)"string";
+  hdrs[0].content_type = (char *)(size_t)"application/xml";
+  hdrs[0].description = (char *)(size_t)"Request identifier";
+  hdrs[0].example = (char *)(size_t)"42";
   hdrs[0].required_set = 1;
   hdrs[0].required = 1;
 
@@ -1340,27 +1340,28 @@ TEST test_build_response_links(void) {
 
   (void)rc;
   memset(&op, 0, sizeof(op));
-  sig.name = "get_page";
+  sig.name = (char *)(size_t)"get_page";
   sig.n_args = 0;
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/pages";
+  doc.route = (char *)(size_t)"/pages";
   doc.verb = strdup("GET");
   doc.links = links;
   doc.n_links = 1;
 
   memset(links, 0, sizeof(links));
-  links[0].code = "200";
-  links[0].name = "next";
-  links[0].operation_id = "getNextPage";
-  links[0].summary = "Next page";
-  links[0].description = "Fetch next page";
-  links[0].parameters_json = "{\"cursor\":\"$response.body#/next\"}";
-  links[0].request_body_json = "{\"foo\":1}";
-  links[0].server_url = "https://example.com";
-  links[0].server_name = "prod";
-  links[0].server_description = "Primary server";
+  links[0].code = (char *)(size_t)"200";
+  links[0].name = (char *)(size_t)"next";
+  links[0].operation_id = (char *)(size_t)"getNextPage";
+  links[0].summary = (char *)(size_t)"Next page";
+  links[0].description = (char *)(size_t)"Fetch next page";
+  links[0].parameters_json =
+      (char *)(size_t)"{\"cursor\":\"$response.body#/next\"}";
+  links[0].request_body_json = (char *)(size_t)"{\"foo\":1}";
+  links[0].server_url = (char *)(size_t)"https://example.com";
+  links[0].server_name = (char *)(size_t)"prod";
+  links[0].server_description = (char *)(size_t)"Primary server";
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -1404,11 +1405,11 @@ TEST test_build_response_output_arg(void) {
 
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "get_obj";
+  sig.name = (char *)(size_t)"get_obj";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "out";
-  args[0].type = "struct Obj **";
+  args[0].name = (char *)(size_t)"out";
+  args[0].type = (char *)(size_t)"struct Obj **";
 
   ctx.sig = &sig;
   ctx.doc = NULL;
@@ -1436,45 +1437,45 @@ TEST test_build_op_security_servers_request_body(void) {
   struct C2OpenAPI_ParsedArg args[1];
   struct DocMetadata doc;
   struct DocSecurityRequirement sec[2];
-  char *scopes1[] = {"write:pets", "read:pets"};
+  char *scopes1[] = {(char *)(size_t)"write:pets", (char *)(size_t)"read:pets"};
   struct DocServer servers[1];
   struct DocServerVar server_vars[1];
-  char *server_enum[] = {"prod", "staging"};
+  char *server_enum[] = {(char *)(size_t)"prod", (char *)(size_t)"staging"};
   struct OpenAPI_Operation op;
   int rc;
 
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_upload";
+  sig.name = (char *)(size_t)"api_upload";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "payload";
-  args[0].type = "const struct Payload *";
+  args[0].name = (char *)(size_t)"payload";
+  args[0].type = (char *)(size_t)"const struct Payload *";
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = "/upload";
-  doc.request_body_description = "Upload payload";
+  doc.route = (char *)(size_t)"/upload";
+  doc.request_body_description = (char *)(size_t)"Upload payload";
   doc.request_body_required_set = 1;
   doc.request_body_required = 0;
-  doc.request_body_content_type = "application/xml";
+  doc.request_body_content_type = (char *)(size_t)"application/xml";
 
   memset(sec, 0, sizeof(sec));
-  sec[0].scheme = "api_key";
-  sec[1].scheme = "petstore_auth";
+  sec[0].scheme = (char *)(size_t)"api_key";
+  sec[1].scheme = (char *)(size_t)"petstore_auth";
   sec[1].scopes = scopes1;
   sec[1].n_scopes = 2;
   doc.security = sec;
   doc.n_security = 2;
 
   memset(servers, 0, sizeof(servers));
-  servers[0].url = "https://api.example.com";
-  servers[0].name = "prod";
-  servers[0].description = "Production API";
+  servers[0].url = (char *)(size_t)"https://api.example.com";
+  servers[0].name = (char *)(size_t)"prod";
+  servers[0].description = (char *)(size_t)"Production API";
   memset(server_vars, 0, sizeof(server_vars));
-  server_vars[0].name = "env";
-  server_vars[0].default_value = "prod";
+  server_vars[0].name = (char *)(size_t)"env";
+  server_vars[0].default_value = (char *)(size_t)"prod";
   server_vars[0].enum_values = server_enum;
   server_vars[0].n_enum_values = 2;
   servers[0].variables = server_vars;
@@ -1533,18 +1534,18 @@ TEST test_build_op_param_deprecated(void) {
   memset(args, 0, sizeof(args));
   memset(params, 0, sizeof(params));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_get_legacy";
+  sig.name = (char *)(size_t)"api_get_legacy";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "legacyId";
-  args[0].type = "int";
+  args[0].name = (char *)(size_t)"legacyId";
+  args[0].type = (char *)(size_t)"int";
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("GET");
-  doc.route = "/legacy/{legacyId}";
+  doc.route = (char *)(size_t)"/legacy/{legacyId}";
   memset(params, 0, sizeof(params));
-  params[0].name = "legacyId";
-  params[0].in_loc = "path";
+  params[0].name = (char *)(size_t)"legacyId";
+  params[0].in_loc = (char *)(size_t)"path";
   params[0].deprecated_set = 1;
   params[0].deprecated = 1;
   doc.params = params;
@@ -1583,19 +1584,19 @@ TEST test_build_request_body_example(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_post";
+  sig.name = (char *)(size_t)"api_user_post";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "user";
-  args[0].type = "struct User *";
+  args[0].name = (char *)(size_t)"user";
+  args[0].type = (char *)(size_t)"struct User *";
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = "/user";
+  doc.route = (char *)(size_t)"/user";
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].content_type = "application/json";
-  bodies[0].description = "User";
-  bodies[0].example = "{\"name\":\"x\"}";
+  bodies[0].content_type = (char *)(size_t)"application/json";
+  bodies[0].description = (char *)(size_t)"User";
+  bodies[0].example = (char *)(size_t)"{\"name\":\"x\"}";
   doc.request_bodies = bodies;
   doc.n_request_bodies = 1;
 
@@ -1631,17 +1632,17 @@ TEST test_build_request_body_default_content_type(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_user_post";
+  sig.name = (char *)(size_t)"api_user_post";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "user";
-  args[0].type = "struct User *";
+  args[0].name = (char *)(size_t)"user";
+  args[0].type = (char *)(size_t)"struct User *";
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = "/user";
+  doc.route = (char *)(size_t)"/user";
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].description = "User";
+  bodies[0].description = (char *)(size_t)"User";
   doc.request_bodies = bodies;
   doc.n_request_bodies = 1;
 
@@ -1674,20 +1675,20 @@ TEST test_build_op_request_body_multi_content(void) {
   (void)rc;
   memset(args, 0, sizeof(args));
   memset(&op, 0, sizeof(op));
-  sig.name = "api_upload_multi";
+  sig.name = (char *)(size_t)"api_upload_multi";
   sig.n_args = 1;
   sig.args = args;
-  args[0].name = "payload";
-  args[0].type = "const struct Payload *";
+  args[0].name = (char *)(size_t)"payload";
+  args[0].type = (char *)(size_t)"const struct Payload *";
 
   memset(&doc, 0, sizeof(doc));
   doc.verb = strdup("POST");
-  doc.route = "/upload";
+  doc.route = (char *)(size_t)"/upload";
   memset(bodies, 0, sizeof(bodies));
-  bodies[0].content_type = "application/json";
-  bodies[0].description = "JSON body";
-  bodies[1].content_type = "application/xml";
-  bodies[1].description = "XML body";
+  bodies[0].content_type = (char *)(size_t)"application/json";
+  bodies[0].description = (char *)(size_t)"JSON body";
+  bodies[1].content_type = (char *)(size_t)"application/xml";
+  bodies[1].description = (char *)(size_t)"XML body";
   doc.request_bodies = bodies;
   doc.n_request_bodies = 2;
 

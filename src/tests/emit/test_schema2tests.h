@@ -47,9 +47,9 @@ TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
   char *argv[3];
   int rc = write_to_file(filename, "{bad json");
-  argv[0] = (char *)filename;
-  argv[1] = "header.h";
-  argv[2] = "out.h";
+  argv[0] = (char *)(size_t)filename;
+  argv[1] = (char *)(size_t)"header.h";
+  argv[2] = (char *)(size_t)"out.h";
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(filename);
@@ -59,7 +59,9 @@ TEST test_schema2tests_bad_json(void) {
 
 TEST test_schema2tests_success(void) {
   FILE *f;
-  char *argv[] = {"min_schema.json", "header.h", "build" PATH_SEP "test_s2t.h"};
+  char *argv[] = {(char *)(size_t)"min_schema.json",
+                  (char *)(size_t)(char *)(size_t)"header.h",
+                  (char *)(size_t)"build" PATH_SEP "test_s2t.h"};
   int rc_main;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -105,9 +107,9 @@ TEST test_schema2tests_output_file_open_fail(void) {
   char *argv[3];
   int rc;
   (void)rc;
-  argv[0] = (char *)schema_filename;
-  argv[1] = "header.h";
-  argv[2] = "";
+  argv[0] = (char *)(size_t)schema_filename;
+  argv[1] = (char *)(size_t)"header.h";
+  argv[2] = (char *)(size_t)"";
   rc = write_to_file(schema_filename, "{\"$defs\":{}}");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
@@ -116,7 +118,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
   remove(schema_filename);
 
   {
-    const char *out_dir_as_file = "out_dir_file.tmp";
+    const char *out_dir_as_file = (char *)(size_t)"out_dir_file.tmp";
     char out_path[256];
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -157,8 +159,9 @@ TEST test_schema2tests_output_file_open_fail(void) {
 
 TEST test_schema2tests_defs_fallback(void) {
   const char *const filename = "defs_schema.json";
-  char *argv[] = {"defs_schema.json", "header.h",
-                  "build" PATH_SEP "defs_out.h"};
+  char *argv[] = {(char *)(size_t)"defs_schema.json",
+                  (char *)(size_t)(char *)(size_t)"header.h",
+                  (char *)(size_t)"build" PATH_SEP "defs_out.h"};
   int rc = write_to_file(
       filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -175,9 +178,9 @@ TEST test_schema2tests_defs_fallback(void) {
 TEST test_schema2tests_invalid_schema_root(void) {
   const char *const schema_file = "bad_root.json";
   char *argv[3];
-  argv[0] = (char *)schema_file;
-  argv[1] = "header.h";
-  argv[2] = "out.h";
+  argv[0] = (char *)(size_t)schema_file;
+  argv[1] = (char *)(size_t)"header.h";
+  argv[2] = (char *)(size_t)"out.h";
   write_to_file(schema_file, "[]");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
@@ -187,9 +190,9 @@ TEST test_schema2tests_invalid_schema_root(void) {
 TEST test_schema2tests_no_schemas_object(void) {
   const char *const schema_file = "no_schemas.json";
   char *argv[3];
-  argv[0] = (char *)schema_file;
-  argv[1] = "header.h";
-  argv[2] = "out.h";
+  argv[0] = (char *)(size_t)schema_file;
+  argv[1] = (char *)(size_t)"header.h";
+  argv[2] = (char *)(size_t)"out.h";
   write_to_file(schema_file, "{}");
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, jsonschema2tests_main(3, argv));
   remove(schema_file);
@@ -201,9 +204,9 @@ TEST test_schema2tests_malformed_schemas(void) {
   char *argv[3];
   int rc;
   (void)rc;
-  argv[0] = (char *)schema_file;
-  argv[1] = "header.h";
-  argv[2] = "build" PATH_SEP "out.h";
+  argv[0] = (char *)(size_t)schema_file;
+  argv[1] = (char *)(size_t)"header.h";
+  argv[2] = (char *)(size_t)"build" PATH_SEP "out.h";
   /* non-object schema, no type, non-string enum member, special char name */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"
                              "\"E1\":{\"type\":\"string\",\"enum\":[\"X\",1]},"
@@ -224,8 +227,9 @@ TEST test_schema2tests_malformed_schemas(void) {
 
 TEST test_schema2tests_with_null_enum_val(void) {
   const char *const filename = "null_enum.json";
-  char *argv[] = {"null_enum.json", "header.h",
-                  "build" PATH_SEP "null_enum_out.h"};
+  char *argv[] = {(char *)(size_t)"null_enum.json",
+                  (char *)(size_t)(char *)(size_t)"header.h",
+                  (char *)(size_t)"build" PATH_SEP "null_enum_out.h"};
   int rc = write_to_file(filename, "{\"$defs\":{\"E\":{\"type\":\"string\","
                                    "\"enum\":[\"X\", null, \"Y\"]}}}");
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -241,9 +245,9 @@ TEST test_schema2tests_with_null_enum_val(void) {
 
 TEST test_schema2tests_generated_output(void) {
 #define OUT_DIR "build_s2t_test_output"
-  char *argv[] = {OUT_DIR PATH_SEP "check_test_output.json",
-                  OUT_DIR PATH_SEP "check_header_output.h",
-                  OUT_DIR PATH_SEP "check_test_gen.h"};
+  char *argv[] = {(char *)(size_t)(OUT_DIR PATH_SEP "check_test_output.json"),
+                  (char *)(size_t)(OUT_DIR PATH_SEP "check_header_output.h"),
+                  (char *)(size_t)(OUT_DIR PATH_SEP "check_test_gen.h")};
   const char *const schema_file = argv[0];
   const char *const output_file = argv[2];
   const char main_c_path[] = OUT_DIR PATH_SEP "test_main.c";
@@ -273,8 +277,9 @@ TEST test_schema2tests_generated_output(void) {
 
 TEST test_schema2tests_header_inclusion_logic(void) {
 #define OUT_DIR "build_s2t_include"
-  char *argv[] = {OUT_DIR PATH_SEP "schema.json", "header.h",
-                  OUT_DIR PATH_SEP "test.h"};
+  char *argv[] = {(char *)(size_t)(OUT_DIR PATH_SEP "schema.json"),
+                  (char *)(size_t)(char *)(size_t)"header.h",
+                  (char *)(size_t)(OUT_DIR PATH_SEP "test.h")};
   const char *const schema_content =
       "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
   const char *const mock_header_path = OUT_DIR PATH_SEP "MyStruct.h";
@@ -301,8 +306,8 @@ TEST test_schema2tests_header_inclusion_logic(void) {
 }
 
 TEST test_schema2tests_sanitize_names(void) {
-  char *argv[] = {"sanitize_schema.json", "h.h",
-                  "build" PATH_SEP "test_sanitize.h"};
+  char *argv[] = {(char *)(size_t)"sanitize_schema.json", (char *)(size_t)"h.h",
+                  (char *)(size_t)"build" PATH_SEP "test_sanitize.h"};
   const char *const schema_file = argv[0];
   int rc;
 
@@ -324,9 +329,9 @@ TEST test_schema2tests_sanitize_names(void) {
 TEST test_schema2tests_header_inclusion_not_found(void) {
 #define OUT_DIR "build_s2t_include_not_found"
   char *argv[] = {
-      OUT_DIR PATH_SEP "schema.json",
-      "header.h",
-      OUT_DIR PATH_SEP "test.h",
+      (char *)(size_t)(OUT_DIR PATH_SEP "schema.json"),
+      (char *)(size_t)"header.h",
+      (char *)(size_t)(OUT_DIR PATH_SEP "test.h"),
   };
   const char *const schema_content =
       "{\"$defs\": {\"NonExistent\": {\"type\":\"object\"}}}";
@@ -374,7 +379,8 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
 }
 
 TEST test_schema2tests_output_in_current_dir(void) {
-  char *argv[] = {"schema_cur.json", "header.h", "test_cur.h"};
+  char *argv[] = {(char *)(size_t)"schema_cur.json", (char *)(size_t)"header.h",
+                  (char *)(size_t)"test_cur.h"};
   const char *const schema_content =
       "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
   ASSERT_EQ(0, write_to_file(argv[0], schema_content));
@@ -387,7 +393,8 @@ TEST test_schema2tests_output_in_current_dir(void) {
 }
 
 TEST test_schema2tests_io_fails(void) {
-  char *argv[] = {"schema_io.json", "header.h", "out_dir_io/test_io.h"};
+  char *argv[] = {(char *)(size_t)"schema_io.json", (char *)(size_t)"header.h",
+                  (char *)(size_t)"out_dir_io/test_io.h"};
   const char *const schema_content =
       "{\"$defs\": {"
       "\"E\":{\"type\":\"string\",\"enum\":[\"X\"]},"

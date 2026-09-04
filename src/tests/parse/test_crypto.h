@@ -94,8 +94,8 @@ TEST test_sha256_empty_string(void) {
   unsigned char digest[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
   /* SHA256("") */
-  const char *expected =
-      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  const char *expected = (char *)(size_t)"e3b0c44298fc1c149afbf4c8996fb92427ae4"
+                                         "1e4649b934ca495991b7852b855";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
@@ -120,10 +120,11 @@ TEST test_sha256_empty_string(void) {
 TEST test_sha256_known_string(void) {
   unsigned char digest[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
-  const char *input = "The quick brown fox jumps over the lazy dog";
+  const char *input =
+      (char *)(size_t)"The quick brown fox jumps over the lazy dog";
   /* Echo -n "..." | shasum -a 256 */
-  const char *expected =
-      "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592";
+  const char *expected = (char *)(size_t)"d7a8fbb307d7809469ca9abcb0082e4f8d565"
+                                         "1e46d3cdb762d02d0bf37c9e592";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
@@ -147,9 +148,9 @@ TEST test_hmac_rfc4231_case1(void) {
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
   /* Key: 20 bytes of 0x0b */
   unsigned char key[20];
-  const char *data = "Hi There";
-  const char *expected =
-      "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7";
+  const char *data = (char *)(size_t)"Hi There";
+  const char *expected = (char *)(size_t)"b0344c61d8db38535ca8afceaf0bf12b881dc"
+                                         "200c9833da726e9376c2e32cff7";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
@@ -179,10 +180,10 @@ TEST test_hmac_rfc4231_case2(void) {
   unsigned char mac[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
   /* Key: "Jefe" */
-  const char *key = "Jefe";
-  const char *data = "what do ya want for nothing?";
-  const char *expected =
-      "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843";
+  const char *key = (char *)(size_t)"Jefe";
+  const char *data = (char *)(size_t)"what do ya want for nothing?";
+  const char *expected = (char *)(size_t)"5bdcc146bf60754e6a042426089575c75a003"
+                                         "f089d2739839dec58b964ec3843";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
@@ -201,8 +202,8 @@ TEST test_hmac_rfc4231_case2(void) {
  */
 TEST test_hmac_empty_keys_or_data(void) {
   unsigned char mac[CRYPTO_SHA256_SIZE];
-  const char *key = "key";
-  const char *data = "data";
+  const char *key = (char *)(size_t)"key";
+  const char *data = (char *)(size_t)"data";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
@@ -242,9 +243,9 @@ TEST test_hmac_empty_keys_or_data(void) {
 TEST test_crypto_errors(void) {
 #ifdef CDD_BUILD_TESTS
   unsigned char digest[CRYPTO_SHA256_SIZE];
-  const char *data = "data";
+  const char *data = (char *)(size_t)"data";
   unsigned char mac[CRYPTO_SHA256_SIZE];
-  const char *key = "key";
+  const char *key = (char *)(size_t)"key";
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");

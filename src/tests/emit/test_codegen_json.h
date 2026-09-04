@@ -355,7 +355,7 @@ TEST test_json_guards(void) {
     sf.fields[sf.size - 1].exclusive_min = 0;
     sf.fields[sf.size - 1].exclusive_max = 1;
 
-    config.guard_macro = "JSON_ENABLED";
+    config.guard_macro = (char *)(size_t)"JSON_ENABLED";
 
     ASSERT_EQ(0, write_struct_from_json_func(tmp, "Data", &config));
     ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", &config));
@@ -569,7 +569,7 @@ TEST test_json_null_args(void) {
       sf.fields[sf.size - 1].exclusive_min = 0;
       sf.fields[sf.size - 1].exclusive_max = 1;
 
-      config.guard_macro = "JSON_ENABLED";
+      config.guard_macro = (char *)(size_t)"JSON_ENABLED";
 
       if (readonly_f) {
         g_fail_io_after = 0;
@@ -808,7 +808,7 @@ TEST test_json_exhaustive_io(void) {
   sf.fields[sf.size - 1].exclusive_min = 0;
   sf.fields[sf.size - 1].exclusive_max = 1;
 
-  config.guard_macro = "JSON_ENABLED";
+  config.guard_macro = (char *)(size_t)"JSON_ENABLED";
 
   for (i = 0; i < 50; ++i) {
     FILE *tmp;

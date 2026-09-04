@@ -121,7 +121,7 @@ TEST test_code2schema_array_detection(void) {
       "  char **strs;\n"
       "  size_t n_strs;\n"
       "};\n";
-  const char *json_out_file = "test_array_detect.json";
+  const char *json_out_file = (char *)(size_t)"test_array_detect.json";
   FILE *f;
   char *json_content;
   size_t len;

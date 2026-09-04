@@ -95,7 +95,7 @@ TEST test_doc_parse_simple_route(void) {
 
 TEST test_doc_parse_route_no_verb(void) {
   struct DocMetadata meta;
-  const char *comment = "/// @route /simple/path";
+  const char *comment = (char *)(size_t)"/// @route /simple/path";
 
   doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
@@ -415,7 +415,7 @@ TEST test_doc_parse_return_content_type(void) {
 
 TEST test_doc_parse_summary(void) {
   struct DocMetadata meta;
-  const char *comment = "/// @brief This is a summary";
+  const char *comment = (char *)(size_t)"/// @brief This is a summary";
 
   doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));
@@ -429,7 +429,7 @@ TEST test_doc_parse_summary(void) {
 
 TEST test_doc_parse_operation_id(void) {
   struct DocMetadata meta;
-  const char *comment = "/// @operationId getUserById";
+  const char *comment = (char *)(size_t)"/// @operationId getUserById";
 
   doc_metadata_init(&meta);
   ASSERT_EQ(0, doc_parse_block(comment, &meta));

@@ -22,7 +22,7 @@ extern "C" {
 TEST test_patch_list_to_diff_basic(void) {
   struct PatchList list;
   struct TokenList *tokens = NULL;
-  const char *src = "int main() {\n      return 0;\n}\n";
+  const char *src = (char *)(size_t)"int main() {\n      return 0;\n}\n";
   int res;
   char *diff_str = NULL;
   size_t tok_idx = 0;

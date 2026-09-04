@@ -97,9 +97,9 @@ TEST test_sec_bearer_token(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "bearerAuth";
+  sch.name = (char *)(size_t)"bearerAuth";
   sch.type = OA_SEC_HTTP;
-  sch.scheme = "bearer";
+  sch.scheme = (char *)(size_t)"bearer";
 
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
@@ -129,7 +129,7 @@ TEST test_sec_oauth2_bearer_token(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "oauth2";
+  sch.name = (char *)(size_t)"oauth2";
   sch.type = OA_SEC_OAUTH2;
 
   spec.security_schemes = &sch;
@@ -156,7 +156,7 @@ TEST test_sec_openid_bearer_token(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "openid";
+  sch.name = (char *)(size_t)"openid";
   sch.type = OA_SEC_OPENID;
 
   spec.security_schemes = &sch;
@@ -183,9 +183,9 @@ TEST test_sec_basic_token(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "basicAuth";
+  sch.name = (char *)(size_t)"basicAuth";
   sch.type = OA_SEC_HTTP;
-  sch.scheme = "basic";
+  sch.scheme = (char *)(size_t)"basic";
 
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
@@ -211,10 +211,10 @@ TEST test_sec_api_key_header(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "ApiKeyAuth";
+  sch.name = (char *)(size_t)"ApiKeyAuth";
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_HEADER;
-  sch.key_name = "X-API-KEY";
+  sch.key_name = (char *)(size_t)"X-API-KEY";
 
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
@@ -246,15 +246,15 @@ TEST test_sec_uri_requirement_matches_component(void) {
   memset(&req, 0, sizeof(req));
   memset(&set, 0, sizeof(set));
 
-  spec.self_uri = "/api/openapi";
+  spec.self_uri = (char *)(size_t)"/api/openapi";
 
-  sch.name = "ApiKeyAuth";
+  sch.name = (char *)(size_t)"ApiKeyAuth";
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_HEADER;
-  sch.key_name = "X-API-KEY";
+  sch.key_name = (char *)(size_t)"X-API-KEY";
 
-  req.scheme =
-      "https://example.com/api/openapi#/components/securitySchemes/ApiKeyAuth";
+  req.scheme = (char *)(size_t)"https://example.com/api/openapi#/components/"
+                               "securitySchemes/ApiKeyAuth";
   req.scopes = NULL;
   req.n_scopes = 0;
 
@@ -286,10 +286,10 @@ TEST test_sec_api_key_query(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "QueryKey";
+  sch.name = (char *)(size_t)"QueryKey";
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_QUERY;
-  sch.key_name = "api_key";
+  sch.key_name = (char *)(size_t)"api_key";
 
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
@@ -315,10 +315,10 @@ TEST test_sec_api_key_cookie(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&sch, 0, sizeof(sch));
 
-  sch.name = "CookieKey";
+  sch.name = (char *)(size_t)"CookieKey";
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_COOKIE;
-  sch.key_name = "session_id";
+  sch.key_name = (char *)(size_t)"session_id";
 
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
@@ -344,14 +344,14 @@ TEST test_sec_multiple_schemes(void) {
   memset(&spec, 0, sizeof(spec));
   memset(schemes, 0, sizeof(schemes));
 
-  schemes[0].name = "bearer";
+  schemes[0].name = (char *)(size_t)"bearer";
   schemes[0].type = OA_SEC_HTTP;
-  schemes[0].scheme = "bearer";
+  schemes[0].scheme = (char *)(size_t)"bearer";
 
-  schemes[1].name = "key";
+  schemes[1].name = (char *)(size_t)"key";
   schemes[1].type = OA_SEC_APIKEY;
   schemes[1].in = OA_SEC_IN_HEADER;
-  schemes[1].key_name = "X-Key";
+  schemes[1].key_name = (char *)(size_t)"X-Key";
 
   spec.security_schemes = schemes;
 
@@ -401,13 +401,13 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
   memset(schemes, 0, sizeof(schemes));
   memset(&op, 0, sizeof(op));
 
-  schemes[0].name = "bearerAuth";
+  schemes[0].name = (char *)(size_t)"bearerAuth";
   schemes[0].type = OA_SEC_HTTP;
-  schemes[0].scheme = "bearer";
+  schemes[0].scheme = (char *)(size_t)"bearer";
 
-  schemes[1].name = "basicAuth";
+  schemes[1].name = (char *)(size_t)"basicAuth";
   schemes[1].type = OA_SEC_HTTP;
-  schemes[1].scheme = "basic";
+  schemes[1].scheme = (char *)(size_t)"basic";
 
   spec.security_schemes = schemes;
 
@@ -459,14 +459,14 @@ TEST test_sec_security_requirements_filter(void) {
   memset(&set, 0, sizeof(set));
   memset(&req, 0, sizeof(req));
 
-  schemes[0].name = "bearerAuth";
+  schemes[0].name = (char *)(size_t)"bearerAuth";
   schemes[0].type = OA_SEC_HTTP;
-  schemes[0].scheme = "bearer";
+  schemes[0].scheme = (char *)(size_t)"bearer";
 
-  schemes[1].name = "ApiKeyAuth";
+  schemes[1].name = (char *)(size_t)"ApiKeyAuth";
   schemes[1].type = OA_SEC_APIKEY;
   schemes[1].in = OA_SEC_IN_HEADER;
-  schemes[1].key_name = "X-API-KEY";
+  schemes[1].key_name = (char *)(size_t)"X-API-KEY";
 
   spec.security_schemes = schemes;
 
@@ -484,7 +484,7 @@ TEST test_sec_security_requirements_filter(void) {
 
   spec.n_security_schemes = 5;
 
-  req.scheme = "ApiKeyAuth";
+  req.scheme = (char *)(size_t)"ApiKeyAuth";
   set.requirements = &req;
   set.n_requirements = 1;
   spec.security = &set;
@@ -571,12 +571,12 @@ TEST test_scheme_ref_matches_name(void) {
             scheme_ref_matches_name_test(
                 "http://x#/components/securitySchemes/abc", "abc", &spec));
 
-  spec.self_uri = "http://x";
+  spec.self_uri = (char *)(size_t)"http://x";
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             scheme_ref_matches_name_test(
                 "http://x#/components/securitySchemes/abc", "abc", &spec));
 
-  spec.self_uri = "http://y";
+  spec.self_uri = (char *)(size_t)"http://y";
   ASSERT_EQ(CDD_C_SUCCESS,
             scheme_ref_matches_name_test(
                 "http://x#/components/securitySchemes/abc", "abc", &spec));
@@ -592,7 +592,7 @@ TEST test_scheme_in_security_sets(void) {
   memset(&req, 0, sizeof(req));
   memset(&set, 0, sizeof(set));
 
-  req.scheme = "abc";
+  req.scheme = (char *)(size_t)"abc";
   set.requirements = &req;
   set.n_requirements = 1;
 
@@ -674,7 +674,7 @@ TEST test_codegen_security_requires_nulls(void) {
 
   sch.type = OA_SEC_APIKEY;
   sch.in = OA_SEC_IN_QUERY;
-  sch.name = "query_key";
+  sch.name = (char *)(size_t)"query_key";
 
   ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
 
@@ -741,11 +741,11 @@ TEST test_codegen_security_write_server_apply_nulls(void) {
 
   set.n_requirements = 1;
   set.requirements = &req;
-  req.scheme = "some_scheme";
+  req.scheme = (char *)(size_t)"some_scheme";
 
   spec.n_security_schemes = 1;
   spec.security_schemes = &sch;
-  sch.name = "not_matching";
+  sch.name = (char *)(size_t)"not_matching";
 
   ASSERT_EQ(CDD_C_SUCCESS,
             codegen_security_write_server_apply(tmp, &op, &spec));

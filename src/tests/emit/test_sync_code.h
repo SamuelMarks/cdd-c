@@ -28,7 +28,7 @@ extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write;
  * @return TEST
  */
 TEST test_sync_code_wrong_args(void) {
-  char *argv[] = {"program", (char *)NULL};
+  char *argv[] = {(char *)(size_t)"program", (char *)NULL};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();
@@ -39,7 +39,7 @@ TEST test_sync_code_wrong_args(void) {
  * @return TEST
  */
 TEST test_sync_code_main_argc(void) {
-  char *argv[] = {"foo.h"};
+  char *argv[] = {(char *)(size_t)"foo.h"};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
   g_fail_io_after = -1;
   PASS();
@@ -50,7 +50,7 @@ TEST test_sync_code_main_argc(void) {
  * @return TEST
  */
 TEST test_sync_code_file_missing(void) {
-  char *argv[] = {"notfound.h", "impl.c"};
+  char *argv[] = {(char *)(size_t)"notfound.h", (char *)(size_t)"impl.c"};
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, sync_code_main(2, argv));
   g_fail_io_after = -1;
   PASS();
@@ -63,8 +63,8 @@ TEST test_sync_code_file_missing(void) {
 TEST test_sync_code_simple_struct_enum(void) {
   const char *const filename = "test30.h";
   char *argv[2];
-  argv[0] = (char *)filename;
-  argv[1] = "impl30.c";
+  argv[0] = (char *)(size_t)filename;
+  argv[1] = (char *)(size_t)"impl30.c";
   ASSERT_EQ(
       EXIT_SUCCESS,
       write_to_file(filename,
@@ -89,8 +89,8 @@ TEST test_sync_code_simple_struct_enum(void) {
 TEST test_sync_code_empty_header(void) {
   const char *const filename = "emptyheader.h";
   char *argv[2];
-  argv[0] = (char *)filename;
-  argv[1] = "emptyimpl.c";
+  argv[0] = (char *)(size_t)filename;
+  argv[1] = (char *)(size_t)"emptyimpl.c";
   ASSERT_EQ(0, write_to_file(filename, ""));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -106,8 +106,8 @@ TEST test_sync_code_empty_header(void) {
 TEST test_sync_code_no_struct_or_enum(void) {
   const char *const filename = "nostructenum.h";
   char *argv[2];
-  argv[0] = (char *)filename;
-  argv[1] = "noimpl.c";
+  argv[0] = (char *)(size_t)filename;
+  argv[1] = (char *)(size_t)"noimpl.c";
   ASSERT_EQ(0, write_to_file(filename, "// just a comment\n"));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -123,8 +123,8 @@ TEST test_sync_code_no_struct_or_enum(void) {
 TEST test_sync_code_impl_file_cannot_open(void) {
   const char *const filename = "onlystruct.h";
   char *argv[2];
-  argv[0] = (char *)filename;
-  argv[1] = "/";
+  argv[0] = (char *)(size_t)filename;
+  argv[1] = (char *)(size_t)"/";
   ASSERT_EQ(0, write_to_file(filename, "struct X {int i;};\n"));
   ASSERT(sync_code_main(2, argv) != 0);
   remove(filename);
@@ -137,7 +137,7 @@ TEST test_sync_code_impl_file_cannot_open(void) {
  * @return TEST
  */
 TEST test_sync_code_too_many_defs(void) {
-  char *argv[] = {"too_many.h", "too_many.c"};
+  char *argv[] = {(char *)(size_t)"too_many.h", (char *)(size_t)"too_many.c"};
   const char *const filename = argv[0];
   FILE *f;
   int i;
@@ -173,7 +173,8 @@ TEST test_sync_code_too_many_defs(void) {
  * @return TEST
  */
 TEST test_sync_code_unterminated_defs(void) {
-  char *argv[] = {"unterminated.h", "unterminated.c"};
+  char *argv[] = {(char *)(size_t)"unterminated.h",
+                  (char *)(size_t)"unterminated.c"};
   const char *const filename = argv[0];
 
   ASSERT_EQ(0, write_to_file(filename, "struct MyStruct { int x;"));
@@ -198,7 +199,7 @@ TEST test_patch_header_basic(void) {
      Source: int foo() { return 0; }
      Expected Header: int foo();
   */
-  const char *h_path = "basic_patch.h";
+  const char *h_path = (char *)(size_t)"basic_patch.h";
   const char *src = ""
                     "int foo() { return 0; }";
   char *content = NULL;
@@ -233,7 +234,7 @@ TEST test_patch_header_ptr_arg(void) {
     Header: char* bar(int x);
     Source: int bar(int x, char **out) { ... }
   */
-  const char *h_path = "ptr_patch.h";
+  const char *h_path = (char *)(size_t)"ptr_patch.h";
   const char *src = ""
                     "int bar(int x, char **out) { *out=0;return 0; }";
   char *content = NULL;
@@ -271,7 +272,7 @@ TEST test_patch_header_ignore_others(void) {
     Source contains only 'foo'.
     Header 'other' should be untouched.
   */
-  const char *h_path = "ignore_others.h";
+  const char *h_path = (char *)(size_t)"ignore_others.h";
   const char *src = ""
                     "int foo(void) { return 0; }";
   char *content = NULL;
@@ -298,8 +299,8 @@ TEST test_patch_header_ignore_others(void) {
 }
 
 TEST test_patch_header_bounds(void) {
-  const char *h_path = "bounds_patch.h";
-  const char *src = "int foo() { return 0; }";
+  const char *h_path = (char *)(size_t)"bounds_patch.h";
+  const char *src = (char *)(size_t)"int foo() { return 0; }";
   int rc;
 
   /* End of file while looking for semicolon */
@@ -337,8 +338,8 @@ TEST test_patch_header_bounds(void) {
 
 TEST test_patch_header_failures(void) {
 #ifdef CDD_BUILD_TESTS
-  const char *h_path = "fail_patch.h";
-  const char *src = "int foo() { return 0; }";
+  const char *h_path = (char *)(size_t)"fail_patch.h";
+  const char *src = (char *)(size_t)"int foo() { return 0; }";
   int rc;
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_func_sig_init; (moved to global) */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_patch_list_init; (moved to global)
@@ -428,23 +429,23 @@ TEST test_sync_oom(void) {
     }
 
     g_cdd_fprintf_fail = 8001;
-    rc_s = sync_code_main(2, (char **)argv);
+    rc_s = sync_code_main(2, (char **)(size_t)argv);
     ASSERT_EQ(CDD_C_ERROR_IO, rc_s);
 
     g_cdd_fprintf_fail = 8002;
-    rc_s = sync_code_main(2, (char **)argv);
+    rc_s = sync_code_main(2, (char **)(size_t)argv);
     ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, rc_s);
 
     g_cdd_fprintf_fail = 8003;
-    rc_s = sync_code_main(2, (char **)argv);
+    rc_s = sync_code_main(2, (char **)(size_t)argv);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_s);
 
     g_cdd_fprintf_fail = 8004;
-    rc_s = sync_code_main(2, (char **)argv);
+    rc_s = sync_code_main(2, (char **)(size_t)argv);
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc_s);
 
     g_cdd_fprintf_fail = 8005;
-    rc_s2 = sync_code_main(2, (char **)argv);
+    rc_s2 = sync_code_main(2, (char **)(size_t)argv);
     g_cdd_fprintf_fail = 0;
     ASSERT_EQ(0, rc_s2);
     g_cdd_alloc_fail = 0;

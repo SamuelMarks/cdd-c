@@ -140,9 +140,9 @@ TEST test_query_gen_scalar(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "page";
+  param.name = (char *)(size_t)"page";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "integer";
+  param.type = (char *)(size_t)"integer";
   param.is_array = 0;
 
   op.parameters = &param;
@@ -169,9 +169,9 @@ TEST test_query_gen_scalar_number(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "ratio";
+  param.name = (char *)(size_t)"ratio";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "number";
+  param.type = (char *)(size_t)"number";
   param.is_array = 0;
 
   op.parameters = &param;
@@ -197,11 +197,11 @@ TEST test_query_gen_array_explode_int(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "ids";
+  param.name = (char *)(size_t)"ids";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "integer";
+  param.items_type = (char *)(size_t)"integer";
   param.explode = 1;
 
   op.parameters = &param;
@@ -232,11 +232,11 @@ TEST test_query_gen_array_explode_number(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "ratios";
+  param.name = (char *)(size_t)"ratios";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "number";
+  param.items_type = (char *)(size_t)"number";
   param.explode = 1;
 
   op.parameters = &param;
@@ -265,11 +265,11 @@ TEST test_query_gen_array_explode_string(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.explode = 1;
 
   op.parameters = &param;
@@ -296,11 +296,11 @@ TEST test_query_gen_array_form_default_explode(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_FORM;
   /* explode_set is false -> default should be explode=true */
 
@@ -329,9 +329,9 @@ TEST test_query_gen_querystring(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "string";
+  param.type = (char *)(size_t)"string";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -357,11 +357,11 @@ TEST test_query_gen_querystring_form_object(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "object";
-  param.content_type = "application/x-www-form-urlencoded";
-  param.schema.inline_type = "object";
+  param.type = (char *)(size_t)"object";
+  param.content_type = (char *)(size_t)"application/x-www-form-urlencoded";
+  param.schema.inline_type = (char *)(size_t)"object";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -388,11 +388,11 @@ TEST test_query_gen_querystring_json_ref(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "object";
-  param.content_type = "application/json";
-  param.schema.ref_name = "Pet";
+  param.type = (char *)(size_t)"object";
+  param.content_type = (char *)(size_t)"application/json";
+  param.schema.ref_name = (char *)(size_t)"Pet";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -419,11 +419,11 @@ TEST test_query_gen_querystring_json_primitive(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "integer";
-  param.content_type = "application/json";
-  param.schema.inline_type = "integer";
+  param.type = (char *)(size_t)"integer";
+  param.content_type = (char *)(size_t)"application/json";
+  param.schema.inline_type = (char *)(size_t)"integer";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -450,12 +450,12 @@ TEST test_query_gen_querystring_json_array(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "array";
-  param.content_type = "application/json";
+  param.type = (char *)(size_t)"array";
+  param.content_type = (char *)(size_t)"application/json";
   param.schema.is_array = 1;
-  param.schema.inline_type = "string";
+  param.schema.inline_type = (char *)(size_t)"string";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -482,12 +482,12 @@ TEST test_query_gen_querystring_json_array_object(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "array";
-  param.content_type = "application/json";
+  param.type = (char *)(size_t)"array";
+  param.content_type = (char *)(size_t)"application/json";
   param.schema.is_array = 1;
-  param.items_type = "Pet";
+  param.items_type = (char *)(size_t)"Pet";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -515,11 +515,11 @@ TEST test_query_gen_querystring_raw_string(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "string";
-  param.content_type = "text/plain";
-  param.schema.inline_type = "string";
+  param.type = (char *)(size_t)"string";
+  param.content_type = (char *)(size_t)"text/plain";
+  param.schema.inline_type = (char *)(size_t)"string";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -546,11 +546,11 @@ TEST test_query_gen_querystring_raw_integer(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "qs";
+  param.name = (char *)(size_t)"qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = "integer";
-  param.content_type = "application/jsonpath";
-  param.schema.inline_type = "integer";
+  param.type = (char *)(size_t)"integer";
+  param.content_type = (char *)(size_t)"application/jsonpath";
+  param.schema.inline_type = (char *)(size_t)"integer";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -578,11 +578,11 @@ TEST test_query_gen_array_form_explode_false(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_FORM;
   param.explode = 0;
   param.explode_set = 1;
@@ -611,11 +611,11 @@ TEST test_query_gen_array_space_delimited(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_SPACE_DELIMITED;
   param.explode = 0;
 
@@ -643,11 +643,11 @@ TEST test_query_gen_array_pipe_delimited(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_PIPE_DELIMITED;
   param.explode = 0;
 
@@ -675,9 +675,9 @@ TEST test_query_gen_scalar_allow_reserved(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "string";
+  param.type = (char *)(size_t)"string";
   param.allow_reserved_set = 1;
   param.allow_reserved = 1;
 
@@ -704,11 +704,11 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.explode = 1;
   param.allow_reserved_set = 1;
   param.allow_reserved = 1;
@@ -737,9 +737,9 @@ TEST test_query_gen_object_form_explode(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_FORM;
   param.explode = 1;
 
@@ -768,9 +768,9 @@ TEST test_query_gen_object_form_explode_false(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_FORM;
   param.explode = 0;
   param.explode_set = 1;
@@ -801,9 +801,9 @@ TEST test_query_gen_object_deep_object(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_DEEP_OBJECT;
 
   op.parameters = &param;
@@ -830,9 +830,9 @@ TEST test_query_gen_object_space_delimited(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_SPACE_DELIMITED;
 
   op.parameters = &param;
@@ -859,9 +859,9 @@ TEST test_query_gen_object_pipe_delimited(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_PIPE_DELIMITED;
 
   op.parameters = &param;
@@ -888,9 +888,9 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_SPACE_DELIMITED;
   param.allow_reserved_set = 1;
   param.allow_reserved = 1;
@@ -921,11 +921,11 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_SPACE_DELIMITED;
   param.allow_reserved_set = 1;
   param.allow_reserved = 1;
@@ -952,9 +952,9 @@ TEST test_path_matrix_param_string(void) {
   char *code;
 
   memset(&param, 0, sizeof(param));
-  param.name = "id";
+  param.name = (char *)(size_t)"id";
   param.in = OA_PARAM_IN_PATH;
-  param.type = "string";
+  param.type = (char *)(size_t)"string";
   param.style = OA_STYLE_MATRIX;
   param.explode = 0;
 
@@ -975,11 +975,11 @@ TEST test_path_label_array_explode(void) {
   char *code;
 
   memset(&param, 0, sizeof(param));
-  param.name = "tags";
+  param.name = (char *)(size_t)"tags";
   param.in = OA_PARAM_IN_PATH;
-  param.type = "array";
+  param.type = (char *)(size_t)"array";
   param.is_array = 1;
-  param.items_type = "string";
+  param.items_type = (char *)(size_t)"string";
   param.style = OA_STYLE_LABEL;
   param.explode = 1;
 
@@ -1000,9 +1000,9 @@ TEST test_path_matrix_object_explode_false(void) {
   char *code;
 
   memset(&param, 0, sizeof(param));
-  param.name = "color";
+  param.name = (char *)(size_t)"color";
   param.in = OA_PARAM_IN_PATH;
-  param.type = "object";
+  param.type = (char *)(size_t)"object";
   param.style = OA_STYLE_MATRIX;
   param.explode = 0;
   param.explode_set = 1;
@@ -1025,9 +1025,9 @@ TEST test_path_simple_param_number(void) {
   char *code;
 
   memset(&param, 0, sizeof(param));
-  param.name = "id";
+  param.name = (char *)(size_t)"id";
   param.in = OA_PARAM_IN_PATH;
-  param.type = "number";
+  param.type = (char *)(size_t)"number";
   param.style = OA_STYLE_SIMPLE;
 
   code = (gen_url_code("/items/{id}", &param, 1, &_ast_gen_url_code_29),
@@ -1051,11 +1051,11 @@ TEST test_query_gen_json_content_ref(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "filter";
+  param.name = (char *)(size_t)"filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.content_type = "application/json";
-  param.schema.ref_name = "Filter";
-  param.type = "Filter";
+  param.content_type = (char *)(size_t)"application/json";
+  param.schema.ref_name = (char *)(size_t)"Filter";
+  param.type = (char *)(size_t)"Filter";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1127,26 +1127,26 @@ TEST test_media_type_ieq_url_extra(void) {
     const char *out_val;
     memset(&p, 0, sizeof(p));
     p.in = OA_PARAM_IN_QUERYSTRING;
-    p.content_type = "application/json";
+    p.content_type = (char *)(size_t)"application/json";
     p.schema.is_array = 1;
 
-    p.schema.inline_type = "boolean";
+    p.schema.inline_type = (char *)(size_t)"boolean";
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(0, strcmp(out_val, "boolean"));
 
-    p.schema.inline_type = "number";
+    p.schema.inline_type = (char *)(size_t)"number";
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(0, strcmp(out_val, "number"));
 
-    p.schema.inline_type = "invalid";
+    p.schema.inline_type = (char *)(size_t)"invalid";
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(NULL, out_val);
 
     p.schema.inline_type = NULL;
-    p.items_type = "invalid";
+    p.items_type = (char *)(size_t)"invalid";
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(NULL, out_val);
@@ -1158,9 +1158,9 @@ TEST test_media_type_ieq_url_extra(void) {
     const char *out_val;
     memset(&p, 0, sizeof(p));
     p.in = OA_PARAM_IN_QUERYSTRING;
-    p.content_type = "application/json";
-    p.type = "array";
-    p.items_type = "string";
+    p.content_type = (char *)(size_t)"application/json";
+    p.type = (char *)(size_t)"array";
+    p.items_type = (char *)(size_t)"string";
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(0, strcmp(out_val, "string"));
@@ -1172,28 +1172,28 @@ TEST test_media_type_ieq_url_extra(void) {
     struct OpenAPI_Parameter p = {0};
     char *out = NULL;
 
-    p.name = "qs";
+    p.name = (char *)(size_t)"qs";
     p.in = OA_PARAM_IN_QUERYSTRING;
-    p.content_type = "text/plain";
-    p.type = "boolean";
+    p.content_type = (char *)(size_t)"text/plain";
+    p.type = (char *)(size_t)"boolean";
     op.parameters = &p;
     op.n_parameters = 1;
     gen_query_code(&op, &out);
     if (out)
       free(out);
 
-    p.type = "invalid";
+    p.type = (char *)(size_t)"invalid";
     gen_query_code(&op, &out);
     if (out)
       free(out);
 
     p.type = NULL;
-    p.schema.inline_type = "integer";
+    p.schema.inline_type = (char *)(size_t)"integer";
     gen_query_code(&op, &out);
     if (out)
       free(out);
 
-    p.content_type = "application/x-www-form-urlencoded";
+    p.content_type = (char *)(size_t)"application/x-www-form-urlencoded";
     gen_query_code(&op, &out);
     if (out)
       free(out);
@@ -1215,9 +1215,9 @@ TEST test_codegen_url_coverage_extras(void) {
 
   /* querystring_param_json_array_item_ref with object */
   p.in = OA_PARAM_IN_QUERYSTRING;
-  p.content_type = "application/json";
+  p.content_type = (char *)(size_t)"application/json";
   p.schema.is_array = 1;
-  p.items_type = "object";
+  p.items_type = (char *)(size_t)"object";
   {
     const char *out_str = NULL;
     querystring_param_json_array_item_ref(&p, &out_str);
@@ -1226,27 +1226,27 @@ TEST test_codegen_url_coverage_extras(void) {
   op.n_parameters = 1;
   op.parameters = &p;
 
-  p.name = "test_param";
+  p.name = (char *)(size_t)"test_param";
   p.in = OA_PARAM_IN_QUERYSTRING;
 
   p.content_type = NULL;
 
   p.schema.inline_type = NULL;
-  p.type = "invalid_type";
+  p.type = (char *)(size_t)"invalid_type";
   gen_query_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
   }
 
-  p.type = "number";
+  p.type = (char *)(size_t)"number";
   gen_query_code(&op, &out);
   if (out) {
     free(out);
     out = NULL;
   }
 
-  p.type = "boolean";
+  p.type = (char *)(size_t)"boolean";
   gen_query_code(&op, &out);
   if (out) {
     free(out);
@@ -1288,9 +1288,9 @@ TEST test_codegen_url_io_errors(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  param.name = "page";
+  param.name = (char *)(size_t)"page";
   param.in = OA_PARAM_IN_QUERY;
-  param.type = "integer";
+  param.type = (char *)(size_t)"integer";
   param.is_array = 0;
   op.parameters = &param;
   op.n_parameters = 1;

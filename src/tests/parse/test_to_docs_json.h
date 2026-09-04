@@ -84,16 +84,17 @@ static void write_test_spec(void) {
 }
 
 TEST test_to_docs_json_basic(void) {
-  char *argv[] = {"to_docs_json", "-i", (char *)TEMP_SPEC_FILE};
+  char *argv[] = {(char *)(size_t)"to_docs_json", (char *)(size_t)"-i",
+                  (char *)(size_t)TEMP_SPEC_FILE};
   int rc;
-  (void)rc;
   int stdout_fd = 0;
-  JSON_Value *val;
-  JSON_Object *root_obj;
-  JSON_Object *endpoints_obj;
-  JSON_Object *pet_obj;
-  const char *code_str;
+  JSON_Value *val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Object *endpoints_obj = NULL;
+  JSON_Object *pet_obj = NULL;
+  const char *code_str = NULL;
   fpos_t pos;
+  (void)rc;
 
   memset(&pos, 0, sizeof(pos));
 
@@ -158,17 +159,19 @@ TEST test_to_docs_json_basic(void) {
 }
 
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
-  char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i",
-                  (char *)TEMP_SPEC_FILE};
+  char *argv[] = {(char *)(size_t)"to_docs_json",
+                  (char *)(size_t)"--no-imports",
+                  (char *)(size_t)"--no-wrapping", (char *)(size_t)"-i",
+                  (char *)(size_t)TEMP_SPEC_FILE};
   int rc;
-  (void)rc;
   int stdout_fd = 0;
-  JSON_Value *val;
-  JSON_Object *root_obj;
-  JSON_Object *endpoints_obj;
-  JSON_Object *pet_obj;
-  const char *code_str;
+  JSON_Value *val = NULL;
+  JSON_Object *root_obj = NULL;
+  JSON_Object *endpoints_obj = NULL;
+  JSON_Object *pet_obj = NULL;
+  const char *code_str = NULL;
   fpos_t pos;
+  (void)rc;
 
   memset(&pos, 0, sizeof(pos));
 

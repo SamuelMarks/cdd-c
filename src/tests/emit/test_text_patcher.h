@@ -28,7 +28,7 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc = tokenize(az_span_create_from_str((char *)code), &tl);
+  int rc = tokenize(az_span_create_from_str((char *)(size_t)code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
     return 0;
@@ -64,7 +64,7 @@ TEST test_patch_basic_replacement(void) {
   /* Input: int x = 5; */
   /* Tokens: [int] [ ] [x] [ ] [=] [ ] [5] [;] */
   /* Indices: 0     1   2   3   4   5   6   7 */
-  const char *code = "int x = 5;";
+  const char *code = (char *)(size_t)"int x = 5;";
   struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_0),
                           _ast_setup_patch_tokens_0);
   struct PatchList pl;
@@ -141,7 +141,7 @@ TEST test_patch_deletion(void) {
   char *_ast_strdup_3 = NULL;
   /* Input: int x; */
   /* Tokens: [int] [ ] [x] [;] */
-  const char *code = "int x;";
+  const char *code = (char *)(size_t)"int x;";
   struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_2),
                           _ast_setup_patch_tokens_2);
   struct PatchList pl;
@@ -173,7 +173,7 @@ TEST test_patch_multiple_disjoint(void) {
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
   /* Input: A B C */
-  const char *code = "A B C";
+  const char *code = (char *)(size_t)"A B C";
   struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_3),
                           _ast_setup_patch_tokens_3);
   struct PatchList pl;
@@ -210,7 +210,7 @@ TEST test_patch_overlap_behavior(void) {
   char *_ast_strdup_6 = NULL;
   char *_ast_strdup_7 = NULL;
   /* Input: A */
-  const char *code = "A";
+  const char *code = (char *)(size_t)"A";
   struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_4),
                           _ast_setup_patch_tokens_4);
   struct PatchList pl;
@@ -254,7 +254,7 @@ TEST test_patch_overlap_behavior(void) {
 TEST test_patch_append_end(void) {
   struct TokenList *_ast_setup_patch_tokens_5;
   char *_ast_strdup_8 = NULL;
-  const char *code = "End";
+  const char *code = (char *)(size_t)"End";
   struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_5),
                           _ast_setup_patch_tokens_5);
   struct PatchList pl;
@@ -371,7 +371,8 @@ TEST test_patcher_oom(void) {
       patch_list_init(&p_oom);
       {
         struct TokenList *tl_alloc = NULL;
-        tokenize(az_span_create_from_str((char *)"int main(){}"), &tl_alloc);
+        tokenize(az_span_create_from_str((char *)(size_t)"int main(){}"),
+                 &tl_alloc);
 
         {
           char huge_oom[3000];
@@ -1190,7 +1191,7 @@ TEST test_patcher_cov(void) {
 
   /* test patch_list_apply OOM in copy original token content loop */
   patch_list_init(&pl);
-  tokenize(az_span_create_from_str((char *)"int a;"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)"int a;"), &tl);
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -1212,7 +1213,7 @@ TEST test_patcher_cov_extra(void) {
   struct TokenList *tl = NULL;
 
   patch_list_init(&pl);
-  tokenize(az_span_create_from_str((char *)"int"), &tl); /* 1 token */
+  tokenize(az_span_create_from_str((char *)(size_t)"int"), &tl); /* 1 token */
 
   /* Patch 0: replaces token 0 up to 3 (which exceeds size 1), making
    * current_token = 3 */
@@ -1234,7 +1235,7 @@ TEST test_patcher_cov_extra(void) {
 TEST test_patcher_oom_original_token_copy(void) {
   struct PatchList list;
   struct TokenList *tl = NULL;
-  const char *src = "int a = 5; int b = 6; int c = 7;";
+  const char *src = (char *)(size_t)"int a = 5; int b = 6; int c = 7;";
   int res;
   char *out_code = NULL;
   int i;

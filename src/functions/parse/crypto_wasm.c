@@ -29,9 +29,8 @@ EM_JS(int, js_crypto_sha256, (const uint8_t *data, size_t len, uint8_t *out), {
       var digest = hash.digest();
       HEAPU8.set(digest, out);
       return 1;
-    } catch (e) {
-      return 0;
     }
+    catch(e) { return 0; }
   }
   return 0;
 })
@@ -51,9 +50,8 @@ EM_JS(int, js_crypto_hmac_sha256,
             var digest = hmac.digest();
             HEAPU8.set(digest, out);
             return 1;
-          } catch (e) {
-            return 0;
           }
+          catch(e) { return 0; }
         }
         return 0;
       })

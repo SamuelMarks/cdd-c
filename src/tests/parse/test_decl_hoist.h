@@ -30,8 +30,8 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
 TEST test_scan_for_mixed_declarations_basic(void) {
   struct TokenList *tokens = NULL;
   struct HoistSiteList list;
-  const char *src =
-      "void func() {\n      int a = 1;\n  a = 2;\n  int b = 3;\n}\n";
+  const char *src = (char *)(size_t)"void func() {\n      int a = 1;\n  a = "
+                                    "2;\n  int b = 3;\n}\n";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)src), &tokens));
 

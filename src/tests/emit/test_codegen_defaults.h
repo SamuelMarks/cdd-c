@@ -315,7 +315,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   sf.enum_members.members[sf.enum_members.size] = NULL;
   sf.enum_members
       .size++; /* Intentionally leave one member NULL to test !member branch */
-  cfg.enum_guard = "MY_GUARD";
+  cfg.enum_guard = (char *)(size_t)"MY_GUARD";
 
   ASSERT(tmp);
   g_fail_io_after = 0;
@@ -368,8 +368,8 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
   struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
   struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
-  cfg.json_guard = "JSON_G";
-  cfg.utils_guard = "UTILS_G";
+  cfg.json_guard = (char *)(size_t)"JSON_G";
+  cfg.utils_guard = (char *)(size_t)"UTILS_G";
 
   ASSERT(tmp);
   {
@@ -429,8 +429,8 @@ TEST test_write_union_declaration_h_io_fail(void) {
   struct_fields_add(&sf, "a_b", "array", "boolean", NULL, NULL);
   struct_fields_add(&sf, "a_r", "array", "R", NULL, NULL);
   struct_fields_add(&sf, "v", "void", NULL, NULL, NULL);
-  cfg.json_guard = "JSON_G";
-  cfg.utils_guard = "UTILS_G";
+  cfg.json_guard = (char *)(size_t)"JSON_G";
+  cfg.utils_guard = (char *)(size_t)"UTILS_G";
 
   ASSERT(tmp);
   {

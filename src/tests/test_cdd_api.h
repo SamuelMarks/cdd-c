@@ -17,14 +17,14 @@ extern "C" {
 TEST test_cdd_generate_from_openapi(void) {
   cdd_from_openapi_config_t config = {0};
 
-  config.input = (char *)"nonexistent.json";
-  config.output = (char *)"out";
-  config.subcommand = "to_sdk";
+  config.input = (char *)(size_t)(size_t)"nonexistent.json";
+  config.output = (char *)(size_t)(size_t)"out";
+  config.subcommand = (char *)(size_t)(size_t)"to_sdk";
   cdd_generate_from_openapi(&config);
 
   config.subcommand = NULL;
   config.input = NULL;
-  config.input_dir = "nonexistent_dir";
+  config.input_dir = (char *)(size_t)(size_t)"nonexistent_dir";
   config.no_github_actions = 1;
   config.no_installable_package = 1;
   config.tests = 1;
@@ -45,8 +45,8 @@ TEST test_cdd_generate_from_openapi(void) {
 TEST test_cdd_generate_to_openapi(void) {
   cdd_to_openapi_config_t config = {0};
 
-  config.input = "nonexistent.c";
-  config.output = "out.json";
+  config.input = (char *)(size_t)(size_t)"nonexistent.c";
+  config.output = (char *)(size_t)(size_t)"out.json";
   cdd_generate_to_openapi(&config);
 
   config.input = NULL;
@@ -59,8 +59,8 @@ TEST test_cdd_generate_to_openapi(void) {
 TEST test_cdd_generate_docs_json(void) {
   cdd_docs_json_config_t config = {0};
 
-  config.input = (char *)"nonexistent.json";
-  config.output = "out.json";
+  config.input = (char *)(size_t)(size_t)"nonexistent.json";
+  config.output = (char *)(size_t)(size_t)"out.json";
   config.no_imports = 1;
   config.no_wrapping = 1;
   cdd_generate_docs_json(&config);
@@ -78,11 +78,11 @@ TEST test_cdd_serve_json_rpc(void) {
   cdd_serve_json_rpc_config_t config = {0};
 
   config.port = 1; /* port > 0 */
-  config.listen_host = "255";
+  config.listen_host = (char *)(size_t)(size_t)"255";
   cdd_serve_json_rpc(&config);
 
   config.port = 0;
-  config.listen_host = "255";
+  config.listen_host = (char *)(size_t)(size_t)"255";
   config.listen_host = NULL;
   cdd_serve_json_rpc(&config);
 
@@ -122,14 +122,14 @@ TEST test_cdd_generate_bindings(void) {
   /* NULL config / args */
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(NULL));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
-  config.input = "input";
+  config.input = (char *)(size_t)(size_t)"input";
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
-  config.output_dir = "out";
+  config.output_dir = (char *)(size_t)(size_t)"out";
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_generate_bindings(&config));
 
-  config.input = "nonexistent.c";
-  config.output_dir = "out_dir";
-  config.target_langs = "all";
+  config.input = (char *)(size_t)(size_t)"nonexistent.c";
+  config.output_dir = (char *)(size_t)(size_t)"out_dir";
+  config.target_langs = (char *)(size_t)(size_t)"all";
   /* Read file failure */
   ASSERT_NEQ(0, cdd_generate_bindings(&config));
 
@@ -141,7 +141,7 @@ TEST test_cdd_generate_bindings(void) {
       fclose(f);
   }
 
-  config.input = "test_dummy_bindings.h";
+  config.input = (char *)(size_t)(size_t)"test_dummy_bindings.h";
 
   /* Extractor failure */
   g_ffi_extractor_alloc_fail = 1;
@@ -149,14 +149,15 @@ TEST test_cdd_generate_bindings(void) {
   g_ffi_extractor_alloc_fail = 0;
 
   /* Test failure branch (rc != 0) for each language */
-  config.output_dir = "nonexistent_dir_12345/nonexistent";
+  config.output_dir =
+      (char *)(size_t)(size_t)"nonexistent_dir_12345/nonexistent";
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
     config.target_langs = langs[i];
     ASSERT_NEQ(0, cdd_generate_bindings(&config));
   }
 
   /* Test success branch for each language */
-  config.output_dir = "test_bindings_out";
+  config.output_dir = (char *)(size_t)(size_t)"test_bindings_out";
   makedir(config.output_dir);
   for (i = 0; i < sizeof(langs) / sizeof(langs[0]); i++) {
     config.target_langs = langs[i];

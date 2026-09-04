@@ -30,7 +30,7 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc;
  * @return TEST
  */
 TEST test_diff_generation_basic(void) {
-  const char *src = "int a = 1;";
+  const char *src = (char *)(size_t)"int a = 1;";
   struct TokenList *tokens = NULL;
   struct PatchList patch_list;
   char *diff = NULL;

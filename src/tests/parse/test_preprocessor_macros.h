@@ -252,7 +252,7 @@ TEST test_macro_evaluator_errors(void) {
  * @return The result of the test.
  */
 TEST test_pp_define_object_like(void) {
-  const char *fname = "test_defs.h";
+  const char *fname = (char *)(size_t)"test_defs.h";
   int rc;
   struct PreprocessorContext ctx;
 
@@ -282,7 +282,7 @@ TEST test_pp_define_object_like(void) {
  * @return The result of the test.
  */
 TEST test_pp_define_function_like(void) {
-  const char *fname = "test_func_macros.h";
+  const char *fname = (char *)(size_t)"test_func_macros.h";
   int rc;
   struct PreprocessorContext ctx;
 
@@ -312,7 +312,7 @@ TEST test_pp_define_function_like(void) {
  * @return The result of the test.
  */
 TEST test_pp_define_variadic_standard(void) {
-  const char *fname = "test_variadic.h";
+  const char *fname = (char *)(size_t)"test_variadic.h";
   int rc;
   struct PreprocessorContext ctx;
 
@@ -345,7 +345,7 @@ TEST test_pp_define_variadic_standard(void) {
  * @return The result of the test.
  */
 TEST test_pp_define_variadic_empty(void) {
-  const char *fname = "test_var_empty.h";
+  const char *fname = (char *)(size_t)"test_var_empty.h";
   int rc;
   struct PreprocessorContext ctx;
 
@@ -374,7 +374,7 @@ TEST test_pp_define_variadic_empty(void) {
  * @return The result of the test.
  */
 TEST test_pp_define_variadic_gcc(void) {
-  const char *fname = "test_var_gcc.h";
+  const char *fname = (char *)(size_t)"test_var_gcc.h";
   int rc;
   struct PreprocessorContext ctx;
 
@@ -429,8 +429,8 @@ TEST test_macro_evaluator_uncovered(void) {
   ASSERT_NEQ(0, rc);
 
   /* recursive error */
-  def.name = "BAD";
-  def.value = "1 = 2";
+  def.name = (char *)(size_t)"BAD";
+  def.value = (char *)(size_t)"1 = 2";
   def.is_function_like = 0;
   def.arg_count = 0;
   def.args = NULL;

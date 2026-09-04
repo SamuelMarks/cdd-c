@@ -208,9 +208,9 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             copy_doc_server_variables_op(&dst, &src));
 
-  src.variables[0].name = "name";
-  src.variables[0].default_value = "def";
-  src.variables[0].description = "desc";
+  src.variables[0].name = (char *)(size_t)"name";
+  src.variables[0].default_value = (char *)(size_t)"def";
+  src.variables[0].description = (char *)(size_t)"desc";
   src.variables[0].n_enum_values = 2;
   src.variables[0].enum_values = (char **)calloc(2, sizeof(char *));
   src.variables[0].enum_values[0] = strdup("e1");
@@ -258,8 +258,8 @@ TEST test_operation_find_response_by_code(void) {
 
   op.n_responses = 2;
   op.responses = (struct OpenAPI_Response *)calloc(2, sizeof(*op.responses));
-  op.responses[0].code = "404";
-  op.responses[1].code = "200";
+  op.responses[0].code = (char *)(size_t)"404";
+  op.responses[1].code = (char *)(size_t)"200";
 
   ASSERT_EQ(0, find_response_by_code(&op, "200", &out));
   ASSERT(out == &op.responses[1]);
@@ -282,8 +282,8 @@ TEST test_operation_find_media_type_op(void) {
   ASSERT_EQ(0, find_media_type_op(NULL, 0, "test", &out));
   ASSERT(out == NULL);
 
-  mts[0].name = "application/json";
-  mts[1].name = "text/plain";
+  mts[0].name = (char *)(size_t)"application/json";
+  mts[1].name = (char *)(size_t)"text/plain";
 
   ASSERT_EQ(0, find_media_type_op(mts, 2, "application/json", &out));
   ASSERT(out == &mts[0]);
@@ -337,7 +337,7 @@ TEST test_operation_apply_example(void) {
   resp.n_content_media_types = 1;
   resp.content_media_types =
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
-  resp.content_media_types[0].name = "application/json";
+  resp.content_media_types[0].name = (char *)(size_t)"application/json";
 
   /* Content type provided but doesn't match */
   ASSERT_EQ(0, apply_example_to_response(&resp, "test5", "text/plain"));
@@ -420,12 +420,12 @@ TEST test_operation_add_header_to_response(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_header_to_response(&resp, &dh));
 
-  dh.name = "X-Test";
-  dh.description = "Test header";
-  dh.type = "string";
-  dh.content_type = "text/plain";
-  dh.format = "uuid";
-  dh.example = "test_ex";
+  dh.name = (char *)(size_t)"X-Test";
+  dh.description = (char *)(size_t)"Test header";
+  dh.type = (char *)(size_t)"string";
+  dh.content_type = (char *)(size_t)"text/plain";
+  dh.format = (char *)(size_t)"uuid";
+  dh.example = (char *)(size_t)"test_ex";
 
   ASSERT_EQ(0, add_header_to_response(&resp, &dh));
   ASSERT_EQ(1, resp.n_headers);
@@ -439,9 +439,9 @@ TEST test_operation_add_header_to_response(void) {
   ASSERT_STR_EQ("test_ex", resp.headers[0].example.string);
 
   /* Add again (merge) */
-  dh.description = "New desc";
-  dh.type = "int";
-  dh.content_type = "app/json";
+  dh.description = (char *)(size_t)"New desc";
+  dh.type = (char *)(size_t)"int";
+  dh.content_type = (char *)(size_t)"app/json";
 
   /* Already set, won't override desc/type/content_type but WILL override format
    * maybe? */
@@ -473,21 +473,21 @@ TEST test_operation_add_link_to_response(void) {
   /* NULLs */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
-  dl.name = "MyLink";
+  dl.name = (char *)(size_t)"MyLink";
 
   /* Must have EXACTLY one of opId or opRef */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
-  dl.operation_id = "opId";
-  dl.operation_ref = "opRef";
+  dl.operation_id = (char *)(size_t)"opId";
+  dl.operation_ref = (char *)(size_t)"opRef";
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, add_link_to_response(&resp, &dl));
 
   dl.operation_ref = NULL;
 
   /* Valid */
-  dl.description = "desc";
-  dl.server_url = "http://test";
-  dl.server_description = "server_desc";
-  dl.request_body_json = "{\"a\": 1}";
+  dl.description = (char *)(size_t)"desc";
+  dl.server_url = (char *)(size_t)"http://test";
+  dl.server_description = (char *)(size_t)"server_desc";
+  dl.request_body_json = (char *)(size_t)"{\"a\": 1}";
 
   ASSERT_EQ(0, add_link_to_response(&resp, &dl));
   ASSERT_EQ(1, resp.n_links);
@@ -524,7 +524,7 @@ TEST test_operation_add_param_to_op(void) {
   memset(&op, 0, sizeof(op));
   memset(&p, 0, sizeof(p));
 
-  p.name = "test_param";
+  p.name = (char *)(size_t)"test_param";
 
   ASSERT_EQ(0, add_param_to_op(&op, &p));
   ASSERT_EQ(1, op.n_parameters);
@@ -542,15 +542,15 @@ TEST test_operation_schema_ref_has_data_basic(void) {
   ASSERT_EQ(0, schema_ref_has_data_basic(NULL));
   ASSERT_EQ(0, schema_ref_has_data_basic(&ref));
 
-  ref.ref_name = "test";
+  ref.ref_name = (char *)(size_t)"test";
   ASSERT_EQ(1, schema_ref_has_data_basic(&ref));
 
   memset(&ref, 0, sizeof(ref));
-  ref.ref = "#/components/schemas/test";
+  ref.ref = (char *)(size_t)"#/components/schemas/test";
   ASSERT_EQ(1, schema_ref_has_data_basic(&ref));
 
   memset(&ref, 0, sizeof(ref));
-  ref.inline_type = "string";
+  ref.inline_type = (char *)(size_t)"string";
   ASSERT_EQ(1, schema_ref_has_data_basic(&ref));
 
   memset(&ref, 0, sizeof(ref));
@@ -572,9 +572,9 @@ TEST test_operation_copy_schema_ref_basic(void) {
 
   /* All fields */
   src.is_array = 1;
-  src.ref_name = "test1";
-  src.ref = "test2";
-  src.inline_type = "test3";
+  src.ref_name = (char *)(size_t)"test1";
+  src.ref = (char *)(size_t)"test2";
+  src.inline_type = (char *)(size_t)"test3";
 
   ASSERT_EQ(0, copy_schema_ref_basic(&dst, &src));
   ASSERT_EQ(1, dst.is_array);
@@ -605,11 +605,11 @@ TEST test_operation_response_has_media_type(void) {
   resp.n_content_media_types = 1;
   resp.content_media_types =
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
-  resp.content_media_types[0].name = "test";
+  resp.content_media_types[0].name = (char *)(size_t)"test";
 
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test", &out));
   ASSERT_EQ(1, out);
-  resp.content_type = "fast";
+  resp.content_type = (char *)(size_t)"fast";
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "fast", &out));
   ASSERT_EQ(1, out);
   ASSERT_EQ(CDD_C_SUCCESS, response_has_media_type(&resp, "test2", &out));
