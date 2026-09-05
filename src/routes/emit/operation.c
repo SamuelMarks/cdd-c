@@ -332,7 +332,7 @@ static cdd_c_error_t is_path_param(const char *route, const char *name) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(tmpl, sizeof(tmpl), "{%s}", name);
 #else
-  sprintf(tmpl, "{%s}", name);
+  snprintf(tmpl, sizeof(tmpl), "{%s}", name);
 #endif
   return strstr(route, tmpl) != NULL;
 }

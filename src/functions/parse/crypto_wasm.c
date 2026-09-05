@@ -277,6 +277,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
     uint8_t k_ipad[64];
     uint8_t k_opad[64];
     uint8_t tk[32];
+    uint8_t out_digest[32];
     size_t i;
     const uint8_t *k = (const uint8_t *)key;
 
@@ -349,7 +350,7 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
         return rc_cr;
     }
     {
-      cdd_c_error_t rc_cr = cdd_sha256_final(&ctx, out_digest);
+      cdd_c_error_t rc_cr = cdd_sha256_final(&ctx, out_mac);
       if (rc_cr != CDD_C_SUCCESS)
         return rc_cr;
     }
