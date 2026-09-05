@@ -633,9 +633,9 @@ int main(int argc, char **argv) {
         'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
     cdd_c_error_t rc =
         cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &tree);
-    printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
-           "\n",
-           rc, tree->root->num_children, tree->root->capacity);
+    printf("PARSE RC = %d, num_children = %lu, capacity = %lu\n", rc,
+           (unsigned long)tree->root->num_children,
+           (unsigned long)tree->root->capacity);
     if (tree)
       cdd_cst_tree_free(tree);
   }

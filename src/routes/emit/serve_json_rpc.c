@@ -61,6 +61,7 @@ typedef int cdd_socket_t;
 #endif
 #endif
 
+#if !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__)
 /* Helper to respond with JSON-RPC error */
 static cdd_c_error_t send_rpc_error(cdd_socket_t client_fd, int code, const char *msg) {
   char resp[1024];
@@ -363,7 +364,7 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
   json_value_free(root_val);
   return CDD_C_SUCCESS;
 }
-
+#endif /* !defined(__WATCOMC__) && !defined(__DOS__) && !defined(__EMSCRIPTEN__) */
 
 /**
  * @brief Helper to respond with JSON-RPC error over stdio.

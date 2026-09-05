@@ -117,7 +117,7 @@ static cdd_c_error_t emit_r_file(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "  %s = %s", var->name, var->value);
         } else {
-          fprintf(f, "  %s = %" CDD_PRIz "", var->name, j);
+          fprintf(f, "  %s = %lu", var->name, (unsigned long)j);
         }
         if (j < node->variants_count - 1)
           fprintf(f, ",");

@@ -184,7 +184,7 @@ TEST test_c2openapi_full_flow(void) {
             printf("FAILED to find User in schemas!\n");
             {
               size_t num = json_object_get_count(schemas);
-              printf("Schemas has %" CDD_PRIz " items. Keys:\n", num);
+              printf("Schemas has %lu items. Keys:\n", (unsigned long)num);
               {
                 size_t i;
                 for (i = 0; i < num; ++i) {
@@ -741,8 +741,8 @@ TEST test_c2o_cli_doc_sec_unset(void) {
     size_t i;
     for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
       char *c_file = NULL;
-      asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-               i);
+      asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+               (unsigned long)i);
       write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
@@ -761,8 +761,8 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
         char *c_file = NULL;
-        asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-                 i);
+        asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+                 (unsigned long)i);
         remove(c_file);
         free((void *)(size_t)c_file);
       }
@@ -1159,8 +1159,8 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
     size_t i;
     for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
       char *c_file = NULL;
-      asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-               i);
+      asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+               (unsigned long)i);
       write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
@@ -1179,8 +1179,8 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
         char *c_file = NULL;
-        asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-                 i);
+        asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+                 (unsigned long)i);
         remove(c_file);
         free((void *)(size_t)c_file);
       }
@@ -1240,8 +1240,8 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
     size_t i;
     for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
       char *c_file = NULL;
-      asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-               i);
+      asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+               (unsigned long)i);
       write_to_file(c_file, snippets[i]);
       free((void *)(size_t)c_file);
     }
@@ -1260,8 +1260,8 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
         char *c_file = NULL;
-        asprintf((char **)&c_file, "%s%cf%" CDD_PRIz ".c", src_dir, PATH_SEP_C,
-                 i);
+        asprintf((char **)&c_file, "%s%cf%lu.c", src_dir, PATH_SEP_C,
+                 (unsigned long)i);
         remove(c_file);
         free((void *)(size_t)c_file);
       }

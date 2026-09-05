@@ -125,7 +125,8 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
               node->kind == CDD_FFI_NODE_UNION ? "union" : "struct",
               node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "    pub %s: ", node->fields[j].name);
+        fprintf(f, "    pub %s: ",
+                node->fields[j].name ? node->fields[j].name : "field");
         emit_rust_sys_type(f, &node->fields[j].type, 0);
         fprintf(f, ",\n");
       }
@@ -152,7 +153,7 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       fprintf(f, "    pub fn %s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s: ", node->fields[j].name);
+        fprintf(f, "%s: ", node->fields[j].name ? node->fields[j].name : "arg");
         emit_rust_sys_type(f, &node->fields[j].type, 0);
         if (j < node->fields_count - 1)
           fprintf(f, ", ");
@@ -233,7 +234,9 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
       size_t j;
       fprintf(f, "    pub fn %s_safe(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "%s: ", node->fields[j].name);
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
+        fprintf(f, "%s: ", arg_name);
         /* If it's a pointer to i8/u8, use &std::ffi::CStr for idiomatic rust */
         if (node->fields[j].type.pointer_depth == 1 &&
             (node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
@@ -256,12 +259,14 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 
       fprintf(f, "        let res = unsafe { sys::%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
+        const char *arg_name =
+            node->fields[j].name ? node->fields[j].name : "arg";
         if (node->fields[j].type.pointer_depth == 1 &&
             (node->fields[j].type.kind == CDD_FFI_KIND_INT8 ||
              node->fields[j].type.kind == CDD_FFI_KIND_UINT8)) {
-          fprintf(f, "%s.as_ptr()", node->fields[j].name);
+          fprintf(f, "%s.as_ptr()", arg_name);
         } else {
-          fprintf(f, "%s", node->fields[j].name);
+          fprintf(f, "%s", arg_name);
         }
         fprintf(f, ", ");
       }

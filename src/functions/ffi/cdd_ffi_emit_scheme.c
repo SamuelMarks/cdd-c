@@ -201,8 +201,7 @@ cdd_ffi_emit_scheme(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "  (define %s %s)\n", var_name, var->value);
         } else {
-          /* cppcheck-suppress invalidPrintfArgType_uint */
-          fprintf(f, "  (define %s %" CDD_SIZE_T_FMT ")\n", var_name, j);
+          fprintf(f, "  (define %s %lu)\n", var_name, (unsigned long)j);
         }
       }
       fprintf(f, "\n");

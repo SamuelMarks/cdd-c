@@ -181,9 +181,8 @@ emit_java_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
           fprintf(f, "            public static final int %s = %s;\n",
                   var->name, var->value);
         } else {
-          fprintf(f,
-                  "            public static final int %s = %" CDD_PRIz ";\n",
-                  var->name, j);
+          fprintf(f, "            public static final int %s = %lu;\n",
+                  var->name, (unsigned long)j);
         }
       }
       fprintf(f, "        }\n\n");

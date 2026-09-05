@@ -182,7 +182,8 @@ emit_go_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         if (var->value) {
           fprintf(f, "    %s %s = %s\n", var->name, node->name, var->value);
         } else {
-          fprintf(f, "    %s %s = %" CDD_PRIz "\n", var->name, node->name, j);
+          fprintf(f, "    %s %s = %lu\n", var->name, node->name,
+                  (unsigned long)j);
         }
       }
       fprintf(f, ")\n\n");

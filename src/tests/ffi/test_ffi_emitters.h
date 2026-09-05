@@ -805,8 +805,8 @@ TEST test_ffi_emit_objc_dir(void) {
 
 #ifdef _WIN32
   (void)rc;
-  _mkdir("test_objc_dir");
-  _mkdir("test_objc_dir/Bindings.m");
+  _mkdir("test_objc_dir_new");
+  _mkdir("test_objc_dir_new/Bindings.m");
 #else
   mkdir("test_objc_dir_new", 0777);
   mkdir("test_objc_dir_new/Bindings.m", 0777);

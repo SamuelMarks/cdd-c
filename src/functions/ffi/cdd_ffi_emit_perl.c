@@ -323,7 +323,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "use constant %s => %s;\n", var->name, var->value);
         } else {
-          fprintf(f, "use constant %s => %" CDD_SIZE_T_FMT ";\n", var->name, j);
+          fprintf(f, "use constant %s => %lu;\n", var->name, (unsigned long)j);
         }
       }
       fprintf(f, "$ffi->type('sint32' => '%s');\n\n", node->name);

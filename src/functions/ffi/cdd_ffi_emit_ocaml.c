@@ -124,7 +124,7 @@ emit_ocaml_ml(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         if (var->value) {
           fprintf(f, "  let %s = %s\n", var->name, var->value);
         } else {
-          fprintf(f, "  let %s = %" CDD_PRIz "\n", var->name, j);
+          fprintf(f, "  let %s = %lu\n", var->name, (unsigned long)j);
         }
       }
       fprintf(f, "end\n\n");

@@ -173,8 +173,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
               node->name);
 
       if (node->fields_count > 0) {
-        fprintf(c_f, "    if (argc != %" CDD_SIZE_T_FMT ") {\n",
-                node->fields_count);
+        fprintf(c_f, "    if (argc != %lu) {\n",
+                (unsigned long)node->fields_count);
         fprintf(c_f, "        return enif_make_badarg(env);\n");
         fprintf(c_f, "    }\n");
       }
@@ -182,10 +182,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
       /* Basic argument fetching */
       for (j = 0; j < node->fields_count; j++) {
         cdd_ffi_type_t *t = &node->fields[j].type;
-        fprintf(c_f,
-                "    /* TODO: Fetch argument %" CDD_SIZE_T_FMT
-                " based on type %d */\n",
-                j, t->kind);
+        fprintf(c_f, "    /* TODO: Fetch argument %lu based on type %d */\n",
+                (unsigned long)j, t->kind);
       }
 
       fprintf(c_f, "    /* TODO: Call actual C function %s(...) */\n",
@@ -209,8 +207,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
     node = &ir->nodes[i];
     if (node->kind == CDD_FFI_NODE_FUNCTION) {
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
-      fprintf(c_f, "    {\"%s\", %" CDD_SIZE_T_FMT ", nif_%s, 0},\n",
-              snake_node_name, node->fields_count, node->name);
+      fprintf(c_f, "    {\"%s\", %lu, nif_%s, 0},\n", snake_node_name,
+              (unsigned long)node->fields_count, node->name);
     }
   }
   if (!has_functions) {
@@ -254,8 +252,8 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
       if (has_functions)
         fprintf(erl_f, ",\n");
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
-      fprintf(erl_f, "    %s/%" CDD_SIZE_T_FMT, snake_node_name,
-              node->fields_count);
+      fprintf(erl_f, "    %s/%lu", snake_node_name,
+              (unsigned long)node->fields_count);
       has_functions = 1;
     }
   }
@@ -287,7 +285,7 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
       snake_case_name(node->name, snake_node_name, sizeof(snake_node_name));
       fprintf(erl_f, "%s(", snake_node_name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(erl_f, "%s_Arg%" CDD_SIZE_T_FMT, j > 0 ? ", " : "", j);
+        fprintf(erl_f, "%s_Arg%lu", j > 0 ? ", " : "", (unsigned long)j);
       }
       fprintf(erl_f, ") ->\n");
       fprintf(erl_f, "    erlang:nif_error(nif_not_loaded).\n\n");

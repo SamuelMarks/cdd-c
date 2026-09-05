@@ -47,6 +47,47 @@ C_CDD_EXPORT int g_ffi_extractor_alloc_fail = 0;
 #define CDD_STRDUP(s) strdup(s)
 #endif
 
+/**
+ * @brief Converts a 64-bit signed integer to a string.
+ *
+ * @param val Value to convert.
+ * @param buf Output buffer.
+ * @param buf_sz Size of output buffer.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+static cdd_c_error_t int64_to_str(int64_t val, char *buf, size_t buf_sz) {
+  char temp[64];
+  size_t i = 0;
+  size_t j = 0;
+  int neg = 0;
+  uint64_t uval;
+  if (buf == NULL || buf_sz == 0) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  if (val < 0) {
+    neg = 1;
+    uval = (uint64_t) - (val + 1) + 1;
+  } else {
+    uval = (uint64_t)val;
+  }
+  if (uval == 0) {
+    temp[i++] = '0';
+  } else {
+    while (uval > 0 && i < sizeof(temp) - 1) {
+      temp[i++] = (char)('0' + (uval % 10));
+      uval /= 10;
+    }
+  }
+  if (neg && i < sizeof(temp) - 1) {
+    temp[i++] = '-';
+  }
+  while (i > 0 && j < buf_sz - 1) {
+    buf[j++] = temp[--i];
+  }
+  buf[j] = '\0';
+  return CDD_C_SUCCESS;
+}
+
 static cdd_c_error_t ir_add_node(cdd_ffi_ir_t *ir, cdd_ffi_node_kind_t kind,
                                  const char *name,
                                  cdd_ffi_ir_node_t **out_node) {
@@ -686,11 +727,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                 node->inferred_type = (cdd_ffi_macro_type_t)eval_res.type;
                 if (eval_res.type == MACRO_EVAL_TYPE_INT) {
                   char buf[64];
-#if defined(_MSC_VER)
-                  sprintf_s(buf, sizeof(buf), "%" CDD_PRId64, eval_res.int_val);
-#else
-                  sprintf(buf, "%" CDD_PRId64, eval_res.int_val);
-#endif
+                  (void)int64_to_str(eval_res.int_val, buf, sizeof(buf));
                   node->evaluated_value = CDD_STRDUP(buf);
                 } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {
                   char buf[64];

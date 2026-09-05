@@ -681,6 +681,7 @@ TEST test_weaver_interactive(void) {
   FILE *fake_stdin;
   char tmp_name[32];
 
+  (void)res;
   patch_list_init(&patches);
   patches.capacity = 1;
   patches.size = 1;
@@ -690,7 +691,6 @@ TEST test_weaver_interactive(void) {
   tokenize(az_span_create((uint8_t *)(size_t)src, strlen(src)), &tl);
 
 #if defined(_MSC_VER)
-  (void)res;
   sprintf_s(tmp_name, sizeof(tmp_name), "test_in_%d.txt", rand() % 10000);
 #else
   sprintf(tmp_name, "test_in_%d.txt", rand() % 10000);

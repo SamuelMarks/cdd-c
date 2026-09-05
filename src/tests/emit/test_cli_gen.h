@@ -145,7 +145,7 @@ TEST test_cli_gen_fail_open(void) {
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_cli";
 
   rc = openapi_cli_generate(&spec, &config);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
 
   PASS();

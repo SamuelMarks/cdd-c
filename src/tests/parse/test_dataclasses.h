@@ -354,8 +354,6 @@ TEST test_null_args_and_errors(void) {
   struct HazE *haz_e_ptr = &h;
   struct FooE *foo_e_ptr = &f;
   f.haz = haz_e_ptr;
-  if (getenv("RUNNING_UNDER_VALGRIND"))
-    ;
   if (g_cdd_wine_skip)
     SKIPm("Wine Parson Crash");
 

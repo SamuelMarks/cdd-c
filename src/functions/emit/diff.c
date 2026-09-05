@@ -343,13 +343,12 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
         return rc_diff;
     }
 
-    (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                         "@@ -%" CDD_PRIz ",%" CDD_PRIz " +%" CDD_PRIz
-                         ",%" CDD_PRIz " @@\n",
-                         (size_t)b->old_start_line,
-                         (size_t)(b->old_end_line - b->old_start_line + 1),
-                         (size_t)(b->old_start_line + current_line_delta),
-                         (size_t)new_line_count);
+    (void)append_to_diff(
+        &diff_str, &diff_len, &diff_cap, "@@ -%lu,%lu +%lu,%lu @@\n",
+        (unsigned long)b->old_start_line,
+        (unsigned long)(b->old_end_line - b->old_start_line + 1),
+        (unsigned long)(b->old_start_line + current_line_delta),
+        (unsigned long)new_line_count);
 
     min_mod_line = find_line_for_token(
         &tokens->tokens[list->patches[b->patch_start_idx].start_token_idx],

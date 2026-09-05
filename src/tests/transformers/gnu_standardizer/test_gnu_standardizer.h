@@ -207,7 +207,7 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   printf("test_gnu_standardizer_vla_malloc: transformed\n");
   fflush(stdout);
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
-  printf("test_gnu_standardizer_vla_malloc: emitted out=%p\n", out);
+  printf("test_gnu_standardizer_vla_malloc: emitted out=%p\n", (void *)out);
   fflush(stdout);
 
   if (out) {

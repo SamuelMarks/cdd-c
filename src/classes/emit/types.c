@@ -330,8 +330,8 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       }
       CHECK_IO(FPRINTF_HOOK(fp,
                             ") { match_count++; if (match_idx < 0) match_idx = "
-                            "%" CDD_SIZE_T_FMT "; }\n",
-                            (size_t)i));
+                            "%lu; }\n",
+                            (unsigned long)i));
     } else if (meta && meta->n_property_names > 0) {
       CHECK_IO(FPRINTF_HOOK(fp, "    if ("));
       for (k = 0; k < meta->n_property_names; ++k) {
@@ -347,15 +347,14 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
       }
       CHECK_IO(FPRINTF_HOOK(fp,
                             ") { match_count++; if (match_idx < 0) match_idx = "
-                            "%" CDD_SIZE_T_FMT "; }\n",
-                            (size_t)i));
+                            "%lu; }\n",
+                            (unsigned long)i));
     } else {
-      CHECK_IO(FPRINTF_HOOK(
-          fp,
-          "    if (json_object_get_count(jsonObject) > 0) { "
-          "match_count++; if (match_idx < 0) match_idx = %" CDD_SIZE_T_FMT
-          "; }\n",
-          (size_t)i));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "    if (json_object_get_count(jsonObject) > 0) { "
+                       "match_count++; if (match_idx < 0) match_idx = %lu; }\n",
+                       (unsigned long)i));
     }
   }
 
@@ -374,7 +373,7 @@ write_union_from_jsonObject_func(FILE *fp, const char *union_name,
     const char *ref = sf->fields[i].ref;
     if (strcmp(type, "object") != 0)
       continue;
-    CHECK_IO(FPRINTF_HOOK(fp, "    case %" CDD_SIZE_T_FMT ":\n", (size_t)i));
+    CHECK_IO(FPRINTF_HOOK(fp, "    case %lu:\n", (unsigned long)i));
     CHECK_IO(FPRINTF_HOOK(fp, "      ret->tag = %s_%s;\n", union_name, name));
     CHECK_IO(FPRINTF_HOOK(
         fp,

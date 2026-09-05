@@ -608,9 +608,9 @@ TEST test_query_call_expr_coverage(void) {
   g_cdd_query_err_fail = 1;
   {
     printf("DEBUG PRE: dummy_call.kind=%d, children[0].kind=%d, "
-           "id_node.kind=%d, tok.start=%.3s, tok.length=%" CDD_PRIz "\n",
+           "id_node.kind=%d, tok.start=%.3s, tok.length=%lu\n",
            dummy_call.kind, dummy_call.children[0].kind, id_node.kind,
-           tok.start, tok.length);
+           tok.start, (unsigned long)tok.length);
 
     {
       int rc_res = cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);

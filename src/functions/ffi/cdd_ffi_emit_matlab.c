@@ -78,8 +78,8 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
       }
 
       if (node->fields_count > 0) {
-        fprintf(f, "        if (nrhs < %" CDD_PRIz ") {\n",
-                node->fields_count + 1);
+        fprintf(f, "        if (nrhs < %lu) {\n",
+                (unsigned long)(node->fields_count + 1));
         fprintf(f, "            mexErrMsgIdAndTxt(\"cdd:mex:nrhs\", \"Not "
                    "enough input arguments.\");\n");
         fprintf(f, "        }\n");
@@ -87,7 +87,7 @@ emit_matlab_mex(cdd_ffi_ir_t *ir,
 
       fprintf(f, "        /* Map MATLAB inputs to C types here... */\n");
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "        /* prhs[%" CDD_PRIz "] -> %s */\n", j + 1,
+        fprintf(f, "        /* prhs[%lu] -> %s */\n", (unsigned long)(j + 1),
                 node->fields[j].name ? node->fields[j].name : "arg");
       }
 

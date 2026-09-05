@@ -894,8 +894,8 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           "      {\n"
           "        size_t key_len = strlen(key_enc);\n"
           "        size_t val_len = strlen(val_enc);\n"
-          "        size_t extra = key_len + val_len + %" CDD_SIZE_T_FMT " + "
-          "(joined_len ? %" CDD_SIZE_T_FMT " : 0);\n"
+          "        size_t extra = key_len + val_len + %lu + "
+          "(joined_len ? %lu : 0);\n"
           "        char *tmp = (char *)(size_t)realloc(joined, joined_len + "
           "extra + "
           "1);\n"
@@ -903,26 +903,27 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
           "CDD_C_ERROR_MEMORY; "
           "goto cleanup; }\n"
           "        joined = tmp;\n",
-          strlen(delim_enc), strlen(delim_enc)));
-      CHECK_IO(fprintf(
-          fp,
-          "        if (joined_len) {\n"
-          "          memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT
-          ");\n"
-          "          joined_len += %" CDD_SIZE_T_FMT ";\n"
-          "        }\n"
-          "        memcpy(joined + joined_len, key_enc, key_len);\n"
-          "        joined_len += key_len;\n",
-          delim_enc, strlen(delim_enc), strlen(delim_enc)));
-      CHECK_IO(fprintf(
-          fp,
-          "        memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
-          "        joined_len += %" CDD_SIZE_T_FMT ";\n"
-          "        memcpy(joined + joined_len, val_enc, val_len);\n"
-          "        joined_len += val_len;\n"
-          "        joined[joined_len] = '\\0';\n"
-          "      }\n",
-          delim_enc, strlen(delim_enc), strlen(delim_enc)));
+          (unsigned long)strlen(delim_enc), (unsigned long)strlen(delim_enc)));
+      CHECK_IO(
+          fprintf(fp,
+                  "        if (joined_len) {\n"
+                  "          memcpy(joined + joined_len, \"%s\", %lu);\n"
+                  "          joined_len += %lu;\n"
+                  "        }\n"
+                  "        memcpy(joined + joined_len, key_enc, key_len);\n"
+                  "        joined_len += key_len;\n",
+                  delim_enc, (unsigned long)strlen(delim_enc),
+                  (unsigned long)strlen(delim_enc)));
+      CHECK_IO(
+          fprintf(fp,
+                  "        memcpy(joined + joined_len, \"%s\", %lu);\n"
+                  "        joined_len += %lu;\n"
+                  "        memcpy(joined + joined_len, val_enc, val_len);\n"
+                  "        joined_len += val_len;\n"
+                  "        joined[joined_len] = '\\0';\n"
+                  "      }\n",
+                  delim_enc, (unsigned long)strlen(delim_enc),
+                  (unsigned long)strlen(delim_enc)));
       CHECK_IO(fprintf(fp, "      free(key_enc);\n      free(val_enc);\n"));
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(fprintf(fp, "    if (joined) {\n"));
@@ -1103,24 +1104,26 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
                      "        size_t key_len = strlen(key_enc);\n"
                      "        size_t val_len = strlen(val_enc);\n"
                      "        size_t extra = key_len + val_len + 1 + (first ? "
-                     "%" CDD_SIZE_T_FMT " : %" CDD_SIZE_T_FMT ");\n"
+                     "%lu : %lu);\n"
                      "        char *tmp = (char *)(size_t)realloc(path_%s, "
                      "path_len + extra + 1);\n"
                      "        if (!tmp) { free(key_enc); free(val_enc); rc = "
                      "CDD_C_ERROR_MEMORY; goto "
                      "cleanup; }\n"
                      "        path_%s = tmp;\n",
-                     prefix_len, delim_len, name, name));
-    CHECK_IO(
-        fprintf(fp,
-                "        if (first && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n"
-                "        if (!first && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n",
-                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
-                name, pair_delim, delim_len, delim_len));
+                     (unsigned long)prefix_len, (unsigned long)delim_len, name,
+                     name));
+    CHECK_IO(fprintf(fp,
+                     "        if (first && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n"
+                     "        if (!first && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n",
+                     (unsigned long)prefix_len, name, prefix,
+                     (unsigned long)prefix_len, (unsigned long)prefix_len,
+                     (unsigned long)delim_len, name, pair_delim,
+                     (unsigned long)delim_len, (unsigned long)delim_len));
     CHECK_IO(fprintf(fp,
                      "        memcpy(path_%s + path_len, key_enc, key_len);\n"
                      "        path_len += key_len;\n"
@@ -1134,35 +1137,37 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
                      "        size_t key_len = strlen(key_enc);\n"
                      "        size_t val_len = strlen(val_enc);\n"
                      "        size_t extra = key_len + val_len + 1 + (first ? "
-                     "%" CDD_SIZE_T_FMT " : %" CDD_SIZE_T_FMT ") + "
-                     "%" CDD_SIZE_T_FMT ";\n"
+                     "%lu : %lu) + "
+                     "%lu;\n"
                      "        char *tmp = (char *)(size_t)realloc(path_%s, "
                      "path_len + extra + 1);\n"
                      "        if (!tmp) { free(key_enc); free(val_enc); rc = "
                      "CDD_C_ERROR_MEMORY; goto "
                      "cleanup; }\n"
                      "        path_%s = tmp;\n",
-                     prefix_len, delim_len, delim_len, name, name));
-    CHECK_IO(
-        fprintf(fp,
-                "        if (first && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n"
-                "        if (!first && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n",
-                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
-                name, pair_delim, delim_len, delim_len));
-    CHECK_IO(fprintf(
-        fp,
-        "        memcpy(path_%s + path_len, key_enc, key_len);\n"
-        "        path_len += key_len;\n"
-        "        memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
-        "        path_len += %" CDD_SIZE_T_FMT ";\n"
-        "        memcpy(path_%s + path_len, val_enc, val_len);\n"
-        "        path_len += val_len;\n"
-        "        path_%s[path_len] = '\\0';\n",
-        name, name, pair_delim, delim_len, delim_len, name, name));
+                     (unsigned long)prefix_len, (unsigned long)delim_len,
+                     (unsigned long)delim_len, name, name));
+    CHECK_IO(fprintf(fp,
+                     "        if (first && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n"
+                     "        if (!first && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n",
+                     (unsigned long)prefix_len, name, prefix,
+                     (unsigned long)prefix_len, (unsigned long)prefix_len,
+                     (unsigned long)delim_len, name, pair_delim,
+                     (unsigned long)delim_len, (unsigned long)delim_len));
+    CHECK_IO(fprintf(fp,
+                     "        memcpy(path_%s + path_len, key_enc, key_len);\n"
+                     "        path_len += key_len;\n"
+                     "        memcpy(path_%s + path_len, \"%s\", %lu);\n"
+                     "        path_len += %lu;\n"
+                     "        memcpy(path_%s + path_len, val_enc, val_len);\n"
+                     "        path_len += val_len;\n"
+                     "        path_%s[path_len] = '\\0';\n",
+                     name, name, pair_delim, (unsigned long)delim_len,
+                     (unsigned long)delim_len, name, name));
   }
   CHECK_IO(fprintf(fp, "      }\n"));
   CHECK_IO(fprintf(fp, "      free(key_enc);\n"));
@@ -1244,25 +1249,26 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(
         fp,
         "      {\n"
-        "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT
-        " : 0) + (i == 0 ? %" CDD_SIZE_T_FMT " : "
+        "        size_t extra = val_len + (i > 0 ? %lu"
+        " : 0) + (i == 0 ? %lu : "
         "0);\n"
         "        char *tmp = (char *)(size_t)realloc(path_%s, path_len + extra "
         "+ 1);\n"
         "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
         "}\n"
         "        path_%s = tmp;\n",
-        delim_len, prefix_len, name, name));
-    CHECK_IO(
-        fprintf(fp,
-                "        if (i == 0 && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n"
-                "        if (i > 0 && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n",
-                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
-                name, delim, delim_len, delim_len));
+        (unsigned long)delim_len, (unsigned long)prefix_len, name, name));
+    CHECK_IO(fprintf(fp,
+                     "        if (i == 0 && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n"
+                     "        if (i > 0 && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n",
+                     (unsigned long)prefix_len, name, prefix,
+                     (unsigned long)prefix_len, (unsigned long)prefix_len,
+                     (unsigned long)delim_len, name, delim,
+                     (unsigned long)delim_len, (unsigned long)delim_len));
     CHECK_IO(fprintf(fp,
                      "        memcpy(path_%s + path_len, enc, val_len);\n"
                      "        path_len += val_len;\n"
@@ -1272,27 +1278,28 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "      free(enc);\n"));
   } else {
     CHECK_IO(fprintf(fp, "      size_t val_len = strlen(raw);\n"));
-    CHECK_IO(
-        fprintf(fp,
-                "      {\n"
-                "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT
-                " : 0) + (i == 0 ? %" CDD_SIZE_T_FMT " : "
-                "0);\n"
-                "        char *tmp = (char *)(size_t)realloc(path_%s, path_len "
-                "+ extra + 1);\n"
-                "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
-                "        path_%s = tmp;\n",
-                delim_len, prefix_len, name, name));
-    CHECK_IO(
-        fprintf(fp,
-                "        if (i == 0 && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n"
-                "        if (i > 0 && %" CDD_SIZE_T_FMT
-                ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
-                "path_len += %" CDD_SIZE_T_FMT "; }\n",
-                prefix_len, name, prefix, prefix_len, prefix_len, delim_len,
-                name, delim, delim_len, delim_len));
+    CHECK_IO(fprintf(
+        fp,
+        "      {\n"
+        "        size_t extra = val_len + (i > 0 ? %lu"
+        " : 0) + (i == 0 ? %lu : "
+        "0);\n"
+        "        char *tmp = (char *)(size_t)realloc(path_%s, path_len "
+        "+ extra + 1);\n"
+        "        if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"
+        "        path_%s = tmp;\n",
+        (unsigned long)delim_len, (unsigned long)prefix_len, name, name));
+    CHECK_IO(fprintf(fp,
+                     "        if (i == 0 && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n"
+                     "        if (i > 0 && %lu"
+                     ") { memcpy(path_%s + path_len, \"%s\", %lu); "
+                     "path_len += %lu; }\n",
+                     (unsigned long)prefix_len, name, prefix,
+                     (unsigned long)prefix_len, (unsigned long)prefix_len,
+                     (unsigned long)delim_len, name, delim,
+                     (unsigned long)delim_len, (unsigned long)delim_len));
     CHECK_IO(fprintf(fp,
                      "        memcpy(path_%s + path_len, raw, val_len);\n"
                      "        path_len += val_len;\n"
@@ -1473,21 +1480,22 @@ static cdd_c_error_t write_joined_query_array_encoded_delim(
   CHECK_IO(fprintf(
       fp,
       "      {\n"
-      "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT " : 0);\n"
+      "        size_t extra = val_len + (i > 0 ? %lu : 0);\n"
       "        char *tmp = (char *)(size_t)realloc(joined, joined_len + extra "
       "+ 1);\n"
       "        if (!tmp) { free(enc); rc = CDD_C_ERROR_MEMORY; goto cleanup; "
       "}\n"
       "        joined = tmp;\n"
       "        if (i > 0) {\n"
-      "          memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
-      "          joined_len += %" CDD_SIZE_T_FMT ";\n"
+      "          memcpy(joined + joined_len, \"%s\", %lu);\n"
+      "          joined_len += %lu;\n"
       "        }\n"
       "        memcpy(joined + joined_len, enc, val_len);\n"
       "        joined_len += val_len;\n"
       "        joined[joined_len] = '\\0';\n"
       "      }\n",
-      delim_len, delim_enc, delim_len, delim_len));
+      (unsigned long)delim_len, delim_enc, (unsigned long)delim_len,
+      (unsigned long)delim_len));
   CHECK_IO(fprintf(fp, "      free(enc);\n"));
 
   CHECK_IO(fprintf(fp, "    }\n"));

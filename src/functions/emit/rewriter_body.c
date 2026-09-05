@@ -424,12 +424,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-              sprintf_s(tmp_var, sizeof(tmp_var),
-                        "_tmp_cdd_%" CDD_SIZE_T_FMT "",
-                        (size_t)(tmp_var_counter++));
+              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
+                        (unsigned long)(tmp_var_counter++));
 #else
-              sprintf(tmp_var, "_tmp_cdd_%" CDD_SIZE_T_FMT "",
-                      (size_t)(tmp_var_counter++));
+              sprintf(tmp_var, "_tmp_cdd_%lu",
+                      (unsigned long)(tmp_var_counter++));
 #endif
 
               /* Extract original args */

@@ -159,9 +159,8 @@ cdd_ffi_emit_fortran(cdd_ffi_ir_t *ir,
           fprintf(f, "  INTEGER(C_INT), PARAMETER :: %s = %s\n", var->name,
                   var->value);
         } else {
-          fprintf(f,
-                  "  INTEGER(C_INT), PARAMETER :: %s = %" CDD_SIZE_T_FMT "\n",
-                  var->name, j);
+          fprintf(f, "  INTEGER(C_INT), PARAMETER :: %s = %lu\n", var->name,
+                  (unsigned long)j);
         }
       }
       fprintf(f, "\n");

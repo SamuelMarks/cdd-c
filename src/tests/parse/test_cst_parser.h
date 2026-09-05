@@ -22,6 +22,12 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+#endif
+
 /* Helper to create a fake token list for testing */
 static int make_simple_token_list(struct TokenList *tl) {
   static const char code[] = "struct MyStruct { }";
@@ -288,14 +294,6 @@ TEST parse_tokens_empty(void) {
 TEST parse_tokens_oom_make(void) {
   struct TokenList *tokens;
 #ifdef CDD_BUILD_TESTS
-#include <c_cdd_export.h>
-
-  /* Moved extern declarations for C89 compliance */
-  extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-  extern C_CDD_EXPORT int g_cdd_cst_parser_fast_grow;
-  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
-
-  /*  (moved to global) */
   tokens = (struct TokenList *)C_CDD_MALLOC(sizeof(struct TokenList));
   ASSERT_NEQ(NULL, tokens);
   memset(tokens, 0, sizeof(*tokens));

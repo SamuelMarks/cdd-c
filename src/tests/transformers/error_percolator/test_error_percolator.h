@@ -897,7 +897,8 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
       rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION,
                                       &res_test);
       if (rc == 0) {
-        printf("Found %" CDD_PRIz " functions at i=%d\n", res_test.size, i);
+        printf("Found %lu functions at i=%d\n", (unsigned long)res_test.size,
+               i);
         /*
         size_t k;
         for (k = 0; k < res_test.size; k++) {

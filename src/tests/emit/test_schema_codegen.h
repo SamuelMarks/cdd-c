@@ -1082,7 +1082,8 @@ TEST test_schema_codegen_source_fail(void) {
     char *argv_bad[] = {(char *)(size_t)(size_t) "test_codegen_schema_io.json",
                         (char *)(size_t)(size_t) "test_out_source"};
     rc = schema2code_main(2, argv_bad);
-#ifndef _MSC_VER
+    (void)rc;
+#ifndef _WIN32
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 #endif
   }

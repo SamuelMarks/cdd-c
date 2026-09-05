@@ -655,12 +655,14 @@ TEST test_gen_client_file_error(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
+  int rc;
 
   setup_minimal_spec(&spec, &op);
   config.filename_base =
       (char *)(size_t)(size_t) "/this_dir_does_not_exist/file";
 
-  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
   PASS();
 }

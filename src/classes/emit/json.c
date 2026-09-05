@@ -504,15 +504,15 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         if (f->has_min_len)
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "      if (len < %" CDD_SIZE_T_FMT
+              "      if (len < %lu"
               ") { %s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-              (size_t)f->min_len, struct_name));
+              (unsigned long)f->min_len, struct_name));
         if (f->has_max_len)
           CHECK_IO(FPRINTF_HOOK(
               fp,
-              "      if (len > %" CDD_SIZE_T_FMT
+              "      if (len > %lu"
               ") { %s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-              (size_t)f->max_len, struct_name));
+              (unsigned long)f->max_len, struct_name));
         if (f->pattern[0]) {
           if (strncmp(f->pattern, "^", 1) == 0 &&
               f->pattern[(size_t)strlen(f->pattern) - 1] ==
@@ -558,10 +558,9 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           } else if (strncmp(f->pattern, "^", 1) == 0) { /* prefix */
             CHECK_IO(FPRINTF_HOOK(
                 fp,
-                "      if (strncmp(ret->%s, \"%s\", %" CDD_SIZE_T_FMT
-                ") != 0) { "
+                "      if (strncmp(ret->%s, \"%s\", %lu) != 0) { "
                 "%s_cleanup(ret); return CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                n, f->pattern + 1, (size_t)strlen(f->pattern) - 1,
+                n, f->pattern + 1, (unsigned long)(strlen(f->pattern) - 1),
                 struct_name));
           } else if (f->pattern[(size_t)strlen(f->pattern) - 1] ==
                      '$') { /* suffix */
@@ -578,12 +577,12 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
 #endif
             pat[pl] = 0;
             CHECK_IO(FPRINTF_HOOK(fp,
-                                  "      if (len < %" CDD_SIZE_T_FMT
-                                  " || strcmp(ret->%s + len - %" CDD_SIZE_T_FMT
-                                  ", "
+                                  "      if (len < %lu"
+                                  " || strcmp(ret->%s + len - %lu, "
                                   "\"%s\") != 0) { %s_cleanup(ret); return "
                                   "CDD_C_ERROR_INVALID_ARGUMENT; }\n",
-                                  (size_t)pl, n, (size_t)pl, pat, struct_name));
+                                  (unsigned long)pl, n, (unsigned long)pl, pat,
+                                  struct_name));
           } else { /* contains */
             CHECK_IO(FPRINTF_HOOK(
                 fp,

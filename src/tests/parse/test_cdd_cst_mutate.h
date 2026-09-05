@@ -24,6 +24,12 @@ extern "C" {
 #include "classes/emit/cdd_cst_emit.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
+#endif
+
 cdd_c_error_t insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
                                      cdd_cst_node_t *new_node);
 
@@ -71,13 +77,7 @@ TEST test_cdd_cst_mutate_replace(void) {
       }
     }
 
-#include <c_cdd_export.h>
-
-    /* Moved extern declarations for C89 compliance */
     {
-      extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
-      extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
-      /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
       for (j = 0; j < sizeof(fails) / sizeof(fails[0]); j++) {
         tree->synthesized_capacity =
             tree->num_synthesized; /* force realloc on first token cloned */

@@ -28,10 +28,6 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                                         cdd_token_t **modified_funcs,
                                         size_t num_modified) {
   size_t i;
-  if (node == tree->root) {
-    printf("rewrite_call_sites on tree->root with %" CDD_PRIz " children\n",
-           node->num_children);
-  }
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_token_t *tok = node->children[i].val.token;
@@ -109,7 +105,6 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                 if (temp) {
                   char *dup_id = (char *)(size_t)C_CDD_CALLOC(1, 256);
                   if (!dup_id) {
-                    printf("FAILED ON DUP_ID!\n");
                     C_CDD_FREE(temp);
                     return CDD_C_ERROR_MEMORY;
                   }
@@ -199,7 +194,6 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                 if (temp) {
                   char *dup_id = (char *)(size_t)C_CDD_CALLOC(1, 256);
                   if (!dup_id) {
-                    printf("FAILED ON DUP_ID!\n");
                     C_CDD_FREE(temp);
                     return CDD_C_ERROR_MEMORY;
                   }
@@ -432,8 +426,6 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
     if (func_name_tok) {
       if (num_modified < 256) {
         modified_funcs[num_modified++] = func_name_tok;
-        printf("Added %.*s to modified_funcs\n", (int)func_name_tok->length,
-               func_name_tok->start);
       }
 
       if (!is_strict_void) {

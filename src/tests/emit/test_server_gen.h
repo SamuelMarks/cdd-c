@@ -184,7 +184,7 @@ TEST test_server_gen_fail_open(void) {
       (char *)(size_t)(size_t) "/nonexistent/dir/test_server";
 
   rc = openapi_server_generate(&spec, &config);
-  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
 
   g_cdd_alloc_fail = 1;

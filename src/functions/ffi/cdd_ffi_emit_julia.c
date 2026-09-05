@@ -128,7 +128,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "    %s = %s\n", var->name, var->value);
         } else {
-          fprintf(f, "    %s = %" CDD_PRIz "\n", var->name, j);
+          fprintf(f, "    %s = %lu\n", var->name, (unsigned long)j);
         }
       }
       fprintf(f, "end\n\n");

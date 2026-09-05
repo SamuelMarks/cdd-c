@@ -114,7 +114,7 @@ emit_lua_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
         if (var->value) {
           fprintf(f, "    %s = %s", var->name, var->value);
         } else {
-          fprintf(f, "    %s = %" CDD_PRIz "", var->name, j);
+          fprintf(f, "    %s = %lu", var->name, (unsigned long)j);
         }
         if (j < node->variants_count - 1)
           fprintf(f, ",");
