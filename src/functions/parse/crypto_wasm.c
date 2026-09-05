@@ -29,8 +29,9 @@ EM_JS(int, js_crypto_sha256, (const uint8_t *data, size_t len, uint8_t *out), {
       var digest = hash.digest();
       HEAPU8.set(digest, out);
       return 1;
+    } catch (e) {
+      return 0;
     }
-    catch(e) { return 0; }
   }
   return 0;
 })
@@ -50,19 +51,22 @@ EM_JS(int, js_crypto_hmac_sha256,
             var digest = hmac.digest();
             HEAPU8.set(digest, out);
             return 1;
+          } catch (e) {
+            return 0;
           }
-          catch(e) { return 0; }
         }
         return 0;
       })
 #endif
 
-/* Native C Fallback for Browser/WASI (from crypto_standalone.c) */
+/**
+ * @brief SHA-256 state context for native fallback.
+ */
 struct cdd_sha256_ctx {
-  uint32_t state[8];
-  uint64_t bitlen;
-  uint8_t data[64];
-  uint32_t datalen;
+  uint32_t state[8]; /**< State intermediate hash values */
+  uint64_t bitlen;   /**< Total message length in bits */
+  uint8_t data[64];  /**< 512-bit message chunk buffer */
+  uint32_t datalen;  /**< Number of bytes currently in buffer */
 };
 
 static const uint32_t cdd_k[64] = {
@@ -78,14 +82,21 @@ static const uint32_t cdd_k[64] = {
     0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
+/** @brief Bitwise right rotation macro */
 #define CDD_ROTRIGHT(a, b) (((a) >> (b)) | ((a) << (32 - (b))))
+/** @brief SHA-256 Ch logical function */
 #define CDD_CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
+/** @brief SHA-256 Maj logical function */
 #define CDD_MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+/** @brief SHA-256 Sigma0 function */
 #define CDD_EP0(x)                                                             \
   (CDD_ROTRIGHT(x, 2) ^ CDD_ROTRIGHT(x, 13) ^ CDD_ROTRIGHT(x, 22))
+/** @brief SHA-256 Sigma1 function */
 #define CDD_EP1(x)                                                             \
   (CDD_ROTRIGHT(x, 6) ^ CDD_ROTRIGHT(x, 11) ^ CDD_ROTRIGHT(x, 25))
+/** @brief SHA-256 sigma0 function */
 #define CDD_SIG0(x) (CDD_ROTRIGHT(x, 7) ^ CDD_ROTRIGHT(x, 18) ^ ((x) >> 3))
+/** @brief SHA-256 sigma1 function */
 #define CDD_SIG1(x) (CDD_ROTRIGHT(x, 17) ^ CDD_ROTRIGHT(x, 19) ^ ((x) >> 10))
 
 static cdd_c_error_t cdd_sha256_transform(struct cdd_sha256_ctx *ctx,
@@ -245,15 +256,18 @@ cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
   }
 }
 
+/**
+ * @brief Computes HMAC-SHA-256 in WebAssembly / fallback environment.
+ */
 cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
-                                 unsigned char *out_digest) {
-  if (!key || (!data && data_len > 0) || !out_digest)
+                                 unsigned char *out_mac) {
+  if (!key || (!data && data_len > 0) || !out_mac)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
 #ifdef __EMSCRIPTEN__
   if (js_crypto_hmac_sha256((const uint8_t *)key, key_len,
-                            (const uint8_t *)data, data_len, out_digest)) {
+                            (const uint8_t *)data, data_len, out_mac)) {
     return CDD_C_SUCCESS;
   }
 #endif

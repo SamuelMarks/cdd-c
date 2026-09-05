@@ -582,7 +582,7 @@ write_union_from_json_func(FILE *fp, const char *union_name,
     } else if (strcmp(ref, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(
           fp,
-          "          ret->data.%s.%s = calloc(count, sizeof(char*));\n"
+          "          ret->data.%s.%s = calloc(count, sizeof(char *));\n"
           "          if (!ret->data.%s.%s) { free(ret); "
           "json_value_free(val); return CDD_C_ERROR_MEMORY; }\n"
           "          for (i = 0; i < count; ++i) {\n"
@@ -1111,7 +1111,7 @@ write_root_array_from_json_func(FILE *fp, const char *name,
   if (strcmp(item_type, "integer") == 0) {
     CHECK_IO(FPRINTF_HOOK(fp, "  *out = malloc(count * sizeof(int));\n"));
   } else if (strcmp(item_type, "string") == 0) {
-    CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(char*));\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(char *));\n"));
   } else if (strcmp(item_type, "object") == 0) {
     CHECK_IO(
         FPRINTF_HOOK(fp, "  *out = calloc(count, sizeof(struct %s*));\n",

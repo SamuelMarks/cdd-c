@@ -94,7 +94,7 @@ static cdd_c_error_t join_tokens(const struct TokenList *tokens, size_t start,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

@@ -486,12 +486,12 @@ TEST test_eq_null_cases(void) {
   ASSERT(HazE_eq(h1, NULL) != 0);
   ASSERT(HazE_eq(NULL, h1) != 0);
 
-  free((void *)f1->bar);
+  free((void *)(size_t)f1->bar);
   f1->bar = NULL;
   f2->bar = strdup("not null");
   ASSERT(FooE_eq(f1, f2) != 0);
 
-  free((void *)f2->bar);
+  free((void *)(size_t)f2->bar);
   f2->bar = NULL;
   ASSERT(FooE_eq(f1, f2) == 0); /* Both bars are null */
 
@@ -825,18 +825,18 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   HazE_default(&h2);
 
   /* Test bzr member inequality */
-  free((void *)h1->bzr);
+  free((void *)(size_t)h1->bzr);
   h1->bzr = strdup("abc");
-  free((void *)h2->bzr);
+  free((void *)(size_t)h2->bzr);
   h2->bzr = strdup("def");
   ASSERT(HazE_eq(h1, h2) != 0);
 
   /* Test one-sided null bzr */
-  free((void *)h1->bzr);
+  free((void *)(size_t)h1->bzr);
   h1->bzr = NULL;
   ASSERT(HazE_eq(h1, h2) != 0);
 
-  free((void *)h2->bzr);
+  free((void *)(size_t)h2->bzr);
   h2->bzr = strdup("abc");
   ASSERT(HazE_eq(h2, h1) != 0);
 

@@ -29,10 +29,10 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
-      d = (char *)malloc(n + 1);
+      d = (char *)(size_t)malloc(n + 1);
   }
 #else
-  d = (char *)malloc(n + 1);
+  d = (char *)(size_t)malloc(n + 1);
 #endif
   if (!d) {
     *_out_val = NULL;

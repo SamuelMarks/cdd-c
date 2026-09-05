@@ -40,7 +40,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
     }
   }
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

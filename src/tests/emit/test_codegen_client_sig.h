@@ -57,7 +57,7 @@ static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (sz > 0)
       if (fread(content, 1, (size_t)sz, tmp)) {
       }
@@ -77,14 +77,14 @@ TEST test_sig_simple_get(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"get_pet";
+  op.operation_id = (char *)(size_t)(size_t) "get_pet";
 
-  param.name = (char *)(size_t)"id";
-  param.type = (char *)(size_t)"integer";
+  param.name = (char *)(size_t)(size_t) "id";
+  param.type = (char *)(size_t)(size_t) "integer";
   op.parameters = &param;
   op.n_parameters = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"Pet";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Pet";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_0), _ast_gen_sig_0);
   ASSERT(code);
@@ -137,7 +137,7 @@ TEST test_sig_verify_apierror(void) {
   char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
-  op.operation_id = (char *)(size_t)"do";
+  op.operation_id = (char *)(size_t)(size_t) "do";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_1), _ast_gen_sig_1);
   ASSERT(code);
@@ -188,10 +188,10 @@ TEST test_sig_grouped(void) {
   struct CodegenSigConfig cfg = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"getById";
+  op.operation_id = (char *)(size_t)(size_t) "getById";
 
-  cfg.prefix = (char *)(size_t)"api_";
-  cfg.group_name = (char *)(size_t)"Pet";
+  cfg.prefix = (char *)(size_t)(size_t) "api_";
+  cfg.group_name = (char *)(size_t)(size_t) "Pet";
 
   code = (gen_sig(&op, &cfg, &_ast_gen_sig_2), _ast_gen_sig_2);
   ASSERT(code);
@@ -243,10 +243,10 @@ TEST test_sig_success_range_response(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"listPets";
+  op.operation_id = (char *)(size_t)(size_t) "listPets";
 
-  resp.code = (char *)(size_t)"2XX";
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.code = (char *)(size_t)(size_t) "2XX";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -299,10 +299,10 @@ TEST test_sig_default_response_success(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"defaultPet";
+  op.operation_id = (char *)(size_t)(size_t) "defaultPet";
 
-  resp.code = (char *)(size_t)"default";
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.code = (char *)(size_t)(size_t) "default";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -355,10 +355,10 @@ TEST test_sig_inline_response_string(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"getInline";
+  op.operation_id = (char *)(size_t)(size_t) "getInline";
 
-  resp.code = (char *)(size_t)"200";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -411,11 +411,11 @@ TEST test_sig_inline_response_array(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"getInlineArr";
+  op.operation_id = (char *)(size_t)(size_t) "getInlineArr";
 
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)"integer";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -467,9 +467,9 @@ TEST test_sig_inline_request_body_string(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postInline";
-  op.req_body.content_type = (char *)(size_t)"application/json";
-  op.req_body.inline_type = (char *)(size_t)"string";
+  op.operation_id = (char *)(size_t)(size_t) "postInline";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_7), _ast_gen_sig_7);
   ASSERT(code);
@@ -519,10 +519,10 @@ TEST test_sig_inline_request_body_array(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postInlineArr";
-  op.req_body.content_type = (char *)(size_t)"application/json";
+  op.operation_id = (char *)(size_t)(size_t) "postInlineArr";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
   op.req_body.is_array = 1;
-  op.req_body.inline_type = (char *)(size_t)"number";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "number";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_8), _ast_gen_sig_8);
   ASSERT(code);
@@ -575,22 +575,22 @@ TEST test_sig_multipart_encoding_headers(void) {
   struct OpenAPI_Header headers[3] = {{0}};
   char *code;
 
-  op.operation_id = (char *)(size_t)"upload";
+  op.operation_id = (char *)(size_t)(size_t) "upload";
 
-  op.req_body.ref_name = (char *)(size_t)"Upload";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
-  headers[0].name = (char *)(size_t)"X-Trace";
-  headers[0].type = (char *)(size_t)"string";
-  headers[1].name = (char *)(size_t)"X-Ids";
-  headers[1].type = (char *)(size_t)"array";
+  headers[0].name = (char *)(size_t)(size_t) "X-Trace";
+  headers[0].type = (char *)(size_t)(size_t) "string";
+  headers[1].name = (char *)(size_t)(size_t) "X-Ids";
+  headers[1].type = (char *)(size_t)(size_t) "array";
   headers[1].is_array = 1;
-  headers[1].items_type = (char *)(size_t)"integer";
-  headers[2].name = (char *)(size_t)"Content-Type";
-  headers[2].type = (char *)(size_t)"string";
+  headers[1].items_type = (char *)(size_t)(size_t) "integer";
+  headers[2].name = (char *)(size_t)(size_t) "Content-Type";
+  headers[2].type = (char *)(size_t)(size_t) "string";
 
-  mt.name = (char *)(size_t)"multipart/form-data";
-  enc.name = (char *)(size_t)"file";
+  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  enc.name = (char *)(size_t)(size_t) "file";
   enc.headers = headers;
   enc.n_headers = 3;
   mt.encoding = &enc;
@@ -649,9 +649,9 @@ TEST test_sig_text_plain_request_body(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postText";
-  op.req_body.content_type = (char *)(size_t)"text/plain";
-  op.req_body.inline_type = (char *)(size_t)"string";
+  op.operation_id = (char *)(size_t)(size_t) "postText";
+  op.req_body.content_type = (char *)(size_t)(size_t) "text/plain";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_10), _ast_gen_sig_10);
   ASSERT(code);
@@ -701,8 +701,8 @@ TEST test_sig_textual_request_body_xml(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postXml";
-  op.req_body.content_type = (char *)(size_t)"application/xml";
+  op.operation_id = (char *)(size_t)(size_t) "postXml";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/xml";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_11), _ast_gen_sig_11);
   ASSERT(code);
@@ -752,8 +752,9 @@ TEST test_sig_octet_stream_request_body(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postBinary";
-  op.req_body.content_type = (char *)(size_t)"application/octet-stream";
+  op.operation_id = (char *)(size_t)(size_t) "postBinary";
+  op.req_body.content_type =
+      (char *)(size_t)(size_t) "application/octet-stream";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_12), _ast_gen_sig_12);
   ASSERT(code);
@@ -803,8 +804,8 @@ TEST test_sig_binary_request_body_pdf(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"postPdf";
-  op.req_body.content_type = (char *)(size_t)"application/pdf";
+  op.operation_id = (char *)(size_t)(size_t) "postPdf";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/pdf";
 
   code = (gen_sig(&op, NULL, &_ast_gen_sig_13), _ast_gen_sig_13);
   ASSERT(code);
@@ -855,9 +856,9 @@ TEST test_sig_octet_stream_response_body(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"download";
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"application/octet-stream";
+  op.operation_id = (char *)(size_t)(size_t) "download";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "application/octet-stream";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -910,9 +911,9 @@ TEST test_sig_binary_response_body_pdf(void) {
   struct OpenAPI_Response resp = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"downloadPdf";
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"application/pdf";
+  op.operation_id = (char *)(size_t)(size_t) "downloadPdf";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "application/pdf";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -965,13 +966,14 @@ TEST test_sig_querystring_form_object(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"search";
+  op.operation_id = (char *)(size_t)(size_t) "search";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"object";
-  param.content_type = (char *)(size_t)"application/x-www-form-urlencoded";
-  param.schema.inline_type = (char *)(size_t)"object";
+  param.type = (char *)(size_t)(size_t) "object";
+  param.content_type =
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  param.schema.inline_type = (char *)(size_t)(size_t) "object";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1025,13 +1027,13 @@ TEST test_sig_querystring_json_ref(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchJson";
+  op.operation_id = (char *)(size_t)(size_t) "searchJson";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"object";
-  param.content_type = (char *)(size_t)"application/json";
-  param.schema.ref_name = (char *)(size_t)"Pet";
+  param.type = (char *)(size_t)(size_t) "object";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.schema.ref_name = (char *)(size_t)(size_t) "Pet";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1085,13 +1087,13 @@ TEST test_sig_querystring_json_primitive(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchJsonInt";
+  op.operation_id = (char *)(size_t)(size_t) "searchJsonInt";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"integer";
-  param.content_type = (char *)(size_t)"application/json";
-  param.schema.inline_type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.schema.inline_type = (char *)(size_t)(size_t) "integer";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1145,14 +1147,14 @@ TEST test_sig_querystring_json_array(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchJsonTags";
+  op.operation_id = (char *)(size_t)(size_t) "searchJsonTags";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"array";
-  param.content_type = (char *)(size_t)"application/json";
+  param.type = (char *)(size_t)(size_t) "array";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
   param.schema.is_array = 1;
-  param.schema.inline_type = (char *)(size_t)"string";
+  param.schema.inline_type = (char *)(size_t)(size_t) "string";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1209,14 +1211,14 @@ TEST test_sig_querystring_json_array_object(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchJsonPets";
+  op.operation_id = (char *)(size_t)(size_t) "searchJsonPets";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"array";
-  param.content_type = (char *)(size_t)"application/json";
+  param.type = (char *)(size_t)(size_t) "array";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
   param.schema.is_array = 1;
-  param.items_type = (char *)(size_t)"Pet";
+  param.items_type = (char *)(size_t)(size_t) "Pet";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1273,13 +1275,13 @@ TEST test_sig_querystring_raw_string(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchRaw";
+  op.operation_id = (char *)(size_t)(size_t) "searchRaw";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"string";
-  param.content_type = (char *)(size_t)"text/plain";
-  param.schema.inline_type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
+  param.content_type = (char *)(size_t)(size_t) "text/plain";
+  param.schema.inline_type = (char *)(size_t)(size_t) "string";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1333,13 +1335,13 @@ TEST test_sig_querystring_raw_integer(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"searchRawInt";
+  op.operation_id = (char *)(size_t)(size_t) "searchRawInt";
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"integer";
-  param.content_type = (char *)(size_t)"application/jsonpath";
-  param.schema.inline_type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
+  param.content_type = (char *)(size_t)(size_t) "application/jsonpath";
+  param.schema.inline_type = (char *)(size_t)(size_t) "integer";
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1393,10 +1395,10 @@ TEST test_sig_query_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"list";
+  op.operation_id = (char *)(size_t)(size_t) "list";
 
-  param.name = (char *)(size_t)"filter";
-  param.type = (char *)(size_t)"object";
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.type = (char *)(size_t)(size_t) "object";
   param.in = OA_PARAM_IN_QUERY;
 
   op.parameters = &param;
@@ -1452,10 +1454,10 @@ TEST test_sig_path_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"byPath";
+  op.operation_id = (char *)(size_t)(size_t) "byPath";
 
-  param.name = (char *)(size_t)"filter";
-  param.type = (char *)(size_t)"object";
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.type = (char *)(size_t)(size_t) "object";
   param.in = OA_PARAM_IN_PATH;
 
   op.parameters = &param;
@@ -1511,10 +1513,10 @@ TEST test_sig_header_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"byHeader";
+  op.operation_id = (char *)(size_t)(size_t) "byHeader";
 
-  param.name = (char *)(size_t)"filter";
-  param.type = (char *)(size_t)"object";
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.type = (char *)(size_t)(size_t) "object";
   param.in = OA_PARAM_IN_HEADER;
 
   op.parameters = &param;
@@ -1570,10 +1572,10 @@ TEST test_sig_cookie_object_param_kv(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"byCookie";
+  op.operation_id = (char *)(size_t)(size_t) "byCookie";
 
-  param.name = (char *)(size_t)"prefs";
-  param.type = (char *)(size_t)"object";
+  param.name = (char *)(size_t)(size_t) "prefs";
+  param.type = (char *)(size_t)(size_t) "object";
   param.in = OA_PARAM_IN_COOKIE;
 
   op.parameters = &param;
@@ -1629,13 +1631,13 @@ TEST test_sig_json_content_query_ref(void) {
   struct OpenAPI_Parameter param = {0};
   char *code;
 
-  op.operation_id = (char *)(size_t)"list";
+  op.operation_id = (char *)(size_t)(size_t) "list";
 
-  param.name = (char *)(size_t)"filter";
+  param.name = (char *)(size_t)(size_t) "filter";
   param.in = OA_PARAM_IN_QUERY;
-  param.content_type = (char *)(size_t)"application/json";
-  param.schema.ref_name = (char *)(size_t)"Filter";
-  param.type = (char *)(size_t)"Filter";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.schema.ref_name = (char *)(size_t)(size_t) "Filter";
+  param.type = (char *)(size_t)(size_t) "Filter";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -1692,13 +1694,13 @@ TEST test_sig_header_param_boolean(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Bool";
+  param.name = (char *)(size_t)(size_t) "X-Bool";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"boolean";
+  param.type = (char *)(size_t)(size_t) "boolean";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -1755,13 +1757,13 @@ TEST test_sig_header_param_number(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Num";
+  param.name = (char *)(size_t)(size_t) "X-Num";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"number";
+  param.type = (char *)(size_t)(size_t) "number";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -1818,13 +1820,13 @@ TEST test_sig_header_param_integer(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Int";
+  param.name = (char *)(size_t)(size_t) "X-Int";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -1881,13 +1883,13 @@ TEST test_sig_header_param_string(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-String";
+  param.name = (char *)(size_t)(size_t) "X-String";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -1942,32 +1944,32 @@ TEST test_sig_header_param_json(void) {
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
 
-  op.operation_id = (char *)(size_t)"testHeaderJson";
+  op.operation_id = (char *)(size_t)(size_t) "testHeaderJson";
   op.n_parameters = 1;
   op.parameters = &param;
 
-  param.name = (char *)(size_t)"X-MyHeader";
+  param.name = (char *)(size_t)(size_t) "X-MyHeader";
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)"application/json";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
 
   /* Test primitive JSON type */
-  param.type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test primitive JSON array */
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"integer";
+  param.items_type = (char *)(size_t)(size_t) "integer";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test non-primitive object */
-  param.type = (char *)(size_t)"object";
+  param.type = (char *)(size_t)(size_t) "object";
   param.is_array = 0;
   param.items_type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
@@ -1976,9 +1978,9 @@ TEST test_sig_header_param_json(void) {
   code = NULL;
 
   /* Test non-primitive array */
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"MyType";
+  param.items_type = (char *)(size_t)(size_t) "MyType";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -1987,17 +1989,17 @@ TEST test_sig_header_param_json(void) {
   /* Test ref */
   param.type = NULL;
   param.is_array = 0;
-  param.schema.ref_name = (char *)(size_t)"MyType";
+  param.schema.ref_name = (char *)(size_t)(size_t) "MyType";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
   code = NULL;
 
   /* Test inline object array */
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
   param.schema.ref_name = NULL;
-  param.items_type = (char *)(size_t)"object";
+  param.items_type = (char *)(size_t)(size_t) "object";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   ASSERT(code != NULL);
   free(code);
@@ -2015,46 +2017,47 @@ TEST test_sig_media_type_branches(void) {
   memset(&param, 0, sizeof(param));
   memset(&mt, 0, sizeof(mt));
 
-  op.operation_id = (char *)(size_t)"testMediaTypes";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaTypes";
   op.n_parameters = 1;
   op.parameters = &param;
 
-  param.name = (char *)(size_t)"myParam";
+  param.name = (char *)(size_t)(size_t) "myParam";
   param.in = OA_PARAM_IN_QUERY;
 
   /* upper case testing */
-  param.content_type = (char *)(size_t)"APPLICATION/JSON";
-  param.type = (char *)(size_t)"object";
+  param.content_type = (char *)(size_t)(size_t) "APPLICATION/JSON";
+  param.type = (char *)(size_t)(size_t) "object";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* text/plain */
-  param.content_type = (char *)(size_t)"TEXT/PLAIN";
+  param.content_type = (char *)(size_t)(size_t) "TEXT/PLAIN";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* application/xml */
-  param.content_type = (char *)(size_t)"APPLICATION/XML";
+  param.content_type = (char *)(size_t)(size_t) "APPLICATION/XML";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* multipart/form-data */
-  param.content_type = (char *)(size_t)"MULTIPART/FORM-DATA";
+  param.content_type = (char *)(size_t)(size_t) "MULTIPART/FORM-DATA";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* application/x-www-form-urlencoded */
-  param.content_type = (char *)(size_t)"APPLICATION/X-WWW-FORM-URLENCODED";
+  param.content_type =
+      (char *)(size_t)(size_t) "APPLICATION/X-WWW-FORM-URLENCODED";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
 
   /* default fallback */
-  param.content_type = (char *)(size_t)"UNKNOWN/TYPE";
+  param.content_type = (char *)(size_t)(size_t) "UNKNOWN/TYPE";
   ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op, NULL, &code));
   free(code);
   code = NULL;
@@ -2067,10 +2070,10 @@ TEST test_sig_response_array_string_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)"getArrStr";
-  resp.code = (char *)(size_t)"200";
+  op.operation_id = (char *)(size_t)(size_t) "getArrStr";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)"string";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -2120,10 +2123,10 @@ TEST test_sig_response_array_integer_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)"getArrInt";
-  resp.code = (char *)(size_t)"200";
+  op.operation_id = (char *)(size_t)(size_t) "getArrInt";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)"integer";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "integer";
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -2173,10 +2176,10 @@ TEST test_sig_response_array_struct_ref(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
-  op.operation_id = (char *)(size_t)"getArrStruct";
-  resp.code = (char *)(size_t)"200";
+  op.operation_id = (char *)(size_t)(size_t) "getArrStruct";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
   op.responses = &resp;
   op.n_responses = 1;
   gen_sig(&op, NULL, &code);
@@ -2236,18 +2239,18 @@ TEST test_sig_io_errors(void) {
   struct OpenAPI_Parameter param = {0};
   char *code = NULL;
 
-  op.operation_id = (char *)(size_t)"getAllBranches";
+  op.operation_id = (char *)(size_t)(size_t) "getAllBranches";
   op.n_responses = 1;
   op.responses = &resp;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
 
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)"myParam";
+  param.name = (char *)(size_t)(size_t) "myParam";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.schema.inline_type = (char *)(size_t)"string";
+  param.schema.inline_type = (char *)(size_t)(size_t) "string";
 
   for (i = 0; i < 50; ++i) {
     if (g_io_calls > 0 && g_io_calls < i)
@@ -2276,13 +2279,13 @@ TEST test_sig_unsupported_prefix(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
-  op.operation_id = (char *)(size_t)"prefixTest";
+  op.operation_id = (char *)(size_t)(size_t) "prefixTest";
   op.n_parameters = 1;
   op.parameters = &param;
-  param.name = (char *)(size_t)"myParam";
+  param.name = (char *)(size_t)(size_t) "myParam";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"string";
-  param.content_type = (char *)(size_t)"unsupported/type";
+  param.type = (char *)(size_t)(size_t) "string";
+  param.content_type = (char *)(size_t)(size_t) "unsupported/type";
   gen_sig(&op, NULL, &code);
   ASSERT(code);
   free(code);

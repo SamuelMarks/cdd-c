@@ -23,8 +23,11 @@
 #include <string.h>
 /* clang-format on */
 
+/** @brief Global flag to simulate memory allocation failure during audit. */
 C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
+/** @brief Global flag to simulate tokenization failure during audit. */
 C_CDD_EXPORT int g_cdd_audit_fail_tokenize = 0;
+/** @brief Global flag to simulate search failure during audit. */
 C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
 
 #if defined(_WIN32)

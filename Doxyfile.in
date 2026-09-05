@@ -6,5 +6,6 @@ RECURSIVE              = YES
 EXTRACT_ALL            = NO
 EXCLUDE                = @CMAKE_SOURCE_DIR@/src/tests @CMAKE_SOURCE_DIR@/src/mocks
 WARNINGS               = YES
+WARN_AS_ERROR          = YES
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO

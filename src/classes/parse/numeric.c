@@ -27,7 +27,7 @@
 #define UINT64_MAX _UI64_MAX
 #else
 /** @brief UINT64_MAX macro */
-#define UINT64_MAX ((uint64_t)-1)
+#define UINT64_MAX ((uint64_t) - 1)
 #endif
 #endif
 
@@ -111,7 +111,7 @@ static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
     }
     p++;
   }
-  *endptr = (char *)p;
+  *endptr = (char *)(size_t)p;
   {
     *_out_val = val;
     return CDD_C_SUCCESS;

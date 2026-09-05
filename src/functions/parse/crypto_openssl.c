@@ -92,11 +92,17 @@ static unsigned char *get_hook_HMAC(const EVP_MD *evp_md, const void *key,
 
 #else
 
+/** @brief Hook or direct call for EVP_sha256 */
 #define HOOK_EVP_sha256() EVP_sha256()
+/** @brief Hook or direct call for EVP_MD_CTX_new */
 #define HOOK_EVP_MD_CTX_new() EVP_MD_CTX_new()
+/** @brief Hook or direct call for EVP_DigestInit_ex */
 #define HOOK_EVP_DigestInit_ex EVP_DigestInit_ex
+/** @brief Hook or direct call for EVP_DigestUpdate */
 #define HOOK_EVP_DigestUpdate EVP_DigestUpdate
+/** @brief Hook or direct call for EVP_DigestFinal_ex */
 #define HOOK_EVP_DigestFinal_ex EVP_DigestFinal_ex
+/** @brief Hook or direct call for HMAC */
 #define HOOK_HMAC HMAC
 
 #endif

@@ -11,15 +11,15 @@ extern "C" {
 /* clang-format on */
 
 TEST test_c2openapi_cli_main_invalid_args(void) {
-  char *argv1[] = {(char *)(size_t)"c2openapi"};
+  char *argv1[] = {(char *)(size_t)(size_t) "c2openapi"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(1, argv1));
   PASS();
 }
 
 TEST test_c2openapi_cli_main_valid_args(void) {
-  char *argv1[] = {(char *)(size_t)"c2openapi",
-                   (char *)(size_t)"src/tests/mocks",
-                   (char *)(size_t)"out.json"};
+  char *argv1[] = {(char *)(size_t)(size_t) "c2openapi",
+                   (char *)(size_t)(size_t) "src/tests/mocks",
+                   (char *)(size_t)(size_t) "out.json"};
   int rc;
   rc = c2openapi_cli_main(3, argv1);
   (void)rc;
@@ -28,15 +28,16 @@ TEST test_c2openapi_cli_main_valid_args(void) {
 }
 
 TEST test_c2openapi_cli_main_valid_args_with_options(void) {
-  char *argv1[] = {(char *)(size_t)"c2openapi",
-                   (char *)(size_t)"--base",
-                   (char *)(size_t)"src/tests/mocks/emit/simple.schema.json",
-                   (char *)(size_t)"--self",
-                   (char *)(size_t)"http://example.com/api",
-                   (char *)(size_t)"--dialect",
-                   (char *)(size_t)"http://example.com/dialect",
-                   (char *)(size_t)"src/tests/mocks",
-                   (char *)(size_t)"out2.json"};
+  char *argv1[] = {
+      (char *)(size_t)(size_t) "c2openapi",
+      (char *)(size_t)(size_t) "--base",
+      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
+      (char *)(size_t)(size_t) "--self",
+      (char *)(size_t)(size_t) "http://example.com/api",
+      (char *)(size_t)(size_t) "--dialect",
+      (char *)(size_t)(size_t) "http://example.com/dialect",
+      (char *)(size_t)(size_t) "src/tests/mocks",
+      (char *)(size_t)(size_t) "out2.json"};
   int rc;
   rc = c2openapi_cli_main(9, argv1);
   (void)rc;
@@ -50,35 +51,38 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
 }
 
 TEST test_to_docs_json_cli_main_help(void) {
-  char *argv1[] = {(char *)(size_t)"to_docs_json", (char *)(size_t)"--help"};
+  char *argv1[] = {(char *)(size_t)(size_t) "to_docs_json",
+                   (char *)(size_t)(size_t) "--help"};
   ASSERT_EQ(CDD_C_SUCCESS, to_docs_json_cli_main(2, argv1));
   PASS();
 }
 
 TEST test_to_docs_json_cli_main_no_input(void) {
-  char *argv1[] = {(char *)(size_t)"to_docs_json"};
+  char *argv1[] = {(char *)(size_t)(size_t) "to_docs_json"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_docs_json_cli_main(1, argv1));
   PASS();
 }
 
 TEST test_to_docs_json_cli_main_valid(void) {
-  char *argv1[] = {(char *)(size_t)"to_docs_json", (char *)(size_t)"-i",
-                   (char *)(size_t)"src/tests/mocks/emit/simple.schema.json",
-                   (char *)(size_t)"--no-imports",
-                   (char *)(size_t)"--no-wrapping"};
+  char *argv1[] = {
+      (char *)(size_t)(size_t) "to_docs_json", (char *)(size_t)(size_t) "-i",
+      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
+      (char *)(size_t)(size_t) "--no-imports",
+      (char *)(size_t)(size_t) "--no-wrapping"};
   int rc = to_docs_json_cli_main(5, argv1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
 
 TEST test_generate_bindings_cli_main(void) {
-  char *argv1[] = {(char *)(size_t)"bind"};
+  char *argv1[] = {(char *)(size_t)(size_t) "bind"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, generate_bindings_cli_main(1, argv1));
   PASS();
 }
 
 TEST test_generate_bindings_cli_main_help(void) {
-  char *argv1[] = {(char *)(size_t)"bind", (char *)(size_t)"--help"};
+  char *argv1[] = {(char *)(size_t)(size_t) "bind",
+                   (char *)(size_t)(size_t) "--help"};
   ASSERT_EQ(CDD_C_SUCCESS, generate_bindings_cli_main(2, argv1));
   PASS();
 }
@@ -117,9 +121,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     if (f)
       fclose(f);
     {
-      char *argv2[] = {(char *)(size_t)"c2openapi",
-                       (char *)(size_t)"src/tests/mocks/parse/test_doc_tags.c",
-                       (char *)(size_t)"out3.json"};
+      char *argv2[] = {
+          (char *)(size_t)(size_t) "c2openapi",
+          (char *)(size_t)(size_t) "src/tests/mocks/parse/test_doc_tags.c",
+          (char *)(size_t)(size_t) "out3.json"};
       c2openapi_cli_main(3, argv2);
       remove("src/tests/mocks/parse/test_doc_tags.c");
       remove("out3.json");
@@ -139,10 +144,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     if (f)
       fclose(f);
     {
-      char *argv2[] = {
-          (char *)(size_t)"c2openapi",
-          (char *)(size_t)"src/tests/mocks/parse/test_doc_tags_invalid2.c",
-          (char *)(size_t)"out52.json"};
+      char *argv2[] = {(char *)(size_t)(size_t) "c2openapi",
+                       (char *)(size_t)(size_t) "src/tests/mocks/parse/"
+                                                "test_doc_tags_invalid2.c",
+                       (char *)(size_t)(size_t) "out52.json"};
       c2openapi_cli_main(3, argv2);
       remove("src/tests/mocks/parse/test_doc_tags_invalid2.c");
       remove("out52.json");
@@ -184,9 +189,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
       fclose(f);
     {
       char *argv2[] = {
-          (char *)(size_t)"c2openapi",
-          (char *)(size_t)"src/tests/mocks/parse/test_doc_tags_oauth.c",
-          (char *)(size_t)"out4.json"};
+          (char *)(size_t)(size_t) "c2openapi",
+          (char
+               *)(size_t)(size_t) "src/tests/mocks/parse/test_doc_tags_oauth.c",
+          (char *)(size_t)(size_t) "out4.json"};
       c2openapi_cli_main(3, argv2);
       remove("src/tests/mocks/parse/test_doc_tags_oauth.c");
       remove("out4.json");
@@ -208,10 +214,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     if (f)
       fclose(f);
     {
-      char *argv2[] = {
-          (char *)(size_t)"c2openapi",
-          (char *)(size_t)"src/tests/mocks/parse/test_doc_tags_invalid.c",
-          (char *)(size_t)"out5.json"};
+      char *argv2[] = {(char *)(size_t)(size_t) "c2openapi",
+                       (char *)(size_t)(size_t) "src/tests/mocks/parse/"
+                                                "test_doc_tags_invalid.c",
+                       (char *)(size_t)(size_t) "out5.json"};
       c2openapi_cli_main(3, argv2);
       remove("src/tests/mocks/parse/test_doc_tags_invalid.c");
       remove("out5.json");
@@ -245,10 +251,10 @@ TEST test_c2openapi_cli_main_doc_tags(void) {
     if (f)
       fclose(f);
     {
-      char *argv2[] = {
-          (char *)(size_t)"c2openapi",
-          (char *)(size_t)"src/tests/mocks/parse/test_doc_tags_oauth_merge.c",
-          (char *)(size_t)"out6.json"};
+      char *argv2[] = {(char *)(size_t)(size_t) "c2openapi",
+                       (char *)(size_t)(size_t) "src/tests/mocks/parse/"
+                                                "test_doc_tags_oauth_merge.c",
+                       (char *)(size_t)(size_t) "out6.json"};
       c2openapi_cli_main(3, argv2);
       remove("src/tests/mocks/parse/test_doc_tags_oauth_merge.c");
       remove("out6.json");

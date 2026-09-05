@@ -19,16 +19,20 @@
 #ifdef CDD_BUILD_TESTS
 extern int g_fail_io_after;
 extern int g_io_calls;
+/** @brief Mockable or standard fopen wrapper */
 #define FOPEN(path, mode)                                                      \
   ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
        ? NULL                                                                  \
        : fopen(path, mode))
+/** @brief Mockable or standard fopen_s wrapper */
 #define FOPEN_S(fp, path, mode)                                                \
   ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
        ? (*(fp) = NULL, -1)                                                    \
        : fopen_s(fp, path, mode))
 #else
+/** @brief Mockable or standard fopen wrapper */
 #define FOPEN(path, mode) fopen(path, mode)
+/** @brief Mockable or standard fopen_s wrapper */
 #define FOPEN_S(fp, path, mode) fopen_s(fp, path, mode)
 #endif
 
@@ -221,7 +225,7 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "    req.url = \"http://localhost:8080/oauth/token\";\n");
   }
   fprintf(fp_c, "  } else {\n");
-  fprintf(fp_c, "    req.url = (char *)token_endpoint;\n");
+  fprintf(fp_c, "    req.url = (char *)(size_t)token_endpoint;\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  req.body = payload;\n");
   fprintf(fp_c, "  req.body_len = strlen(payload);\n");

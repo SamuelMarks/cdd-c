@@ -106,9 +106,7 @@ struct NumericValue {
   union {
     struct IntegerInfo integer; /**< Valid if kind == NUMERIC_INTEGER */
     struct FloatInfo floating;  /**< Valid if kind == NUMERIC_FLOAT */
-    /** @brief data */
-    /** @brief data variant */
-  } data;
+  } data;                       /**< Value variant based on kind */
 };
 
 /**

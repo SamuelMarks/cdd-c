@@ -42,6 +42,7 @@ static FILE *make_cdd_tmpfile(void) {
   return tmpfile();
 #endif
 }
+/** @brief Portable tmpfile generator macro */
 #define CDD_TMPFILE() make_cdd_tmpfile()
 
 /**
@@ -76,7 +77,7 @@ static cdd_c_error_t generate_expected_sig(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc((size_t)sz + 1);
+  buf = (char *)(size_t)malloc((size_t)sz + 1);
   if (buf) {
     size_t len;
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
@@ -120,7 +121,7 @@ static cdd_c_error_t generate_expected_query(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc((size_t)sz + 1);
+  buf = (char *)(size_t)malloc((size_t)sz + 1);
   if (buf) {
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
@@ -230,7 +231,7 @@ static cdd_c_error_t generate_expected_url(const char *path,
   sz = ftell(tmp);
   rewind(tmp);
 
-  buf = (char *)malloc((size_t)sz + 1);
+  buf = (char *)(size_t)malloc((size_t)sz + 1);
   if (buf) {
     size_t bytes_read = fread(buf, 1, (size_t)sz, tmp);
     buf[bytes_read] = '\0';
@@ -318,7 +319,7 @@ static cdd_c_error_t extract_current_sig(struct TokenList *tokens,
     char *buf, *p;
     for (k = start; k <= args_end; ++k)
       length += tokens->tokens[k].length;
-    buf = (char *)malloc(length + 1);
+    buf = (char *)(size_t)malloc(length + 1);
     p = buf;
     for (k = start; k <= args_end; ++k) {
       memcpy(p, tokens->tokens[k].start, tokens->tokens[k].length);

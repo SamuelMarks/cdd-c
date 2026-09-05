@@ -12,10 +12,10 @@
  * @brief Helper context for topological sort.
  */
 typedef struct {
-  cdd_ffi_ir_t *ir;
-  int *visited; /* 0: unvisited, 1: visiting, 2: visited */
-  cdd_ffi_ir_node_t *sorted_nodes;
-  size_t sorted_count;
+  cdd_ffi_ir_t *ir; /**< The FFI IR undergoing topological sort */
+  int *visited; /**< Visited array (0: unvisited, 1: visiting, 2: visited) */
+  cdd_ffi_ir_node_t *sorted_nodes; /**< Array of sorted IR nodes */
+  size_t sorted_count;             /**< Number of sorted nodes populated */
 } toposort_ctx_t;
 
 /**

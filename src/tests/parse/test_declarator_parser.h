@@ -39,7 +39,7 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
  */
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
-  (void)tokenize(az_span_create_from_str((char *)(size_t)code), &tl);
+  (void)tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   return tl;
 }
 
@@ -69,7 +69,7 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_basic_int(void) {
-  const char *code = (char *)(size_t)"int x";
+  const char *code = (char *)(size_t)(size_t) "int x";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
@@ -93,7 +93,7 @@ TEST test_parse_basic_int(void) {
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_ptr(void) {
-  const char *code = (char *)(size_t)"char *p";
+  const char *code = (char *)(size_t)(size_t) "char *p";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc;
@@ -116,7 +116,7 @@ TEST test_parse_ptr(void) {
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
-  const char *code = (char *)(size_t)"int * const volatile restrict p";
+  const char *code = (char *)(size_t)(size_t) "int * const volatile restrict p";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -146,7 +146,7 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
-  const char *code = (char *)(size_t)"_Atomic(int) ax";
+  const char *code = (char *)(size_t)(size_t) "_Atomic(int) ax";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -167,7 +167,7 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_complex_specifier(void) { /* double _Complex c */
-  const char *code = (char *)(size_t)"double _Complex c";
+  const char *code = (char *)(size_t)(size_t) "double _Complex c";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -188,7 +188,7 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
-  const char *code = (char *)(size_t)"int * _Atomic ap";
+  const char *code = (char *)(size_t)(size_t) "int * _Atomic ap";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -210,7 +210,7 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
-  const char *code = (char *)(size_t)"_Atomic int x";
+  const char *code = (char *)(size_t)(size_t) "_Atomic int x";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -234,7 +234,7 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
  * @brief Executes the corresponding declarator parser test.
  */
 TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
-  const char *code = (char *)(size_t)"_Atomic(int) *";
+  const char *code = (char *)(size_t)(size_t) "_Atomic(int) *";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -251,7 +251,7 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
 }
 
 TEST test_parse_func_ptr(void) {
-  const char *code = (char *)(size_t)"int (*func)(void)";
+  const char *code = (char *)(size_t)(size_t) "int (*func)(void)";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -267,7 +267,7 @@ TEST test_parse_func_ptr(void) {
 }
 
 TEST test_parse_func_array(void) {
-  const char *code = (char *)(size_t)"int (*a[5])(void)";
+  const char *code = (char *)(size_t)(size_t) "int (*a[5])(void)";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -284,7 +284,7 @@ TEST test_parse_func_array(void) {
 }
 
 TEST test_abstract_func_ptr(void) {
-  const char *code = (char *)(size_t)"int (*)(void)";
+  const char *code = (char *)(size_t)(size_t) "int (*)(void)";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -300,7 +300,7 @@ TEST test_abstract_func_ptr(void) {
 }
 
 TEST test_abstract_array(void) {
-  const char *code = (char *)(size_t)"int[5]";
+  const char *code = (char *)(size_t)(size_t) "int[5]";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -338,7 +338,8 @@ TEST test_add_type_node_nulls(void) {
 }
 
 TEST test_parse_declarator_oom(void) {
-  const char *code = (char *)(size_t)"int * const volatile p[10](void)";
+  const char *code =
+      (char *)(size_t)(size_t) "int * const volatile p[10](void)";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int i, rc;
@@ -443,7 +444,7 @@ TEST test_parse_declarator_more_edge_cases(void) {
 }
 
 TEST test_parse_declarator_empty_array(void) {
-  const char *code = (char *)(size_t)"int x[]";
+  const char *code = (char *)(size_t)(size_t) "int x[]";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
@@ -455,7 +456,7 @@ TEST test_parse_declarator_empty_array(void) {
 }
 
 TEST test_parse_declarator_just_x(void) {
-  const char *code = (char *)(size_t)"x";
+  const char *code = (char *)(size_t)(size_t) "x";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);

@@ -79,4 +79,3 @@ target_include_directories(
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
 )
 target_include_directories("mocks" PRIVATE "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>")
-

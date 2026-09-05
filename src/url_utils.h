@@ -64,8 +64,7 @@ struct OpenAPI_KV {
     int i;         /**< Integer value */
     double n;      /**< Number value */
     int b;         /**< Boolean value (0/1) */
-    /** @brief KV value */
-  } value;
+  } value;         /**< Typed value payload */
 };
 
 /**

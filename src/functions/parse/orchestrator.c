@@ -412,8 +412,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* 1. Parse */
-  if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
-      0)
+  if ((rc = tokenize(az_span_create_from_str((char *)(size_t)source_code),
+                     &tokens)) != 0)
     return rc;
 
   if ((rc = parse_tokens(tokens, &cst)) != 0) {

@@ -59,7 +59,7 @@ static cdd_c_error_t range_to_string(const struct TokenList *tokens,
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!buf) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -226,7 +226,7 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
     /* This sample assumes HAVE_ASPRINTF */
     {
       size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
-      replacement = (char *)C_CDD_MALLOC(replacement_len);
+      replacement = (char *)(size_t)C_CDD_MALLOC(replacement_len);
       if (replacement) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         sprintf_s(replacement, replacement_len,
@@ -316,7 +316,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
     if (site->spec->check_style == CHECK_PTR_NULL) {
       /* " if (!var) { return CDD_C_ERROR_MEMORY; }" */
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)C_CDD_MALLOC(len);
+      injection = (char *)(size_t)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -331,7 +331,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)C_CDD_MALLOC(len);
+      injection = (char *)(size_t)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
@@ -346,7 +346,7 @@ strategy_inject_safety_checks(const struct TokenList *tokens,
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
       size_t len = strlen(site->var_name) + strlen(DEFAULT_ERROR_CODE) + 40;
-      injection = (char *)C_CDD_MALLOC(len);
+      injection = (char *)(size_t)C_CDD_MALLOC(len);
       if (!injection) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

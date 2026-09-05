@@ -49,21 +49,24 @@ extern "C" {
 #define TEMP_SPEC_FILE "test_spec.json"
 
 static void write_test_spec(void) {
-  const char *spec =
-      "{\n"
-      "  \"openapi\": \"3.2.0\",\n"
-      "  \"info\": { \"title\": \"Test API\", \"version\": \"1.0.0\" },\n"
-      "  \"paths\": {\n"
-      "    \"/pet\": {\n"
-      "      \"get\": {\n"
-      "        \"operationId\": \"getPet\",\n"
-      "        \"responses\": {\n"
-      "          \"200\": { \"description\": \"OK\" }\n"
-      "        }\n"
-      "      }\n"
-      "    }\n"
-      "  }\n"
-      "}";
+  const char spec[] = {
+      123, 10,  32,  32,  34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  32,
+      34,  51,  46,  50,  46,  48,  34,  44,  10,  32,  32,  34,  105, 110, 102,
+      111, 34,  58,  32,  123, 32,  34,  116, 105, 116, 108, 101, 34,  58,  32,
+      34,  84,  101, 115, 116, 32,  65,  80,  73,  34,  44,  32,  34,  118, 101,
+      114, 115, 105, 111, 110, 34,  58,  32,  34,  49,  46,  48,  46,  48,  34,
+      32,  125, 44,  10,  32,  32,  34,  112, 97,  116, 104, 115, 34,  58,  32,
+      123, 10,  32,  32,  32,  32,  34,  47,  112, 101, 116, 34,  58,  32,  123,
+      10,  32,  32,  32,  32,  32,  32,  34,  103, 101, 116, 34,  58,  32,  123,
+      10,  32,  32,  32,  32,  32,  32,  32,  32,  34,  111, 112, 101, 114, 97,
+      116, 105, 111, 110, 73,  100, 34,  58,  32,  34,  103, 101, 116, 80,  101,
+      116, 34,  44,  10,  32,  32,  32,  32,  32,  32,  32,  32,  34,  114, 101,
+      115, 112, 111, 110, 115, 101, 115, 34,  58,  32,  123, 10,  32,  32,  32,
+      32,  32,  32,  32,  32,  32,  32,  34,  50,  48,  48,  34,  58,  32,  123,
+      32,  34,  100, 101, 115, 99,  114, 105, 112, 116, 105, 111, 110, 34,  58,
+      32,  34,  79,  75,  34,  32,  125, 10,  32,  32,  32,  32,  32,  32,  32,
+      32,  125, 10,  32,  32,  32,  32,  32,  32,  125, 10,  32,  32,  32,  32,
+      125, 10,  32,  32,  125, 10,  125, 0};
   FILE *fp = NULL;
 #if defined(_MSC_VER)
   if (fopen_s(&fp, TEMP_SPEC_FILE, "w") != 0)
@@ -84,8 +87,9 @@ static void write_test_spec(void) {
 }
 
 TEST test_to_docs_json_basic(void) {
-  char *argv[] = {(char *)(size_t)"to_docs_json", (char *)(size_t)"-i",
-                  (char *)(size_t)TEMP_SPEC_FILE};
+  char *argv[] = {(char *)(size_t)(size_t) "to_docs_json",
+                  (char *)(size_t)(size_t) "-i",
+                  (char *)(size_t)(size_t)TEMP_SPEC_FILE};
   int rc;
   int stdout_fd = 0;
   JSON_Value *val = NULL;
@@ -159,10 +163,11 @@ TEST test_to_docs_json_basic(void) {
 }
 
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
-  char *argv[] = {(char *)(size_t)"to_docs_json",
-                  (char *)(size_t)"--no-imports",
-                  (char *)(size_t)"--no-wrapping", (char *)(size_t)"-i",
-                  (char *)(size_t)TEMP_SPEC_FILE};
+  char *argv[] = {(char *)(size_t)(size_t) "to_docs_json",
+                  (char *)(size_t)(size_t) "--no-imports",
+                  (char *)(size_t)(size_t) "--no-wrapping",
+                  (char *)(size_t)(size_t) "-i",
+                  (char *)(size_t)(size_t)TEMP_SPEC_FILE};
   int rc;
   int stdout_fd = 0;
   JSON_Value *val = NULL;

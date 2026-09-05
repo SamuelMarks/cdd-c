@@ -40,7 +40,8 @@ TEST test_cdd_cst_roundtrip_basic(void) {
                      "}\n"
                      "// end";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                         &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -68,7 +69,8 @@ TEST test_cdd_cst_roundtrip_macros(void) {
   const char *code = "#define MACRO(x) (x + 1)\n"
                      "int var = MACRO(5);";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                         &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -95,7 +97,8 @@ TEST test_cdd_cst_asm_statement(void) {
                      "  __asm__ volatile (\"nop\" : : : \"memory\");\n"
                      "}";
   char *out = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                         &tree);
 
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -138,10 +141,11 @@ TEST test_cdd_cst_asm_statement(void) {
  */
 TEST test_cdd_cst_cpp_class(void) {
   cdd_cst_tree_t *tree = NULL;
-  int rc = cdd_cst_parse(
-      az_span_create_from_str(
-          (char *)(size_t)"class MyClass { public: int x; private: int y; };"),
-      &tree);
+  int rc =
+      cdd_cst_parse(az_span_create_from_str(
+                        (char *)(size_t)(size_t) "class MyClass { public: int "
+                                                 "x; private: int y; };"),
+                    &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
   ASSERT_EQ(CDD_CST_TRANSLATION_UNIT, tree->root->kind);
@@ -161,12 +165,12 @@ TEST test_cdd_cst_cpp_class(void) {
 TEST test_cdd_cst_cpp_methods(void) {
   cdd_cst_tree_t *tree = NULL;
   int rc = cdd_cst_parse(
-      az_span_create_from_str(
-          (char *)(size_t)"class MyClass { \n"
-                          "  MyClass() {} \n"
-                          "  ~MyClass() {} \n"
-                          "  MyClass& operator=(const MyClass& o) {} \n"
-                          "};"),
+      az_span_create_from_str((
+          char *)(size_t)(size_t) "class MyClass { \n"
+                                  "  MyClass() {} \n"
+                                  "  ~MyClass() {} \n"
+                                  "  MyClass& operator=(const MyClass& o) {} \n"
+                                  "};"),
       &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
@@ -217,7 +221,8 @@ TEST test_cdd_cst_cpp_exceptions(void) {
                      "  }\n"
                      "}\n";
   cdd_cst_tree_t *tree = NULL;
-  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree);
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                         &tree);
   ASSERT_EQ(0, rc);
   ASSERT(tree != NULL);
   ASSERT_EQ(CDD_CST_TRANSLATION_UNIT, tree->root->kind);
@@ -286,8 +291,9 @@ TEST test_cdd_cst_cpp_namespace(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -331,8 +337,9 @@ TEST test_cdd_cst_cpp_template(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -368,8 +375,9 @@ TEST test_cdd_cst_cpp_inheritance(void) {
   cdd_cst_tree_t *tree = NULL;
   char *out = NULL;
 
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
   ASSERT(tree != NULL);
   ASSERT(tree->root != NULL);
 
@@ -429,44 +437,47 @@ TEST test_cdd_cst_parser_oom(void) {
   /*  (moved to global) */
   /*  (moved to global) */
   int i;
-  const char *code = "template <typename T, class U> class Pair : public A { T "
-                     "x; }; namespace N { using namespace std; try { throw 1; "
-                     "} catch(...) {} } __asm__(\"nop\");\n"
-                     "#define FOO\n"
-                     "#if defined(FOO)\n"
-                     "int a;\n"
-                     "{\nint x;\n}\n"
-                     "#elif defined BAR\n"
-                     "int b;\n"
-                     "#elif 0\n"
-                     "int c;\n"
-                     "#elif 1\n"
-                     "int cc;\n"
-                     "#elif FOO\n"
-                     "int d;\n"
-                     "#else\n"
-                     "int e;\n"
-                     "#endif\n"
-                     "#ifndef BAZ\n"
-                     "int f;\n"
-                     "#endif\n"
-                     "#elif 0\n"
-                     "#elif 1\n"
-                     "#elif FOO\n"
-                     "#elif defined(FOO)\n"
-                     "#elif defined FOO\n"
-                     "#elif defined(BAR)\n"
-                     "#elif defined BAR\n"
-                     "#if\n" /* empty if */
-                     "#endif\n"
-                     "void big() { int a; int b; int c; int d; int e; int f; "
-                     "int g; int h; int i; int j; }";
+  const char code[] = {
+      116, 101, 109, 112, 108, 97,  116, 101, 32,  60,  116, 121, 112, 101, 110,
+      97,  109, 101, 32,  84,  44,  32,  99,  108, 97,  115, 115, 32,  85,  62,
+      32,  99,  108, 97,  115, 115, 32,  80,  97,  105, 114, 32,  58,  32,  112,
+      117, 98,  108, 105, 99,  32,  65,  32,  123, 32,  84,  32,  120, 59,  32,
+      125, 59,  32,  110, 97,  109, 101, 115, 112, 97,  99,  101, 32,  78,  32,
+      123, 32,  117, 115, 105, 110, 103, 32,  110, 97,  109, 101, 115, 112, 97,
+      99,  101, 32,  115, 116, 100, 59,  32,  116, 114, 121, 32,  123, 32,  116,
+      104, 114, 111, 119, 32,  49,  59,  32,  125, 32,  99,  97,  116, 99,  104,
+      40,  46,  46,  46,  41,  32,  123, 125, 32,  125, 32,  95,  95,  97,  115,
+      109, 95,  95,  40,  34,  110, 111, 112, 34,  41,  59,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  70,  79,  79,  10,  35,  105, 102, 32,  100, 101,
+      102, 105, 110, 101, 100, 40,  70,  79,  79,  41,  10,  105, 110, 116, 32,
+      97,  59,  10,  123, 10,  105, 110, 116, 32,  120, 59,  10,  125, 10,  35,
+      101, 108, 105, 102, 32,  100, 101, 102, 105, 110, 101, 100, 32,  66,  65,
+      82,  10,  105, 110, 116, 32,  98,  59,  10,  35,  101, 108, 105, 102, 32,
+      48,  10,  105, 110, 116, 32,  99,  59,  10,  35,  101, 108, 105, 102, 32,
+      49,  10,  105, 110, 116, 32,  99,  99,  59,  10,  35,  101, 108, 105, 102,
+      32,  70,  79,  79,  10,  105, 110, 116, 32,  100, 59,  10,  35,  101, 108,
+      115, 101, 10,  105, 110, 116, 32,  101, 59,  10,  35,  101, 110, 100, 105,
+      102, 10,  35,  105, 102, 110, 100, 101, 102, 32,  66,  65,  90,  10,  105,
+      110, 116, 32,  102, 59,  10,  35,  101, 110, 100, 105, 102, 10,  35,  101,
+      108, 105, 102, 32,  48,  10,  35,  101, 108, 105, 102, 32,  49,  10,  35,
+      101, 108, 105, 102, 32,  70,  79,  79,  10,  35,  101, 108, 105, 102, 32,
+      100, 101, 102, 105, 110, 101, 100, 40,  70,  79,  79,  41,  10,  35,  101,
+      108, 105, 102, 32,  100, 101, 102, 105, 110, 101, 100, 32,  70,  79,  79,
+      10,  35,  101, 108, 105, 102, 32,  100, 101, 102, 105, 110, 101, 100, 40,
+      66,  65,  82,  41,  10,  35,  101, 108, 105, 102, 32,  100, 101, 102, 105,
+      110, 101, 100, 32,  66,  65,  82,  10,  35,  105, 102, 10,  35,  101, 110,
+      100, 105, 102, 10,  118, 111, 105, 100, 32,  98,  105, 103, 40,  41,  32,
+      123, 32,  105, 110, 116, 32,  97,  59,  32,  105, 110, 116, 32,  98,  59,
+      32,  105, 110, 116, 32,  99,  59,  32,  105, 110, 116, 32,  100, 59,  32,
+      105, 110, 116, 32,  101, 59,  32,  105, 110, 116, 32,  102, 59,  32,  105,
+      110, 116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,  32,  105, 110,
+      116, 32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,  125, 0};
 
   for (i = 1; i < 50; i++) {
     tree = NULL;
     g_cdd_alloc_fail = (int)i;
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree) ==
-        0) {
+    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                      &tree) == 0) {
       cdd_cst_tree_free(tree);
       break;
     }
@@ -478,8 +489,8 @@ TEST test_cdd_cst_parser_oom(void) {
   for (i = 1; i < 50; i++) {
     tree = NULL;
     g_cdd_alloc_fail = (int)i;
-    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree) ==
-        0) {
+    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                      &tree) == 0) {
       cdd_cst_tree_free(tree);
       break;
     }
@@ -494,37 +505,35 @@ TEST test_cdd_cst_parser_oom(void) {
 
 TEST test_cdd_cst_parser_macros_full(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "#define FOO\n"
-                     "#if defined(FOO)\n"
-                     "int a;\n"
-                     "{\nint x;\n}\n"
-                     "#elif defined BAR\n"
-                     "int b;\n"
-                     "#elif 0\n"
-                     "int c;\n"
-                     "#elif 1\n"
-                     "int cc;\n"
-                     "#elif FOO\n"
-                     "int d;\n"
-                     "#else\n"
-                     "int e;\n"
-                     "#endif\n"
-                     "#ifndef BAZ\n"
-                     "int f;\n"
-                     "#endif\n"
-                     "#elif 0\n"
-                     "#elif 1\n"
-                     "#elif FOO\n"
-                     "#elif defined(FOO)\n"
-                     "#elif defined FOO\n"
-                     "#elif defined(BAR)\n"
-                     "#elif defined BAR\n"
-                     "#if\n" /* empty if */
-                     "#endif\n"
-                     "void big() { int a; int b; int c; int d; int e; int f; "
-                     "int g; int h; int i; int j; }";
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  const char code[] = {
+      35,  100, 101, 102, 105, 110, 101, 32,  70,  79,  79,  10,  35,  105, 102,
+      32,  100, 101, 102, 105, 110, 101, 100, 40,  70,  79,  79,  41,  10,  105,
+      110, 116, 32,  97,  59,  10,  123, 10,  105, 110, 116, 32,  120, 59,  10,
+      125, 10,  35,  101, 108, 105, 102, 32,  100, 101, 102, 105, 110, 101, 100,
+      32,  66,  65,  82,  10,  105, 110, 116, 32,  98,  59,  10,  35,  101, 108,
+      105, 102, 32,  48,  10,  105, 110, 116, 32,  99,  59,  10,  35,  101, 108,
+      105, 102, 32,  49,  10,  105, 110, 116, 32,  99,  99,  59,  10,  35,  101,
+      108, 105, 102, 32,  70,  79,  79,  10,  105, 110, 116, 32,  100, 59,  10,
+      35,  101, 108, 115, 101, 10,  105, 110, 116, 32,  101, 59,  10,  35,  101,
+      110, 100, 105, 102, 10,  35,  105, 102, 110, 100, 101, 102, 32,  66,  65,
+      90,  10,  105, 110, 116, 32,  102, 59,  10,  35,  101, 110, 100, 105, 102,
+      10,  35,  101, 108, 105, 102, 32,  48,  10,  35,  101, 108, 105, 102, 32,
+      49,  10,  35,  101, 108, 105, 102, 32,  70,  79,  79,  10,  35,  101, 108,
+      105, 102, 32,  100, 101, 102, 105, 110, 101, 100, 40,  70,  79,  79,  41,
+      10,  35,  101, 108, 105, 102, 32,  100, 101, 102, 105, 110, 101, 100, 32,
+      70,  79,  79,  10,  35,  101, 108, 105, 102, 32,  100, 101, 102, 105, 110,
+      101, 100, 40,  66,  65,  82,  41,  10,  35,  101, 108, 105, 102, 32,  100,
+      101, 102, 105, 110, 101, 100, 32,  66,  65,  82,  10,  35,  105, 102, 10,
+      35,  101, 110, 100, 105, 102, 10,  118, 111, 105, 100, 32,  98,  105, 103,
+      40,  41,  32,  123, 32,  105, 110, 116, 32,  97,  59,  32,  105, 110, 116,
+      32,  98,  59,  32,  105, 110, 116, 32,  99,  59,  32,  105, 110, 116, 32,
+      100, 59,  32,  105, 110, 116, 32,  101, 59,  32,  105, 110, 116, 32,  102,
+      59,  32,  105, 110, 116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,
+      32,  105, 110, 116, 32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,
+      125, 0};
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
@@ -548,7 +557,8 @@ TEST test_cdd_cst_peek_advance_eof(void) {
   parser_state_t s = {0};
   cdd_token_t *tok = NULL;
   cdd_token_list_t *tl = NULL;
-  cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)"int x;"), &tl);
+  cdd_lexer_tokenize(az_span_create_from_str((char *)(size_t)(size_t) "int x;"),
+                     &tl);
   s.list = tl;
   s.pos = tl->size; /* Move past end */
   ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, peek(&s, &tok));
@@ -560,20 +570,47 @@ TEST test_cdd_cst_peek_advance_eof(void) {
 
 TEST test_cdd_cst_parser_complex_syntax(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code =
-      "#define M1 1\n#define M2 2\n#define M3 3\n#define M4 4\n#define M5 "
-      "5\n#define M6 6\n#define M7 7\n#define M8 8\n#define M9 9\n#define M10 "
-      "10\n#define M11 11\n#define M12 12\n#define M13 13\n#define M14 "
-      "14\n#define M15 15\n#define M16 16\n#define M17 17\n"
-      "class MyClass : public Base1, private Base2 { public: void foo() "
-      "noexcept; void bar() noexcept(true); };"
-      "void func() { throw MyException(1, 2); }"
-      "namespace A { namespace B { class C {}; } }"
-      "template <class T, int N> class Arr {};"
-      "void big_func() { int a; int b; int c; int d; int e; int f; int g; int "
-      "h; int i; int j; }";
-  ASSERT_EQ(
-      0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+  const char code[] = {
+      35,  100, 101, 102, 105, 110, 101, 32,  77,  49,  32,  49,  10,  35,  100,
+      101, 102, 105, 110, 101, 32,  77,  50,  32,  50,  10,  35,  100, 101, 102,
+      105, 110, 101, 32,  77,  51,  32,  51,  10,  35,  100, 101, 102, 105, 110,
+      101, 32,  77,  52,  32,  52,  10,  35,  100, 101, 102, 105, 110, 101, 32,
+      77,  53,  32,  53,  10,  35,  100, 101, 102, 105, 110, 101, 32,  77,  54,
+      32,  54,  10,  35,  100, 101, 102, 105, 110, 101, 32,  77,  55,  32,  55,
+      10,  35,  100, 101, 102, 105, 110, 101, 32,  77,  56,  32,  56,  10,  35,
+      100, 101, 102, 105, 110, 101, 32,  77,  57,  32,  57,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  48,  32,  49,  48,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  49,  32,  49,  49,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  50,  32,  49,  50,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  51,  32,  49,  51,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  52,  32,  49,  52,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  53,  32,  49,  53,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  54,  32,  49,  54,  10,  35,  100, 101,
+      102, 105, 110, 101, 32,  77,  49,  55,  32,  49,  55,  10,  99,  108, 97,
+      115, 115, 32,  77,  121, 67,  108, 97,  115, 115, 32,  58,  32,  112, 117,
+      98,  108, 105, 99,  32,  66,  97,  115, 101, 49,  44,  32,  112, 114, 105,
+      118, 97,  116, 101, 32,  66,  97,  115, 101, 50,  32,  123, 32,  112, 117,
+      98,  108, 105, 99,  58,  32,  118, 111, 105, 100, 32,  102, 111, 111, 40,
+      41,  32,  110, 111, 101, 120, 99,  101, 112, 116, 59,  32,  118, 111, 105,
+      100, 32,  98,  97,  114, 40,  41,  32,  110, 111, 101, 120, 99,  101, 112,
+      116, 40,  116, 114, 117, 101, 41,  59,  32,  125, 59,  118, 111, 105, 100,
+      32,  102, 117, 110, 99,  40,  41,  32,  123, 32,  116, 104, 114, 111, 119,
+      32,  77,  121, 69,  120, 99,  101, 112, 116, 105, 111, 110, 40,  49,  44,
+      32,  50,  41,  59,  32,  125, 110, 97,  109, 101, 115, 112, 97,  99,  101,
+      32,  65,  32,  123, 32,  110, 97,  109, 101, 115, 112, 97,  99,  101, 32,
+      66,  32,  123, 32,  99,  108, 97,  115, 115, 32,  67,  32,  123, 125, 59,
+      32,  125, 32,  125, 116, 101, 109, 112, 108, 97,  116, 101, 32,  60,  99,
+      108, 97,  115, 115, 32,  84,  44,  32,  105, 110, 116, 32,  78,  62,  32,
+      99,  108, 97,  115, 115, 32,  65,  114, 114, 32,  123, 125, 59,  118, 111,
+      105, 100, 32,  98,  105, 103, 95,  102, 117, 110, 99,  40,  41,  32,  123,
+      32,  105, 110, 116, 32,  97,  59,  32,  105, 110, 116, 32,  98,  59,  32,
+      105, 110, 116, 32,  99,  59,  32,  105, 110, 116, 32,  100, 59,  32,  105,
+      110, 116, 32,  101, 59,  32,  105, 110, 116, 32,  102, 59,  32,  105, 110,
+      116, 32,  103, 59,  32,  105, 110, 116, 32,  104, 59,  32,  105, 110, 116,
+      32,  105, 59,  32,  105, 110, 116, 32,  106, 59,  32,  125, 0};
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();
@@ -582,96 +619,110 @@ TEST test_cdd_cst_parser_complex_syntax(void) {
 TEST test_cdd_cst_parser_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   /* Unmatched brace */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"{"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "{"), &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing namespace name */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"namespace {"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "namespace {"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Missing catch */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"try { }"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "try { }"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Class without semicolon or body */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"class X : public Y"),
-                &tree);
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "class X : public Y"),
+      &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function due to rbrace */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"} func() {"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "} func() {"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: expression with parens and then semicolon */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x = (1);"), &tree);
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "int x = (1);"), &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int arr[] = {1};"),
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "int arr[] = {1};"),
+      &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "x = {1};"),
                 &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"x = {1};"), &tree);
-  if (tree)
-    cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"return {1};"), &tree);
-  if (tree)
-    cdd_cst_tree_free(tree);
-  tree = NULL;
-
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x = (1) {1};"),
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "return {1};"),
                 &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x(1) {1};"),
-                &tree);
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "int x = (1) {1};"),
+      &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x(1) : 1 {1};"),
-                &tree);
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "int x(1) {1};"), &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x, {1};"), &tree);
+  cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t)(size_t) "int x(1) : 1 {1};"),
+      &tree);
+  if (tree)
+    cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "int x, {1};"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: unmatched parens */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"int x = (1;"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "int x = (1;"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Not a function: function call */
-  cdd_cst_parse(az_span_create_from_str((char *)(size_t)"func();"), &tree);
+  cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t) "func();"),
+                &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;
 
   /* Template without params */
   cdd_cst_parse(
-      az_span_create_from_str((char *)(size_t)"template < > class X;"), &tree);
+      az_span_create_from_str((char *)(size_t)(size_t) "template < > class X;"),
+      &tree);
   if (tree)
     cdd_cst_tree_free(tree);
   tree = NULL;

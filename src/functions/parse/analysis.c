@@ -192,11 +192,11 @@ static cdd_c_error_t get_assigned_var(const struct TokenList *tokens,
         if (g_cdd_fail_alloc > 1) {
           g_cdd_fail_alloc--;
         }
-        name = (char *)malloc(tok->length + 1);
+        name = (char *)(size_t)malloc(tok->length + 1);
       }
     }
 #else
-    name = (char *)malloc(tok->length + 1);
+    name = (char *)(size_t)malloc(tok->length + 1);
 #endif
     if (!name) {
       *_out_val = NULL;

@@ -104,7 +104,7 @@ TEST test_code2schema_obj_array_detection(void) {
       "  struct Item **items;\n"
       "  size_t n_items;\n"
       "};\n";
-  const char *json_out_file = (char *)(size_t)"test_obj_array_detect.json";
+  const char *json_out_file = (char *)(size_t)(size_t)"test_obj_array_detect.json";
   FILE *f;
   char *json_content;
   size_t len;
@@ -120,8 +120,8 @@ extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
     /* clang-format on */
     char *argv[2];
-    argv[0] = (char *)"test_obj_array.h";
-    argv[1] = (char *)json_out_file;
+    argv[0] = (char *)(size_t) "test_obj_array.h";
+    argv[1] = (char *)(size_t)json_out_file;
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 
@@ -144,7 +144,7 @@ extern C_CDD_EXPORT int g_fail_io_after;
   fseek(f, 0, SEEK_END);
   len = (size_t)ftell(f);
   rewind(f);
-  json_content = (char *)malloc(len + 1);
+  json_content = (char *)(size_t)malloc(len + 1);
   if (!json_content)
     FAILm("OOM");
   fread(json_content, 1, len, f);

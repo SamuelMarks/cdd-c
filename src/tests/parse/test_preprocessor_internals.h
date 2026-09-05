@@ -17,7 +17,7 @@ extern "C" {
 /* clang-format on */
 
 TEST test_preprocessor_internals(void) {
-  char *out = (char *)0x1234;
+  char *out = (char *)(size_t)0x1234;
   /* line 61: !dir || !file */
   join_path(NULL, NULL, &out);
   ASSERT_EQ(NULL, out);

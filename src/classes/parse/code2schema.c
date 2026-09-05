@@ -3851,7 +3851,7 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
-  out = (char *)C_CDD_CALLOC(len + 1, sizeof(char));
+  out = (char *)(size_t)C_CDD_CALLOC(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

@@ -107,7 +107,7 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                 if (!temp)
                   return CDD_C_ERROR_MEMORY;
                 if (temp) {
-                  char *dup_id = (char *)C_CDD_CALLOC(1, 256);
+                  char *dup_id = (char *)(size_t)C_CDD_CALLOC(1, 256);
                   if (!dup_id) {
                     printf("FAILED ON DUP_ID!\n");
                     C_CDD_FREE(temp);
@@ -197,7 +197,7 @@ static cdd_c_error_t rewrite_call_sites(cdd_cst_tree_t *tree,
                 if (!temp)
                   return CDD_C_ERROR_MEMORY;
                 if (temp) {
-                  char *dup_id = (char *)C_CDD_CALLOC(1, 256);
+                  char *dup_id = (char *)(size_t)C_CDD_CALLOC(1, 256);
                   if (!dup_id) {
                     printf("FAILED ON DUP_ID!\n");
                     C_CDD_FREE(temp);
@@ -470,7 +470,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                     if (g_err_perc_fail > 0 && --g_err_perc_fail == 0) {
                     } else
 #endif
-                      dup_id = (char *)C_CDD_MALLOC(t->length + 1);
+                      dup_id = (char *)(size_t)C_CDD_MALLOC(t->length + 1);
                     if (dup_id) {
                       memcpy(dup_id, t->start, t->length);
                       dup_id[t->length] = '\0';
@@ -486,7 +486,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                     if (g_err_perc_fail > 0 && --g_err_perc_fail == 0) {
                     } else
 #endif
-                      dup_p = (char *)C_CDD_MALLOC(t->length + 1);
+                      dup_p = (char *)(size_t)C_CDD_MALLOC(t->length + 1);
                     if (dup_p) {
                       memcpy(dup_p, t->start, t->length);
                       dup_p[t->length] = '\0';
@@ -691,7 +691,7 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
 #endif
 
-                tmp_name = (char *)C_CDD_MALLOC(len + 1);
+                tmp_name = (char *)(size_t)C_CDD_MALLOC(len + 1);
 
 #ifdef CDD_BUILD_TESTS
               }

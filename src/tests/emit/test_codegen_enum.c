@@ -66,7 +66,7 @@ TEST test_enum_to_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, (size_t)sz, tmp);
 
@@ -110,7 +110,7 @@ TEST test_enum_from_str_basic(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
   ASSERT(content != NULL);
   fread(content, 1, (size_t)sz, tmp);
 
@@ -150,7 +150,7 @@ TEST test_enum_guards(void) {
   setup_basic_enum(&em);
 
   memset(&config, 0, sizeof(config));
-  config.guard_macro = (char *)(size_t)"USE_ENUMS";
+  config.guard_macro = (char *)(size_t)(size_t) "USE_ENUMS";
 
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "Color", &em, &config));
 
@@ -158,7 +158,7 @@ TEST test_enum_guards(void) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
   ASSERT(strstr(content, "#ifdef USE_ENUMS"));

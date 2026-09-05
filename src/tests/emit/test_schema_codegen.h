@@ -166,7 +166,7 @@ TEST test_codegen_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = (char *)(size_t)"ENABLE_JSON";
+    config.guard_macro = (char *)(size_t)(size_t) "ENABLE_JSON";
 
     /* Generate */
 
@@ -186,7 +186,7 @@ TEST test_codegen_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -263,7 +263,7 @@ TEST test_union_config_json_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.json_guard = (char *)(size_t)"UNION_GUARD";
+    config.json_guard = (char *)(size_t)(size_t) "UNION_GUARD";
 
     ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
 
@@ -277,7 +277,7 @@ TEST test_union_config_json_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -309,18 +309,27 @@ TEST test_schema_codegen_union_output(void) {
   size_t sz;
   const char *const filename = "union_schema.json";
   const char *argv[2];
-  const char *schema = "{"
-                       "\"components\":{"
-                       "\"schemas\":{"
-                       "\"Cat\":{\"type\":\"object\",\"properties\":{\"meow\":{"
-                       "\"type\":\"string\"}}},"
-                       "\"Dog\":{\"type\":\"object\",\"properties\":{\"bark\":{"
-                       "\"type\":\"string\"}}},"
-                       "\"Pet\":{\"oneOf\":["
-                       "{\"$ref\":\"#/components/schemas/Cat\"},"
-                       "{\"$ref\":\"#/components/schemas/Dog\"}"
-                       "],\"discriminator\":{\"propertyName\":\"petType\"}}"
-                       "}}}";
+  const char schema[] = {
+      123, 34,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 34,  58,  123,
+      34,  115, 99,  104, 101, 109, 97,  115, 34,  58,  123, 34,  67,  97,  116,
+      34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101,
+      99,  116, 34,  44,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115,
+      34,  58,  123, 34,  109, 101, 111, 119, 34,  58,  123, 34,  116, 121, 112,
+      101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 44,
+      34,  68,  111, 103, 34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,
+      111, 98,  106, 101, 99,  116, 34,  44,  34,  112, 114, 111, 112, 101, 114,
+      116, 105, 101, 115, 34,  58,  123, 34,  98,  97,  114, 107, 34,  58,  123,
+      34,  116, 121, 112, 101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,
+      125, 125, 125, 44,  34,  80,  101, 116, 34,  58,  123, 34,  111, 110, 101,
+      79,  102, 34,  58,  91,  123, 34,  36,  114, 101, 102, 34,  58,  34,  35,
+      47,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 47,  115, 99,  104,
+      101, 109, 97,  115, 47,  67,  97,  116, 34,  125, 44,  123, 34,  36,  114,
+      101, 102, 34,  58,  34,  35,  47,  99,  111, 109, 112, 111, 110, 101, 110,
+      116, 115, 47,  115, 99,  104, 101, 109, 97,  115, 47,  68,  111, 103, 34,
+      125, 93,  44,  34,  100, 105, 115, 99,  114, 105, 109, 105, 110, 97,  116,
+      111, 114, 34,  58,  123, 34,  112, 114, 111, 112, 101, 114, 116, 121, 78,
+      97,  109, 101, 34,  58,  34,  112, 101, 116, 84,  121, 112, 101, 34,  125,
+      125, 125, 125, 125, 0};
   (void)rc;
   argv[0] = filename;
   argv[1] = "union_out";
@@ -499,7 +508,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     memset(&config, 0, sizeof(config));
 
-    config.guard_macro = (char *)(size_t)"DATA_UTILS";
+    config.guard_macro = (char *)(size_t)(size_t) "DATA_UTILS";
 
     /* Generate helpers */
 
@@ -521,7 +530,7 @@ TEST test_codegen_config_utils_guards(void) {
 
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
 
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -611,19 +620,19 @@ TEST test_schema_constraints_bounds(void) {
   sc.has_additional_properties = 1;
   sc.additional_properties =
       (struct SchemaType *)calloc(1, sizeof(struct SchemaType));
-  sc.additional_properties->name = (char *)malloc(2);
+  sc.additional_properties->name = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->name, 2, "n");
 #else
   strcpy(sc.additional_properties->name, "n");
 #endif
-  sc.additional_properties->type = (char *)malloc(2);
+  sc.additional_properties->type = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->type, 2, "t");
 #else
   strcpy(sc.additional_properties->type, "t");
 #endif
-  sc.additional_properties->ref = (char *)malloc(2);
+  sc.additional_properties->ref = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sc.additional_properties->ref, 2, "r");
 #else
@@ -647,18 +656,17 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
 #ifdef CDD_BUILD_TESTS
   int i;
   int rc;
-  const char *schema_json = "{"
-                            "\"components\": {"
-                            "  \"schemas\": {"
-                            "    \"MyStruct\": {"
-                            "      \"type\": \"object\","
-                            "      \"properties\": {"
-                            "        \"foo\": { \"type\": \"string\" }"
-                            "      }"
-                            "    }"
-                            "  }"
-                            "}"
-                            "}";
+  const char schema_json[] = {
+      123, 34,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 34,  58,  32,
+      123, 32,  32,  34,  115, 99,  104, 101, 109, 97,  115, 34,  58,  32,  123,
+      32,  32,  32,  32,  34,  77,  121, 83,  116, 114, 117, 99,  116, 34,  58,
+      32,  123, 32,  32,  32,  32,  32,  32,  34,  116, 121, 112, 101, 34,  58,
+      32,  34,  111, 98,  106, 101, 99,  116, 34,  44,  32,  32,  32,  32,  32,
+      32,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 34,  58,  32,
+      123, 32,  32,  32,  32,  32,  32,  32,  32,  34,  102, 111, 111, 34,  58,
+      32,  123, 32,  34,  116, 121, 112, 101, 34,  58,  32,  34,  115, 116, 114,
+      105, 110, 103, 34,  32,  125, 32,  32,  32,  32,  32,  32,  125, 32,  32,
+      32,  32,  125, 32,  32,  125, 125, 125, 0};
   FILE *f;
 #if defined(_MSC_VER)
   (void)rc;
@@ -705,20 +713,37 @@ TEST test_schema_codegen_union_arrays(void) {
   int rc;
   const char *const filename = "union_array_schema.json";
   const char *argv[2];
-  const char *schema =
-      "{"
-      "\"components\":{"
-      "\"schemas\":{"
-      "\"Pet\":{\"type\":\"object\",\"properties\":{\"meow\":{\"type\":"
-      "\"string\"}}},"
-      "\"UnionNumber\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
-      "\"type\": \"number\" } } ] },\"UnionInteger\": { \"oneOf\": [ { "
-      "\"type\": \"array\", \"items\": { \"type\": \"integer\" } } ] },"
-      "\"UnionBool\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
-      "\"type\": \"boolean\" } } ] },"
-      "\"UnionRef\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
-      "\"$ref\": \"#/components/schemas/Pet\" } } ] }"
-      "}}}";
+  const char schema[] = {
+      123, 34,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 34,  58,  123,
+      34,  115, 99,  104, 101, 109, 97,  115, 34,  58,  123, 34,  80,  101, 116,
+      34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101,
+      99,  116, 34,  44,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115,
+      34,  58,  123, 34,  109, 101, 111, 119, 34,  58,  123, 34,  116, 121, 112,
+      101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 44,
+      34,  85,  110, 105, 111, 110, 78,  117, 109, 98,  101, 114, 34,  58,  32,
+      123, 32,  34,  111, 110, 101, 79,  102, 34,  58,  32,  91,  32,  123, 32,
+      34,  116, 121, 112, 101, 34,  58,  32,  34,  97,  114, 114, 97,  121, 34,
+      44,  32,  34,  105, 116, 101, 109, 115, 34,  58,  32,  123, 32,  34,  116,
+      121, 112, 101, 34,  58,  32,  34,  110, 117, 109, 98,  101, 114, 34,  32,
+      125, 32,  125, 32,  93,  32,  125, 44,  34,  85,  110, 105, 111, 110, 73,
+      110, 116, 101, 103, 101, 114, 34,  58,  32,  123, 32,  34,  111, 110, 101,
+      79,  102, 34,  58,  32,  91,  32,  123, 32,  34,  116, 121, 112, 101, 34,
+      58,  32,  34,  97,  114, 114, 97,  121, 34,  44,  32,  34,  105, 116, 101,
+      109, 115, 34,  58,  32,  123, 32,  34,  116, 121, 112, 101, 34,  58,  32,
+      34,  105, 110, 116, 101, 103, 101, 114, 34,  32,  125, 32,  125, 32,  93,
+      32,  125, 44,  34,  85,  110, 105, 111, 110, 66,  111, 111, 108, 34,  58,
+      32,  123, 32,  34,  111, 110, 101, 79,  102, 34,  58,  32,  91,  32,  123,
+      32,  34,  116, 121, 112, 101, 34,  58,  32,  34,  97,  114, 114, 97,  121,
+      34,  44,  32,  34,  105, 116, 101, 109, 115, 34,  58,  32,  123, 32,  34,
+      116, 121, 112, 101, 34,  58,  32,  34,  98,  111, 111, 108, 101, 97,  110,
+      34,  32,  125, 32,  125, 32,  93,  32,  125, 44,  34,  85,  110, 105, 111,
+      110, 82,  101, 102, 34,  58,  32,  123, 32,  34,  111, 110, 101, 79,  102,
+      34,  58,  32,  91,  32,  123, 32,  34,  116, 121, 112, 101, 34,  58,  32,
+      34,  97,  114, 114, 97,  121, 34,  44,  32,  34,  105, 116, 101, 109, 115,
+      34,  58,  32,  123, 32,  34,  36,  114, 101, 102, 34,  58,  32,  34,  35,
+      47,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 47,  115, 99,  104,
+      101, 109, 97,  115, 47,  80,  101, 116, 34,  32,  125, 32,  125, 32,  93,
+      32,  125, 125, 125, 125, 0};
   (void)rc;
   argv[0] = filename;
   argv[1] = "union_array_out";
@@ -786,21 +811,36 @@ TEST test_schema_codegen_main_paths(void) {
   int rc;
   const char *const filename = "main_paths.json";
   const char *argv[5];
-  const char *schema_defs =
-      "{"
-      "\"$defs\":{"
-      "\"X\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}}}"
-      ","
-      "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"A\",\"B\"]},"
-      "\"MyUnion\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"integer\"}]},"
-      "\"JwtPayload\":{\"type\":\"object\",\"properties\":{\"sub\":{\"type\":"
-      "\"string\"}}},"
-      "\"OAuth2TokenResponse\":{\"type\":\"object\",\"properties\":{\"access_"
-      "token\":{\"type\":\"string\"}}},"
-      "\"OAuth2Error\":{\"type\":\"object\",\"properties\":{\"error\":{"
-      "\"type\":\"string\"}}},"
-      "\"MyString\":{\"type\":\"string\"}"
-      "}}";
+  const char schema_defs[] = {
+      123, 34,  36,  100, 101, 102, 115, 34,  58,  123, 34,  88,  34,  58,  123,
+      34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101, 99,  116, 34,
+      44,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 34,  58,  123,
+      34,  120, 34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,  115, 116,
+      114, 105, 110, 103, 34,  125, 125, 125, 44,  34,  77,  121, 69,  110, 117,
+      109, 34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,  115, 116, 114,
+      105, 110, 103, 34,  44,  34,  101, 110, 117, 109, 34,  58,  91,  34,  65,
+      34,  44,  34,  66,  34,  93,  125, 44,  34,  77,  121, 85,  110, 105, 111,
+      110, 34,  58,  123, 34,  97,  110, 121, 79,  102, 34,  58,  91,  123, 34,
+      116, 121, 112, 101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125,
+      44,  123, 34,  116, 121, 112, 101, 34,  58,  34,  105, 110, 116, 101, 103,
+      101, 114, 34,  125, 93,  125, 44,  34,  74,  119, 116, 80,  97,  121, 108,
+      111, 97,  100, 34,  58,  123, 34,  116, 121, 112, 101, 34,  58,  34,  111,
+      98,  106, 101, 99,  116, 34,  44,  34,  112, 114, 111, 112, 101, 114, 116,
+      105, 101, 115, 34,  58,  123, 34,  115, 117, 98,  34,  58,  123, 34,  116,
+      121, 112, 101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125,
+      125, 44,  34,  79,  65,  117, 116, 104, 50,  84,  111, 107, 101, 110, 82,
+      101, 115, 112, 111, 110, 115, 101, 34,  58,  123, 34,  116, 121, 112, 101,
+      34,  58,  34,  111, 98,  106, 101, 99,  116, 34,  44,  34,  112, 114, 111,
+      112, 101, 114, 116, 105, 101, 115, 34,  58,  123, 34,  97,  99,  99,  101,
+      115, 115, 95,  116, 111, 107, 101, 110, 34,  58,  123, 34,  116, 121, 112,
+      101, 34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 44,
+      34,  79,  65,  117, 116, 104, 50,  69,  114, 114, 111, 114, 34,  58,  123,
+      34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101, 99,  116, 34,
+      44,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 34,  58,  123,
+      34,  101, 114, 114, 111, 114, 34,  58,  123, 34,  116, 121, 112, 101, 34,
+      58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 44,  34,  77,
+      121, 83,  116, 114, 105, 110, 103, 34,  58,  123, 34,  116, 121, 112, 101,
+      34,  58,  34,  115, 116, 114, 105, 110, 103, 34,  125, 125, 125, 0};
 
   /* 1. argc < 2 */
   rc = schema2code_main(1, (char **)(size_t)argv);
@@ -1039,8 +1079,8 @@ TEST test_schema_codegen_source_fail(void) {
 
   /* Call main which calls generate_header and generate_source */
   {
-    char *argv_bad[] = {(char *)(size_t)"test_codegen_schema_io.json",
-                        (char *)(size_t)"test_out_source"};
+    char *argv_bad[] = {(char *)(size_t)(size_t) "test_codegen_schema_io.json",
+                        (char *)(size_t)(size_t) "test_out_source"};
     rc = schema2code_main(2, argv_bad);
 #ifndef _MSC_VER
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
@@ -1091,12 +1131,13 @@ TEST test_schema_codegen_system_error(void) {
 
 TEST test_schema_codegen_main_errors(void) {
   int rc;
-  char *argv_bad1[] = {(char *)(size_t)"file.json"};
-  char *argv_bad2[] = {(char *)(size_t)"file.json", (char *)NULL};
-  char *argv_bad3[] = {(char *)(size_t)"nonexistent.json",
-                       (char *)(size_t)"prefix"};
-  char *argv_bad4[] = {(char *)(size_t)"file.json",
-                       (char *)(size_t)"/invalid/path/prefix"};
+  char *argv_bad1[] = {(char *)(size_t)(size_t) "file.json"};
+  char *argv_bad2[] = {(char *)(size_t)(size_t) "file.json",
+                       (char *)(size_t)NULL};
+  char *argv_bad3[] = {(char *)(size_t)(size_t) "nonexistent.json",
+                       (char *)(size_t)(size_t) "prefix"};
+  char *argv_bad4[] = {(char *)(size_t)(size_t) "file.json",
+                       (char *)(size_t)(size_t) "/invalid/path/prefix"};
   const char *schema_json = "{\"components\": {\"schemas\": {\"MyStruct\": "
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;

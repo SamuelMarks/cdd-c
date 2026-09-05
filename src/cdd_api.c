@@ -71,22 +71,22 @@ cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
   argv[argc++] = "from_openapi";
 
   if (config->subcommand) {
-    argv[argc++] = (char *)config->subcommand;
+    argv[argc++] = (char *)(size_t)config->subcommand;
   } else {
     argv[argc++] = "to_sdk";
   }
 
   if (config->input) {
     argv[argc++] = "-i";
-    argv[argc++] = (char *)config->input;
+    argv[argc++] = (char *)(size_t)config->input;
   } else if (config->input_dir) {
     argv[argc++] = "--input-dir";
-    argv[argc++] = (char *)config->input_dir;
+    argv[argc++] = (char *)(size_t)config->input_dir;
   }
 
   if (config->output) {
     argv[argc++] = "-o";
-    argv[argc++] = (char *)config->output;
+    argv[argc++] = (char *)(size_t)config->output;
   }
 
   if (config->no_github_actions) {
@@ -112,12 +112,12 @@ cdd_c_error_t cdd_generate_to_openapi(const cdd_to_openapi_config_t *config) {
 
   if (config->input) {
     argv[argc++] = "-i";
-    argv[argc++] = (char *)config->input;
+    argv[argc++] = (char *)(size_t)config->input;
   }
 
   if (config->output) {
     argv[argc++] = "-o";
-    argv[argc++] = (char *)config->output;
+    argv[argc++] = (char *)(size_t)config->output;
   }
 
   return to_openapi_cli_main(argc, argv);
@@ -131,12 +131,12 @@ cdd_c_error_t cdd_generate_docs_json(const cdd_docs_json_config_t *config) {
 
   if (config->input) {
     argv[argc++] = "-i";
-    argv[argc++] = (char *)config->input;
+    argv[argc++] = (char *)(size_t)config->input;
   }
 
   if (config->output) {
     argv[argc++] = "-o";
-    argv[argc++] = (char *)config->output;
+    argv[argc++] = (char *)(size_t)config->output;
   }
 
   if (config->no_imports) {
@@ -165,7 +165,7 @@ cdd_c_error_t cdd_serve_json_rpc(const cdd_serve_json_rpc_config_t *config) {
 
   if (config->listen_host) {
     argv[argc++] = "-l";
-    argv[argc++] = (char *)config->listen_host;
+    argv[argc++] = (char *)(size_t)config->listen_host;
   }
 
   return serve_json_rpc_main(argc, argv);

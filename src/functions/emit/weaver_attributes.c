@@ -34,7 +34,7 @@ cdd_c_error_t weaver_translate_gcc_attributes(struct PatchList *patches,
       char *replacement = NULL;
       /* Extract text from tokens directly */
       size_t len = node->length;
-      char *attr_text = (char *)C_CDD_MALLOC(len + 1);
+      char *attr_text = (char *)(size_t)C_CDD_MALLOC(len + 1);
       if (!attr_text) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;

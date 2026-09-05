@@ -90,6 +90,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     break;                                                                     \
   }
 
+/** @brief Check I/O result and close file on error */
 #define F_CHECK_IO(x)                                                          \
   for (; (x) < 0;) {                                                           \
     fclose(fp);                                                                \
@@ -97,6 +98,7 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   }
 
 #ifndef CDD_BUILD_TESTS
+/** @brief Check return code and close file on error */
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \
@@ -107,7 +109,9 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     break;                                                                     \
   }
 #else
+/** @brief Global flag to force simulated failure in schema codegen */
 C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
+/** @brief Check return code and close file on error */
 #define F_CHECK_RC_TESTABLE(x)                                                 \
   for (;;) {                                                                   \
     cdd_c_error_t err = (x);                                                   \

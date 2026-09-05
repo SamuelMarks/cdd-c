@@ -117,17 +117,18 @@ cdd_c_error_t apply_refactoring_to_string(const struct RefactorContext *ctx,
   if (out_code == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  /* 1. Tokenize */
+    /* 1. Tokenize */
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
     if (g_cdd_audit_fail_tokenize)
       rc = CDD_C_ERROR_SYSTEM;
     else
-      rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
+      rc = tokenize(az_span_create_from_str((char *)(size_t)source_code),
+                    &tokens);
   }
 #else
-  rc = tokenize(az_span_create_from_str((char *)source_code), &tokens);
+  rc = tokenize(az_span_create_from_str((char *)(size_t)source_code), &tokens);
 #endif
   if (rc != CDD_C_SUCCESS) {
     return rc;

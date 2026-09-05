@@ -30,10 +30,12 @@ static enum cdd_c_error _cdd_fprintf_mock(int x) {
   }
   return x < 0 ? CDD_C_ERROR_IO : CDD_C_SUCCESS;
 }
+/** @brief Check I/O result macro with mock support */
 #define CHECK_IO(x)                                                            \
   if (_cdd_fprintf_mock(x) != CDD_C_SUCCESS)                                   \
     return CDD_C_ERROR_IO;
 #else
+/** @brief Check I/O result macro */
 #define CHECK_IO(x)                                                            \
   if ((x) < 0)                                                                 \
     return CDD_C_ERROR_IO;

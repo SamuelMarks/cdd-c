@@ -92,7 +92,7 @@ static cdd_c_error_t parse_template_type(const char *c_type,
   }
 
   base_len = (size_t)(lt - c_type);
-  base_name = (char *)CDD_MALLOC(base_len + 1);
+  base_name = (char *)(size_t)CDD_MALLOC(base_len + 1);
   if (!base_name)
     return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER)
@@ -105,7 +105,7 @@ static cdd_c_error_t parse_template_type(const char *c_type,
   out_type->ref_name = base_name;
 
   inner_len = (size_t)(gt - lt - 1);
-  inner_type_str = (char *)CDD_MALLOC(inner_len + 1);
+  inner_type_str = (char *)(size_t)CDD_MALLOC(inner_len + 1);
   if (!inner_type_str)
     return CDD_C_ERROR_MEMORY;
 #if defined(_MSC_VER)
@@ -257,7 +257,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_ffi_mangle_cpp_name(const char *ns_name,
     len += strlen(class_name) + 1;
   len += strlen(method_name) + 1; /* +1 for '\0' */
 
-  mangled = (char *)CDD_MALLOC(len);
+  mangled = (char *)(size_t)CDD_MALLOC(len);
   if (!mangled)
     return CDD_C_ERROR_MEMORY;
 
@@ -336,7 +336,7 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
             cdd_cst_tree_t *tree_base = NULL;
             cdd_cst_query_result_t structs_base = {0};
             az_span span_base;
-            span_base = az_span_create_from_str((char *)content);
+            span_base = az_span_create_from_str((char *)(size_t)content);
             if (cdd_cst_parse(span_base, &tree_base) == 0) {
               if (cdd_cst_find_nodes_by_type(tree_base->root,
                                              CDD_CST_CLASS_DECLARATION,
@@ -409,7 +409,8 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                                       size_t tok_len;
                                       tok_len = tok_val->length;
                                       node->base_classes[bi].name =
-                                          (char *)CDD_MALLOC(tok_len + 1);
+                                          (char *)(size_t)CDD_MALLOC(tok_len +
+                                                                     1);
                                       if (node->base_classes[bi].name) {
                                         memcpy(node->base_classes[bi].name,
                                                (const char *)tok_val->start,
@@ -843,14 +844,18 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
   return rc;
 }
 
+/**
+ * @brief Context for merging included header files into FFI IR.
+ */
 struct IncludeMergeCtx {
-  cdd_ffi_ir_t *ir;
-  const cdd_generate_bindings_config_t *config;
-  char **visited;
-  size_t visited_count;
-  size_t visited_capacity;
-  cdd_c_error_t err;
-  struct PreprocessorContext *pp_ctx;
+  cdd_ffi_ir_t *ir; /**< FFI IR being built */
+  const cdd_generate_bindings_config_t
+      *config;                        /**< Binding generation config */
+  char **visited;                     /**< Array of visited file paths */
+  size_t visited_count;               /**< Number of visited paths */
+  size_t visited_capacity;            /**< Capacity of visited array */
+  cdd_c_error_t err;                  /**< Error code accumulated */
+  struct PreprocessorContext *pp_ctx; /**< Preprocessor context */
 };
 
 static cdd_c_error_t is_visited(struct IncludeMergeCtx *ctx, const char *path,

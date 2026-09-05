@@ -109,7 +109,7 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
 
   size_t est_cap = (size_t)(block_end_ptr - block_start_ptr) + 1024;
-  char *res = (char *)malloc(est_cap);
+  char *res = (char *)(size_t)malloc(est_cap);
   size_t res_len = 0;
   const char *cursor = block_start_ptr;
   size_t p;
@@ -137,7 +137,7 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
       size_t unchanged_len = (size_t)(patch_start_ptr - cursor);
       if (res_len + unchanged_len + strlen(patch->text) + 256 > est_cap) {
         est_cap *= 2;
-        res = (char *)realloc(res, est_cap);
+        res = (char *)(size_t)realloc(res, est_cap);
       }
       memcpy(res + res_len, cursor, unchanged_len);
       res_len += unchanged_len;
@@ -147,7 +147,7 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
       size_t ptext_len = strlen(patch->text);
       if (res_len + ptext_len + 256 > est_cap) {
         est_cap = res_len + ptext_len + 1024;
-        res = (char *)realloc(res, est_cap);
+        res = (char *)(size_t)realloc(res, est_cap);
       }
       memcpy(res + res_len, patch->text, ptext_len);
       res_len += ptext_len;
@@ -159,7 +159,7 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
   if (block_end_ptr > cursor) {
     size_t rem = (size_t)(block_end_ptr - cursor);
     if (res_len + rem + 1 > est_cap) {
-      res = (char *)realloc(res, res_len + rem + 1);
+      res = (char *)(size_t)realloc(res, res_len + rem + 1);
     }
     memcpy(res + res_len, cursor, rem);
     res_len += rem;
@@ -176,13 +176,14 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 4, 5)))
 #endif
-static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
-                                    size_t *diff_cap, const char *format, ...) {
+static cdd_c_error_t
+append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
+               const char *format, ...) {
   va_list args;
   int printed;
   if (!*diff_str) {
     *diff_cap = 1024;
-    *diff_str = (char *)malloc(*diff_cap);
+    *diff_str = (char *)(size_t)malloc(*diff_cap);
     if (!*diff_str)
       return CDD_C_ERROR_MEMORY;
     (*diff_str)[0] = '\0';
@@ -200,7 +201,7 @@ static cdd_c_error_t append_to_diff(char **diff_str, size_t *diff_len,
   if (printed > 0) {
     if (*diff_len + (size_t)printed + 1 > *diff_cap) {
       *diff_cap = *diff_len + (size_t)printed + 1024;
-      *diff_str = (char *)realloc(*diff_str, *diff_cap);
+      *diff_str = (char *)(size_t)realloc(*diff_str, *diff_cap);
     }
     va_start(args, format);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -252,7 +253,7 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (list->size == 0) {
-    *out_diff = (char *)malloc(1);
+    *out_diff = (char *)(size_t)malloc(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
     return CDD_C_SUCCESS;
@@ -276,7 +277,7 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
         return rc_diff;
     }
   } else {
-    *out_diff = (char *)malloc(1);
+    *out_diff = (char *)(size_t)malloc(1);
     if (*out_diff)
       (*out_diff)[0] = '\0';
     return CDD_C_SUCCESS;

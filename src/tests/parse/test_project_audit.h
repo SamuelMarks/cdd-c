@@ -68,10 +68,11 @@ TEST test_audit_single_file(void) {
   /* Create file with 1 unchecked malloc and 1 checked malloc */
   /* Line 1: checked calloc */
   /* Line 2: unchecked malloc */
-  write_to_file(f_unchecked,
-                ""
-                "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
-                " char * p = (char *)malloc(1); *p = 0; }");
+  write_to_file(
+      f_unchecked,
+      ""
+      "void f() { char * q = (char *)(size_t)calloc(1,1); if (!q) return; \n"
+      " char * p = (char *)(size_t)malloc(1); *p = 0; }");
 
   rc = audit_project(root, &stats);
 
@@ -114,7 +115,7 @@ TEST test_audit_ignored_files(void) {
   }
   /* Header file logic currently ignored by audit_project default filter */
   write_to_file(f_h, ""
-                     "void f() { char * p = (char *)malloc(1); }");
+                     "void f() { char * p = (char *)(size_t)malloc(1); }");
 
   audit_project(root, &stats);
 

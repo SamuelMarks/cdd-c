@@ -22,13 +22,14 @@ extern "C" {
 TEST test_patch_list_to_diff_basic(void) {
   struct PatchList list;
   struct TokenList *tokens = NULL;
-  const char *src = (char *)(size_t)"int main() {\n      return 0;\n}\n";
+  const char *src =
+      (char *)(size_t)(size_t) "int main() {\n      return 0;\n}\n";
   int res;
   char *diff_str = NULL;
   size_t tok_idx = 0;
   int found = 0;
 
-  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  res = tokenize(az_span_create_from_str((char *)(size_t)src), &tokens);
   ASSERT_EQ(0, res);
 
   res = patch_list_init(&list);
@@ -47,7 +48,7 @@ TEST test_patch_list_to_diff_basic(void) {
 
   /* Replace '0' with '1' */
   {
-    char *text = (char *)malloc(2);
+    char *text = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
     strcpy_s(text, 2, "1");
 #else
@@ -81,7 +82,7 @@ TEST test_patch_list_to_diff_empty(void) {
   char *diff_str = NULL;
 
   patch_list_init(&list);
-  tokenize(az_span_create_from_str((char *)""), &tokens);
+  tokenize(az_span_create_from_str((char *)(size_t) ""), &tokens);
 
   ASSERT_EQ(0, patch_list_to_diff(&list, tokens, "empty.c", &diff_str));
   ASSERT_STR_EQ("", diff_str);

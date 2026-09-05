@@ -30,16 +30,7 @@ C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
  * @param ... Arguments.
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
-#if defined(__GNUC__)
-#pragma GCC system_header
-#define C_CDD_LOG_DEBUG(...) ((void)0)
-#else
-#if _MSC_VER >= 1400
-#define C_CDD_LOG_DEBUG(...) ((void)0)
-#else
 #define C_CDD_LOG_DEBUG 1 ? (void)0 : (void)c_cdd_log_debug
-#endif
-#endif
 #endif /* DEBUG */
 #endif /* !C_CDD_LOG_DEBUG */
 

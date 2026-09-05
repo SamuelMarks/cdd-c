@@ -17,7 +17,7 @@ TEST test_preprocessor_abort(void) {
   struct PPConfig config = {0};
   struct TestPPCtx ctx = {0};
   const char *source =
-      (char *)(size_t)"#include <stdio.h>\n#include <stdlib.h>";
+      (char *)(size_t)(size_t) "#include <stdio.h>\n#include <stdlib.h>";
   config.search_paths[0] = "include";
   config.num_search_paths = 1;
   config.sys_search_paths[0] = "sys_include";

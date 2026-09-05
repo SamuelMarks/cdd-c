@@ -19,19 +19,28 @@ extern "C" {
 #include <stddef.h>
 /* clang-format on */
 
+/**
+ * @brief SQL types supported in query projections.
+ */
 typedef enum { SQL_TYPE_INT = 1, SQL_TYPE_VARCHAR = 2 } cdd_c_sql_type_t;
 
+/**
+ * @brief Represents a single projected field in a query.
+ */
 typedef struct {
-  char *name;
-  char *original_name;
-  cdd_c_sql_type_t type;
-  int is_aggregate;
+  char *name;            /**< Field alias or final output name */
+  char *original_name;   /**< Original column or expression name */
+  cdd_c_sql_type_t type; /**< SQL type */
+  int is_aggregate;      /**< 1 if aggregate function, 0 otherwise */
 } cdd_c_query_projection_field_t;
 
+/**
+ * @brief List of projected query fields.
+ */
 typedef struct {
-  size_t n_fields;
-  size_t capacity;
-  cdd_c_query_projection_field_t *fields;
+  size_t n_fields;                        /**< Number of fields */
+  size_t capacity;                        /**< Allocated capacity */
+  cdd_c_query_projection_field_t *fields; /**< Array of projected fields */
 } cdd_c_query_projection_t;
 
 C_CDD_EXPORT cdd_c_error_t

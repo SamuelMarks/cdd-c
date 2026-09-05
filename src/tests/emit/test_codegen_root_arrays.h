@@ -96,7 +96,7 @@ static cdd_c_error_t generate_ra_code(
   }
 
   rewind(tmp);
-  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+  content = (char *)(size_t)C_CDD_CALLOC(1, (size_t)sz + 1);
   if (!content) {
     if (tmp)
       fclose(tmp);

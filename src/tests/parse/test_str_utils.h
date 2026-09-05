@@ -27,7 +27,7 @@ extern C_CDD_EXPORT int g_str_unquote_malloc_fail;
 
 TEST test_c_cdd_strdup_basic(void) {
   char *_ast_strdup_0 = NULL;
-  const char *input = (char *)(size_t)"hello world";
+  const char *input = (char *)(size_t)(size_t) "hello world";
   char *dup = (c_cdd_strdup(input, &_ast_strdup_0), _ast_strdup_0);
   ASSERT(dup != NULL);
   ASSERT(dup != input); /* Pointers must check distinct */

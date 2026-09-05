@@ -41,18 +41,24 @@ typedef enum {
   TOK_ERROR
 } macro_tok_kind_t;
 
+/**
+ * @brief Represents a token produced during macro expression evaluation.
+ */
 typedef struct {
-  macro_tok_kind_t kind;
-  int64_t int_val;
-  double float_val;
-  char *str_val;
+  macro_tok_kind_t kind; /**< Token kind */
+  int64_t int_val;       /**< Evaluated integer value */
+  double float_val;      /**< Evaluated floating point value */
+  char *str_val;         /**< Evaluated string value */
 } macro_tok_t;
 
+/**
+ * @brief Lexer state for macro expression tokenization.
+ */
 typedef struct {
-  const char *str;
-  size_t pos;
-  size_t len;
-  macro_tok_t cur;
+  const char *str; /**< Input string being scanned */
+  size_t pos;      /**< Current character position */
+  size_t len;      /**< Total string length */
+  macro_tok_t cur; /**< Current token */
 } macro_lexer_t;
 
 static void free_tok(macro_tok_t *tok) {
@@ -120,7 +126,7 @@ static void next_tok(macro_lexer_t *lex) {
 
       {
         size_t len = lex->pos - start;
-        char *buf = (char *)C_CDD_MALLOC(len + 1);
+        char *buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
         if (!buf) {
           lex->cur.kind = TOK_ERROR;
           return;
@@ -153,7 +159,7 @@ static void next_tok(macro_lexer_t *lex) {
       {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_IDENT;
-        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
+        lex->cur.str_val = (char *)(size_t)C_CDD_MALLOC(len + 1);
         if (!lex->cur.str_val) {
           lex->cur.kind = TOK_ERROR;
           return;
@@ -174,7 +180,7 @@ static void next_tok(macro_lexer_t *lex) {
       if (lex->pos < lex->len) {
         size_t len = lex->pos - start;
         lex->cur.kind = TOK_STR;
-        lex->cur.str_val = (char *)C_CDD_MALLOC(len + 1);
+        lex->cur.str_val = (char *)(size_t)C_CDD_MALLOC(len + 1);
         if (!lex->cur.str_val) {
           lex->cur.kind = TOK_ERROR;
           return;
@@ -278,10 +284,13 @@ static void next_tok(macro_lexer_t *lex) {
   }
 }
 
+/**
+ * @brief Recursive descent parser state for macro expressions.
+ */
 typedef struct {
-  macro_lexer_t lex;
-  struct PreprocessorContext *ctx;
-  int err;
+  macro_lexer_t lex;               /**< Underlying macro lexer */
+  struct PreprocessorContext *ctx; /**< Active preprocessor context */
+  int err; /**< Error flag: 0 on success, non-zero on error */
 } parser_t;
 
 static cdd_macro_eval_result_t parse_expr(parser_t *p);

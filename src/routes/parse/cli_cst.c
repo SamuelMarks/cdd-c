@@ -46,7 +46,7 @@ process_file(const char *filepath,
   fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  str = (char *)C_CDD_MALLOC((size_t)fsize + 1);
+  str = (char *)(size_t)C_CDD_MALLOC((size_t)fsize + 1);
   if (!str) {
     fclose(f);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

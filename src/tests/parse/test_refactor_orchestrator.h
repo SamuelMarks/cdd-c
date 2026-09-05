@@ -31,10 +31,11 @@ TEST test_orchestrator_simple_propagation(void) {
      B calls A.
      Refactor: A -> int, B -> int.
   */
-  const char *input = ""
-                      "void A() { char * p = (char *)malloc(1); *p=0; }\n"
-                      ""
-                      "void B() { A(); }";
+  const char *input =
+      ""
+      "void A() { char * p = (char *)(size_t)malloc(1); *p=0; }\n"
+      ""
+      "void B() { A(); }";
 
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
@@ -151,7 +152,7 @@ TEST test_orchestrator_no_alloc(void) {
 TEST test_orchestrator_preserves_structs(void) {
   /* Ensure non-function nodes like structs are preserved */
   const char *input =
-      (char *)(size_t)"struct S { int x; }; int f() { return 0; }";
+      (char *)(size_t)(size_t) "struct S { int x; }; int f() { return 0; }";
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
   ASSERT_EQ(0, rc);

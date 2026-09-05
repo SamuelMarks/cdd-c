@@ -14,8 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+/** @brief Global flag to simulate token allocation failure */
 C_CDD_EXPORT int g_cdd_cst_alloc_token_fail = 0;
+/** @brief Global flag to simulate realloc failure */
 C_CDD_EXPORT int g_cdd_cst_realloc_fail = 0;
+/** @brief Global flag to simulate node allocation failure */
 C_CDD_EXPORT int g_cdd_cst_alloc_node_fail = 0;
 
 cdd_c_error_t cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,

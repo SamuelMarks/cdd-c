@@ -53,13 +53,13 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   int rc;
   cdd_cst_node_t *decl = NULL;
   size_t i;
-  const char *src = (char *)(size_t)"int a;";
+  const char *src = (char *)(size_t)(size_t) "int a;";
 
   rc = cdd_cst_scope_env_init(&env);
   (void)rc;
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -91,13 +91,13 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_tree_t *tree2 = NULL;
   cdd_cst_node_t *decl2 = NULL;
   cdd_cst_node_t *empty_node = NULL;
-  const char *src = (char *)(size_t)"int *a;";
+  const char *src = (char *)(size_t)(size_t) "int *a;";
 
   rc = cdd_cst_scope_env_init(&env);
   (void)rc;
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
@@ -116,8 +116,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(0, rc);
 
   /* Unknown type so extract_type_name returns unknown */
-  rc = cdd_cst_parse(az_span_create_from_str((char *)"struct Unknown x;"),
-                     &tree2);
+  rc = cdd_cst_parse(
+      az_span_create_from_str((char *)(size_t) "struct Unknown x;"), &tree2);
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree2->root->num_children; i++) {
@@ -141,7 +141,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     cdd_cst_tree_t *tree3 = NULL;
     cdd_cst_node_t *decl3 = NULL;
     rc = cdd_cst_parse(
-        az_span_create_from_str((char *)"unsigned long long int a;"), &tree3);
+        az_span_create_from_str((char *)(size_t) "unsigned long long int a;"),
+        &tree3);
     ASSERT_EQ(0, rc);
     for (i = 0; i < tree3->root->num_children; i++) {
       if (tree3->root->children[i].kind == CDD_CST_CHILD_NODE) {
@@ -173,7 +174,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
     huge_type[291] = 'x';
     huge_type[292] = ';';
     huge_type[293] = '\0';
-    rc = cdd_cst_parse(az_span_create_from_str((char *)huge_type), &tree4);
+    rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)huge_type),
+                       &tree4);
     ASSERT_EQ(0, rc);
     for (i = 0; i < tree4->root->num_children; i++) {
       if (tree4->root->children[i].kind == CDD_CST_CHILD_NODE) {

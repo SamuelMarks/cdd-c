@@ -63,7 +63,7 @@ TEST test_cleanup_generation(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -107,7 +107,7 @@ TEST test_default_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -152,7 +152,7 @@ TEST test_deepcopy_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -199,7 +199,7 @@ TEST test_eq_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -238,14 +238,14 @@ TEST test_guards_injection(void) {
 
     ASSERT(tmp);
     setup_struct_fields(&sf);
-    cfg.guard_macro = (char *)(size_t)"MY_GUARD";
+    cfg.guard_macro = (char *)(size_t)(size_t) "MY_GUARD";
 
     ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));
 
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -321,7 +321,7 @@ TEST test_struct_debug_func(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -519,7 +519,7 @@ TEST test_struct_exhaustive_io(void) {
 
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)malloc(5);
+  sf.union_discriminator = (char *)(size_t)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
 #else
@@ -530,7 +530,7 @@ TEST test_struct_exhaustive_io(void) {
       (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
   sf.union_variants[0].n_property_names = 1;
   sf.union_variants[0].property_names = (char **)calloc(1, sizeof(char *));
-  sf.union_variants[0].property_names[0] = (char *)malloc(2);
+  sf.union_variants[0].property_names[0] = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].property_names[0], 2, "a");
 #else
@@ -538,13 +538,13 @@ TEST test_struct_exhaustive_io(void) {
 #endif
   sf.union_variants[0].n_required_props = 1;
   sf.union_variants[0].required_props = (char **)calloc(1, sizeof(char *));
-  sf.union_variants[0].required_props[0] = (char *)malloc(2);
+  sf.union_variants[0].required_props[0] = (char *)(size_t)malloc(2);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].required_props[0], 2, "a");
 #else
   strcpy(sf.union_variants[0].required_props[0], "a");
 #endif
-  sf.union_variants[0].disc_value = (char *)malloc(5);
+  sf.union_variants[0].disc_value = (char *)(size_t)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_variants[0].disc_value, 5, "val1");
 #else
@@ -671,7 +671,7 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  config.guard_macro = (char *)(size_t)"MY_GUARD";
+  config.guard_macro = (char *)(size_t)(size_t) "MY_GUARD";
 
   for (i = 0; i < 50; ++i) {
     FILE *tmp;
@@ -829,7 +829,7 @@ TEST test_struct_fields_init_oom(void) {
   /* Free string array null */
   sf.is_union = 1;
   sf.union_is_anyof = 0;
-  sf.union_discriminator = (char *)malloc(5);
+  sf.union_discriminator = (char *)(size_t)malloc(5);
 #if defined(_MSC_VER)
   strcpy_s(sf.union_discriminator, 5, "type");
 #else

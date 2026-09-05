@@ -51,23 +51,21 @@ struct DeclType {
   enum DeclTypeKind kind;
   struct DeclType *inner; /**< The type being modified (next in logic) */
 
-  /** @brief union data */
+  /** @brief Type variant payload */
   union {
     struct {
       char *name; /**< Full text of base type specifiers */
-    } base;
+    } base;       /**< Base type payload */
     struct {
       char *qualifiers; /**< Pointer qualifiers, or NULL */
-    } ptr;
+    } ptr;              /**< Pointer type payload */
     struct {
       char *size_expr; /**< Dimension expression, or NULL */
-    } array;
+    } array;           /**< Array type payload */
     struct {
       char *args_str; /**< Raw text of argument list */
-    } func;
-    /** @brief data */
-    /** @brief data variant */
-  } data;
+    } func;           /**< Function type payload */
+  } data;             /**< Type-specific data variant */
 };
 
 /**

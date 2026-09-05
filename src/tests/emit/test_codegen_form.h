@@ -100,7 +100,7 @@ TEST test_form_generation_basic(void) {
     sz = ftell(tmp);
     rewind(tmp);
 
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 

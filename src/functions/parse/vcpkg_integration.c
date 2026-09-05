@@ -29,7 +29,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)C_CDD_MALLOC(len);
+  d = (char *)(size_t)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -167,7 +167,8 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
   if (!builder || !file_content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  res = tokenize(az_span_create_from_str((char *)file_content), &tokens);
+  res =
+      tokenize(az_span_create_from_str((char *)(size_t)file_content), &tokens);
   if (res != 0)
     return res;
 
@@ -205,7 +206,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
                   (const char *)tokens->tokens[end_inc - 1].start +
                   tokens->tokens[end_inc - 1].length;
               size_t inc_len = (size_t)(inc_end - inc_start);
-              char *inc_str = (char *)C_CDD_MALLOC(inc_len + 1);
+              char *inc_str = (char *)(size_t)C_CDD_MALLOC(inc_len + 1);
               if (!inc_str) {
                 free_token_list(tokens);
                 return CDD_C_ERROR_MEMORY;
@@ -262,7 +263,7 @@ cdd_c_error_t vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   if (!builder || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  json = (char *)C_CDD_MALLOC(cap);
+  json = (char *)(size_t)C_CDD_MALLOC(cap);
   if (!json) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

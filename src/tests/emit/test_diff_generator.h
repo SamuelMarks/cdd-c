@@ -30,7 +30,7 @@ extern C_CDD_EXPORT int g_cdd_fail_alloc;
  * @return TEST
  */
 TEST test_diff_generation_basic(void) {
-  const char *src = (char *)(size_t)"int a = 1;";
+  const char *src = (char *)(size_t)(size_t) "int a = 1;";
   struct TokenList *tokens = NULL;
   struct PatchList patch_list;
   char *diff = NULL;
@@ -67,7 +67,7 @@ TEST test_diff_generation_basic(void) {
   free(diff);
 
   {
-    char *text = (char *)malloc(5);
+    char *text = (char *)(size_t)malloc(5);
 #if defined(_MSC_VER)
     strcpy_s(text, 5, "void");
 #else
@@ -125,7 +125,7 @@ TEST test_diff_generation_basic(void) {
 
     /* Trigger realloc failure in the other branch */
     /* For the other branch, we need a huge token! */
-    tokenize(az_span_create_from_str((char *)huge_str), &tokens2);
+    tokenize(az_span_create_from_str((char *)(size_t)huge_str), &tokens2);
 
     patch_list_init(&patch_list3);
     patch_list_add(&patch_list3, 0, 1, strdup("small"));

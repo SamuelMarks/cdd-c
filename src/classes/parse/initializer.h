@@ -48,9 +48,7 @@ struct InitValue {
   union {
     char *scalar;              /**< Text of expression if SCALAR */
     struct InitList *compound; /**< Nested list if COMPOUND */
-    /** @brief data */
-    /** @brief data variant */
-  } data;
+  } data;                      /**< Initializer data payload */
 };
 
 /**

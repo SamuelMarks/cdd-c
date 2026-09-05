@@ -540,7 +540,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               if (rc != CDD_C_SUCCESS)
                 goto cleanup;
 
-              replacement = (char *)C_CDD_MALLOC(strlen(expr) + 256);
+              replacement = (char *)(size_t)C_CDD_MALLOC(strlen(expr) + 256);
               if (!replacement) {
                 C_CDD_FREE(expr);
                 rc = CDD_C_ERROR_MEMORY;

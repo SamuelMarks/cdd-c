@@ -44,7 +44,7 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   fprintf(fp, "      len += 3;\n");
   fprintf(fp, "    }\n");
   fprintf(fp, "  }\n");
-  fprintf(fp, "  res = (char *)malloc(len + 1);\n");
+  fprintf(fp, "  res = (char *)(size_t)malloc(len + 1);\n");
   fprintf(fp, "  if (!res) return CDD_C_ERROR_MEMORY;\n");
   fprintf(fp, "  for (idx = 0; str[idx]; ++idx) {\n");
   fprintf(fp, "    unsigned char c = (unsigned char)str[idx];\n");
@@ -80,7 +80,7 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  size_t capacity = 128, length = 0;\n");
   fprintf(fp, "  int is_first = 1;\n");
   fprintf(fp, "  if (!obj || !out) return CDD_C_ERROR_MEMORY;\n");
-  fprintf(fp, "  res = (char *)malloc(capacity);\n");
+  fprintf(fp, "  res = (char *)(size_t)malloc(capacity);\n");
   fprintf(fp, "  if (!res) return CDD_C_ERROR_MEMORY;\n");
   fprintf(fp, "  res[0] = '\\0';\n\n");
 
@@ -97,7 +97,7 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "      if (length + slen + 1 > capacity) {\n");
       fprintf(fp, "        char *tmp;\n");
       fprintf(fp, "        capacity = (length + slen + 1) * 2;\n");
-      fprintf(fp, "        tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp, "        tmp = (char *)(size_t)realloc(res, capacity);\n");
       fprintf(fp, "        if (!tmp) { free(res); free(encoded); return "
                   "CDD_C_ERROR_MEMORY; }\n");
       fprintf(fp, "        res = tmp;\n");
@@ -153,7 +153,7 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "    if (length + slen + 1 > capacity) {\n");
       fprintf(fp, "      char *tmp;\n");
       fprintf(fp, "      capacity = (length + slen + 1) * 2;\n");
-      fprintf(fp, "      tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp, "      tmp = (char *)(size_t)realloc(res, capacity);\n");
       fprintf(fp,
               "      if (!tmp) { free(res); return CDD_C_ERROR_MEMORY; }\n");
       fprintf(fp, "      res = tmp;\n");
@@ -183,7 +183,7 @@ write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "    if (length + slen + 1 > capacity) {\n");
       fprintf(fp, "      char *tmp;\n");
       fprintf(fp, "      capacity = (length + slen + 1) * 2;\n");
-      fprintf(fp, "      tmp = (char *)realloc(res, capacity);\n");
+      fprintf(fp, "      tmp = (char *)(size_t)realloc(res, capacity);\n");
       fprintf(fp,
               "      if (!tmp) { free(res); return CDD_C_ERROR_MEMORY; }\n");
       fprintf(fp, "      res = tmp;\n");

@@ -30,8 +30,9 @@ extern "C" {
  */
 TEST test_cli_cst_extern_c_audit(void) {
   int argc = 4;
-  char *argv[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--audit",
-                  (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
+  char *argv[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
+      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
   int rc;
   (void)rc;
   /* void foo */
@@ -58,8 +59,9 @@ TEST test_cli_cst_extern_c_audit(void) {
  */
 TEST test_cli_cst_extern_c_fix(void) {
   int argc = 4;
-  char *argv[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--fix",
-                  (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
+  char *argv[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
+      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
   int rc;
   (void)rc;
   /* void foo */
@@ -76,8 +78,9 @@ TEST test_cli_cst_extern_c_fix(void) {
 
   /* Audit should succeed on already fixed file */
   {
-    char *argv_audit[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--audit",
-                          (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
+    char *argv_audit[] = {
+        (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
+        (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
     rc = cli_cst_transformer_main(3, argv_audit);
     /* ASSERT_EQ(0, rc); */
 
@@ -99,9 +102,10 @@ TEST test_cli_cst_extern_c_fix(void) {
  */
 TEST test_cli_cst_extern_c_dry_run(void) {
   int argc = 5;
-  char *argv[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--fix",
-                  (char *)(size_t)"--dry-run",
-                  (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
+  char *argv[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
+      (char *)(size_t)(size_t) "--dry-run",
+      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
   int rc;
   (void)rc;
   /* void foo */
@@ -136,27 +140,32 @@ TEST test_cli_cst_extern_c_dry_run(void) {
  * @return The result of the test.
  */
 TEST test_cli_cst_errors(void) {
-  char *argv_no_args[] = {(char *)NULL};
-  char *argv_unknown[] = {(char *)(size_t)"unknown_tool", (char *)NULL};
-  char *argv_help1[] = {(char *)(size_t)"--help", (char *)NULL};
-  char *argv_help1b[] = {(char *)(size_t)"-h", (char *)NULL};
-  char *argv_help2[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--help",
-                        (char *)NULL};
-  char *argv_help2b[] = {(char *)(size_t)"extern_c", (char *)(size_t)"-h",
-                         (char *)NULL};
-  char *argv_nofix[] = {(char *)(size_t)"extern_c", (char *)(size_t)"file.h",
-                        (char *)NULL};
-  char *argv_badfile[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--fix",
-                          (char *)(size_t)"does_not_exist_file.h",
-                          (char *)NULL};
-  char *argv_msvc[] = {(char *)(size_t)"msvc_port", (char *)(size_t)"--help",
-                       (char *)NULL};
-  char *argv_gnu[] = {(char *)(size_t)"gnu_standardizer",
-                      (char *)(size_t)"--help", (char *)NULL};
-  char *argv_percolate[] = {(char *)(size_t)"error_percolator",
-                            (char *)(size_t)"--help", (char *)NULL};
-  char *argv_safe[] = {(char *)(size_t)"safe_crt", (char *)(size_t)"--help",
-                       (char *)NULL};
+  char *argv_no_args[] = {(char *)(size_t)NULL};
+  char *argv_unknown[] = {(char *)(size_t)(size_t) "unknown_tool",
+                          (char *)(size_t)NULL};
+  char *argv_help1[] = {(char *)(size_t)(size_t) "--help",
+                        (char *)(size_t)NULL};
+  char *argv_help1b[] = {(char *)(size_t)(size_t) "-h", (char *)(size_t)NULL};
+  char *argv_help2[] = {(char *)(size_t)(size_t) "extern_c",
+                        (char *)(size_t)(size_t) "--help",
+                        (char *)(size_t)NULL};
+  char *argv_help2b[] = {(char *)(size_t)(size_t) "extern_c",
+                         (char *)(size_t)(size_t) "-h", (char *)(size_t)NULL};
+  char *argv_nofix[] = {(char *)(size_t)(size_t) "extern_c",
+                        (char *)(size_t)(size_t) "file.h",
+                        (char *)(size_t)NULL};
+  char *argv_badfile[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
+      (char *)(size_t)(size_t) "does_not_exist_file.h", (char *)(size_t)NULL};
+  char *argv_msvc[] = {(char *)(size_t)(size_t) "msvc_port",
+                       (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
+  char *argv_gnu[] = {(char *)(size_t)(size_t) "gnu_standardizer",
+                      (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
+  char *argv_percolate[] = {(char *)(size_t)(size_t) "error_percolator",
+                            (char *)(size_t)(size_t) "--help",
+                            (char *)(size_t)NULL};
+  char *argv_safe[] = {(char *)(size_t)(size_t) "safe_crt",
+                       (char *)(size_t)(size_t) "--help", (char *)(size_t)NULL};
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(0, argv_no_args));
@@ -188,14 +197,14 @@ TEST test_cli_cst_errors(void) {
  */
 TEST test_cli_standardize_gnu(void) {
   int argc = 7;
-  char *argv[] = {(char *)(size_t)"--target-c89",
-                  (char *)(size_t)"--target-c99",
-                  (char *)(size_t)"--fallback-alloca",
-                  (char *)(size_t)"--audit",
-                  (char *)(size_t)"--fix",
-                  (char *)(size_t)"--dry-run",
-                  (char *)(size_t)"test_gnu_file.h",
-                  (char *)NULL};
+  char *argv[] = {(char *)(size_t)(size_t) "--target-c89",
+                  (char *)(size_t)(size_t) "--target-c99",
+                  (char *)(size_t)(size_t) "--fallback-alloca",
+                  (char *)(size_t)(size_t) "--audit",
+                  (char *)(size_t)(size_t) "--fix",
+                  (char *)(size_t)(size_t) "--dry-run",
+                  (char *)(size_t)(size_t) "test_gnu_file.h",
+                  (char *)(size_t)NULL};
   int rc;
   (void)rc;
   /* void foo */
@@ -206,19 +215,19 @@ TEST test_cli_standardize_gnu(void) {
 
   /* Test help */
   {
-    char *argv_help[] = {(char *)(size_t)"--help"};
-    char *argv_help2[] = {(char *)(size_t)"-h"};
+    char *argv_help[] = {(char *)(size_t)(size_t) "--help"};
+    char *argv_help2[] = {(char *)(size_t)(size_t) "-h"};
     ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help));
     ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_help2));
 
     /* Test no file specified or bad file */
     {
-      char *argv_nofile[] = {(char *)(size_t)"--audit"};
+      char *argv_nofile[] = {(char *)(size_t)(size_t) "--audit"};
       ASSERT_EQ(0, cli_standardize_gnu_main(1, argv_nofile));
 
       /* Test missing audit/fix */
       {
-        char *argv_missing[] = {(char *)(size_t)"test_gnu_file.h"};
+        char *argv_missing[] = {(char *)(size_t)(size_t) "test_gnu_file.h"};
         ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
                   cli_standardize_gnu_main(1, argv_missing));
 
@@ -229,16 +238,18 @@ TEST test_cli_standardize_gnu(void) {
         /* ASSERT_EQ(0, rc); */
 
         {
-          char *argv_fixonly[] = {(char *)(size_t)"--fix",
-                                  (char *)(size_t)"test_gnu_file.h",
-                                  (char *)NULL};
+          char *argv_fixonly[] = {(char *)(size_t)(size_t) "--fix",
+                                  (char *)(size_t)(size_t) "test_gnu_file.h",
+                                  (char *)(size_t)NULL};
           ASSERT_EQ(0, cli_standardize_gnu_main(2, argv_fixonly));
 
           /* Test unknown flag */
           {
             char *argv_unknown_flag[] = {
-                (char *)(size_t)"--audit", (char *)(size_t)"--unknown-flag",
-                (char *)(size_t)"test_gnu_file.h", (char *)NULL};
+                (char *)(size_t)(size_t) "--audit",
+                (char *)(size_t)(size_t) "--unknown-flag",
+                (char *)(size_t)(size_t) "test_gnu_file.h",
+                (char *)(size_t)NULL};
             rc = cli_standardize_gnu_main(3, argv_unknown_flag);
             /* ASSERT_EQ(0, rc); */
 
@@ -246,8 +257,8 @@ TEST test_cli_standardize_gnu(void) {
 
             /* Test file not found */
             {
-              char *argv_notfound[] = {(char *)(size_t)"--audit",
-                                       (char *)(size_t)"not_found.h"};
+              char *argv_notfound[] = {(char *)(size_t)(size_t) "--audit",
+                                       (char *)(size_t)(size_t) "not_found.h"};
               ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
                         cli_standardize_gnu_main(2, argv_notfound));
 
@@ -276,10 +287,12 @@ extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
  * @return The result of the test.
  */
 TEST test_cli_cst_process_errors(void) {
-  char *argv_audit[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--audit",
-                        (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
-  char *argv_fix[] = {(char *)(size_t)"extern_c", (char *)(size_t)"--fix",
-                      (char *)(size_t)"test_cli_cst_file.h", (char *)NULL};
+  char *argv_audit[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--audit",
+      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
+  char *argv_fix[] = {
+      (char *)(size_t)(size_t) "extern_c", (char *)(size_t)(size_t) "--fix",
+      (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
   /* void foo */
 
   {

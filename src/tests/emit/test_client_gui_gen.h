@@ -36,7 +36,7 @@ TEST test_client_gui_gen_basic(void) {
   (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)"test_gui";
+  config.filename_base = (char *)(size_t)(size_t) "test_gui";
 
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -85,10 +85,10 @@ TEST test_client_gui_gen_with_server(void) {
   spec.n_servers = 1;
   spec.servers =
       (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
-  spec.servers[0].url = (char *)(size_t)"https://api.example.com";
+  spec.servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
 
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)"test_gui2";
+  config.filename_base = (char *)(size_t)(size_t) "test_gui2";
 
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
@@ -114,7 +114,7 @@ TEST test_client_gui_gen_errors(void) {
   (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)"/nonexistent/dir/test_gui";
+  config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";
 
   rc = openapi_client_gui_generate(&spec, &config);
   /* we expect success? wait, testing logic says ASSERT_EQ(0, rc) which is
@@ -132,7 +132,7 @@ TEST test_client_gui_gen_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
-  config.filename_base = (char *)(size_t)"test_gui";
+  config.filename_base = (char *)(size_t)(size_t) "test_gui";
   g_cdd_alloc_fail = 1;
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);

@@ -4541,7 +4541,7 @@ static cdd_c_error_t parse_c_signature_string(const char *sig_str,
 
   memset(out, 0, sizeof(*out));
 
-  if (tokenize(az_span_create_from_str((char *)sig_str), &tl) != 0) {
+  if (tokenize(az_span_create_from_str((char *)(size_t)sig_str), &tl) != 0) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -5751,6 +5751,13 @@ C_CDD_EXPORT cdd_c_error_t generate_bindings_cli_main(int argc, char **argv) {
 
   return CDD_C_SUCCESS;
 }
+
+/**
+ * @brief Registers parsed C types into an OpenAPI specification schemas list.
+ * @param[in,out] spec OpenAPI specification.
+ * @param[in] types List of parsed C types.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 C_CDD_EXPORT cdd_c_error_t c2openapi_register_types(
     struct OpenAPI_Spec *spec, const struct TypeDefList *types) {
   size_t i, j;

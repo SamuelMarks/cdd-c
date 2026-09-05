@@ -32,8 +32,8 @@ extern "C" {
  * @return TEST
  */
 TEST test_scan_c23_enum_fixed_type(void) {
-  const char *filename = (char *)(size_t)"test_c23_enum.h";
-  const char *content = (char *)(size_t)"enum E : long { A, B };";
+  const char *filename = (char *)(size_t)(size_t) "test_c23_enum.h";
+  const char *content = (char *)(size_t)(size_t) "enum E : long { A, B };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -67,9 +67,9 @@ TEST test_scan_c23_enum_fixed_type(void) {
  * @return TEST
  */
 TEST test_scan_c23_enum_fixed_type_whitespace(void) {
-  const char *filename = (char *)(size_t)"test_c23_enum_ws.h";
+  const char *filename = (char *)(size_t)(size_t) "test_c23_enum_ws.h";
   const char *content =
-      (char *)(size_t)"enum  MyEnum  :  unsigned int  { X , Y };";
+      (char *)(size_t)(size_t) "enum  MyEnum  :  unsigned int  { X , Y };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -100,7 +100,7 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
  * @return TEST
  */
 TEST test_scan_classic_enum(void) {
-  const char *filename = (char *)(size_t)"test_classic.h";
+  const char *filename = (char *)(size_t)(size_t) "test_classic.h";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -198,8 +198,9 @@ TEST test_inspector_nulls(void) {
  * @return TEST
  */
 TEST test_inspector_oom(void) {
-  const char *filename = (char *)(size_t)"test_oom.h";
-  const char *content = (char *)(size_t)"enum E { A, B }; struct S { int x; };";
+  const char *filename = (char *)(size_t)(size_t) "test_oom.h";
+  const char *content =
+      (char *)(size_t)(size_t) "enum E { A, B }; struct S { int x; };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -233,7 +234,8 @@ TEST test_inspector_oom(void) {
  * @return TEST
  */
 TEST test_inspector_extract_sig_oom(void) {
-  const char *code = (char *)(size_t)"/* doc */ void foo(int a, ...) { }";
+  const char *code =
+      (char *)(size_t)(size_t) "/* doc */ void foo(int a, ...) { }";
   struct FuncSigList out;
 #ifdef _MSC_VER
   int rc;
@@ -309,8 +311,8 @@ TEST test_inspector_extract_sig_nulls(void) {
  * @return TEST
  */
 TEST test_inspector_struct_empty_fields(void) {
-  const char *filename = (char *)(size_t)"test_empty_struct.h";
-  const char *content = (char *)(size_t)"struct Empty { };";
+  const char *filename = (char *)(size_t)(size_t) "test_empty_struct.h";
+  const char *content = (char *)(size_t)(size_t) "struct Empty { };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -437,9 +439,9 @@ TEST test_inspector_extract_sig_oom_4(void) {
  * @return TEST
  */
 TEST test_inspector_struct_fields_oom_2(void) {
-  const char *filename = (char *)(size_t)"test_oom_struct2.h";
+  const char *filename = (char *)(size_t)(size_t) "test_oom_struct2.h";
   const char *content =
-      (char *)(size_t)"struct Empty { }; struct NotEmpty { int a; };";
+      (char *)(size_t)(size_t) "struct Empty { }; struct NotEmpty { int a; };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -472,8 +474,8 @@ TEST test_inspector_struct_fields_oom_2(void) {
  * @return TEST
  */
 TEST test_inspector_struct_empty_fields_oom_3(void) {
-  const char *filename = (char *)(size_t)"test_oom_struct3.h";
-  const char *content = (char *)(size_t)"struct Empty { };";
+  const char *filename = (char *)(size_t)(size_t) "test_oom_struct3.h";
+  const char *content = (char *)(size_t)(size_t) "struct Empty { };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -506,9 +508,9 @@ TEST test_inspector_struct_empty_fields_oom_3(void) {
  * @return TEST
  */
 TEST test_inspector_struct_empty_fields_no_name_oom(void) {
-  const char *filename = (char *)(size_t)"test_oom_struct4.h";
-  const char *content =
-      (char *)(size_t)"struct { }; struct { int a; }; enum { }; enum { A };";
+  const char *filename = (char *)(size_t)(size_t) "test_oom_struct4.h";
+  const char *content = (char *)(size_t)(size_t) "struct { }; struct { int a; "
+                                                 "}; enum { }; enum { A };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -661,8 +663,8 @@ TEST test_inspector_extract_sig_fail_parser_err(void) {
  * @return TEST
  */
 TEST test_inspector_strdup_oom(void) {
-  const char *filename = (char *)(size_t)"test_oom_strdup.h";
-  const char *content = (char *)(size_t)"enum MyEnum { A, B };";
+  const char *filename = (char *)(size_t)(size_t) "test_oom_strdup.h";
+  const char *content = (char *)(size_t)(size_t) "enum MyEnum { A, B };";
   struct TypeDefList types;
 #ifdef _MSC_VER
   int rc;
@@ -710,7 +712,7 @@ TEST test_inspector_io_error_perms(void) {
 #else
   int rc __attribute__((unused));
 #endif
-  const char *filename = (char *)(size_t)"test_no_read.h";
+  const char *filename = (char *)(size_t)(size_t) "test_no_read.h";
 
   (void)rc;
   write_to_file(filename, "");
@@ -733,7 +735,7 @@ TEST test_inspector_io_error_perms(void) {
   PASS();
 }
 TEST test_inspector_branch_coverage(void) {
-  const char *filename = (char *)(size_t)"test_branch_cov.h";
+  const char *filename = (char *)(size_t)(size_t) "test_branch_cov.h";
   struct TypeDefList types;
   /* extern C_CDD_EXPORT int g_enum_members_init_fail; (moved to global) */
   /* extern C_CDD_EXPORT int g_struct_fields_init_fail; (moved to global) */

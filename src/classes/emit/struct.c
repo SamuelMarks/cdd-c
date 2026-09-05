@@ -84,7 +84,7 @@ static void free_string_array(char **arr, size_t n) {
  */
 cdd_c_error_t get_type_from_ref(const char *ref, char **_out_val) {
   if (ref == NULL) {
-    *_out_val = (char *)"";
+    *_out_val = (char *)(size_t) "";
     return CDD_C_SUCCESS;
   }
   {
@@ -94,7 +94,7 @@ cdd_c_error_t get_type_from_ref(const char *ref, char **_out_val) {
       if (rc_after != CDD_C_SUCCESS) {
         return rc_after;
       }
-      *_out_val = (char *)after;
+      *_out_val = (char *)(size_t)after;
     }
     return CDD_C_SUCCESS;
   }

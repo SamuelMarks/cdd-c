@@ -20,7 +20,7 @@ static cdd_c_error_t extract_identifier(cdd_cst_node_t *node,
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
           char *name;
-          name = (char *)C_CDD_MALLOC(tok->length + 1);
+          name = (char *)(size_t)C_CDD_MALLOC(tok->length + 1);
           if (!name) {
             return CDD_C_ERROR_MEMORY;
           }

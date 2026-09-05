@@ -217,7 +217,7 @@ static cdd_c_error_t span_equals_str(const az_span span, const char *str,
 
   {
     *_out_val = ((int)az_span_is_content_equal(
-        span, az_span_create_from_str((char *)str)));
+        span, az_span_create_from_str((char *)(size_t)str)));
     return CDD_C_SUCCESS;
   }
 }

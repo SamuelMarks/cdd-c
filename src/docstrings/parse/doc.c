@@ -70,7 +70,7 @@ static cdd_c_error_t extract_word(const char *str, const char *end,
     }
   }
 
-  res = (char *)C_CDD_MALLOC(len + 1);
+  res = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!res) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -109,7 +109,7 @@ static cdd_c_error_t extract_rest(const char *str, const char *end,
     return CDD_C_SUCCESS;
   }
 
-  res = (char *)C_CDD_MALLOC(len + 1);
+  res = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!res) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -301,14 +301,15 @@ static cdd_c_error_t parse_tag_meta_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "summary:", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_6),
-                       _ast_trim_segment_6);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_6),
+               _ast_trim_segment_6);
           if (val && *val)
             meta.summary = (c_cdd_strdup(val, &_ast_strdup_1), _ast_strdup_1);
         } else if (strncmp(attr, "description:", 12) == 0) {
@@ -457,9 +458,9 @@ static cdd_c_error_t parse_optional_bool_attr(const char *attr, const char *key,
   if (strncmp(attr, key, key_len) == 0 &&
       (attr[key_len] == ':' || attr[key_len] == '=')) {
     int value = 0;
-    char *val_trimmed =
-        (trim_segment((char *)(attr + key_len + 1), &_ast_trim_segment_13),
-         _ast_trim_segment_13);
+    char *val_trimmed = (trim_segment((char *)(size_t)(attr + key_len + 1),
+                                      &_ast_trim_segment_13),
+                         _ast_trim_segment_13);
     parsed = parse_bool_text(val_trimmed, &value);
     if (parsed) {
       *out_set = 1;
@@ -481,7 +482,7 @@ static cdd_c_error_t parse_optional_example_attr(const char *attr,
     return CDD_C_SUCCESS;
   if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
     return CDD_C_SUCCESS;
-  val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_14),
+  val = (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_14),
          _ast_trim_segment_14);
   if (!val || !*val)
     return CDD_C_ERROR_UNKNOWN;
@@ -802,7 +803,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -832,8 +833,9 @@ static cdd_c_error_t parse_response_header_line(const char *line,
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_35),
-                       _ast_trim_segment_35);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_35),
+               _ast_trim_segment_35);
           if (val && *val) {
             if (h->content_type)
               C_CDD_FREE(h->content_type);
@@ -926,7 +928,7 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -973,8 +975,9 @@ static cdd_c_error_t parse_link_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_45),
-                       _ast_trim_segment_45);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_45),
+               _ast_trim_segment_45);
           if (val && *val) {
             if (link->summary)
               C_CDD_FREE(link->summary);
@@ -1350,7 +1353,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
       /* Extract content inside [] */
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -1461,7 +1464,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -1478,8 +1481,9 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_60),
-                       _ast_trim_segment_60);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_60),
+               _ast_trim_segment_60);
           if (val && *val) {
             if (r->summary)
               C_CDD_FREE(r->summary);
@@ -1851,7 +1855,7 @@ static cdd_c_error_t parse_security_scheme_line(const char *line,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -2231,15 +2235,16 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "default:", 8) == 0 ||
             strncmp(attr, "default=", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_95),
-                       _ast_trim_segment_95);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_95),
+               _ast_trim_segment_95);
           if (val && *val) {
             if (default_value)
               C_CDD_FREE(default_value);
@@ -2454,7 +2459,7 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
     if (close_bracket < end) {
       const char *inner_start = cur + 1;
       size_t inner_len = (size_t)(close_bracket - inner_start);
-      char *attr = (char *)C_CDD_MALLOC(inner_len + 1);
+      char *attr = (char *)(size_t)C_CDD_MALLOC(inner_len + 1);
       if (attr) {
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
@@ -2472,8 +2477,9 @@ static cdd_c_error_t parse_request_body_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_109),
-                       _ast_trim_segment_109);
+          char *val =
+              (trim_segment((char *)(size_t)(attr + 8), &_ast_trim_segment_109),
+               _ast_trim_segment_109);
           if (val && *val) {
             if (content_type)
               C_CDD_FREE(content_type);
@@ -2670,7 +2676,7 @@ cdd_c_error_t doc_parse_block(const char *comment, struct DocMetadata *out) {
 
       {
         size_t cmd_len = (size_t)(cmd_end - cmd_start);
-        cmd = (char *)C_CDD_MALLOC(cmd_len + 1);
+        cmd = (char *)(size_t)C_CDD_MALLOC(cmd_len + 1);
         if (!cmd) {
           rc = CDD_C_ERROR_MEMORY;
           goto cleanup;

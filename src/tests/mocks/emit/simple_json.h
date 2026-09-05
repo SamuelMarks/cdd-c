@@ -5,6 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #if !defined(__cplusplus)
@@ -26,14 +27,12 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
-/* clang-format off */
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #include "msvc/stdbool.h"
 #else
 #include <stdbool.h>
 #endif
 #include "cdd_c_error.h"
-/* clang-format on */
 #endif
 #endif
 #else

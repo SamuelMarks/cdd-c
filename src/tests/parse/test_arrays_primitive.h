@@ -96,7 +96,7 @@ TEST test_generated_copy_logic(void) {
 
   /* Verify loop for strings */
   ASSERT(strstr(output_buf,
-                "ret->str_arr = calloc(ret->n_str_arr, sizeof(char*));"));
+                "ret->str_arr = calloc(ret->n_str_arr, sizeof(char *));"));
   ASSERT(strstr(output_buf, "strdup("));
 
   free(output_buf);
@@ -121,7 +121,7 @@ TEST test_code2schema_array_detection(void) {
       "  char **strs;\n"
       "  size_t n_strs;\n"
       "};\n";
-  const char *json_out_file = (char *)(size_t)"test_array_detect.json";
+  const char *json_out_file = (char *)(size_t)(size_t)"test_array_detect.json";
   FILE *f;
   char *json_content;
   size_t len;
@@ -137,8 +137,8 @@ TEST test_code2schema_array_detection(void) {
     */
     char *argv[2];
     cdd_c_error_t result;
-    argv[0] = (char *)"test_array.h";
-    argv[1] = (char *)json_out_file;
+    argv[0] = (char *)(size_t)"test_array.h";
+    argv[1] = (char *)(size_t)json_out_file;
     /* clang-format on */
     result = code2schema_main(2, argv);
     printf("code2schema_main returned %d\n", result);
@@ -164,7 +164,7 @@ TEST test_code2schema_array_detection(void) {
   fseek(f, 0, SEEK_END);
   len = (size_t)ftell(f);
   rewind(f);
-  json_content = (char *)malloc(len + 1);
+  json_content = (char *)(size_t)malloc(len + 1);
   if (!json_content)
     FAILm("OOM");
   fread(json_content, 1, len, f);

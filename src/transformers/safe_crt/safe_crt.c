@@ -283,12 +283,15 @@ static cdd_c_error_t check_unsupported_calls(expr_t *head) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Inferred buffer size metadata for safe CRT transformations.
+ */
 typedef struct {
-  int valid;
-  int is_malloc;
-  cdd_token_t *base_tok;
-  expr_t *offset_expr;
-  expr_t *malloc_size_expr;
+  int valid;                /**< 1 if size inference succeeded, 0 otherwise */
+  int is_malloc;            /**< 1 if buffer was allocated via malloc */
+  cdd_token_t *base_tok;    /**< Base token of the buffer identifier */
+  expr_t *offset_expr;      /**< Pointer offset expression or NULL */
+  expr_t *malloc_size_expr; /**< Size expression passed to malloc or NULL */
 } inferred_size_t;
 
 static inferred_size_t infer_buffer_size(expr_t *node) {
@@ -941,7 +944,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
 
         clone_token(bld->tree, node->tok, &ct);
         if (ct) {
-          char *pooled = (char *)malloc(strlen(safe_name) + 1);
+          char *pooled = (char *)(size_t)malloc(strlen(safe_name) + 1);
 #if defined(_MSC_VER)
           strcpy_s(pooled, strlen(safe_name) + 1, safe_name);
 #else

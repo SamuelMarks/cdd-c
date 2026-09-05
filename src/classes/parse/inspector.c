@@ -190,7 +190,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             /* Handle C23 enum fixed type: enum Name : type { */
             if (is_enum) {
               char *colon = NULL;
-              char *scan = (char *)name_start;
+              char *scan = (char *)(size_t)name_start;
               while (scan < brace) {
                 if (*scan == ':') {
                   colon = scan;
@@ -435,7 +435,7 @@ static cdd_c_error_t extract_span_text(const struct TokenList *tokens,
   for (i = start; i < end; i++)
     total_len += tokens->tokens[i].length;
 
-  buf = (char *)C_CDD_MALLOC(total_len + 1);
+  buf = (char *)(size_t)C_CDD_MALLOC(total_len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -466,7 +466,7 @@ cdd_c_error_t c_inspector_extract_signatures(const char *source_code,
   if (!source_code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  rc = tokenize(az_span_create_from_str((char *)source_code), &tl);
+  rc = tokenize(az_span_create_from_str((char *)(size_t)source_code), &tl);
   if (rc == CDD_C_SUCCESS) {
     rc = parse_tokens(tl, &cst);
   }

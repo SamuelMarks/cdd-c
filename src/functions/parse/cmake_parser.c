@@ -30,10 +30,10 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
-      d = (char *)malloc(len);
+      d = (char *)(size_t)malloc(len);
   }
 #else
-  d = (char *)malloc(len);
+  d = (char *)(size_t)malloc(len);
 #endif
   if (!d)
     return CDD_C_ERROR_MEMORY;
@@ -219,10 +219,10 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       buf = NULL;
     else
-      buf = (char *)malloc((size_t)size + 1);
+      buf = (char *)(size_t)malloc((size_t)size + 1);
   }
 #else
-  buf = (char *)malloc((size_t)size + 1);
+  buf = (char *)(size_t)malloc((size_t)size + 1);
 #endif
   if (!buf) {
     fclose(f);
@@ -290,10 +290,10 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       diff = NULL;
     else
-      diff = (char *)malloc(diff_cap);
+      diff = (char *)(size_t)malloc(diff_cap);
   }
 #else
-  diff = (char *)malloc(diff_cap);
+  diff = (char *)(size_t)malloc(diff_cap);
 #endif
   if (!diff) {
     free(src);
@@ -315,10 +315,10 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str_buf = NULL;
     else
-      str_buf = (char *)malloc(1024);
+      str_buf = (char *)(size_t)malloc(1024);
   }
 #else
-  str_buf = (char *)malloc(1024);
+  str_buf = (char *)(size_t)malloc(1024);
 #endif
   if (!str_buf) {
     free(src);

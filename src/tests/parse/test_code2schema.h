@@ -330,7 +330,7 @@ TEST test_code2schema_main_bad_args(void) {
 
   /* code2schema expects 2 args: in out */
 
-  char *argv[] = {(char *)(size_t)"bad"};
+  char *argv[] = {(char *)(size_t)(size_t) "bad"};
 
   /* Passing 1 args */
 
@@ -340,8 +340,8 @@ TEST test_code2schema_main_bad_args(void) {
 }
 
 TEST test_code2schema_parsing_details(void) {
-  char *argv[] = {(char *)(size_t)"test_details.h",
-                  (char *)(size_t)"test_details.json"};
+  char *argv[] = {(char *)(size_t)(size_t) "test_details.h",
+                  (char *)(size_t)(size_t) "test_details.json"};
   const char *header_content = "enum Color {RED,GREEN=5,BLUE,};\n"
 
                                "struct Point {};\n"
@@ -359,8 +359,8 @@ TEST test_code2schema_parsing_details(void) {
 }
 
 TEST test_code2schema_parse_struct_and_enum(void) {
-  char *argv[] = {(char *)(size_t)"test1.h",
-                  (char *)(size_t)"test1.schema.json"};
+  char *argv[] = {(char *)(size_t)(size_t) "test1.h",
+                  (char *)(size_t)(size_t) "test1.schema.json"};
   const char *const filename = argv[0];
   char *json = argv[1];
 
@@ -401,7 +401,8 @@ TEST test_code2schema_parse_struct_and_enum(void) {
 }
 
 TEST test_code2schema_file_not_found(void) {
-  char *argv[] = {(char *)(size_t)"no_such_file.h", (char *)(size_t)"out.json"};
+  char *argv[] = {(char *)(size_t)(size_t) "no_such_file.h",
+                  (char *)(size_t)(size_t) "out.json"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, code2schema_main(2, argv));
   g_fail_io_after = -1;
   PASS();
@@ -1109,8 +1110,8 @@ TEST test_code2schema_utils(void) {
   PASS();
 }
 TEST test_code2schema_union(void) {
-  const char *test_file = (char *)(size_t)"test_union.h";
-  const char *out_file = (char *)(size_t)"test_union_out.json";
+  const char *test_file = (char *)(size_t)(size_t) "test_union.h";
+  const char *out_file = (char *)(size_t)(size_t) "test_union_out.json";
   FILE *f;
 #if defined(_MSC_VER)
   if (fopen_s(&f, test_file, "w") != 0)

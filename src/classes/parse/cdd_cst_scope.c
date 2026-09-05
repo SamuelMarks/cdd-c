@@ -122,7 +122,7 @@ static cdd_c_error_t cdd_strdup(const char *s, char **out_s) {
   size_t len;
   char *d;
   len = strlen(s);
-  d = (char *)C_CDD_MALLOC(len + 1);
+  d = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

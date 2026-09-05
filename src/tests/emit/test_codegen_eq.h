@@ -76,7 +76,7 @@ static cdd_c_error_t generate_eq_code(const char *struct_name,
   rewind(tmp);
 
   if (sz > 0) {
-    content = (char *)C_CDD_CALLOC(1, (size_t)(size_t)sz + 1);
+    content = (char *)(size_t)C_CDD_CALLOC(1, (size_t)(size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
   } else {

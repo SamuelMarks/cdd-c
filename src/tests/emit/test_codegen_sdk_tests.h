@@ -55,14 +55,14 @@ TEST test_gen_sdk_test_basic(void) {
 
     path.operations = &op;
     path.n_operations = 1;
-    path.route = (char *)(size_t)"/api/test";
+    path.route = (char *)(size_t)(size_t) "/api/test";
 
-    op.operation_id = (char *)(size_t)"runOp";
+    op.operation_id = (char *)(size_t)(size_t) "runOp";
     op.parameters = &param;
     op.n_parameters = 1;
 
-    param.name = (char *)(size_t)"count";
-    param.type = (char *)(size_t)"integer";
+    param.name = (char *)(size_t)(size_t) "count";
+    param.type = (char *)(size_t)(size_t) "integer";
     param.in = OA_PARAM_IN_QUERY;
 
     /* Config */
@@ -77,7 +77,7 @@ TEST test_gen_sdk_test_basic(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+    content = (char *)(size_t)C_CDD_CALLOC(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 
@@ -137,34 +137,34 @@ TEST test_gen_sdk_test_exhaustive(void) {
 
   path.operations = &op;
   path.n_operations = 1;
-  path.route = (char *)(size_t)"/api/test";
+  path.route = (char *)(size_t)(size_t) "/api/test";
 
-  op.operation_id = (char *)(size_t)"runExhaustive";
+  op.operation_id = (char *)(size_t)(size_t) "runExhaustive";
   op.parameters = param;
   op.n_parameters = 3;
 
-  param[0].name = (char *)(size_t)"count";
-  param[0].type = (char *)(size_t)"integer";
-  param[1].name = (char *)(size_t)"flag";
-  param[1].type = (char *)(size_t)"boolean";
+  param[0].name = (char *)(size_t)(size_t) "count";
+  param[0].type = (char *)(size_t)(size_t) "integer";
+  param[1].name = (char *)(size_t)(size_t) "flag";
+  param[1].type = (char *)(size_t)(size_t) "boolean";
   param[1].is_array = 1;
-  param[2].name = (char *)(size_t)"str";
-  param[2].type = (char *)(size_t)"string";
+  param[2].name = (char *)(size_t)(size_t) "str";
+  param[2].type = (char *)(size_t)(size_t) "string";
 
-  op.req_body.ref_name = (char *)(size_t)"MyRequestBody";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MyRequestBody";
   op.req_body.is_array = 0;
   {
-    char *tags[] = {(char *)(size_t)"auth"};
+    char *tags[] = {(char *)(size_t)(size_t) "auth"};
     op.n_tags = 1;
     op.tags = (char **)(size_t)tags;
 
     op.n_responses = 2;
     op.responses = responses;
 
-    responses[0].code = (char *)(size_t)"400";
-    responses[0].schema.ref_name = (char *)(size_t)"MyError";
-    responses[1].code = (char *)(size_t)"200";
-    responses[1].schema.ref_name = (char *)(size_t)"MyResponse";
+    responses[0].code = (char *)(size_t)(size_t) "400";
+    responses[0].schema.ref_name = (char *)(size_t)(size_t) "MyError";
+    responses[1].code = (char *)(size_t)(size_t) "200";
+    responses[1].schema.ref_name = (char *)(size_t)(size_t) "MyResponse";
 
     config.client_header = "client.h";
     config.func_prefix = "api_";

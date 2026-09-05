@@ -107,7 +107,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         *_out_val = NULL;
         return CDD_C_SUCCESS;
       }
-      name = (char *)malloc(name_len + 1);
+      name = (char *)(size_t)malloc(name_len + 1);
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -129,7 +129,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
     i++;
   }
 
-  out = (char *)malloc(out_len + 1);
+  out = (char *)(size_t)malloc(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -159,7 +159,7 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
             return CDD_C_SUCCESS;
           }
         }
-        name = (char *)malloc(name_len + 1);
+        name = (char *)(size_t)malloc(name_len + 1);
         if (!name) {
           free(out);
           {
@@ -225,7 +225,7 @@ cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
       break;
     }
   }
-  out = (char *)malloc(out_len + 1);
+  out = (char *)(size_t)malloc(out_len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -305,7 +305,7 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(escaped) + 3;
-  literal = (char *)malloc(len);
+  literal = (char *)(size_t)malloc(len);
   if (!literal) {
     free(escaped);
     {
@@ -1495,43 +1495,43 @@ cdd_c_error_t write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 cdd_c_error_t verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
-    *_out_val = (char *)"GET";
+    *_out_val = (char *)(size_t) "GET";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_POST: {
-    *_out_val = (char *)"POST";
+    *_out_val = (char *)(size_t) "POST";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_PUT: {
-    *_out_val = (char *)"PUT";
+    *_out_val = (char *)(size_t) "PUT";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_DELETE: {
-    *_out_val = (char *)"DELETE";
+    *_out_val = (char *)(size_t) "DELETE";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_PATCH: {
-    *_out_val = (char *)"PATCH";
+    *_out_val = (char *)(size_t) "PATCH";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_HEAD: {
-    *_out_val = (char *)"HEAD";
+    *_out_val = (char *)(size_t) "HEAD";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_OPTIONS: {
-    *_out_val = (char *)"OPTIONS";
+    *_out_val = (char *)(size_t) "OPTIONS";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_TRACE: {
-    *_out_val = (char *)"TRACE";
+    *_out_val = (char *)(size_t) "TRACE";
     return CDD_C_SUCCESS;
   }
   case OA_VERB_QUERY: {
-    *_out_val = (char *)"QUERY";
+    *_out_val = (char *)(size_t) "QUERY";
     return CDD_C_SUCCESS;
   }
   default: {
-    *_out_val = (char *)"UNKNOWN";
+    *_out_val = (char *)(size_t) "UNKNOWN";
     return CDD_C_SUCCESS;
   }
   }
@@ -3625,7 +3625,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "  }\n"
             "\n"
             "  /* Alloc */\n"
-            "  enc = (char *)malloc(needed_len + 1);\n"
+            "  enc = (char *)(size_t)malloc(needed_len + 1);\n"
             "  if (!enc) {\n"
             "    *_out_val = NULL;\n"
             "    return CDD_C_SUCCESS;\n"
@@ -3687,7 +3687,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "  }\n"
             "\n",
             uc);
-      fputs("  enc = (char *)malloc(needed_len + 1);\n"
+      fputs("  enc = (char *)(size_t)malloc(needed_len + 1);\n"
             "  if (!enc) {\n"
             "    *_out_val = NULL;\n"
             "    return CDD_C_SUCCESS;\n"
@@ -3748,7 +3748,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "    }\n"
             "  }\n"
             "\n"
-            "  enc = (char *)malloc(needed_len + 1);\n"
+            "  enc = (char *)(size_t)malloc(needed_len + 1);\n"
             "  if (!enc) {\n"
             "    *_out_val = NULL;\n"
             "    return CDD_C_SUCCESS;\n"
@@ -3816,7 +3816,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "    }\n"
             "  }\n"
             "\n"
-            "  enc = (char *)malloc(needed_len + 1);\n"
+            "  enc = (char *)(size_t)malloc(needed_len + 1);\n"
             "  if (!enc) {\n"
             "    *_out_val = NULL;\n"
             "    return CDD_C_SUCCESS;\n"
@@ -4055,7 +4055,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "  }\n"
             "\n"
             "  /* 2. Allocate */\n"
-            "  buf = (char *)malloc(total_len + 1);\n"
+            "  buf = (char *)(size_t)malloc(total_len + 1);\n"
             "  if (!buf) {\n"
             "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
             "    return CDD_C_ERROR_MEMORY;\n"
@@ -4140,7 +4140,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "    return CDD_C_ERROR_INVALID_ARGUMENT;\n"
             "\n"
             "  if (qp->count == 0) {\n"
-            "    *out_str = (char *)calloc(1, 1);\n"
+            "    *out_str = (char *)(size_t)calloc(1, 1);\n"
             "    if (!*out_str)\n"
             "      return CDD_C_ERROR_MEMORY;\n"
             "    return CDD_C_SUCCESS;\n"
@@ -4181,7 +4181,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       fputs("    free(e_val);\n"
             "  }\n"
             "\n"
-            "  buf = (char *)malloc(total_len + 1);\n"
+            "  buf = (char *)(size_t)malloc(total_len + 1);\n"
             "  if (!buf) {\n"
             "    C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
             "    return CDD_C_ERROR_MEMORY;\n"
@@ -4250,7 +4250,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       fputs("    size_t new_cap = (*cap == 0) ? 64 : *cap * 2;\n"
             "    while (new_cap < need)\n"
             "      new_cap *= 2;\n"
-            "    tmp = (char *)realloc(*buf, new_cap);\n"
+            "    tmp = (char *)(size_t)realloc(*buf, new_cap);\n"
             "    if (!tmp) {\n"
             "      C_CDD_LOG_DEBUG(\"ENOMEM: OOM\\n\");\n"
             "      return CDD_C_ERROR_MEMORY;\n"
@@ -4336,7 +4336,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "    delim = \",\";\n"
             "\n"
             "  if (!kvs || n == 0) {\n"
-            "    buf = (char *)calloc(1, 1);\n"
+            "    buf = (char *)(size_t)calloc(1, 1);\n"
             "    {\n"
             "      *_out_val = buf;\n"
             "      return CDD_C_SUCCESS;\n"
@@ -4379,7 +4379,7 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
             "  }\n"
             "\n"
             "  if (!buf) {\n"
-            "    buf = (char *)calloc(1, 1);\n"
+            "    buf = (char *)(size_t)calloc(1, 1);\n"
             "  }\n"
             "  {\n"
             "    *_out_val = buf;\n"

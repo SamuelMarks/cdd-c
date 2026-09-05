@@ -1,3 +1,13 @@
+dummy_spec.json
+invalid_spec.json
+my_empty_dir/
+out2.json
+out_dir/
+out_dir_io/
+test_dummy_dir_for_makedirs/
+test_m_dir/
+test_napi_dir/
+test_pom_dir/
 cdd_test_tmp*.txt
 cov_final.txt
 patch_*

@@ -1,3 +1,4 @@
+/** @brief Enable rand_s support in MSVC CRT */
 #define _CRT_RAND_S
 /* clang-format off */
 #include "c_cdd/memory.h"
@@ -222,7 +223,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 
   /* Check if it was all separators (e.g. "///") -> returns "/" */
   if (p == path && (*p == '/' || *p == '\\')) {
-    *out = (char *)C_CDD_MALLOC(2);
+    *out = (char *)(size_t)C_CDD_MALLOC(2);
     if (!*out)
       return CDD_C_ERROR_MEMORY;
     (*out)[0] = '/';
@@ -237,7 +238,7 @@ cdd_c_error_t get_basename(const char *path, char **out) {
   }
 
   len = (size_t)(p - start_p) + 1;
-  ret = (char *)C_CDD_MALLOC(len + 1);
+  ret = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -285,7 +286,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   if (p == path) {
     if (*p == '/' || *p == '\\') {
       len = 1; /* Root */
-      ret = (char *)C_CDD_MALLOC(2);
+      ret = (char *)(size_t)C_CDD_MALLOC(2);
       if (!ret)
         return CDD_C_ERROR_MEMORY;
       ret[0] = '/';
@@ -313,7 +314,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     return *out ? 0 : ENOMEM;
   }
 
-  ret = (char *)C_CDD_MALLOC(len + 1);
+  ret = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!ret) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -514,7 +515,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* If buffer handles huge files, standard capacity doubling is fine */
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
-      char *new_buffer = (char *)C_CDD_REALLOC(buffer, new_capacity);
+      char *new_buffer = (char *)(size_t)C_CDD_REALLOC(buffer, new_capacity);
       if (!new_buffer) {
         C_CDD_FREE(buffer);
         return CDD_C_ERROR_MEMORY;
@@ -541,7 +542,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     buffer[total_read] = '\0';
   } else {
     /* Empty file case, allocate distinct empty string */
-    buffer = (char *)C_CDD_MALLOC(1);
+    buffer = (char *)(size_t)C_CDD_MALLOC(1);
     if (!buffer) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;

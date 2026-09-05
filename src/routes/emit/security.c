@@ -339,9 +339,9 @@ cdd_c_error_t codegen_security_write_apply(FILE *fp,
         fprintf(fp, "      size_t val_len = strlen(cookie_val);\n");
         fprintf(fp, "      size_t extra = name_len + 1 + val_len + "
                     "(cookie_len ? 2 : 0);\n");
-        fprintf(fp,
-                "      char *tmp = (char *)realloc(cookie_str, cookie_len + "
-                "extra + 1);\n");
+        fprintf(fp, "      char *tmp = (char *)(size_t)realloc(cookie_str, "
+                    "cookie_len + "
+                    "extra + 1);\n");
         fprintf(fp,
                 "      if (!tmp) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n");
         fprintf(fp, "      cookie_str = tmp;\n");

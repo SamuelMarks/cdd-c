@@ -56,7 +56,7 @@ TEST test_write_union_to_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)(size_t)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
   fread(content, 1, (size_t)sz, tmp);
@@ -101,7 +101,7 @@ TEST test_write_union_from_json_object(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)(size_t)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
   fread(content, 1, (size_t)sz, tmp);
@@ -144,7 +144,7 @@ TEST test_write_union_from_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)(size_t)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
   fread(content, 1, (size_t)sz, tmp);
@@ -185,7 +185,7 @@ TEST test_write_union_cleanup(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = (char *)malloc(sz + 1);
+  content = (char *)(size_t)malloc(sz + 1);
   if (!content)
     FAILm("OOM");
   fread(content, 1, (size_t)sz, tmp);

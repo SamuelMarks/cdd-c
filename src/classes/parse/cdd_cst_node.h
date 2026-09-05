@@ -69,7 +69,7 @@ struct cdd_cst_child_t {
     /** @brief field */
     /** @brief field */
     cdd_cst_node_t *node;
-  } val;
+  } val; /**< Child union value (either token or node) */
 };
 
 /**

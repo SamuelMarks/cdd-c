@@ -192,7 +192,7 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   }
 
   /* Alloc */
-  enc = (char *)C_CDD_MALLOC(needed_len + 1);
+  enc = (char *)(size_t)C_CDD_MALLOC(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;

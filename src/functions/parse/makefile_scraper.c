@@ -29,7 +29,7 @@ static cdd_c_error_t my_strdup(const char *s, char **out_val) {
   if (!s)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   len = strlen(s) + 1;
-  d = (char *)C_CDD_MALLOC(len);
+  d = (char *)(size_t)C_CDD_MALLOC(len);
   if (!d)
     return CDD_C_ERROR_MEMORY;
   memcpy(d, s, len);
@@ -251,7 +251,7 @@ cdd_c_error_t build_info_to_cmake(const struct ExtractedBuildInfo *info,
   if (!info || !project_name || !out_cmake)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  buf = (char *)C_CDD_MALLOC(cap);
+  buf = (char *)(size_t)C_CDD_MALLOC(cap);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

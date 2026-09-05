@@ -53,7 +53,7 @@ TEST test_cst_create_token(void) {
   cdd_token_t *tok = NULL;
   int rc;
 
-  rc = cdd_cst_parse(az_span_create_from_str((char *)""), &tree);
+  rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
   (void)rc;
   ASSERT_EQ(0, rc);
 
@@ -152,7 +152,8 @@ TEST test_cst_append_child_token(void) {
   cdd_token_t *tok = NULL;
 
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &parent));
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree));
   ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "x", &tok));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -203,7 +204,8 @@ TEST test_cst_parse_format(void) {
   int rc;
 
   (void)rc;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree));
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_parse_format(NULL, &node, "int x;"));
@@ -241,7 +243,8 @@ TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node;
   node = NULL;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree));
 
   g_cdd_cst_alloc_token_fail = 2;
   cdd_cst_parse_format(tree, &node, "int x;");
@@ -320,7 +323,8 @@ TEST test_cst_parse_format_branches(void) {
   int i;
 
   (void)rc;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree));
 
   /* Token at root */
   rc = cdd_cst_parse_format(tree, &node, "/* comment */\n");
@@ -362,7 +366,8 @@ TEST test_cst_parse_format_extra(void) {
   int rc;
 
   (void)rc;
-  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)""), &tree));
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree));
 
   /* Provide a large formatted string to test `vasprintf` failure path or large
    * buffer fallback */

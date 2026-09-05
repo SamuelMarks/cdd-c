@@ -74,7 +74,7 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   char *dup;
   if (!tree || !str)
     return NULL;
-  dup = (char *)malloc(len + 1);
+  dup = (char *)(size_t)malloc(len + 1);
   if (!dup)
     return NULL;
   memcpy(dup, str, len);
@@ -210,7 +210,7 @@ static cdd_c_error_t magic_visitor(cdd_cst_node_t *node, void *user_data) {
             (tok->length == 19 &&
              memcmp(tok->start, "__PRETTY_FUNCTION__", 19) == 0) ||
             (tok->length == 8 && memcmp(tok->start, "__func__", 8) == 0)) {
-          char *buf = (char *)malloc(ctx->func_len + 3);
+          char *buf = (char *)(size_t)malloc(ctx->func_len + 3);
           if (buf) {
             const char *pooled;
             cdd_token_t *new_tok = NULL;
@@ -467,7 +467,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
     if (tok->kind == CDD_TOKEN_PREPROC_DEFINE) {
       const char *p = (const char *)tok->start;
       size_t len = tok->length;
-      char *buf = (char *)malloc(len + 1);
+      char *buf = (char *)(size_t)malloc(len + 1);
       if (buf) {
         memcpy(buf, p, len);
         buf[len] = '\0';
@@ -500,11 +500,11 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   if (start_id < ellipsis) {
                     var_len = (size_t)(ellipsis - start_id);
-                    var_name = (char *)malloc(var_len + 1);
+                    var_name = (char *)(size_t)malloc(var_len + 1);
                     memcpy(var_name, start_id, var_len);
                     var_name[var_len] = '\0';
                   } else {
-                    var_name = (char *)malloc(12);
+                    var_name = (char *)(size_t)malloc(12);
                     if (var_name) {
                       memcpy(var_name, "__VA_ARGS__", 11);
                       var_name[11] = '\0';
@@ -514,7 +514,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
 
                   {
                     size_t out_cap = len * 2 + 128;
-                    char *out_buf = (char *)malloc(out_cap);
+                    char *out_buf = (char *)(size_t)malloc(out_cap);
                     if (out_buf) {
                       char *out_p = out_buf;
                       char *in_p = buf;
@@ -1403,7 +1403,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
         } else {
           /* Generic fallback for any other no-arg attribute like always_inline,
            * pure, const, weak, etc. */
-          char *heap_buf = (char *)malloc(attr->length + 7);
+          char *heap_buf = (char *)(size_t)malloc(attr->length + 7);
           if (heap_buf) {
             size_t c_idx;
             cdd_cst_node_t *p_node = NULL;
@@ -2004,7 +2004,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
             tree->base_tokens->tokens[rparen_idx].trailing_trivia = NULL;
             cdd_cst_replace_token_child(rparen_parent, rparen_cidx, new_rparen);
 
-            buf = (char *)malloc(val_len + 2);
+            buf = (char *)(size_t)malloc(val_len + 2);
             if (buf) {
               const char *pooled;
               cdd_token_t *new_val = NULL;
@@ -2115,7 +2115,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
           const uint8_t *expr_end = tree->base_tokens->tokens[i - 1].start +
                                     tree->base_tokens->tokens[i - 1].length;
           len = (size_t)(expr_end - expr_start);
-          buf = (char *)malloc(len + 4);
+          buf = (char *)(size_t)malloc(len + 4);
           if (buf) {
             p = buf;
             *p++ = '?';
@@ -2468,7 +2468,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
 #else
             strcat(p, " }");
 #endif
-            heap_buf = (char *)malloc(strlen(buf) + 1);
+            heap_buf = (char *)(size_t)malloc(strlen(buf) + 1);
             if (heap_buf) {
               size_t child_idx_shadow;
               cdd_cst_node_t *parent = NULL;
@@ -2589,7 +2589,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                 p += 9;
               }
               {
-                char *dup = (char *)malloc(strlen(buf) + 1);
+                char *dup = (char *)(size_t)malloc(strlen(buf) + 1);
                 if (dup) {
                   size_t child_idx_dup;
                   cdd_cst_node_t *parent = NULL;
@@ -2853,7 +2853,8 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
           for (j = num_local_labels; j-- > 0;) {
             if (local_labels[j].length == t->length &&
                 memcmp(local_labels[j].name, t->start, t->length) == 0) {
-              char *dup = (char *)malloc(strlen(local_labels[j].rename) + 1);
+              char *dup =
+                  (char *)(size_t)malloc(strlen(local_labels[j].rename) + 1);
               if (dup) {
                 size_t child_idx;
                 cdd_cst_node_t *parent = NULL;
@@ -3409,7 +3410,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
               } else {
                 alloc_sz = ((size_t)(end_val - start_val + 2)) * 32 + 128;
               }
-              heap_buf = (char *)malloc(alloc_sz);
+              heap_buf = (char *)(size_t)malloc(alloc_sz);
               if (heap_buf) {
                 const char *pooled;
                 p = heap_buf;
@@ -3533,7 +3534,7 @@ cdd_c_error_t cdd_transform_gnu(cdd_cst_tree_t *tree,
                 alloc_sz = ((size_t)(end_val - start_val + 2)) *
                                (32 + assign_val->length) +
                            1;
-                heap_buf = (char *)malloc(alloc_sz);
+                heap_buf = (char *)(size_t)malloc(alloc_sz);
                 if (heap_buf) {
                   const char *pooled;
                   p = heap_buf;

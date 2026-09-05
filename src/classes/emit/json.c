@@ -1,4 +1,6 @@
+/** @brief Counter threshold to simulate I/O failure */
 extern int g_fail_io_after;
+/** @brief Current I/O call counter */
 extern int g_io_calls;
 /**
  * @file json.c
@@ -654,7 +656,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                               n, n));
       } else if (strcmp(r, "string") == 0) {
         CHECK_IO(FPRINTF_HOOK(
-            fp, "      ret->%s = calloc(ret->n_%s, sizeof(char*));\n", n, n));
+            fp, "      ret->%s = calloc(ret->n_%s, sizeof(char *));\n", n, n));
         CHECK_IO(FPRINTF_HOOK(fp,
                               "      for(i=0; i<ret->n_%s; ++i) ret->%s[i] = "
                               "strdup(json_array_get_string(arr, i));\n",

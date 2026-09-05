@@ -195,7 +195,7 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
     return CDD_C_SUCCESS;
   }
 
-  out = (char *)C_CDD_MALLOC(len + 1);
+  out = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!out) {
     *out_s = NULL;
     return CDD_C_ERROR_MEMORY;

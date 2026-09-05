@@ -44,6 +44,10 @@ C_CDD_EXPORT cdd_c_error_t print_version(void);
 C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv);
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name);
 
+/**
+ * @brief Prints version and driver information to stdout.
+ * @return CDD_C_SUCCESS on success.
+ */
 C_CDD_EXPORT cdd_c_error_t print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
@@ -388,18 +392,18 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
     if (f) {
       char *c2_argv_base[5];
       fclose(f);
-      c2_argv_base[0] = (char *)"c2openapi";
-      c2_argv_base[1] = (char *)"--base";
+      c2_argv_base[0] = (char *)(size_t) "c2openapi";
+      c2_argv_base[1] = (char *)(size_t) "--base";
       c2_argv_base[2] = snapshot_path;
-      c2_argv_base[3] = (char *)input_dir;
-      c2_argv_base[4] = (char *)out_file;
+      c2_argv_base[3] = (char *)(size_t)input_dir;
+      c2_argv_base[4] = (char *)(size_t)out_file;
       return c2openapi_cli_main(5, c2_argv_base);
     }
   }
 
-  c2_argv[0] = (char *)"c2openapi";
-  c2_argv[1] = (char *)input_dir;
-  c2_argv[2] = (char *)out_file;
+  c2_argv[0] = (char *)(size_t) "c2openapi";
+  c2_argv[1] = (char *)(size_t)input_dir;
+  c2_argv[2] = (char *)(size_t)out_file;
   return c2openapi_cli_main(3, c2_argv);
 }
 

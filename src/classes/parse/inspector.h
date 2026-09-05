@@ -51,9 +51,7 @@ struct TypeDefinition {
   union {
     struct EnumMembers *enum_members;   /**< Populated if kind == KIND_ENUM */
     struct StructFields *struct_fields; /**< Populated if kind == KIND_STRUCT */
-    /** @brief details */
-    /** @brief Type details */
-  } details;
+  } details; /**< Detailed type-specific information */
 };
 
 /**

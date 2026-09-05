@@ -58,7 +58,7 @@ static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = (char *)calloc(1, (size_t)sz + 1);
+  content = (char *)(size_t)calloc(1, (size_t)sz + 1);
   if (sz > 0)
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
@@ -85,7 +85,7 @@ TEST test_body_basic_get(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -122,7 +122,7 @@ TEST test_body_base_url_override(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -155,7 +155,7 @@ TEST test_body_options_verb(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_OPTIONS;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -186,7 +186,7 @@ TEST test_body_trace_verb(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_TRACE;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -217,7 +217,7 @@ TEST test_body_query_verb(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_QUERY;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -249,8 +249,8 @@ TEST test_body_additional_connect_method(void) {
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_UNKNOWN;
   op.is_additional = 1;
-  op.method = (char *)(size_t)"CONNECT";
-  resp.code = (char *)(size_t)"200";
+  op.method = (char *)(size_t)(size_t) "CONNECT";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -285,13 +285,13 @@ TEST test_body_querystring_param(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"qs";
+  param.name = (char *)(size_t)(size_t) "qs";
   param.in = OA_PARAM_IN_QUERYSTRING;
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -306,7 +306,7 @@ TEST test_body_querystring_param(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"string";
+  param.items_type = (char *)(size_t)(size_t) "string";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   if (g_fail_io_after >= 0 && !code)
@@ -314,7 +314,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"integer";
+  param.items_type = (char *)(size_t)(size_t) "integer";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   if (g_fail_io_after >= 0 && !code)
@@ -322,7 +322,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"number";
+  param.items_type = (char *)(size_t)(size_t) "number";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   if (g_fail_io_after >= 0 && !code)
@@ -330,7 +330,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"boolean";
+  param.items_type = (char *)(size_t)(size_t) "boolean";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   if (g_fail_io_after >= 0 && !code)
@@ -338,7 +338,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"unsupported";
+  param.items_type = (char *)(size_t)(size_t) "unsupported";
   code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
           _ast_gen_body_6);
   if (g_fail_io_after >= 0 && !code)
@@ -366,8 +366,8 @@ TEST test_body_inline_response_string(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -399,9 +399,9 @@ TEST test_body_inline_response_array_number(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   resp.schema.is_array = 1;
-  resp.schema.inline_type = (char *)(size_t)"number";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "number";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -433,9 +433,9 @@ TEST test_body_inline_request_body_string(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)"application/json";
-  op.req_body.inline_type = (char *)(size_t)"string";
-  resp.code = (char *)(size_t)"200";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -468,9 +468,10 @@ TEST test_body_inline_request_body_string_json_params(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)"Application/JSON; charset=utf-8";
-  op.req_body.inline_type = (char *)(size_t)"string";
-  resp.code = (char *)(size_t)"200";
+  op.req_body.content_type =
+      (char *)(size_t)(size_t) "Application/JSON; charset=utf-8";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "string";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -502,10 +503,10 @@ TEST test_body_inline_request_body_array(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)"application/json";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
   op.req_body.is_array = 1;
-  op.req_body.inline_type = (char *)(size_t)"integer";
-  resp.code = (char *)(size_t)"200";
+  op.req_body.inline_type = (char *)(size_t)(size_t) "integer";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -533,8 +534,8 @@ TEST test_body_textual_request_body_xml(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)"application/xml";
-  op.req_body.ref_name = (char *)(size_t)"Pet";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/xml";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Pet";
 
   code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
           _ast_gen_body_12);
@@ -562,8 +563,8 @@ TEST test_body_binary_request_body_pdf(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_POST;
-  op.req_body.content_type = (char *)(size_t)"application/pdf";
-  op.req_body.ref_name = (char *)(size_t)"Pet";
+  op.req_body.content_type = (char *)(size_t)(size_t) "application/pdf";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Pet";
 
   code =
       (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
@@ -599,15 +600,15 @@ TEST test_body_header_array_param(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Ids";
+  param.name = (char *)(size_t)(size_t) "X-Ids";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"integer";
+  param.items_type = (char *)(size_t)(size_t) "integer";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -623,7 +624,7 @@ TEST test_body_header_array_param(void) {
   free(code);
 
   /* Test string array */
-  param.items_type = (char *)(size_t)"string";
+  param.items_type = (char *)(size_t)(size_t) "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -631,7 +632,7 @@ TEST test_body_header_array_param(void) {
   free(code);
 
   /* Test number array */
-  param.items_type = (char *)(size_t)"number";
+  param.items_type = (char *)(size_t)(size_t) "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -639,7 +640,7 @@ TEST test_body_header_array_param(void) {
   free(code);
 
   /* Test boolean array */
-  param.items_type = (char *)(size_t)"boolean";
+  param.items_type = (char *)(size_t)(size_t) "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -647,7 +648,7 @@ TEST test_body_header_array_param(void) {
   free(code);
 
   /* Test unsupported array */
-  param.items_type = (char *)(size_t)"unsupported";
+  param.items_type = (char *)(size_t)(size_t) "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_14), _ast_gen_body_14);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -678,13 +679,13 @@ TEST test_body_header_object_param(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Filter";
+  param.name = (char *)(size_t)(size_t) "X-Filter";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"object";
+  param.type = (char *)(size_t)(size_t) "object";
   param.style = OA_STYLE_SIMPLE;
   param.explode = 1;
   param.explode_set = 1;
@@ -726,15 +727,15 @@ TEST test_body_header_json_param_ref(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Filter";
+  param.name = (char *)(size_t)(size_t) "X-Filter";
   param.in = OA_PARAM_IN_HEADER;
-  param.content_type = (char *)(size_t)"application/json";
-  param.schema.ref_name = (char *)(size_t)"Filter";
-  param.type = (char *)(size_t)"Filter";
+  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.schema.ref_name = (char *)(size_t)(size_t) "Filter";
+  param.type = (char *)(size_t)(size_t) "Filter";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -752,35 +753,35 @@ TEST test_body_header_json_param_ref(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"string";
+  param.items_type = (char *)(size_t)(size_t) "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"integer";
+  param.items_type = (char *)(size_t)(size_t) "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"number";
+  param.items_type = (char *)(size_t)(size_t) "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"boolean";
+  param.items_type = (char *)(size_t)(size_t) "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"unsupported";
+  param.items_type = (char *)(size_t)(size_t) "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -789,7 +790,7 @@ TEST test_body_header_json_param_ref(void) {
 
   /* Test JSON object */
   param.is_array = 0;
-  param.type = (char *)(size_t)"object";
+  param.type = (char *)(size_t)(size_t) "object";
   param.schema.ref_name = NULL;
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
@@ -798,7 +799,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON array (no is_array flag) */
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -806,7 +807,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON primitive string */
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -814,7 +815,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON primitive integer */
-  param.type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -822,7 +823,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON primitive number */
-  param.type = (char *)(size_t)"number";
+  param.type = (char *)(size_t)(size_t) "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -830,7 +831,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON primitive boolean */
-  param.type = (char *)(size_t)"boolean";
+  param.type = (char *)(size_t)(size_t) "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -838,7 +839,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON primitive unsupported */
-  param.type = (char *)(size_t)"unsupported";
+  param.type = (char *)(size_t)(size_t) "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -854,7 +855,7 @@ TEST test_body_header_json_param_ref(void) {
   free(code);
 
   /* Test JSON unknown type */
-  param.type = (char *)(size_t)"unknown";
+  param.type = (char *)(size_t)(size_t) "unknown";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_16), _ast_gen_body_16);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -885,13 +886,13 @@ TEST test_body_header_number_param(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Rate";
+  param.name = (char *)(size_t)(size_t) "X-Rate";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"number";
+  param.type = (char *)(size_t)(size_t) "number";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -930,13 +931,13 @@ TEST test_body_cookie_param(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"session";
+  param.name = (char *)(size_t)(size_t) "session";
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -952,35 +953,35 @@ TEST test_body_cookie_param(void) {
 
   /* Test primitive arrays */
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"string";
+  param.items_type = (char *)(size_t)(size_t) "string";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"integer";
+  param.items_type = (char *)(size_t)(size_t) "integer";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"number";
+  param.items_type = (char *)(size_t)(size_t) "number";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"boolean";
+  param.items_type = (char *)(size_t)(size_t) "boolean";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   if (g_fail_io_after >= 0 && !code)
     PASS();
   ASSERT(code);
   free(code);
 
-  param.items_type = (char *)(size_t)"unsupported";
+  param.items_type = (char *)(size_t)(size_t) "unsupported";
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_18), _ast_gen_body_18);
   if (g_fail_io_after >= 0 && !code)
     PASS();
@@ -1011,15 +1012,15 @@ TEST test_body_cookie_param_number_array(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"weights";
+  param.name = (char *)(size_t)(size_t) "weights";
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"number";
+  param.items_type = (char *)(size_t)(size_t) "number";
   param.explode = 1;
   param.explode_set = 1;
   op.parameters = &param;
@@ -1061,15 +1062,15 @@ TEST test_body_cookie_param_array_explode_false(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"session";
+  param.name = (char *)(size_t)(size_t) "session";
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)"array";
+  param.type = (char *)(size_t)(size_t) "array";
   param.is_array = 1;
-  param.items_type = (char *)(size_t)"string";
+  param.items_type = (char *)(size_t)(size_t) "string";
   param.explode_set = 1;
   param.explode = 0;
   op.parameters = &param;
@@ -1110,13 +1111,13 @@ TEST test_body_cookie_param_object_form(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"prefs";
+  param.name = (char *)(size_t)(size_t) "prefs";
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)"object";
+  param.type = (char *)(size_t)(size_t) "object";
   param.style = OA_STYLE_FORM;
   op.parameters = &param;
   op.n_parameters = 1;
@@ -1156,13 +1157,13 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"session";
+  param.name = (char *)(size_t)(size_t) "session";
   param.in = OA_PARAM_IN_COOKIE;
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   param.style = OA_STYLE_FORM;
   param.allow_reserved = 1;
   param.allow_reserved_set = 1;
@@ -1205,19 +1206,19 @@ TEST test_body_security_query_api_key(void) {
   memset(&sec_set, 0, sizeof(sec_set));
 
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  scheme.name = (char *)(size_t)"QueryKey";
+  scheme.name = (char *)(size_t)(size_t) "QueryKey";
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_QUERY;
-  scheme.key_name = (char *)(size_t)"api_key";
+  scheme.key_name = (char *)(size_t)(size_t) "api_key";
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   /* Add global security requirement to activate the scheme */
-  req.scheme = (char *)(size_t)"QueryKey";
+  req.scheme = (char *)(size_t)(size_t) "QueryKey";
 
   sec_set.requirements = &req;
   sec_set.n_requirements = 1;
@@ -1259,19 +1260,19 @@ TEST test_body_security_cookie_api_key(void) {
   memset(&scheme, 0, sizeof(scheme));
 
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  scheme.name = (char *)(size_t)"CookieKey";
+  scheme.name = (char *)(size_t)(size_t) "CookieKey";
   scheme.type = OA_SEC_APIKEY;
   scheme.in = OA_SEC_IN_COOKIE;
-  scheme.key_name = (char *)(size_t)"session_id";
+  scheme.key_name = (char *)(size_t)(size_t) "session_id";
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
   memset(&req, 0, sizeof(req));
-  req.scheme = (char *)(size_t)"CookieKey";
+  req.scheme = (char *)(size_t)(size_t) "CookieKey";
 
   memset(&sec_set, 0, sizeof(sec_set));
   sec_set.requirements = &req;
@@ -1300,7 +1301,7 @@ TEST test_body_form_urlencoded(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_25 = NULL;
-  char *schema_name = (char *)(size_t)"FormData";
+  char *schema_name = (char *)(size_t)(size_t) "FormData";
 
   memset(&op, 0, sizeof(op));
 
@@ -1324,13 +1325,13 @@ TEST test_body_form_urlencoded(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
           _ast_gen_body_25);
@@ -1356,7 +1357,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_26 = NULL;
-  char *schema_name = (char *)(size_t)"FormData";
+  char *schema_name = (char *)(size_t)(size_t) "FormData";
 
   memset(&op, 0, sizeof(op));
 
@@ -1378,13 +1379,14 @@ TEST test_body_form_urlencoded_with_params(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded; charset=utf-8";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded; "
+                               "charset=utf-8";
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
           _ast_gen_body_26);
@@ -1408,7 +1410,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_27 = NULL;
-  char *schema_name = (char *)(size_t)"FormData";
+  char *schema_name = (char *)(size_t)(size_t) "FormData";
 
   memset(&op, 0, sizeof(op));
 
@@ -1432,13 +1434,13 @@ TEST test_body_form_urlencoded_object_fields(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
           _ast_gen_body_27);
@@ -1495,21 +1497,21 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
-  enc.name = (char *)(size_t)"filter";
+  enc.name = (char *)(size_t)(size_t) "filter";
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 1;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)"application/x-www-form-urlencoded";
+  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -1569,21 +1571,21 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
-  enc.name = (char *)(size_t)"filter";
+  enc.name = (char *)(size_t)(size_t) "filter";
   enc.style = OA_STYLE_FORM;
   enc.style_set = 1;
   enc.explode = 0;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)"application/x-www-form-urlencoded";
+  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -1644,21 +1646,21 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   spec.n_defined_schemas = 2;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
-  enc.name = (char *)(size_t)"filter";
+  enc.name = (char *)(size_t)(size_t) "filter";
   enc.style = OA_STYLE_DEEP_OBJECT;
   enc.style_set = 1;
   enc.explode = 1;
   enc.explode_set = 1;
 
-  mt.name = (char *)(size_t)"application/x-www-form-urlencoded";
+  mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -1684,7 +1686,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_31 = NULL;
-  char *schema_name = (char *)(size_t)"Upload";
+  char *schema_name = (char *)(size_t)(size_t) "Upload";
 
   memset(&op, 0, sizeof(op));
 
@@ -1716,12 +1718,12 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"Upload";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
   code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
           _ast_gen_body_31);
@@ -1749,7 +1751,7 @@ TEST test_body_multipart_object_fields(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_32 = NULL;
-  char *schema_name = (char *)(size_t)"FormData";
+  char *schema_name = (char *)(size_t)(size_t) "FormData";
 
   memset(&op, 0, sizeof(op));
 
@@ -1773,12 +1775,12 @@ TEST test_body_multipart_object_fields(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"FormData";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "FormData";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
   code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
           _ast_gen_body_32);
@@ -1806,7 +1808,7 @@ TEST test_body_multipart_encoding_content_type(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_33 = NULL;
-  char *schema_name = (char *)(size_t)"Upload";
+  char *schema_name = (char *)(size_t)(size_t) "Upload";
 
   memset(&op, 0, sizeof(op));
 
@@ -1830,16 +1832,16 @@ TEST test_body_multipart_encoding_content_type(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"Upload";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
-  mt.name = (char *)(size_t)"multipart/form-data";
-  enc.name = (char *)(size_t)"title";
-  enc.content_type = (char *)(size_t)"text/plain; charset=utf-8";
+  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  enc.name = (char *)(size_t)(size_t) "title";
+  enc.content_type = (char *)(size_t)(size_t) "text/plain; charset=utf-8";
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -1868,7 +1870,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_34 = NULL;
-  char *schema_name = (char *)(size_t)"Upload";
+  char *schema_name = (char *)(size_t)(size_t) "Upload";
 
   memset(&op, 0, sizeof(op));
 
@@ -1892,16 +1894,16 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"Upload";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
-  mt.name = (char *)(size_t)"multipart/form-data";
-  enc.name = (char *)(size_t)"file";
-  enc.content_type = (char *)(size_t)"image/png, image/jpeg";
+  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  enc.name = (char *)(size_t)(size_t) "file";
+  enc.content_type = (char *)(size_t)(size_t) "image/png, image/jpeg";
   mt.encoding = &enc;
   mt.n_encoding = 1;
   op.req_body_media_types = &mt;
@@ -1931,7 +1933,7 @@ TEST test_body_multipart_encoding_headers(void) {
   struct OpenAPI_Operation op;
   char *code = NULL;
   char *_ast_gen_body_35 = NULL;
-  char *schema_name = (char *)(size_t)"Upload";
+  char *schema_name = (char *)(size_t)(size_t) "Upload";
 
   memset(&op, 0, sizeof(op));
 
@@ -1956,24 +1958,24 @@ TEST test_body_multipart_encoding_headers(void) {
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  op.req_body.ref_name = (char *)(size_t)"Upload";
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "Upload";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
 
-  headers[0].name = (char *)(size_t)"X-Trace";
-  headers[0].type = (char *)(size_t)"string";
-  headers[1].name = (char *)(size_t)"X-Ids";
-  headers[1].type = (char *)(size_t)"array";
+  headers[0].name = (char *)(size_t)(size_t) "X-Trace";
+  headers[0].type = (char *)(size_t)(size_t) "string";
+  headers[1].name = (char *)(size_t)(size_t) "X-Ids";
+  headers[1].type = (char *)(size_t)(size_t) "array";
   headers[1].is_array = 1;
-  headers[1].items_type = (char *)(size_t)"integer";
-  headers[2].name = (char *)(size_t)"Content-Type";
-  headers[2].type = (char *)(size_t)"string";
+  headers[1].items_type = (char *)(size_t)(size_t) "integer";
+  headers[2].name = (char *)(size_t)(size_t) "Content-Type";
+  headers[2].type = (char *)(size_t)(size_t) "string";
 
-  mt.name = (char *)(size_t)"multipart/form-data";
-  enc.name = (char *)(size_t)"title";
+  mt.name = (char *)(size_t)(size_t) "multipart/form-data";
+  enc.name = (char *)(size_t)(size_t) "title";
   enc.headers = headers;
   enc.n_headers = 3;
   mt.encoding = &enc;
@@ -2013,8 +2015,8 @@ TEST test_body_response_range_success(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"2XX";
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.code = (char *)(size_t)(size_t) "2XX";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2046,8 +2048,8 @@ TEST test_body_default_response_success(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"default";
-  resp.schema.ref_name = (char *)(size_t)"Pet";
+  resp.code = (char *)(size_t)(size_t) "default";
+  resp.schema.ref_name = (char *)(size_t)(size_t) "Pet";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2079,9 +2081,9 @@ TEST test_body_text_plain_response_string(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"text/plain; charset=utf-8";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain; charset=utf-8";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2113,9 +2115,9 @@ TEST test_body_text_plain_response_range(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"2XX";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "2XX";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2147,9 +2149,9 @@ TEST test_body_text_plain_response_default(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"default";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "default";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2181,9 +2183,9 @@ TEST test_body_textual_response_xml(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"application/xml; charset=utf-8";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "application/xml; charset=utf-8";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2215,8 +2217,8 @@ TEST test_body_binary_response_pdf(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"application/pdf";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "application/pdf";
   op.responses = &resp;
   op.n_responses = 1;
 
@@ -2247,7 +2249,7 @@ TEST test_client_body_verb_mapping(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testVerb";
+  op.operation_id = (char *)(size_t)(size_t) "testVerb";
 
   /* Test additional non-standard verbs */
   op.is_additional = 1;
@@ -2255,34 +2257,34 @@ TEST test_client_body_verb_mapping(void) {
   op.method = NULL;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"put";
+  op.method = (char *)(size_t)(size_t) "put";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"delete";
+  op.method = (char *)(size_t)(size_t) "delete";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"head";
+  op.method = (char *)(size_t)(size_t) "head";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"patch";
+  op.method = (char *)(size_t)(size_t) "patch";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"options";
+  op.method = (char *)(size_t)(size_t) "options";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"trace";
+  op.method = (char *)(size_t)(size_t) "trace";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"query";
+  op.method = (char *)(size_t)(size_t) "query";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.method = (char *)(size_t)"unknown";
+  op.method = (char *)(size_t)(size_t) "unknown";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
@@ -2306,14 +2308,14 @@ TEST test_client_body_mapped_err_code(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testErrCode";
+  op.operation_id = (char *)(size_t)(size_t) "testErrCode";
   op.n_responses = 5;
   op.responses = calloc(5, sizeof(*op.responses));
-  op.responses[0].code = (char *)(size_t)"400";
-  op.responses[1].code = (char *)(size_t)"401";
-  op.responses[2].code = (char *)(size_t)"403";
-  op.responses[3].code = (char *)(size_t)"404";
-  op.responses[4].code = (char *)(size_t)"500";
+  op.responses[0].code = (char *)(size_t)(size_t) "400";
+  op.responses[1].code = (char *)(size_t)(size_t) "401";
+  op.responses[2].code = (char *)(size_t)(size_t) "403";
+  op.responses[3].code = (char *)(size_t)(size_t) "404";
+  op.responses[4].code = (char *)(size_t)(size_t) "500";
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2339,21 +2341,22 @@ TEST test_client_body_media_type_matching(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaMatch";
-  op.summary = (char *)(size_t)"Test summary";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaMatch";
+  op.summary = (char *)(size_t)(size_t) "Test summary";
 
-  op.req_body.content_type = (char *)(size_t)"application/vnd.github+JSON";
+  op.req_body.content_type =
+      (char *)(size_t)(size_t) "application/vnd.github+JSON";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)"APPLICATION/XML";
+  op.req_body.content_type = (char *)(size_t)(size_t) "APPLICATION/XML";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)"text/plain";
+  op.req_body.content_type = (char *)(size_t)(size_t) "text/plain";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   if (fp)
@@ -2377,22 +2380,22 @@ TEST test_client_body_find_media_type_not_found(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testMediaTypeFindNotFound";
-  op.method = (char *)(size_t)"post";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaTypeFindNotFound";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
 
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name =
-      (char *)(size_t)"application/json"; /* Doesn't match */
+      (char *)(size_t)(size_t) "application/json"; /* Doesn't match */
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
   op.req_body_media_types[0].name =
-      (char *)(size_t)"application/xml"; /* Doesn't match */
+      (char *)(size_t)(size_t) "application/xml"; /* Doesn't match */
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2419,21 +2422,23 @@ TEST test_client_body_find_encoding_not_found(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testEncodingFindNotFound";
-  op.method = (char *)(size_t)"post";
+  op.operation_id = (char *)(size_t)(size_t) "testEncodingFindNotFound";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
 
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
-  op.req_body.ref_name = (char *)(size_t)"MockSchema";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchema";
 
   /* Provide req_body_media_types */
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/form-data";
+  op.req_body_media_types[0].name =
+      (char *)(size_t)(size_t) "multipart/form-data";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"other_prop"; /* Different from test_prop */
-  enc.content_type = (char *)(size_t)"text/plain";
+  enc.name =
+      (char *)(size_t)(size_t) "other_prop"; /* Different from test_prop */
+  enc.content_type = (char *)(size_t)(size_t) "text/plain";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
@@ -2498,16 +2503,17 @@ TEST test_client_body_array_items_statics(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testArrayItemsStatics";
-  op.method = (char *)(size_t)"post";
+  op.operation_id = (char *)(size_t)(size_t) "testArrayItemsStatics";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
 
-  op.req_body.content_type = (char *)(size_t)"multipart/form-data";
-  op.req_body.ref_name = (char *)(size_t)"MockSchema2";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchema2";
 
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/form-data";
+  op.req_body_media_types[0].name =
+      (char *)(size_t)(size_t) "multipart/form-data";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -2674,9 +2680,9 @@ TEST test_client_body_array_items_statics(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   op.req_body_media_types[0].name =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -2706,7 +2712,7 @@ TEST test_client_body_verb_enum_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.operation_id = (char *)(size_t)"testVerb";
+  op.operation_id = (char *)(size_t)(size_t) "testVerb";
 
   op.verb = OA_VERB_PUT;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2744,9 +2750,9 @@ TEST test_client_body_header_formatting_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testHdrFormat";
+  op.operation_id = (char *)(size_t)(size_t) "testHdrFormat";
 
   /* Set up global schemas to bypass properties missing error */
   spec.n_defined_schemas = 1;
@@ -2779,21 +2785,21 @@ TEST test_client_body_header_formatting_indirect(void) {
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaHdr";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaHdr";
 
   /* Multipart data with specific encodings to hit header name formatting */
-  op.req_body.content_type = (char *)(size_t)"multipart/mixed";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"1test_prop";
+  enc.name = (char *)(size_t)(size_t) "1test_prop";
 
   memset(&hdr, 0, sizeof(hdr));
-  hdr.name = (char *)(size_t)"1Content-Type"; /* hit sanitize starting with
-                                                 number, and it isn't */
-                                              /* Content-Type exact */
+  hdr.name = (char *)(size_t)(size_t) "1Content-Type"; /* hit sanitize starting
+                                                  with number, and it isn't */
+  /* Content-Type exact */
 
   enc.n_headers = 1;
   enc.headers = &hdr;
@@ -2802,8 +2808,8 @@ TEST test_client_body_header_formatting_indirect(void) {
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"1test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "1test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
@@ -2839,9 +2845,9 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaTypeClassifiers";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaTypeClassifiers";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -2873,53 +2879,53 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaTxtBin";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaTxtBin";
 
   /* Hit textual formatters indirectly via multipart field generation */
-  op.req_body.content_type = (char *)(size_t)"multipart/mixed";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"test_prop";
+  enc.name = (char *)(size_t)(size_t) "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
   /* text/html */
-  enc.content_type = (char *)(size_t)"text/html";
+  enc.content_type = (char *)(size_t)(size_t) "text/html";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/xml */
-  enc.content_type = (char *)(size_t)"application/xml";
+  enc.content_type = (char *)(size_t)(size_t) "application/xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/rss+xml */
-  enc.content_type = (char *)(size_t)"application/rss+xml";
+  enc.content_type = (char *)(size_t)(size_t) "application/rss+xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* image/png (binary) */
-  enc.content_type = (char *)(size_t)"image/png";
+  enc.content_type = (char *)(size_t)(size_t) "image/png";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* audio/mp3 (binary) */
-  enc.content_type = (char *)(size_t)"audio/mp3";
+  enc.content_type = (char *)(size_t)(size_t) "audio/mp3";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* video/mp4 (binary) */
-  enc.content_type = (char *)(size_t)"video/mp4";
+  enc.content_type = (char *)(size_t)(size_t) "video/mp4";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/pdf (binary) */
-  enc.content_type = (char *)(size_t)"application/pdf";
+  enc.content_type = (char *)(size_t)(size_t) "application/pdf";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -2952,9 +2958,9 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaTypeClassifiersMissing";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaTypeClassifiersMissing";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -2986,33 +2992,33 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaMissing";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaMissing";
 
   /* Hit textual formatters indirectly via multipart field generation */
-  op.req_body.content_type = (char *)(size_t)"multipart/mixed";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"test_prop";
+  enc.name = (char *)(size_t)(size_t) "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
   /* text/css (textual prefix) */
-  enc.content_type = (char *)(size_t)"text/css";
+  enc.content_type = (char *)(size_t)(size_t) "text/css";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* application/atom+xml (textual suffix) */
-  enc.content_type = (char *)(size_t)"application/atom+xml";
+  enc.content_type = (char *)(size_t)(size_t) "application/atom+xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -3044,9 +3050,9 @@ TEST test_client_body_media_type_caps_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaCapsIndirect";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaCapsIndirect";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -3078,29 +3084,29 @@ TEST test_client_body_media_type_caps_indirect(void) {
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaCaps";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaCaps";
 
   /* Mixed upper and lower caps */
-  op.req_body.content_type = (char *)(size_t)"MULTIPART/MIXED";
+  op.req_body.content_type = (char *)(size_t)(size_t) "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"test_prop";
+  enc.name = (char *)(size_t)(size_t) "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
   /* text/plain in caps */
-  enc.content_type = (char *)(size_t)"TEXT/PLAIN";
+  enc.content_type = (char *)(size_t)(size_t) "TEXT/PLAIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -3132,9 +3138,9 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaPrefixCapsIndirect";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaPrefixCapsIndirect";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -3166,29 +3172,29 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaPrefixCaps";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaPrefixCaps";
 
   /* Hit prefix upper caps */
-  op.req_body.content_type = (char *)(size_t)"MULTIPART/MIXED";
+  op.req_body.content_type = (char *)(size_t)(size_t) "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"test_prop";
+  enc.name = (char *)(size_t)(size_t) "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
   /* text/plain in mixed caps to hit prefix */
-  enc.content_type = (char *)(size_t)"TeXt/PlaIN";
+  enc.content_type = (char *)(size_t)(size_t) "TeXt/PlaIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -3220,9 +3226,9 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testMediaShort";
+  op.operation_id = (char *)(size_t)(size_t) "testMediaShort";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -3254,32 +3260,32 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 #endif
 #endif
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaShort";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaShort";
 
-  op.req_body.content_type = (char *)(size_t)"multipart/mixed";
+  op.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-  op.req_body_media_types[0].name = (char *)(size_t)"multipart/mixed";
+  op.req_body_media_types[0].name = (char *)(size_t)(size_t) "multipart/mixed";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"test_prop";
+  enc.name = (char *)(size_t)(size_t) "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
   memset(&mf, 0, sizeof(mf));
-  mf.name = (char *)(size_t)"test_prop";
-  mf.type = (char *)(size_t)"string";
+  mf.name = (char *)(size_t)(size_t) "test_prop";
+  mf.type = (char *)(size_t)(size_t) "string";
   mf.is_binary = 0;
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
   /* text/ (len < pre_len = 5) -> e.g. "tex" */
-  enc.content_type = (char *)(size_t)"tex";
+  enc.content_type = (char *)(size_t)(size_t) "tex";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* +xml (len < suf_len = 4) -> e.g. "xm" */
-  enc.content_type = (char *)(size_t)"xm";
+  enc.content_type = (char *)(size_t)(size_t) "xm";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   free(spec.defined_schemas[0].fields);
@@ -3310,52 +3316,58 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testInlineParseIndirect";
+  op.operation_id = (char *)(size_t)(size_t) "testInlineParseIndirect";
 
   /* We need to hit write_response_read -> write_inline_json_parse */
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   /* Setup media type with inline schema */
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"application/json";
+  resp.content_media_types[0].name =
+      (char *)(size_t)(size_t) "application/json";
 
   /* Test array of string */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 1;
   op.responses = &resp;
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of integer */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"integer";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "integer";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of number */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"number";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "number";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test array of boolean */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test raw boolean */
   resp.content_media_types[0].schema.is_array = 0;
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Test unhandled / unknown (e.g., fallback) */
   resp.content_media_types[0].schema.inline_type =
-      (char *)(size_t)"unknown_type_test";
+      (char *)(size_t)(size_t) "unknown_type_test";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Add missing branch from write_response_read (raw array of non-json) */
-  resp.content_media_types[0].name = (char *)(size_t)"text/plain";
+  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -3382,54 +3394,61 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testInlineParseTypes";
+  op.operation_id = (char *)(size_t)(size_t) "testInlineParseTypes";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"application/json";
+  resp.content_media_types[0].name =
+      (char *)(size_t)(size_t) "application/json";
   op.responses = &resp;
 
   /* array of string */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of int */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"integer";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "integer";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"number";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "number";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type =
-      (char *)(size_t)"unknown_test";
+      (char *)(size_t)(size_t) "unknown_test";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* raw boolean */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   resp.content_media_types[0].schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of string (non-json) */
-  resp.content_media_types[0].name = (char *)(size_t)"text/plain";
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -3456,25 +3475,27 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testInlineParseTypes";
+  op.operation_id = (char *)(size_t)(size_t) "testInlineParseTypes";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"application/json";
+  resp.content_media_types[0].name =
+      (char *)(size_t)(size_t) "application/json";
   op.responses = &resp;
 
   /* Need to provide a valid body payload via dummy schema */
   /* so the codegen logic is fully hit and NOT skipped! */
 
   /* array of string */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 1;
   /* Make it think the response is an object with an inline schema so it hits */
   /* the array codegen! No, write_inline_json_parse writes code! We just need it
@@ -3483,28 +3504,32 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of int */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"integer";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "integer";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"number";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "number";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type =
-      (char *)(size_t)"unknown_test";
+      (char *)(size_t)(size_t) "unknown_test";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* raw boolean */
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"boolean";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "boolean";
   resp.content_media_types[0].schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -3531,9 +3556,9 @@ TEST test_client_body_form_object_style_form_explode(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"post";
+  op.method = (char *)(size_t)(size_t) "post";
   op.verb = OA_VERB_POST;
-  op.operation_id = (char *)(size_t)"testFormObjStyle";
+  op.operation_id = (char *)(size_t)(size_t) "testFormObjStyle";
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
@@ -3576,17 +3601,17 @@ TEST test_client_body_form_object_style_form_explode(void) {
 #endif
 #endif /* self-ref for test */
 
-  op.req_body.ref_name = (char *)(size_t)"MockSchemaFormObj";
+  op.req_body.ref_name = (char *)(size_t)(size_t) "MockSchemaFormObj";
 
   op.req_body.content_type =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name =
-      (char *)(size_t)"application/x-www-form-urlencoded";
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
   memset(&enc, 0, sizeof(enc));
-  enc.name = (char *)(size_t)"obj_prop";
+  enc.name = (char *)(size_t)(size_t) "obj_prop";
   enc.style_set = 1;
   enc.style = OA_STYLE_FORM;
   enc.explode_set = 1;
@@ -3624,15 +3649,15 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testCookieObjStyle";
+  op.operation_id = (char *)(size_t)(size_t) "testCookieObjStyle";
 
   op.n_parameters = 1;
   op.parameters = calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)"cookie_obj";
+  op.parameters[0].name = (char *)(size_t)(size_t) "cookie_obj";
   op.parameters[0].in = OA_PARAM_IN_COOKIE;
-  op.parameters[0].type = (char *)(size_t)"object";
+  op.parameters[0].type = (char *)(size_t)(size_t) "object";
   op.parameters[0].style = OA_STYLE_FORM;
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 1;
@@ -3662,19 +3687,20 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testResponseIsTextualStringIndirect";
+  op.operation_id =
+      (char *)(size_t)(size_t) "testResponseIsTextualStringIndirect";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   /* Set up content type directly on the response to trigger */
   /* `response_is_textual_string` */
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 0;
 
   /* Also we need to make sure the media_types don't override it in the new */
@@ -3684,8 +3710,8 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also hit schema_has_inline missing branches */
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"integer"; /* not string */
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "integer"; /* not string */
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -3711,16 +3737,16 @@ TEST test_client_body_response_is_textual_string_success(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testResponseTextualSuccess";
+  op.operation_id = (char *)(size_t)(size_t) "testResponseTextualSuccess";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 0;
 
   op.responses = &resp;
@@ -3749,22 +3775,24 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testResponseTextualSuccessIndirect";
+  op.operation_id =
+      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirect";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 0;
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"text/plain";
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 0;
 
   op.responses = &resp;
@@ -3794,15 +3822,16 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testResponseBinarySuccessIndirectReal";
+  op.operation_id =
+      (char *)(size_t)(size_t) "testResponseBinarySuccessIndirectReal";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"image/png"; /* Binary! */
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "image/png"; /* Binary! */
 
   op.responses = &resp;
 
@@ -3830,17 +3859,17 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)"testResponseTextualSuccessIndirectRealFixed";
+      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 0;
 
   /* Make sure it DOES NOT have a ref_name */
@@ -3872,27 +3901,28 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)"testResponseTextualSuccessIndirectRealFixed4";
+      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed4";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   /* Set up content type in the media_types map instead! */
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"text/plain";
-  resp.content_media_types[0].schema.inline_type = (char *)(size_t)"string";
+  resp.content_media_types[0].name = (char *)(size_t)(size_t) "text/plain";
+  resp.content_media_types[0].schema.inline_type =
+      (char *)(size_t)(size_t) "string";
   resp.content_media_types[0].schema.is_array = 0;
 
   /* Make sure to populate the root content_type so `response_is_textual_string`
    */
   /* works! */
-  resp.content_type = (char *)(size_t)"text/plain";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
 
   op.responses = &resp;
 
@@ -3921,46 +3951,47 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testInlineParseTypesString";
+  op.operation_id = (char *)(size_t)(size_t) "testInlineParseTypesString";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
 
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
-  resp.content_media_types[0].name = (char *)(size_t)"application/json";
+  resp.content_media_types[0].name =
+      (char *)(size_t)(size_t) "application/json";
   op.responses = &resp;
 
   /* Make sure it doesn't get blocked by success_schema_name! */
   resp.schema.ref_name = NULL;
 
   /* array of string */
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of integer */
-  resp.schema.inline_type = (char *)(size_t)"integer";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of number */
-  resp.schema.inline_type = (char *)(size_t)"number";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "number";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of boolean */
-  resp.schema.inline_type = (char *)(size_t)"boolean";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* array of fallback */
-  resp.schema.inline_type = (char *)(size_t)"unknown_type";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "unknown_type";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* not an array boolean */
-  resp.schema.inline_type = (char *)(size_t)"boolean";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -4024,15 +4055,15 @@ TEST test_client_body_write_joined_form_array_direct(void) {
     spec.defined_schema_names[0] = strdup("MyStruct");
     spec.n_defined_schemas = 1;
     op.verb = OA_VERB_POST;
-    op.req_body.ref_name = (char *)(size_t)"MyStruct";
+    op.req_body.ref_name = (char *)(size_t)(size_t) "MyStruct";
     op.req_body.content_type =
-        (char *)(size_t)"application/x-www-form-urlencoded";
-    enc.name = (char *)(size_t)"arr";
+        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+    enc.name = (char *)(size_t)(size_t) "arr";
     enc.style = OA_STYLE_FORM;
     enc.style_set = 1;
     enc.explode = 0;
     enc.explode_set = 1;
-    mt.name = (char *)(size_t)"application/x-www-form-urlencoded";
+    mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
     mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
     mt.encoding[0] = enc;
     mt.n_encoding = 1;
@@ -4187,15 +4218,15 @@ TEST test_client_body_write_joined_form_array_direct_io(void) {
       spec.defined_schema_names[0] = strdup("MyStruct");
       spec.n_defined_schemas = 1;
       op.verb = OA_VERB_POST;
-      op.req_body.ref_name = (char *)(size_t)"MyStruct";
+      op.req_body.ref_name = (char *)(size_t)(size_t) "MyStruct";
       op.req_body.content_type =
-          (char *)(size_t)"application/x-www-form-urlencoded";
-      enc.name = (char *)(size_t)"arr";
+          (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      enc.name = (char *)(size_t)(size_t) "arr";
       enc.style = OA_STYLE_FORM;
       enc.style_set = 1;
       enc.explode = 0;
       enc.explode_set = 1;
-      mt.name = (char *)(size_t)"application/x-www-form-urlencoded";
+      mt.name = (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
       mt.encoding = calloc(1, sizeof(struct OpenAPI_Encoding));
       mt.encoding[0] = enc;
       mt.n_encoding = 1;
@@ -4322,34 +4353,34 @@ TEST test_client_body_write_joined_form_array(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
-  op.operation_id = (char *)(size_t)"testJoinedFormArray";
+  op.operation_id = (char *)(size_t)(size_t) "testJoinedFormArray";
 
   op.n_parameters = 1;
   op.parameters = calloc(1, sizeof(*op.parameters));
-  op.parameters[0].name = (char *)(size_t)"query_arr";
+  op.parameters[0].name = (char *)(size_t)(size_t) "query_arr";
   op.parameters[0].in = OA_PARAM_IN_QUERY;
-  op.parameters[0].type = (char *)(size_t)"array";
-  op.parameters[0].items_type = (char *)(size_t)"object";
+  op.parameters[0].type = (char *)(size_t)(size_t) "array";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "object";
   op.parameters[0].style = OA_STYLE_FORM;
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 0;
 
   /* Set array of strings basically via mock */
-  op.parameters[0].items_type = (char *)(size_t)"string";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "string";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)"integer";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "integer";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)"number";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "number";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)"boolean";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  op.parameters[0].items_type = (char *)(size_t)"unsupported";
+  op.parameters[0].items_type = (char *)(size_t)(size_t) "unsupported";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   /* Also try different delim via pipedd */
@@ -4383,17 +4414,17 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&op, 0, sizeof(op));
 
-  op.method = (char *)(size_t)"get";
+  op.method = (char *)(size_t)(size_t) "get";
   op.verb = OA_VERB_GET;
   op.operation_id =
-      (char *)(size_t)"testResponseTextualSuccessIndirectRealFixed3";
+      (char *)(size_t)(size_t) "testResponseTextualSuccessIndirectRealFixed3";
 
   op.n_responses = 1;
 
   memset(&resp, 0, sizeof(resp));
-  resp.code = (char *)(size_t)"200";
-  resp.content_type = (char *)(size_t)"text/plain";
-  resp.schema.inline_type = (char *)(size_t)"string";
+  resp.code = (char *)(size_t)(size_t) "200";
+  resp.content_type = (char *)(size_t)(size_t) "text/plain";
+  resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.is_array = 0;
 
   op.responses = &resp;
@@ -4423,13 +4454,13 @@ TEST test_body_header_param_string(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-String";
+  param.name = (char *)(size_t)(size_t) "X-String";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"string";
+  param.type = (char *)(size_t)(size_t) "string";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -4455,13 +4486,13 @@ TEST test_body_header_param_integer(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Int";
+  param.name = (char *)(size_t)(size_t) "X-Int";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"integer";
+  param.type = (char *)(size_t)(size_t) "integer";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -4486,13 +4517,13 @@ TEST test_body_header_param_number(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Num";
+  param.name = (char *)(size_t)(size_t) "X-Num";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"number";
+  param.type = (char *)(size_t)(size_t) "number";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -4517,13 +4548,13 @@ TEST test_body_header_param_boolean(void) {
 
   (void)openapi_spec_init(&spec);
   op.verb = OA_VERB_GET;
-  resp.code = (char *)(size_t)"200";
+  resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
 
-  param.name = (char *)(size_t)"X-Bool";
+  param.name = (char *)(size_t)(size_t) "X-Bool";
   param.in = OA_PARAM_IN_HEADER;
-  param.type = (char *)(size_t)"boolean";
+  param.type = (char *)(size_t)(size_t) "boolean";
   op.parameters = &param;
   op.n_parameters = 1;
 
@@ -4561,143 +4592,144 @@ TEST test_client_body_all_primitive_types(void) {
         memset(&spec, 0, sizeof(spec));
         memset(&op, 0, sizeof(op));
 
-        op.method = (char *)(size_t)"put";
+        op.method = (char *)(size_t)(size_t) "put";
         op.verb = OA_VERB_PUT;
-        op.operation_id = (char *)(size_t)"testPrimitives";
+        op.operation_id = (char *)(size_t)(size_t) "testPrimitives";
         op.n_parameters = 21;
         op.parameters = calloc(21, sizeof(*op.parameters));
         op.parameters[0].in = OA_PARAM_IN_HEADER;
-        op.parameters[0].name = (char *)(size_t)"X-Num";
-        op.parameters[0].type = (char *)(size_t)"number";
+        op.parameters[0].name = (char *)(size_t)(size_t) "X-Num";
+        op.parameters[0].type = (char *)(size_t)(size_t) "number";
         op.parameters[0].required = 1;
         op.parameters[1].in = OA_PARAM_IN_HEADER;
-        op.parameters[1].name = (char *)(size_t)"X-Bool";
-        op.parameters[1].type = (char *)(size_t)"boolean";
+        op.parameters[1].name = (char *)(size_t)(size_t) "X-Bool";
+        op.parameters[1].type = (char *)(size_t)(size_t) "boolean";
         op.parameters[1].required = 0;
         op.parameters[2].in = OA_PARAM_IN_PATH;
-        op.parameters[2].name = (char *)(size_t)"pNum";
-        op.parameters[2].type = (char *)(size_t)"number";
+        op.parameters[2].name = (char *)(size_t)(size_t) "pNum";
+        op.parameters[2].type = (char *)(size_t)(size_t) "number";
         op.parameters[2].required = 1;
         op.parameters[3].in = OA_PARAM_IN_PATH;
-        op.parameters[3].name = (char *)(size_t)"pBool";
-        op.parameters[3].type = (char *)(size_t)"boolean";
+        op.parameters[3].name = (char *)(size_t)(size_t) "pBool";
+        op.parameters[3].type = (char *)(size_t)(size_t) "boolean";
         op.parameters[3].required = 1;
         op.parameters[4].in = OA_PARAM_IN_QUERY;
-        op.parameters[4].name = (char *)(size_t)"qNum";
-        op.parameters[4].type = (char *)(size_t)"number";
+        op.parameters[4].name = (char *)(size_t)(size_t) "qNum";
+        op.parameters[4].type = (char *)(size_t)(size_t) "number";
         op.parameters[4].required = 0;
         op.parameters[4].style = OA_STYLE_FORM;
         op.parameters[4].explode = 1;
         op.parameters[4].explode_set = 1;
         op.parameters[5].in = OA_PARAM_IN_QUERY;
-        op.parameters[5].name = (char *)(size_t)"qBool";
-        op.parameters[5].type = (char *)(size_t)"boolean";
+        op.parameters[5].name = (char *)(size_t)(size_t) "qBool";
+        op.parameters[5].type = (char *)(size_t)(size_t) "boolean";
         op.parameters[5].required = 1;
         op.parameters[5].style = OA_STYLE_FORM;
         op.parameters[5].explode = 1;
         op.parameters[5].explode_set = 1;
         op.parameters[6].in = OA_PARAM_IN_COOKIE;
-        op.parameters[6].name = (char *)(size_t)"cNum";
-        op.parameters[6].type = (char *)(size_t)"number";
+        op.parameters[6].name = (char *)(size_t)(size_t) "cNum";
+        op.parameters[6].type = (char *)(size_t)(size_t) "number";
         op.parameters[6].required = 0;
         op.parameters[7].in = OA_PARAM_IN_COOKIE;
-        op.parameters[7].name = (char *)(size_t)"cBool";
-        op.parameters[7].type = (char *)(size_t)"boolean";
+        op.parameters[7].name = (char *)(size_t)(size_t) "cBool";
+        op.parameters[7].type = (char *)(size_t)(size_t) "boolean";
         op.parameters[7].required = 1;
         op.parameters[8].in = OA_PARAM_IN_QUERY;
-        op.parameters[8].name = (char *)(size_t)"qArrNum";
-        op.parameters[8].type = (char *)(size_t)"array";
-        op.parameters[8].items_type = (char *)(size_t)"number";
+        op.parameters[8].name = (char *)(size_t)(size_t) "qArrNum";
+        op.parameters[8].type = (char *)(size_t)(size_t) "array";
+        op.parameters[8].items_type = (char *)(size_t)(size_t) "number";
         op.parameters[8].style = OA_STYLE_FORM;
         op.parameters[8].explode = 1;
         op.parameters[8].explode_set = 1;
         op.parameters[8].is_array = 1;
         op.parameters[9].in = OA_PARAM_IN_QUERY;
-        op.parameters[9].name = (char *)(size_t)"qArrBool";
-        op.parameters[9].type = (char *)(size_t)"array";
-        op.parameters[9].items_type = (char *)(size_t)"boolean";
+        op.parameters[9].name = (char *)(size_t)(size_t) "qArrBool";
+        op.parameters[9].type = (char *)(size_t)(size_t) "array";
+        op.parameters[9].items_type = (char *)(size_t)(size_t) "boolean";
         op.parameters[9].style = OA_STYLE_FORM;
         op.parameters[9].explode = 1;
         op.parameters[9].explode_set = 1;
         op.parameters[9].is_array = 1;
         op.parameters[10].in = OA_PARAM_IN_QUERY;
-        op.parameters[10].name = (char *)(size_t)"qArrInt";
-        op.parameters[10].type = (char *)(size_t)"array";
-        op.parameters[10].items_type = (char *)(size_t)"integer";
+        op.parameters[10].name = (char *)(size_t)(size_t) "qArrInt";
+        op.parameters[10].type = (char *)(size_t)(size_t) "array";
+        op.parameters[10].items_type = (char *)(size_t)(size_t) "integer";
         op.parameters[10].style = OA_STYLE_FORM;
         op.parameters[10].explode = 1;
         op.parameters[10].explode_set = 1;
         op.parameters[10].is_array = 1;
         op.parameters[11].in = OA_PARAM_IN_QUERY;
-        op.parameters[11].name = (char *)(size_t)"qArrStr";
-        op.parameters[11].type = (char *)(size_t)"array";
-        op.parameters[11].items_type = (char *)(size_t)"string";
+        op.parameters[11].name = (char *)(size_t)(size_t) "qArrStr";
+        op.parameters[11].type = (char *)(size_t)(size_t) "array";
+        op.parameters[11].items_type = (char *)(size_t)(size_t) "string";
         op.parameters[11].style = OA_STYLE_FORM;
         op.parameters[11].explode = 1;
         op.parameters[11].explode_set = 1;
         op.parameters[11].is_array = 1;
         op.parameters[12].in = OA_PARAM_IN_HEADER;
-        op.parameters[12].name = (char *)(size_t)"hArrNum";
-        op.parameters[12].type = (char *)(size_t)"array";
-        op.parameters[12].items_type = (char *)(size_t)"number";
+        op.parameters[12].name = (char *)(size_t)(size_t) "hArrNum";
+        op.parameters[12].type = (char *)(size_t)(size_t) "array";
+        op.parameters[12].items_type = (char *)(size_t)(size_t) "number";
         op.parameters[12].is_array = 1;
         op.parameters[13].in = OA_PARAM_IN_COOKIE;
-        op.parameters[13].name = (char *)(size_t)"cArrNum";
-        op.parameters[13].type = (char *)(size_t)"array";
-        op.parameters[13].items_type = (char *)(size_t)"number";
+        op.parameters[13].name = (char *)(size_t)(size_t) "cArrNum";
+        op.parameters[13].type = (char *)(size_t)(size_t) "array";
+        op.parameters[13].items_type = (char *)(size_t)(size_t) "number";
         op.parameters[13].is_array = 1;
         op.parameters[14].in = OA_PARAM_IN_HEADER;
-        op.parameters[14].name = (char *)(size_t)"hArrJson";
-        op.parameters[14].type = (char *)(size_t)"array";
-        op.parameters[14].items_type = (char *)(size_t)"object";
-        op.parameters[14].content_type = (char *)(size_t)"application/json";
+        op.parameters[14].name = (char *)(size_t)(size_t) "hArrJson";
+        op.parameters[14].type = (char *)(size_t)(size_t) "array";
+        op.parameters[14].items_type = (char *)(size_t)(size_t) "object";
+        op.parameters[14].content_type =
+            (char *)(size_t)(size_t) "application/json";
         op.parameters[14].is_array = 1;
         op.parameters[15].in = OA_PARAM_IN_QUERY;
-        op.parameters[15].name = (char *)(size_t)"qObjNoExp";
-        op.parameters[15].type = (char *)(size_t)"object";
+        op.parameters[15].name = (char *)(size_t)(size_t) "qObjNoExp";
+        op.parameters[15].type = (char *)(size_t)(size_t) "object";
         op.parameters[15].style = OA_STYLE_FORM;
         op.parameters[15].explode = 0;
         op.parameters[15].explode_set = 1;
         op.parameters[16].in = OA_PARAM_IN_QUERY;
-        op.parameters[16].name = (char *)(size_t)"qArrIntEnc";
-        op.parameters[16].type = (char *)(size_t)"array";
-        op.parameters[16].items_type = (char *)(size_t)"integer";
+        op.parameters[16].name = (char *)(size_t)(size_t) "qArrIntEnc";
+        op.parameters[16].type = (char *)(size_t)(size_t) "array";
+        op.parameters[16].items_type = (char *)(size_t)(size_t) "integer";
         op.parameters[16].style = OA_STYLE_FORM;
         op.parameters[16].explode = 0;
         op.parameters[16].explode_set = 1;
         op.parameters[16].is_array = 1;
         op.parameters[17].in = OA_PARAM_IN_QUERY;
-        op.parameters[17].name = (char *)(size_t)"qArrNumEnc";
-        op.parameters[17].type = (char *)(size_t)"array";
-        op.parameters[17].items_type = (char *)(size_t)"number";
+        op.parameters[17].name = (char *)(size_t)(size_t) "qArrNumEnc";
+        op.parameters[17].type = (char *)(size_t)(size_t) "array";
+        op.parameters[17].items_type = (char *)(size_t)(size_t) "number";
         op.parameters[17].style = OA_STYLE_FORM;
         op.parameters[17].explode = 0;
         op.parameters[17].explode_set = 1;
         op.parameters[17].is_array = 1;
         op.parameters[18].in = OA_PARAM_IN_QUERY;
-        op.parameters[18].name = (char *)(size_t)"qArrBoolEnc";
-        op.parameters[18].type = (char *)(size_t)"array";
-        op.parameters[18].items_type = (char *)(size_t)"boolean";
+        op.parameters[18].name = (char *)(size_t)(size_t) "qArrBoolEnc";
+        op.parameters[18].type = (char *)(size_t)(size_t) "array";
+        op.parameters[18].items_type = (char *)(size_t)(size_t) "boolean";
         op.parameters[18].style = OA_STYLE_FORM;
         op.parameters[18].explode = 0;
         op.parameters[18].explode_set = 1;
         op.parameters[18].is_array = 1;
         op.parameters[19].in = OA_PARAM_IN_HEADER;
-        op.parameters[19].name = (char *)(size_t)"hObjNoExp";
-        op.parameters[19].type = (char *)(size_t)"object";
+        op.parameters[19].name = (char *)(size_t)(size_t) "hObjNoExp";
+        op.parameters[19].type = (char *)(size_t)(size_t) "object";
         op.parameters[19].style = OA_STYLE_FORM;
         op.parameters[19].explode = 0;
         op.parameters[19].explode_set = 1;
         op.parameters[20].in = OA_PARAM_IN_COOKIE;
-        op.parameters[20].name = (char *)(size_t)"cObjNoExp";
-        op.parameters[20].type = (char *)(size_t)"object";
+        op.parameters[20].name = (char *)(size_t)(size_t) "cObjNoExp";
+        op.parameters[20].type = (char *)(size_t)(size_t) "object";
         op.parameters[20].style = OA_STYLE_FORM;
         op.parameters[20].explode = 0;
         op.parameters[20].explode_set = 1;
 
         op.req_body.is_array = 1;
-        op.req_body.inline_type = (char *)(size_t)"number";
-        op.req_body.content_type = (char *)(size_t)"application/json";
+        op.req_body.inline_type = (char *)(size_t)(size_t) "number";
+        op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 
         g_io_calls = 0;
         g_fail_io_after = io_fail;
@@ -4735,13 +4767,14 @@ TEST test_client_body_inline_response_types(void) {
       (void)rc;
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
-      resp.schema.inline_type = (char *)(size_t)"integer";
+      resp.code = (char *)(size_t)(size_t) "200";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4761,13 +4794,14 @@ TEST test_client_body_inline_response_types(void) {
       /* boolean response */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
-      resp.schema.inline_type = (char *)(size_t)"boolean";
+      resp.code = (char *)(size_t)(size_t) "200";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4787,13 +4821,14 @@ TEST test_client_body_inline_response_types(void) {
       /* number response */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
-      resp.schema.inline_type = (char *)(size_t)"number";
+      resp.code = (char *)(size_t)(size_t) "200";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "number";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4813,13 +4848,14 @@ TEST test_client_body_inline_response_types(void) {
       /* string response */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
-      resp.schema.inline_type = (char *)(size_t)"string";
+      resp.code = (char *)(size_t)(size_t) "200";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "string";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4839,14 +4875,15 @@ TEST test_client_body_inline_response_types(void) {
       /* array of boolean response */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
+      resp.code = (char *)(size_t)(size_t) "200";
       resp.schema.is_array = 1;
-      resp.schema.inline_type = (char *)(size_t)"boolean";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "boolean";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4866,14 +4903,15 @@ TEST test_client_body_inline_response_types(void) {
       /* array of string response */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
+      resp.code = (char *)(size_t)(size_t) "200";
       resp.schema.is_array = 1;
-      resp.schema.inline_type = (char *)(size_t)"string";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "string";
       op.n_responses = 1;
       op.responses = &resp;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4893,13 +4931,14 @@ TEST test_client_body_inline_response_types(void) {
       /* invalid response inline type */
       memset(&op, 0, sizeof(op));
       memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)"200";
-      resp.schema.inline_type = (char *)(size_t)"invalid_type";
+      resp.code = (char *)(size_t)(size_t) "200";
+      resp.schema.inline_type = (char *)(size_t)(size_t) "invalid_type";
       op.responses = &resp;
       op.n_responses = 1;
       op.n_req_body_media_types = 1;
       op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name = (char *)(size_t)"application/json";
+      op.req_body_media_types[0].name =
+          (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4940,8 +4979,8 @@ TEST test_client_body_inline_types(void) {
       /* integer */
       (void)rc;
       memset(&op, 0, sizeof(op));
-      op.req_body.inline_type = (char *)(size_t)"integer";
-      op.req_body.content_type = (char *)(size_t)"application/json";
+      op.req_body.inline_type = (char *)(size_t)(size_t) "integer";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4959,8 +4998,8 @@ TEST test_client_body_inline_types(void) {
 
       /* boolean */
       memset(&op, 0, sizeof(op));
-      op.req_body.inline_type = (char *)(size_t)"boolean";
-      op.req_body.content_type = (char *)(size_t)"application/json";
+      op.req_body.inline_type = (char *)(size_t)(size_t) "boolean";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4978,8 +5017,8 @@ TEST test_client_body_inline_types(void) {
 
       /* number */
       memset(&op, 0, sizeof(op));
-      op.req_body.inline_type = (char *)(size_t)"number";
-      op.req_body.content_type = (char *)(size_t)"application/json";
+      op.req_body.inline_type = (char *)(size_t)(size_t) "number";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -4998,8 +5037,8 @@ TEST test_client_body_inline_types(void) {
       /* array of integer */
       memset(&op, 0, sizeof(op));
       op.req_body.is_array = 1;
-      op.req_body.inline_type = (char *)(size_t)"integer";
-      op.req_body.content_type = (char *)(size_t)"application/json";
+      op.req_body.inline_type = (char *)(size_t)(size_t) "integer";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -5018,8 +5057,8 @@ TEST test_client_body_inline_types(void) {
       /* array of boolean */
       memset(&op, 0, sizeof(op));
       op.req_body.is_array = 1;
-      op.req_body.inline_type = (char *)(size_t)"boolean";
-      op.req_body.content_type = (char *)(size_t)"application/json";
+      op.req_body.inline_type = (char *)(size_t)(size_t) "boolean";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
         fp = NULL;
@@ -5059,18 +5098,18 @@ TEST test_client_body_form_types(void) {
       (void)rc;
       memset(&op, 0, sizeof(op));
       op.req_body.content_type =
-          (char *)(size_t)"application/x-www-form-urlencoded";
+          (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
       op.req_body.n_multipart_fields = 4;
       op.req_body.multipart_fields =
           calloc(4, sizeof(*op.req_body.multipart_fields));
-      op.req_body.multipart_fields[0].name = (char *)(size_t)"fStr";
-      op.req_body.multipart_fields[0].type = (char *)(size_t)"string";
-      op.req_body.multipart_fields[1].name = (char *)(size_t)"fInt";
-      op.req_body.multipart_fields[1].type = (char *)(size_t)"integer";
-      op.req_body.multipart_fields[2].name = (char *)(size_t)"fNum";
-      op.req_body.multipart_fields[2].type = (char *)(size_t)"number";
-      op.req_body.multipart_fields[3].name = (char *)(size_t)"fBool";
-      op.req_body.multipart_fields[3].type = (char *)(size_t)"boolean";
+      op.req_body.multipart_fields[0].name = (char *)(size_t)(size_t) "fStr";
+      op.req_body.multipart_fields[0].type = (char *)(size_t)(size_t) "string";
+      op.req_body.multipart_fields[1].name = (char *)(size_t)(size_t) "fInt";
+      op.req_body.multipart_fields[1].type = (char *)(size_t)(size_t) "integer";
+      op.req_body.multipart_fields[2].name = (char *)(size_t)(size_t) "fNum";
+      op.req_body.multipart_fields[2].type = (char *)(size_t)(size_t) "number";
+      op.req_body.multipart_fields[3].name = (char *)(size_t)(size_t) "fBool";
+      op.req_body.multipart_fields[3].type = (char *)(size_t)(size_t) "boolean";
 
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
@@ -5111,18 +5150,18 @@ TEST test_client_body_multipart_types(void) {
 
       (void)rc;
       memset(&op, 0, sizeof(op));
-      op.req_body.content_type = (char *)(size_t)"multipart/form-data";
+      op.req_body.content_type = (char *)(size_t)(size_t) "multipart/form-data";
       op.req_body.n_multipart_fields = 4;
       op.req_body.multipart_fields =
           calloc(4, sizeof(*op.req_body.multipart_fields));
-      op.req_body.multipart_fields[0].name = (char *)(size_t)"mStr";
-      op.req_body.multipart_fields[0].type = (char *)(size_t)"string";
-      op.req_body.multipart_fields[1].name = (char *)(size_t)"mInt";
-      op.req_body.multipart_fields[1].type = (char *)(size_t)"integer";
-      op.req_body.multipart_fields[2].name = (char *)(size_t)"mNum";
-      op.req_body.multipart_fields[2].type = (char *)(size_t)"number";
-      op.req_body.multipart_fields[3].name = (char *)(size_t)"mBool";
-      op.req_body.multipart_fields[3].type = (char *)(size_t)"boolean";
+      op.req_body.multipart_fields[0].name = (char *)(size_t)(size_t) "mStr";
+      op.req_body.multipart_fields[0].type = (char *)(size_t)(size_t) "string";
+      op.req_body.multipart_fields[1].name = (char *)(size_t)(size_t) "mInt";
+      op.req_body.multipart_fields[1].type = (char *)(size_t)(size_t) "integer";
+      op.req_body.multipart_fields[2].name = (char *)(size_t)(size_t) "mNum";
+      op.req_body.multipart_fields[2].type = (char *)(size_t)(size_t) "number";
+      op.req_body.multipart_fields[3].name = (char *)(size_t)(size_t) "mBool";
+      op.req_body.multipart_fields[3].type = (char *)(size_t)(size_t) "boolean";
 
 #if defined(_MSC_VER)
       if (((fp = cdd_test_tmpfile_global()) == NULL))
@@ -5163,8 +5202,8 @@ TEST test_client_body_form_mega(void) {
     memset(&spec, 0, sizeof(spec));
 
     op.req_body.content_type =
-        (char *)(size_t)"application/x-www-form-urlencoded";
-    op.req_body.ref_name = (char *)(size_t)"MockFormSchema";
+        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+    op.req_body.ref_name = (char *)(size_t)(size_t) "MockFormSchema";
 
     spec.n_defined_schemas = 5;
     spec.defined_schema_names = calloc(5, sizeof(char *));
@@ -5914,18 +5953,20 @@ TEST test_client_body_form_mega(void) {
     op.n_req_body_media_types = 1;
     op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
     op.req_body_media_types[0].name =
-        (char *)(size_t)"application/x-www-form-urlencoded";
+        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
     op.req_body_media_types[0].n_encoding = 11;
     op.req_body_media_types[0].encoding =
         calloc(11, sizeof(struct OpenAPI_Encoding));
 
-    op.req_body_media_types[0].encoding[0].name = (char *)(size_t)"fArrStrRsv";
+    op.req_body_media_types[0].encoding[0].name =
+        (char *)(size_t)(size_t) "fArrStrRsv";
     op.req_body_media_types[0].encoding[0].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[0].style_set = 1;
     op.req_body_media_types[0].encoding[0].allow_reserved = 1;
     op.req_body_media_types[0].encoding[0].allow_reserved_set = 1;
 
-    op.req_body_media_types[0].encoding[1].name = (char *)(size_t)"fObjExp";
+    op.req_body_media_types[0].encoding[1].name =
+        (char *)(size_t)(size_t) "fObjExp";
     op.req_body_media_types[0].encoding[1].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[1].style_set = 1;
     op.req_body_media_types[0].encoding[1].explode = 1;
@@ -5933,48 +5974,56 @@ TEST test_client_body_form_mega(void) {
     op.req_body_media_types[0].encoding[1].allow_reserved = 1;
     op.req_body_media_types[0].encoding[1].allow_reserved_set = 1;
 
-    op.req_body_media_types[0].encoding[2].name = (char *)(size_t)"fObjNoExp";
+    op.req_body_media_types[0].encoding[2].name =
+        (char *)(size_t)(size_t) "fObjNoExp";
     op.req_body_media_types[0].encoding[2].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[2].style_set = 1;
     op.req_body_media_types[0].encoding[2].explode = 0;
     op.req_body_media_types[0].encoding[2].explode_set = 1;
 
-    op.req_body_media_types[0].encoding[3].name = (char *)(size_t)"fObjSpace";
+    op.req_body_media_types[0].encoding[3].name =
+        (char *)(size_t)(size_t) "fObjSpace";
     op.req_body_media_types[0].encoding[3].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[3].style_set = 1;
 
-    op.req_body_media_types[0].encoding[4].name = (char *)(size_t)"fObjPipe";
+    op.req_body_media_types[0].encoding[4].name =
+        (char *)(size_t)(size_t) "fObjPipe";
     op.req_body_media_types[0].encoding[4].style = OA_STYLE_PIPE_DELIMITED;
     op.req_body_media_types[0].encoding[4].style_set = 1;
 
-    op.req_body_media_types[0].encoding[5].name = (char *)(size_t)"fArrInt";
+    op.req_body_media_types[0].encoding[5].name =
+        (char *)(size_t)(size_t) "fArrInt";
     op.req_body_media_types[0].encoding[5].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[5].style_set = 1;
 
-    op.req_body_media_types[0].encoding[6].name = (char *)(size_t)"fFormArrInt";
+    op.req_body_media_types[0].encoding[6].name =
+        (char *)(size_t)(size_t) "fFormArrInt";
     op.req_body_media_types[0].encoding[6].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[6].style_set = 1;
     op.req_body_media_types[0].encoding[6].explode = 1;
     op.req_body_media_types[0].encoding[6].explode_set = 1;
 
-    op.req_body_media_types[0].encoding[7].name = (char *)(size_t)"fFormArrNum";
+    op.req_body_media_types[0].encoding[7].name =
+        (char *)(size_t)(size_t) "fFormArrNum";
     op.req_body_media_types[0].encoding[7].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[7].style_set = 1;
     op.req_body_media_types[0].encoding[7].explode = 1;
     op.req_body_media_types[0].encoding[7].explode_set = 1;
 
     op.req_body_media_types[0].encoding[8].name =
-        (char *)(size_t)"fFormArrBool";
+        (char *)(size_t)(size_t) "fFormArrBool";
     op.req_body_media_types[0].encoding[8].style = OA_STYLE_FORM;
     op.req_body_media_types[0].encoding[8].style_set = 1;
     op.req_body_media_types[0].encoding[8].explode = 1;
     op.req_body_media_types[0].encoding[8].explode_set = 1;
 
-    op.req_body_media_types[0].encoding[9].name = (char *)(size_t)"fArrNum";
+    op.req_body_media_types[0].encoding[9].name =
+        (char *)(size_t)(size_t) "fArrNum";
     op.req_body_media_types[0].encoding[9].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[9].style_set = 1;
 
-    op.req_body_media_types[0].encoding[10].name = (char *)(size_t)"fArrBool";
+    op.req_body_media_types[0].encoding[10].name =
+        (char *)(size_t)(size_t) "fArrBool";
     op.req_body_media_types[0].encoding[10].style = OA_STYLE_SPACE_DELIMITED;
     op.req_body_media_types[0].encoding[10].style_set = 1;
 

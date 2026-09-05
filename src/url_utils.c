@@ -191,7 +191,7 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   }
 
   /* Alloc */
-  enc = (char *)malloc(needed_len + 1);
+  enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -277,7 +277,7 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)malloc(needed_len + 1);
+  enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -367,7 +367,7 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)malloc(needed_len + 1);
+  enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -462,7 +462,7 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
     }
   }
 
-  enc = (char *)malloc(needed_len + 1);
+  enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -736,7 +736,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     free(e_val);
   }
 
-  buf = (char *)malloc(total_len + 1);
+  buf = (char *)(size_t)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -820,7 +820,7 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   if (qp->count == 0) {
-    *out_str = (char *)calloc(1, 1);
+    *out_str = (char *)(size_t)calloc(1, 1);
     if (!*out_str)
       return CDD_C_ERROR_MEMORY;
     return CDD_C_SUCCESS;
@@ -869,7 +869,7 @@ cdd_c_error_t url_query_build_form(const struct UrlQueryParams *qp,
     free(e_val);
   }
 
-  buf = (char *)malloc(total_len + 1);
+  buf = (char *)(size_t)malloc(total_len + 1);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -956,7 +956,7 @@ static cdd_c_error_t append_str(char **buf, size_t *len, size_t *cap,
     size_t new_cap = (*cap == 0) ? 64 : *cap * 2;
     while (new_cap < need)
       new_cap *= 2;
-    tmp = (char *)realloc(*buf, new_cap);
+    tmp = (char *)(size_t)realloc(*buf, new_cap);
     if (!tmp) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
@@ -1042,7 +1042,7 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
     delim = ",";
 
   if (!kvs || n == 0) {
-    buf = (char *)calloc(1, 1);
+    buf = (char *)(size_t)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
     *_out_val = buf;
@@ -1103,7 +1103,7 @@ cdd_c_error_t openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
   }
 
   if (!buf) {
-    buf = (char *)calloc(1, 1);
+    buf = (char *)(size_t)calloc(1, 1);
     if (!buf)
       return CDD_C_ERROR_MEMORY;
   }

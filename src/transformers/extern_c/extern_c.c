@@ -104,6 +104,12 @@ static cdd_c_error_t tree_has_decl(cdd_cst_node_t *node, int *out_has_decl) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Transforms CST tree to ensure proper extern "C" wrapping.
+ * @param[in,out] tree Concrete syntax tree to transform.
+ * @param[in] config Transformation configuration.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
                                      const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;

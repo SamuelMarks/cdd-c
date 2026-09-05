@@ -61,7 +61,7 @@ static cdd_c_error_t append_str(emit_ctx_t *ctx, const uint8_t *str,
       new_buf = NULL;
     } else {
 #endif
-      new_buf = (char *)realloc(ctx->buf, new_cap);
+      new_buf = (char *)(size_t)realloc(ctx->buf, new_cap);
 #ifdef CDD_BUILD_TESTS
     }
 #endif
@@ -164,11 +164,11 @@ cdd_c_error_t cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
 
 #ifdef CDD_BUILD_TESTS
     extern C_CDD_EXPORT int g_cdd_alloc_fail;
-    ctx.buf =
-        (char *)((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) ? NULL
-                                                               : malloc(1));
+    ctx.buf = (char *)(size_t)((g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
+                                   ? NULL
+                                   : malloc(1));
 #else
-    ctx.buf = (char *)malloc(1);
+    ctx.buf = (char *)(size_t)malloc(1);
 #endif
 
     if (!ctx.buf)

@@ -96,8 +96,8 @@ TEST test_writer_enum_and_required(void) {
   int rc;
 
   (void)rc;
-  names[0] = (char *)(size_t)"Color";
-  names[1] = (char *)(size_t)"Car";
+  names[0] = (char *)(size_t)(size_t) "Color";
+  names[1] = (char *)(size_t)(size_t) "Car";
 
   struct_fields_init(&schemas[0]);
   schemas[0].is_enum = 1;
@@ -110,7 +110,7 @@ TEST test_writer_enum_and_required(void) {
                     NULL, NULL);
   schemas[1].fields[0].required = 1;
 
-  spec.openapi_version = (char *)(size_t)"3.2.0";
+  spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
   spec.defined_schemas = schemas;
   spec.defined_schema_names = names;
   spec.n_defined_schemas = 2;

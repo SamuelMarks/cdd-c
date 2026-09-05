@@ -39,7 +39,8 @@ TEST test_lift_anonymous_struct(void) {
   write_to_file("anon.h", src);
 
   {
-    char *argv[] = {(char *)(size_t)"anon.h", (char *)(size_t)"anon.json"};
+    char *argv[] = {(char *)(size_t)(size_t) "anon.h",
+                    (char *)(size_t)(size_t) "anon.json"};
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
 
     /* Check JSON */
@@ -65,7 +66,7 @@ TEST test_lift_anonymous_struct(void) {
       fseek(f, 0, SEEK_END);
       sz = (size_t)ftell(f);
       rewind(f);
-      content = (char *)malloc(sz + 1);
+      content = (char *)(size_t)malloc(sz + 1);
       if (!content)
         FAILm("OOM");
       fread(content, 1, sz, f);

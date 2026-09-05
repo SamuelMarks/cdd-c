@@ -63,7 +63,7 @@ TEST test_apply_refactoring_to_string_basic(void) {
   struct RefactorContext ctx;
   int rc;
   const char *src = ""
-                    "void my_func() { char * p = (char *)malloc(1); }";
+                    "void my_func() { char * p = (char *)(size_t)malloc(1); }";
   char *out = NULL;
 
   (void)rc;

@@ -46,7 +46,7 @@ cdd_c_error_t cdd_cst_parse_format(cdd_cst_tree_t *dest_tree,
     buf = NULL;
   else
 #endif
-    buf = (char *)malloc(4096);
+    buf = (char *)(size_t)malloc(4096);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;

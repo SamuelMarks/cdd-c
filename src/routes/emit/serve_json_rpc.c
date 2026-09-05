@@ -32,10 +32,14 @@
 #endif
 
 #if defined(_WIN32)
+/** @brief Cast length argument for send() */
 #define CDD_SEND_LEN_CAST(x) (int)(x)
+/** @brief Signed size type for socket I/O */
 typedef int cdd_ssize_t;
 #else
+/** @brief Cast length argument for send() */
 #define CDD_SEND_LEN_CAST(x) (x)
+/** @brief Signed size type for socket I/O */
 typedef ssize_t cdd_ssize_t;
 #endif
 
@@ -216,9 +220,9 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             const char *resp;
             argv[0] = "to_openapi";
             argv[1] = "-i";
-            argv[2] = (char *)input;
+            argv[2] = (char *)(size_t)input;
             argv[3] = "-o";
-            argv[4] = (char *)output;
+            argv[4] = (char *)(size_t)output;
     { cdd_c_error_t rc_rpc = to_openapi_cli_main(5, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             /* Return CallToolResult */
             resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":null}";
@@ -235,10 +239,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
             const char *resp;
             argv[argc_call++] = "to_docs_json";
             argv[argc_call++] = "-i";
-            argv[argc_call++] = (char *)input;
+            argv[argc_call++] = (char *)(size_t)input;
             if (output) {
                 argv[argc_call++] = "-o";
-                argv[argc_call++] = (char *)output;
+                argv[argc_call++] = (char *)(size_t)output;
             }
             if (json_object_get_boolean(arguments, "no_imports")) {
                 argv[argc_call++] = "--no-imports";
@@ -263,9 +267,9 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
        char *argv[5];
        argv[0] = "to_openapi";
        argv[1] = "-i";
-       argv[2] = (char *)input;
+       argv[2] = (char *)(size_t)input;
        argv[3] = "-o";
-       argv[4] = (char *)output;
+       argv[4] = (char *)(size_t)output;
        {
          cdd_c_error_t rc = to_openapi_cli_main(5, argv);
          if (rc != CDD_C_SUCCESS) return rc;
@@ -284,10 +288,10 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
        int argc = 0;
        argv[argc++] = "to_docs_json";
        argv[argc++] = "-i";
-       argv[argc++] = (char *)input;
+       argv[argc++] = (char *)(size_t)input;
        if (output) {
          argv[argc++] = "-o";
-         argv[argc++] = (char *)output;
+         argv[argc++] = (char *)(size_t)output;
        }
        if (json_object_get_boolean(params, "no_imports")) {
          argv[argc++] = "--no-imports";
@@ -325,15 +329,15 @@ static cdd_c_error_t handle_request(cdd_socket_t client_fd) {
 
     if (input) {
       argv[argc++] = "-i";
-      argv[argc++] = (char *)input;
+      argv[argc++] = (char *)(size_t)input;
     } else if (input_dir) {
       argv[argc++] = "--input-dir";
-      argv[argc++] = (char *)input_dir;
+      argv[argc++] = (char *)(size_t)input_dir;
     }
 
     if (output) {
       argv[argc++] = "-o";
-      argv[argc++] = (char *)output;
+      argv[argc++] = (char *)(size_t)output;
     }
 
     if (params && json_object_get_boolean(params, "no_github_actions")) {
@@ -516,9 +520,9 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
             char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
             argv[0] = "to_openapi";
             argv[1] = "-i";
-            argv[2] = (char *)input;
+            argv[2] = (char *)(size_t)input;
             argv[3] = "-o";
-            argv[4] = (char *)output;
+            argv[4] = (char *)(size_t)output;
     { cdd_c_error_t rc_rpc = to_openapi_cli_main(5, argv); if (rc_rpc != CDD_C_SUCCESS) return rc_rpc; }
             printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
             if (id_str) json_free_serialized_string(id_str);
@@ -535,10 +539,10 @@ static cdd_c_error_t handle_stdio_request(const char *body) {
             char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
             argv[argc_call++] = "to_docs_json";
             argv[argc_call++] = "-i";
-            argv[argc_call++] = (char *)input;
+            argv[argc_call++] = (char *)(size_t)input;
             if (output) {
                 argv[argc_call++] = "-o";
-                argv[argc_call++] = (char *)output;
+                argv[argc_call++] = (char *)(size_t)output;
             }
             if (json_object_get_boolean(arguments, "no_imports")) {
                 argv[argc_call++] = "--no-imports";

@@ -2646,7 +2646,7 @@ static cdd_c_error_t parse_schema_type(const JSON_Object *schema,
 
   type = json_object_get_string(schema, "type");
   if (type) {
-    *_out_val = (char *)(type);
+    *_out_val = (char *)(size_t)(type);
     return CDD_C_SUCCESS;
   }
 
@@ -2671,12 +2671,12 @@ static cdd_c_error_t parse_schema_type(const JSON_Object *schema,
   }
 
   if (!chosen && out_nullable && *out_nullable) {
-    *_out_val = (char *)"null";
+    *_out_val = (char *)(size_t) "null";
     return CDD_C_SUCCESS;
   }
 
   {
-    *_out_val = (char *)(chosen);
+    *_out_val = (char *)(size_t)(chosen);
     return CDD_C_SUCCESS;
   }
 }
@@ -3378,7 +3378,7 @@ static cdd_c_error_t json_pointer_unescape(const char *in, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
-  out = (char *)malloc(len + 1);
+  out = (char *)(size_t)malloc(len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -3469,7 +3469,7 @@ static cdd_c_error_t dup_substr(const char *src, size_t len, char **_out_val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  out = (char *)malloc(len + 1);
+  out = (char *)(size_t)malloc(len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -3589,7 +3589,7 @@ static cdd_c_error_t normalize_path(const char *path, char **_out_val) {
   if (trailing && out_len > 0 && (!absolute || out_len > 1))
     out_len += 1;
 
-  out = (char *)malloc(out_len + 1);
+  out = (char *)(size_t)malloc(out_len + 1);
   if (!out)
     goto cleanup;
   {
@@ -3674,7 +3674,7 @@ static cdd_c_error_t resolve_uri_reference(const char *base_uri,
          _ast_uri_scheme_len_8);
     if (scheme_len > 0) {
       size_t out_len = scheme_len + 1 + ref_len;
-      out = (char *)malloc(out_len + 1);
+      out = (char *)(size_t)malloc(out_len + 1);
       if (!out) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -3734,7 +3734,7 @@ static cdd_c_error_t resolve_uri_reference(const char *base_uri,
       }
     }
 
-    combined = (char *)malloc(base_dir_len + ref_len + 1);
+    combined = (char *)(size_t)malloc(base_dir_len + ref_len + 1);
     if (!combined) {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
@@ -3756,7 +3756,7 @@ static cdd_c_error_t resolve_uri_reference(const char *base_uri,
   {
     size_t norm_len = strlen(normalized);
     size_t out_len = prefix_len + norm_len;
-    out = (char *)malloc(out_len + 1);
+    out = (char *)(size_t)malloc(out_len + 1);
     if (!out) {
       free(normalized);
       {
@@ -3947,7 +3947,7 @@ static cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
     if (resolved_len != base_len ||
         strncmp(ref, resolved_base, base_len) != 0) {
       size_t hash_len = strlen(hash);
-      out.resolved_ref = (char *)malloc(resolved_len + hash_len + 1);
+      out.resolved_ref = (char *)(size_t)malloc(resolved_len + hash_len + 1);
       if (out.resolved_ref) {
         memcpy(out.resolved_ref, resolved_base, resolved_len);
         memcpy(out.resolved_ref + resolved_len, hash, hash_len);
@@ -4157,7 +4157,7 @@ static cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
       return CDD_C_SUCCESS;
     }
     {
-      *_out_val = (char *)(name);
+      *_out_val = (char *)(size_t)(name);
       return CDD_C_SUCCESS;
     }
   }
@@ -4184,7 +4184,7 @@ static cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     return CDD_C_SUCCESS;
   }
   {
-    *_out_val = (char *)(name);
+    *_out_val = (char *)(size_t)(name);
     return CDD_C_SUCCESS;
   }
 }
@@ -6863,7 +6863,7 @@ validate_server_url_variables(const struct OpenAPI_Server *srv) {
       len = (size_t)(end - (url + i + 1));
       if (len == 0)
         goto invalid;
-      name = (char *)malloc(len + 1);
+      name = (char *)(size_t)malloc(len + 1);
       if (!name)
         goto oom;
       memcpy(name, url + i + 1, len);
@@ -8224,7 +8224,7 @@ static cdd_c_error_t sanitize_component_name(const char *name,
     return CDD_C_SUCCESS;
   }
   len = strlen(name);
-  out = (char *)calloc(len + 1, sizeof(char));
+  out = (char *)(size_t)calloc(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -8566,7 +8566,7 @@ static cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *suffix = is_item ? "Request_Item" : "Request";
   size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
-  char *out = (char *)malloc(len);
+  char *out = (char *)(size_t)malloc(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -8593,7 +8593,7 @@ static cdd_c_error_t build_inline_response_name(const char *op_id,
   const char *suffix = is_item ? "Item" : "";
   size_t len = strlen("Inline_") + strlen(op) + strlen("_Response_") +
                strlen(resp) + (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
-  char *out = (char *)malloc(len);
+  char *out = (char *)(size_t)malloc(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -8624,7 +8624,7 @@ static cdd_c_error_t build_inline_param_name(const char *param_name,
                                              char **_out_val) {
   const char *p = (param_name && *param_name) ? param_name : "param";
   size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
-  char *out = (char *)malloc(len);
+  char *out = (char *)(size_t)malloc(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -12514,7 +12514,7 @@ static cdd_c_error_t collect_path_template_names(const char *route,
       }
       {
         size_t len = end - start;
-        char *name = (char *)malloc(len + 1);
+        char *name = (char *)(size_t)malloc(len + 1);
         if (!name) {
           free_name_list(names, count);
           return CDD_C_ERROR_MEMORY;
@@ -12727,7 +12727,7 @@ static cdd_c_error_t normalize_path_template_route(const char *route,
       ++i;
     }
   }
-  out = (char *)calloc(len + 1, sizeof(char));
+  out = (char *)(size_t)calloc(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

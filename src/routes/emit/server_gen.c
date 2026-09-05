@@ -39,7 +39,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   {
     cdd_c_error_t rc;
     char *dir_name = NULL, *base_name = NULL;
-    char *src_dir = (char *)C_CDD_MALLOC(512);
+    char *src_dir = (char *)(size_t)C_CDD_MALLOC(512);
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     rc = get_dirname(config->filename_base, &dir_name);

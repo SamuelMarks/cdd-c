@@ -163,7 +163,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       return rc_patch;
   }
 
-  output = (char *)C_CDD_MALLOC(out_cap);
+  output = (char *)(size_t)C_CDD_MALLOC(out_cap);
   if (!output) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -181,7 +181,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
-        tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
@@ -219,7 +219,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
-        tmp = (char *)C_CDD_REALLOC(output, out_cap);
+        tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
         if (!tmp) {
           printf("HIT LINE 193!\n");
           rc = CDD_C_ERROR_MEMORY;
@@ -245,7 +245,7 @@ cdd_c_error_t patch_list_apply(struct PatchList *list,
     while (out_len + text_len + 1 > out_cap) {
       char *tmp;
       out_cap = out_cap * 2 + text_len;
-      tmp = (char *)C_CDD_REALLOC(output, out_cap);
+      tmp = (char *)(size_t)C_CDD_REALLOC(output, out_cap);
       if (!tmp) {
         rc = CDD_C_ERROR_MEMORY;
         goto cleanup;

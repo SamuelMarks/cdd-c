@@ -44,8 +44,10 @@ static enum cdd_c_error _cdd_test_mock_io(int x) {
   }
   return x < 0 ? CDD_C_ERROR_IO : CDD_C_SUCCESS;
 }
+/** @brief Check I/O return code with mock support */
 #define CHECK_IO_RC(x) (_cdd_test_mock_io(x) != CDD_C_SUCCESS)
 #else
+/** @brief Check I/O return code */
 #define CHECK_IO_RC(x) ((x) < 0)
 #endif
 

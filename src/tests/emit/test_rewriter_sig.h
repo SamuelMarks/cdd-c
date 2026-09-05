@@ -27,7 +27,7 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   char *output = NULL;
   int rc;
   az_span source;
-  source = az_span_create_from_str((char *)(size_t)input);
+  source = az_span_create_from_str((char *)(size_t)(size_t)input);
 
   (void)rc;
   if (tokenize(source, &tl) != 0)
@@ -58,7 +58,8 @@ static int test_rewrite_error(const char *input) {
   int rc;
 
   (void)rc;
-  if (tokenize(az_span_create_from_str((char *)(size_t)input), &tl) != 0)
+  if (tokenize(az_span_create_from_str((char *)(size_t)(size_t)input), &tl) !=
+      0)
     return CDD_C_ERROR_UNKNOWN;
 
   rc = rewrite_signature(tl, &output);
@@ -190,8 +191,8 @@ TEST test_rewrite_function_pointer_args(void) {
                             "int register_cb(void (*cb)(int))"));
 
   /* Complex nested parens in args */
-  ASSERT_EQ(0, test_rewrite("void f(int (*g)(char *)(size_t))",
-                            "int f(int (*g)(char *)(size_t))"));
+  ASSERT_EQ(0, test_rewrite("void f(int (*g)(char *)(size_t)(size_t))",
+                            "int f(int (*g)(char *)(size_t)(size_t))"));
   g_fail_io_after = -1;
   PASS();
 }
@@ -243,7 +244,7 @@ TEST test_rewrite_name_comment(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str((char *)(size_t)"int f  ()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "int f  ()"), &tl);
   /* tokens: int, space, f, space, space, ( */
   /* Make the space before ( a comment */
   tl->tokens[3].kind = TOKEN_COMMENT;
@@ -261,7 +262,7 @@ TEST test_rewrite_all_ws_ret(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str((char *)(size_t)"void f()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void f()"), &tl);
   tl->tokens[0].kind = TOKEN_WHITESPACE; /* make 'void' whitespace */
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -283,7 +284,7 @@ TEST test_rewrite_leading_ws(void) {
   struct TokenList *tl = NULL;
   char *output = NULL;
 
-  tokenize(az_span_create_from_str((char *)(size_t)"int f()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "int f()"), &tl);
   /* change 'int' to whitespace */
   tl->tokens[0].kind = TOKEN_WHITESPACE;
   rewrite_signature(tl, &output);
@@ -301,7 +302,8 @@ TEST test_rewrite_missing_cov(void) {
   char *output = NULL;
 
   /* Test is_void_args with TOKEN_COMMENT */
-  tokenize(az_span_create_from_str((char *)(size_t)"void f(void)"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void f(void)"),
+           &tl);
   tl->tokens[4].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -309,7 +311,8 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"void f( void)"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void f( void)"),
+           &tl);
   tl->tokens[4].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -318,7 +321,8 @@ TEST test_rewrite_missing_cov(void) {
   free_token_list(tl);
 
   /* Test has_meaningful_tokens with TOKEN_COMMENT */
-  tokenize(az_span_create_from_str((char *)(size_t)"void f() int x;"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void f() int x;"),
+           &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -327,7 +331,7 @@ TEST test_rewrite_missing_cov(void) {
   free_token_list(tl);
 
   /* Test bounds */
-  tokenize(az_span_create_from_str((char *)(size_t)" int f()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) " int f()"), &tl);
   tl->tokens[0].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -335,42 +339,43 @@ TEST test_rewrite_missing_cov(void) {
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)""), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) ""), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"["), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "["), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"[["), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "[["), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"[ x"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "[ x"), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"[[ attr"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "[[ attr"), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"static  int f()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "static  int f()"),
+           &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -379,21 +384,22 @@ TEST test_rewrite_missing_cov(void) {
   free_token_list(tl);
 
   /* Test empty parens */
-  tokenize(az_span_create_from_str((char *)(size_t)"()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "()"), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"static ()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "static ()"), &tl);
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
   C_CDD_FREE(output);
   output = NULL;
   free_token_list(tl);
 
-  tokenize(az_span_create_from_str((char *)(size_t)"static /* comment */ ()"),
+  tokenize(az_span_create_from_str(
+               (char *)(size_t)(size_t) "static /* comment */ ()"),
            &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
@@ -403,7 +409,7 @@ TEST test_rewrite_missing_cov(void) {
   free_token_list(tl);
 
   /* Test ret comment */
-  tokenize(az_span_create_from_str((char *)(size_t)"void  f()"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void  f()"), &tl);
   tl->tokens[1].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -412,7 +418,7 @@ TEST test_rewrite_missing_cov(void) {
   free_token_list(tl);
 
   /* Test kr comment */
-  tokenize(az_span_create_from_str((char *)(size_t)"void f()  "), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t)(size_t) "void f()  "), &tl);
   tl->tokens[5].kind = TOKEN_COMMENT;
   rewrite_signature(tl, &output);
   /* output should be NULL if rewrite_signature fails with coverage holes */
@@ -464,7 +470,7 @@ TEST test_rewrite_kr_ptr_ret(void) {
    * int a;" */
 
   const char *expected =
-      (char *)(size_t)(size_t)"int f(a, out) int a; char * *out;";
+      (char *)(size_t)(size_t)(size_t) "int f(a, out) int a; char * *out;";
   /* input has a space before int a; */
   ASSERT_EQ(0, test_rewrite("char *f(a) int a;", expected));
   g_fail_io_after = -1;
@@ -479,9 +485,10 @@ TEST test_rewrite_kr_complex(void) {
   /* struct S *f(x, y) int x; double y; */
   /* -> int f(x, y, out) int x; double y; struct S * *out; */
   const char *input =
-      (char *)(size_t)(size_t)"struct S *f(x, y) int x; double y;";
-  const char *expected = (char *)(size_t)(size_t)"int f(x, y, out) int x; "
-                                                 "double y; struct S * *out;";
+      (char *)(size_t)(size_t)(size_t) "struct S *f(x, y) int x; double y;";
+  const char *expected =
+      (char *)(size_t)(size_t)(size_t) "int f(x, y, out) int x; "
+                                       "double y; struct S * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
   g_fail_io_after = -1;
@@ -496,9 +503,9 @@ TEST test_rewrite_kr_empty_args(void) {
   /* char *f() int x; -> int f(out) int x; char * *out; */
   /* This is technically invalid C (declaring x but not in param list), but
    * parser should preserve logic */
-  const char *input = (char *)(size_t)(size_t)"char *f() int x;";
+  const char *input = (char *)(size_t)(size_t)(size_t) "char *f() int x;";
   const char *expected =
-      (char *)(size_t)(size_t)"int f(out) int x; char * *out;";
+      (char *)(size_t)(size_t)(size_t) "int f(out) int x; char * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
   g_fail_io_after = -1;
@@ -525,7 +532,7 @@ TEST test_rewrite_oom(void) {
                           "void process(int a[])",
                           "int * sort(int a[10])",
                           "void register_cb(void (*cb)(int))",
-                          "void f(int (*g)(char *)(size_t))",
+                          "void f(int (*g)(char *)(size_t)(size_t))",
                           "unsigned long long f()",
                           "const char *f()",
                           "void f(a) int a;",
@@ -561,7 +568,7 @@ TEST test_rewrite_sig_oom(void) {
     char *out_code = NULL;
     struct TokenList *tl = NULL;
     az_span source;
-    source = az_span_create_from_str((char *)(size_t)"int f(int a);");
+    source = az_span_create_from_str((char *)(size_t)(size_t) "int f(int a);");
     tokenize(source, &tl);
 
     g_cdd_alloc_fail = i;

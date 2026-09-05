@@ -179,10 +179,8 @@ add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(test_c_cdd PRIVATE "-Wno-overlength-strings" "-Wno-cast-qual")
+        # Strict compliance mode
     elseif(MSVC)
         # Ensure tests use the same strict compiler flags
     endif()
 endif()
-
-

@@ -66,7 +66,7 @@ TEST test_url_encode_reserved(void) {
   /* Gen-delims: : / ? # [ ] @ */
   /* Sub-delims: ! $ & ' ( ) * + , ; = */
   /* These should ALL be encoded in component context (query param value) */
-  const char *input = (char *)(size_t)":/?#[]@!$&'()*+,;=";
+  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;=";
   const char *expected = "%3A%2F%3F%23%5B%5D%40%21%24%26%27%28%29%2A%2B%2C%3B%"
                          "3D";
   char *res = (url_encode(input, &_ast_url_encode_2), _ast_url_encode_2);
@@ -81,7 +81,7 @@ TEST test_url_encode_reserved(void) {
 TEST test_url_encode_unreserved(void) {
   char *_ast_url_encode_3 = NULL;
   /* ALPHA, DIGIT, - . _ ~ */
-  const char *input = (char *)(size_t)"a-b.c_d~1";
+  const char *input = (char *)(size_t)(size_t) "a-b.c_d~1";
   char *res = (url_encode(input, &_ast_url_encode_3), _ast_url_encode_3);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a-b.c_d~1", res);
@@ -92,8 +92,8 @@ TEST test_url_encode_unreserved(void) {
 
 TEST test_url_encode_allow_reserved(void) {
   char *_ast_url_encode_allow_reserved_4 = NULL;
-  const char *input = (char *)(size_t)":/?#[]@!$&'()*+,;= %2F";
-  const char *expected = (char *)(size_t)":/?#[]@!$&'()*+,;=%20%2F";
+  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;= %2F";
+  const char *expected = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;=%20%2F";
   char *res =
       (url_encode_allow_reserved(input, &_ast_url_encode_allow_reserved_4),
        _ast_url_encode_allow_reserved_4);
@@ -117,7 +117,7 @@ TEST test_url_encode_form_spaces(void) {
 
 TEST test_url_encode_form_reserved(void) {
   char *_ast_url_encode_form_6 = NULL;
-  const char *input = (char *)(size_t)"&=+";
+  const char *input = (char *)(size_t)(size_t) "&=+";
   char *res =
       (url_encode_form(input, &_ast_url_encode_form_6), _ast_url_encode_form_6);
   ASSERT(res != NULL);
@@ -129,8 +129,9 @@ TEST test_url_encode_form_reserved(void) {
 
 TEST test_url_encode_form_allow_reserved(void) {
   char *_ast_url_encode_form_allow_reserved_7 = NULL;
-  const char *input = (char *)(size_t)":/?#[]@!$&'()*+,;= %2F";
-  const char *expected = (char *)(size_t)":/?#[]@!$%26'()*%2B,;%3D+%2F";
+  const char *input = (char *)(size_t)(size_t) ":/?#[]@!$&'()*+,;= %2F";
+  const char *expected =
+      (char *)(size_t)(size_t) ":/?#[]@!$%26'()*%2B,;%3D+%2F";
   char *res = (url_encode_form_allow_reserved(
                    input, &_ast_url_encode_form_allow_reserved_7),
                _ast_url_encode_form_allow_reserved_7);
@@ -281,10 +282,10 @@ TEST test_openapi_kv_join_form_comma(void) {
   struct OpenAPI_KV kvs[2];
   char *res;
 
-  kvs[0].key = (char *)(size_t)"R";
+  kvs[0].key = (char *)(size_t)(size_t) "R";
   kvs[0].type = OA_KV_INTEGER;
   kvs[0].value.i = 100;
-  kvs[1].key = (char *)(size_t)"G";
+  kvs[1].key = (char *)(size_t)(size_t) "G";
   kvs[1].type = OA_KV_INTEGER;
   kvs[1].value.i = 200;
 
@@ -302,12 +303,12 @@ TEST test_openapi_kv_join_form_space(void) {
   struct OpenAPI_KV kvs[2];
   char *res;
 
-  kvs[0].key = (char *)(size_t)"alpha";
+  kvs[0].key = (char *)(size_t)(size_t) "alpha";
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)"a b";
-  kvs[1].key = (char *)(size_t)"beta";
+  kvs[0].value.s = (char *)(size_t)(size_t) "a b";
+  kvs[1].key = (char *)(size_t)(size_t) "beta";
   kvs[1].type = OA_KV_STRING;
-  kvs[1].value.s = (char *)(size_t)"c";
+  kvs[1].value.s = (char *)(size_t)(size_t) "c";
 
   res = (openapi_kv_join_form(kvs, 2, "%20", 0, &_ast_openapi_kv_join_form_10),
          _ast_openapi_kv_join_form_10);
@@ -323,9 +324,9 @@ TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
   struct OpenAPI_KV kvs[1];
   char *res;
 
-  kvs[0].key = (char *)(size_t)"path";
+  kvs[0].key = (char *)(size_t)(size_t) "path";
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)"a/b";
+  kvs[0].value.s = (char *)(size_t)(size_t) "a/b";
 
   res = (openapi_kv_join_form(kvs, 1, "%7C", 1, &_ast_openapi_kv_join_form_11),
          _ast_openapi_kv_join_form_11);
@@ -409,13 +410,13 @@ TEST test_url_utils_write_query_json_param(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_query_json_param(fp, NULL));
 
-  p.name = (char *)(size_t)"test";
-  p.type = (char *)(size_t)"array";
+  p.name = (char *)(size_t)(size_t) "test";
+  p.type = (char *)(size_t)(size_t) "array";
   p.is_array = 1;
   p.items_type = NULL;
   p.schema.inline_type = NULL;
 
-  p.name = (char *)(size_t)"test";
+  p.name = (char *)(size_t)(size_t) "test";
 
   /* unsupported array */
 
@@ -481,16 +482,16 @@ TEST test_openapi_kv_join_form_types(void) {
   struct OpenAPI_KV kvs[5];
   char *res = NULL;
 
-  kvs[0].key = (char *)(size_t)"B";
+  kvs[0].key = (char *)(size_t)(size_t) "B";
   kvs[0].type = OA_KV_BOOLEAN;
   kvs[0].value.b = 0;
-  kvs[1].key = (char *)(size_t)"F";
+  kvs[1].key = (char *)(size_t)(size_t) "F";
   kvs[1].type = OA_KV_NUMBER;
   kvs[1].value.n = 3.14;
-  kvs[2].key = (char *)(size_t)"S";
+  kvs[2].key = (char *)(size_t)(size_t) "S";
   kvs[2].type = OA_KV_STRING;
-  kvs[2].value.s = (char *)(size_t)"str";
-  kvs[3].key = (char *)(size_t)"U";
+  kvs[2].value.s = (char *)(size_t)(size_t) "str";
+  kvs[3].key = (char *)(size_t)(size_t) "U";
   kvs[3].type = 999;
   kvs[4].key = NULL;
 
@@ -513,9 +514,9 @@ TEST test_openapi_kv_join_form_null(void) {
 TEST test_openapi_kv_join_form_delim_null(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
-  kvs[0].key = (char *)(size_t)"k";
+  kvs[0].key = (char *)(size_t)(size_t) "k";
   kvs[0].type = OA_KV_STRING;
-  kvs[0].value.s = (char *)(size_t)"v";
+  kvs[0].value.s = (char *)(size_t)(size_t) "v";
   ASSERT_EQ(CDD_C_SUCCESS, openapi_kv_join_form(kvs, 1, NULL, 0, &res));
   ASSERT(res != NULL);
   ASSERT_STR_EQ("k,v", res);
@@ -526,7 +527,7 @@ TEST test_openapi_kv_join_form_delim_null(void) {
 TEST test_openapi_kv_join_form_large_string(void) {
   struct OpenAPI_KV kvs[1];
   char *res = NULL;
-  kvs[0].key = (char *)(size_t)"large";
+  kvs[0].key = (char *)(size_t)(size_t) "large";
   kvs[0].type = OA_KV_STRING;
   kvs[0].value.s =
       "very_large_string_that_exceeds_sixty_four_bytes_to_trigger_the_while_"
@@ -541,9 +542,9 @@ TEST test_kv_value_to_string_null(void) {
   struct OpenAPI_KV kv;
   char *res = NULL;
   char buf[32];
-  kv.key = (char *)(size_t)"x";
+  kv.key = (char *)(size_t)(size_t) "x";
   kv.type = OA_KV_STRING;
-  kv.value.s = (char *)(size_t)"y";
+  kv.value.s = (char *)(size_t)(size_t) "y";
   ASSERT_EQ(CDD_C_SUCCESS, kv_value_to_string_test(
                                NULL, NULL, 0, (const char **)(size_t)&res));
   ASSERT_EQ(CDD_C_SUCCESS,

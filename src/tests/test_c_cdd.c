@@ -1,11 +1,5 @@
 #if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Woverlength-strings"
-#pragma clang diagnostic ignored "-Wcast-qual"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverlength-strings"
-#pragma GCC diagnostic ignored "-Wcast-qual"
+
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #endif
@@ -638,7 +632,7 @@ int main(int argc, char **argv) {
         '"',  'n',  'o', 'p',  '"',  ')',  ';',  ' ',  'r',  'e',  't',  'u',
         'r',  'n',  ' ', '0',  ';',  ' ',  '}',  '\n', '\0'};
     cdd_c_error_t rc =
-        cdd_cst_parse(az_span_create_from_str((char *)snippet), &tree);
+        cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet), &tree);
     printf("PARSE RC = %d, num_children = %" CDD_PRIz ", capacity = %" CDD_PRIz
            "\n",
            rc, tree->root->num_children, tree->root->capacity);

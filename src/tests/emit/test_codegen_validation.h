@@ -90,7 +90,7 @@ static cdd_c_error_t gen_parse_code(const char *name, struct StructFields *sf,
   sz = FTELL(tmp);
   rewind(tmp);
 
-  content = (char *)C_CDD_CALLOC(1, (size_t)sz + 1);
+  content = (char *)(size_t)C_CDD_CALLOC(1, (size_t)sz + 1);
   if (sz > 0)
     FREAD(content, 1, (size_t)sz, tmp);
 

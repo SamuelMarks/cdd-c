@@ -34,7 +34,7 @@ extern int g_io_calls;
  *
  */
 static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
-  char *d = (char *)malloc(n + 1);
+  char *d = (char *)(size_t)malloc(n + 1);
   if (!d) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

@@ -293,7 +293,7 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
         mutex_lock(&s->lock);
         if (s->captured_request)
           free(s->captured_request);
-        s->captured_request = (char *)malloc((size_t)bytes_read + 1);
+        s->captured_request = (char *)(size_t)malloc((size_t)bytes_read + 1);
         if (s->captured_request) {
           memcpy(s->captured_request, buffer, (size_t)bytes_read + 1);
           s->captured_len = (size_t)bytes_read;

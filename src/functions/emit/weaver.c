@@ -39,7 +39,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
   /* Construct `#ifdef <condition>\n` */
   ifdef_len = strlen("#ifdef ") + strlen(condition) + 20;
 
-  ifdef_str = (char *)C_CDD_MALLOC(ifdef_len);
+  ifdef_str = (char *)(size_t)C_CDD_MALLOC(ifdef_len);
 
   if (!ifdef_str) {
     return CDD_C_ERROR_MEMORY;
@@ -65,7 +65,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
     endif_len =
         strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 20;
 
-    endif_str = (char *)C_CDD_MALLOC(endif_len);
+    endif_str = (char *)(size_t)C_CDD_MALLOC(endif_len);
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
@@ -78,7 +78,7 @@ cdd_c_error_t weaver_wrap_ifdef(struct PatchList *patches,
   } else {
     endif_len = strlen("#endif\\n") + 20;
 
-    endif_str = (char *)C_CDD_MALLOC(endif_len);
+    endif_str = (char *)(size_t)C_CDD_MALLOC(endif_len);
 
     if (!endif_str) {
       return CDD_C_ERROR_MEMORY;
@@ -172,7 +172,7 @@ cdd_c_error_t weaver_inject_msvc_headers(struct PatchList *patches,
 
   len = 256;
 
-  str = (char *)C_CDD_MALLOC(len);
+  str = (char *)(size_t)C_CDD_MALLOC(len);
   if (!str) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -259,7 +259,7 @@ cdd_c_error_t weaver_vla_to_alloca(struct PatchList *patches,
   len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
         strlen(size_expr) + 11 + strlen(type_str) + 4 + 100;
 
-  str = (char *)C_CDD_MALLOC(len);
+  str = (char *)(size_t)C_CDD_MALLOC(len);
   if (!str) {
     return CDD_C_ERROR_MEMORY;
   }

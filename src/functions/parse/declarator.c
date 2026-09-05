@@ -42,7 +42,7 @@ extern int g_io_calls;
 
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t) - 1)
 #endif
 
 C_CDD_EXPORT cdd_c_error_t add_type_node(struct DeclInfo *info,
@@ -65,7 +65,7 @@ static cdd_c_error_t join_tokens_range(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)malloc(len + 1);
+  buf = (char *)(size_t)malloc(len + 1);
   if (!buf) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -236,6 +236,14 @@ static cdd_c_error_t create_node(enum DeclTypeKind kind,
 
 /* --- Parse Logic --- */
 
+/**
+ * @brief Checks if a parenthesis indicates grouping in a declarator.
+ * @param[in] tokens Token list.
+ * @param[in] paren_idx Index of opening parenthesis.
+ * @param[in] limit Index limit in token list.
+ * @param[out] out_is_grouping Pointer to receive 1 if grouping, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
 C_CDD_EXPORT cdd_c_error_t is_grouping_paren(const struct TokenList *tokens,
                                              size_t paren_idx, size_t limit,
                                              int *out_is_grouping) {

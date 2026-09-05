@@ -90,7 +90,7 @@ TEST test_jwt_generation(void) {
     fseek(tmp, 0, SEEK_END);
     sz = ftell(tmp);
     rewind(tmp);
-    content = (char *)calloc(1, (size_t)sz + 1);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
     if (fread(content, 1, (size_t)sz, tmp)) {
     }
 

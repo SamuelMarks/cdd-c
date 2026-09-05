@@ -8,7 +8,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include <stdio.h>
@@ -78,6 +78,6 @@ static __inline FILE *cdd_fopen(const char *path, const char *mode) {
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif

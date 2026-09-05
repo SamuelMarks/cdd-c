@@ -87,7 +87,7 @@ TEST test_cdd_cst_emit_large_string(void) {
   char *large_str;
   char *out = NULL;
   /* Valgrind skip removed for coverage */
-  large_str = (char *)malloc(5000);
+  large_str = (char *)(size_t)malloc(5000);
   memset(large_str, 'A', 4999);
   large_str[4999] = '\0';
 

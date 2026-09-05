@@ -87,7 +87,7 @@ typedef struct cdd_generate_bindings_config {
   int opaque_pointers;
   /** @brief Generate a basic sanity-check test file in the target lang */
   int generate_tests;
-  /** @brief Recursively parse and merge #include files into FFI IR */
+  /** @brief Recursively parse and merge \#include files into FFI IR */
   int recursive_includes;
   /** @brief cdd_generate_bindings_config_t */
 } cdd_generate_bindings_config_t;

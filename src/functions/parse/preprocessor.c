@@ -69,7 +69,7 @@ static cdd_c_error_t join_path(const char *dir, const char *file,
 
   len = strlen(dir) + strlen(file) + 2;
 
-  out = (char *)C_CDD_MALLOC(len);
+  out = (char *)(size_t)C_CDD_MALLOC(len);
 
   if (!out)
 
@@ -317,7 +317,7 @@ static cdd_c_error_t reconstruct_path(const struct TokenList *tokens,
     len += tokens->tokens[i].length;
   }
 
-  buf = (char *)C_CDD_MALLOC(len + 1);
+  buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
 
   if (!buf)
 
@@ -663,7 +663,7 @@ cdd_c_error_t pp_scan_defines(struct PreprocessorContext *ctx,
                   tokens->tokens[val_end_idx - 1].length;
               size_t val_len = val_end_byte - val_start_byte;
               if (val_len > 0) {
-                char *v = (char *)C_CDD_MALLOC(val_len + 1);
+                char *v = (char *)(size_t)C_CDD_MALLOC(val_len + 1);
                 if (v) {
                   size_t k = 0;
                   memcpy(v, content + val_start_byte, val_len);
@@ -989,7 +989,7 @@ static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
 
     if (t->length >= 2) {
 
-      path = (char *)C_CDD_MALLOC(t->length - 1);
+      path = (char *)(size_t)C_CDD_MALLOC(t->length - 1);
 
       if (path) {
 
@@ -2616,7 +2616,7 @@ cdd_c_error_t pp_scan_includes(const char *filename,
 
                 if (t->length >= 2) {
 
-                  raw_path = (char *)C_CDD_MALLOC(t->length - 1);
+                  raw_path = (char *)(size_t)C_CDD_MALLOC(t->length - 1);
 
                   if (raw_path) {
 
