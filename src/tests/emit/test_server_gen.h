@@ -20,6 +20,9 @@ extern "C" {
 #include "routes/emit/server_gen.h"
 /* clang-format on */
 
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+
 /**
  * @brief test_server_gen_basic
  * @return TEST
@@ -182,6 +185,8 @@ TEST test_server_gen_fail_open(void) {
   memset(&config, 0, sizeof(config));
   config.filename_base =
       (char *)(size_t)(size_t) "/nonexistent/dir/test_server";
+  g_io_calls = 0;
+  g_fail_io_after = 1;
 
   rc = openapi_server_generate(&spec, &config);
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);

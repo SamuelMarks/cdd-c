@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/safe_crt.h"
 #include "functions/emit/diff_generator.h"
 /* clang-format on */
 
@@ -50,27 +51,15 @@ cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
     return CDD_C_SUCCESS;
   }
 
-/* Print header */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  diff_len += (size_t)sprintf_s(diff_buf + diff_len, diff_cap - diff_len,
-                                "--- a/%s\n+++ b/%s\n", filename, filename);
-#else
-  diff_len += (size_t)sprintf(diff_buf + diff_len, "--- a/%s\n+++ b/%s\n",
-                              filename, filename);
-#endif
+  /* Print header */
+  diff_len += (size_t)CDD_SNPRINTF(diff_buf + diff_len, diff_cap - diff_len,
+                                   "--- a/%s\n+++ b/%s\n", filename, filename);
   for (i = 0; i < list->size; ++i) {
     const struct Patch *p = &list->patches[i];
     /* Find line numbers to give context */
     /* This is a simplification; we'll output a chunk */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    diff_len += (size_t)sprintf_s(diff_buf + diff_len, diff_cap - diff_len,
-                                  "@@ -patch %d @@\n", (int)i);
-#else
-    diff_len +=
-        (size_t)sprintf(diff_buf + diff_len, "@@ -patch %d @@\n", (int)i);
-#endif
+    diff_len += (size_t)CDD_SNPRINTF(diff_buf + diff_len, diff_cap - diff_len,
+                                     "@@ -patch %d @@\n", (int)i);
 
     /* Emit old tokens (we prefix with '-') */
     diff_buf[diff_len++] = '-';
@@ -129,13 +118,8 @@ cdd_c_error_t patch_list_generate_diff(const struct TokenList *tokens,
         diff_buf = new_buf;
       }
     }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    diff_len +=
-        sprintf_s(diff_buf + diff_len, diff_cap - diff_len, "+%s\n", p->text);
-#else
-    diff_len += (size_t)sprintf(diff_buf + diff_len, "+%s\n", p->text);
-#endif
+    diff_len += (size_t)CDD_SNPRINTF(diff_buf + diff_len, diff_cap - diff_len,
+                                     "+%s\n", p->text);
   }
 
   *out_diff = diff_buf;

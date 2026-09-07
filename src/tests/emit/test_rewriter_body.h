@@ -1546,11 +1546,13 @@ TEST test_rewrite_body_oom(void) {
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
         free_token_list(tl);
+        allocation_site_list_free(&sites);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
+      allocation_site_list_free(&sites);
     }
   }
 #endif
@@ -1672,11 +1674,13 @@ TEST test_rewrite_body_funcs_oom(void) {
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
         free_token_list(tl);
+        allocation_site_list_free(&sites);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
+      allocation_site_list_free(&sites);
     }
   }
 #endif
@@ -1799,11 +1803,13 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
         free_token_list(tl);
+        allocation_site_list_free(&sites);
         break;
       }
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc2);
       C_CDD_FREE(out_code);
       free_token_list(tl);
+      allocation_site_list_free(&sites);
     }
   }
 #endif
@@ -1922,10 +1928,12 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       if (rc2 == CDD_C_SUCCESS) {
         C_CDD_FREE(out_code);
         free_token_list(tl);
+        allocation_site_list_free(&sites);
         break;
       }
       C_CDD_FREE(out_code);
       free_token_list(tl);
+      allocation_site_list_free(&sites);
     }
   }
 #endif
@@ -2051,6 +2059,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       }
       C_CDD_FREE(out_code);
       free_token_list(tl);
+      allocation_site_list_free(&sites);
     }
   }
 #endif

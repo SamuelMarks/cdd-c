@@ -84,8 +84,14 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 #endif
     {
       cdd_c_error_t rc_cgg = makedirs(src_dir);
-      if (rc_cgg != CDD_C_SUCCESS)
+      if (rc_cgg != CDD_C_SUCCESS) {
+        C_CDD_FREE(src_dir);
+        if (dir_name)
+          C_CDD_FREE(dir_name);
+        if (base_name)
+          C_CDD_FREE(base_name);
         return rc_cgg;
+      }
     }
     CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
                  base_name ? base_name : "generated_client");

@@ -455,6 +455,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
+  char *src_dir = NULL;
+  char *src_cmake = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!project_name)
@@ -473,11 +475,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     if (!full_path) {
       return CDD_C_ERROR_MEMORY;
     }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(full_path, len, "%s/%s", output_path, filename);
-#else
-    sprintf(full_path, "%s/%s", output_path, filename);
-#endif
+    CDD_SNPRINTF(full_path, len, "%s/%s", output_path, filename);
   } else {
     /* Fixed C99 warning */
     if (c_cdd_strdup(filename, &full_path) != CDD_C_SUCCESS) {
@@ -502,6 +500,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     C_CDD_FREE(full_path);
     return rc;
   }
+  C_CDD_FREE(full_path);
+  full_path = NULL;
 
   /* Write Root CMakeLists.txt */
   if (CHECK_IO_RC(fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n"))) {
@@ -535,69 +535,71 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   fclose(fp);
 
   /* Now write src/CMakeLists.txt */
-  {
-    char *src_dir = NULL;
-    char *src_cmake = NULL;
-    if (output_path) {
-      src_dir = C_CDD_MALLOC(strlen(output_path) + 5);
-      if (!src_dir) {
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup_src;
-      }
-      CDD_SNPRINTF(src_dir, strlen(output_path) + 5, "%s/src", output_path);
-      rc = makedirs(src_dir);
-      if (rc != CDD_C_SUCCESS) {
-        goto cleanup_src;
-      }
-      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
-      if (!src_cmake) {
-        C_CDD_FREE(src_dir);
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup_src;
-      }
-      CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s",
-                   src_dir, filename);
-    } else {
-      if (c_cdd_strdup("src", &src_dir) != CDD_C_SUCCESS) {
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup_src;
-      }
-      rc = makedirs(src_dir);
-      if (rc != CDD_C_SUCCESS) {
-        goto cleanup_src;
-      }
-      src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
-      if (!src_cmake) {
-        C_CDD_FREE(src_dir);
-        rc = CDD_C_ERROR_MEMORY;
-        goto cleanup_src;
-      }
-      CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s",
-                   src_dir, filename);
+  if (output_path) {
+    src_dir = C_CDD_MALLOC(strlen(output_path) + 5);
+    if (!src_dir) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup_src;
     }
+    CDD_SNPRINTF(src_dir, strlen(output_path) + 5, "%s/src", output_path);
+    rc = makedirs(src_dir);
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup_src;
+    }
+    src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
+    if (!src_cmake) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup_src;
+    }
+    CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s",
+                 src_dir, filename);
+  } else {
+    if (c_cdd_strdup("src", &src_dir) != CDD_C_SUCCESS) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup_src;
+    }
+    rc = makedirs(src_dir);
+    if (rc != CDD_C_SUCCESS) {
+      goto cleanup_src;
+    }
+    src_cmake = C_CDD_MALLOC(strlen(src_dir) + strlen(filename) + 2);
+    if (!src_cmake) {
+      rc = CDD_C_ERROR_MEMORY;
+      goto cleanup_src;
+    }
+    CDD_SNPRINTF(src_cmake, strlen(src_dir) + strlen(filename) + 2, "%s/%s",
+                 src_dir, filename);
+  }
 
 #if defined(_MSC_VER)
-    if (fopen_s(&fp, src_cmake, "w") != 0)
-      fp = NULL;
+  if (fopen_s(&fp, src_cmake, "w") != 0)
+    fp = NULL;
 #else
-    fp = fopen(src_cmake, "w");
+  fp = fopen(src_cmake, "w");
 #endif
 
-    if (fp) {
-      rc = write_cmake_content(fp, project_name, has_tests);
-      fclose(fp);
-    } else {
-      rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
-    }
-    C_CDD_FREE(src_dir);
-    C_CDD_FREE(src_cmake);
+  if (fp) {
+    rc = write_cmake_content(fp, project_name, has_tests);
+    fclose(fp);
+  } else {
+    rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
   }
+  C_CDD_FREE(src_dir);
+  src_dir = NULL;
+  C_CDD_FREE(src_cmake);
+  src_cmake = NULL;
   fp = NULL;
 
-  C_CDD_FREE(full_path);
+  if (full_path)
+    C_CDD_FREE(full_path);
   return rc;
 cleanup_src:
-  C_CDD_FREE(full_path);
+  if (src_dir)
+    C_CDD_FREE(src_dir);
+  if (src_cmake)
+    C_CDD_FREE(src_cmake);
+  if (full_path)
+    C_CDD_FREE(full_path);
   return rc;
 }
 

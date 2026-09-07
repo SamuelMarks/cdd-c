@@ -148,7 +148,6 @@ TEST test_c2openapi_full_flow(void) {
     obj = json_value_get_object(root);
 
     /* Check Info */
-    printf("%s\n", json_serialize_to_string_pretty(root));
     ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
     ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
                   json_object_get_string(obj, "jsonSchemaDialect"));
@@ -414,7 +413,6 @@ TEST test_c2openapi_with_base_spec(void) {
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
 
-    printf("%s\n", json_serialize_to_string_pretty(root));
     ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
     ASSERT_STR_EQ("https://example.com/openapi.json",
                   json_object_get_string(obj, "$self"));
@@ -586,7 +584,6 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
     ASSERT(root != NULL);
     obj = json_value_get_object(root);
 
-    printf("GLOBAL META: %s\n", json_serialize_to_string_pretty(root));
     scheme =
         json_object_dotget_object(obj, "components.securitySchemes.api_key");
     ASSERT(scheme != NULL);

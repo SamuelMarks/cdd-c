@@ -61,8 +61,14 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
 #endif
     {
       cdd_c_error_t rc_sg = makedirs(src_dir);
-      if (rc_sg != CDD_C_SUCCESS)
+      if (rc_sg != CDD_C_SUCCESS) {
+        C_CDD_FREE(src_dir);
+        if (dir_name)
+          C_CDD_FREE(dir_name);
+        if (base_name)
+          C_CDD_FREE(base_name);
         return rc_sg;
+      }
     }
     CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
                  base_name ? base_name : "generated_client");

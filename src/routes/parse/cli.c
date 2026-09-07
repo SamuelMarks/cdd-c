@@ -2724,24 +2724,44 @@ static cdd_c_error_t append_root_servers(struct OpenAPI_Spec *spec,
     memset(dst, 0, sizeof(*dst));
     if (src->url) {
       dst->url = (c_cdd_strdup(src->url, &_ast_strdup_18), _ast_strdup_18);
-      if (!dst->url)
+      if (!dst->url) {
+        spec->n_servers += i;
         return CDD_C_ERROR_MEMORY;
+      }
     }
     if (src->name) {
       dst->name = (c_cdd_strdup(src->name, &_ast_strdup_19), _ast_strdup_19);
-      if (!dst->name)
+      if (!dst->name) {
+        if (dst->url)
+          C_CDD_FREE(dst->url);
+        spec->n_servers += i;
         return CDD_C_ERROR_MEMORY;
+      }
     }
     if (src->description) {
       dst->description =
           (c_cdd_strdup(src->description, &_ast_strdup_20), _ast_strdup_20);
-      if (!dst->description)
+      if (!dst->description) {
+        if (dst->url)
+          C_CDD_FREE(dst->url);
+        if (dst->name)
+          C_CDD_FREE(dst->name);
+        spec->n_servers += i;
         return CDD_C_ERROR_MEMORY;
+      }
     }
     if (src->n_variables > 0) {
       cdd_c_error_t vrc = copy_doc_server_variables(dst, src);
-      if (vrc != CDD_C_SUCCESS)
+      if (vrc != CDD_C_SUCCESS) {
+        if (dst->url)
+          C_CDD_FREE(dst->url);
+        if (dst->name)
+          C_CDD_FREE(dst->name);
+        if (dst->description)
+          C_CDD_FREE(dst->description);
+        spec->n_servers += i;
         return vrc;
+      }
     }
   }
   spec->n_servers += meta->n_servers;

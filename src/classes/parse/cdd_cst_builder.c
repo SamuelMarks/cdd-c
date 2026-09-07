@@ -882,7 +882,12 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
     tail->next = t_first->leading_trivia;
     t_first->leading_trivia = lead;
   } else if (lead) {
-    /* Leak / Lost trivia if target has no tokens */
+    cdd_trivia_t *cur = lead;
+    while (cur) {
+      cdd_trivia_t *next = cur->next;
+      C_CDD_FREE(cur);
+      cur = next;
+    }
   }
 
   if (trail && t_last) {
@@ -895,7 +900,12 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
       t_last->trailing_trivia = trail;
     }
   } else if (trail) {
-    /* Leak / Lost trivia if target has no tokens */
+    cdd_trivia_t *cur = trail;
+    while (cur) {
+      cdd_trivia_t *next = cur->next;
+      C_CDD_FREE(cur);
+      cur = next;
+    }
   }
 
   return CDD_C_SUCCESS;

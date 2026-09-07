@@ -23,6 +23,9 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
                                struct OpenAPI_Operation *op) {
   static struct OpenAPI_Path path;
@@ -660,6 +663,8 @@ TEST test_gen_client_file_error(void) {
   setup_minimal_spec(&spec, &op);
   config.filename_base =
       (char *)(size_t)(size_t) "/this_dir_does_not_exist/file";
+  g_io_calls = 0;
+  g_fail_io_after = 1;
 
   rc = openapi_client_generate(&spec, &config);
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);

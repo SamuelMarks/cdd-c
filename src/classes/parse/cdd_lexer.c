@@ -586,6 +586,11 @@ cdd_c_error_t cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
   return CDD_C_SUCCESS;
 
 error:
+  while (pending_trivia_head) {
+    cdd_trivia_t *n = pending_trivia_head->next;
+    C_CDD_FREE(pending_trivia_head);
+    pending_trivia_head = n;
+  }
   cdd_lexer_free_token_list(list);
   return rc != CDD_C_SUCCESS ? rc : CDD_C_ERROR_MEMORY;
 }

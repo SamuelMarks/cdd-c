@@ -331,7 +331,7 @@ endif ()
 
 if (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
     option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" OFF)
-    add_link_options("-sALLOW_MEMORY_GROWTH=1" "-sSTACK_SIZE=524288")
+    add_link_options("-sALLOW_MEMORY_GROWTH=1" "-sSTACK_SIZE=524288" "-sNODERAWFS=1")
 endif ()
 endif ()
 

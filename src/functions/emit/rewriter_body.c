@@ -163,6 +163,10 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   size_t i;
   int injected_rc = 0;
   size_t tmp_var_counter = 0;
+  char *lhs_name = NULL;
+  char *arg_append = NULL;
+  char *call_args = NULL;
+  char *injection = NULL;
 
   if (!tokens || !out_code) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -204,8 +208,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
         {
           cdd_c_error_t rc_rw =
               find_refactored_func(funcs, func_count, name_str, &rf);
-          if (rc_rw != CDD_C_SUCCESS)
-            return rc_rw;
+          if (rc_rw != CDD_C_SUCCESS) {
+            C_CDD_FREE(name_str);
+            rc = rc_rw;
+            goto cleanup;
+          }
         }
         C_CDD_FREE(name_str);
 
@@ -277,7 +284,6 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 
               /* Naive LHS name extraction: last identifier before = */
               {
-                char *lhs_name = NULL;
                 size_t n = eq_idx;
                 while (n > lhs_start) {
                   n--;
@@ -318,7 +324,6 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 
                   /* Append arg */
                   {
-                    char *arg_append;
                     int is_empty = 1;
                     size_t a;
                     arg_append = C_CDD_MALLOC(strlen(lhs_name) + 10);
@@ -345,7 +350,11 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 #else
                       sprintf(arg_append, ", &%s", lhs_name);
 #endif
-                    rc = patch_list_add(&patches, rparen, rparen, arg_append);
+                    {
+                      char *tmp_arg = arg_append;
+                      arg_append = NULL;
+                      rc = patch_list_add(&patches, rparen, rparen, tmp_arg);
+                    }
 
                     if (rc != CDD_C_SUCCESS)
                       goto cleanup;
@@ -354,8 +363,10 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   /* Append check */
                   {
                     cdd_c_error_t rc_rw = find_semicolon(tokens, rparen, &semi);
-                    if (rc_rw != CDD_C_SUCCESS)
-                      return rc_rw;
+                    if (rc_rw != CDD_C_SUCCESS) {
+                      rc = rc_rw;
+                      goto cleanup;
+                    }
                   }
                   if (semi < tokens->size) {
                     char *tmp = NULL;
@@ -370,6 +381,7 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   };
 
                   C_CDD_FREE(lhs_name);
+                  lhs_name = NULL;
                   injected_rc = 1;
                 }
               }
@@ -392,8 +404,10 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               };
               {
                 cdd_c_error_t rc_rw = find_semicolon(tokens, next, &semi);
-                if (rc_rw != CDD_C_SUCCESS)
-                  return rc_rw;
+                if (rc_rw != CDD_C_SUCCESS) {
+                  rc = rc_rw;
+                  goto cleanup;
+                }
               }
               if (semi < tokens->size) {
                 {
@@ -414,13 +428,13 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               /* Case 3: Nested Call (Expression) */
               /* Hoisting strategy */
               char tmp_var[64];
-              char *call_args = NULL;
-              char *injection = NULL;
               size_t stmt_start = 0;
               {
                 cdd_c_error_t rc_rw = find_stmt_start(tokens, i, &stmt_start);
-                if (rc_rw != CDD_C_SUCCESS)
-                  return rc_rw;
+                if (rc_rw != CDD_C_SUCCESS) {
+                  rc = rc_rw;
+                  goto cleanup;
+                }
               }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -456,11 +470,15 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 
 #endif
+              C_CDD_FREE(call_args);
+              call_args = NULL;
+
               /* Inject before statement */
               rc = patch_list_add(&patches, stmt_start, stmt_start, injection);
 
               if (rc != CDD_C_SUCCESS)
                 goto cleanup;
+              injection = NULL;
               /* Replace call with var */
               {
                 char *tmp = NULL;
@@ -473,7 +491,6 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                   goto cleanup;
               };
 
-              C_CDD_FREE(call_args);
               injected_rc = 1;
             }
           }
@@ -559,12 +576,14 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                       transform->arg_name, transform->success_code);
 
 #endif
+              C_CDD_FREE(expr);
+              expr = NULL;
+
               /* Replace entire statement "return ...;" */
               rc = patch_list_add(&patches, i, semi + 1, replacement);
 
               if (rc != CDD_C_SUCCESS)
                 goto cleanup;
-              C_CDD_FREE(expr);
             } else {
               /* Replace return val; -> *out = val; return CDD_C_SUCCESS; */
               {
@@ -651,6 +670,14 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   rc = patch_list_apply(&patches, tokens, out_code);
 
 cleanup:
+  if (lhs_name)
+    C_CDD_FREE(lhs_name);
+  if (arg_append)
+    C_CDD_FREE(arg_append);
+  if (call_args)
+    C_CDD_FREE(call_args);
+  if (injection)
+    C_CDD_FREE(injection);
   patch_list_free(&patches);
   return rc;
 }

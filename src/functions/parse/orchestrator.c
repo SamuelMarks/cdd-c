@@ -423,6 +423,7 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
 
   /* 2. Analyze Allocations */
   if ((rc = find_allocations(tokens, &allocs)) != 0) {
+    allocation_site_list_free(&allocs);
     free_cst_node_list(&cst);
     free_token_list(tokens);
     return rc;
@@ -543,8 +544,10 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
     if (n->contains_allocs && (n->returns_void || n->returns_ptr)) {
       {
         cdd_c_error_t rc_or = propagate_refactor_mark(&graph, i);
-        if (rc_or != CDD_C_SUCCESS)
-          return rc_or;
+        if (rc_or != CDD_C_SUCCESS) {
+          rc = rc_or;
+          goto cleanup;
+        }
       }
     }
   }
@@ -640,8 +643,10 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
               size_t k;
               {
                 cdd_c_error_t rc_or = allocation_site_list_init(&local_allocs);
-                if (rc_or != CDD_C_SUCCESS)
-                  return rc_or;
+                if (rc_or != CDD_C_SUCCESS) {
+                  rc = rc_or;
+                  goto cleanup;
+                }
               }
               for (k = 0; k < allocs.size; k++) {
                 if (allocs.sites[k].token_index >= node->body_start &&
@@ -650,8 +655,11 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                   site.token_index -= node->body_start; /* Relativize */
                   if (site.var_name) {
                     rc = c_cdd_strdup(site.var_name, &site.var_name);
-                    if (rc != CDD_C_SUCCESS)
+                    if (rc != CDD_C_SUCCESS) {
+                      allocation_site_list_free(&local_allocs);
+                      C_CDD_FREE(new_sig);
                       goto cleanup;
+                    }
                   }
                   if (local_allocs.size >= local_allocs.capacity) {
                     struct AllocationSite *new_sites;
@@ -661,6 +669,8 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                     new_sites = C_CDD_REALLOC(
                         local_allocs.sites, nc * sizeof(struct AllocationSite));
                     if (!new_sites) {
+                      allocation_site_list_free(&local_allocs);
+                      C_CDD_FREE(new_sig);
                       rc = CDD_C_ERROR_MEMORY;
                       goto cleanup;
                     }
@@ -691,9 +701,9 @@ cdd_c_error_t orchestrate_fix(const char *source_code, char **out_code) {
                 }
                 segment = buf;
 #endif
-                C_CDD_FREE(new_sig);
                 C_CDD_FREE(new_body);
               }
+              C_CDD_FREE(new_sig);
               allocation_site_list_free(&local_allocs);
             }
           }

@@ -764,10 +764,18 @@ TEST test_security_errors(void) {
   g_io_calls = 0;
   g_fail_io_after = 1; /* TMPFILE fails */
   ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));
+  if (_out) {
+    C_CDD_FREE(_out);
+    _out = NULL;
+  }
 
   g_io_calls = 0;
   g_fail_io_after = 2; /* codegen_security_write_apply fails */
   ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));
+  if (_out) {
+    C_CDD_FREE(_out);
+    _out = NULL;
+  }
 
   g_fail_io_after = 999; /* FTELL returns 0 */
   ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));

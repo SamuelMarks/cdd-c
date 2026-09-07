@@ -994,8 +994,7 @@ TEST test_extern_c_extra_coverage3(void) {
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code2),
                        &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    /* mock tree_has_decl returning false for unknown child token to trigger
-     * that branch? actually we just need a cst unknown with something else. */
+    cdd_cst_tree_free(tree);
     PASS();
   }
 }
@@ -1021,8 +1020,7 @@ TEST test_extern_c_extra_coverage4(void) {
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code2),
                        &tree);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
-    /* mock tree_has_decl returning false for unknown child token to trigger
-     * that branch? actually we just need a cst unknown with something else. */
+    cdd_cst_tree_free(tree);
     PASS();
   }
 }

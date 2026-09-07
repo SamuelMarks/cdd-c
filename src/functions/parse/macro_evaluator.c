@@ -386,6 +386,8 @@ static cdd_macro_eval_result_t parse_bitwise_or(parser_t *p) {
     next_tok(&p->lex);
     right = parse_bitwise_xor(p);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err();
     }
@@ -401,6 +403,8 @@ static cdd_macro_eval_result_t parse_bitwise_xor(parser_t *p) {
     next_tok(&p->lex);
     right = parse_bitwise_and(p);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err();
     }
@@ -416,6 +420,8 @@ static cdd_macro_eval_result_t parse_bitwise_and(parser_t *p) {
     next_tok(&p->lex);
     right = parse_equality(p);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err();
     }
@@ -487,6 +493,8 @@ static cdd_macro_eval_result_t parse_shift(parser_t *p) {
     next_tok(&p->lex);
     right = parse_additive(p);
     if (left.type != MACRO_EVAL_TYPE_INT || right.type != MACRO_EVAL_TYPE_INT) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       p->err = 1;
       return make_err();
     }
@@ -505,8 +513,18 @@ static cdd_macro_eval_result_t parse_additive(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_multiplicative(p);
-    if (p->err)
+    if (p->err) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       return make_err();
+    }
+    if (left.type == MACRO_EVAL_TYPE_STRING ||
+        right.type == MACRO_EVAL_TYPE_STRING) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
+      p->err = 1;
+      return make_err();
+    }
     promote(&left, &right);
     if (left.type == MACRO_EVAL_TYPE_INT) {
       if (op == TOK_PLUS)
@@ -531,10 +549,22 @@ static cdd_macro_eval_result_t parse_multiplicative(parser_t *p) {
     cdd_macro_eval_result_t right;
     next_tok(&p->lex);
     right = parse_unary(p);
-    if (p->err)
+    if (p->err) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
       return make_err();
+    }
+    if (left.type == MACRO_EVAL_TYPE_STRING ||
+        right.type == MACRO_EVAL_TYPE_STRING) {
+      cdd_macro_eval_result_free(&left);
+      cdd_macro_eval_result_free(&right);
+      p->err = 1;
+      return make_err();
+    }
     if (op == TOK_PERCENT) {
       if (left.type != MACRO_EVAL_TYPE_INT || right.int_val == 0) {
+        cdd_macro_eval_result_free(&left);
+        cdd_macro_eval_result_free(&right);
         p->err = 1;
         return make_err();
       }
@@ -543,6 +573,8 @@ static cdd_macro_eval_result_t parse_multiplicative(parser_t *p) {
       promote(&left, &right);
       if (left.type == MACRO_EVAL_TYPE_INT) {
         if (op == TOK_SLASH && right.int_val == 0) {
+          cdd_macro_eval_result_free(&left);
+          cdd_macro_eval_result_free(&right);
           p->err = 1;
           return make_err();
         }

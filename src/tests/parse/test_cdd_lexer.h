@@ -286,12 +286,28 @@ TEST test_cdd_lexer_oom(void) {
   rc_t5 = cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
+  if (tl) {
+    cdd_lexer_free_token_list(tl);
+    tl = NULL;
+  }
   (void)cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "int x;"), &tl);
+  if (tl) {
+    cdd_lexer_free_token_list(tl);
+    tl = NULL;
+  }
   (void)cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "/* comment */"), &tl);
+  if (tl) {
+    cdd_lexer_free_token_list(tl);
+    tl = NULL;
+  }
   (void)cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "int x;"), &tl);
+  if (tl) {
+    cdd_lexer_free_token_list(tl);
+    tl = NULL;
+  }
   ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_t5);
   tl = NULL;
 

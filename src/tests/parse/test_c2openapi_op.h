@@ -52,6 +52,8 @@ static void reset_op(struct OpenAPI_Operation *op) {
       free(op->parameters[i].name);
       /* op->parameters[i].in is an enum, nothing to free */
       free(op->parameters[i].type);
+      if (op->parameters[i].description)
+        free(op->parameters[i].description);
       if (op->parameters[i].content_type)
         free(op->parameters[i].content_type);
       if (op->parameters[i].items_type)
@@ -154,6 +156,8 @@ static void reset_op(struct OpenAPI_Operation *op) {
   if (op->responses) {
     for (i = 0; i < op->n_responses; i++) {
       free(op->responses[i].code);
+      if (op->responses[i].summary)
+        free(op->responses[i].summary);
       if (op->responses[i].description)
         free(op->responses[i].description);
       if (op->responses[i].content_type)
@@ -422,6 +426,8 @@ TEST test_build_simple_get(void) {
   ASSERT(op.parameters[0].required);
   ASSERT_STR_EQ("integer", op.parameters[0].type);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -461,6 +467,8 @@ TEST test_build_param_format_from_mapping(void) {
   ASSERT_STR_EQ("integer", op.parameters[0].schema.inline_type);
   ASSERT_STR_EQ("int64", op.parameters[0].schema.format);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -585,6 +593,8 @@ TEST test_build_default_response_when_missing(void) {
   ASSERT_STR_EQ("200", op.responses[0].code);
   ASSERT_STR_EQ("Success", op.responses[0].description);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -621,6 +631,8 @@ TEST test_build_operation_id_override(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("getUserById", op.operation_id);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -665,6 +677,8 @@ TEST test_build_param_content_type(void) {
   ASSERT_EQ(1, op.n_parameters);
   ASSERT_STR_EQ("application/json", op.parameters[0].content_type);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -711,6 +725,8 @@ TEST test_build_param_example(void) {
   ASSERT_EQ(OA_ANY_NUMBER, op.parameters[0].example.type);
   ASSERT_EQ(OA_EXAMPLE_LOC_OBJECT, op.parameters[0].example_location);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -753,6 +769,7 @@ TEST test_build_return_content_type(void) {
   ASSERT_STR_EQ("Status", op.responses[0].summary);
   ASSERT_STR_EQ("text/plain", op.responses[0].content_type);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -803,6 +820,8 @@ TEST test_build_response_example(void) {
   ASSERT(op.responses[0].content_media_types[0].example_set);
   ASSERT_EQ(OA_ANY_JSON, op.responses[0].content_media_types[0].example.type);
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1218,6 +1237,7 @@ TEST test_build_custom_verb_additional(void) {
   ASSERT_EQ(1, op.is_additional);
   ASSERT_STR_EQ("COPY", op.method);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1268,6 +1288,8 @@ TEST test_build_response_multi_content(void) {
                                    &_ast_find_response_media_type_1),
           _ast_find_response_media_type_1));
 
+  free(doc.route);
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1389,6 +1411,7 @@ TEST test_build_response_links(void) {
   ASSERT_STR_EQ("prod", op.responses[0].links[0].server->name);
   ASSERT_STR_EQ("Primary server", op.responses[0].links[0].server->description);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1519,6 +1542,7 @@ TEST test_build_op_security_servers_request_body(void) {
   ASSERT_STR_EQ("prod", op.servers[0].variables[0].enum_values[0]);
   ASSERT_STR_EQ("staging", op.servers[0].variables[0].enum_values[1]);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1567,6 +1591,7 @@ TEST test_build_op_param_deprecated(void) {
   ASSERT_EQ(1, op.parameters[0].deprecated_set);
   ASSERT_EQ(1, op.parameters[0].deprecated);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1615,6 +1640,7 @@ TEST test_build_request_body_example(void) {
   ASSERT(op.req_body_media_types[0].example_set);
   ASSERT_EQ(OA_ANY_JSON, op.req_body_media_types[0].example.type);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1661,6 +1687,7 @@ TEST test_build_request_body_default_content_type(void) {
   ASSERT_EQ(1, op.n_req_body_media_types);
   ASSERT_STR_EQ("application/json", op.req_body_media_types[0].name);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();
@@ -1708,6 +1735,7 @@ TEST test_build_op_request_body_multi_content(void) {
   ASSERT_STR_EQ("application/json", op.req_body_media_types[0].name);
   ASSERT_STR_EQ("application/xml", op.req_body_media_types[1].name);
 
+  free(doc.verb);
   reset_op(&op);
   g_fail_io_after = -1;
   PASS();

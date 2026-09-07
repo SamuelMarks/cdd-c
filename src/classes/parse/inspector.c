@@ -170,13 +170,17 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
         int starts1 = false, starts2 = false;
         {
           cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "enum ", &starts1);
-          if (rc_str != CDD_C_SUCCESS)
-            return rc_str;
+          if (rc_str != CDD_C_SUCCESS) {
+            rc = rc_str;
+            break;
+          }
         }
         {
           cdd_c_error_t rc_str = c_cdd_str_starts_with(p, "struct ", &starts2);
-          if (rc_str != CDD_C_SUCCESS)
-            return rc_str;
+          if (rc_str != CDD_C_SUCCESS) {
+            rc = rc_str;
+            break;
+          }
         }
         if (starts1 || starts2) {
           char *brace = strchr(p, '{');
@@ -265,8 +269,10 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
           char *copy = NULL;
           {
             cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
-            if (rc_str != CDD_C_SUCCESS)
-              return rc_str;
+            if (rc_str != CDD_C_SUCCESS) {
+              rc = rc_str;
+              break;
+            }
           }
           if (copy) {
             char *ctx = NULL;
@@ -284,8 +290,12 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 tok++;
               if (*tok) {
                 cdd_c_error_t rc_str = enum_members_add(curr_em, tok);
-                if (rc_str != CDD_C_SUCCESS)
-                  return rc_str;
+                if (rc_str != CDD_C_SUCCESS) {
+                  rc = rc_str;
+                  C_CDD_FREE(copy);
+                  copy = NULL;
+                  break;
+                }
               }
 #ifdef _WIN32
               tok = strtok_s(NULL, ",", &ctx);
@@ -293,7 +303,12 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               tok = strtok_r(NULL, ",", &ctx);
 #endif
             }
-            C_CDD_FREE(copy);
+            if (copy) {
+              C_CDD_FREE(copy);
+              copy = NULL;
+            }
+            if (rc != CDD_C_SUCCESS)
+              break;
           }
         } else if (state == ST_STRUCT) {
           if (*p) {
@@ -301,8 +316,10 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             char *copy = NULL;
             {
               cdd_c_error_t rc_str = c_cdd_strdup(p, &copy);
-              if (rc_str != CDD_C_SUCCESS)
-                return rc_str;
+              if (rc_str != CDD_C_SUCCESS) {
+                rc = rc_str;
+                break;
+              }
             }
             if (copy) {
               char *ctx = NULL;
@@ -318,8 +335,12 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                   chk++;
                 if (*chk) {
                   cdd_c_error_t rc_str = parse_struct_member_line(tok, curr_sf);
-                  if (rc_str != CDD_C_SUCCESS)
-                    return rc_str;
+                  if (rc_str != CDD_C_SUCCESS) {
+                    rc = rc_str;
+                    C_CDD_FREE(copy);
+                    copy = NULL;
+                    break;
+                  }
                 }
 #ifdef _WIN32
                 tok = strtok_s(NULL, ";", &ctx);
@@ -327,14 +348,19 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 tok = strtok_r(NULL, ";", &ctx);
 #endif
               }
-              C_CDD_FREE(copy);
+              if (copy) {
+                C_CDD_FREE(copy);
+                copy = NULL;
+              }
+              if (rc != CDD_C_SUCCESS)
+                break;
             }
           }
         }
 
         if (close_brace) {
           /* Definition Ended */
-          if (current_name[0] != '\0') {
+          if (rc == CDD_C_SUCCESS && current_name[0] != '\0') {
             if (state == ST_ENUM) {
               if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0) {
                 enum_members_free(curr_em);
@@ -382,6 +408,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
   if (curr_sf) {
     struct_fields_free(curr_sf);
     C_CDD_FREE(curr_sf);
+  }
+  if (rc != CDD_C_SUCCESS) {
+    type_def_list_free(out);
   }
   fclose(fp);
   return rc;

@@ -56,26 +56,36 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
 
   {
     cdd_c_error_t rc_vc = my_strdup(project_name, &builder->project_name);
-    if (rc_vc != CDD_C_SUCCESS)
+    if (rc_vc != CDD_C_SUCCESS) {
+      vcpkg_builder_free(builder);
       return rc_vc;
+    }
   }
   if (version_string) {
     cdd_c_error_t rc_vc = my_strdup(version_string, &builder->version_string);
-    if (rc_vc != CDD_C_SUCCESS)
+    if (rc_vc != CDD_C_SUCCESS) {
+      vcpkg_builder_free(builder);
       return rc_vc;
+    }
   } else {
     cdd_c_error_t rc_vc = my_strdup("0.0.1", &builder->version_string);
-    if (rc_vc != CDD_C_SUCCESS)
+    if (rc_vc != CDD_C_SUCCESS) {
+      vcpkg_builder_free(builder);
       return rc_vc;
+    }
   }
   if (description) {
     cdd_c_error_t rc_vc = my_strdup(description, &builder->description);
-    if (rc_vc != CDD_C_SUCCESS)
+    if (rc_vc != CDD_C_SUCCESS) {
+      vcpkg_builder_free(builder);
       return rc_vc;
+    }
   } else {
     cdd_c_error_t rc_vc = my_strdup("", &builder->description);
-    if (rc_vc != CDD_C_SUCCESS)
+    if (rc_vc != CDD_C_SUCCESS) {
+      vcpkg_builder_free(builder);
       return rc_vc;
+    }
   }
   builder->deps = NULL;
   builder->deps_count = 0;

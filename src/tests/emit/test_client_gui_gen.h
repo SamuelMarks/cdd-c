@@ -22,6 +22,9 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+
 /**
  * @brief Tests basic functionality of client GUI generation.
  *
@@ -65,6 +68,22 @@ TEST test_client_gui_gen_basic(void) {
 
   remove("src/test_gui_gui.c");
   remove("src/test_gui_gui.h");
+  {
+    FILE *dummy;
+#if defined(_MSC_VER)
+    if (fopen_s(&dummy, "src/test_gui_gui.c", "w") == 0 && dummy)
+      fclose(dummy);
+    if (fopen_s(&dummy, "src/test_gui_gui.h", "w") == 0 && dummy)
+      fclose(dummy);
+#else
+    dummy = fopen("src/test_gui_gui.c", "w");
+    if (dummy)
+      fclose(dummy);
+    dummy = fopen("src/test_gui_gui.h", "w");
+    if (dummy)
+      fclose(dummy);
+#endif
+  }
   g_fail_io_after = -1;
 
   PASS();
@@ -115,6 +134,8 @@ TEST test_client_gui_gen_errors(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";
+  g_io_calls = 0;
+  g_fail_io_after = 1;
 
   rc = openapi_client_gui_generate(&spec, &config);
   /* we expect success? wait, testing logic says ASSERT_EQ(0, rc) which is

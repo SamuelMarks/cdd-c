@@ -451,6 +451,15 @@ static void reset_mocks(void) {
   /*  (moved to global) */
   g_fail_io_after = -1;
   g_io_calls = 0;
+  g_cdd_alloc_fail = 0;
+  {
+    extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
+    extern C_CDD_EXPORT int g_cdd_audit_fail_find;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    g_cdd_audit_fail_tokenize = 0;
+    g_cdd_audit_fail_find = 0;
+    g_cdd_fail_alloc_audit = 0;
+  }
   g_schema_codegen_force_fail = 0;
   g_schema_io_calls = 0;
   g_schema_fail_io_after = -1;
@@ -566,8 +575,15 @@ static void reset_mocks(void) {
   }
 }
 
+static void test_teardown_cb(void *udata) {
+  (void)udata;
+  reset_mocks();
+}
+
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
+
+  SET_TEARDOWN(test_teardown_cb, NULL);
 
   srand((unsigned int)time(NULL));
 

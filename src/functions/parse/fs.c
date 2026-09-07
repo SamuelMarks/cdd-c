@@ -27,6 +27,11 @@
 #include "functions/parse/fs.h"
 #include "functions/str_includes.h"
 
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#endif
+
 static cdd_c_error_t errno_to_cdd_error(int err) {
   if (err == 0) return CDD_C_SUCCESS;
   if (err == ENOENT) return CDD_C_ERROR_NOT_FOUND;
@@ -637,6 +642,11 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after >= 0 && ++g_io_calls >= g_fail_io_after)
+    return CDD_C_ERROR_IO;
+#endif
+
 #if defined(_WIN32)
   res = _mkdir(path);
 #elif defined(__WATCOMC__) || defined(__DOS__)
@@ -668,7 +678,6 @@ cdd_c_error_t makedirs(const char *path) {
   char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  fprintf(stderr, "makedirs A: %s\n", path ? path : "NULL");
 
   if (path == NULL || *path == '\0') {
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -688,9 +697,7 @@ cdd_c_error_t makedirs(const char *path) {
     return CDD_C_SUCCESS;
 #endif
 
-  fprintf(stderr, "makedirs B\n");
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
-  fprintf(stderr, "makedirs C\n");
   if (dup_path == NULL) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -705,7 +712,6 @@ cdd_c_error_t makedirs(const char *path) {
   }
 #endif
 
-  fprintf(stderr, "makedirs D\n");
   for (; *p; ++p) {
     if (*p == '/' || *p == '\\') {
       if (p == dup_path)
@@ -720,11 +726,8 @@ cdd_c_error_t makedirs(const char *path) {
     }
   }
 
-  fprintf(stderr, "makedirs E\n");
   rc = maybe_mkdir(dup_path);
-  fprintf(stderr, "makedirs F\n");
   C_CDD_FREE(dup_path);
-  fprintf(stderr, "makedirs G\n");
   return rc;
 }
 

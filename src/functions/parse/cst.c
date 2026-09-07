@@ -332,7 +332,7 @@ static cdd_c_error_t consume_static_assert(const struct TokenList *tokens,
       return rc_cst;
   }
   i = _ast_skip_ws_2;
-  if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+  if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
     *_out_val = i + 1;
     return CDD_C_SUCCESS;
   }

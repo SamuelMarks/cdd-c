@@ -41,7 +41,7 @@ cdd_c_error_t schema_constraints_add_required(struct SchemaConstraints *sc,
     size_t new_cap = sc->required_capacity == 0 ? 8 : sc->required_capacity * 2;
     char **new_req;
     if (new_cap < sc->required_capacity ||
-        new_cap > ((size_t)-1) / (2 * sizeof(char *))) {
+        new_cap > ((size_t)-1) / (16 * sizeof(char *))) {
       return CDD_C_ERROR_MEMORY;
     }
 #ifdef CDD_BUILD_TESTS

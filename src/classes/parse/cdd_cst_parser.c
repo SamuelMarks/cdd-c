@@ -141,23 +141,59 @@ C_CDD_EXPORT cdd_c_error_t advance(parser_state_t *s, cdd_token_t **out_tok) {
   return CDD_C_ERROR_NOT_FOUND;
 }
 
-static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
-                                 cdd_cst_node_t **out_node);
-static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
-                                                    cdd_cst_node_t *parent,
-                                                    cdd_cst_node_t **out_node);
+static cdd_c_error_t parse_block_internal(parser_state_t *s,
+                                          cdd_cst_node_t *parent,
+                                          cdd_cst_node_t **out_node);
+static cdd_c_error_t parse_declaration_or_statement_internal(
+    parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node);
 
 static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                                  cdd_cst_node_t **out_node) {
+  cdd_cst_node_t *node = NULL;
+  cdd_c_error_t rc;
+  *out_node = NULL;
+  rc = parse_block_internal(s, parent, &node);
+  if (rc != CDD_C_SUCCESS) {
+    if (node)
+      free_node(node);
+    *out_node = NULL;
+    return rc;
+  }
+  *out_node = node;
+  return CDD_C_SUCCESS;
+}
+
+static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
+                                                    cdd_cst_node_t *parent,
+                                                    cdd_cst_node_t **out_node) {
+  cdd_cst_node_t *node = NULL;
+  cdd_c_error_t rc;
+  *out_node = NULL;
+  rc = parse_declaration_or_statement_internal(s, parent, &node);
+  if (rc != CDD_C_SUCCESS) {
+    if (node)
+      free_node(node);
+    *out_node = NULL;
+    return rc;
+  }
+  *out_node = node;
+  return CDD_C_SUCCESS;
+}
+
+static cdd_c_error_t parse_block_internal(parser_state_t *s,
+                                          cdd_cst_node_t *parent,
+                                          cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS, app_rc = CDD_C_SUCCESS;
 
   cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
+  *out_node = NULL;
   rc = alloc_node(CDD_CST_BLOCK, parent, &b);
   if (rc != CDD_C_SUCCESS) {
     s->err = (int)rc;
     return rc;
   }
+  *out_node = b;
 
   rc = advance(s, &t);
   if (rc != CDD_C_SUCCESS)
@@ -165,6 +201,7 @@ static cdd_c_error_t parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   rc = append_child_token(b, t);
   if (rc != CDD_C_SUCCESS) {
     free_node(b);
+    *out_node = NULL;
     return rc;
   }
 
@@ -223,13 +260,13 @@ static cdd_c_error_t get_class_name(cdd_cst_node_t *node,
   return CDD_C_SUCCESS;
 }
 
-static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
-                                                    cdd_cst_node_t *parent,
-                                                    cdd_cst_node_t **out_node) {
+static cdd_c_error_t parse_declaration_or_statement_internal(
+    parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
   cdd_c_error_t rc = CDD_C_SUCCESS, app_rc, class_rc;
 
-  cdd_cst_node_t *n;
+  cdd_cst_node_t *n = NULL;
   cdd_token_t *t = NULL;
+  *out_node = NULL;
 
   rc = peek(s, &t);
   if (rc != CDD_C_SUCCESS)
@@ -250,6 +287,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
     rc = append_child_token(n, p);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -308,6 +346,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_PREPROC_DIRECTIVE, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -328,6 +367,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -344,6 +384,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(CDD_CST_TEMPLATE_PARAMETER_LIST, n, &param_list);
       if (rc != CDD_C_SUCCESS)
         return rc;
+      app_rc = append_child_node(n, param_list);
+      if (app_rc != CDD_C_SUCCESS) {
+        free_node(param_list);
+        return app_rc;
+      }
 
       rc = advance(s, &t);
       if (rc != CDD_C_SUCCESS)
@@ -386,6 +431,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           rc = alloc_node(CDD_CST_TEMPLATE_PARAMETER, param_list, &param);
           if (rc != CDD_C_SUCCESS)
             return rc;
+          app_rc = append_child_node(param_list, param);
+          if (app_rc != CDD_C_SUCCESS) {
+            free_node(param);
+            return app_rc;
+          }
 
           rc = advance(s, &t);
           if (rc != CDD_C_SUCCESS)
@@ -406,15 +456,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
             if (rc != CDD_C_SUCCESS)
               return rc;
           }
-          app_rc = append_child_node(param_list, param);
-
-          if (app_rc != CDD_C_SUCCESS) {
-            free_node(param);
-            s->err = (int)app_rc;
-            free_node(param_list);
-            *out_node = NULL;
-            return app_rc;
-          }
         } else {
 
           rc = advance(s, &t);
@@ -424,15 +465,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           if (rc != CDD_C_SUCCESS)
             return rc;
         }
-      }
-      app_rc = append_child_node(n, param_list);
-
-      if (app_rc != CDD_C_SUCCESS) {
-        free_node(param_list);
-        s->err = (int)app_rc;
-        free_node(n);
-        *out_node = NULL;
-        return app_rc;
       }
     }
 
@@ -461,6 +493,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -508,6 +541,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
 
@@ -540,6 +574,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -579,6 +614,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(CDD_CST_CATCH_BLOCK, n, &catch_node);
       if (rc != CDD_C_SUCCESS)
         return rc;
+      app_rc = append_child_node(n, catch_node);
+      if (app_rc != CDD_C_SUCCESS) {
+        free_node(catch_node);
+        return app_rc;
+      }
 
       rc = advance(s, &t);
       if (rc != CDD_C_SUCCESS)
@@ -617,19 +657,8 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
         if (app_rc != CDD_C_SUCCESS) {
           free_node(child);
           s->err = (int)app_rc;
-          free_node(catch_node);
-          *out_node = NULL;
           return app_rc;
         }
-      }
-      app_rc = append_child_node(n, catch_node);
-
-      if (app_rc != CDD_C_SUCCESS) {
-        free_node(catch_node);
-        s->err = (int)app_rc;
-        free_node(n);
-        *out_node = NULL;
-        return app_rc;
       }
     }
 
@@ -641,6 +670,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -680,6 +710,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
 
@@ -705,6 +736,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
         rc = alloc_node(CDD_CST_BASE_CLASS_LIST, n, &base_list);
         if (rc != CDD_C_SUCCESS)
           return rc;
+        app_rc = append_child_node(n, base_list);
+        if (app_rc != CDD_C_SUCCESS) {
+          free_node(base_list);
+          return app_rc;
+        }
 
         rc = advance(s, &t);
         if (rc != CDD_C_SUCCESS)
@@ -718,6 +754,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           rc = alloc_node(CDD_CST_BASE_CLASS_SPECIFIER, base_list, &base_spec);
           if (rc != CDD_C_SUCCESS)
             return rc;
+          app_rc = append_child_node(base_list, base_spec);
+          if (app_rc != CDD_C_SUCCESS) {
+            free_node(base_spec);
+            return app_rc;
+          }
 
           /* parse access modifier or virtual */
 
@@ -767,15 +808,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
             if (rc != CDD_C_SUCCESS)
               return rc;
           }
-          app_rc = append_child_node(base_list, base_spec);
-
-          if (app_rc != CDD_C_SUCCESS) {
-            free_node(base_spec);
-            s->err = (int)app_rc;
-            free_node(base_list);
-            *out_node = NULL;
-            return app_rc;
-          }
 
           rc = peek(s, &nxt);
           if (rc != CDD_C_SUCCESS)
@@ -791,15 +823,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           } else {
             break;
           }
-        }
-        app_rc = append_child_node(n, base_list);
-
-        if (app_rc != CDD_C_SUCCESS) {
-          free_node(base_list);
-          s->err = (int)app_rc;
-          free_node(n);
-          *out_node = NULL;
-          return app_rc;
         }
       } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
 
@@ -830,6 +853,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
 
     rc = advance(s, &t);
     if (rc != CDD_C_SUCCESS)
@@ -860,6 +884,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
     rc = alloc_node(CDD_CST_ASM_STATEMENT, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
+    *out_node = n;
     while (s->pos < s->list->size) {
       cdd_token_t *nxt = NULL;
 
@@ -964,6 +989,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(node_kind, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
+      *out_node = n;
       while (s->pos < s->list->size) {
         cdd_token_t *nxt = NULL;
 
@@ -976,6 +1002,11 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
           rc = alloc_node(CDD_CST_NOEXCEPT_SPECIFIER, n, &noexcept_node);
           if (rc != CDD_C_SUCCESS)
             return rc;
+          app_rc = append_child_node(n, noexcept_node);
+          if (app_rc != CDD_C_SUCCESS) {
+            free_node(noexcept_node);
+            return app_rc;
+          }
 
           rc = advance(s, &t);
           if (rc != CDD_C_SUCCESS)
@@ -1008,15 +1039,6 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
               if (noexcept_paren == 0)
                 break;
             }
-          }
-          app_rc = append_child_node(n, noexcept_node);
-
-          if (app_rc != CDD_C_SUCCESS) {
-            free_node(noexcept_node);
-            s->err = (int)app_rc;
-            free_node(n);
-            *out_node = NULL;
-            return app_rc;
           }
           continue;
         }
@@ -1061,6 +1083,7 @@ static cdd_c_error_t parse_declaration_or_statement(parser_state_t *s,
       rc = alloc_node(CDD_CST_UNKNOWN, parent, &n);
       if (rc != CDD_C_SUCCESS)
         return rc;
+      *out_node = n;
       {
         int paren_depth = 0;
         while (s->pos < s->list->size) {

@@ -549,6 +549,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   free(ir->nodes[0].fields);
   free(ir->nodes[1].variants);
   free(ir->nodes[2].fields);
+  free(ir->nodes[3].fields);
   free(ir->nodes[4].fields);
   free(ir->nodes[6].fields);
   free(ir->nodes[7].fields);
@@ -556,6 +557,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
   free(ir->nodes[11].fields);
   free(ir->nodes[13].base_classes);
   free(ir->nodes[15].fields);
+  free(ir->nodes[18].fields);
   free(ir->nodes[24].fields);
   free(ir->nodes[25].fields);
   free(ir->nodes[27].fields);

@@ -288,7 +288,7 @@ TEST test_fs_write_to_file(void) {
 
   free(out_data);
   remove(file_path);
-  rmdir(tmp_dir);
+  /* Don't try to remove system temp dir (tmp_dir) */
   free(file_path);
   free(tmp_dir);
   g_fail_io_after = -1;

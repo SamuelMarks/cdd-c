@@ -10,6 +10,60 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
+static const char *get_mocks_dir(void) {
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/emit/simple.schema.json", "r") == 0 && f) {
+    fclose(f);
+    return "src/tests/mocks";
+  }
+  if (fopen_s(&f, "../src/tests/mocks/emit/simple.schema.json", "r") == 0 &&
+      f) {
+    fclose(f);
+    return "../src/tests/mocks";
+  }
+#else
+  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
+  if (f) {
+    fclose(f);
+    return "src/tests/mocks";
+  }
+  f = fopen("../src/tests/mocks/emit/simple.schema.json", "r");
+  if (f) {
+    fclose(f);
+    return "../src/tests/mocks";
+  }
+#endif
+  return "src/tests/mocks";
+}
+
+static const char *get_simple_schema(void) {
+  FILE *f;
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "src/tests/mocks/emit/simple.schema.json", "r") == 0 && f) {
+    fclose(f);
+    return "src/tests/mocks/emit/simple.schema.json";
+  }
+  if (fopen_s(&f, "../src/tests/mocks/emit/simple.schema.json", "r") == 0 &&
+      f) {
+    fclose(f);
+    return "../src/tests/mocks/emit/simple.schema.json";
+  }
+#else
+  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
+  if (f) {
+    fclose(f);
+    return "src/tests/mocks/emit/simple.schema.json";
+  }
+  f = fopen("../src/tests/mocks/emit/simple.schema.json", "r");
+  if (f) {
+    fclose(f);
+    return "../src/tests/mocks/emit/simple.schema.json";
+  }
+#endif
+  return "src/tests/mocks/emit/simple.schema.json";
+}
+
 TEST test_c2openapi_cli_main_invalid_args(void) {
   char *argv1[] = {(char *)(size_t)(size_t) "c2openapi"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c2openapi_cli_main(1, argv1));
@@ -17,10 +71,11 @@ TEST test_c2openapi_cli_main_invalid_args(void) {
 }
 
 TEST test_c2openapi_cli_main_valid_args(void) {
-  char *argv1[] = {(char *)(size_t)(size_t) "c2openapi",
-                   (char *)(size_t)(size_t) "src/tests/mocks",
-                   (char *)(size_t)(size_t) "out.json"};
+  char *argv1[3];
   int rc;
+  argv1[0] = (char *)(size_t)(size_t) "c2openapi";
+  argv1[1] = (char *)(size_t)(size_t)get_mocks_dir();
+  argv1[2] = (char *)(size_t)(size_t) "out.json";
   rc = c2openapi_cli_main(3, argv1);
   (void)rc;
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -28,17 +83,17 @@ TEST test_c2openapi_cli_main_valid_args(void) {
 }
 
 TEST test_c2openapi_cli_main_valid_args_with_options(void) {
-  char *argv1[] = {
-      (char *)(size_t)(size_t) "c2openapi",
-      (char *)(size_t)(size_t) "--base",
-      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
-      (char *)(size_t)(size_t) "--self",
-      (char *)(size_t)(size_t) "http://example.com/api",
-      (char *)(size_t)(size_t) "--dialect",
-      (char *)(size_t)(size_t) "http://example.com/dialect",
-      (char *)(size_t)(size_t) "src/tests/mocks",
-      (char *)(size_t)(size_t) "out2.json"};
+  char *argv1[9];
   int rc;
+  argv1[0] = (char *)(size_t)(size_t) "c2openapi";
+  argv1[1] = (char *)(size_t)(size_t) "--base";
+  argv1[2] = (char *)(size_t)(size_t)get_simple_schema();
+  argv1[3] = (char *)(size_t)(size_t) "--self";
+  argv1[4] = (char *)(size_t)(size_t) "http://example.com/api";
+  argv1[5] = (char *)(size_t)(size_t) "--dialect";
+  argv1[6] = (char *)(size_t)(size_t) "http://example.com/dialect";
+  argv1[7] = (char *)(size_t)(size_t)get_mocks_dir();
+  argv1[8] = (char *)(size_t)(size_t) "out2.json";
   rc = c2openapi_cli_main(9, argv1);
   (void)rc;
   if (rc != CDD_C_SUCCESS) {
@@ -64,12 +119,14 @@ TEST test_to_docs_json_cli_main_no_input(void) {
 }
 
 TEST test_to_docs_json_cli_main_valid(void) {
-  char *argv1[] = {
-      (char *)(size_t)(size_t) "to_docs_json", (char *)(size_t)(size_t) "-i",
-      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
-      (char *)(size_t)(size_t) "--no-imports",
-      (char *)(size_t)(size_t) "--no-wrapping"};
-  int rc = to_docs_json_cli_main(5, argv1);
+  char *argv1[5];
+  int rc;
+  argv1[0] = (char *)(size_t)(size_t) "to_docs_json";
+  argv1[1] = (char *)(size_t)(size_t) "-i";
+  argv1[2] = (char *)(size_t)(size_t)get_simple_schema();
+  argv1[3] = (char *)(size_t)(size_t) "--no-imports";
+  argv1[4] = (char *)(size_t)(size_t) "--no-wrapping";
+  rc = to_docs_json_cli_main(5, argv1);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }

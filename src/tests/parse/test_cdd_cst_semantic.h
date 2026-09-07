@@ -446,6 +446,10 @@ TEST test_cdd_cst_semantic_extract_null(void) {
       for (i = 0; i < 10; i++) {
         g_fail_io_after = i;
         cdd_cst_build_semantic_info(t2, &env);
+        if (env) {
+          cdd_cst_scope_env_free(env);
+          env = NULL;
+        }
       }
     }
     g_fail_io_after = -1;

@@ -169,6 +169,7 @@ TEST test_strategy_errors(void) {
     free_token_list(tl_dummy);
   }
 
+  patch_list_free(&patches);
   g_fail_io_after = -1;
   free_token_list(tl);
   PASS();
@@ -417,6 +418,7 @@ TEST test_strategy_edge_cases(void) {
     ASSERT_EQ(CDD_C_SUCCESS, strategy_rewrite_realloc(tl, &site, 0, &patches));
 
     /* Hit SEMICOLON */
+    free_token_list(tl);
     tokenize(az_span_create_from_str((char *)(size_t) "; realloc(p, 10);"),
              &tl);
     site.token_index = find_token_index(tl, "realloc");
@@ -424,6 +426,7 @@ TEST test_strategy_edge_cases(void) {
                                  tl, &site, site.token_index + 5, &patches));
 
     /* Hit LBRACE */
+    free_token_list(tl);
     tokenize(az_span_create_from_str((char *)(size_t) "{ realloc(p, 10);"),
              &tl);
     site.token_index = find_token_index(tl, "realloc");
@@ -431,6 +434,7 @@ TEST test_strategy_edge_cases(void) {
                                  tl, &site, site.token_index + 5, &patches));
 
     /* Hit RBRACE */
+    free_token_list(tl);
     tokenize(az_span_create_from_str((char *)(size_t) "} realloc(p, 10);"),
              &tl);
     site.token_index = find_token_index(tl, "realloc");
@@ -438,6 +442,7 @@ TEST test_strategy_edge_cases(void) {
                                  tl, &site, site.token_index + 5, &patches));
 
     /* LBRACE backward scan 2 */
+    free_token_list(tl);
     tokenize(az_span_create_from_str((char *)(size_t) "{ p = realloc(p, 10);"),
              &tl);
     site.token_index = find_token_index(tl, "realloc");
@@ -445,6 +450,7 @@ TEST test_strategy_edge_cases(void) {
                                  tl, &site, site.token_index + 7, &patches));
 
     /* RBRACE backward scan 2 */
+    free_token_list(tl);
     tokenize(az_span_create_from_str((char *)(size_t) "} p = realloc(p, 10);"),
              &tl);
     site.token_index = find_token_index(tl, "realloc");

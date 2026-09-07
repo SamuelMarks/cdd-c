@@ -62,6 +62,14 @@ static cdd_c_error_t find_last_token_mutate(cdd_cst_node_t *node,
   return CDD_C_ERROR_NOT_FOUND;
 }
 
+static void free_trivia_list_mutate(cdd_trivia_t *t) {
+  while (t) {
+    cdd_trivia_t *next = t->next;
+    free(t);
+    t = next;
+  }
+}
+
 C_CDD_EXPORT cdd_c_error_t clone_trivia_list_mutate(cdd_trivia_t *head,
                                                     cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
@@ -360,12 +368,15 @@ cdd_c_error_t cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         rc = clone_trivia_list_mutate(orig_tok->trailing_trivia,
                                       &new_tok->trailing_trivia);
         if (rc != CDD_C_SUCCESS) {
+          free_trivia_list_mutate(new_tok->leading_trivia);
           free(new_tok);
           goto err;
         }
 
         rc = track_synthesized_token_mutate(tree, new_tok);
         if (rc != CDD_C_SUCCESS) {
+          free_trivia_list_mutate(new_tok->leading_trivia);
+          free_trivia_list_mutate(new_tok->trailing_trivia);
           free(new_tok);
           goto err;
         }

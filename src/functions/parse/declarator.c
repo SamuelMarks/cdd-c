@@ -185,6 +185,9 @@ static void free_decl_type(struct DeclType *t) {
   } else if (t->kind == DECL_ARRAY) {
     if (t->data.array.size_expr)
       free(t->data.array.size_expr);
+  } else if (t->kind == DECL_FUNC) {
+    if (t->data.func.args_str)
+      free(t->data.func.args_str);
   }
   free(t);
 }
@@ -294,14 +297,14 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
         if (rc_dc != CDD_C_SUCCESS)
           return rc_dc;
       }
-      if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         {
           cdd_c_error_t rc_dc = skip_ws(tokens, j + 1, end, &j);
           if (rc_dc != CDD_C_SUCCESS)
             return rc_dc;
         }
       }
-      if (tokens->tokens[j].kind == TOKEN_LBRACE) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
         {
           cdd_c_error_t rc_dc =
               skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
@@ -319,7 +322,7 @@ static cdd_c_error_t find_abstract_pivot(const struct TokenList *tokens,
         if (rc_dc != CDD_C_SUCCESS)
           return rc_dc;
       }
-      if (tokens->tokens[j].kind == TOKEN_LPAREN) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
         /* _Atomic(int) ... */
         {
           cdd_c_error_t rc_dc =
@@ -405,14 +408,14 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
         if (rc_dc != CDD_C_SUCCESS)
           return rc_dc;
       }
-      if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
         {
           cdd_c_error_t rc_dc = skip_ws(tokens, j + 1, end, &j);
           if (rc_dc != CDD_C_SUCCESS)
             return rc_dc;
         }
       }
-      if (tokens->tokens[j].kind == TOKEN_LBRACE) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
         {
           cdd_c_error_t rc_dc =
               skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
@@ -428,7 +431,7 @@ static cdd_c_error_t find_pivot(const struct TokenList *tokens, size_t start,
         if (rc_dc != CDD_C_SUCCESS)
           return rc_dc;
       }
-      if (tokens->tokens[j].kind == TOKEN_LPAREN) {
+      if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
         {
           cdd_c_error_t rc_dc =
               skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);

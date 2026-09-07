@@ -81,9 +81,7 @@ TEST test_code2schema_write_oom(void) {
     g_parson_fail_at = -1;
 
     json_value_free(root);
-    C_CDD_FREE(sf.enum_members.members[0]);
-    C_CDD_FREE(sf.enum_members.members);
-    C_CDD_FREE(sf.schema_extra_json);
+    struct_fields_free(&sf);
   }
   PASS();
 }

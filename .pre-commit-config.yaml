@@ -105,7 +105,7 @@ repos:
     pass_filenames: false
   - id: check-enum-returns
     name: Check Enum Returns
-    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" -- -Iinclude -Isrc -I../c-fs/include -I../c-str-span/include -I../c89stringutils/include -I../parson -I../greatest
+    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" --exclude-files "vcpkg/*" --exclude-files "vcpkg*/*" -- -Iinclude -Isrc -I../c-fs/include -I../c-str-span/include -I../c89stringutils/include -I../parson -I../greatest
     language: python
     additional_dependencies: [libclang]
     pass_filenames: false

@@ -352,7 +352,26 @@ static cdd_c_error_t parse_tag_meta_line(const char *line, const char *end,
     }
   }
 
-  return add_tag_meta(out, &meta);
+  {
+    cdd_c_error_t rc = add_tag_meta(out, &meta);
+    if (rc != CDD_C_SUCCESS) {
+      if (meta.name)
+        C_CDD_FREE(meta.name);
+      if (meta.summary)
+        C_CDD_FREE(meta.summary);
+      if (meta.description)
+        C_CDD_FREE(meta.description);
+      if (meta.parent)
+        C_CDD_FREE(meta.parent);
+      if (meta.kind)
+        C_CDD_FREE(meta.kind);
+      if (meta.external_docs_url)
+        C_CDD_FREE(meta.external_docs_url);
+      if (meta.external_docs_description)
+        C_CDD_FREE(meta.external_docs_description);
+    }
+    return rc;
+  }
 }
 
 /**
@@ -793,6 +812,7 @@ static cdd_c_error_t parse_response_header_line(const char *line,
     h->code = NULL;
     return CDD_C_SUCCESS;
   }
+  out->n_response_headers++;
 
   cur = (skip_ws(cur, &_ast_skip_ws_32), _ast_skip_ws_32);
   while (cur < end && *cur == '[') {
@@ -860,7 +880,6 @@ static cdd_c_error_t parse_response_header_line(const char *line,
 
   h->description =
       (extract_rest(cur, end, &_ast_extract_rest_37), _ast_extract_rest_37);
-  out->n_response_headers++;
   return CDD_C_SUCCESS;
 }
 
@@ -1341,6 +1360,7 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
     /* Malformed param line, ignore but don't crash */
     return CDD_C_SUCCESS;
   }
+  out->n_params++;
 
   /* 2. Check for Attributes [key:val] or [required] */
   cur = (skip_ws(cur, &_ast_skip_ws_53), _ast_skip_ws_53);
@@ -1416,7 +1436,6 @@ static cdd_c_error_t parse_param_line(const char *line, const char *end,
   p->description =
       (extract_rest(cur, end, &_ast_extract_rest_56), _ast_extract_rest_56);
 
-  out->n_params++;
   return CDD_C_SUCCESS;
 }
 
@@ -1453,6 +1472,7 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
   if (!r->code) {
     return CDD_C_SUCCESS;
   }
+  out->n_returns++;
 
   /* 2. Optional Attributes [key:val] */
   cur = (skip_ws(cur, &_ast_skip_ws_58), _ast_skip_ws_58);
@@ -1510,7 +1530,6 @@ static cdd_c_error_t parse_return_line(const char *line, const char *end,
   r->description =
       (extract_rest(cur, end, &_ast_extract_rest_62), _ast_extract_rest_62);
 
-  out->n_returns++;
   return CDD_C_SUCCESS;
 }
 
@@ -2322,6 +2341,10 @@ static cdd_c_error_t parse_server_var_line(const char *line, const char *end,
       if (split_enum_values(enum_raw, &var->enum_values, &var->n_enum_values) !=
           0) {
         C_CDD_FREE(enum_raw);
+        C_CDD_FREE(var->name);
+        C_CDD_FREE(var->default_value);
+        if (var->description)
+          C_CDD_FREE(var->description);
         return CDD_C_ERROR_MEMORY;
       }
       C_CDD_FREE(enum_raw);

@@ -64,6 +64,7 @@ TEST test_ffi_ir_extract_exports_all_types(void) {
   ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
   ASSERT_EQ(1, ir != NULL);
   cdd_ffi_ir_free(ir);
+  free(ir);
   remove(filename);
   PASS();
 }

@@ -419,6 +419,7 @@ TEST test_macro_evaluator_uncovered(void) {
   /* escaped string */
   rc = cdd_macro_evaluate(&ctx, "\"foo\\\"bar\"", &res);
   ASSERT_EQ(0, rc);
+  cdd_macro_eval_result_free(&res);
 
   /* unary plus */
   rc = cdd_macro_evaluate(&ctx, "+5", &res);
@@ -449,13 +450,16 @@ TEST test_macro_evaluator_uncovered(void) {
     int fail_idx;
     for (fail_idx = 1; fail_idx < 15; fail_idx++) {
       g_cdd_alloc_fail = fail_idx;
-      cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res);
+      if (cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res) == 0)
+        cdd_macro_eval_result_free(&res);
       g_cdd_alloc_fail = 0;
     }
 
     g_cdd_alloc_fail = 1;
     rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
     g_cdd_alloc_fail = 0;
+    if (rc == 0)
+      cdd_macro_eval_result_free(&res);
 
     rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
     cdd_macro_eval_result_free(&res);

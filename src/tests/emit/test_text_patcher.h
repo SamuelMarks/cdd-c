@@ -1114,6 +1114,7 @@ TEST test_patcher_invalid(void) {
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, patch_list_sort(&pl2)); /* Size is 8 > 1 */
 
+  patch_list_free(&pl2);
   patch_list_init(&pl2);
 
   memset(huge_str, 'x', 1999);

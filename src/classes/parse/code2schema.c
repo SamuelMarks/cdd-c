@@ -1785,23 +1785,13 @@ cdd_c_error_t parse_struct_member_line(const char *line,
           is_slow_query) {
         char cdd_json[256];
         int cdd_len = 0;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        cdd_len = sprintf_s(
+        cdd_len = CDD_SNPRINTF(
             cdd_json, sizeof(cdd_json),
             "{\"x-cdd-shard-key\":%s, \"x-cdd-shard-hash\":%s, "
             "\"x-cdd-track-telemetry\":%s, \"x-cdd-slow-query\":%d}",
             is_shard_key ? "true" : "false", is_shard_hash ? "true" : "false",
             is_track_telemetry ? "true" : "false",
             is_slow_query ? slow_query_ms : 0);
-#else
-        cdd_len = sprintf(
-            cdd_json,
-            "{\"x-cdd-shard-key\":%s, \"x-cdd-shard-hash\":%s, "
-            "\"x-cdd-track-telemetry\":%s, \"x-cdd-slow-query\":%d}",
-            is_shard_key ? "true" : "false", is_shard_hash ? "true" : "false",
-            is_track_telemetry ? "true" : "false",
-            is_slow_query ? slow_query_ms : 0);
-#endif
         if (cdd_len > 0) {
           {
             cdd_c_error_t rc_c2s = merge_schema_extras_strings(
@@ -1824,12 +1814,8 @@ cdd_c_error_t parse_struct_member_line(const char *line,
         } else if ((mapping.kind == OA_TYPE_ARRAY || is_fam) &&
                    openapi_type_is_primitive(mapping.oa_type)) {
           char fmt_json[64];
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(fmt_json, sizeof(fmt_json), "{\"format\":\"%s\"}",
-                    mapping.oa_format);
-#else
-          sprintf(fmt_json, "{\"format\":\"%s\"}", mapping.oa_format);
-#endif
+          CDD_SNPRINTF(fmt_json, sizeof(fmt_json), "{\"format\":\"%s\"}",
+                       mapping.oa_format);
           if (merge_schema_extras_strings(&field->items_extra_json, fmt_json) !=
               0) {
             rc = CDD_C_ERROR_MEMORY;
@@ -2140,34 +2126,18 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
 
     if (json_object_has_value_of_type(prop, "default", JSONString)) {
       const char *s = json_object_get_string(prop, "default");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(default_buf, sizeof(default_buf), "\"%s\"", s);
-#else
-      sprintf(default_buf, "\"%s\"", s);
-#endif
+      CDD_SNPRINTF(default_buf, sizeof(default_buf), "\"%s\"", s);
       d_val = default_buf;
     } else if (json_object_has_value_of_type(prop, "default", JSONNumber)) {
       double d = json_object_get_number(prop, "default");
       if (type && strcmp(type, "integer") == 0)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sprintf_s(default_buf, sizeof(default_buf), "%d", (int)d);
-#else
-        sprintf(default_buf, "%d", (int)d);
-#endif
+        CDD_SNPRINTF(default_buf, sizeof(default_buf), "%d", (int)d);
       else
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sprintf_s(default_buf, sizeof(default_buf), "%f", d);
-#else
-        sprintf(default_buf, "%f", d);
-#endif
+        CDD_SNPRINTF(default_buf, sizeof(default_buf), "%f", d);
       d_val = default_buf;
     } else if (json_object_has_value_of_type(prop, "default", JSONBoolean)) {
       int b = json_object_get_boolean(prop, "default");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(default_buf, sizeof(default_buf), "%d", b);
-#else
-      sprintf(default_buf, "%d", b);
-#endif
+      CDD_SNPRINTF(default_buf, sizeof(default_buf), "%d", b);
       d_val = default_buf;
     }
 
@@ -5875,19 +5845,35 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
   if (sf->is_enum) {
     JSON_Value *enum_val = json_value_init_array();
     JSON_Array *enum_arr = json_value_get_array(enum_val);
+    if (!enum_val || !enum_arr) {
+      if (enum_val)
+        json_value_free(enum_val);
+      json_value_free(val);
+      json_value_free(props_val);
+      return CDD_C_ERROR_MEMORY;
+    }
     json_object_set_string(obj, "type", "string");
     for (i = 0; i < sf->enum_members.size; ++i) {
       const char *member = sf->enum_members.members[i];
       if (member)
         json_array_append_string(enum_arr, member);
     }
-    json_object_set_value(obj, "enum", enum_val);
+    if (json_object_set_value(obj, "enum", enum_val) != JSONSuccess) {
+      json_value_free(enum_val);
+      json_value_free(val);
+      json_value_free(props_val);
+      return CDD_C_ERROR_MEMORY;
+    }
     if (merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
       json_value_free(val);
       json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
-    json_object_set_value(schemas_obj, struct_name, val);
+    if (json_object_set_value(schemas_obj, struct_name, val) != JSONSuccess) {
+      json_value_free(val);
+      json_value_free(props_val);
+      return CDD_C_ERROR_MEMORY;
+    }
     json_value_free(props_val);
     return CDD_C_SUCCESS;
   }
@@ -5925,11 +5911,8 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
           json_object_set_string(items_obj, "type", ref);
         } else {
           char ref_str[128];
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(ref_str, sizeof(ref_str), "#/components/schemas/%s", ref);
-#else
-          sprintf(ref_str, "#/components/schemas/%s", ref);
-#endif
+          CDD_SNPRINTF(ref_str, sizeof(ref_str), "#/components/schemas/%s",
+                       ref);
           json_object_set_string(items_obj, "$ref", ref_str);
         }
       }
@@ -5950,17 +5933,10 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
         char ref_str[128];
         if (ref && *ref) {
           if (ref[0] == '#') {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            sprintf_s(ref_str, sizeof(ref_str), "%s", ref);
-#else
-            sprintf(ref_str, "%s", ref);
-#endif
+            CDD_SNPRINTF(ref_str, sizeof(ref_str), "%s", ref);
           } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            sprintf_s(ref_str, sizeof(ref_str), "#/components/schemas/%s", ref);
-#else
-            sprintf(ref_str, "#/components/schemas/%s", ref);
-#endif
+            CDD_SNPRINTF(ref_str, sizeof(ref_str), "#/components/schemas/%s",
+                         ref);
           }
           json_object_set_string(pobj, "$ref", ref_str);
         } else {
@@ -6025,7 +6001,10 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
     return CDD_C_ERROR_MEMORY;
   }
 
-  json_object_set_value(schemas_obj, struct_name, val);
+  if (json_object_set_value(schemas_obj, struct_name, val) != JSONSuccess) {
+    json_value_free(val);
+    return CDD_C_ERROR_MEMORY;
+  }
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -6626,12 +6605,8 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
                       return rc_c2s;
                   }
                 }
-#if defined(_MSC_VER)
-                sprintf_s(nested_name, sizeof(nested_name), "%s_%s",
-                          struct_name, nested_prop_name);
-#else
-                sprintf(nested_name, "%s_%s", struct_name, nested_prop_name);
-#endif
+                CDD_SNPRINTF(nested_name, sizeof(nested_name), "%s_%s",
+                             struct_name, nested_prop_name);
                 {
                   cdd_c_error_t rc_coll = collapse_arrays(&nested_sf);
                   if (rc_coll != CDD_C_SUCCESS) {

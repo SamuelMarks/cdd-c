@@ -2045,8 +2045,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
     {
       cdd_c_error_t rc_cg = makedirs(src_dir);
-      if (rc_cg != CDD_C_SUCCESS)
+      if (rc_cg != CDD_C_SUCCESS) {
+        free(src_dir);
+        if (dir_name)
+          free(dir_name);
+        if (base_name)
+          free(base_name);
         return rc_cg;
+      }
     }
     actual_base =
         malloc(strlen(src_dir) +

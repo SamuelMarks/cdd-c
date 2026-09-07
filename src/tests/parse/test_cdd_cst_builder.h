@@ -490,9 +490,19 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
 
     rc = cdd_cst_extract_leading_trivia(target_node, &lead);
     ASSERT_EQ(0, rc);
+    while (lead) {
+      cdd_trivia_t *nxt = lead->next;
+      C_CDD_FREE(lead);
+      lead = nxt;
+    }
 
     rc = cdd_cst_extract_trailing_trivia(target_node, &lead);
     ASSERT_EQ(0, rc);
+    while (lead) {
+      cdd_trivia_t *nxt = lead->next;
+      C_CDD_FREE(lead);
+      lead = nxt;
+    }
 
     /* This will transfer L1 L2 to NL1, and T1 to NT1 NT2 */
     rc = cdd_cst_transfer_trivia(target_node, replacement_node);
@@ -550,8 +560,14 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
     ASSERT_EQ(0, rc);
 
     cdd_cst_builder_free(&b);
+    cdd_cst_free_node(target_node);
 
     cdd_cst_tree_free(tree);
+    if (replacement_node_tree) {
+      if (replacement_node_tree->root)
+        replacement_node_tree->root->num_children = 0;
+      cdd_cst_tree_free(replacement_node_tree);
+    }
     g_fail_io_after = -1;
     PASS();
   }
@@ -637,6 +653,7 @@ TEST test_cdd_cst_builder_quote_errors(void) {
 
   tree = (cdd_cst_tree_t *)calloc(1, (unsigned long)sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  tree->root = root;
   cdd_cst_builder_init(&b, tree, root);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_cst_quote(NULL, "abc"));
@@ -1288,13 +1305,24 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
   {
     cdd_cst_node_t *parent_node = NULL;
-    cdd_trivia_t *triv;
+    cdd_trivia_t *triv = NULL;
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &parent_node);
     cdd_cst_append_child_node(parent_node, b.target_node);
 
     ASSERT_EQ(0, cdd_cst_extract_leading_trivia(parent_node, &triv));
+    while (triv) {
+      cdd_trivia_t *nxt = triv->next;
+      C_CDD_FREE(triv);
+      triv = nxt;
+    }
     ASSERT_EQ(0, cdd_cst_extract_trailing_trivia(parent_node, &triv));
+    while (triv) {
+      cdd_trivia_t *nxt = triv->next;
+      C_CDD_FREE(triv);
+      triv = nxt;
+    }
 
+    parent_node->num_children = 0;
     cdd_cst_free_node_only(parent_node);
   }
 
@@ -1398,10 +1426,13 @@ TEST test_cdd_cst_builder_exhaustive(void) {
 
     rc = cdd_cst_transfer_trivia(n1, n2);
     ASSERT_EQ(0, rc);
+    cdd_cst_free_node(n1);
+    cdd_cst_free_node(n2);
   }
 
   {
     /* Test giant snippet format string to hit buffer limits */
+    cdd_cst_node_t *quote_node = NULL;
     char *giant_format = (char *)(size_t)malloc(3000);
     memset(giant_format, 'a', 2999);
     giant_format[2500] = '%';
@@ -1409,8 +1440,8 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     giant_format[2502] = '%';
     giant_format[2503] = 't';
     giant_format[2999] = '\0';
-    cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
-    b.target_node = node;
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &quote_node);
+    b.target_node = quote_node;
     rc = cdd_cst_quote(&b, giant_format, "some_token");
     if (rc != 0)
       printf("cdd_cst_quote failed with %d\\n", rc);
@@ -1432,6 +1463,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     rc = cdd_cst_quote(&b, "invalid format ending with %");
     ASSERT_EQ(0, rc);
     b.error_state = 0;
+    cdd_cst_free_node(quote_node);
   }
 
   /* OOM test for cdd_cst_bld_block_comment */
@@ -1462,6 +1494,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     cdd_cst_alloc_node(CDD_CST_STATEMENT, &empty_node);
     cdd_cst_extract_leading_trivia(empty_node, &tr);
     cdd_cst_extract_trailing_trivia(empty_node, &tr);
+    cdd_cst_free_node_only(empty_node);
   }
 
   /* Test trailing trivia transfer where replacement already has trailing trivia
@@ -1498,7 +1531,9 @@ TEST test_cdd_cst_builder_exhaustive(void) {
       cdd_cst_bld_block_comment(&b, "trail2");
       cdd_cst_bld_block_comment(&b, "trail3");
       cdd_cst_bld_block_comment(&b, "trail4");
+      cdd_cst_free_node(n1);
     }
+    b.target_node = target_with_trail;
     cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "t1");
     /* Attach trailing trivia explicitly */
     {
@@ -1540,6 +1575,7 @@ TEST test_cdd_cst_builder_exhaustive(void) {
     rc = cdd_cst_replace_node_preserve_trivia(&b, target_with_trail,
                                               replacement_with_trail);
     ASSERT_EQ(0, rc);
+    cdd_cst_free_node(target_with_trail);
   }
 
   /* Test empty nodes in trivia extraction */
@@ -1563,7 +1599,9 @@ TEST test_cdd_cst_builder_exhaustive(void) {
       cdd_cst_extract_leading_trivia(parent_node, &lead);
       cdd_cst_extract_trailing_trivia(parent_node, &trail);
     }
+    cdd_cst_free_node(parent_node);
   }
+  node = tree->root->children[0].val.node;
   new_node = tree->root->children[0].val.node;
   rc = cdd_cst_replace_node_preserve_trivia(&b, tree->root, new_node);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -1614,13 +1652,10 @@ TEST test_cdd_cst_builder_long_token(void) {
   cdd_cst_builder_t b;
   cdd_cst_node_t *node = NULL;
   char long_tok[2055];
-  int i;
-  for (i = 0; i < 50; i++)
-    long_tok[i] = 'a';
-  long_tok[2054] = '\0';
+  memset(long_tok, 'a', sizeof(long_tok) - 1);
+  long_tok[sizeof(long_tok) - 1] = '\0';
   cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
-  cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
-  tree->root = node;
+  node = tree->root;
   cdd_cst_builder_init(&b, tree, node);
   ASSERT_EQ(0, cdd_cst_bld_snippet(&b, long_tok));
   cdd_cst_tree_free(tree);

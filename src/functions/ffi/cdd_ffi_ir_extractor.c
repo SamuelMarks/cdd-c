@@ -1128,6 +1128,8 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
       free(ctx.visited);
     pp_context_free(&pp_ctx);
     cdd_ffi_ir_free(ir);
+    free(ir);
+    *out_ir = NULL;
     return rc;
   }
   if (ctx.err != CDD_C_SUCCESS) {
@@ -1139,6 +1141,8 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
       free(ctx.visited);
     pp_context_free(&pp_ctx);
     cdd_ffi_ir_free(ir);
+    free(ir);
+    *out_ir = NULL;
     return local_err;
   }
 
@@ -1152,6 +1156,7 @@ cdd_ffi_ir_extract_exports(const char *filename, const char *content,
         free(ctx.visited);
       pp_context_free(&pp_ctx);
       cdd_ffi_ir_free(ir);
+      free(ir);
       *out_ir = NULL;
       return tmpl_rc;
     }

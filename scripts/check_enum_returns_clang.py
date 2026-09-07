@@ -272,9 +272,17 @@ def should_exclude(
     Returns:
         bool: True if the file should be excluded, False otherwise.
     """
-    path = Path(filepath)
+    normalized_str = filepath.replace("\\", "/")
+    path = Path(normalized_str)
+    normalized_path = path.as_posix()
     for pattern in exclude_patterns:
-        if fnmatch.fnmatch(filepath, pattern) or fnmatch.fnmatch(path.name, pattern):
+        norm_pattern = pattern.replace("\\", "/")
+        if (
+            fnmatch.fnmatch(filepath, pattern)
+            or fnmatch.fnmatch(normalized_str, norm_pattern)
+            or fnmatch.fnmatch(normalized_path, norm_pattern)
+            or fnmatch.fnmatch(path.name, pattern)
+        ):
             return True
 
     if use_default_exceptions:
@@ -282,7 +290,13 @@ def should_exclude(
             path.name, "test_*.h"
         ):
             return True
-        if "test" in path.parts or "tests" in path.parts or "_deps" in path.parts:
+        if (
+            "test" in path.parts
+            or "tests" in path.parts
+            or "_deps" in path.parts
+            or "vcpkg" in path.parts
+            or "vcpkg_installed" in path.parts
+        ):
             return True
     return False
 

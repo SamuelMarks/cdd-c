@@ -244,6 +244,7 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   size_t type_end_idx = 0;
   size_t attr_end_idx = 0;
   size_t storage_end_idx = 0;
+  char *new_args = NULL;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
   if (!tokens || !out_code)
@@ -425,7 +426,6 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
   /* 7. Construct new signature */
   {
     int args_is_empty = 0;
-    char *new_args = NULL;
     char *prefix = sig.attributes ? sig.attributes : "";
     char *k_r_suffix = sig.k_r_decls ? sig.k_r_decls : "";
 
@@ -547,11 +547,12 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
 #endif
         }
       }
-      C_CDD_FREE(new_args);
     }
   }
 
 cleanup:
+  if (new_args)
+    C_CDD_FREE(new_args);
   parsed_sig_C_CDD_FREE(&sig);
   return rc;
 }

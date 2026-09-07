@@ -108,6 +108,17 @@ static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
     }                                                                          \
     break;                                                                     \
   }
+/** @brief Check return code, free struct fields, and close file on error */
+#define F_CHECK_RC_TESTABLE_SF(x)                                              \
+  for (;;) {                                                                   \
+    cdd_c_error_t err = (x);                                                   \
+    if (err != 0) {                                                            \
+      struct_fields_free(&sf);                                                 \
+      fclose(fp);                                                              \
+      return err;                                                              \
+    }                                                                          \
+    break;                                                                     \
+  }
 #else
 /** @brief Global flag to force simulated failure in schema codegen */
 C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
@@ -118,6 +129,19 @@ C_CDD_EXPORT int g_schema_codegen_force_fail = 0;
     if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
       err = CDD_C_ERROR_MEMORY;                                                \
     if (err != 0) {                                                            \
+      fclose(fp);                                                              \
+      return err;                                                              \
+    }                                                                          \
+    break;                                                                     \
+  }
+/** @brief Check return code, free struct fields, and close file on error */
+#define F_CHECK_RC_TESTABLE_SF(x)                                              \
+  for (;;) {                                                                   \
+    cdd_c_error_t err = (x);                                                   \
+    if (g_schema_codegen_force_fail && --g_schema_codegen_force_fail == 0)     \
+      err = CDD_C_ERROR_MEMORY;                                                \
+    if (err != 0) {                                                            \
+      struct_fields_free(&sf);                                                 \
       fclose(fp);                                                              \
       return err;                                                              \
     }                                                                          \
@@ -233,7 +257,7 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_union || is_object_schema) {
-      F_CHECK_RC_TESTABLE(write_forward_decl(fp, name));
+      F_CHECK_RC_TESTABLE_SF(write_forward_decl(fp, name));
     }
     struct_fields_free(&sf);
   }
@@ -264,11 +288,11 @@ C_CDD_EXPORT cdd_c_error_t generate_header(const char *prefix,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      F_CHECK_RC_TESTABLE(write_enum_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(write_enum_declaration_h(fp, name, &sf, config));
     } else if (sf.is_union) {
-      F_CHECK_RC_TESTABLE(write_union_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(write_union_declaration_h(fp, name, &sf, config));
     } else if (is_object_schema) {
-      F_CHECK_RC_TESTABLE(write_struct_declaration_h(fp, name, &sf, config));
+      F_CHECK_RC_TESTABLE_SF(write_struct_declaration_h(fp, name, &sf, config));
     }
 
     struct_fields_free(&sf);
@@ -364,42 +388,46 @@ C_CDD_EXPORT cdd_c_error_t generate_source(const char *prefix,
         (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
 
     if (sf.is_enum) {
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_enum_from_str_func(fp, name, &sf.enum_members, &enum_cfg));
     } else if (sf.is_union) {
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_union_from_json_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC_TESTABLE(write_union_to_json_func(fp, name, &sf, &types_cfg));
-      F_CHECK_RC_TESTABLE(write_union_cleanup_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE_SF(
+          write_union_to_json_func(fp, name, &sf, &types_cfg));
+      F_CHECK_RC_TESTABLE_SF(
+          write_union_cleanup_func(fp, name, &sf, &types_cfg));
     } else if (is_object_schema) {
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
-      F_CHECK_RC_TESTABLE(write_struct_from_json_func(fp, name, &json_cfg));
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(write_struct_from_json_func(fp, name, &json_cfg));
+      F_CHECK_RC_TESTABLE_SF(
           write_struct_array_from_json_func(fp, name, &json_cfg));
-      F_CHECK_RC_TESTABLE(write_struct_to_json_func(fp, name, &sf, &json_cfg));
-      F_CHECK_RC_TESTABLE(write_struct_to_form_urlencoded_func(fp, name, &sf));
+      F_CHECK_RC_TESTABLE_SF(
+          write_struct_to_json_func(fp, name, &sf, &json_cfg));
+      F_CHECK_RC_TESTABLE_SF(
+          write_struct_to_form_urlencoded_func(fp, name, &sf));
       if (strcmp(name, "OAuth2Error") == 0) {
-        F_CHECK_RC_TESTABLE(write_oauth2_error_parser_func(fp, name, &sf));
+        F_CHECK_RC_TESTABLE_SF(write_oauth2_error_parser_func(fp, name, &sf));
       }
       if (strcmp(name, "JwtPayload") == 0) {
-        F_CHECK_RC_TESTABLE(write_struct_from_jwt_func(fp, name, &sf));
+        F_CHECK_RC_TESTABLE_SF(write_struct_from_jwt_func(fp, name, &sf));
       }
       if (strcmp(name, "OAuth2TokenResponse") == 0) {
-        F_CHECK_RC_TESTABLE(
+        F_CHECK_RC_TESTABLE_SF(
             write_struct_from_json_standalone_func(fp, name, &sf));
       }
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_struct_default_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC_TESTABLE(
+      F_CHECK_RC_TESTABLE_SF(
           write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
-      F_CHECK_RC_TESTABLE(write_struct_eq_func(fp, name, &sf, &struct_cfg));
+      F_CHECK_RC_TESTABLE_SF(write_struct_eq_func(fp, name, &sf, &struct_cfg));
     }
 
     struct_fields_free(&sf);

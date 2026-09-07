@@ -76,7 +76,7 @@ TEST test_orchestrator_internals(void) {
                    (char *)(size_t)(size_t) "3"};
   int is_src = 0;
 
-  tokenize(az_span_create_from_str("int a = 1;"), &tl);
+  tokenize(az_span_create_from_str((char *)(size_t) "int a = 1;"), &tl);
 
   /* Test get_token_slice error */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_token_slice(tl, 100, 10, &dst));
@@ -97,7 +97,7 @@ TEST test_orchestrator_internals(void) {
 
   {
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("()"), &tl_paren);
+    tokenize(az_span_create_from_str((char *)(size_t) "()"), &tl_paren);
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
     ASSERT_EQ(NULL, name);
@@ -107,7 +107,7 @@ TEST test_orchestrator_internals(void) {
   {
     /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("foo()"), &tl_paren);
+    tokenize(az_span_create_from_str((char *)(size_t) "foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               extract_func_name(tl_paren, 0, tl_paren->size, &name));
@@ -120,7 +120,7 @@ TEST test_orchestrator_internals(void) {
   {
     /*  (moved to global) */
     struct TokenList *tl_paren = NULL;
-    tokenize(az_span_create_from_str("void foo()"), &tl_paren);
+    tokenize(az_span_create_from_str((char *)(size_t) "void foo()"), &tl_paren);
     g_cdd_alloc_fail = 1;
     ASSERT_EQ(CDD_C_SUCCESS,
               join_tokens_str(tl_paren, 0, tl_paren->size, &name));
@@ -136,7 +136,7 @@ TEST test_orchestrator_internals(void) {
     struct TokenList *my_tl = NULL;
     int is_ptr = 0, is_void = 0;
     char *type_str = NULL;
-    tokenize(az_span_create_from_str("void foo()"), &my_tl);
+    tokenize(az_span_create_from_str((char *)(size_t) "void foo()"), &my_tl);
     /* Change the keyword void to identifier to test the fallback */
     my_tl->tokens[0].kind = TOKEN_IDENTIFIER;
 

@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 
 /** @brief safe_crt_arena_t */
@@ -935,11 +936,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           strcpy(safe_name, "strnlen_s");
 #endif
         } else {
-#if defined(_MSC_VER)
-          sprintf_s(safe_name, sizeof(safe_name), "%s_s", name);
-#else
-          sprintf(safe_name, "%s_s", name);
-#endif
+          CDD_SNPRINTF(safe_name, sizeof(safe_name), "%s_s", name);
         }
 
         clone_token(bld->tree, node->tok, &ct);
@@ -1454,11 +1451,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
-#if defined(_MSC_VER)
-          sprintf_s(safe_call, sizeof(safe_call), "%s_s", call_name);
-#else
-          sprintf(safe_call, "%s_s", call_name);
-#endif
+          CDD_SNPRINTF(safe_call, sizeof(safe_call), "%s_s", call_name);
           while (t && t != node) {
             cdd_token_t *ct = NULL;
             clone_token(bld->tree, t->tok, &ct);
@@ -1486,11 +1479,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
-#if defined(_MSC_VER)
-          sprintf_s(safe_call, sizeof(safe_call), "%s_s", call_name);
-#else
-          sprintf(safe_call, "%s_s", call_name);
-#endif
+          CDD_SNPRINTF(safe_call, sizeof(safe_call), "%s_s", call_name);
 
           if (node->tok->leading_trivia) {
             cdd_token_t *ct_space = NULL;

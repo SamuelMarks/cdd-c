@@ -447,6 +447,7 @@ TEST test_weaver_oom(void) {
     for (j = 1; j < 20; j++) {
       patch_list_free(&patches);
       patch_list_init(&patches);
+      free(patches.patches);
       patches.capacity = 1;
       patches.size = 1;
       patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
@@ -464,6 +465,7 @@ TEST test_weaver_oom(void) {
     for (j = 1; j < 20; j++) {
       patch_list_free(&patches);
       patch_list_init(&patches);
+      free(patches.patches);
       patches.capacity = 1;
       patches.size = 1;
       patches.patches = C_CDD_CALLOC(1, sizeof(struct Patch));
