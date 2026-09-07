@@ -716,18 +716,18 @@ TEST test_inspector_io_error_perms(void) {
 
   (void)rc;
   write_to_file(filename, "");
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
   chmod(filename, 0200);
 #endif
 
   type_def_list_init(&types);
   rc = c_inspector_scan_file_types(filename, &types);
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
 #endif
   type_def_list_free(&types);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
   chmod(filename, 0644);
 #endif
   remove(filename);

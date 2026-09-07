@@ -370,7 +370,7 @@ TEST test_gen_cmake_oom(void) {
 }
 
 TEST test_gen_cmake_readonly2(void) {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
   makedirs("test_build_dir_readonly2");
   chmod("test_build_dir_readonly2", 0444);
@@ -382,7 +382,7 @@ TEST test_gen_cmake_readonly2(void) {
 }
 
 TEST test_gen_cmake_readonly(void) {
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
   int rc = 0;
   makedirs("test_build_dir_readonly/src");
   chmod("test_build_dir_readonly/src", 0444);

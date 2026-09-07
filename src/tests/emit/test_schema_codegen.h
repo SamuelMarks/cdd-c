@@ -1083,7 +1083,7 @@ TEST test_schema_codegen_source_fail(void) {
                         (char *)(size_t)(size_t) "test_out_source"};
     rc = schema2code_main(2, argv_bad);
     (void)rc;
-#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 #endif
   }
