@@ -756,6 +756,230 @@ TEST test_codegen_security_write_server_apply_nulls(void) {
   PASS();
 }
 
+TEST test_codegen_security_branches(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme schemes[10];
+  struct OpenAPI_SecurityRequirement req;
+  struct OpenAPI_SecurityRequirementSet set;
+  FILE *tmp = TMPFILE();
+
+  memset(&op, 0, sizeof(op));
+  memset(&spec, 0, sizeof(spec));
+  memset(schemes, 0, sizeof(schemes));
+  memset(&req, 0, sizeof(req));
+  memset(&set, 0, sizeof(set));
+
+  /* 1. Line 61: strncmp != 0 when base_len >= self_len */
+  ASSERT_EQ(CDD_C_SUCCESS, ref_base_matches_self_uri_test(
+                               "self_longer_str", "different_prefix", 16));
+
+  /* 2. Line 96: strncmp != 0 with hash present */
+  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
+                               "file.json#not_components", "foo", &spec));
+
+  /* 3. Line 148: op == NULL in resolve_active_security */
+  spec.security_set = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            resolve_active_security_test(NULL, &spec, NULL, NULL, NULL));
+
+  /* 4. Line 206 & 236: sch->type == OA_SEC_APIKEY but sch->in mismatch, and
+   * sch->type != OA_SEC_APIKEY */
+  schemes[0].type = OA_SEC_APIKEY;
+  schemes[0].in = OA_SEC_IN_HEADER;
+  schemes[0].name = (char *)(size_t) "hdrKey";
+  spec.security_schemes = schemes;
+  spec.n_security_schemes = 1;
+  /* Make scheme active by matching requirement or no security_set */
+  op.security_set = 0;
+  spec.security_set = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+
+  /* Non-APIKEY scheme (e.g. OA_SEC_HTTP) */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].name = (char *)(size_t) "httpSch";
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_query(&op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_requires_cookie(&op, &spec));
+
+  /* 5. Line 257 & 387: null checks on fp, op, spec */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_apply(tmp, NULL, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_apply(tmp, &op, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_server_apply(tmp, NULL, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            codegen_security_write_server_apply(tmp, &op, NULL));
+
+  /* 6. Line 268 & 397: security_schemes != NULL but n_security_schemes == 0,
+   * AND security_schemes == NULL with n_security_schemes > 0 */
+  spec.security_schemes = schemes;
+  spec.n_security_schemes = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  spec.security_schemes = NULL;
+  spec.n_security_schemes = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* 7. Lines 279, 291, 304, 314, 315, 332, 333, 367, 406, 408, 416:
+     Incomplete schemes (name set but key_name NULL, http with scheme NULL or
+     other, etc.) */
+  /* Scheme 0: APIKEY HEADER with name but key_name NULL */
+  schemes[0].type = OA_SEC_APIKEY;
+  schemes[0].in = OA_SEC_IN_HEADER;
+  schemes[0].name = (char *)(size_t) "hdr";
+  schemes[0].key_name = NULL;
+
+  /* Scheme 1: HTTP with scheme NULL */
+  schemes[1].type = OA_SEC_HTTP;
+  schemes[1].name = (char *)(size_t) "http_no_scheme";
+  schemes[1].scheme = NULL;
+
+  /* Scheme 2: HTTP with scheme other than bearer or basic */
+  schemes[2].type = OA_SEC_HTTP;
+  schemes[2].name = (char *)(size_t) "http_digest";
+  schemes[2].scheme = (char *)(size_t) "digest";
+
+  /* Scheme 3: APIKEY QUERY with name but key_name NULL */
+  schemes[3].type = OA_SEC_APIKEY;
+  schemes[3].in = OA_SEC_IN_QUERY;
+  schemes[3].name = (char *)(size_t) "qry";
+  schemes[3].key_name = NULL;
+
+  /* Scheme 4: APIKEY COOKIE with name but key_name NULL */
+  schemes[4].type = OA_SEC_APIKEY;
+  schemes[4].in = OA_SEC_IN_COOKIE;
+  schemes[4].name = (char *)(size_t) "ck";
+  schemes[4].key_name = NULL;
+
+  /* Scheme 5: MutualTLS (type other than any handled) */
+  schemes[5].type = OA_SEC_MUTUALTLS;
+  schemes[5].name = (char *)(size_t) "mtls";
+
+  /* Scheme 6: OpenID connect */
+  schemes[6].type = OA_SEC_OPENID;
+  schemes[6].name = (char *)(size_t) "oidc";
+
+  /* Scheme 7: APIKEY with unknown in */
+  schemes[7].type = OA_SEC_APIKEY;
+  schemes[7].in = OA_SEC_IN_UNKNOWN;
+  schemes[7].name = (char *)(size_t) "unk_key";
+
+  spec.n_security_schemes = 8;
+  spec.security_schemes = schemes;
+
+  /* Explicitly make them active via requirement sets */
+  req.scheme = (char *)(size_t) "hdr";
+  set.requirements = &req;
+  set.n_requirements = 1;
+  op.security = &set;
+  op.n_security = 1;
+  op.security_set = 1;
+
+  /* Test with security_set = 0 so all schemes are unconditionally active! */
+  op.security_set = 0;
+  spec.security_set = 0;
+
+  /* Write apply with these incomplete schemes - covers key_name == NULL, scheme
+   * == NULL, digest, etc. */
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* Now test has_security == 0 by having only unhandled schemes */
+  spec.n_security_schemes = 1;
+  schemes[0].type = OA_SEC_MUTUALTLS;
+  schemes[0].name = (char *)(size_t) "mtls_only";
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+
+  /* Test single scheme cases for exact branches */
+  /* HTTP without scheme in server apply */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = NULL;
+  schemes[0].name = (char *)(size_t) "h1";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* HTTP with unknown scheme (digest) in server apply */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = (char *)(size_t) "digest";
+  schemes[0].name = (char *)(size_t) "h2";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* HTTP with basic in server apply */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = (char *)(size_t) "basic";
+  schemes[0].name = (char *)(size_t) "h3";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* HTTP with bearer in server apply */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = (char *)(size_t) "bearer";
+  schemes[0].name = (char *)(size_t) "h4";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* OAuth2 in server apply */
+  schemes[0].type = OA_SEC_OAUTH2;
+  schemes[0].name = (char *)(size_t) "h5";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* OpenID in server apply */
+  schemes[0].type = OA_SEC_OPENID;
+  schemes[0].name = (char *)(size_t) "h6";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            codegen_security_write_server_apply(tmp, &op, &spec));
+
+  /* APIKey Query with name and key_name in write_apply */
+  schemes[0].type = OA_SEC_APIKEY;
+  schemes[0].in = OA_SEC_IN_QUERY;
+  schemes[0].name = (char *)(size_t) "q1";
+  schemes[0].key_name = (char *)(size_t) "key1";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+
+  /* APIKey Cookie with name and key_name in write_apply */
+  schemes[0].type = OA_SEC_APIKEY;
+  schemes[0].in = OA_SEC_IN_COOKIE;
+  schemes[0].name = (char *)(size_t) "c1";
+  schemes[0].key_name = (char *)(size_t) "ck1";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+
+  /* APIKey Header with name and key_name in write_apply */
+  schemes[0].type = OA_SEC_APIKEY;
+  schemes[0].in = OA_SEC_IN_HEADER;
+  schemes[0].name = (char *)(size_t) "hd1";
+  schemes[0].key_name = (char *)(size_t) "X-Hdr";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+
+  /* HTTP Basic with name, scheme="basic" in write_apply */
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = (char *)(size_t) "basic";
+  schemes[0].name = (char *)(size_t) "b1";
+  spec.n_security_schemes = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, codegen_security_write_apply(tmp, &op, &spec));
+
+  if (tmp)
+    fclose(tmp);
+  PASS();
+}
+
 TEST test_security_errors(void) {
   char *_out = NULL;
   struct OpenAPI_Spec spec;
@@ -793,6 +1017,7 @@ TEST test_security_errors(void) {
 }
 
 SUITE(codegen_security_suite) {
+  RUN_TEST(test_codegen_security_branches);
   RUN_TEST(test_security_errors);
   RUN_TEST(test_sec_bearer_token);
   RUN_TEST(test_sec_oauth2_bearer_token);

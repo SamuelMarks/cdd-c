@@ -52,6 +52,11 @@ struct ParsedSig {
  * @brief Initialize ParsedSig to NULLs.
  */
 static cdd_c_error_t parsed_sig_init(struct ParsedSig *sig) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_parsed_sig_init;
+  if (g_cdd_fail_parsed_sig_init && --g_cdd_fail_parsed_sig_init == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   sig->attributes = NULL;
   sig->storage = NULL;
   sig->ret_type = NULL;
@@ -140,6 +145,11 @@ static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,
                                        enum TokenKind close, size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_find_balanced_end;
+  if (g_cdd_fail_find_balanced_end && --g_cdd_fail_find_balanced_end == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
   while (i < tokens->size && depth > 0) {
     if (tokens->tokens[i].kind == open) {
@@ -193,6 +203,11 @@ static int check_is_void(const struct TokenList *tokens, size_t start,
  */
 static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
   const char *p = args;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_args_represent_void;
+  if (g_cdd_fail_args_represent_void && --g_cdd_fail_args_represent_void == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!args || !out_is_empty)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_empty = 0;
@@ -214,6 +229,13 @@ static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
   }
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
+                                                    int *out_is_empty) {
+  return args_represent_void(args, out_is_empty);
+}
+#endif
 
 /**
  * @brief Check if a range contains meaningful tokens (not just
@@ -391,8 +413,10 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     {
       cdd_c_error_t rc_rw = find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN,
                                               TOKEN_RPAREN, &rparen);
-      if (rc_rw != CDD_C_SUCCESS)
-        return rc_rw;
+      if (rc_rw != CDD_C_SUCCESS) {
+        rc = rc_rw;
+        goto cleanup;
+      }
     }
     if (rparen >= tokens->size) {
       rc = CDD_C_ERROR_INVALID_ARGUMENT;

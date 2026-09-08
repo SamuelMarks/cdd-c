@@ -8,47 +8,44 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
-#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/memory.h"
+#include "c_cdd_export.h"
 #include "functions/parse/desig_init.h"
 /* clang-format on */
 
 /**
  * @brief Duplicates a string up to a specified number of characters.
  *
+ * @param[in] s Source string
+ * @param[in] n Maximum characters to copy
+ * @param[out] _out_val Pointer to receive allocated string
+ * @return CDD_C_SUCCESS on success, error enum on failure
  */
 static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = NULL;
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-      d = NULL;
-    else
-      d = (char *)(size_t)malloc(n + 1);
-  }
-#else
-  d = (char *)(size_t)malloc(n + 1);
-#endif
+  if (!s || !_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  d = (char *)(size_t)C_CDD_MALLOC(n + 1);
   if (!d) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
   }
   memcpy(d, s, n);
   d[n] = '\0';
-  {
-    *_out_val = d;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = d;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Initializes a designated initializer list.
  *
+ * @param[out] list Designated initializer list to initialize
+ * @return CDD_C_SUCCESS on success, error enum on failure
  */
 cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
   if (!list)
@@ -62,6 +59,7 @@ cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
 /**
  * @brief Frees a designated initializer list.
  *
+ * @param[in,out] list Designated initializer list to release
  */
 void desig_init_list_free(struct DesigInitList *list) {
   size_t i;
@@ -82,6 +80,9 @@ void desig_init_list_free(struct DesigInitList *list) {
 /**
  * @brief Executes the scan for designated initializers operation.
  *
+ * @param[in] tokens Token list to scan
+ * @param[out] list Designated initializer list to populate
+ * @return CDD_C_SUCCESS on success, error enum on failure
  */
 cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
                                                struct DesigInitList *list) {
@@ -99,20 +100,10 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
       if (brace_depth >= brace_cap) {
         size_t *new_stack;
         brace_cap = brace_cap == 0 ? 16 : brace_cap * 2;
-#ifdef CDD_BUILD_TESTS
-        {
-          extern C_CDD_EXPORT int g_cdd_fail_alloc;
-          if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-            new_stack = NULL;
-          else
-            new_stack =
-                (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
-        }
-#else
-        new_stack = (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
-#endif
+        new_stack =
+            (size_t *)C_CDD_REALLOC(brace_stack, brace_cap * sizeof(size_t));
         if (!new_stack) {
-          res = ENOMEM;
+          res = CDD_C_ERROR_MEMORY;
           goto cleanup;
         }
         brace_stack = new_stack;
@@ -121,7 +112,6 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
     } else if (tokens->tokens[i].kind == TOKEN_RBRACE) {
       if (brace_depth > 0) {
         brace_depth--;
-        /* We could process brace blocks here if needed */
       }
     } else if (brace_depth > 0 && tokens->tokens[i].kind == TOKEN_DOT) {
       /* Look for `. identifier = expression` */
@@ -177,24 +167,16 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
           }
 
           if (list->count >= list->capacity) {
-            list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-#ifdef CDD_BUILD_TESTS
-            {
-              extern C_CDD_EXPORT int g_cdd_fail_alloc;
-              if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-                list->sites = NULL;
-              else
-                list->sites = (struct DesigInitSite *)realloc(
-                    list->sites, list->capacity * sizeof(struct DesigInitSite));
-            }
-#else
-            list->sites = (struct DesigInitSite *)realloc(
-                list->sites, list->capacity * sizeof(struct DesigInitSite));
-#endif
-            if (!list->sites) {
-              res = ENOMEM;
+            struct DesigInitSite *new_sites;
+            size_t new_cap = list->capacity == 0 ? 4 : list->capacity * 2;
+            new_sites = (struct DesigInitSite *)C_CDD_REALLOC(
+                list->sites, new_cap * sizeof(struct DesigInitSite));
+            if (!new_sites) {
+              res = CDD_C_ERROR_MEMORY;
               goto cleanup;
             }
+            list->sites = new_sites;
+            list->capacity = new_cap;
           }
 
           {
@@ -202,16 +184,15 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
             s->start_token_idx = dot_idx;
             s->end_token_idx = expr_end;
             s->brace_start_idx = brace_stack[brace_depth - 1];
-            s->brace_end_idx =
-                0; /* Will be resolved later if needed, hard to know exact end
-                      in forward pass without full parse */
+            s->brace_end_idx = 0;
+            s->field_name = NULL;
+            s->value_expr = NULL;
 
-            if (c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
-                              tokens->tokens[ident_idx].length,
-                              &s->field_name) != CDD_C_SUCCESS) {
-              res = ENOMEM;
+            res =
+                c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
+                              tokens->tokens[ident_idx].length, &s->field_name);
+            if (res != CDD_C_SUCCESS)
               goto cleanup;
-            }
 
             if (expr_end > expr_start) {
               const char *e_start =
@@ -219,16 +200,14 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
               const char *e_end =
                   (const char *)tokens->tokens[expr_end - 1].start +
                   tokens->tokens[expr_end - 1].length;
-              if (c_cdd_strndup(e_start, (size_t)(e_end - e_start),
-                                &s->value_expr) != CDD_C_SUCCESS) {
-                res = ENOMEM;
+              res = c_cdd_strndup(e_start, (size_t)(e_end - e_start),
+                                  &s->value_expr);
+              if (res != CDD_C_SUCCESS)
                 goto cleanup;
-              }
             } else {
-              if (c_cdd_strndup("", 0, &s->value_expr) != CDD_C_SUCCESS) {
-                res = ENOMEM;
+              res = c_cdd_strndup("", 0, &s->value_expr);
+              if (res != CDD_C_SUCCESS)
                 goto cleanup;
-              }
             }
 
             list->count++;
@@ -245,3 +224,19 @@ cleanup:
     free(brace_stack);
   return res;
 }
+
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Helper for testing internal error conditions.
+ *
+ * @return CDD_C_SUCCESS on success, error enum on failure
+ */
+C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void);
+C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void) {
+  char *out = NULL;
+  cdd_c_error_t err1 = c_cdd_strndup(NULL, 0, &out);
+  cdd_c_error_t err2 = c_cdd_strndup("a", 1, NULL);
+  return (cdd_c_error_t)((err1 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err2 ^ CDD_C_ERROR_INVALID_ARGUMENT));
+}
+#endif

@@ -51,6 +51,11 @@ void hoist_site_list_free(struct HoistSiteList *list) {
  */
 static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
                                            int *out_is_basic) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_is_basic_type_keyword_fail;
+  if (g_is_basic_type_keyword_fail && --g_is_basic_type_keyword_fail == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:

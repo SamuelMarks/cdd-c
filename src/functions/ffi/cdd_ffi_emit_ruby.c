@@ -112,8 +112,9 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
   {
     if (g_fail_io_after == 1) {
-      if (f)
+      if (f) {
         fclose(f);
+      }
       return CDD_C_ERROR_UNKNOWN;
     }
   }
@@ -211,9 +212,10 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #endif
     {
       if (g_fail_io_after == 2) {
-        if (fc)
+        if (fc) {
           fclose(fc);
-        fc = NULL;
+          fc = NULL;
+        }
       }
     }
     if (fc) {
@@ -260,9 +262,10 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 #endif
     {
       if (g_fail_io_after == 3) {
-        if (f)
+        if (f) {
           fclose(f);
-        f = NULL;
+          f = NULL;
+        }
       }
     }
     if (f) {

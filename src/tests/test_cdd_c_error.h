@@ -47,6 +47,10 @@ TEST test_cdd_c_strerror(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, strcmp(out, "Unknown error"));
 
+  rc = cdd_c_strerror((cdd_c_error_t)999, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, strcmp(out, "Unknown error"));
+
   /* Test out == NULL */
   rc = cdd_c_strerror(CDD_C_SUCCESS, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);

@@ -94,6 +94,24 @@ TEST test_scan_for_vlas_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, scan_for_vlas(tl, NULL));
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_vla_basic_type;
+    struct TokenList *tl_vla = NULL;
+    tokenize(az_span_create_from_str((char *)(size_t) "int a[n];"), &tl_vla);
+
+    g_cdd_fail_vla_basic_type = 1;
+    ASSERT_NEQ(0, scan_for_vlas(tl_vla, &list));
+    g_cdd_fail_vla_basic_type = 0;
+
+    g_cdd_fail_vla_basic_type = 2;
+    ASSERT_NEQ(0, scan_for_vlas(tl_vla, &list));
+    g_cdd_fail_vla_basic_type = 0;
+
+    free_token_list(tl_vla);
+  }
+#endif
+
   free_token_list(tl);
   g_fail_io_after = -1;
   PASS();

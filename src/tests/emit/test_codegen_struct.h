@@ -30,6 +30,7 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_struct_fields_init_fail;
 extern C_CDD_EXPORT int g_struct_fields_add_fail;
+extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
 
 static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_init(sf);
@@ -705,7 +706,7 @@ TEST test_struct_exhaustive_io(void) {
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 120; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -721,7 +722,7 @@ TEST test_struct_exhaustive_io(void) {
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 120; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -853,6 +854,132 @@ TEST test_struct_fields_init_oom(void) {
   struct_fields_free(NULL);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
+
+  /* Test get_type_from_ref failure via g_cdd_fail_str_after_last */
+  {
+    FILE *tmp;
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
+#else
+    tmp = cdd_test_tmpfile_global();
+#endif
+    if (tmp) {
+      struct StructFields sf_ref;
+      struct CodegenStructConfig cfg;
+      struct StructFields sf_arr;
+      struct StructFields sf_empty;
+      struct StructFields sf_arr_prim;
+      struct StructFields sf_str;
+      struct StructFields sf_obj;
+      struct StructFields sf_enum;
+      struct_fields_init(&sf_ref);
+      struct_fields_add(&sf_ref, "item", "object", "#/definitions/Item", "{}",
+                        NULL);
+
+      struct_fields_init(&sf_arr);
+      struct_fields_add(&sf_arr, "items", "array", "#/definitions/Item", NULL,
+                        NULL);
+
+      struct_fields_init(&sf_arr_prim);
+      struct_fields_add(&sf_arr_prim, "arr_int", "array", "integer", NULL,
+                        NULL);
+      struct_fields_add(&sf_arr_prim, "arr_str", "array", "string", NULL, NULL);
+
+      struct_fields_init(&sf_empty);
+
+      struct_fields_init(&sf_str);
+      struct_fields_add(&sf_str, "str_f", "string", NULL, "\"val\"", NULL);
+
+      struct_fields_init(&sf_obj);
+      struct_fields_add(&sf_obj, "obj_f", "object", "#/definitions/Item", NULL,
+                        NULL);
+
+      struct_fields_init(&sf_enum);
+      struct_fields_add(&sf_enum, "enum_f", "enum", "#/definitions/MyEnum",
+                        "\"FOO\"", NULL);
+
+      cfg.guard_macro = (char *)(size_t) "MY_GUARD";
+
+      /* cleanup with array of ref objects failing get_type_from_ref */
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                write_struct_cleanup_func(tmp, "Test", &sf_arr, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* eq with array of ref objects failing get_type_from_ref */
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                write_struct_eq_func(tmp, "Test", &sf_arr, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* default with ref object failing get_type_from_ref */
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                write_struct_default_func(tmp, "Test", &sf_ref, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* debug with ref object failing get_type_from_ref */
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+                write_struct_debug_func(tmp, "Test", &sf_ref, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* eq with array but empty array fields so iter_needed is true */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_eq_func(tmp, "TestArr", &sf_arr_prim, &cfg));
+      /* eq with non-array struct with guard to hit iter_needed false and guard
+       * branch */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_eq_func(tmp, "TestNoArr", &sf_str, &cfg));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_eq_func(tmp, "TestNoArrNoGuard", &sf_str, NULL));
+
+      /* default with enum */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_default_func(tmp, "TestEnum", &sf_enum, &cfg));
+      ASSERT_EQ(CDD_C_SUCCESS, write_struct_default_func(tmp, "TestEnumNoGuard",
+                                                         &sf_enum, NULL));
+
+      /* debug with array and guard */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_debug_func(tmp, "TestArrDbg", &sf_arr_prim, &cfg));
+      /* debug with non-array struct without guard */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_debug_func(tmp, "TestNoArrDbg", &sf_str, NULL));
+      /* debug with non-array struct with guard */
+      ASSERT_EQ(CDD_C_SUCCESS,
+                write_struct_debug_func(tmp, "TestNoArrDbgG", &sf_str, &cfg));
+      /* test failing at every step in write_struct_debug_func including final
+       * #endif */
+      {
+        int fail_step;
+        cdd_c_error_t rc_step;
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_debug_func(tmp, "TestNoArrDbgG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+      }
+      g_fail_io_after = -1;
+      g_io_calls = 0;
+
+      struct_fields_free(&sf_ref);
+      struct_fields_free(&sf_arr);
+      struct_fields_free(&sf_arr_prim);
+      struct_fields_free(&sf_empty);
+      struct_fields_free(&sf_str);
+      struct_fields_free(&sf_obj);
+      struct_fields_free(&sf_enum);
+      fclose(tmp);
+    }
+  }
+
   PASS();
 }
 

@@ -16,26 +16,6 @@
 #include <string.h>
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-/** @brief Mockable or standard fopen wrapper */
-#define FOPEN(path, mode)                                                      \
-  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
-       ? NULL                                                                  \
-       : fopen(path, mode))
-/** @brief Mockable or standard fopen_s wrapper */
-#define FOPEN_S(fp, path, mode)                                                \
-  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
-       ? (*(fp) = NULL, -1)                                                    \
-       : fopen_s(fp, path, mode))
-#else
-/** @brief Mockable or standard fopen wrapper */
-#define FOPEN(path, mode) fopen(path, mode)
-/** @brief Mockable or standard fopen_s wrapper */
-#define FOPEN_S(fp, path, mode) fopen_s(fp, path, mode)
-#endif
-
 #if defined(_MSC_VER)
 /** @brief SNPRINTF macro for MSVC */
 #define SNPRINTF _snprintf
@@ -72,55 +52,48 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     }
     rc = get_basename(config->filename_base, &base_name);
     if (rc != CDD_C_SUCCESS) {
-      if (dir_name)
-        C_CDD_FREE(dir_name);
+      C_CDD_FREE(dir_name);
       C_CDD_FREE(src_dir);
       return rc;
     }
 #if defined(_MSC_VER)
-    sprintf_s(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
+    sprintf_s(src_dir, 512, "%s/src", dir_name);
 #else
-    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    sprintf(src_dir, "%s/src", dir_name);
 #endif
     {
       cdd_c_error_t rc_cgg = makedirs(src_dir);
       if (rc_cgg != CDD_C_SUCCESS) {
         C_CDD_FREE(src_dir);
-        if (dir_name)
-          C_CDD_FREE(dir_name);
-        if (base_name)
-          C_CDD_FREE(base_name);
+        C_CDD_FREE(dir_name);
+        C_CDD_FREE(base_name);
         return rc_cgg;
       }
     }
-    CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
-                 base_name ? base_name : "generated_client");
-    CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
-                 base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir, base_name);
+    CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
-    if (dir_name)
-      C_CDD_FREE(dir_name);
-    if (base_name)
-      C_CDD_FREE(base_name);
+    C_CDD_FREE(dir_name);
+    C_CDD_FREE(base_name);
   }
 
 #if defined(_MSC_VER)
-  if (FOPEN_S(&fp_h, path_h, "w") != 0)
-    fp_h = NULL;
-  if (FOPEN_S(&fp_c, path_c, "w") != 0)
-    fp_c = NULL;
-#else
-  fp_h = FOPEN(path_h, "w");
-  fp_c = FOPEN(path_c, "w");
-#endif
-
-  if (!fp_h || !fp_c) {
-    if (fp_h)
-      fclose(fp_h);
-    if (fp_c)
-      fclose(fp_c);
+  if (fopen_s(&fp_h, path_h, "w") != 0 || !fp_h)
+    return CDD_C_ERROR_IO;
+  if (fopen_s(&fp_c, path_c, "w") != 0 || !fp_c) {
+    fclose(fp_h);
     return CDD_C_ERROR_IO;
   }
+#else
+  fp_h = fopen(path_h, "w");
+  if (!fp_h)
+    return CDD_C_ERROR_IO;
+  fp_c = fopen(path_c, "w");
+  if (!fp_c) {
+    fclose(fp_h);
+    return CDD_C_ERROR_IO;
+  }
+#endif
 
   /* Header Generation */
   fprintf(fp_h, "/* Generated GUI & Token Flow Code */\n");
@@ -151,13 +124,14 @@ openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     char *base = NULL;
     {
       cdd_c_error_t rc_cgg = get_basename(config->filename_base, &base);
-      if (rc_cgg != CDD_C_SUCCESS)
+      if (rc_cgg != CDD_C_SUCCESS) {
+        fclose(fp_h);
+        fclose(fp_c);
         return rc_cgg;
+      }
     }
-    fprintf(fp_c, "#include \"%s_gui.h\"\n",
-            base ? base : config->filename_base);
-    if (base)
-      C_CDD_FREE(base);
+    fprintf(fp_c, "#include \"%s_gui.h\"\n", base);
+    C_CDD_FREE(base);
   }
   fprintf(fp_c, "#include <stdio.h>\n");
   fprintf(fp_c, "#include <stdlib.h>\n");

@@ -51,6 +51,11 @@ extern "C" {
 extern C_CDD_EXPORT cdd_c_error_t
 rewrite_signature(const struct TokenList *tokens, char **out_code);
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
+                                                           int *out_is_empty);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -758,7 +758,7 @@ TEST test_types_exhaustive_io(void) {
 
   sf.union_is_anyof = 0;
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 150; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -777,7 +777,7 @@ TEST test_types_exhaustive_io(void) {
       printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 150; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -796,7 +796,7 @@ TEST test_types_exhaustive_io(void) {
       printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 150; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -815,7 +815,7 @@ TEST test_types_exhaustive_io(void) {
       printf("WARNING: Loop reached 2000!\n");
   }
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 150; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))

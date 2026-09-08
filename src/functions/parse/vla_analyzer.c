@@ -88,6 +88,11 @@ void vla_site_list_free(struct VLASiteList *list) {
  */
 static cdd_c_error_t is_basic_type_keyword(enum TokenKind k,
                                            int *out_is_basic) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_vla_basic_type;
+  if (g_cdd_fail_vla_basic_type && --g_cdd_fail_vla_basic_type == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_basic)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_basic = 0;

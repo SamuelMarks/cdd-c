@@ -658,6 +658,15 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     cdd_ffi_emit_##lang(ir, &config);                                          \
     config.library_name = (char *)(size_t)(size_t)(size_t) "test_Lib_name";    \
                                                                                \
+    {                                                                          \
+      static char med_name[90];                                                \
+      memset(med_name, 'A', sizeof(med_name) - 1);                             \
+      med_name[sizeof(med_name) - 1] = '\0';                                   \
+      config.library_name = med_name;                                          \
+      cdd_ffi_emit_##lang(ir, &config);                                        \
+      config.library_name = (char *)(size_t)(size_t)(size_t) "test_Lib_name";  \
+    }                                                                          \
+                                                                               \
     ir->nodes[0].fields_count = 0;                                             \
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
@@ -665,6 +674,7 @@ static void free_dummy_ir(cdd_ffi_ir_t *ir) {
     cdd_ffi_emit_##lang(ir, &config);                                          \
                                                                                \
     free_dummy_ir(ir);                                                         \
+    g_fail_io_after = -1;                                                      \
     PASS();                                                                    \
   }
 
@@ -890,13 +900,147 @@ TEST test_ffi_emit_perl_dir(void) {
   PASS();
 }
 
+TEST test_ffi_emit_csharp_makedir(void) {
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_out_dir_cs_new";
+  cdd_c_error_t rc;
+
+  (void)remove("test_out_dir_cs_new/Bindings.cs");
+  (void)remove("test_out_dir_cs_new/BindingsTests.cs");
+  (void)remove("test_out_dir_cs_new/test_Lib_nameBindings.csproj");
+  (void)remove("test_out_dir_cs_new/TestMod.cs");
+#ifdef _WIN32
+  _rmdir(test_dir);
+#else
+  rmdir(test_dir);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.generate_tests = 1;
+
+  rc = cdd_ffi_emit_csharp(ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  (void)remove("test_out_dir_cs_new/Bindings.cs");
+  (void)remove("test_out_dir_cs_new/BindingsTests.cs");
+  (void)remove("test_out_dir_cs_new/test_Lib_nameBindings.csproj");
+  (void)remove("test_out_dir_cs_new/TestMod.cs");
+#ifdef _WIN32
+  _rmdir(test_dir);
+#else
+  rmdir(test_dir);
+#endif
+  free_dummy_ir(ir);
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_ffi_emit_cpp_trampoline_edge_cases(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_ffi_ir_node_t nodes[2];
+  cdd_generate_bindings_config_t config = {0};
+  char long_name[300];
+  const char *test_dir = "test_out_cpp_edge";
+  memset(nodes, 0, sizeof(nodes));
+  memset(long_name, 'A', sizeof(long_name) - 1);
+  long_name[sizeof(long_name) - 1] = '\0';
+  memcpy(long_name + sizeof(long_name) - 12, "_Trampoline", 11);
+
+  nodes[0].kind = CDD_FFI_NODE_STRUCT;
+  nodes[0].name = (char *)(size_t) "_Trampoline";
+
+  nodes[1].kind = CDD_FFI_NODE_STRUCT;
+  nodes[1].name = long_name;
+
+  ir.nodes = nodes;
+  ir.nodes_count = 2;
+
+#ifdef _WIN32
+  _mkdir(test_dir);
+#else
+  mkdir(test_dir, 0777);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_emit_cpp(&ir, &config));
+
+  (void)remove("test_out_cpp_edge/test_Lib_name.hpp");
+#ifdef _WIN32
+  _rmdir(test_dir);
+#else
+  rmdir(test_dir);
+#endif
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_ffi_emit_rust_fresh_dir(void) {
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_out_rust_fresh";
+  cdd_c_error_t rc;
+
+  (void)remove("test_out_rust_fresh/src/lib.rs");
+  (void)remove("test_out_rust_fresh/src/sys.rs");
+  (void)remove("test_out_rust_fresh/tests/test.rs");
+  (void)remove("test_out_rust_fresh/Cargo.toml");
+#ifdef _WIN32
+  _rmdir("test_out_rust_fresh/src");
+  _rmdir("test_out_rust_fresh/tests");
+  _mkdir(test_dir);
+#else
+  rmdir("test_out_rust_fresh/src");
+  rmdir("test_out_rust_fresh/tests");
+  mkdir(test_dir, 0777);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.generate_tests = 1;
+
+  rc = cdd_ffi_emit_rust(ir, &config);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  (void)remove("test_out_rust_fresh/src/lib.rs");
+  (void)remove("test_out_rust_fresh/src/sys.rs");
+  (void)remove("test_out_rust_fresh/tests/test.rs");
+  (void)remove("test_out_rust_fresh/Cargo.toml");
+#ifdef _WIN32
+  _rmdir("test_out_rust_fresh/src");
+  _rmdir("test_out_rust_fresh/tests");
+  _rmdir(test_dir);
+#else
+  rmdir("test_out_rust_fresh/src");
+  rmdir("test_out_rust_fresh/tests");
+  rmdir(test_dir);
+#endif
+  free_dummy_ir(ir);
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
 SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
   RUN_TEST(test_ffi_emit_common_lisp);
   RUN_TEST(test_ffi_emit_cpp);
+  RUN_TEST(test_ffi_emit_cpp_trampoline_edge_cases);
   RUN_TEST(test_ffi_emit_crystal);
   RUN_TEST(test_ffi_emit_csharp);
+  RUN_TEST(test_ffi_emit_csharp_makedir);
   RUN_TEST(test_ffi_emit_dart);
   RUN_TEST(test_ffi_emit_d);
   RUN_TEST(test_ffi_emit_delphi);
@@ -929,6 +1073,7 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_r);
   RUN_TEST(test_ffi_emit_ruby);
   RUN_TEST(test_ffi_emit_rust);
+  RUN_TEST(test_ffi_emit_rust_fresh_dir);
   RUN_TEST(test_ffi_emit_scala);
   RUN_TEST(test_ffi_emit_scheme);
   RUN_TEST(test_ffi_emit_swift);

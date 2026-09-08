@@ -151,6 +151,7 @@ TEST test_server_gen_basic(void) {
   }
 
   remove("src/test_server_server.c");
+  remove("test_test_server_server.c");
   C_CDD_FREE(spec.paths[0].operations[1].req_body_media_types);
 
   C_CDD_FREE(spec.servers);
@@ -192,11 +193,26 @@ TEST test_server_gen_fail_open(void) {
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
 
-  g_cdd_alloc_fail = 1;
-  config.filename_base = (char *)(size_t)(size_t) "test_server";
+  /* Test fopen failures */
+  makedirs("test_build_dir/bad_server/src/bad_server_server.c");
+  config.filename_base =
+      (char *)(size_t)(size_t) "test_build_dir/bad_server/bad_server";
   rc = openapi_server_generate(&spec, &config);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  remove("test_build_dir/bad_server/src/bad_server_server.c");
+
+  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/test_server";
+  {
+    int i;
+    for (i = 1; i <= 5; ++i) {
+      g_cdd_alloc_fail = i;
+      rc = openapi_server_generate(&spec, &config);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+  }
 
   PASS();
 }
@@ -245,10 +261,14 @@ TEST test_server_gen_test_fopen_fail(void) {
   rmdir("test_test_server_server.c");
 #endif
 
+  remove("src/test_server_server.c");
+  remove("test_test_server_server.c");
+
   PASS();
 }
 
 TEST test_server_gen_branches(void) {
+  extern C_CDD_EXPORT int g_cdd_fail_server_apply;
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
@@ -256,8 +276,7 @@ TEST test_server_gen_branches(void) {
   (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base =
-      (char *)(size_t)(size_t) "test_build_dir/test_server_branches";
+  config.filename_base = (char *)(size_t)(size_t) "test_server_branches";
 
   spec.n_paths = 1;
   spec.paths =
@@ -299,11 +318,78 @@ TEST test_server_gen_branches(void) {
   rc = openapi_server_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
+  /* Test operation without parameters and with callbacks but no responses */
+  spec.paths[0].operations[0].n_parameters = 0;
+  spec.paths[0].operations[0].n_callbacks = 1;
+  spec.paths[0].operations[0].n_responses = 0;
+
+  /* Test form-urlencoded without ref_name */
+  spec.paths[0].operations[0].n_req_body_media_types = 1;
+  spec.paths[0].operations[0].req_body_media_types =
+      (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+          1, sizeof(struct OpenAPI_MediaType));
+  spec.paths[0].operations[0].req_body_media_types[0].name =
+      (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+  spec.paths[0].operations[0].req_body.ref_name = NULL;
+
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  /* Test operation with NULL operation_id */
+  spec.paths[0].operations[0].operation_id = NULL;
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+  spec.paths[0].operations[0].operation_id =
+      (char *)(size_t)(size_t) "doGetBranches";
+
+  /* Test operation with media type whose name is NULL or other (loop natural
+   * exit) */
+  C_CDD_FREE(spec.paths[0].operations[0].req_body_media_types);
+  spec.paths[0].operations[0].n_req_body_media_types = 2;
+  spec.paths[0].operations[0].req_body_media_types =
+      (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+          2, sizeof(struct OpenAPI_MediaType));
+  spec.paths[0].operations[0].req_body_media_types[0].name = NULL;
+  spec.paths[0].operations[0].req_body_media_types[1].name =
+      (char *)(size_t)(size_t) "application/json";
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+  C_CDD_FREE(spec.paths[0].operations[0].req_body_media_types);
+  spec.paths[0].operations[0].req_body_media_types = NULL;
+  spec.paths[0].operations[0].n_req_body_media_types = 0;
+
+  /* Test g_cdd_fail_server_apply > 1 to cover Branch 2 (decrement but not 0) */
+  g_cdd_fail_server_apply = 2;
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+  g_cdd_fail_server_apply = 0;
+
+  /* Test test stub generation with an operation where operation_id is NULL
+   * alongside one where it is not */
+  spec.paths[0].n_operations = 2;
+  spec.paths[0].operations = (struct OpenAPI_Operation *)C_CDD_REALLOC(
+      spec.paths[0].operations, 2 * sizeof(struct OpenAPI_Operation));
+  memset(&spec.paths[0].operations[1], 0, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations[0].operation_id =
+      (char *)(size_t)(size_t) "doGetBranches";
+  spec.paths[0].operations[1].operation_id = NULL;
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  /* Test security failure percolation using g_cdd_fail_server_apply */
+  g_cdd_fail_server_apply = 1;
+  rc = openapi_server_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_ERROR_SYSTEM, rc);
+  g_cdd_fail_server_apply = 0;
+
   C_CDD_FREE(spec.servers);
   C_CDD_FREE(spec.paths[0].operations[0].parameters);
   C_CDD_FREE(spec.paths[0].operations[0].req_body.content_schema);
   C_CDD_FREE(spec.paths[0].operations);
   C_CDD_FREE(spec.paths);
+
+  remove("src/test_server_branches_server.c");
+  remove("test_test_server_branches_server.c");
 
   PASS();
 }

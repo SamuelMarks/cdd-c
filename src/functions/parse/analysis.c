@@ -222,6 +222,11 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
                                          size_t idx, int *out_is_inside) {
   size_t i = idx;
   int paren_depth = 0;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_is_inside_condition;
+  if (g_cdd_fail_is_inside_condition && --g_cdd_fail_is_inside_condition == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_inside = 0;
 
   while (i > 0) {
@@ -266,6 +271,11 @@ static cdd_c_error_t is_inside_condition(const struct TokenList *tokens,
  */
 static cdd_c_error_t is_dereference_use(const struct TokenList *tokens,
                                         size_t i, int *out_is_deref) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_is_dereference_use;
+  if (g_cdd_fail_is_dereference_use && --g_cdd_fail_is_dereference_use == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_is_deref = 0;
   {
     size_t prev = i - 1;
@@ -307,6 +317,11 @@ cdd_c_error_t is_checked(const struct TokenList *tokens, size_t alloc_idx,
                          int *used_before_check, int *out_is_checked) {
   int _ast_token_matches_string_0 = 0;
   size_t i = alloc_idx;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_is_checked;
+  if (g_cdd_fail_is_checked && --g_cdd_fail_is_checked == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (!out_is_checked)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_is_checked = 0;
@@ -457,8 +472,10 @@ cdd_c_error_t find_allocations(const struct TokenList *tokens,
             {
               cdd_c_error_t rc_an =
                   is_checked(tokens, i, var_name, spec, &used_before, &checked);
-              if (rc_an != CDD_C_SUCCESS)
+              if (rc_an != CDD_C_SUCCESS) {
+                free(var_name);
                 return rc_an;
+              }
             }
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);

@@ -101,10 +101,6 @@ static cdd_c_error_t add_type_def(struct TypeDefList *list,
     if (rc_str != CDD_C_SUCCESS)
       return rc_str;
   }
-  if (!item->name) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
 
   if (kind == KIND_ENUM)
     item->details.enum_members = (struct EnumMembers *)details;
@@ -274,7 +270,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
               break;
             }
           }
-          if (copy) {
+          {
             char *ctx = NULL;
 #ifdef _WIN32
             char *tok = strtok_s(copy, ",", &ctx);
@@ -321,7 +317,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
                 break;
               }
             }
-            if (copy) {
+            {
               char *ctx = NULL;
 #ifdef _WIN32
               char *tok = strtok_s(copy, ";", &ctx);
@@ -360,7 +356,7 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
 
         if (close_brace) {
           /* Definition Ended */
-          if (rc == CDD_C_SUCCESS && current_name[0] != '\0') {
+          if (current_name[0] != '\0') {
             if (state == ST_ENUM) {
               if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0) {
                 enum_members_free(curr_em);

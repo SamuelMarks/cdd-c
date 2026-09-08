@@ -185,22 +185,36 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
   cdd_token_t tok = {0};
-  cdd_cst_child_t child = {0};
+  cdd_token_t tok2 = {0};
+  cdd_cst_child_t children[2];
   char *out = NULL;
-  /* Valgrind skip removed for coverage */
+  char large_buf[2048];
+  memset(children, 0, sizeof(children));
+  memset(large_buf, 'A', sizeof(large_buf));
+
 #ifdef CDD_BUILD_TESTS
   tok.kind = CDD_TOKEN_IDENTIFIER;
   tok.start = (const uint8_t *)"A";
   tok.length = 1;
 
   tree.root = &root;
-  root.children = &child;
+  root.children = &children[0];
   root.num_children = 1;
-  child.kind = CDD_CST_CHILD_TOKEN;
-  /* extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail; (moved to global) */
-  child.val.token = &tok;
+  children[0].kind = CDD_CST_CHILD_TOKEN;
+  children[0].val.token = &tok;
 
   g_cdd_cst_emit_realloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
+  g_cdd_cst_emit_realloc_fail = 0;
+
+  tok2.kind = CDD_TOKEN_IDENTIFIER;
+  tok2.start = (const uint8_t *)large_buf;
+  tok2.length = sizeof(large_buf);
+  children[1].kind = CDD_CST_CHILD_TOKEN;
+  children[1].val.token = &tok2;
+  root.num_children = 2;
+
+  g_cdd_cst_emit_realloc_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_cst_emit(&tree, &out));
   g_cdd_cst_emit_realloc_fail = 0;
 #endif
@@ -282,18 +296,25 @@ TEST test_cdd_cst_emit_oom_multi(void) {
 TEST test_cdd_cst_emit_empty_oom(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
-  /*  (moved to global) */
+  cdd_c_error_t rc_debug;
 
   g_cdd_alloc_fail = 1;
-  {
-    cdd_c_error_t rc_debug = cdd_cst_emit(&tree, &out);
-    printf("DEBUG cdd_cst_emit returned %d\n", rc_debug);
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_debug);
-    g_cdd_alloc_fail = 0;
-    g_fail_io_after = -1;
+  rc_debug = cdd_cst_emit(&tree, &out);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_debug);
+  g_cdd_alloc_fail = 0;
+  g_fail_io_after = -1;
 
-    PASS();
+  g_cdd_alloc_fail = 2;
+  rc_debug = cdd_cst_emit(&tree, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc_debug);
+  if (out) {
+    free(out);
+    out = NULL;
   }
+  g_cdd_alloc_fail = 0;
+  g_fail_io_after = -1;
+
+  PASS();
 }
 
 SUITE(cdd_cst_emit_unit_suite) {

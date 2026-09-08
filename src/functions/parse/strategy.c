@@ -34,6 +34,11 @@ static cdd_c_error_t find_next_token_idx(const struct TokenList *tokens,
                                          size_t start, enum TokenKind kind,
                                          size_t *_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_find_next_token_idx;
+  if (g_cdd_fail_find_next_token_idx && --g_cdd_fail_find_next_token_idx == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == kind) {
       *_out_val = i;
@@ -184,10 +189,6 @@ cdd_c_error_t strategy_rewrite_realloc(const struct TokenList *tokens,
           range_to_string(tokens, call_idx, semi_idx, &call_expr);
       if (rc_st != CDD_C_SUCCESS)
         return rc_st;
-    }
-    if (!call_expr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
     }
 
     /* Build safe block */

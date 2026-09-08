@@ -21,6 +21,7 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_fail_alloc_decl_hoist;
+extern C_CDD_EXPORT int g_is_basic_type_keyword_fail;
 
 /**
  * @brief Tests basic functionality of scanning for mixed declarations.
@@ -49,6 +50,16 @@ TEST test_scan_for_mixed_declarations_basic(void) {
             tokens->tokens[list.sites[0].end_token_idx - 1].kind);
   /* Target block should be the first `{` */
   ASSERT_EQ(TOKEN_LBRACE, tokens->tokens[list.sites[0].target_block_idx].kind);
+
+#ifdef CDD_BUILD_TESTS
+  g_is_basic_type_keyword_fail = 1;
+  ASSERT_NEQ(0, scan_for_mixed_declarations(tokens, &list));
+  g_is_basic_type_keyword_fail = 0;
+
+  g_is_basic_type_keyword_fail = 2;
+  ASSERT_NEQ(0, scan_for_mixed_declarations(tokens, &list));
+  g_is_basic_type_keyword_fail = 0;
+#endif
 
   hoist_site_list_free(&list);
   free_token_list(tokens);

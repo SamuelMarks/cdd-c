@@ -183,9 +183,10 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
 #endif
 #ifdef CDD_BUILD_TESTS
   if (g_fail_io_after == 556) {
-    if (f)
+    if (f) {
       fclose(f);
-    f = NULL;
+      f = NULL;
+    }
   }
 #endif
   if (!f)

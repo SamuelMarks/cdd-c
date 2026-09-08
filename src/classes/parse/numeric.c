@@ -102,6 +102,11 @@ static cdd_c_error_t parse_binary_str(const char *str, char **endptr,
                                       uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_parse_binary_str_fail;
+  if (g_parse_binary_str_fail && --g_parse_binary_str_fail == 0)
+    return CDD_C_ERROR_PARSE;
+#endif
   while (*p == '0' || *p == '1') {
     if (val > (((uint64_t)-1) >> 1)) {
       val = ((uint64_t)-1); /* Overflow saturation */

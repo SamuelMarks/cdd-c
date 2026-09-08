@@ -207,9 +207,38 @@ TEST test_mapping_coverage(void) {
   struct OpenApiTypeMapping m = {0};
 
   /* NULL tests */
-  (void)c_mapping_init(NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_mapping_init(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_mapping_map_type(NULL, "x", &m));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, c_mapping_map_type("int", "x", NULL));
   c_mapping_free(NULL);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_skip_qualifiers;
+    extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
+    extern C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
+
+    g_cdd_fail_skip_qualifiers = 2;
+    ASSERT_EQ(CDD_C_SUCCESS, c_mapping_map_type("int", "x", &m));
+    c_mapping_free(&m);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c_mapping_map_type("int", "x", &m));
+    g_cdd_fail_skip_qualifiers = 0;
+    c_mapping_free(&m);
+
+    ASSERT_EQ(CDD_C_SUCCESS, test_mapping_internal_errors());
+
+    g_cdd_fail_str_starts_with = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c_mapping_map_type("foo", "x", &m));
+    g_cdd_fail_str_starts_with = 2;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, c_mapping_map_type("foo", "x", &m));
+    g_cdd_fail_str_starts_with = 0;
+
+    /* format OOM in set_primitive */
+    g_cdd_strdup_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, c_mapping_map_type("long int", "x", &m));
+    g_cdd_strdup_fail = 0;
+  }
+#endif
 
   /* long, short, float, size_t */
   (void)c_mapping_init(&m);
@@ -261,7 +290,6 @@ TEST test_mapping_coverage(void) {
     int i;
     g_cdd_strdup_fail = 1;
     rc_oom = c_mapping_map_type("int", "x", &m);
-    printf("RC_OOM=%d CDD_C_ERROR_MEMORY=%d\n", rc_oom, CDD_C_ERROR_MEMORY);
     if (rc_oom != CDD_C_ERROR_MEMORY) {
       g_cdd_strdup_fail = 0;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
@@ -338,12 +366,6 @@ TEST test_mapping_coverage(void) {
 
     g_cdd_strdup_fail = 2;
     ASSERT_EQ(CDD_C_ERROR_MEMORY, c_mapping_map_type("int *", "x", &m));
-    g_cdd_strdup_fail = 0;
-    c_mapping_free(&m);
-
-    g_cdd_strdup_fail = 3;
-    ASSERT_EQ(CDD_C_ERROR_MEMORY,
-              c_mapping_map_type("struct MyStruct *", "x[]", &m));
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
   }

@@ -242,6 +242,15 @@ TEST test_macro_evaluator_errors(void) {
   rc = cdd_macro_evaluate(&ctx, "1.5e-", &res);
   ASSERT_EQ(0, rc);
 
+  rc = cdd_macro_evaluate(&ctx, "\"foo\" + 1", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "\"foo\" * 2", &res);
+  ASSERT_NEQ(0, rc);
+
+  rc = cdd_macro_evaluate(&ctx, "2 * \"foo\"", &res);
+  ASSERT_NEQ(0, rc);
+
   pp_context_free(&ctx);
   PASS();
 }

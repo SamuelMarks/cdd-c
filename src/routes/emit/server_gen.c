@@ -23,6 +23,10 @@
 #define SNPRINTF snprintf
 #endif
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_fail_server_apply;
+#endif
+
 /**
  * @brief Executes the openapi server generate operation.
  */
@@ -49,34 +53,28 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
     }
     rc = get_basename(config->filename_base, &base_name);
     if (rc != CDD_C_SUCCESS) {
-      if (dir_name)
-        C_CDD_FREE(dir_name);
+      C_CDD_FREE(dir_name);
       C_CDD_FREE(src_dir);
       return rc;
     }
 #if defined(_MSC_VER)
-    sprintf_s(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
+    sprintf_s(src_dir, 512, "%s/src", dir_name);
 #else
-    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    sprintf(src_dir, "%s/src", dir_name);
 #endif
     {
       cdd_c_error_t rc_sg = makedirs(src_dir);
       if (rc_sg != CDD_C_SUCCESS) {
         C_CDD_FREE(src_dir);
-        if (dir_name)
-          C_CDD_FREE(dir_name);
-        if (base_name)
-          C_CDD_FREE(base_name);
+        C_CDD_FREE(dir_name);
+        C_CDD_FREE(base_name);
         return rc_sg;
       }
     }
-    CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
-                 base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir, base_name);
     C_CDD_FREE(src_dir);
-    if (dir_name)
-      C_CDD_FREE(dir_name);
-    if (base_name)
-      C_CDD_FREE(base_name);
+    C_CDD_FREE(dir_name);
+    C_CDD_FREE(base_name);
   }
 #if defined(_MSC_VER)
   if (fopen_s(&fp, path, "w") != 0)
@@ -216,12 +214,17 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
           fprintf(fp, "    /* Callbacks configured: %lu */\n",
                   (unsigned long)op->n_callbacks);
         }
-        if (op->security || spec->security_set) {
-          {
-            cdd_c_error_t rc_sg =
-                codegen_security_write_server_apply(fp, op, spec);
-            if (rc_sg != CDD_C_SUCCESS)
-              return rc_sg;
+        {
+          cdd_c_error_t rc_sg;
+#ifdef CDD_BUILD_TESTS
+          if (g_cdd_fail_server_apply && --g_cdd_fail_server_apply == 0)
+            rc_sg = CDD_C_ERROR_SYSTEM;
+          else
+#endif
+            rc_sg = codegen_security_write_server_apply(fp, op, spec);
+          if (rc_sg != CDD_C_SUCCESS) {
+            fclose(fp);
+            return rc_sg;
           }
         }
 

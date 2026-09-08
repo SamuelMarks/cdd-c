@@ -130,11 +130,11 @@ cdd_c_error_t write_to_file(const char *filename, const char *contents) {
 }
 #include "cdd_test_helpers_export.h"
 
-char g_cdd_test_tmp_buf[65536][64];
+char g_cdd_test_tmp_buf[1024][64];
 CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void) {
   static int counter = 0;
   FILE *f;
-  if (counter >= 65536)
+  if (counter >= 1024)
     counter = 0;
 #if defined(_MSC_VER)
   sprintf_s(g_cdd_test_tmp_buf[counter], sizeof(g_cdd_test_tmp_buf[counter]),

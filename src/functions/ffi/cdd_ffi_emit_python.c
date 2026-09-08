@@ -430,9 +430,10 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
     {
       if (g_fail_io_after == 2) {
-        if (fc)
+        if (fc) {
           fclose(fc);
-        fc = NULL;
+          fc = NULL;
+        }
       }
     }
     if (fc) {
@@ -476,9 +477,10 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
     {
       if (g_fail_io_after == 3) {
-        if (f)
+        if (f) {
           fclose(f);
-        f = NULL;
+          f = NULL;
+        }
       }
     }
     if (f) {

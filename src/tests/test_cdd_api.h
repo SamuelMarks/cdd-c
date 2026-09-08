@@ -148,6 +148,11 @@ TEST test_cdd_generate_bindings(void) {
   ASSERT_NEQ(0, cdd_generate_bindings(&config));
   g_ffi_extractor_alloc_fail = 0;
 
+  /* Toposort failure */
+  g_cdd_ffi_ir_calloc_fail = 1;
+  ASSERT_NEQ(0, cdd_generate_bindings(&config));
+  g_cdd_ffi_ir_calloc_fail = 0;
+
   /* Test failure branch (rc != 0) for each language */
   config.output_dir =
       (char *)(size_t)(size_t)(size_t) "nonexistent_dir_12345/nonexistent";

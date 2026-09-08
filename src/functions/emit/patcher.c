@@ -34,8 +34,6 @@ cdd_c_error_t patch_list_init(struct PatchList *list) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
 #ifdef CDD_BUILD_TESTS
-  printf("patcher.c: &g_patcher_test_cap_1 = %p, val = %d\n",
-         (void *)&g_patcher_test_cap_1, g_patcher_test_cap_1);
   if (g_patcher_test_cap_1) {
     list->capacity = 0;
     list->patches = NULL;
@@ -134,6 +132,11 @@ static int compare_patches(const void *a, const void *b) {
  * @brief Executes the patch list sort operation.
  */
 cdd_c_error_t patch_list_sort(struct PatchList *list) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_patch_list_sort;
+  if (g_cdd_fail_patch_list_sort && --g_cdd_fail_patch_list_sort == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (list && list->patches && list->size > 1) {
     qsort(list->patches, list->size, sizeof(struct Patch), compare_patches);
   }

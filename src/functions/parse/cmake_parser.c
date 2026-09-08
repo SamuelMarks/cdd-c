@@ -102,8 +102,6 @@ cdd_c_error_t cmake_modifier_add_compile_opt(struct CMakeModifier *mod,
     if (rc_cm != CDD_C_SUCCESS)
       return rc_cm;
   }
-  if (!mod->compile_opts[mod->compile_opts_n])
-    return CDD_C_ERROR_MEMORY;
 
   mod->compile_opts_n++;
   return CDD_C_SUCCESS;
@@ -140,8 +138,6 @@ cdd_c_error_t cmake_modifier_add_link_lib(struct CMakeModifier *mod,
     if (rc_cm != CDD_C_SUCCESS)
       return rc_cm;
   }
-  if (!mod->link_libs[mod->link_libs_n])
-    return CDD_C_ERROR_MEMORY;
 
   mod->link_libs_n++;
   return CDD_C_SUCCESS;
@@ -226,10 +222,8 @@ static cdd_c_error_t read_file_to_string(const char *filename, size_t *out_len,
 #endif
   if (!buf) {
     fclose(f);
-    {
-      *out_val = NULL;
-      return CDD_C_SUCCESS;
-    }
+    *out_val = NULL;
+    return CDD_C_ERROR_MEMORY;
   }
 
   {
@@ -444,26 +438,15 @@ cdd_c_error_t cmake_modifier_apply_diff(const struct CMakeModifier *mod,
       char *line_start = str_buf;
       while (*line_start) {
         char *nl = strchr(line_start, '\n');
-        if (nl) {
-          int l_len = (int)(nl - line_start);
+        int l_len = (int)(nl - line_start);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
-                                  _TRUNCATE, "+%.*s\n", l_len, line_start);
+        diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE,
+                                "+%.*s\n", l_len, line_start);
 #else
-          diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
-                                           "+%.*s\n", l_len, line_start);
+        diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
+                                         "+%.*s\n", l_len, line_start);
 #endif
-          line_start = nl + 1;
-        } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
-                                  _TRUNCATE, "+%s\n", line_start);
-#else
-          diff_len += (size_t)CDD_SNPRINTF(diff + diff_len, diff_cap - diff_len,
-                                           "+%s\n", line_start);
-#endif
-          break;
-        }
+        line_start = nl + 1;
       }
     }
   }

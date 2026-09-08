@@ -81,6 +81,21 @@ TEST test_parse_bin_int(void) {
   ASSERT_EQ(NUMERIC_INTEGER, nv.kind);
   ASSERT_EQ(5, nv.data.integer.value);
   ASSERT_EQ(2, nv.data.integer.base);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_parse_binary_str_fail;
+    g_parse_binary_str_fail = 1;
+    ASSERT_NEQ(0, parse_numeric_literal("0b101", &nv));
+    g_parse_binary_str_fail = 0;
+
+    g_parse_binary_str_fail = 2;
+    ASSERT_EQ(0, parse_numeric_literal("0b101", &nv));
+    ASSERT_NEQ(0, parse_numeric_literal("0b101", &nv));
+    g_parse_binary_str_fail = 0;
+  }
+#endif
+
   g_fail_io_after = -1;
   PASS();
 }

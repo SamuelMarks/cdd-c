@@ -430,6 +430,80 @@ TEST test_analysis_edge_cases(void) {
   PASS();
 }
 
+TEST test_analysis_failure_hooks(void) {
+#ifdef CDD_BUILD_TESTS
+  struct AllocationSiteList sites;
+  struct TokenList *tl = NULL;
+  struct AllocatorSpec spec = {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL,
+                               0};
+  int checked = 0;
+  extern C_CDD_EXPORT int g_cdd_fail_is_inside_condition;
+  extern C_CDD_EXPORT int g_cdd_fail_is_dereference_use;
+  extern C_CDD_EXPORT int g_cdd_fail_is_checked;
+
+  (void)allocation_site_list_init(&sites);
+  tokenize(
+      az_span_create_from_str((char *)(size_t) "p = malloc(10); if (p) 0;"),
+      &tl);
+
+  /* Test is_inside_condition fail on initial check in is_checked (line 323) */
+  g_cdd_fail_is_inside_condition = 1;
+  ASSERT_NEQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
+  g_cdd_fail_is_inside_condition = 0;
+
+  /* Test is_inside_condition fail on subsequent check on var uses in is_checked
+   * (line 352) */
+  g_cdd_fail_is_inside_condition = 2;
+  ASSERT_NEQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
+  g_cdd_fail_is_inside_condition = 0;
+
+  free_token_list(tl);
+  tl = NULL;
+
+  /* Test is_dereference_use fail in is_checked (line 363) */
+  tokenize(az_span_create_from_str((char *)(size_t) "p = malloc(10); *p = 1;"),
+           &tl);
+  g_cdd_fail_is_dereference_use = 1;
+  ASSERT_NEQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
+  g_cdd_fail_is_dereference_use = 0;
+
+  g_cdd_fail_is_dereference_use = 2;
+  ASSERT_EQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
+  ASSERT_NEQ(0, is_checked(tl, 4, "p", &spec, NULL, &checked));
+  g_cdd_fail_is_dereference_use = 0;
+
+  free_token_list(tl);
+  tl = NULL;
+
+  /* Test is_checked fail in find_allocations (line 460) */
+  g_cdd_fail_is_checked = 1;
+  ASSERT_NEQ(0, find_allocs("p = malloc(10);", &sites));
+  g_cdd_fail_is_checked = 0;
+
+  g_cdd_fail_is_checked = 2;
+  ASSERT_EQ(0, find_allocs("p = malloc(10);", &sites));
+  allocation_site_list_free(&sites);
+  ASSERT_NEQ(0, find_allocs("p = malloc(10);", &sites));
+  g_cdd_fail_is_checked = 0;
+  allocation_site_list_free(&sites);
+
+  /* Test is_inside_condition fail in find_allocations when var_name is NULL
+   * (line 472) */
+  g_cdd_fail_is_inside_condition = 1;
+  ASSERT_NEQ(0, find_allocs("malloc(10);", &sites));
+  g_cdd_fail_is_inside_condition = 0;
+
+  g_cdd_fail_is_inside_condition = 2;
+  ASSERT_EQ(0, find_allocs("malloc(10);", &sites));
+  allocation_site_list_free(&sites);
+  ASSERT_NEQ(0, find_allocs("malloc(10);", &sites));
+  g_cdd_fail_is_inside_condition = 0;
+  allocation_site_list_free(&sites);
+#endif
+
+  PASS();
+}
+
 SUITE(analysis_suite) {
   RUN_TEST(test_analysis_find_malloc);
   RUN_TEST(test_analysis_find_calloc);
@@ -439,6 +513,7 @@ SUITE(analysis_suite) {
   RUN_TEST(test_analysis_oom);
   RUN_TEST(test_analysis_capacity);
   RUN_TEST(test_analysis_edge_cases);
+  RUN_TEST(test_analysis_failure_hooks);
 }
 
 #ifdef __cplusplus

@@ -49,26 +49,17 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
  */
 static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
                                    const char *type, const char *fmt) {
+  cdd_c_error_t rc_str;
   out->kind = OA_TYPE_PRIMITIVE;
-  {
-    cdd_c_error_t rc_str = c_cdd_strdup(type, &out->oa_type);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
-  if (!out->oa_type) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
+  rc_str = c_cdd_strdup(type, &out->oa_type);
+  if (rc_str != CDD_C_SUCCESS)
+    return rc_str;
   if (fmt) {
-    {
-      cdd_c_error_t rc_str = c_cdd_strdup(fmt, &out->oa_format);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
-    if (!out->oa_format) {
+    rc_str = c_cdd_strdup(fmt, &out->oa_format);
+    if (rc_str != CDD_C_SUCCESS) {
       free(out->oa_type);
       out->oa_type = NULL;
-      return CDD_C_ERROR_MEMORY;
+      return rc_str;
     }
   }
   return CDD_C_SUCCESS;
@@ -79,24 +70,20 @@ static cdd_c_error_t set_primitive(struct OpenApiTypeMapping *out,
  */
 static cdd_c_error_t set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   out->kind = OA_TYPE_OBJECT;
-  /* OpenAPI usually doesn't put "type": "object" alongside $ref,
-     but for internal mapping representation we mark it.
-     The ref_name holds the target. */
-  {
-    cdd_c_error_t rc_str = c_cdd_strdup(ref, &out->ref_name);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
-  if (!out->ref_name) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
-  return CDD_C_SUCCESS;
+  return c_cdd_strdup(ref, &out->ref_name);
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
 static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
-  const char *p = type;
+  const char *p;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_skip_qualifiers;
+  if (g_cdd_fail_skip_qualifiers && --g_cdd_fail_skip_qualifiers == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+  if (!type || !_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
       p++;
@@ -108,17 +95,10 @@ static cdd_c_error_t skip_qualifiers(const char *type, const char **_out_val) {
       p += 9;
       continue;
     }
-    /* struct/enum are handled separately in logic, but signed/unsigned are
-     * qualifiers for primitives */
-    /* Note: if we strip 'unsigned', 'unsigned int' becomes 'int' which maps to
-       int32. Use care. Here we only strip CV qualifiers to find the core type
-       start. */
     break;
   }
-  {
-    *_out_val = p;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = p;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -128,6 +108,9 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
   cdd_c_error_t rc;
+
+  if (!in || !_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   /* Remove pointer asterisk */
   rc = c_cdd_strdup(in, &buf);
@@ -139,10 +122,8 @@ static cdd_c_error_t clean_type_str(const char *in, char **_out_val) {
     *p = '\0';
 
   c_cdd_str_trim_trailing_whitespace(buf);
-  {
-    *_out_val = buf;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = buf;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -155,22 +136,15 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int is_ptr = 0;
   int is_array = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
-  {
-    cdd_c_error_t rc_str = skip_qualifiers(c_type_in, &c_type);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
-  printf("DEBUG c_mapping_map_type: c_type_in='%s', c_type='%s'\n", c_type_in,
-         c_type);
 
-  if (!out)
+  if (!out || !c_type_in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    cdd_c_error_t rc_str = c_mapping_init(out);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
+  rc = skip_qualifiers(c_type_in, &c_type);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  (void)c_mapping_init(out);
 
   /* Pointer/Array detection works on raw type */
   if (strchr(c_type, '*'))
@@ -225,23 +199,18 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   /* Structs / Enums */
   else {
     int starts1 = false, starts2 = false;
-    {
-      cdd_c_error_t rc_str = c_cdd_str_starts_with(c_type, "struct ", &starts1);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
-    {
-      cdd_c_error_t rc_str = c_cdd_str_starts_with(c_type, "enum ", &starts2);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
+    rc = c_cdd_str_starts_with(c_type, "struct ", &starts1);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    rc = c_cdd_str_starts_with(c_type, "enum ", &starts2);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+
     if (starts1 || starts2) {
       clean = NULL;
       rc = clean_type_str(c_type, &clean);
-      if (rc != CDD_C_SUCCESS) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return CDD_C_ERROR_MEMORY;
-      }
+      if (rc != CDD_C_SUCCESS)
+        return rc;
 
       /* Skip "struct " (7 chars) or "enum " (5 chars) */
       {
@@ -273,33 +242,24 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
 
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
   if (is_array) {
-    char *inner_ref = NULL;
-    char *inner_type = NULL;
-    /* It's an array of the resolved type */
-    if (out->ref_name) {
-      rc = c_cdd_strdup(out->ref_name, &inner_ref);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-    }
-    if (out->oa_type) {
-      rc = c_cdd_strdup(out->oa_type, &inner_type);
-      if (rc != CDD_C_SUCCESS)
-        return rc;
-    }
-    /* Move current mapping to "items" logic? */
-    /* The OpenApiTypeMapping struct is flat. We need to indicate it's an
-       Array OF X. */
-    /* We change kind to ARRAY. We reuse ref_name/oa_type to mean the ITEMS
-     * type.
-     */
     out->kind = OA_TYPE_ARRAY;
-    /* Ensure we kept the item type info. It's already in oa_type/ref_name. */
-
-    if (inner_ref)
-      free(inner_ref);
-    if (inner_type)
-      free(inner_type);
   }
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
+C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void) {
+  const char *out_str = NULL;
+  char *out_buf = NULL;
+  cdd_c_error_t err1 = skip_qualifiers(NULL, &out_str);
+  cdd_c_error_t err2 = skip_qualifiers("int", NULL);
+  cdd_c_error_t err3 = clean_type_str(NULL, &out_buf);
+  cdd_c_error_t err4 = clean_type_str("int", NULL);
+  return (cdd_c_error_t)((err1 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err2 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err3 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
+                         (err4 ^ CDD_C_ERROR_INVALID_ARGUMENT));
+}
+#endif

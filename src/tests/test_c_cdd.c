@@ -308,6 +308,7 @@ TEST test_cdd_helpers(void) {
   cdd_precondition_failed();
   printf("write_to_file(NULL, NULL) = %d\\n", write_to_file(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_to_file(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, write_to_file("foo.txt", NULL));
   ASSERT_NEQ(CDD_C_SUCCESS,
              write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
 

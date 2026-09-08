@@ -59,6 +59,11 @@ cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
 cdd_c_error_t c_cdd_str_starts_with(const char *str, const char *prefix,
                                     int *out_b) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
+  if (g_cdd_fail_str_starts_with && --g_cdd_fail_str_starts_with == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (str == NULL || prefix == NULL) {
     *out_b = false;
     return CDD_C_SUCCESS;
@@ -119,6 +124,11 @@ cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
 cdd_c_error_t c_cdd_str_after_last(const char *str, int delimiter,
                                    const char **out_s) {
   const char *last_occurrence;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+  if (g_cdd_fail_str_after_last && --g_cdd_fail_str_after_last == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   if (str == NULL) {
     *out_s = "";
     return CDD_C_SUCCESS;
@@ -231,6 +241,11 @@ cdd_c_error_t c_cdd_destringize(const char *quoted, char **out_s) {
  */
 cdd_c_error_t c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_stricmp;
+  if (g_cdd_fail_stricmp && --g_cdd_fail_stricmp == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!out_diff)
     return CDD_C_ERROR_INVALID_ARGUMENT; /* EINVAL */
   if (a == b) {

@@ -206,6 +206,25 @@ TEST test_c_cdd_ref_is_type(void) {
            _ast_ref_is_type_31)); /* No slash, direct compar */
   ASSERT((c_cdd_ref_is_type("DirectMatch", "DirectMatch", &_ast_ref_is_type_32),
           _ast_ref_is_type_32));
+
+#ifdef CDD_BUILD_TESTS
+  {
+    int match = 0;
+    extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+    g_cdd_fail_str_after_last = 1;
+    ASSERT_NEQ(0, c_cdd_ref_is_type("#/components/schemas/Integer", "Integer",
+                                    &match));
+    g_cdd_fail_str_after_last = 0;
+
+    g_cdd_fail_str_after_last = 2;
+    ASSERT_EQ(0, c_cdd_ref_is_type("#/components/schemas/Integer", "Integer",
+                                   &match));
+    ASSERT_NEQ(0, c_cdd_ref_is_type("#/components/schemas/Integer", "Integer",
+                                    &match));
+    g_cdd_fail_str_after_last = 0;
+  }
+#endif
+
   g_fail_io_after = -1;
 
   PASS();
@@ -453,6 +472,16 @@ TEST test_c_cdd_destringize_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY, c_cdd_destringize("\"test\"", &out));
   ASSERT_EQ(NULL, out);
   g_cdd_alloc_fail = 0;
+
+  g_cdd_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_SUCCESS, c_cdd_destringize("\"test\"", &out));
+  ASSERT_STR_EQ("test", out);
+  free(out);
+  out = NULL;
+  g_cdd_alloc_fail = 0;
+
+  ASSERT_EQ(0, c_cdd_destringize("Long", &out));
+  ASSERT_EQ(NULL, out);
 #endif
   g_fail_io_after = -1;
 

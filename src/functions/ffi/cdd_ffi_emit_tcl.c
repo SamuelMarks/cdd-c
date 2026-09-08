@@ -65,9 +65,10 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (pkg_f)
+      if (pkg_f) {
         fclose(pkg_f);
-      pkg_f = NULL;
+        pkg_f = NULL;
+      }
     }
   }
 #endif
@@ -127,7 +128,7 @@ cdd_c_error_t cdd_ffi_emit_tcl(cdd_ffi_ir_t *ir,
   {
     /* Tcl standard dictates Init function must match library name capitalized:
      * e.g., Mylib_Init */
-    char tcl_init_name[512];
+    char tcl_init_name[64];
     size_t len = strlen(lib_name);
 
     if (len >= sizeof(tcl_init_name))

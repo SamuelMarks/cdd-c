@@ -363,14 +363,10 @@ write_struct_cleanup_func(FILE *fp, const char *struct_name,
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
-            if (tn)
-              (void)0;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
               fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n);
-          if (tn)
-            (void)0;
           CHECK_IO(io_rc);
         }
       }
@@ -477,8 +473,6 @@ cdd_c_error_t write_struct_eq_func(FILE *fp, const char *struct_name,
     char *r = NULL;
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
-      if (r)
-        (void)0;
       return rc_ref;
     }
 
@@ -581,8 +575,6 @@ write_struct_default_func(FILE *fp, const char *struct_name,
       char *r = NULL;
       cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
       if (rc_ref != CDD_C_SUCCESS) {
-        if (r)
-          (void)0;
         return rc_ref;
       }
 
@@ -684,8 +676,6 @@ write_struct_debug_func(FILE *fp, const char *struct_name,
     char *r = NULL;
     cdd_c_error_t rc_ref = get_type_from_ref(sf->fields[i].ref, &r);
     if (rc_ref != CDD_C_SUCCESS) {
-      if (r)
-        (void)0;
       return rc_ref;
     }
 

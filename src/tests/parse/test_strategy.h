@@ -167,6 +167,39 @@ TEST test_strategy_errors(void) {
     }
 
     free_token_list(tl_dummy);
+
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_find_next_token_idx;
+      struct TokenList *tl_test = NULL;
+      struct AllocationSiteList alloc_list;
+      struct AllocationSite s;
+      struct AllocatorSpec spec_realloc = {"realloc", ALLOC_STYLE_RETURN_PTR,
+                                           CHECK_PTR_NULL, 0};
+
+      tokenize(az_span_create_from_str((char *)(size_t) "p = realloc(p, 10);"),
+               &tl_test);
+      memset(&alloc_list, 0, sizeof(alloc_list));
+      memset(&s, 0, sizeof(s));
+      s.spec = &spec_realloc;
+      s.token_index = find_token_index(tl_test, "realloc");
+      s.var_name = (char *)(size_t) "p";
+      alloc_list.size = 1;
+      alloc_list.sites = &s;
+
+      g_cdd_fail_find_next_token_idx = 1;
+      ASSERT_NEQ(0,
+                 strategy_inject_safety_checks(tl_test, &alloc_list, &patches));
+      g_cdd_fail_find_next_token_idx = 0;
+
+      g_cdd_fail_find_next_token_idx = 2;
+      ASSERT_NEQ(0,
+                 strategy_inject_safety_checks(tl_test, &alloc_list, &patches));
+      g_cdd_fail_find_next_token_idx = 0;
+
+      free_token_list(tl_test);
+    }
+#endif
   }
 
   patch_list_free(&patches);

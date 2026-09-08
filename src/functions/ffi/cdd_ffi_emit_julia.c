@@ -85,7 +85,7 @@ emit_julia_file(cdd_ffi_ir_t *ir,
   const char *lib_name = "mylib";
   char module_name[256];
 
-  if (config && config->library_name) {
+  if (config->library_name) {
     lib_name = config->library_name;
   }
 

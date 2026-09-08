@@ -22,6 +22,7 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_schema_strdup_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 TEST test_schema_constraints_roundtrip(void) {
   JSON_Value *val;
@@ -852,6 +853,13 @@ TEST test_schema_constraints_free_branch(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               schema_constraints_add_required(&sc_oom, "req2"));
     g_schema_strdup_fail = 0;
+    schema_constraints_free(&sc_oom);
+
+    schema_constraints_init(&sc_oom);
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              schema_constraints_add_required(&sc_oom, "req3"));
+    g_cdd_strdup_fail = 0;
     schema_constraints_free(&sc_oom);
   }
 #endif

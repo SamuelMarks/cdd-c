@@ -224,6 +224,12 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
                                             int *out_count) {
   size_t i;
   int count = 0;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_count_returning_allocs;
+  if (g_cdd_fail_count_returning_allocs &&
+      --g_cdd_fail_count_returning_allocs == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   *out_count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
@@ -350,8 +356,11 @@ static cdd_c_error_t audit_file_callback(const char *path, void *user_data) {
     int count = 0;
     {
       cdd_c_error_t rc_au = count_returning_allocs(tokens, &count);
-      if (rc_au != CDD_C_SUCCESS)
+      if (rc_au != CDD_C_SUCCESS) {
+        free_token_list(tokens);
+        free(content);
         return rc_au;
+      }
     }
     stats->functions_returning_alloc += (size_t)count;
   }

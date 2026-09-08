@@ -22,6 +22,7 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
 
 /**
  * @brief test_weaver_wrap_ifdef_basic
@@ -141,6 +142,18 @@ TEST test_weaver_inject_msvc_headers(void) {
 
   res = weaver_inject_msvc_headers(&patches, tokens, 0, 0);
   ASSERT_EQ(0, res);
+
+#ifdef CDD_BUILD_TESTS
+  g_cdd_fail_token_matches_string = 1;
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_NEQ(0, res);
+  g_cdd_fail_token_matches_string = 0;
+
+  g_cdd_fail_token_matches_string = 2;
+  res = weaver_inject_msvc_headers(&patches, tokens, 1, 1);
+  ASSERT_NEQ(0, res);
+  g_cdd_fail_token_matches_string = 0;
+#endif
 
   res = patch_list_apply(&patches, tokens, &out_code);
   ASSERT_EQ(0, res);

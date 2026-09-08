@@ -590,6 +590,56 @@ TEST test_rewrite_sig_oom(void) {
 #endif
   PASS();
 }
+
+TEST test_rewriter_sig_error_hooks(void) {
+#ifdef CDD_BUILD_TESTS
+  int dummy = 0;
+  extern C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
+                                                             int *out_is_empty);
+  extern C_CDD_EXPORT int g_cdd_fail_find_balanced_end;
+  extern C_CDD_EXPORT int g_cdd_fail_parsed_sig_init;
+  extern C_CDD_EXPORT int g_cdd_fail_args_represent_void;
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            test_args_represent_void(NULL, &dummy));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            test_args_represent_void("int a", NULL));
+
+  g_cdd_fail_parsed_sig_init = 1;
+  ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+  g_cdd_fail_parsed_sig_init = 0;
+
+  g_cdd_fail_parsed_sig_init = 2;
+  ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
+  ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+  g_cdd_fail_parsed_sig_init = 0;
+
+  g_cdd_fail_find_balanced_end = 1;
+  ASSERT_NEQ(0, test_rewrite_error("[[nodiscard]] int f(void)"));
+  g_cdd_fail_find_balanced_end = 0;
+
+  g_cdd_fail_find_balanced_end = 1;
+  ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+  g_cdd_fail_find_balanced_end = 0;
+
+  g_cdd_fail_find_balanced_end = 2;
+  ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
+  ASSERT_NEQ(0, test_rewrite_error("[[nodiscard]] int f(void)"));
+  g_cdd_fail_find_balanced_end = 0;
+
+  g_cdd_fail_args_represent_void = 1;
+  ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+  g_cdd_fail_args_represent_void = 0;
+
+  g_cdd_fail_args_represent_void = 2;
+  ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
+  ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+  g_cdd_fail_args_represent_void = 0;
+#endif
+
+  PASS();
+}
+
 SUITE(rewriter_sig_suite) {
   RUN_TEST(test_rewrite_sig_oom);
   RUN_TEST(test_rewrite_oom);
@@ -616,6 +666,7 @@ SUITE(rewriter_sig_suite) {
   RUN_TEST(test_rewrite_kr_ptr_ret);
   RUN_TEST(test_rewrite_kr_complex);
   RUN_TEST(test_rewrite_kr_empty_args);
+  RUN_TEST(test_rewriter_sig_error_hooks);
 }
 
 #ifdef __cplusplus

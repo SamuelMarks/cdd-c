@@ -575,6 +575,8 @@ endif()
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 add_test(NAME test_cdd_c_help COMMAND "${EXEC_NAME}" --help)
+add_test(NAME test_cdd_c_fail COMMAND "${EXEC_NAME}" non_existent_command)
+set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
 endif()
 endif()
 

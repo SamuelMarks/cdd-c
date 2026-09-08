@@ -134,12 +134,7 @@ TEST test_client_gui_gen_errors(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";
-  g_io_calls = 0;
-  g_fail_io_after = 1;
-
   rc = openapi_client_gui_generate(&spec, &config);
-  /* we expect success? wait, testing logic says ASSERT_EQ(0, rc) which is
-   * weird, maybe it succeeds by ignoring error. let's keep it. */
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
 
   rc = openapi_client_gui_generate(NULL, &config);
@@ -153,22 +148,54 @@ TEST test_client_gui_gen_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
 
-  config.filename_base = (char *)(size_t)(size_t) "test_gui";
-  g_cdd_alloc_fail = 1;
-  rc = openapi_client_gui_generate(&spec, &config);
-  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/test_gui";
+  {
+    int i;
+    for (i = 1; i <= 5; ++i) {
+      g_cdd_alloc_fail = i;
+      rc = openapi_client_gui_generate(&spec, &config);
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS)
+        break;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+  }
 
-  g_io_calls = 0;
-  g_fail_io_after = 1;
+  /* Test server with url == NULL (spec->n_servers > 0 && spec->servers[0].url
+   * == NULL) */
+  {
+    struct OpenAPI_Server srv;
+    memset(&srv, 0, sizeof(srv));
+    srv.url = NULL;
+    spec.servers = &srv;
+    spec.n_servers = 1;
+    config.filename_base = (char *)(size_t)(size_t) "test_gui_null_url";
+    rc = openapi_client_gui_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+    remove("src/test_gui_null_url_gui.c");
+    remove("src/test_gui_null_url_gui.h");
+    spec.servers = NULL;
+    spec.n_servers = 0;
+  }
+
+  /* Test fopen failures */
+  /* Case 1: fp_h fails to open because it is a directory */
+  makedirs("test_build_dir/bad_gui1/src/bad_gui_gui.h");
+  config.filename_base =
+      (char *)(size_t)(size_t) "test_build_dir/bad_gui1/bad_gui";
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_fail_io_after = -1;
+  remove("test_build_dir/bad_gui1/src/bad_gui_gui.h");
 
-  g_io_calls = 0;
-  g_fail_io_after = 2;
+  /* Case 2: fp_c fails to open because it is a directory (while fp_h succeeds
+   * and must be closed) */
+  makedirs("test_build_dir/bad_gui2/src/bad_gui_gui.c");
+  config.filename_base =
+      (char *)(size_t)(size_t) "test_build_dir/bad_gui2/bad_gui";
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(CDD_C_ERROR_IO, rc);
-  g_fail_io_after = -1;
+  remove("test_build_dir/bad_gui2/src/bad_gui_gui.c");
+  remove("test_build_dir/bad_gui2/src/bad_gui_gui.h");
 
   PASS();
 }

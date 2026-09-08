@@ -834,6 +834,13 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
   size_t m_len;
   size_t i_tok = 0, i_match = 0;
   const uint8_t *t;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
+  if (g_cdd_fail_token_matches_string &&
+      --g_cdd_fail_token_matches_string == 0) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;

@@ -515,6 +515,68 @@ TEST test_audit_capacity(void) {
   PASS();
 }
 
+TEST test_audit_failure_hooks(void) {
+  struct AuditStats stats;
+  int rc;
+  FILE *f;
+
+  (void)rc;
+  audit_stats_init(&stats);
+  makedir("test_audit_fail_dir");
+#if defined(_MSC_VER)
+  if (fopen_s(&f, "test_audit_fail_dir/test.c", "w") != 0)
+    f = NULL;
+#else
+  f = fopen("test_audit_fail_dir/test.c", "w");
+#endif
+  if (f) {
+    fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
+    fclose(f);
+  }
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_stricmp;
+    extern C_CDD_EXPORT int g_cdd_fail_count_returning_allocs;
+
+    g_cdd_fail_stricmp = 1;
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_NEQ(0, rc);
+    g_cdd_fail_stricmp = 0;
+
+    g_cdd_fail_stricmp = 2;
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_EQ(0, rc);
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_NEQ(0, rc);
+    g_cdd_fail_stricmp = 0;
+
+    g_cdd_fail_count_returning_allocs = 1;
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_NEQ(0, rc);
+    g_cdd_fail_count_returning_allocs = 0;
+
+    g_cdd_fail_count_returning_allocs = 2;
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_EQ(0, rc);
+    rc = audit_project("test_audit_fail_dir", &stats);
+    ASSERT_NEQ(0, rc);
+    g_cdd_fail_count_returning_allocs = 0;
+  }
+#endif
+
+  remove("test_audit_fail_dir/test.c");
+#ifdef _WIN32
+  _rmdir("test_audit_fail_dir");
+#else
+  rmdir("test_audit_fail_dir");
+#endif
+
+  audit_stats_free(&stats);
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(project_audit_suite) {
   RUN_TEST(test_audit_stats_null);
   RUN_TEST(test_audit_edge_cases);
@@ -526,6 +588,7 @@ SUITE(project_audit_suite) {
   RUN_TEST(test_audit_extras);
   RUN_TEST(test_audit_oom);
   RUN_TEST(test_audit_capacity);
+  RUN_TEST(test_audit_failure_hooks);
 }
 
 #ifdef __cplusplus

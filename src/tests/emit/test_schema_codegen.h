@@ -883,7 +883,7 @@ TEST test_schema_codegen_main_paths(void) {
     }
     g_fail_io_after = -1;
 
-    for (io_i = 1; io_i < 50; io_i++) {
+    for (io_i = 1; io_i < 150; io_i++) {
       g_schema_codegen_force_fail = io_i;
       rc = schema2code_main(5, (char **)(size_t)argv);
       if (rc == 0)

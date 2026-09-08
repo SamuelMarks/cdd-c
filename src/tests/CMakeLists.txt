@@ -176,6 +176,8 @@ target_include_directories(
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
 )
 add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
+add_test(NAME test_cdd_c_fail COMMAND cdd-c non_existent_command)
+set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
 
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")

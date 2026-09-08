@@ -345,7 +345,11 @@ TEST test_cli_cst_process_errors(void) {
    * is resilient and probably parses it anyway. Let's try read-only file for
    * write failure. */
   remove("test_cli_cst_file.h/foo");
-  remove("test_cli_cst_file.h");
+#ifdef _WIN32
+  _rmdir("test_cli_cst_file.h");
+#else
+  rmdir("test_cli_cst_file.h");
+#endif
 
   {
     cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
@@ -360,6 +364,15 @@ TEST test_cli_cst_process_errors(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cli_cst_transformer_main(3, argv_fix));
   chmod("test_cli_cst_file.h", 0600); /* restore to delete */
+#endif
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_cst_emit_realloc_fail;
+    g_cdd_cst_emit_realloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cli_cst_transformer_main(3, argv_fix));
+    g_cdd_cst_emit_realloc_fail = 0;
+  }
 #endif
 
   remove("test_cli_cst_file.h");

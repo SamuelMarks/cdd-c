@@ -77,6 +77,18 @@ TEST test_sync_code_simple_struct_enum(void) {
                     "typedef int MyInt;\n"
                     "union MyUnion { int i; float f; };"));
   ASSERT_EQ(0, sync_code_main(2, argv));
+
+  {
+    extern C_CDD_EXPORT int g_io_calls;
+    int k;
+    for (k = 0; k <= 120; k++) {
+      g_io_calls = 0;
+      g_fail_io_after = k;
+      (void)sync_code_main(2, argv);
+      g_fail_io_after = -1;
+    }
+  }
+
   remove(filename);
   remove("impl30.c");
   g_fail_io_after = -1;
@@ -398,6 +410,31 @@ TEST test_patch_header_failures(void) {
     ASSERT(rc != 0);
   }
 
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_sync_matches;
+    write_to_file(h_path, "void foo();\n");
+    g_cdd_fail_sync_matches = 1;
+    rc = patch_header_from_source(h_path, src);
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+    g_cdd_fail_sync_matches = 0;
+  }
+
+  {
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    g_cdd_strdup_fail = 1;
+    rc = patch_header_from_source(h_path, src);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_strdup_fail = 0;
+  }
+
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_sync_patch_add;
+    g_cdd_fail_sync_patch_add = 1;
+    rc = patch_header_from_source(h_path, src);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_fail_sync_patch_add = 0;
+  }
+
   remove(h_path);
 #endif
   PASS();
@@ -425,10 +462,31 @@ TEST test_sync_oom(void) {
     f = fopen("header.h", "w");
 #endif
     if (f) {
-      fprintf(f, "struct A { int a; };\n");
+      fprintf(f, "enum E { VAL1 };\nstruct A { int a; };\n");
       if (f)
         fclose(f);
     }
+
+    {
+      int k;
+      for (k = 0; k <= 30; k++) {
+        g_fail_io_after = k;
+        (void)sync_code_main(2, (char **)(size_t)argv);
+        g_fail_io_after = -1;
+      }
+    }
+
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_get_basename;
+      g_cdd_fail_get_basename = 1;
+      rc_s = sync_code_main(2, (char **)(size_t)argv);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_s);
+      g_cdd_fail_get_basename = 0;
+    }
+
+    g_cdd_alloc_fail = 1;
+    (void)sync_code_main(2, (char **)(size_t)argv);
+    g_cdd_alloc_fail = 0;
 
     g_cdd_fprintf_fail = 8001;
     rc_s = sync_code_main(2, (char **)(size_t)argv);

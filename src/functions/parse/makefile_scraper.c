@@ -163,10 +163,6 @@ cdd_c_error_t scrape_makefile(struct ExtractedBuildInfo *info,
     if (rc_ms != CDD_C_SUCCESS)
       return rc_ms;
   }
-  if (!copy) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
-  }
 
 #if defined(_WIN32)
   tok = strtok_s(copy, " \t\n\r\\", &saveptr);
@@ -210,10 +206,6 @@ cdd_c_error_t scrape_configure_ac(
     cdd_c_error_t rc_ms = my_strdup(configure_ac_content, &copy);
     if (rc_ms != CDD_C_SUCCESS)
       return rc_ms;
-  }
-  if (!copy) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-    return CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_WIN32)

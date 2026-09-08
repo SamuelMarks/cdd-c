@@ -43,7 +43,7 @@ static cdd_c_error_t join_tokens_skipping_ws(const struct TokenList *tokens,
   buf = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!buf) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   p = buf;
@@ -192,8 +192,6 @@ static cdd_c_error_t parse_designator(const struct TokenList *tokens,
     if (rc_str != CDD_C_SUCCESS)
       return rc_str;
   }
-  if (!*out_str)
-    return CDD_C_ERROR_MEMORY;
 
   return CDD_C_SUCCESS;
 }
@@ -246,8 +244,6 @@ static cdd_c_error_t parse_expression_str(const struct TokenList *tokens,
     if (rc_str != CDD_C_SUCCESS)
       return rc_str;
   }
-  if (!*out_str)
-    return CDD_C_ERROR_MEMORY;
 
   *out_next = i;
   return CDD_C_SUCCESS;
@@ -265,11 +261,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    cdd_c_error_t rc_str = skip_ws(tokens, start_idx, end_idx, &i);
-    if (rc_str != CDD_C_SUCCESS)
-      return rc_str;
-  }
+  (void)skip_ws(tokens, start_idx, end_idx, &i);
 
   /* Expect opening brace */
   if (i >= end_idx || tokens->tokens[i].kind != TOKEN_LBRACE) {
@@ -281,11 +273,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     char *desig_str = NULL;
     struct InitValue *val_obj = NULL;
 
-    {
-      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
+    (void)skip_ws(tokens, i, end_idx, &i);
 
     if (i >= end_idx)
       break;
@@ -307,11 +295,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       i = next_after_desig;
     }
 
-    {
-      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
+    (void)skip_ws(tokens, i, end_idx, &i);
 
     /* Allocate Value Object */
     val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));
@@ -379,11 +363,7 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       goto error;
     }
 
-    {
-      cdd_c_error_t rc_str = skip_ws(tokens, i, end_idx, &i);
-      if (rc_str != CDD_C_SUCCESS)
-        return rc_str;
-    }
+    (void)skip_ws(tokens, i, end_idx, &i);
 
     /* Consume comma if present */
     if (i < end_idx && tokens->tokens[i].kind == TOKEN_COMMA) {

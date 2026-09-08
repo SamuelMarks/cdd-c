@@ -145,6 +145,8 @@ TEST test_cli_gen_fail_open(void) {
   (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
+
+  /* Case 1: makedirs fails because directory path cannot be created */
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_cli";
   g_io_calls = 0;
   g_fail_io_after = 1;
@@ -152,6 +154,14 @@ TEST test_cli_gen_fail_open(void) {
   rc = openapi_cli_generate(&spec, &config);
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
   g_fail_io_after = -1;
+
+  /* Case 2: fopen fails because destination path is an existing directory */
+  makedirs("test_build_dir/bad_cli/src/bad_base_cli.c");
+  config.filename_base =
+      (char *)(size_t)(size_t) "test_build_dir/bad_cli/bad_base";
+  rc = openapi_cli_generate(&spec, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  remove("test_build_dir/bad_cli/src/bad_base_cli.c");
 
   PASS();
 }
@@ -253,7 +263,7 @@ TEST test_cli_gen_malloc_fail(void) {
   (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
-  config.filename_base = (char *)(size_t)(size_t) "test_cli";
+  config.filename_base = (char *)(size_t)(size_t) "test_build_dir/cli";
 
   for (i = 1; i < 5; i++) {
     g_cdd_alloc_fail = i;
@@ -264,6 +274,12 @@ TEST test_cli_gen_malloc_fail(void) {
     }
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
+
+  /* Test NULL arguments */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_cli_generate(NULL, &config));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_cli_generate(&spec, NULL));
+  config.filename_base = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, openapi_cli_generate(&spec, &config));
 
   PASS();
 }

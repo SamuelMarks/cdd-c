@@ -300,6 +300,39 @@ TEST test_patch_bounds(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, patch_list_apply(&pl, NULL, NULL));
   patch_list_free(&pl);
   patch_list_free(NULL); /* Should not crash */
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_patcher_test_cap_1;
+    extern C_CDD_EXPORT int g_cdd_fail_patch_list_sort;
+    struct PatchList pl_test;
+    struct TokenList tl_test;
+    char *out_test = NULL;
+    memset(&tl_test, 0, sizeof(tl_test));
+
+    g_patcher_test_cap_1 = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, patch_list_init(&pl_test));
+    ASSERT_EQ(CDD_C_SUCCESS, patch_list_add(&pl_test, 0, 1, strdup("X")));
+    ASSERT_EQ(CDD_C_SUCCESS, patch_list_add(&pl_test, 1, 2, strdup("Y")));
+    g_patcher_test_cap_1 = 0;
+
+    g_cdd_fail_patch_list_sort = 1;
+    ASSERT_NEQ(0, patch_list_apply(&pl_test, &tl_test, &out_test));
+    g_cdd_fail_patch_list_sort = 0;
+
+    g_cdd_fail_patch_list_sort = 2;
+    ASSERT_EQ(0, patch_list_apply(&pl_test, &tl_test, &out_test));
+    if (out_test) {
+      free(out_test);
+      out_test = NULL;
+    }
+    ASSERT_NEQ(0, patch_list_apply(&pl_test, &tl_test, &out_test));
+    g_cdd_fail_patch_list_sort = 0;
+
+    patch_list_free(&pl_test);
+  }
+#endif
+
   g_fail_io_after = -1;
   PASS();
 }

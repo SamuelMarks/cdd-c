@@ -90,12 +90,6 @@ cdd_c_error_t vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
   builder->deps = NULL;
   builder->deps_count = 0;
   builder->deps_capacity = 0;
-
-  if (!builder->project_name || !builder->version_string ||
-      !builder->description) {
-    vcpkg_builder_free(builder);
-    return CDD_C_ERROR_MEMORY;
-  }
   return CDD_C_SUCCESS;
 }
 
@@ -158,8 +152,6 @@ cdd_c_error_t vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
     if (rc_vc != CDD_C_SUCCESS)
       return rc_vc;
   }
-  if (!builder->deps[builder->deps_count].name)
-    return CDD_C_ERROR_MEMORY;
   builder->deps_count++;
 
   return CDD_C_SUCCESS;
@@ -192,8 +184,10 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
         {
           cdd_c_error_t rc_vc =
               token_matches_string(&tokens->tokens[j], "include", &is_inc);
-          if (rc_vc != CDD_C_SUCCESS)
+          if (rc_vc != CDD_C_SUCCESS) {
+            free_token_list(tokens);
             return rc_vc;
+          }
         }
         if (is_inc) {
           size_t k = j + 1;

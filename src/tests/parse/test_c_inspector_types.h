@@ -779,6 +779,32 @@ TEST test_inspector_branch_coverage(void) {
   g_cdd_strdup_fail = 0;
   type_def_list_free(&types);
 
+  /* 5b. Struct member parsing failure via g_cdd_strdup_fail = 2 */
+  write_to_file(filename, "struct BadMember {\n  int a; };\n");
+  type_def_list_init(&types);
+  g_cdd_strdup_fail = 2;
+  c_inspector_scan_file_types(filename, &types);
+  g_cdd_strdup_fail = 0;
+  type_def_list_free(&types);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
+    write_to_file(filename, "enum X { A };");
+    type_def_list_init(&types);
+
+    g_cdd_fail_str_starts_with = 1;
+    c_inspector_scan_file_types(filename, &types);
+    g_cdd_fail_str_starts_with = 0;
+
+    g_cdd_fail_str_starts_with = 2;
+    c_inspector_scan_file_types(filename, &types);
+    g_cdd_fail_str_starts_with = 0;
+
+    type_def_list_free(&types);
+  }
+#endif
+
   /* 6. Zero capacity list */
   {
     struct FuncSigList zout = {0};

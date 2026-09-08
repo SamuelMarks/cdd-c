@@ -207,6 +207,16 @@ TEST test_vcpkg_builder_errors(void) {
         }
       }
       vcpkg_builder_free(&builder);
+
+      {
+        extern C_CDD_EXPORT int g_cdd_fail_token_matches_string;
+        vcpkg_builder_init(&builder, "proj", NULL, NULL);
+        g_cdd_fail_token_matches_string = 5;
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  vcpkg_builder_scan_source(&builder, "#include\n"));
+        g_cdd_fail_token_matches_string = 0;
+        vcpkg_builder_free(&builder);
+      }
     }
 #endif
 
@@ -256,6 +266,19 @@ TEST test_vcpkg_builder_oom(void) {
     g_cdd_alloc_fail = i;
     {
       int rc = vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj");
+      g_cdd_alloc_fail = 0;
+      if (rc == CDD_C_SUCCESS) {
+        vcpkg_builder_free(&builder);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+  }
+
+  for (i = 1; i < 20; i++) {
+    g_cdd_alloc_fail = i;
+    {
+      int rc = vcpkg_builder_init(&builder, "my-proj", NULL, NULL);
       g_cdd_alloc_fail = 0;
       if (rc == CDD_C_SUCCESS) {
         vcpkg_builder_free(&builder);

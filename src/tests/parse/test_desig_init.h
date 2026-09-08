@@ -94,7 +94,7 @@ TEST test_scan_for_designated_initializers_oom(void) {
     g_cdd_alloc_fail = 0;
 
     if (res != 0) {
-      ASSERT_EQ(ENOMEM, res);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
     desig_init_list_free(&list);
   }
@@ -123,7 +123,7 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
     g_cdd_alloc_fail = 0;
 
     if (res != 0) {
-      ASSERT_EQ(ENOMEM, res);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
     desig_init_list_free(&list);
   }
@@ -182,17 +182,35 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
     /* Case: Comma inside nested braces */
     memset(t, 0, sizeof(t));
     t[0].kind = TOKEN_LBRACE;
+    t[0].start = (const uint8_t *)"{";
+    t[0].length = 1;
     t[1].kind = TOKEN_DOT;
+    t[1].start = (const uint8_t *)".";
+    t[1].length = 1;
     t[2].kind = TOKEN_IDENTIFIER;
     t[2].start = (const uint8_t *)"x";
     t[2].length = 1;
     t[3].kind = TOKEN_ASSIGN;
+    t[3].start = (const uint8_t *)"=";
+    t[3].length = 1;
     t[4].kind = TOKEN_LBRACE;
+    t[4].start = (const uint8_t *)"{";
+    t[4].length = 1;
     t[5].kind = TOKEN_NUMBER_LITERAL;
+    t[5].start = (const uint8_t *)"1";
+    t[5].length = 1;
     t[6].kind = TOKEN_COMMA;
+    t[6].start = (const uint8_t *)",";
+    t[6].length = 1;
     t[7].kind = TOKEN_NUMBER_LITERAL;
+    t[7].start = (const uint8_t *)"2";
+    t[7].length = 1;
     t[8].kind = TOKEN_RBRACE;
+    t[8].start = (const uint8_t *)"}";
+    t[8].length = 1;
     t[9].kind = TOKEN_RBRACE;
+    t[9].start = (const uint8_t *)"}";
+    t[9].length = 1;
     tokens.size = 10;
     ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
 
@@ -208,6 +226,9 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   int i;
   int res;
 
+  extern C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void);
+  ASSERT_EQ(CDD_C_SUCCESS, test_desig_init_internal_errors());
+
   memset(t, 0, sizeof(t));
   t[0].kind = TOKEN_LBRACE;
   t[1].kind = TOKEN_DOT;
@@ -217,19 +238,37 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   t[3].kind = TOKEN_ASSIGN;
   t[3].start = (const uint8_t *)"=";
   t[3].length = 1;
+  t[4].kind = TOKEN_NUMBER_LITERAL;
+  t[4].start = (const uint8_t *)"1";
+  t[4].length = 1;
+  t[5].kind = TOKEN_RBRACE;
 
   tokens.tokens = t;
-  tokens.size = 4;
+  tokens.size = 6;
   tokens.capacity = 10;
 
-  for (i = 1; i < 10; ++i) {
+  for (i = 1; i <= 10; ++i) {
     (void)desig_init_list_init(&list);
     g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(&tokens, &list);
     g_cdd_alloc_fail = 0;
 
     if (res != 0) {
-      ASSERT_EQ(ENOMEM, res);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
+    }
+    desig_init_list_free(&list);
+  }
+
+  /* Also test empty expr OOM */
+  tokens.size = 4;
+  for (i = 1; i <= 10; ++i) {
+    (void)desig_init_list_init(&list);
+    g_cdd_alloc_fail = i;
+    res = scan_for_designated_initializers(&tokens, &list);
+    g_cdd_alloc_fail = 0;
+
+    if (res != 0) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, res);
     }
     desig_init_list_free(&list);
   }

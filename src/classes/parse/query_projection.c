@@ -1,12 +1,24 @@
+/**
+ * @file query_projection.c
+ * @brief Implementation of query projection AST representation.
+ */
+
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
 #include "classes/parse/query_projection.h"
 #include "c_cdd/memory.h"
+#include "functions/parse/str.h"
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Initialize a query projection structure.
+ *
+ * @param proj Pointer to query projection.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
   if (!proj)
@@ -17,29 +29,55 @@ cdd_c_query_projection_init(cdd_c_query_projection_t *proj) {
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Add a field to the query projection.
+ *
+ * @param proj Pointer to query projection.
+ * @param field Pointer to field to add.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_add_field(cdd_c_query_projection_t *proj,
                                  const cdd_c_query_projection_field_t *field) {
+  enum cdd_c_error rc;
   if (!proj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (proj->n_fields >= proj->capacity) {
     size_t new_cap = proj->capacity == 0 ? 4 : proj->capacity * 2;
-    void *new_arr =
-        realloc(proj->fields, new_cap * sizeof(cdd_c_query_projection_field_t));
+    void *new_arr = C_CDD_REALLOC(
+        proj->fields, new_cap * sizeof(cdd_c_query_projection_field_t));
     if (!new_arr)
       return CDD_C_ERROR_MEMORY;
     proj->fields = (cdd_c_query_projection_field_t *)new_arr;
     proj->capacity = new_cap;
   }
-  proj->fields[proj->n_fields].name = field->name ? strdup(field->name) : NULL;
-  proj->fields[proj->n_fields].original_name =
-      field->original_name ? strdup(field->original_name) : NULL;
+  proj->fields[proj->n_fields].name = NULL;
+  proj->fields[proj->n_fields].original_name = NULL;
+
+  rc = c_cdd_strdup(field->name, &proj->fields[proj->n_fields].name);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+
+  rc = c_cdd_strdup(field->original_name,
+                    &proj->fields[proj->n_fields].original_name);
+  if (rc != CDD_C_SUCCESS) {
+    free(proj->fields[proj->n_fields].name);
+    proj->fields[proj->n_fields].name = NULL;
+    return rc;
+  }
+
   proj->fields[proj->n_fields].type = field->type;
   proj->fields[proj->n_fields].is_aggregate = field->is_aggregate;
   proj->n_fields++;
   return CDD_C_SUCCESS;
 }
 
+/**
+ * @brief Free resources associated with a query projection.
+ *
+ * @param proj Pointer to query projection.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
 C_CDD_EXPORT cdd_c_error_t
 cdd_c_query_projection_free(cdd_c_query_projection_t *proj) {
   size_t i;
