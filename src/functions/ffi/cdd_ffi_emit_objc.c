@@ -129,9 +129,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
   }
   {
     if (g_fail_io_after == 2) {
-      if (m_file) {
-        fclose(m_file);
-      }
+      fclose(m_file);
       fclose(h_file);
       return CDD_C_ERROR_UNKNOWN;
     }

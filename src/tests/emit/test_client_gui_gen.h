@@ -134,8 +134,11 @@ TEST test_client_gui_gen_errors(void) {
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";
+  g_io_calls = 0;
+  g_fail_io_after = 1;
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT(rc == CDD_C_ERROR_IO || rc == CDD_C_ERROR_NOT_FOUND);
+  g_fail_io_after = -1;
 
   rc = openapi_client_gui_generate(NULL, &config);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);

@@ -6718,7 +6718,11 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
     }
   }
 
-  json_serialize_to_file_pretty(root, argv[1]);
+  if (json_serialize_to_file_pretty(root, argv[1]) != JSONSuccess) {
+    fclose(fp);
+    json_value_free(root);
+    return CDD_C_ERROR_IO;
+  }
   fclose(fp);
   json_value_free(root);
   return CDD_C_SUCCESS;

@@ -13,8 +13,23 @@
 include(FetchContent)
 
 if(NOT c89stringutils_FOUND)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
+    set(_C89STRINGUTILS_LOCAL_DIR "")
+    get_filename_component(_real_src_dir "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
+    foreach(_cand_rel
+        "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../c89stringutils"
+        "${_real_src_dir}/../c89stringutils"
+        "${_real_src_dir}/../../c89stringutils"
+    )
+        get_filename_component(_cand_abs "${_cand_rel}" REALPATH)
+        if(EXISTS "${_cand_abs}" AND EXISTS "${_cand_abs}/CMakeLists.txt")
+            set(_C89STRINGUTILS_LOCAL_DIR "${_cand_abs}")
+            break()
+        endif()
+    endforeach()
+
+    if(_C89STRINGUTILS_LOCAL_DIR)
+        add_subdirectory("${_C89STRINGUTILS_LOCAL_DIR}" "${CMAKE_BINARY_DIR}/c89stringutils")
     else()
         set(c89stringutils_RESOLVED OFF)
         if(VCPKG_TOOLCHAIN)

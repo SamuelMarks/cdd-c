@@ -86,10 +86,8 @@ emit_swift_file(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif
@@ -210,10 +208,8 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif

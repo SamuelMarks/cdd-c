@@ -22,6 +22,7 @@ extern "C" {
 /* clang-format on */
 
 /* Moved extern declarations for C89 compliance */
+extern C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void);
 
 /**
  * @brief Tests basic functionality of designated initializer scanning.
@@ -133,6 +134,7 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
 }
 
 TEST test_scan_for_designated_initializers_edge_cases(void) {
+  static const char compound_src[] = "{.x={1,2}}";
   struct TokenList tokens;
   struct Token t[10];
   memset(t, 0, sizeof(t));
@@ -182,34 +184,34 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
     /* Case: Comma inside nested braces */
     memset(t, 0, sizeof(t));
     t[0].kind = TOKEN_LBRACE;
-    t[0].start = (const uint8_t *)"{";
+    t[0].start = (const uint8_t *)&compound_src[0];
     t[0].length = 1;
     t[1].kind = TOKEN_DOT;
-    t[1].start = (const uint8_t *)".";
+    t[1].start = (const uint8_t *)&compound_src[1];
     t[1].length = 1;
     t[2].kind = TOKEN_IDENTIFIER;
-    t[2].start = (const uint8_t *)"x";
+    t[2].start = (const uint8_t *)&compound_src[2];
     t[2].length = 1;
     t[3].kind = TOKEN_ASSIGN;
-    t[3].start = (const uint8_t *)"=";
+    t[3].start = (const uint8_t *)&compound_src[3];
     t[3].length = 1;
     t[4].kind = TOKEN_LBRACE;
-    t[4].start = (const uint8_t *)"{";
+    t[4].start = (const uint8_t *)&compound_src[4];
     t[4].length = 1;
     t[5].kind = TOKEN_NUMBER_LITERAL;
-    t[5].start = (const uint8_t *)"1";
+    t[5].start = (const uint8_t *)&compound_src[5];
     t[5].length = 1;
     t[6].kind = TOKEN_COMMA;
-    t[6].start = (const uint8_t *)",";
+    t[6].start = (const uint8_t *)&compound_src[6];
     t[6].length = 1;
     t[7].kind = TOKEN_NUMBER_LITERAL;
-    t[7].start = (const uint8_t *)"2";
+    t[7].start = (const uint8_t *)&compound_src[7];
     t[7].length = 1;
     t[8].kind = TOKEN_RBRACE;
-    t[8].start = (const uint8_t *)"}";
+    t[8].start = (const uint8_t *)&compound_src[8];
     t[8].length = 1;
     t[9].kind = TOKEN_RBRACE;
-    t[9].start = (const uint8_t *)"}";
+    t[9].start = (const uint8_t *)&compound_src[9];
     t[9].length = 1;
     tokens.size = 10;
     ASSERT_EQ(0, scan_for_designated_initializers(&tokens, &list));
@@ -226,7 +228,6 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   int i;
   int res;
 
-  extern C_CDD_EXPORT cdd_c_error_t test_desig_init_internal_errors(void);
   ASSERT_EQ(CDD_C_SUCCESS, test_desig_init_internal_errors());
 
   memset(t, 0, sizeof(t));

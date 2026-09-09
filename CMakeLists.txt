@@ -56,11 +56,26 @@ set(PARSON_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(C_ABSTRACT_HTTP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
 macro(FetchDependencyLocalOrArchive NAME LOCAL_DIR GITHUB_REPO)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}")
-        message(STATUS "Fetching ${NAME} from local directory: ${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}")
+    set(_DEP_LOCAL_DIR "")
+    get_filename_component(_real_src_dir "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
+    foreach(_cand_rel
+        "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../${LOCAL_DIR}"
+        "${_real_src_dir}/../${LOCAL_DIR}"
+        "${_real_src_dir}/../../${LOCAL_DIR}"
+    )
+        get_filename_component(_cand_abs "${_cand_rel}" REALPATH)
+        if(EXISTS "${_cand_abs}" AND EXISTS "${_cand_abs}/CMakeLists.txt")
+            set(_DEP_LOCAL_DIR "${_cand_abs}")
+            break()
+        endif()
+    endforeach()
+
+    if(_DEP_LOCAL_DIR)
+        message(STATUS "Fetching ${NAME} from local directory: ${_DEP_LOCAL_DIR}")
         FetchContent_Declare(
             ${NAME}
-            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}"
+            SOURCE_DIR "${_DEP_LOCAL_DIR}"
         )
     else()
         message(STATUS "Fetching ${NAME} from GitHub: ${GITHUB_REPO}")

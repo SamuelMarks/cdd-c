@@ -163,10 +163,8 @@ cdd_ffi_emit_common_lisp(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
 
   if (g_fail_io_after == 555) {
-    if (asd_f) {
-      fclose(asd_f);
-      asd_f = NULL;
-    }
+    fclose(asd_f);
+    asd_f = NULL;
   }
 #endif
   if (!asd_f) {

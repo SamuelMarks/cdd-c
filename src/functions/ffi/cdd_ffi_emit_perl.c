@@ -228,9 +228,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   }
   {
     if (g_fail_io_after == 2) {
-      if (xs_f) {
-        fclose(xs_f);
-      }
+      fclose(xs_f);
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
@@ -250,9 +248,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   }
   {
     if (g_fail_io_after == 3) {
-      if (make_f) {
-        fclose(make_f);
-      }
+      fclose(make_f);
       fclose(xs_f);
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
@@ -274,9 +270,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
   }
   {
     if (g_fail_io_after == 4) {
-      if (typemap_f) {
-        fclose(typemap_f);
-      }
+      fclose(typemap_f);
       fclose(make_f);
       fclose(xs_f);
       fclose(f);

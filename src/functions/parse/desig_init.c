@@ -202,12 +202,18 @@ cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
                   tokens->tokens[expr_end - 1].length;
               res = c_cdd_strndup(e_start, (size_t)(e_end - e_start),
                                   &s->value_expr);
-              if (res != CDD_C_SUCCESS)
+              if (res != CDD_C_SUCCESS) {
+                free(s->field_name);
+                s->field_name = NULL;
                 goto cleanup;
+              }
             } else {
               res = c_cdd_strndup("", 0, &s->value_expr);
-              if (res != CDD_C_SUCCESS)
+              if (res != CDD_C_SUCCESS) {
+                free(s->field_name);
+                s->field_name = NULL;
                 goto cleanup;
+              }
             }
 
             list->count++;

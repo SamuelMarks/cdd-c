@@ -35,6 +35,25 @@ C_CDD_EXPORT cdd_c_error_t cdd_transform_extern_c(
     cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
+ * @brief Checks if a CST subtree contains C declarations.
+ * @param[in] node Node to check.
+ * @param[out] out_has_decl Pointer to int storing 1 if declarations found, 0
+ * otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
+                                             int *out_has_decl);
+
+/**
+ * @brief Checks if a CST node represents an #ifdef __cplusplus guard.
+ * @param[in] dir Node to check.
+ * @param[out] out_is_cpp Pointer to int storing 1 if guard found, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
+                                                       int *out_is_cpp);
+
+/**
  * @brief Ports POSIX/GNU specific syntax to MSVC equivalents.
  *
  * @param tree The CST tree.

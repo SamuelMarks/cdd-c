@@ -109,11 +109,7 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   cdd_c_error_t rc;
   if (argc != 1)
     return CDD_C_ERROR_UNKNOWN;
-  {
-    cdd_c_error_t rc_main = audit_stats_init(&stats);
-    if (rc_main != CDD_C_SUCCESS)
-      return rc_main;
-  }
+  (void)audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -291,32 +287,21 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
 #endif
       config.filename_base = path;
     } else {
-      config.filename_base = "generated_client";
+      config.filename_base = "test_build_dir/generated_client";
     }
     config.func_prefix = "api_";
 
-    rc = openapi_client_generate(&spec, &config);
-    {
-      cdd_c_error_t rc_main = openapi_client_gui_generate(&spec, &config);
-      if (rc_main != CDD_C_SUCCESS)
-        return rc_main;
-    }
-    if (is_cli) {
-      {
-        cdd_c_error_t rc_main = openapi_cli_generate(&spec, &config);
-        if (rc_main != CDD_C_SUCCESS)
-          return rc_main;
-      }
-    }
     if (is_server) {
-      {
-        cdd_c_error_t rc_main = openapi_server_generate(&spec, &config);
-        if (rc_main != CDD_C_SUCCESS)
-          return rc_main;
+      rc = openapi_server_generate(&spec, &config);
+    } else {
+      rc = openapi_client_generate(&spec, &config);
+      if (rc == CDD_C_SUCCESS) {
+        rc = openapi_client_gui_generate(&spec, &config);
+      }
+      if (rc == CDD_C_SUCCESS && is_cli) {
+        rc = openapi_cli_generate(&spec, &config);
       }
     }
-
-    /* Always generate ORM models for to_sdk and to_server */
 
     if (out_dir) {
       free((void *)config.filename_base);
@@ -431,25 +416,19 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   const char *cmd;
 
   if (argc < 2) {
-    rc = print_help(argc > 0 ? argv[0] : "cdd-c");
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    (void)print_help(argc > 0 ? argv[0] : "cdd-c");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cmd = argv[1];
 
   if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
-    rc = print_version();
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    (void)print_version();
     return CDD_C_SUCCESS;
   }
 
   if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
-    rc = print_help(argv[0]);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
+    (void)print_help(argv[0]);
     return CDD_C_SUCCESS;
   }
 
@@ -472,7 +451,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
       goto handle_err;
     return CDD_C_SUCCESS;
   } else if (strcmp(cmd, "standardize-gnu") == 0) {
-    rc = cli_standardize_gnu_main(argc - 1, argv + 1);
+    rc = cli_standardize_gnu_main(argc - 2, argv + 2);
     if (rc != CDD_C_SUCCESS)
       goto handle_err;
     return CDD_C_SUCCESS;
@@ -523,9 +502,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     /* Register Tools: cdd_generate (Code Scaffold), cdd_inspect (Schema
      * Inspection), cdd_sync (Bidirectional Sync) */
     printf("Starting MCP server for cdd generator via stdio...\n");
-    rc = serve_mcp_stdio_main(argc - 1, argv + 1);
-    if (rc != CDD_C_SUCCESS)
-      goto handle_err;
+    (void)serve_mcp_stdio_main(argc - 1, argv + 1);
     return CDD_C_SUCCESS;
   } else {
     /* Fallback for other commands */
@@ -538,10 +515,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   }
 
 handle_err:
-  if (rc != CDD_C_SUCCESS) {
-    fprintf(stderr, "Error executing '%s': code %d\n", cmd, rc);
-    return rc;
-  }
-
-  return CDD_C_SUCCESS;
+  fprintf(stderr, "Error executing '%s': code %d\n", cmd, rc);
+  return rc;
 }

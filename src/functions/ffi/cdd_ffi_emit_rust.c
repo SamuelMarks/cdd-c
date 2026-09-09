@@ -101,10 +101,8 @@ static cdd_c_error_t emit_sys_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif
@@ -193,10 +191,8 @@ static cdd_c_error_t emit_lib_rs(cdd_ffi_ir_t *ir, const char *dir_path) {
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif
@@ -317,10 +313,8 @@ emit_cargo_toml(const cdd_generate_bindings_config_t *config) {
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif
@@ -365,10 +359,8 @@ emit_integration_tests(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (f) {
-        fclose(f);
-        f = NULL;
-      }
+      fclose(f);
+      f = NULL;
     }
   }
 #endif

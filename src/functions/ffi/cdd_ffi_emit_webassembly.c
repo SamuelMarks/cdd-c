@@ -186,10 +186,8 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (cpp_f) {
-        fclose(cpp_f);
-        cpp_f = NULL;
-      }
+      fclose(cpp_f);
+      cpp_f = NULL;
     }
   }
 #endif
@@ -208,10 +206,8 @@ cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      if (ts_f) {
-        fclose(ts_f);
-        ts_f = NULL;
-      }
+      fclose(ts_f);
+      ts_f = NULL;
     }
   }
 #endif

@@ -27,6 +27,9 @@ extern "C" {
 
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_cdd_fail_skip_qualifiers;
+extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
+extern C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
 
 /**
  * @brief test_mapping_int
@@ -214,10 +217,6 @@ TEST test_mapping_coverage(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_skip_qualifiers;
-    extern C_CDD_EXPORT int g_cdd_fail_str_starts_with;
-    extern C_CDD_EXPORT cdd_c_error_t test_mapping_internal_errors(void);
-
     g_cdd_fail_skip_qualifiers = 2;
     ASSERT_EQ(CDD_C_SUCCESS, c_mapping_map_type("int", "x", &m));
     c_mapping_free(&m);

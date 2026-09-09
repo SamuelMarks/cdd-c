@@ -129,8 +129,10 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
 
   (void)cli_command_init(cmd);
   rc = c_cdd_strdup("cli_app", &cmd->name);
-  if (rc != CDD_C_SUCCESS)
+  if (rc != CDD_C_SUCCESS) {
+    cli_command_free(cmd);
     return rc;
+  }
 
   /* Look for `while (getopt(...) != -1)` */
   for (i = 0; i < tokens->size; ++i) {
@@ -152,8 +154,10 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
               if (isalpha((unsigned char)flags[k])) {
                 struct CliOption *opt = NULL;
                 rc = add_option(cmd, &opt);
-                if (rc != CDD_C_SUCCESS)
+                if (rc != CDD_C_SUCCESS) {
+                  cli_command_free(cmd);
                   return rc;
+                }
                 opt->short_flag = flags[k];
                 if (k + 1 < flen && flags[k + 1] == ':') {
                   opt->has_arg = 1;
@@ -162,8 +166,10 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                   opt->has_arg = 0;
                 }
                 rc = c_cdd_strdup("Auto-extracted option", &opt->description);
-                if (rc != CDD_C_SUCCESS)
+                if (rc != CDD_C_SUCCESS) {
+                  cli_command_free(cmd);
                   return rc;
+                }
               }
             }
             break;
@@ -202,8 +208,10 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                           (const char *)tokens->tokens[prev_idx].start,
                           tokens->tokens[prev_idx].length,
                           &cmd->options[opt_idx].mapped_struct_field);
-                      if (rc != CDD_C_SUCCESS)
+                      if (rc != CDD_C_SUCCESS) {
+                        cli_command_free(cmd);
                         return rc;
+                      }
                       break;
                     }
                   }

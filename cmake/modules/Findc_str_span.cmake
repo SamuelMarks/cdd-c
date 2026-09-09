@@ -13,8 +13,23 @@
 include(FetchContent)
 
 if(NOT c_str_span_FOUND)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
+    set(_C_STR_SPAN_LOCAL_DIR "")
+    get_filename_component(_real_src_dir "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
+    foreach(_cand_rel
+        "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../c-str-span"
+        "${_real_src_dir}/../c-str-span"
+        "${_real_src_dir}/../../c-str-span"
+    )
+        get_filename_component(_cand_abs "${_cand_rel}" REALPATH)
+        if(EXISTS "${_cand_abs}" AND EXISTS "${_cand_abs}/CMakeLists.txt")
+            set(_C_STR_SPAN_LOCAL_DIR "${_cand_abs}")
+            break()
+        endif()
+    endforeach()
+
+    if(_C_STR_SPAN_LOCAL_DIR)
+        add_subdirectory("${_C_STR_SPAN_LOCAL_DIR}" "${CMAKE_BINARY_DIR}/c_str_span")
     else()
         set(c_str_span_RESOLVED OFF)
         if(VCPKG_TOOLCHAIN)

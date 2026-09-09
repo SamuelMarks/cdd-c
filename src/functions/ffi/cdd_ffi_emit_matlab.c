@@ -146,9 +146,7 @@ emit_matlab_m(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
 
   {
     if (g_fail_io_after == 2) {
-      if (f) {
-        fclose(f);
-      }
+      fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
   }

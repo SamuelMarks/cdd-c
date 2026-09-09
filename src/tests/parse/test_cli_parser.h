@@ -145,6 +145,7 @@ TEST test_cli_parser_getopt(void) {
         g_cdd_alloc_fail = i;
         (void)cst_extract_cli_command(nodes, tokens, &cmd_oom);
         g_cdd_alloc_fail = 0;
+        cli_command_free(&cmd_oom);
       }
     }
 #endif

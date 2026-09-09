@@ -593,6 +593,12 @@ C_CDD_EXPORT cdd_c_error_t serve_json_rpc_main(int argc, char **argv) {
       if (i + 1 < argc) {
         listen_flag = atoi(argv[++i]);
       }
+    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      printf("Usage: cdd-c serve_json_rpc [-p|--port <port>] [-l|--listen <address>]\n");
+      return CDD_C_SUCCESS;
+    } else if (argv[i][0] == '-') {
+      fprintf(stderr, "Unknown option for serve_json_rpc: %s\n", argv[i]);
+      return CDD_C_ERROR_INVALID_ARGUMENT;
     }
   }
 
