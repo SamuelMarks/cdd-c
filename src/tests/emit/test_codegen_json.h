@@ -1013,6 +1013,336 @@ TEST test_codegen_json_extra(void) {
   }
 }
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_fail_str_after_last;
+#endif
+
+/**
+ * @brief Comprehensive test covering write_only, read_only, exclusive ranges,
+ * array of objects, enum, and error paths in json emission.
+ */
+TEST test_codegen_json_comprehensive(void) {
+  FILE *tmp;
+#if defined(_MSC_VER)
+  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+    tmp = NULL;
+#else
+  tmp = cdd_test_tmpfile_global();
+#endif
+  if (tmp) {
+    struct StructFields sf;
+    struct StructField *f;
+    struct CodegenJsonConfig config;
+#ifdef CDD_BUILD_TESTS
+    int i;
+#endif
+    memset(&config, 0, sizeof(config));
+
+    struct_fields_init(&sf);
+
+    /* 1. integer with exclusive_min and exclusive_max */
+    struct_fields_add(&sf, "int_val", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 1.0;
+    f->exclusive_min = 1;
+    f->has_max = 1;
+    f->max_val = 100.0;
+    f->exclusive_max = 1;
+
+    /* 2. number with exclusive_min and exclusive_max */
+    struct_fields_add(&sf, "num_val", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 0.5;
+    f->exclusive_min = 1;
+    f->has_max = 1;
+    f->max_val = 99.5;
+    f->exclusive_max = 1;
+
+    /* 2b. number with non-exclusive min and max */
+    struct_fields_add(&sf, "num_val2", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 0.5;
+    f->exclusive_min = 0;
+    f->has_max = 1;
+    f->max_val = 99.5;
+    f->exclusive_max = 0;
+
+    /* 2c. integer with non-exclusive min and max */
+    struct_fields_add(&sf, "int_val2", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 1.0;
+    f->exclusive_min = 0;
+    f->has_max = 1;
+    f->max_val = 100.0;
+    f->exclusive_max = 0;
+
+    /* 2d. integer with only min */
+    struct_fields_add(&sf, "only_min_int", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 5.0;
+
+    /* 2e. integer with only max */
+    struct_fields_add(&sf, "only_max_int", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_max = 1;
+    f->max_val = 50.0;
+
+    /* 2f. number with only min */
+    struct_fields_add(&sf, "only_min_num", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 5.0;
+
+    /* 2g. number with only max */
+    struct_fields_add(&sf, "only_max_num", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_max = 1;
+    f->max_val = 50.0;
+
+    /* 2h. string with only min_len */
+    struct_fields_add(&sf, "only_min_str", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min_len = 1;
+    f->min_len = 2;
+
+    /* 2i. string with only max_len */
+    struct_fields_add(&sf, "only_max_str", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_max_len = 1;
+    f->max_len = 20;
+
+    /* 2j. string with both min_len and max_len */
+    struct_fields_add(&sf, "both_len_str", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min_len = 1;
+    f->min_len = 2;
+    f->has_max_len = 1;
+    f->max_len = 20;
+
+    /* 2k. integer with only exclusive min */
+    struct_fields_add(&sf, "int_ex_min", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->exclusive_min = 1;
+
+    /* 2l. integer with only exclusive max */
+    struct_fields_add(&sf, "int_ex_max", "integer", NULL, "0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->exclusive_max = 1;
+
+    /* 2m. number with only exclusive min */
+    struct_fields_add(&sf, "num_ex_min", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->exclusive_min = 1;
+
+    /* 2n. number with only exclusive max */
+    struct_fields_add(&sf, "num_ex_max", "number", NULL, "0.0", NULL);
+    f = &sf.fields[sf.size - 1];
+    f->exclusive_max = 1;
+
+    /* 3. write_only field */
+    struct_fields_add(&sf, "wo_val", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->write_only = 1;
+
+    /* 4. read_only field */
+    struct_fields_add(&sf, "ro_val", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->read_only = 1;
+
+    /* 5. string array */
+    struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
+
+    /* 6. integer array */
+    struct_fields_add(&sf, "int_arr", "array", "integer", NULL, NULL);
+
+    /* 7. object array */
+    struct_fields_add(&sf, "obj_arr", "array", "#/definitions/SubItem", NULL,
+                      NULL);
+
+    /* 8. object */
+    struct_fields_add(&sf, "sub_obj", "object", "#/definitions/Child", NULL,
+                      NULL);
+
+    /* 9. enum */
+    struct_fields_add(&sf, "status_val", "enum", "#/definitions/Status", NULL,
+                      NULL);
+
+    /* 10. plain integer (no min/max) */
+    struct_fields_add(&sf, "plain_int", "integer", NULL, "0", NULL);
+
+    /* 11. plain number (no min/max) */
+    struct_fields_add(&sf, "plain_num", "number", NULL, "0.0", NULL);
+
+    /* 12. plain string (no min/max/pattern) */
+    struct_fields_add(&sf, "plain_str", "string", NULL, NULL, NULL);
+
+    /* 13. exact pattern */
+    struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
+#else
+    strcpy(f->pattern, "^exact$");
+#endif
+
+    /* 14. prefix pattern */
+    struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
+#else
+    strcpy(f->pattern, "^prefix");
+#endif
+
+    /* 15. suffix pattern */
+    struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
+#else
+    strcpy(f->pattern, "suffix$");
+#endif
+
+    /* 16. contains pattern */
+    struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strcpy_s(f->pattern, sizeof(f->pattern), "contains");
+#else
+    strcpy(f->pattern, "contains");
+#endif
+
+    /* 17. array with min and max items */
+    struct_fields_add(&sf, "arr_items", "array", "string", NULL, NULL);
+    f = &sf.fields[sf.size - 1];
+    f->has_min_items = 1;
+    f->min_items = 1;
+    f->has_max_items = 1;
+    f->max_items = 10;
+
+    /* Normal generation without guards */
+    ASSERT_EQ(0, write_struct_to_json_func(tmp, "CompStruct", &sf, &config));
+    ASSERT_EQ(
+        0, write_struct_from_jsonObject_func(tmp, "CompStruct", &sf, &config));
+
+    /* Normal generation with guards */
+    config.guard_macro = "MY_GUARD";
+    ASSERT_EQ(0, write_struct_to_json_func(tmp, "CompStruct", &sf, &config));
+    ASSERT_EQ(
+        0, write_struct_from_jsonObject_func(tmp, "CompStruct", &sf, &config));
+    config.guard_macro = NULL;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      struct StructFields sf_single;
+
+      /* object ref failure */
+      struct_fields_init(&sf_single);
+      struct_fields_add(&sf_single, "sub_obj", "object", "#/definitions/Child",
+                        NULL, NULL);
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0,
+                 write_struct_to_json_func(tmp, "FailObj", &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0, write_struct_from_jsonObject_func(tmp, "FailObj",
+                                                      &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+      struct_fields_free(&sf_single);
+
+      /* enum ref failure */
+      struct_fields_init(&sf_single);
+      struct_fields_add(&sf_single, "status_val", "enum",
+                        "#/definitions/Status", NULL, NULL);
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0,
+                 write_struct_to_json_func(tmp, "FailEnum", &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0, write_struct_from_jsonObject_func(tmp, "FailEnum",
+                                                      &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+      struct_fields_free(&sf_single);
+
+      /* array ref failure: to_json */
+      struct_fields_init(&sf_single);
+      struct_fields_add(&sf_single, "obj_arr", "array", "#/definitions/SubItem",
+                        NULL, NULL);
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0,
+                 write_struct_to_json_func(tmp, "FailArr", &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* array ref failure: from_jsonObject (call 1) */
+      g_cdd_fail_str_after_last = 1;
+      ASSERT_NEQ(0, write_struct_from_jsonObject_func(tmp, "FailArr",
+                                                      &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+
+      /* array ref failure: from_jsonObject (call 2) */
+      g_cdd_fail_str_after_last = 2;
+      ASSERT_NEQ(0, write_struct_from_jsonObject_func(tmp, "FailArr",
+                                                      &sf_single, NULL));
+      g_cdd_fail_str_after_last = 0;
+      struct_fields_free(&sf_single);
+
+      /* Exhaustive IO failure across the complex struct */
+      config.guard_macro = "MY_GUARD";
+      {
+        int total_calls;
+        g_fail_io_after = 100000;
+        g_io_calls = 0;
+        write_struct_to_json_func(tmp, "CompStruct", &sf, &config);
+        total_calls = g_io_calls;
+        if (total_calls > 0) {
+          g_fail_io_after = total_calls - 1;
+          g_io_calls = 0;
+          ASSERT_EQ(CDD_C_ERROR_IO,
+                    write_struct_to_json_func(tmp, "CompStruct", &sf, &config));
+        }
+        g_fail_io_after = -1;
+      }
+      for (i = 0; i < 150; ++i) {
+        cdd_c_error_t rc_io;
+        g_fail_io_after = i;
+        g_io_calls = 0;
+        rc_io = write_struct_to_json_func(tmp, "CompStruct", &sf, &config);
+        if (rc_io == 0) {
+          g_fail_io_after = -1;
+          break;
+        }
+        ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+      }
+      g_fail_io_after = -1;
+
+      for (i = 0; i < 150; ++i) {
+        cdd_c_error_t rc_io;
+        g_fail_io_after = i;
+        g_io_calls = 0;
+        rc_io =
+            write_struct_from_jsonObject_func(tmp, "CompStruct", &sf, &config);
+        if (rc_io == 0) {
+          g_fail_io_after = -1;
+          break;
+        }
+        ASSERT_EQ(CDD_C_ERROR_IO, rc_io);
+      }
+      g_fail_io_after = -1;
+      config.guard_macro = NULL;
+    }
+#endif
+
+    struct_fields_free(&sf);
+    fclose(tmp);
+  }
+  PASS();
+}
+
 SUITE(codegen_json_suite) {
   RUN_TEST(test_json_to_plain);
   RUN_TEST(test_json_from_plain);
@@ -1024,6 +1354,7 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_standalone_json_func);
   RUN_TEST(test_json_exhaustive_io);
   RUN_TEST(test_codegen_json_extra);
+  RUN_TEST(test_codegen_json_comprehensive);
 }
 
 #ifdef __cplusplus

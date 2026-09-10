@@ -403,6 +403,33 @@ extern C_CDD_EXPORT /**
 
                            size_t len, enum TokenKind *_out_val);
 
+/**
+ * @brief Appends a token to the token list.
+ *
+ * @param[in,out] tl The token list.
+ * @param[in] kind The token category.
+ * @param[in] start Pointer to start of token.
+ * @param[in] length Length in bytes.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t token_list_add(struct TokenList *tl,
+                                                 const enum TokenKind kind,
+                                                 const uint8_t *start,
+                                                 const size_t length);
+
+/**
+ * @brief Compare an az_span with a C-string.
+ *
+ * @param[in] span Span to compare.
+ * @param[in] str C-string to compare against.
+ * @param[out] _out_val Pointer to store 1 if equal, 0 otherwise.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT if _out_val is
+ * NULL.
+ */
+extern C_CDD_EXPORT cdd_c_error_t span_equals_str(const az_span span,
+                                                  const char *str,
+                                                  int *_out_val);
+
 #ifdef __cplusplus
 }
 

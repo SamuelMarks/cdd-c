@@ -128,6 +128,133 @@ extern C_CDD_EXPORT cdd_c_error_t cst_find_first(struct CstNodeList *list,
                                                  enum CstNodeKind kind,
                                                  struct CstNode **out_node);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test wrapper for skip_ws.
+ * @param[in] tokens Token list.
+ * @param[in] i Current index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_skip_ws(
+    const struct TokenList *tokens, size_t i, size_t limit, size_t *out_val);
+
+/**
+ * @brief Test wrapper for skip_ws_back.
+ * @param[in] tokens Token list.
+ * @param[in] i Current index.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_skip_ws_back(
+    const struct TokenList *tokens, size_t i, size_t *out_val);
+
+/**
+ * @brief Test wrapper for is_type_start.
+ * @param[in] tok Token to check.
+ * @param[out] out_is_type Output flag.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_cst_is_type_start(const struct Token *tok, int *out_is_type);
+
+/**
+ * @brief Test wrapper for match_function_definition.
+ * @param[in] tokens Token list.
+ * @param[in] start_idx Start index.
+ * @param[in] limit Index limit.
+ * @param[out] end_idx_out Output end index.
+ * @param[out] out_is_match Output match flag.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_match_function_definition(
+    const struct TokenList *tokens, size_t start_idx, size_t limit,
+    size_t *end_idx_out, int *out_is_match);
+
+/**
+ * @brief Test wrapper for consume_balanced_parens.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_consume_balanced_parens(
+    const struct TokenList *tokens, size_t start, size_t limit,
+    size_t *out_val);
+
+/**
+ * @brief Test wrapper for consume_attributes.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_cst_consume_attributes(const struct TokenList *tokens, size_t start,
+                                size_t limit, size_t *out_val);
+
+/**
+ * @brief Test wrapper for consume_static_assert.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_cst_consume_static_assert(const struct TokenList *tokens, size_t start,
+                                   size_t limit, size_t *out_val);
+
+/**
+ * @brief Test wrapper for consume_generic_selection.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_consume_generic_selection(
+    const struct TokenList *tokens, size_t start, size_t limit,
+    size_t *out_val);
+
+/**
+ * @brief Test wrapper for is_expression_brace.
+ * @param[in] tokens Token list.
+ * @param[in] brace_idx Index of brace.
+ * @param[out] out_is_expr Output flag.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_is_expression_brace(
+    const struct TokenList *tokens, size_t brace_idx, int *out_is_expr);
+
+/**
+ * @brief Test wrapper for consume_balanced_braces.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Index limit.
+ * @param[out] out_val Output index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_cst_consume_balanced_braces(
+    const struct TokenList *tokens, size_t start, size_t limit,
+    size_t *out_val);
+
+/**
+ * @brief Test wrapper for parse_recursive.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] end End index.
+ * @param[in,out] out Output list.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_cst_parse_recursive(const struct TokenList *tokens, size_t start,
+                             size_t end, struct CstNodeList *out);
+#endif /* CDD_BUILD_TESTS */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

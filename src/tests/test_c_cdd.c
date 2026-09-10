@@ -582,6 +582,7 @@ static void test_teardown_cb(void *udata) {
 }
 
 int main(int argc, char **argv) {
+  setvbuf(stdout, NULL, _IONBF, 0);
   GREATEST_MAIN_BEGIN();
 
   SET_TEARDOWN(test_teardown_cb, NULL);

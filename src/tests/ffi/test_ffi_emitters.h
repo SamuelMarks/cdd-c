@@ -1013,9 +1013,19 @@ TEST test_ffi_emit_rust_fresh_dir(void) {
   rc = cdd_ffi_emit_rust(ir, &config);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
+  {
+    int k;
+    for (k = 1; k <= 4; k++) {
+      g_fail_io_after = k;
+      rc = cdd_ffi_emit_rust(ir, &config);
+      ASSERT_EQ(CDD_C_ERROR_IO, rc);
+    }
+  }
+
   (void)remove("test_out_rust_fresh/src/lib.rs");
   (void)remove("test_out_rust_fresh/src/sys.rs");
   (void)remove("test_out_rust_fresh/tests/test.rs");
+  (void)remove("test_out_rust_fresh/tests/integration_test.rs");
   (void)remove("test_out_rust_fresh/Cargo.toml");
 #ifdef _WIN32
   _rmdir("test_out_rust_fresh/src");
@@ -1032,9 +1042,225 @@ TEST test_ffi_emit_rust_fresh_dir(void) {
   PASS();
 }
 
+/**
+ * @brief Test IO failure in Rust emitter when files fail to open (f is NULL).
+ *
+ * @return GREATEST test result.
+ */
+TEST test_ffi_emit_rust_io_null(void) {
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_out_rust_null";
+  cdd_c_error_t rc;
+
+#ifdef _WIN32
+  _mkdir(test_dir);
+  _mkdir("test_out_rust_null/src");
+  _mkdir("test_out_rust_null/tests");
+#else
+  mkdir(test_dir, 0777);
+  mkdir("test_out_rust_null/src", 0777);
+  mkdir("test_out_rust_null/tests", 0777);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+  config.generate_tests = 1;
+
+  /* 1. Cargo.toml is a dir -> fopen returns NULL -> g_fail_io_after triggers
+   * with f == NULL */
+#ifdef _WIN32
+  _mkdir("test_out_rust_null/Cargo.toml");
+#else
+  mkdir("test_out_rust_null/Cargo.toml", 0777);
+#endif
+  g_fail_io_after = 1;
+  rc = cdd_ffi_emit_rust(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+#ifdef _WIN32
+  _rmdir("test_out_rust_null/Cargo.toml");
+#else
+  rmdir("test_out_rust_null/Cargo.toml");
+#endif
+
+  /* 2. src/sys.rs is a dir -> fopen returns NULL -> g_fail_io_after triggers
+   * with f == NULL */
+#ifdef _WIN32
+  _mkdir("test_out_rust_null/src/sys.rs");
+#else
+  mkdir("test_out_rust_null/src/sys.rs", 0777);
+#endif
+  g_fail_io_after = 2;
+  rc = cdd_ffi_emit_rust(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  (void)remove("test_out_rust_null/Cargo.toml");
+#ifdef _WIN32
+  _rmdir("test_out_rust_null/src/sys.rs");
+#else
+  rmdir("test_out_rust_null/src/sys.rs");
+#endif
+
+  /* 3. src/lib.rs is a dir -> fopen returns NULL -> g_fail_io_after triggers
+   * with f == NULL */
+#ifdef _WIN32
+  _mkdir("test_out_rust_null/src/lib.rs");
+#else
+  mkdir("test_out_rust_null/src/lib.rs", 0777);
+#endif
+  g_fail_io_after = 3;
+  rc = cdd_ffi_emit_rust(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  (void)remove("test_out_rust_null/Cargo.toml");
+  (void)remove("test_out_rust_null/src/sys.rs");
+#ifdef _WIN32
+  _rmdir("test_out_rust_null/src/lib.rs");
+#else
+  rmdir("test_out_rust_null/src/lib.rs");
+#endif
+
+  /* 4. tests/integration_test.rs is a dir -> fopen returns NULL ->
+   * g_fail_io_after triggers with f == NULL */
+#ifdef _WIN32
+  _mkdir("test_out_rust_null/tests/integration_test.rs");
+#else
+  mkdir("test_out_rust_null/tests/integration_test.rs", 0777);
+#endif
+  g_fail_io_after = 4;
+  rc = cdd_ffi_emit_rust(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+  (void)remove("test_out_rust_null/Cargo.toml");
+  (void)remove("test_out_rust_null/src/sys.rs");
+  (void)remove("test_out_rust_null/src/lib.rs");
+#ifdef _WIN32
+  _rmdir("test_out_rust_null/tests/integration_test.rs");
+  _rmdir("test_out_rust_null/tests");
+  _rmdir("test_out_rust_null/src");
+  _rmdir(test_dir);
+#else
+  rmdir("test_out_rust_null/tests/integration_test.rs");
+  rmdir("test_out_rust_null/tests");
+  rmdir("test_out_rust_null/src");
+  rmdir(test_dir);
+#endif
+
+  free_dummy_ir(ir);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+/**
+ * @brief Test IO failure when writing deps.edn in Clojure emitter.
+ *
+ * @return GREATEST test result.
+ */
+TEST test_ffi_emit_clojure_io_fail(void) {
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_out_clj_io";
+  cdd_c_error_t rc;
+
+#ifdef _WIN32
+  _mkdir(test_dir);
+#else
+  mkdir(test_dir, 0777);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+
+  /* Case 1: f is non-NULL when g_fail_io_after == 556 */
+  g_fail_io_after = 556;
+  rc = cdd_ffi_emit_clojure(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+
+  (void)remove("test_out_clj_io/TestMod.clj");
+  (void)remove("test_out_clj_io/deps.edn");
+
+  /* Case 2: deps.edn is a directory so f is NULL when g_fail_io_after == 556 */
+#ifdef _WIN32
+  _mkdir("test_out_clj_io/deps.edn");
+#else
+  mkdir("test_out_clj_io/deps.edn", 0777);
+#endif
+  g_fail_io_after = 556;
+  rc = cdd_ffi_emit_clojure(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_IO, rc);
+
+  g_fail_io_after = -1;
+  (void)remove("test_out_clj_io/TestMod.clj");
+#ifdef _WIN32
+  _rmdir("test_out_clj_io/deps.edn");
+  _rmdir(test_dir);
+#else
+  rmdir("test_out_clj_io/deps.edn");
+  rmdir(test_dir);
+#endif
+  free_dummy_ir(ir);
+  PASS();
+}
+
+/**
+ * @brief Test IO failure when writing module.modulemap in Swift emitter.
+ *
+ * @return GREATEST test result.
+ */
+TEST test_ffi_emit_swift_io_fail(void) {
+  cdd_ffi_ir_t *ir = create_dummy_ir();
+  cdd_generate_bindings_config_t config = {0};
+  const char *test_dir = "test_out_swift_io";
+  cdd_c_error_t rc;
+
+#ifdef _WIN32
+  _mkdir(test_dir);
+#else
+  mkdir(test_dir, 0777);
+#endif
+
+  config.input = (char *)(size_t)(size_t) "my_input.h";
+  config.output_dir = (char *)(size_t)(size_t)test_dir;
+  config.library_name = (char *)(size_t)(size_t) "test_Lib_name";
+  config.module_name = (char *)(size_t)(size_t) "TestMod";
+
+  /* Case 1: f is non-NULL when g_fail_io_after triggers on module.modulemap */
+  g_fail_io_after = 2;
+  rc = cdd_ffi_emit_swift(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  (void)remove("test_out_swift_io/TestMod.swift");
+  (void)remove("test_out_swift_io/module.modulemap");
+
+  /* Case 2: module.modulemap is a directory so f is NULL when g_fail_io_after
+   * triggers */
+#ifdef _WIN32
+  _mkdir("test_out_swift_io/module.modulemap");
+#else
+  mkdir("test_out_swift_io/module.modulemap", 0777);
+#endif
+  g_fail_io_after = 2;
+  rc = cdd_ffi_emit_swift(ir, &config);
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+
+  g_fail_io_after = -1;
+  (void)remove("test_out_swift_io/TestMod.swift");
+#ifdef _WIN32
+  _rmdir("test_out_swift_io/module.modulemap");
+  _rmdir(test_dir);
+#else
+  rmdir("test_out_swift_io/module.modulemap");
+  rmdir(test_dir);
+#endif
+  free_dummy_ir(ir);
+  PASS();
+}
+
 SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
+  RUN_TEST(test_ffi_emit_clojure_io_fail);
   RUN_TEST(test_ffi_emit_common_lisp);
   RUN_TEST(test_ffi_emit_cpp);
   RUN_TEST(test_ffi_emit_cpp_trampoline_edge_cases);
@@ -1074,9 +1300,11 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ruby);
   RUN_TEST(test_ffi_emit_rust);
   RUN_TEST(test_ffi_emit_rust_fresh_dir);
+  RUN_TEST(test_ffi_emit_rust_io_null);
   RUN_TEST(test_ffi_emit_scala);
   RUN_TEST(test_ffi_emit_scheme);
   RUN_TEST(test_ffi_emit_swift);
+  RUN_TEST(test_ffi_emit_swift_io_fail);
   RUN_TEST(test_ffi_emit_tcl);
   RUN_TEST(test_ffi_emit_typescript);
   RUN_TEST(test_ffi_emit_vlang);

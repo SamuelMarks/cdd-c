@@ -8,15 +8,28 @@ extern "C" {
 /* clang-format off */
 #include "functions/parse/main.h"
 #include <greatest.h>
-#if defined(_MSC_VER)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <direct.h>
 #define TEST_MKDIR(p) _mkdir(p)
 #define TEST_RMDIR(p) _rmdir(p)
+#if defined(_MSC_VER)
+static FILE *cdd_freopen_helper_main_cov(const char *p, const char *m, FILE *s) {
+  FILE *f = NULL;
+  return freopen_s(&f, p, m, s) == 0 ? f : NULL;
+}
+#undef CDD_FREOPEN
+#define CDD_FREOPEN cdd_freopen_helper_main_cov
+#else
+#undef CDD_FREOPEN
+#define CDD_FREOPEN freopen
+#endif
 #else
 #include <sys/stat.h>
 #include <unistd.h>
 #define TEST_MKDIR(p) mkdir(p, 0777)
 #define TEST_RMDIR(p) rmdir(p)
+#undef CDD_FREOPEN
+#define CDD_FREOPEN freopen
 #endif
 /* clang-format on */
 
@@ -174,6 +187,7 @@ TEST test_main_coverage_from_openapi_invalid(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               from_openapi_cli_main(6, argv_invalid2));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_inp_last));
+    remove("invalid_spec2.json");
     PASS();
   }
 }
@@ -309,7 +323,71 @@ TEST test_main_coverage_cdd_main_subcommands(void) {
 }
 
 TEST test_main_coverage_cdd_main_success(void) {
-  FILE *f;
+  FILE *f = NULL;
+  FILE *f_h = NULL;
+  FILE *f_c = NULL;
+  char *argv_to_openapi[] = {
+      (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "to_openapi",
+      (char *)(size_t)(size_t) "-i",    (char *)(size_t)(size_t) "my_empty_dir",
+      (char *)(size_t)(size_t) "-o",    (char *)(size_t)(size_t) "out.json"};
+  char *argv_from_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
+                               (char *)(size_t)(size_t) "from_openapi",
+                               (char *)(size_t)(size_t) "to_sdk",
+                               (char *)(size_t)(size_t) "-i",
+                               (char *)(size_t)(size_t) "dummy_spec.json",
+                               (char *)(size_t)(size_t) "-o",
+                               (char *)(size_t)(size_t) "out_dir"};
+  char *argv_c2openapi[] = {(char *)(size_t)(size_t) "cdd-c",
+                            (char *)(size_t)(size_t) "c2openapi",
+                            (char *)(size_t)(size_t) "my_empty_dir",
+                            (char *)(size_t)(size_t) "out.json"};
+  char *argv_code2schema[] = {(char *)(size_t)(size_t) "cdd-c",
+                              (char *)(size_t)(size_t) "code2schema",
+                              (char *)(size_t)(size_t) "my_empty_dir/empty.h",
+                              (char *)(size_t)(size_t) "out_schema.json"};
+  char *argv_transformer[] = {(char *)(size_t)(size_t) "cdd-c",
+                              (char *)(size_t)(size_t) "transformer",
+                              (char *)(size_t)(size_t) "safe_crt",
+                              (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
+  char *argv_standardize[] = {(char *)(size_t)(size_t) "cdd-c",
+                              (char *)(size_t)(size_t) "standardize-gnu",
+                              (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
+  char *argv_audit[] = {(char *)(size_t)(size_t) "cdd-c",
+                        (char *)(size_t)(size_t) "audit",
+                        (char *)(size_t)(size_t) "my_empty_dir"};
+  char *argv_gen_build[] = {(char *)(size_t)(size_t) "cdd-c",
+                            (char *)(size_t)(size_t) "generate_build_system",
+                            (char *)(size_t)(size_t) "cmake",
+                            (char *)(size_t)(size_t) "my_empty_dir",
+                            (char *)(size_t)(size_t) "test"};
+  char *argv_schema2code[] = {
+      (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "schema2code",
+      (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
+      (char *)(size_t)(size_t) "out_dir/simple"};
+
+  TEST_MKDIR("my_empty_dir");
+#if defined(_MSC_VER)
+  if (fopen_s(&f_h, "my_empty_dir/empty.h", "w") != 0)
+    f_h = NULL;
+#else
+  f_h = fopen("my_empty_dir/empty.h", "w");
+#endif
+  if (f_h) {
+    fputs("struct S { int a; };\n", f_h);
+    fclose(f_h);
+  }
+
+#if defined(_MSC_VER)
+  if (fopen_s(&f_c, "my_empty_dir/empty.c", "w") != 0)
+    f_c = NULL;
+#else
+  f_c = fopen("my_empty_dir/empty.c", "w");
+#endif
+  if (f_c) {
+    fputs("int foo(void) { return 0; }\n", f_c);
+    fclose(f_c);
+  }
+
 #if defined(_MSC_VER)
   if (fopen_s(&f, "dummy_spec.json", "w") != 0)
     f = NULL;
@@ -320,66 +398,20 @@ TEST test_main_coverage_cdd_main_success(void) {
     fputs("{\"openapi\": \"3.0.0\", \"info\": {\"title\": \"A\", \"version\": "
           "\"1\"}, \"paths\": {}}",
           f);
-    if (f)
-      fclose(f);
+    fclose(f);
   }
-  {
-    char *argv_to_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                               (char *)(size_t)(size_t) "to_openapi",
-                               (char *)(size_t)(size_t) "-i",
-                               (char *)(size_t)(size_t) "my_empty_dir",
-                               (char *)(size_t)(size_t) "-o",
-                               (char *)(size_t)(size_t) "out.json"};
-    char *argv_from_openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                                 (char *)(size_t)(size_t) "from_openapi",
-                                 (char *)(size_t)(size_t) "to_sdk",
-                                 (char *)(size_t)(size_t) "-i",
-                                 (char *)(size_t)(size_t) "dummy_spec.json",
-                                 (char *)(size_t)(size_t) "-o",
-                                 (char *)(size_t)(size_t) "out_dir"};
-    char *argv_c2openapi[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "c2openapi",
-                              (char *)(size_t)(size_t) "my_empty_dir",
-                              (char *)(size_t)(size_t) "out.json"};
-    char *argv_code2schema[] = {(char *)(size_t)(size_t) "cdd-c",
-                                (char *)(size_t)(size_t) "code2schema",
-                                (char *)(size_t)(size_t) "my_empty_dir/empty.h",
-                                (char *)(size_t)(size_t) "out_schema.json"};
-    char *argv_transformer[] = {
-        (char *)(size_t)(size_t) "cdd-c",
-        (char *)(size_t)(size_t) "transformer",
-        (char *)(size_t)(size_t) "safe_crt",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-    char *argv_standardize[] = {
-        (char *)(size_t)(size_t) "cdd-c",
-        (char *)(size_t)(size_t) "standardize-gnu",
-        (char *)(size_t)(size_t) "my_empty_dir/empty.c"};
-    char *argv_audit[] = {(char *)(size_t)(size_t) "cdd-c",
-                          (char *)(size_t)(size_t) "audit",
-                          (char *)(size_t)(size_t) "my_empty_dir"};
-    char *argv_gen_build[] = {(char *)(size_t)(size_t) "cdd-c",
-                              (char *)(size_t)(size_t) "generate_build_system",
-                              (char *)(size_t)(size_t) "cmake",
-                              (char *)(size_t)(size_t) "my_empty_dir",
-                              (char *)(size_t)(size_t) "test"};
-    char *argv_schema2code[] = {
-        (char *)(size_t)(size_t) "cdd-c",
-        (char *)(size_t)(size_t) "schema2code",
-        (char *)(size_t)(size_t) "src/tests/mocks/emit/simple.schema.json",
-        (char *)(size_t)(size_t) "out_dir/simple"};
 
-    cdd_main(6, argv_to_openapi);
-    cdd_main(7, argv_from_openapi);
-    cdd_main(4, argv_c2openapi);
-    cdd_main(4, argv_code2schema);
-    cdd_main(4, argv_transformer);
-    cdd_main(3, argv_standardize);
-    cdd_main(3, argv_audit);
-    cdd_main(5, argv_gen_build);
-    cdd_main(4, argv_schema2code);
+  cdd_main(6, argv_to_openapi);
+  cdd_main(7, argv_from_openapi);
+  cdd_main(4, argv_c2openapi);
+  cdd_main(4, argv_code2schema);
+  cdd_main(4, argv_transformer);
+  cdd_main(3, argv_standardize);
+  cdd_main(3, argv_audit);
+  cdd_main(5, argv_gen_build);
+  cdd_main(4, argv_schema2code);
 
-    PASS();
-  }
+  PASS();
 }
 
 TEST test_main_coverage_all_routes(void) {
@@ -416,7 +448,17 @@ TEST test_main_coverage_all_routes(void) {
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_docs));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_bind));
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(3, argv_rpc));
+#else
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_rpc));
+#endif
+#if defined(_WIN32)
+    (void)CDD_FREOPEN("NUL", "r", stdin);
+#else
+    if (CDD_FREOPEN("/dev/null", "r", stdin)) {
+    }
+#endif
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_mcp));
   }
 
@@ -507,8 +549,16 @@ TEST test_main_coverage_all_routes(void) {
 
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(4, argv_std_ok));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(3, argv_std_fail));
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(3, argv_rpc_ok));
+#else
     ASSERT_EQ(CDD_C_SUCCESS, cdd_main(3, argv_rpc_ok));
+#endif
+#if defined(__WATCOMC__) || defined(__DOS__) || defined(__EMSCRIPTEN__)
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(3, argv_rpc_fail));
+#else
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_main(3, argv_rpc_fail));
+#endif
     (void)cdd_main(4, argv_code2schema_fail);
   }
 
@@ -628,6 +678,13 @@ TEST test_main_coverage_all_routes(void) {
       to_openapi_cli_main(5, argv_snap);
     }
     remove("my_empty_dir/openapi.snapshot.json");
+    remove("my_empty_dir/empty.h");
+    remove("my_empty_dir/empty.c");
+    TEST_RMDIR("my_empty_dir");
+    remove("dummy_spec.json");
+    remove("out.json");
+    remove("out_schema.json");
+    remove("out_snap.json");
   }
 
   PASS();

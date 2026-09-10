@@ -29,6 +29,11 @@ find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
                      const char *name,
                      const struct RefactoredFunction **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_find_refactored_func;
+  if (g_cdd_fail_find_refactored_func && --g_cdd_fail_find_refactored_func == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (i = 0; i < func_count; ++i) {
     if (strcmp(funcs[i].name, name) == 0) {
       {
@@ -67,6 +72,11 @@ static cdd_c_error_t extract_token_text(const struct Token *tok,
 static cdd_c_error_t find_semicolon(const struct TokenList *tokens,
                                     size_t start, size_t *_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_find_semicolon;
+  if (g_cdd_fail_find_semicolon && --g_cdd_fail_find_semicolon == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
       *_out_val = i;
@@ -90,6 +100,11 @@ static cdd_c_error_t find_semicolon(const struct TokenList *tokens,
 static cdd_c_error_t find_stmt_start(const struct TokenList *tokens, size_t pos,
                                      size_t *_out_val) {
   size_t i = pos;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_find_stmt_start;
+  if (g_cdd_fail_find_stmt_start && --g_cdd_fail_find_stmt_start == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   while (i > 0) {
     if (tokens->tokens[i - 1].kind == TOKEN_SEMICOLON ||
         tokens->tokens[i - 1].kind == TOKEN_LBRACE ||
@@ -173,13 +188,6 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
   }
 
   /* 1. Initialize Patcher */
-#ifdef CDD_BUILD_TESTS
-  {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc;
-    if (g_cdd_fail_alloc == 1)
-      return CDD_C_ERROR_MEMORY;
-  }
-#endif
   if (patch_list_init(&patches) != 0) {
     return CDD_C_ERROR_MEMORY;
   }
@@ -386,10 +394,9 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
                 }
               }
 
-            } else if (prev < i &&
-                       (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
-                        tokens->tokens[prev].kind == TOKEN_LBRACE ||
-                        tokens->tokens[prev].kind == TOKEN_RBRACE)) {
+            } else if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
+                       tokens->tokens[prev].kind == TOKEN_LBRACE ||
+                       tokens->tokens[prev].kind == TOKEN_RBRACE) {
               /* Case 2: Statement */
               size_t semi;
               {
@@ -474,11 +481,14 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
               call_args = NULL;
 
               /* Inject before statement */
-              rc = patch_list_add(&patches, stmt_start, stmt_start, injection);
+              {
+                char *tmp_inj = injection;
+                injection = NULL;
+                rc = patch_list_add(&patches, stmt_start, stmt_start, tmp_inj);
+              }
 
               if (rc != CDD_C_SUCCESS)
                 goto cleanup;
-              injection = NULL;
               /* Replace call with var */
               {
                 char *tmp = NULL;
@@ -526,8 +536,10 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
           size_t semi = 0;
           {
             cdd_c_error_t rc_rw = find_semicolon(tokens, i, &semi);
-            if (rc_rw != CDD_C_SUCCESS)
-              return rc_rw;
+            if (rc_rw != CDD_C_SUCCESS) {
+              rc = rc_rw;
+              goto cleanup;
+            }
           }
           if (semi < tokens->size) {
             /* Fix: Check for inline unchecked alloc in return statement */
@@ -672,12 +684,8 @@ cdd_c_error_t rewrite_body(const struct TokenList *tokens,
 cleanup:
   if (lhs_name)
     C_CDD_FREE(lhs_name);
-  if (arg_append)
-    C_CDD_FREE(arg_append);
   if (call_args)
     C_CDD_FREE(call_args);
-  if (injection)
-    C_CDD_FREE(injection);
   patch_list_free(&patches);
   return rc;
 }

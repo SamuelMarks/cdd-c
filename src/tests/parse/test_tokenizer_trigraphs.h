@@ -183,6 +183,111 @@ TEST test_matches_string_with_splice(void) {
   PASS();
 }
 
+TEST test_all_remaining_trigraphs(void) {
+  struct TokenList *tl = NULL;
+  cdd_c_error_t rc;
+
+  /* Test ??( [ */
+  rc = tokenize_string("?\?(", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_LBRACKET, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??) ] */
+  rc = tokenize_string("?\?)", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_RBRACKET, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??' ^ */
+  rc = tokenize_string("?\?'", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_CARET, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??< { */
+  rc = tokenize_string("?\?<", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_LBRACE, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??> } */
+  rc = tokenize_string("?\?>", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_RBRACE, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??! | */
+  rc = tokenize_string("?\?!", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_PIPE, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test ??- ~ */
+  rc = tokenize_string("?\?-", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_TILDE, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test non-trigraph ??z */
+  rc = tokenize_string("?\?z", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_QUESTION, tl->tokens[0].kind);
+  ASSERT_EQ(TOKEN_QUESTION, tl->tokens[1].kind);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
+  free_token_list(tl);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_splice_crlf_and_eof(void) {
+  struct TokenList *tl = NULL;
+  cdd_c_error_t rc;
+
+  /* Test CRLF splice: \ \r \n */
+  rc = tokenize_string("i\\\r\nnt y;", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_KEYWORD_INT, tl->tokens[0].kind);
+  ASSERT_EQ(TOKEN_WHITESPACE, tl->tokens[1].kind);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[2].kind);
+  free_token_list(tl);
+
+  /* Test trailing backslash before EOF */
+  rc = tokenize_string("x\\", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
+  ASSERT_EQ(TOKEN_OTHER, tl->tokens[1].kind);
+  free_token_list(tl);
+
+  /* Test backslash-r at EOF */
+  rc = tokenize_string("x\\\r", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  /* Test backslash-r not followed by newline */
+  rc = tokenize_string("x\\\ra", &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(tl);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl->tokens[0].kind);
+  free_token_list(tl);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(tokenizer_trigraphs_suite) {
 
   RUN_TEST(test_trigraph_basic);
@@ -194,6 +299,8 @@ SUITE(tokenizer_trigraphs_suite) {
   RUN_TEST(test_splice_does_not_create_trigraph);
 
   RUN_TEST(test_matches_string_with_splice);
+  RUN_TEST(test_all_remaining_trigraphs);
+  RUN_TEST(test_splice_crlf_and_eof);
 }
 
 #ifdef __cplusplus

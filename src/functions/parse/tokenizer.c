@@ -157,9 +157,9 @@ static int peek_logical(const uint8_t *base, size_t len, size_t pos,
     return c;
   }
 
-  *out_consumed = 0;
+  *out_consumed = (current > pos) ? (current - pos) : 0;
 
-  return CDD_C_ERROR_UNKNOWN; /* EOF */
+  return -1; /* EOF */
 }
 
 /* --- Token List Setup --- */
@@ -167,10 +167,8 @@ static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 /**
  * @brief Executes the token list add operation.
  */
-static cdd_c_error_t token_list_add(struct TokenList *tl,
-                                    const enum TokenKind kind,
-
-                                    const uint8_t *start, const size_t length) {
+cdd_c_error_t token_list_add(struct TokenList *tl, const enum TokenKind kind,
+                             const uint8_t *start, const size_t length) {
 
   if (!tl)
 
@@ -209,11 +207,13 @@ static cdd_c_error_t token_list_add(struct TokenList *tl,
 /**
  * @brief Executes the span equals str operation.
  */
-static cdd_c_error_t span_equals_str(const az_span span, const char *str,
-                                     int *_out_val) {
+cdd_c_error_t span_equals_str(const az_span span, const char *str,
+                              int *_out_val) {
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = 0;
+  if (!str)
+    return CDD_C_SUCCESS;
 
   {
     *_out_val = ((int)az_span_is_content_equal(
@@ -867,9 +867,6 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
     if (c != match[i_match])
 
     {
-      if (m_len == 13)
-        fprintf(stderr, "Mismatched at idx %lu: c='%c' match='%c'\n",
-                (unsigned long)i_match, c, match[i_match]);
       *_out_val = 0;
       return CDD_C_SUCCESS;
     }
@@ -881,12 +878,6 @@ cdd_c_error_t token_matches_string(const struct Token *tok, const char *match,
 
   {
     *_out_val = (i_tok >= tok->length && i_match == m_len);
-    if (m_len == 13 && match[0] == '_')
-      fprintf(stderr,
-              "token_matches_string END! match='%s' tok_len=%lu i_tok=%lu "
-              "i_match=%lu out=%d\n",
-              match, (unsigned long)tok->length, (unsigned long)i_tok,
-              (unsigned long)i_match, *_out_val);
     return CDD_C_SUCCESS;
   }
 }
@@ -927,6 +918,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
   while (pos < len) {
 
     size_t consumed;
+    size_t peek_con;
 
     int c = peek_logical(base, len, pos, &consumed);
 
@@ -1118,7 +1110,7 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
                (c == '.' &&
 
-                isdigit(peek_logical(base, len, pos + consumed, &consumed)))) {
+                isdigit(peek_logical(base, len, pos + consumed, &peek_con)))) {
 
       if (c == '.') {
 
@@ -1169,12 +1161,8 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
         }
       }
 
-      {
-        cdd_c_error_t rc_tk = token_list_add(list, TOKEN_NUMBER_LITERAL,
-                                             base + start, pos - start);
-        if (rc_tk != CDD_C_SUCCESS)
-          return rc_tk;
-      }
+      rc =
+          token_list_add(list, TOKEN_NUMBER_LITERAL, base + start, pos - start);
 
     } else if (c == '"' || c == '\'') {
 
@@ -1627,11 +1615,11 @@ cdd_c_error_t tokenize(az_span source, struct TokenList **out) {
 
         if (next_c == '.' &&
 
-            peek_logical(base, len, pos + next_con, &consumed) == '.') {
+            peek_logical(base, len, pos + next_con, &peek_con) == '.') {
 
           k = TOKEN_ELLIPSIS;
 
-          extra = next_con + consumed;
+          extra = next_con + peek_con;
 
         } else
 

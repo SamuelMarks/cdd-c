@@ -51,6 +51,17 @@ TEST test_simple_cleanup_and_null(void) {
     }
   }
 
+  {
+    struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
+    if (foo) {
+      cdd_c_error_t rc;
+      foo->haz = NULL;
+      rc = Foo_cleanup(foo);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+      free(foo);
+    }
+  }
+
   PASS();
 }
 

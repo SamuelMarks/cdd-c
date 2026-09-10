@@ -38,7 +38,8 @@ cdd_c_error_t cdd_cst_splice_children(cdd_cst_tree_t *tree,
 
   /* If start_idx + consume_count goes beyond bounds, clamp or fail. We'll fail
    * safely */
-  if (start_idx + consume_count > node->num_children) {
+  if (start_idx > node->num_children ||
+      consume_count > node->num_children - start_idx) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 

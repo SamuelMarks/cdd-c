@@ -32,7 +32,71 @@ extern int g_fail_io_after;
 extern int g_io_calls;
 #endif
 
-static cdd_c_error_t errno_to_cdd_error(int err) {
+/**
+ * @brief Join directory and filename into a path.
+ */
+cdd_c_error_t fs_path_join(const char *dir, const char *name,
+                           char **out_path) {
+  size_t dir_len, name_len;
+  char *res;
+
+  if (!dir || !name || !out_path)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  dir_len = strlen(dir);
+  name_len = strlen(name);
+  res = (char *)(size_t)C_CDD_MALLOC(dir_len + 1 + name_len + 1);
+  if (!res)
+    return CDD_C_ERROR_MEMORY;
+
+#if defined(_MSC_VER)
+  sprintf_s(res, dir_len + 1 + name_len + 1, "%s%c%s", dir, PATH_SEP_C, name);
+#else
+  sprintf(res, "%s%c%s", dir, PATH_SEP_C, name);
+#endif
+  *out_path = res;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Format a temporary file path with prefix, number, and suffix.
+ */
+cdd_c_error_t format_tmp_filename(const char *dir, const char *prefix,
+                                  unsigned long num, const char *suffix,
+                                  char **out_path) {
+  size_t total_len;
+  const char *pfx = prefix ? prefix : "";
+  const char *sfx = suffix ? suffix : "";
+  char num_buf[32];
+  char *res;
+
+  if (!dir || !out_path)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+#if defined(_MSC_VER)
+  sprintf_s(num_buf, sizeof(num_buf), "%lu", num);
+#else
+  sprintf(num_buf, "%lu", num);
+#endif
+
+  total_len = strlen(dir) + 1 + strlen(pfx) + strlen(num_buf) + strlen(sfx) + 1;
+  res = (char *)(size_t)C_CDD_MALLOC(total_len);
+  if (!res)
+    return CDD_C_ERROR_MEMORY;
+
+#if defined(_MSC_VER)
+  sprintf_s(res, total_len, "%s%c%s%s%s", dir, PATH_SEP_C, pfx, num_buf, sfx);
+#else
+  sprintf(res, "%s%c%s%s%s", dir, PATH_SEP_C, pfx, num_buf, sfx);
+#endif
+  *out_path = res;
+  return CDD_C_SUCCESS;
+}
+
+/**
+ * @brief Helper to convert internal standard library errno to cdd_c_error_t.
+ */
+cdd_c_error_t errno_to_cdd_error(int err) {
   if (err == 0) return CDD_C_SUCCESS;
   if (err == ENOENT) return CDD_C_ERROR_NOT_FOUND;
   if (err == ENOMEM) return CDD_C_ERROR_MEMORY;
@@ -215,9 +279,9 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 
   if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (!path || !*path) {
+  if (*path == '\0') {
     *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
-    return *out == NULL ? ENOMEM : 0;
+    return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
   }
 
   p = path + strlen(path) - 1;
@@ -262,7 +326,6 @@ cdd_c_error_t get_basename(const char *path, char **out) {
 cdd_c_error_t get_dirname(const char *path, char **out) {
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
-  char *_ast_strdup_3 = NULL;
   const char *p;
   size_t len;
   char *ret;
@@ -270,9 +333,9 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
   if (!out || !path)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (!path || !*path) {
+  if (*path == '\0') {
     *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
-    return *out == NULL ? ENOMEM : 0;
+    return *out == NULL ? CDD_C_ERROR_MEMORY : CDD_C_SUCCESS;
   }
 
   p = path + strlen(path) - 1;
@@ -301,7 +364,7 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
     } else {
       /* No separator found, e.g. "foo" -> "." */
       *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
-      return *out ? 0 : ENOMEM;
+      return *out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
     }
   } else {
     /* If we stopped at a separator, that's the end of dirname.
@@ -312,11 +375,6 @@ cdd_c_error_t get_dirname(const char *path, char **out) {
       p--;
     }
     len = (size_t)(p - path) + 1;
-  }
-
-  if (len == 0) {
-    *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
-    return *out ? 0 : ENOMEM;
   }
 
   ret = (char *)(size_t)C_CDD_MALLOC(len + 1);
@@ -337,6 +395,8 @@ enum { READ_CHUNK_SIZE = 4096 };
  * @brief Executes the fopen error from operation.
  */
 cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   switch (fopen_error) {
   case 0: {
     *_out_val = FOPEN_OK;
@@ -379,6 +439,8 @@ cdd_c_error_t fopen_error_from(int fopen_error, FopenError_t *_out_val) {
 cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
   FILE *f;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  int close_rc;
+  int fputs_res;
 
   if (!path || !content)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -412,20 +474,33 @@ cdd_c_error_t fs_write_to_file(const char *path, const char *content) {
 #endif
 
   if (!f) {
-    if (errno == ENOENT)
-      return CDD_C_ERROR_NOT_FOUND;
-    if (errno == ENOMEM)
-      return CDD_C_ERROR_MEMORY;
-    if (errno == EINVAL)
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    return CDD_C_ERROR_IO;
+    return errno_to_cdd_error(errno);
   }
 
-  if (fputs(content, f) < 0)
+#ifdef CDD_BUILD_TESTS
+  fputs_res = (g_fail_io_after == 88) ? -1 : fputs(content, f);
+#else
+  fputs_res = fputs(content, f);
+#endif
+  if (fputs_res < 0)
     rc = CDD_C_ERROR_IO;
 
-  fclose(f);
-  return (cdd_c_error_t)rc;
+  close_rc = fclose(f);
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 89) {
+    close_rc = -1;
+    errno = EIO;
+  }
+  if (g_fail_io_after == 85) {
+    rc = CDD_C_ERROR_IO;
+    close_rc = -1;
+    errno = EIO;
+  }
+#endif
+  if (close_rc != 0 && rc == CDD_C_SUCCESS)
+    rc = errno_to_cdd_error(errno);
+
+  return rc;
 }
 
 /**
@@ -435,9 +510,9 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
                            size_t *out_size) {
   FILE *f = NULL;
   cdd_c_error_t internal_rc = CDD_C_SUCCESS;
+  int close_rc;
 
   if (!path || !mode || !out_data || !out_size) {
-    fprintf(stderr, "read_to_file returning INVALID_ARGUMENT\n");
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
@@ -449,13 +524,7 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
   {
     errno_t e = fopen_s(&f, path, mode);
     if (e != 0) {
-      if (e == ENOENT)
-        return CDD_C_ERROR_NOT_FOUND;
-      if (e == ENOMEM)
-        return CDD_C_ERROR_MEMORY;
-      if (e == EINVAL)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      return CDD_C_ERROR_IO;
+      return errno_to_cdd_error((int)e);
     }
     if (f == NULL)
       return CDD_C_ERROR_IO;
@@ -492,12 +561,30 @@ cdd_c_error_t read_to_file(const char *path, const char *mode, char **out_data,
 
   internal_rc = read_from_fh(f, out_data, out_size);
 
+  close_rc = fclose(f);
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 86) {
+    close_rc = -1;
+    errno = EIO;
+  }
+  if (g_fail_io_after == 87) {
+    internal_rc = CDD_C_ERROR_IO;
+    close_rc = -1;
+    errno = EIO;
+  }
+#endif
   /* Preserve read error if it occurred, but also check fclose error */
-  if (fclose(f) != 0) {
-    if (internal_rc == 0) {
+  if (close_rc != 0) {
+    if (internal_rc == CDD_C_SUCCESS) {
       internal_rc =
           errno_to_cdd_error(errno); /* Return fclose error if read was OK */
     }
+  }
+
+  if (internal_rc != CDD_C_SUCCESS && *out_data != NULL) {
+    C_CDD_FREE(*out_data);
+    *out_data = NULL;
+    *out_size = 0;
   }
 
   return internal_rc;
@@ -532,7 +619,15 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     total_read += read_now;
   } while (read_now == READ_CHUNK_SIZE);
 
+#ifdef CDD_BUILD_TESTS
+  if (ferror(fh) || g_fail_io_after == 98 || g_fail_io_after == 99) {
+    if (g_fail_io_after == 99)
+      errno = 0;
+    else if (g_fail_io_after == 98)
+      errno = EIO;
+#else
   if (ferror(fh)) {
+#endif
     rc = errno_to_cdd_error(errno);
     /* If errno is not set by fread failure (rare but possible), default to EIO
      */
@@ -543,17 +638,7 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   }
 
   /* Null terminate just in case text usage */
-  if (buffer) {
-    buffer[total_read] = '\0';
-  } else {
-    /* Empty file case, allocate distinct empty string */
-    buffer = (char *)(size_t)C_CDD_MALLOC(1);
-    if (!buffer) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return CDD_C_ERROR_MEMORY;
-    }
-    buffer[0] = '\0';
-  }
+  buffer[total_read] = '\0';
 
   *out_data = buffer;
   *out_size = total_read;
@@ -565,8 +650,14 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
  */
 cdd_c_error_t cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (!dst || !src)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 66 || g_fail_io_after == 77 || g_fail_io_after == 64)
+    return CDD_C_ERROR_IO;
+#endif
   if (!CopyFileA(src, dst, TRUE))
-    return (int)GetLastError(); /* Return Windows error code as int */
+    return errno_to_cdd_error((int)GetLastError());
   return CDD_C_SUCCESS;
 #else
   int fd_to, fd_from;
@@ -576,6 +667,10 @@ cdd_c_error_t cp(const char *dst, const char *src) {
   char *out_ptr;
   ssize_t nwritten;
   cdd_c_error_t ret_val = CDD_C_SUCCESS;
+  int close_res;
+
+  if (!dst || !src)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   fd_from = open(src, O_RDONLY);
   if (fd_from < 0)
@@ -593,6 +688,21 @@ cdd_c_error_t cp(const char *dst, const char *src) {
     out_ptr = buf;
     do {
       nwritten = write(fd_to, out_ptr, (unsigned int)nread);
+#ifdef CDD_BUILD_TESTS
+      if (g_fail_io_after == 66) {
+        nwritten = -1;
+        errno = EIO;
+      }
+      if (g_fail_io_after == 63) {
+        nwritten = 1;
+        g_fail_io_after = -1;
+      }
+      if (g_fail_io_after == 62) {
+        nwritten = -1;
+        errno = EINTR;
+        g_fail_io_after = -1;
+      }
+#endif
       if (nwritten >= 0) {
         nread -= nwritten;
         out_ptr += nwritten;
@@ -603,12 +713,19 @@ cdd_c_error_t cp(const char *dst, const char *src) {
     } while (nread > 0);
   }
 
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 77) {
+    nread = -1;
+    errno = EIO;
+  }
+#endif
+
   if (nread < 0) {
     ret_val = errno_to_cdd_error(errno);
   }
 
 out_error:
-  if (ret_val != 0) {
+  if (ret_val != CDD_C_SUCCESS) {
     /* If error, try to preserve it */
     saved_errno = ret_val;
     close(fd_to);
@@ -616,7 +733,14 @@ out_error:
     return saved_errno;
   }
 
-  if (close(fd_to) < 0) {
+  close_res = close(fd_to);
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 64) {
+    close_res = -1;
+    errno = EIO;
+  }
+#endif
+  if (close_res < 0) {
     saved_errno = errno_to_cdd_error(errno);
     close(fd_from);
     return saved_errno;
@@ -641,6 +765,7 @@ out_error:
 static cdd_c_error_t maybe_mkdir(const char *path) {
   c_stat st;
   int res;
+  int stat_res;
 
 #ifdef CDD_BUILD_TESTS
   if (g_fail_io_after >= 0 && ++g_io_calls >= g_fail_io_after)
@@ -655,13 +780,27 @@ static cdd_c_error_t maybe_mkdir(const char *path) {
   res = mkdir(path, 0777);
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  if (g_fail_io_after == 55) {
+    res = -1;
+    errno = ENOENT;
+  }
+#endif
+
   if (res == 0)
     return CDD_C_SUCCESS;
 
   /* Directories already existing is not an error for recursion generally,
      but if it exists and is not a dir, it is. */
   if (errno == EEXIST) {
-    if (c_stat_func(path, &st) != 0)
+    stat_res = c_stat_func(path, &st);
+#ifdef CDD_BUILD_TESTS
+    if (g_fail_io_after == 53) {
+      stat_res = -1;
+      errno = EIO;
+    }
+#endif
+    if (stat_res != 0)
       return errno_to_cdd_error(errno);
     if (!IS_DIR(st.st_mode))
       return CDD_C_ERROR_IO;
@@ -757,6 +896,9 @@ cdd_c_error_t tempdir(char **out_path) {
   char *_ast_strdup_5 = NULL;
   const char *env;
 
+  if (!out_path)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   env = getenv("TMPDIR");
   if (!env || *env == '\0')
     env = getenv("TMP");
@@ -764,7 +906,7 @@ cdd_c_error_t tempdir(char **out_path) {
     env = getenv("TEMP");
   if (env && *env != '\0') {
     *out_path = (c_cdd_strdup(env, &_ast_strdup_5), _ast_strdup_5);
-    return *out_path ? 0 : ENOMEM;
+    return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
 #if defined(_WIN32)
@@ -797,7 +939,7 @@ cdd_c_error_t tempdir(char **out_path) {
 #else
     *out_path = (c_cdd_strdup("/tmp", &_ast_strdup_5), _ast_strdup_5);
 #endif
-    return *out_path ? 0 : ENOMEM;
+    return *out_path ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 #endif
 }
@@ -829,12 +971,7 @@ cdd_c_error_t FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
     /* Ideally we unlink before freeing memory */
     unlink(file->filename);
   }
-  {
-    cdd_c_error_t rc_fs = FilenameAndPtr_cleanup(file);
-    if (rc_fs != CDD_C_SUCCESS)
-      return rc_fs;
-  }
-  return CDD_C_SUCCESS;
+  return FilenameAndPtr_cleanup(file);
 }
 
 /**
@@ -847,9 +984,13 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
   char *tmpdir_path = NULL;
   char *tmpfilename = NULL;
   cdd_c_error_t rc;
+  int access_res;
 
-  if (!file)
+  if (!file || !mode)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  file->fh = NULL;
+  file->filename = NULL;
 
   rc = tempdir(&tmpdir_path);
   if (rc != CDD_C_SUCCESS)
@@ -863,39 +1004,39 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       errno_t err = rand_s(&number);
       if (err) {
         C_CDD_FREE(tmpdir_path);
-        return err;
+        return errno_to_cdd_error((int)err);
       }
-      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      rc = format_tmp_filename(tmpdir_path, prefix, (unsigned long)number,
+                               suffix, &tmpfilename);
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(tmpdir_path);
-        return CDD_C_ERROR_MEMORY;
-      }
-      if (asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir_path, PATH_SEP_C,
-                   prefix == NULL ? "" : prefix, number,
-                   suffix == NULL ? "" : suffix) == -1) {
-        C_CDD_FREE(tmpdir_path);
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
 #else
     {
-      /* Using arc4random on random-equipped systems, or simple rand if generic.
-       * The assumption is arc4random is available in this env based on previous
-       * context. */
       uint32_t number = (uint32_t)rand();
-      if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0) {
+      rc = format_tmp_filename(tmpdir_path, prefix, (unsigned long)number,
+                               suffix, &tmpfilename);
+      if (rc != CDD_C_SUCCESS) {
         C_CDD_FREE(tmpdir_path);
-        return CDD_C_ERROR_MEMORY;
-      }
-      if (asprintf(&tmpfilename, "%s%c%s%lu%s", tmpdir_path, PATH_SEP_C,
-                   prefix == NULL ? "" : prefix, (unsigned long)number,
-                   suffix == NULL ? "" : suffix) == -1) {
-        C_CDD_FREE(tmpdir_path);
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
 #endif
 
-    if (access(tmpfilename, F_OK) != 0) {
+    access_res = access(tmpfilename, F_OK);
+#ifdef CDD_BUILD_TESTS
+    if (g_fail_io_after == 44) {
+      g_fail_io_after = -1;
+      access_res = 0;
+    }
+    if (g_fail_io_after == 45) {
+      access_res = 0;
+    }
+#endif
+
+    if (access_res != 0) {
       /* File does not exist, try to open */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -906,31 +1047,7 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
         continue;
       }
 #else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
       file->fh = fopen(tmpfilename, mode);
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
       if (!file->fh) {
         C_CDD_FREE(tmpfilename);
         continue;
@@ -973,6 +1090,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   char *full_path = NULL;
   c_stat st;
   cdd_c_error_t rc = CDD_C_SUCCESS;
+  int stat_res;
 
   if (!path || !cb)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -989,6 +1107,7 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
   }
 
   (void)full_path;
+  (void)stat_res;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
@@ -1005,6 +1124,13 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
     handle = _findfirst(search_path, &file_info);
     free(search_path);
 
+#ifdef CDD_BUILD_TESTS
+    if (g_fail_io_after == 33) {
+      handle = -1;
+      errno = EACCES;
+    }
+#endif
+
     if (handle == -1) {
       /* Empty dir or error? ENOENT means strict empty or not found. */
       if (errno == ENOENT)
@@ -1018,9 +1144,17 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
         continue;
       }
 
-      if (asprintf(&full_path, "%s\\%s", path, file_info.name) == -1) {
+#ifdef CDD_BUILD_TESTS
+      if (g_fail_io_after == 32) {
         _findclose(handle);
-        return CDD_C_ERROR_MEMORY;
+        return CDD_C_ERROR_IO;
+      }
+#endif
+
+      rc = fs_path_join(path, file_info.name, &full_path);
+      if (rc != CDD_C_SUCCESS) {
+        _findclose(handle);
+        return rc;
       }
 
       if (file_info.attrib & _A_SUBDIR) {
@@ -1044,8 +1178,18 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 #else
   {
     /* POSIX implementation using opendir / readdir */
-    DIR *d = opendir(path);
+    DIR *d;
     struct dirent *entry;
+#ifdef CDD_BUILD_TESTS
+    if (g_fail_io_after == 33) {
+      d = NULL;
+      errno = EACCES;
+    } else {
+      d = opendir(path);
+    }
+#else
+    d = opendir(path);
+#endif
 
     if (!d)
       return errno_to_cdd_error(errno);
@@ -1055,22 +1199,29 @@ cdd_c_error_t walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
         continue;
       }
 
-      if (asprintf(&full_path, "%s%c%s", path, PATH_SEP_C, entry->d_name) ==
-          -1) {
+      rc = fs_path_join(path, entry->d_name, &full_path);
+      if (rc != CDD_C_SUCCESS) {
         closedir(d);
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
 
       /* Need to stat to determine if dir or file, d_type is not standard posix
          everywhere (though common). Safe approach is stat. */
-      if (c_stat_func(full_path, &st) == 0) {
+      stat_res = c_stat_func(full_path, &st);
+#ifdef CDD_BUILD_TESTS
+      if (g_fail_io_after == 32) {
+        stat_res = -1;
+        errno = EIO;
+      }
+#endif
+      if (stat_res == 0) {
         if (IS_DIR(st.st_mode)) {
           rc = walk_directory(full_path, cb, user_data);
         } else {
           rc = cb(full_path, user_data);
         }
       } else {
-        /* Failed to stat? Skip or warning. */
+        rc = errno_to_cdd_error(errno);
       }
 
       C_CDD_FREE(full_path);

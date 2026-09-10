@@ -170,26 +170,21 @@ cdd_ffi_emit_clojure(cdd_ffi_ir_t *ir,
   /* Write deps.edn snippet */
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\deps.edn", config->output_dir);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
-#else
-  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/deps.edn", config->output_dir);
-#if defined(_MSC_VER)
   if (fopen_s(&f, filepath, "w") != 0)
     f = NULL;
 #else
+  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/deps.edn", config->output_dir);
   f = fopen(filepath, "w");
 #endif
 #ifdef CDD_BUILD_TESTS
   if (g_fail_io_after == 556) {
-    fclose(f);
+    if (f)
+      fclose(f);
     f = NULL;
   }
 #endif
   if (!f)
     return CDD_C_ERROR_IO;
-#endif
   fprintf(f, "{:deps {net.java.dev.jna/jna {:mvn/version \"5.13.0\"}}}\n");
   fclose(f);
 

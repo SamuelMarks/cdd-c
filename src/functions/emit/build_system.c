@@ -33,14 +33,14 @@
 #endif
 
 #ifdef CDD_BUILD_TESTS
-extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_build_system_fail_io_after;
 static enum cdd_c_error _cdd_test_mock_io(int x) {
-  if (g_fail_io_after == 0) {
-    g_fail_io_after = -1;
+  if (g_build_system_fail_io_after == 0) {
+    g_build_system_fail_io_after = -1;
     return CDD_C_ERROR_IO;
   }
-  if (g_fail_io_after > 0) {
-    g_fail_io_after--;
+  if (g_build_system_fail_io_after > 0) {
+    g_build_system_fail_io_after--;
   }
   return x < 0 ? CDD_C_ERROR_IO : CDD_C_SUCCESS;
 }
@@ -590,16 +590,10 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
   src_cmake = NULL;
   fp = NULL;
 
-  if (full_path)
-    C_CDD_FREE(full_path);
   return rc;
 cleanup_src:
   if (src_dir)
     C_CDD_FREE(src_dir);
-  if (src_cmake)
-    C_CDD_FREE(src_cmake);
-  if (full_path)
-    C_CDD_FREE(full_path);
   return rc;
 }
 

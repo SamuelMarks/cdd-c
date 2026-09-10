@@ -81,6 +81,16 @@ cdd_c_error_t patch_list_add(struct PatchList *list, size_t start_idx,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_patch_list_add;
+    if (g_cdd_fail_patch_list_add && --g_cdd_fail_patch_list_add == 0) {
+      C_CDD_FREE(text);
+      return CDD_C_ERROR_MEMORY;
+    }
+  }
+#endif
+
   if (list->size >= list->capacity) {
 #ifdef CDD_BUILD_TESTS
     const size_t new_cap =

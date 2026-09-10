@@ -29,6 +29,17 @@ C_CDD_EXPORT cdd_c_error_t cdd_cst_parse(az_span source,
  */
 C_CDD_EXPORT void cdd_cst_tree_free(cdd_cst_tree_t *tree);
 
+/**
+ * @brief Find the class identifier token for an ancestor class declaration.
+ *
+ * @param[in] node Starting node.
+ * @param[out] out_tok Pointer to store found identifier token or NULL.
+ * @return CDD_C_SUCCESS on success, CDD_C_ERROR_INVALID_ARGUMENT if out_tok is
+ * NULL.
+ */
+C_CDD_EXPORT cdd_c_error_t get_class_name(cdd_cst_node_t *node,
+                                          cdd_token_t **out_tok);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

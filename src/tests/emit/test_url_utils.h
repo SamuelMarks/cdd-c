@@ -37,6 +37,8 @@ extern cdd_c_error_t append_str_test(char **buf, size_t *len, size_t *cap,
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_cdd_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
 /* --- Encoding Tests --- */
 
@@ -623,8 +625,327 @@ TEST test_is_pct_encoded_branches(void) {
   PASS();
 }
 
+TEST test_url_utils_full_coverage(void) {
+  char *res = NULL;
+  struct UrlQueryParams qp;
+  struct OpenAPI_KV kvs[3];
+  int i;
+  cdd_c_error_t rc;
+
+  /* 1. is_unreserved_form dot and hyphen */
+  rc = url_encode_form("-", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_STR_EQ("-", res);
+  free(res);
+  res = NULL;
+
+  rc = url_encode_form("a.b", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_STR_EQ("a.b", res);
+  free(res);
+  res = NULL;
+
+  /* 2. url_encode_allow_reserved with non-reserved non-unreserved chars and
+   * non-pct % */
+  rc = url_encode_allow_reserved("100%ZZ^b{c}\x01", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(res != NULL);
+  free(res);
+  res = NULL;
+
+  /* 3. url_encode OOM */
+  g_cdd_alloc_fail = 1;
+  rc = url_encode("test", &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  ASSERT(res == NULL);
+  g_cdd_alloc_fail = 0;
+
+  /* 4. url_encode_allow_reserved OOM */
+  g_cdd_alloc_fail = 1;
+  rc = url_encode_allow_reserved("test", &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  ASSERT(res == NULL);
+  g_cdd_alloc_fail = 0;
+
+  /* 5. url_encode_form OOM */
+  g_cdd_alloc_fail = 1;
+  rc = url_encode_form("test", &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  ASSERT(res == NULL);
+  g_cdd_alloc_fail = 0;
+
+  /* 6. url_encode_form_allow_reserved OOM */
+  g_cdd_alloc_fail = 1;
+  rc = url_encode_form_allow_reserved("test", &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  ASSERT(res == NULL);
+  g_cdd_alloc_fail = 0;
+
+  /* 7. url_query_init invalid arg */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, url_query_init(NULL));
+
+  /* 8. url_query_free with NULL key and value */
+  memset(&qp, 0, sizeof(qp));
+  qp.capacity = 2;
+  qp.count = 2;
+  qp.params = (struct UrlQueryParam *)calloc(2, sizeof(struct UrlQueryParam));
+  qp.params[0].key = NULL;
+  qp.params[0].value = NULL;
+  qp.params[1].key = strdup("k");
+  qp.params[1].value = NULL;
+  url_query_free(&qp);
+
+  /* 9. url_query_add capacity expansion (>4 items) and failures */
+  url_query_init(&qp);
+  rc = url_query_add(&qp, "k1", "v1");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add(&qp, "k2", "v2");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add(&qp, "k3", "v3");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add(&qp, "k4", "v4");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  /* Triggers capacity expansion with capacity != 0 */
+  rc = url_query_add(&qp, "k5", "v5");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  url_query_free(&qp);
+
+  /* url_query_add realloc fail */
+  url_query_init(&qp);
+  g_cdd_alloc_fail = 1;
+  rc = url_query_add(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
+  /* url_query_add strdup key fail */
+  g_cdd_strdup_fail = 1;
+  rc = url_query_add(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_strdup_fail = 0;
+
+  /* url_query_add strdup value fail */
+  g_cdd_strdup_fail = 2;
+  rc = url_query_add(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_strdup_fail = 0;
+  url_query_free(&qp);
+
+  /* 10. url_query_add_encoded capacity expansion (>4 items) and failures */
+  url_query_init(&qp);
+  rc = url_query_add_encoded(&qp, "k1", "v1");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "k2", "v2");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "k3", "v3");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "k4", "v4");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "k5", "v5");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  url_query_free(&qp);
+
+  /* url_query_add_encoded realloc fail */
+  url_query_init(&qp);
+  g_cdd_alloc_fail = 1;
+  rc = url_query_add_encoded(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
+  /* url_query_add_encoded strdup key fail */
+  g_cdd_strdup_fail = 1;
+  rc = url_query_add_encoded(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_strdup_fail = 0;
+
+  /* url_query_add_encoded strdup val fail */
+  g_cdd_strdup_fail = 2;
+  rc = url_query_add_encoded(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_strdup_fail = 0;
+  url_query_free(&qp);
+
+  /* 11. url_query_build with raw_val == NULL and OOM injections */
+  url_query_init(&qp);
+  rc = url_query_add_encoded(&qp, "enc_key", NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  rc = url_query_add(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "enc", "val");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  for (i = 1; i <= 10; ++i) {
+    g_cdd_alloc_fail = i;
+    res = NULL;
+    rc = url_query_build(&qp, &res);
+    if (rc == CDD_C_SUCCESS) {
+      free(res);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+  g_cdd_alloc_fail = 0;
+  url_query_free(&qp);
+
+  /* 12. url_query_build_form OOM injections */
+  url_query_init(&qp);
+  g_cdd_alloc_fail = 1;
+  rc = url_query_build_form(&qp, &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+  url_query_free(&qp);
+
+  url_query_init(&qp);
+  rc = url_query_add(&qp, "k", "v");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = url_query_add_encoded(&qp, "enc", "val");
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  for (i = 1; i <= 10; ++i) {
+    g_cdd_alloc_fail = i;
+    res = NULL;
+    rc = url_query_build_form(&qp, &res);
+    if (rc == CDD_C_SUCCESS) {
+      free(res);
+      break;
+    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
+  g_cdd_alloc_fail = 0;
+  url_query_free(&qp);
+
+  /* 13. append_str OOM */
+  {
+    char *abuf = NULL;
+    size_t alen = 0;
+    size_t acap = 0;
+    g_cdd_alloc_fail = 1;
+    rc = append_str_test(&abuf, &alen, &acap, "hello");
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_cdd_alloc_fail = 0;
+  }
+
+  /* 14. kv_value_to_string tests */
+  {
+    struct OpenAPI_KV kv_test;
+    const char *out_str = NULL;
+    char sbuf[32];
+    kv_test.key = (char *)(size_t) "k";
+    kv_test.type = OA_KV_STRING;
+    kv_test.value.s = NULL;
+    rc = kv_value_to_string_test(&kv_test, sbuf, sizeof(sbuf), &out_str);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT(out_str == NULL);
+
+    kv_test.type = OA_KV_INTEGER;
+    kv_test.value.i = 42;
+    rc = kv_value_to_string_test(&kv_test, NULL, 0, &out_str);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT(out_str == NULL);
+
+    kv_test.type = OA_KV_NUMBER;
+    kv_test.value.n = 3.14;
+    rc = kv_value_to_string_test(&kv_test, NULL, 0, &out_str);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    ASSERT(out_str == NULL);
+  }
+
+  /* url_query_build_form invalid argument */
+  url_query_init(&qp);
+  rc = url_query_build_form(&qp, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+  url_query_free(&qp);
+
+  /* openapi_kv_join_form edge cases: skipped keys, skipped raw_vals, and OOM
+   * loops */
+  g_cdd_alloc_fail = 1;
+  rc = openapi_kv_join_form(NULL, 0, ",", 0, &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
+  memset(kvs, 0, sizeof(kvs));
+  kvs[0].key = NULL; /* skipped */
+  kvs[1].key = (char *)(size_t) "k1";
+  kvs[1].type = OA_KV_STRING;
+  kvs[1].value.s = NULL; /* skipped (raw_val == NULL) */
+  kvs[2].key = (char *)(size_t) "k2";
+  kvs[2].type = OA_KV_STRING;
+  kvs[2].value.s = (char *)(size_t) "v2";
+
+  /* non-null kvs with n == 0 */
+  rc = openapi_kv_join_form(kvs, 0, ",", 0, &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(res != NULL);
+  free(res);
+  res = NULL;
+
+  g_cdd_alloc_fail = 1;
+  rc = openapi_kv_join_form(kvs, 1, ",", 0, &res);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  g_cdd_alloc_fail = 0;
+
+  rc = openapi_kv_join_form(kvs, 3, ",", 0, &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("k2,v2", res);
+  free(res);
+  res = NULL;
+
+  /* OOM loop for openapi_kv_join_form with 2 items and long strings to trigger
+   * all append_str reallocs */
+  {
+    struct OpenAPI_KV kvs_two[2];
+    memset(kvs_two, 0, sizeof(kvs_two));
+    kvs_two[0].key = (char *)(size_t) "123456789012345678901234567890";
+    kvs_two[0].type = OA_KV_STRING;
+    kvs_two[0].value.s = (char *)(size_t) "12345678901234567890123456789012";
+    kvs_two[1].key = (char *)(size_t) "k2";
+    kvs_two[1].type = OA_KV_STRING;
+    kvs_two[1].value.s = (char *)(size_t) "v2";
+
+    for (i = 1; i <= 20; ++i) {
+      g_cdd_alloc_fail = i;
+      res = NULL;
+      rc = openapi_kv_join_form(kvs_two, 2, ",", 0, &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+    g_cdd_alloc_fail = 0;
+  }
+
+  /* OOM loop for openapi_kv_join_form to trigger lines 827 and 829 */
+  {
+    struct OpenAPI_KV kvs_long[1];
+    memset(kvs_long, 0, sizeof(kvs_long));
+    kvs_long[0].key =
+        (char *)(size_t) "1234567890123456789012345678901234567890"
+                         "12345678901234567890123";
+    kvs_long[0].type = OA_KV_STRING;
+    kvs_long[0].value.s =
+        (char *)(size_t) "123456789012345678901234567890123456"
+                         "7890123456789012345678901234";
+
+    for (i = 1; i <= 10; ++i) {
+      g_cdd_alloc_fail = i;
+      res = NULL;
+      rc = openapi_kv_join_form(kvs_long, 1, ",", 0, &res);
+      if (rc == CDD_C_SUCCESS) {
+        free(res);
+        break;
+      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
+    g_cdd_alloc_fail = 0;
+  }
+
+  PASS();
+}
+
 SUITE(url_utils_suite) {
   RUN_TEST(test_is_pct_encoded_branches);
+  RUN_TEST(test_url_utils_full_coverage);
 
   RUN_TEST(test_url_encode_all_null);
   RUN_TEST(test_url_encode_form_allow_reserved_pct);

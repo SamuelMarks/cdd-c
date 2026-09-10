@@ -35,6 +35,7 @@ extern "C" {
 /* Moved extern declarations for C89 compliance */
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
+extern C_CDD_EXPORT int g_build_system_fail_io_after;
 
 /**
  * @brief test_gen_cmake_basic
@@ -262,15 +263,19 @@ TEST test_build_system_io_failure(void) {
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
 
 #ifdef CDD_BUILD_TESTS
-  /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
-
-  for (i = 0; i <= 400; i++) {
-    g_fail_io_after = i;
+  for (i = 0; i <= 250; i++) {
+    g_build_system_fail_io_after = i;
     rc = generate_cmake_project("test_build_dir", "MyProject", 1);
+    if (rc == CDD_C_SUCCESS)
+      break;
   }
-  while (rc != CDD_C_SUCCESS && ++i < 50)
-    ;
-  g_fail_io_after = -1;
+  for (i = 0; i <= 250; i++) {
+    g_build_system_fail_io_after = i;
+    rc = generate_cmake_project("test_build_dir", "MyProject", 0);
+    if (rc == CDD_C_SUCCESS)
+      break;
+  }
+  g_build_system_fail_io_after = -1;
 #endif
 
   rc = generate_cmake_project("test_build_dir", "MyProject", 1);

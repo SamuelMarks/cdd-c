@@ -124,6 +124,42 @@ typedef enum FopenError {
 } FopenError_t;
 
 /**
+ * @brief Helper to convert internal standard library errno to cdd_c_error_t.
+ *
+ * @param[in] err The errno value.
+ * @return The corresponding cdd_c_error_t enum value.
+ */
+extern C_CDD_EXPORT cdd_c_error_t errno_to_cdd_error(int err);
+
+/**
+ * @brief Join directory and filename into a path.
+ *
+ * @param[in] dir The directory path.
+ * @param[in] name The filename or relative component.
+ * @param[out] out_path Pointer to store allocated combined path.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t fs_path_join(const char *dir,
+                                               const char *name,
+                                               char **out_path);
+
+/**
+ * @brief Format a temporary file path with prefix, number, and suffix.
+ *
+ * @param[in] dir The temporary directory path.
+ * @param[in] prefix Optional prefix (can be NULL).
+ * @param[in] num Numeric identifier.
+ * @param[in] suffix Optional suffix (can be NULL).
+ * @param[out] out_path Pointer to store allocated path string.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t format_tmp_filename(const char *dir,
+                                                      const char *prefix,
+                                                      unsigned long num,
+                                                      const char *suffix,
+                                                      char **out_path);
+
+/**
  * @param[out] _out_val Pointer to store the result
  * @brief Helper to convert internal standard library errno to FopenError.
  *

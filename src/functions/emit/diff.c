@@ -15,42 +15,35 @@
 #include <string.h>
 
 #include "c_cdd/format_specifiers.h"
+#include "c_cdd/memory.h"
 #include "functions/emit/diff.h"
 /* clang-format on */
 
-/** @brief DiffLine struct */
-struct DiffLine {
-  /** @brief len field */
-  const char *text;
-  /** @brief len field */
-  size_t len;
-};
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_fail_find_line_for_token;
+extern C_CDD_EXPORT int g_cdd_fail_append_to_diff;
+#endif
 
-/** @brief patch_start_idx field */
 /** @brief Block struct */
 struct Block {
-  /** @brief old_end_line field */
+  /** @brief patch start index */
   size_t patch_start_idx;
-  /** @brief patch_end_idx field */
+  /** @brief patch end index */
   size_t patch_end_idx;
   /** @brief old start line */
   size_t old_start_line;
   /** @brief old end line */
   size_t old_end_line;
-  /** @brief Op struct */
-};
-/** @brief type field */
-
-/** @brief Op struct */
-struct Op {
-  /** @brief operation type */
-  int type; /* 0: keep, 1: del, 2: ins */
-  /** @brief line data */
-  struct DiffLine line;
 };
 
 /**
- * @brief Executes the split lines operation.
+ * @brief Splits a string into lines.
+ *
+ * @param[in] str Input string.
+ * @param[in] len Length of input string.
+ * @param[out] out_lines Pointer to receive allocated array of DiffLine.
+ * @param[out] out_count Pointer to receive number of lines.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t split_lines(const char *str, size_t len,
                                  struct DiffLine **out_lines,
@@ -60,20 +53,20 @@ static cdd_c_error_t split_lines(const char *str, size_t len,
   size_t line_idx = 0;
   size_t start = 0;
 
-  for (i = 0; i < len; i++) {
-    if (str[i] == '\n')
-      count++;
-  }
-  if (len > 0 && str[len - 1] != '\n')
-    count++;
-
-  if (count == 0) {
+  if (len == 0) {
     *out_lines = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;
   }
 
-  *out_lines = (struct DiffLine *)malloc(count * sizeof(struct DiffLine));
+  for (i = 0; i < len; i++) {
+    if (str[i] == '\n')
+      count++;
+  }
+  if (str[len - 1] != '\n')
+    count++;
+
+  *out_lines = (struct DiffLine *)C_CDD_MALLOC(count * sizeof(struct DiffLine));
   if (!*out_lines) {
     *out_count = 0;
     return CDD_C_ERROR_MEMORY;
@@ -98,6 +91,13 @@ static cdd_c_error_t split_lines(const char *str, size_t len,
 
 /**
  * @brief Generates block new text.
+ *
+ * @param[in] b Pointer to Block.
+ * @param[in] list Pointer to PatchList.
+ * @param[in] tokens Pointer to TokenList.
+ * @param[in] old_lines Pointer to array of DiffLine.
+ * @param[out] out_text Pointer to receive newly allocated string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t generate_block_new_text(const struct Block *b,
                                              struct PatchList *list,
@@ -107,9 +107,8 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
   const char *block_start_ptr = old_lines[b->old_start_line - 1].text;
   const char *block_end_ptr =
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
-
-  size_t est_cap = (size_t)(block_end_ptr - block_start_ptr) + 1024;
-  char *res = (char *)(size_t)malloc(est_cap);
+  size_t est_cap = (size_t)(block_end_ptr - block_start_ptr) + 1;
+  char *res = (char *)C_CDD_MALLOC(est_cap);
   size_t res_len = 0;
   const char *cursor = block_start_ptr;
   size_t p;
@@ -135,19 +134,24 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 
     if (patch_start_ptr > cursor) {
       size_t unchanged_len = (size_t)(patch_start_ptr - cursor);
-      if (res_len + unchanged_len + strlen(patch->text) + 256 > est_cap) {
-        est_cap *= 2;
-        res = (char *)(size_t)realloc(res, est_cap);
-      }
       memcpy(res + res_len, cursor, unchanged_len);
       res_len += unchanged_len;
     }
 
     if (patch->text) {
       size_t ptext_len = strlen(patch->text);
-      if (res_len + ptext_len + 256 > est_cap) {
-        est_cap = res_len + ptext_len + 1024;
-        res = (char *)(size_t)realloc(res, est_cap);
+      if (res_len + ptext_len + (size_t)(block_end_ptr - patch_end_ptr) + 1 >
+          est_cap) {
+        char *new_res;
+        est_cap =
+            res_len + ptext_len + (size_t)(block_end_ptr - patch_end_ptr) + 64;
+        new_res = (char *)C_CDD_REALLOC(res, est_cap);
+        if (!new_res) {
+          C_CDD_FREE(res);
+          *out_text = NULL;
+          return CDD_C_ERROR_MEMORY;
+        }
+        res = new_res;
       }
       memcpy(res + res_len, patch->text, ptext_len);
       res_len += ptext_len;
@@ -158,9 +162,6 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 
   if (block_end_ptr > cursor) {
     size_t rem = (size_t)(block_end_ptr - cursor);
-    if (res_len + rem + 1 > est_cap) {
-      res = (char *)(size_t)realloc(res, res_len + rem + 1);
-    }
     memcpy(res + res_len, cursor, rem);
     res_len += rem;
   }
@@ -172,6 +173,12 @@ static cdd_c_error_t generate_block_new_text(const struct Block *b,
 
 /**
  * @brief Executes the append to diff operation.
+ *
+ * @param[in,out] diff_str Pointer to diff string pointer.
+ * @param[in,out] diff_len Pointer to diff string length.
+ * @param[in,out] diff_cap Pointer to diff string capacity.
+ * @param[in] format Format string.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 4, 5)))
@@ -181,9 +188,15 @@ append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
                const char *format, ...) {
   va_list args;
   int printed;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_append_to_diff && --g_cdd_fail_append_to_diff == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
+
   if (!*diff_str) {
-    *diff_cap = 1024;
-    *diff_str = (char *)(size_t)malloc(*diff_cap);
+    *diff_cap = 16;
+    *diff_str = (char *)C_CDD_MALLOC(*diff_cap);
     if (!*diff_str)
       return CDD_C_ERROR_MEMORY;
     (*diff_str)[0] = '\0';
@@ -198,40 +211,97 @@ append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
 #endif
   va_end(args);
 
-  if (printed > 0) {
-    if (*diff_len + (size_t)printed + 1 > *diff_cap) {
-      *diff_cap = *diff_len + (size_t)printed + 1024;
-      *diff_str = (char *)(size_t)realloc(*diff_str, *diff_cap);
-    }
-    va_start(args, format);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    vsprintf_s(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
-#else
-    vsprintf(*diff_str + *diff_len, format, args);
-#endif
-    va_end(args);
-    *diff_len += (size_t)printed;
+  if (*diff_len + (size_t)printed + 1 > *diff_cap) {
+    char *new_str;
+    *diff_cap = *diff_len + (size_t)printed + 128;
+    new_str = (char *)C_CDD_REALLOC(*diff_str, *diff_cap);
+    if (!new_str)
+      return CDD_C_ERROR_MEMORY;
+    *diff_str = new_str;
   }
+  va_start(args, format);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  vsprintf_s(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
+#else
+  vsprintf(*diff_str + *diff_len, format, args);
+#endif
+  va_end(args);
+  *diff_len += (size_t)printed;
+
   return CDD_C_SUCCESS;
 }
 
-static size_t find_line_for_token(const struct Token *tok,
-                                  const struct DiffLine *old_lines,
-                                  size_t old_line_count) {
+/**
+ * @brief Finds the 1-based line number for a given token.
+ *
+ * @param[in] tok Pointer to token.
+ * @param[in] old_lines Array of diff lines.
+ * @param[in] old_line_count Number of lines in old_lines.
+ * @param[out] out_line Pointer to store 1-based line number.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+static cdd_c_error_t find_line_for_token(const struct Token *tok,
+                                         const struct DiffLine *old_lines,
+                                         size_t old_line_count,
+                                         size_t *out_line) {
   size_t i;
+
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_find_line_for_token && --g_cdd_fail_find_line_for_token == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
+
   for (i = 0; i < old_line_count; i++) {
     const char *line_start = old_lines[i].text;
     const char *line_end = line_start + old_lines[i].len;
     if ((const char *)tok->start >= line_start &&
-        (const char *)tok->start <= line_end) {
-      return i + 1; /* 1-based */
+        (const char *)tok->start < line_end) {
+      *out_line = i + 1; /* 1-based */
+      return CDD_C_SUCCESS;
     }
   }
-  return 1;
+  *out_line = 1;
+  return CDD_C_SUCCESS;
+}
+
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test helper to call find_line_for_token directly.
+ * @param[in] tok Pointer to token.
+ * @param[in] old_lines Array of diff lines.
+ * @param[in] old_line_count Number of lines in old_lines.
+ * @param[out] out_line Pointer to store 1-based line number.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_find_line_for_token(
+    const struct Token *tok, const struct DiffLine *old_lines,
+    size_t old_line_count, size_t *out_line) {
+  return find_line_for_token(tok, old_lines, old_line_count, out_line);
 }
 
 /**
+ * @brief Test helper to call split_lines directly.
+ * @param[in] str Input string.
+ * @param[in] len Length of input string.
+ * @param[out] out_lines Pointer to receive allocated array of DiffLine.
+ * @param[out] out_count Pointer to receive number of lines.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
+                                                struct DiffLine **out_lines,
+                                                size_t *out_count) {
+  return split_lines(str, len, out_lines, out_count);
+}
+#endif
+
+/**
  * @brief Executes the patch list to diff operation.
+ *
+ * @param[in] list The patch list (will be sorted internally).
+ * @param[in] tokens The original token stream.
+ * @param[in] filename The name of the file to put in the diff header.
+ * @param[out] out_diff Pointer to a char* where the diff string will be stored.
+ * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t patch_list_to_diff(struct PatchList *list,
                                  const struct TokenList *tokens,
@@ -248,52 +318,51 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
   size_t diff_cap = 0;
   size_t p;
   size_t current_line_delta = 0;
+  char *new_text = NULL;
+  struct DiffLine *new_lines = NULL;
+  cdd_c_error_t rc;
 
   if (!list || !tokens || !out_diff)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (list->size == 0) {
-    *out_diff = (char *)(size_t)malloc(1);
-    if (*out_diff)
-      (*out_diff)[0] = '\0';
+  if (list->size == 0 || tokens->size == 0) {
+    *out_diff = (char *)C_CDD_MALLOC(1);
+    if (!*out_diff)
+      return CDD_C_ERROR_MEMORY;
+    (*out_diff)[0] = '\0';
     return CDD_C_SUCCESS;
   }
 
-  {
-    cdd_c_error_t rc_diff = patch_list_sort(list);
-    if (rc_diff != CDD_C_SUCCESS)
-      return rc_diff;
-  }
+  rc = patch_list_sort(list);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  if (tokens->size > 0) {
-    orig_src = (const char *)tokens->tokens[0].start;
-    orig_len = (size_t)((tokens->tokens[tokens->size - 1].start +
-                         tokens->tokens[tokens->size - 1].length) -
-                        (const uint8_t *)orig_src);
-    {
-      cdd_c_error_t rc_diff =
-          split_lines(orig_src, orig_len, &old_lines, &old_line_count);
-      if (rc_diff != CDD_C_SUCCESS)
-        return rc_diff;
-    }
-  } else {
-    *out_diff = (char *)(size_t)malloc(1);
-    if (*out_diff)
-      (*out_diff)[0] = '\0';
-    return CDD_C_SUCCESS;
-  }
+  orig_src = (const char *)tokens->tokens[0].start;
+  orig_len = (size_t)((tokens->tokens[tokens->size - 1].start +
+                       tokens->tokens[tokens->size - 1].length) -
+                      (const uint8_t *)orig_src);
+
+  rc = split_lines(orig_src, orig_len, &old_lines, &old_line_count);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   /* Build blocks */
   for (p = 0; p < list->size; p++) {
     struct Patch *patch = &list->patches[p];
-    size_t p_start = find_line_for_token(
-        &tokens->tokens[patch->start_token_idx], old_lines, old_line_count);
+    size_t p_start;
     size_t p_end;
     size_t ctx_start, ctx_end;
 
+    rc = find_line_for_token(&tokens->tokens[patch->start_token_idx], old_lines,
+                             old_line_count, &p_start);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+
     if (patch->end_token_idx > patch->start_token_idx) {
-      p_end = find_line_for_token(&tokens->tokens[patch->end_token_idx - 1],
-                                  old_lines, old_line_count);
+      rc = find_line_for_token(&tokens->tokens[patch->end_token_idx - 1],
+                               old_lines, old_line_count, &p_end);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else {
       p_end = p_start;
     }
@@ -307,9 +376,15 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
       blocks[block_count - 1].patch_end_idx = p + 1;
     } else {
       if (block_count >= block_cap) {
-        block_cap = block_cap == 0 ? 4 : block_cap * 2;
-        blocks =
-            (struct Block *)realloc(blocks, block_cap * sizeof(struct Block));
+        struct Block *new_blocks;
+        block_cap = (block_cap == 0) ? 2 : block_cap * 2;
+        new_blocks = (struct Block *)C_CDD_REALLOC(
+            blocks, block_cap * sizeof(struct Block));
+        if (!new_blocks) {
+          rc = CDD_C_ERROR_MEMORY;
+          goto cleanup;
+        }
+        blocks = new_blocks;
       }
       blocks[block_count].patch_start_idx = p;
       blocks[block_count].patch_end_idx = p + 1;
@@ -319,49 +394,54 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     }
   }
 
-  (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "--- %s\n+++ %s\n",
-                       filename, filename);
+  rc = append_to_diff(&diff_str, &diff_len, &diff_cap, "--- %s\n+++ %s\n",
+                      filename ? filename : "", filename ? filename : "");
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   for (p = 0; p < block_count; p++) {
     struct Block *b = &blocks[p];
-    char *new_text;
-    struct DiffLine *new_lines = NULL;
     size_t new_line_count = 0;
     size_t i;
     size_t min_mod_line, max_mod_line, keep_start_count, keep_end_count;
 
-    cdd_c_error_t rc;
-    new_text = NULL;
     rc = generate_block_new_text(b, list, tokens, old_lines, &new_text);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
 
-    if (rc != CDD_C_SUCCESS || !new_text)
-      break;
-    {
-      cdd_c_error_t rc_diff =
-          split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
-      if (rc_diff != CDD_C_SUCCESS)
-        return rc_diff;
-    }
+    rc = split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
 
-    (void)append_to_diff(
+    rc = append_to_diff(
         &diff_str, &diff_len, &diff_cap, "@@ -%lu,%lu +%lu,%lu @@\n",
         (unsigned long)b->old_start_line,
         (unsigned long)(b->old_end_line - b->old_start_line + 1),
         (unsigned long)(b->old_start_line + current_line_delta),
         (unsigned long)new_line_count);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
 
-    min_mod_line = find_line_for_token(
+    rc = find_line_for_token(
         &tokens->tokens[list->patches[b->patch_start_idx].start_token_idx],
-        old_lines, old_line_count);
+        old_lines, old_line_count, &min_mod_line);
+    if (rc != CDD_C_SUCCESS)
+      goto cleanup;
+
     if (list->patches[b->patch_end_idx - 1].end_token_idx > 0) {
-      max_mod_line = find_line_for_token(
+      rc = find_line_for_token(
           &tokens
                ->tokens[list->patches[b->patch_end_idx - 1].end_token_idx - 1],
-          old_lines, old_line_count);
+          old_lines, old_line_count, &max_mod_line);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     } else {
-      max_mod_line =
-          find_line_for_token(&tokens->tokens[0], old_lines, old_line_count);
+      rc = find_line_for_token(&tokens->tokens[0], old_lines, old_line_count,
+                               &max_mod_line);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
+
     if (max_mod_line < min_mod_line)
       max_mod_line = min_mod_line;
 
@@ -372,54 +452,76 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
         (b->old_end_line > max_mod_line) ? b->old_end_line - max_mod_line : 0;
 
     for (i = b->old_start_line; i < min_mod_line && i <= b->old_end_line; i++) {
-      (void)append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
-                           (int)old_lines[i - 1].len, old_lines[i - 1].text);
-      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                             "\n\\ No newline at end of file\n");
-      }
+      rc = append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
+                          (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
     }
 
     for (i = min_mod_line; i <= max_mod_line && i <= b->old_end_line; i++) {
-      (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
-                           (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      rc = append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
+                          (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                             "\n\\ No newline at end of file\n");
+        rc = append_to_diff(&diff_str, &diff_len, &diff_cap,
+                            "\n\\ No newline at end of file\n");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       }
     }
 
     for (i = keep_start_count; i < new_line_count - keep_end_count; i++) {
-      (void)append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s",
-                           (int)new_lines[i].len, new_lines[i].text);
+      rc = append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s",
+                          (int)new_lines[i].len, new_lines[i].text);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (new_lines[i].text[new_lines[i].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                             "\n\\ No newline at end of file\n");
+        rc = append_to_diff(&diff_str, &diff_len, &diff_cap,
+                            "\n\\ No newline at end of file\n");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       }
     }
 
     for (i = b->old_end_line - keep_end_count + 1; i <= b->old_end_line; i++) {
-      (void)append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
-                           (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      rc = append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
+                          (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (rc != CDD_C_SUCCESS)
+        goto cleanup;
       if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
-        (void)append_to_diff(&diff_str, &diff_len, &diff_cap,
-                             "\n\\ No newline at end of file\n");
+        rc = append_to_diff(&diff_str, &diff_len, &diff_cap,
+                            "\n\\ No newline at end of file\n");
+        if (rc != CDD_C_SUCCESS)
+          goto cleanup;
       }
     }
 
     current_line_delta +=
         new_line_count - (b->old_end_line - b->old_start_line + 1);
 
-    if (new_text)
-      free(new_text);
-    if (new_lines)
-      free(new_lines);
+    C_CDD_FREE(new_text);
+    new_text = NULL;
+    C_CDD_FREE(new_lines);
+    new_lines = NULL;
   }
 
+cleanup:
+  if (new_text)
+    C_CDD_FREE(new_text);
+  if (new_lines)
+    C_CDD_FREE(new_lines);
   if (old_lines)
-    free(old_lines);
+    C_CDD_FREE(old_lines);
   if (blocks)
-    free(blocks);
+    C_CDD_FREE(blocks);
+
+  if (rc != CDD_C_SUCCESS) {
+    if (diff_str)
+      C_CDD_FREE(diff_str);
+    *out_diff = NULL;
+    return rc;
+  }
 
   *out_diff = diff_str;
   return CDD_C_SUCCESS;

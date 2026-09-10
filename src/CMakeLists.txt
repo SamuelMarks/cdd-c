@@ -193,7 +193,6 @@ set(Source_Files
         "functions/parse/declarator.c"
         "docstrings/parse/doc.c"
         "functions/parse/fs.c"
-        "functions/emit/build_system.c"
         "classes/parse/initializer.c"
         "classes/parse/numeric.c"
         "routes/emit/aggregator.c"

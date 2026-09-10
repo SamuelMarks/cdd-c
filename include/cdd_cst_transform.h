@@ -75,6 +75,46 @@ C_CDD_EXPORT cdd_c_error_t
 cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
 
 /**
+ * @brief Checks if a token in a CST node represents a function call site.
+ *
+ * @param[in] node The CST node.
+ * @param[in] ident_idx Index of the identifier token in node->children.
+ * @param[out] out_is_call Pointer to int storing 1 if call, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_check_is_call(const cdd_cst_node_t *node,
+                                             size_t ident_idx,
+                                             int *out_is_call);
+
+/**
+ * @brief Checks if a token in a CST node represents a function definition.
+ *
+ * @param[in] node The CST node.
+ * @param[in] ident_idx Index of the identifier token in node->children.
+ * @param[out] out_is_def Pointer to int storing 1 if definition, 0 otherwise.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_check_is_function_def(const cdd_cst_node_t *node,
+                                                     size_t ident_idx,
+                                                     int *out_is_def);
+
+/**
+ * @brief Rewrites call sites in a CST node for functions whose signatures have
+ * been modified.
+ *
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] node The current node to inspect and rewrite.
+ * @param[in] modified_funcs Array of tokens representing modified function
+ * names.
+ * @param[in] num_modified Number of modified functions.
+ * @return CDD_C_SUCCESS on success or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_rewrite_call_sites(cdd_cst_tree_t *tree,
+                                                  cdd_cst_node_t *node,
+                                                  cdd_token_t **modified_funcs,
+                                                  size_t num_modified);
+
+/**
  * @brief Percolates errors by rewriting function signatures and returning int.
  *
  * @param tree The CST tree.

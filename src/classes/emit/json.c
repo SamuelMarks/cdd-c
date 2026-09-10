@@ -151,8 +151,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
         cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
-          if (tn)
-            (void)0;
+          (void)tn;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n);
@@ -174,8 +173,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
         cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
-          if (tn)
-            (void)0;
+          (void)tn;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(fp,
@@ -211,8 +209,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
-            if (tn)
-              (void)0;
+            (void)tn;
             return rc_ref;
           }
           io_rc =
@@ -604,8 +601,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
-          if (tn)
-            (void)0;
+          (void)tn;
           return rc_ref;
         }
         io_rc = FPRINTF_HOOK(
@@ -627,8 +623,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
         int io_rc;
         if (rc_ref != CDD_C_SUCCESS) {
-          if (tn)
-            (void)0;
+          (void)tn;
           return rc_ref;
         }
         io_rc =
@@ -667,8 +662,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
-            if (tn)
-              (void)0;
+            (void)tn;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(
@@ -683,8 +677,7 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           cdd_c_error_t rc_ref = get_type_from_ref(r, &tn);
           int io_rc;
           if (rc_ref != CDD_C_SUCCESS) {
-            if (tn)
-              (void)0;
+            (void)tn;
             return rc_ref;
           }
           io_rc = FPRINTF_HOOK(

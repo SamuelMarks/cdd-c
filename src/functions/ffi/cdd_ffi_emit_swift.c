@@ -71,22 +71,18 @@ emit_swift_file(cdd_ffi_ir_t *ir,
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\%s.swift", config->output_dir,
                lib_name);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
-#else
-  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.swift", config->output_dir,
-               lib_name);
-#if defined(_MSC_VER)
   if (fopen_s(&f, filepath, "w") != 0)
     f = NULL;
 #else
+  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/%s.swift", config->output_dir,
+               lib_name);
   f = fopen(filepath, "w");
 #endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      fclose(f);
+      if (f)
+        fclose(f);
       f = NULL;
     }
   }
@@ -94,7 +90,6 @@ emit_swift_file(cdd_ffi_ir_t *ir,
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
-#endif
 
   fprintf(f, "// Auto-generated Swift bindings for %s\n\n", lib_name);
   fprintf(f, "import Foundation\n");
@@ -193,22 +188,18 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
 #if defined(_MSC_VER)
   CDD_SNPRINTF(filepath, sizeof(filepath), "%s\\module.modulemap",
                config->output_dir);
-  if (fopen_s(&f, filepath, "w") != 0) {
-    return CDD_C_ERROR_UNKNOWN;
-  }
-#else
-  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/module.modulemap",
-               config->output_dir);
-#if defined(_MSC_VER)
   if (fopen_s(&f, filepath, "w") != 0)
     f = NULL;
 #else
+  CDD_SNPRINTF(filepath, sizeof(filepath), "%s/module.modulemap",
+               config->output_dir);
   f = fopen(filepath, "w");
 #endif
 #ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after > 0 && --g_fail_io_after == 0) {
-      fclose(f);
+      if (f)
+        fclose(f);
       f = NULL;
     }
   }
@@ -216,7 +207,6 @@ emit_module_map(const cdd_generate_bindings_config_t *config) {
   if (!f) {
     return CDD_C_ERROR_UNKNOWN;
   }
-#endif
 
   fprintf(f, "module C%s {\n", lib_name);
   if (config->input) {

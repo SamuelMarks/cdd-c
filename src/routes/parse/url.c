@@ -13,26 +13,18 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup helpers */
 #include "routes/parse/url.h"
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
 #undef malloc
-#define malloc(sz)                                                             \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
-                                                            : (malloc)(sz))
+#define malloc(sz) C_CDD_MALLOC(sz)
 #undef realloc
-#define realloc(ptr, sz)                                                       \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)                    \
-       ? NULL                                                                  \
-       : (realloc)(ptr, sz))
+#define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
 #undef calloc
-#define calloc(n, sz)                                                          \
-  ((g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after) ? NULL             \
-                                                            : (calloc)(n, sz))
+#define calloc(n, sz) C_CDD_CALLOC(n, sz)
 #endif
 
 /* Standard definitions for C89 compatibility */
@@ -152,7 +144,7 @@ cdd_c_error_t url_encode(const char *str, char **_out_val) {
   enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   /* Pass 2: Encode */
@@ -210,7 +202,7 @@ cdd_c_error_t url_encode_allow_reserved(const char *str, char **_out_val) {
   enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   e = enc;
@@ -269,7 +261,7 @@ cdd_c_error_t url_encode_form(const char *str, char **_out_val) {
   enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   e = enc;
@@ -333,7 +325,7 @@ cdd_c_error_t url_encode_form_allow_reserved(const char *str, char **_out_val) {
   enc = (char *)(size_t)malloc(needed_len + 1);
   if (!enc) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   e = enc;
@@ -519,8 +511,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     const char *raw_val = qp->params[i].value;
 
     if (qp->params[i].value_is_encoded) {
-      e_val =
-          (c_cdd_strdup(raw_val ? raw_val : "", &_ast_strdup_5), _ast_strdup_5);
+      e_val = (c_cdd_strdup(raw_val, &_ast_strdup_5), _ast_strdup_5);
     } else {
       e_val = (url_encode(raw_val, &_ast_url_encode_11), _ast_url_encode_11);
     }
@@ -561,8 +552,7 @@ cdd_c_error_t url_query_build(const struct UrlQueryParams *qp, char **out_str) {
     const char *raw_val = qp->params[i].value;
 
     if (qp->params[i].value_is_encoded) {
-      e_val =
-          (c_cdd_strdup(raw_val ? raw_val : "", &_ast_strdup_6), _ast_strdup_6);
+      e_val = (c_cdd_strdup(raw_val, &_ast_strdup_6), _ast_strdup_6);
     } else {
       e_val = (url_encode(raw_val, &_ast_url_encode_13), _ast_url_encode_13);
     }
@@ -860,10 +850,8 @@ oom:
     free(enc_val);
   if (buf)
     free(buf);
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = NULL;
+  return CDD_C_ERROR_MEMORY;
 }
 
 #ifdef CDD_BUILD_TESTS

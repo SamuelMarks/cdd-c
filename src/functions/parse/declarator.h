@@ -104,6 +104,94 @@ extern C_CDD_EXPORT /**
     parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Joins tokens in range for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] end End index.
+ * @param[out] out_val Result buffer.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_join_tokens_range(
+    const struct TokenList *tokens, size_t start, size_t end, char **out_val);
+
+/**
+ * @brief Skips whitespace for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] i Current index.
+ * @param[in] limit Limit index.
+ * @param[out] out_val Result index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_skip_ws(
+    const struct TokenList *tokens, size_t i, size_t limit, size_t *out_val);
+
+/**
+ * @brief Skips whitespace backwards for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] i Current index.
+ * @param[in] limit Limit index.
+ * @param[out] out_val Result index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_skip_ws_back(
+    const struct TokenList *tokens, size_t i, size_t limit, size_t *out_val);
+
+/**
+ * @brief Skips group for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] limit Limit index.
+ * @param[in] open_k Open kind.
+ * @param[in] close_k Close kind.
+ * @param[out] out_val Result index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_skip_group(
+    const struct TokenList *tokens, size_t start, size_t limit,
+    enum TokenKind open_k, enum TokenKind close_k, size_t *out_val);
+
+/**
+ * @brief Creates a node for unit testing.
+ * @param[in] kind Node kind.
+ * @param[out] out_val Result node.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_create_node(enum DeclTypeKind kind, struct DeclType **out_val);
+
+/**
+ * @brief Finds abstract pivot for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] end End index.
+ * @param[out] out_val Result index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_abstract_pivot(
+    const struct TokenList *tokens, size_t start, size_t end, size_t *out_val);
+
+/**
+ * @brief Finds pivot for unit testing.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index.
+ * @param[in] end End index.
+ * @param[out] is_abstract Abstract flag.
+ * @param[out] out_val Result index.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_find_pivot(const struct TokenList *tokens, size_t start, size_t end,
+                    int *is_abstract, size_t *out_val);
+
+/**
+ * @brief Frees a DeclType node for unit testing.
+ * @param[in] t Node to free.
+ */
+extern C_CDD_EXPORT void cdd_test_free_decl_type(struct DeclType *t);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

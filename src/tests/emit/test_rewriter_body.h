@@ -2768,7 +2768,534 @@ TEST test_rewrite_body_corner_oom_2(void) {
   PASS();
 }
 
+/**
+ * @brief Test error percolation across rewrite_body subroutines.
+ */
+TEST test_rewrite_body_error_percolation(void) {
+#ifdef CDD_BUILD_TESTS
+  const char *cases[8];
+  struct RefactoredFunction funcs2[2];
+  struct SignatureTransform t_void;
+  struct SignatureTransform t_ret;
+  int c;
+  int i;
+  struct TokenList *tl = NULL;
+  char *out_code = NULL;
+  cdd_c_error_t rc;
+  extern C_CDD_EXPORT int g_cdd_fail_find_semicolon;
+  extern C_CDD_EXPORT int g_cdd_fail_find_stmt_start;
+  extern C_CDD_EXPORT int g_cdd_fail_find_refactored_func;
+  extern C_CDD_EXPORT int g_cdd_fail_patch_list_add;
+
+  cases[0] = "void f() { char *s = my_strdup(\"a\"); }";
+  cases[1] = "void f() { char *s; s = my_strdup(\"a\"); }";
+  cases[2] = "void f() { my_func(\"a\"); }";
+  cases[3] = "void f() { outer(my_func(\"a\")); }";
+  cases[4] = "void f() { return my_func(\"a\"); }";
+  cases[5] = "void f() { return s; }";
+  cases[6] = "void f() { return; }";
+  cases[7] = "void f() { int x = 1; }";
+
+  funcs2[0].name = "my_strdup";
+  funcs2[0].type = REF_PTR_TO_INT_OUT;
+  funcs2[0].original_return_type = "char *";
+
+  funcs2[1].name = "my_func";
+  funcs2[1].type = REF_PTR_TO_INT_OUT;
+  funcs2[1].original_return_type = "char *";
+
+  t_void.type = TRANSFORM_VOID_TO_INT;
+  t_void.return_type = "int";
+  t_void.arg_name = "f";
+  t_void.error_code = NULL;
+  t_void.success_code = "CDD_C_SUCCESS";
+
+  t_ret.type = TRANSFORM_RET_PTR_TO_ARG;
+  t_ret.return_type = "char *";
+  t_ret.arg_name = "f";
+  t_ret.error_code = "out";
+  t_ret.success_code = "CDD_C_SUCCESS";
+
+  /* 1. patch_list_init OOM */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f() {}"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_alloc_fail = 1;
+  rc = rewrite_body(tl, NULL, NULL, 0, NULL, &out_code);
+  g_cdd_alloc_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  free_token_list(tl);
+
+  /* 2. find_refactored_func failure */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_refactored_func = 1;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_refactored_func = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  free_token_list(tl);
+
+  /* 3a. find_semicolon failure in statement (case 2) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_semicolon = 1;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_semicolon = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  free_token_list(tl);
+
+  /* 3b. find_semicolon failure in assignment (case 1) */
+  rc = tokenize(
+      az_span_create_from_str(
+          (char *)(size_t) "void f() { struct S *s = my_strdup(\"a\"); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_semicolon = 1;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_semicolon = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  free_token_list(tl);
+
+  /* 3c. find_semicolon failure in return ptr transform */
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void f() { return s; }"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_semicolon = 1;
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_ret, &out_code);
+  g_cdd_fail_find_semicolon = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  free_token_list(tl);
+
+  /* 3d. patch_list_add failure in is_decl assignment (patches 1, 2, 3) */
+  for (i = 1; i <= 3; ++i) {
+    rc = tokenize(
+        az_span_create_from_str(
+            (char *)(size_t) "void f() { struct S *s = my_strdup(\"a\"); }"),
+        &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_fail_patch_list_add = i;
+    rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+    g_cdd_fail_patch_list_add = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    free_token_list(tl);
+  }
+
+  /* 3d2. patch_list_add failure in non-decl assignment (patches 1, 2, 3) */
+  for (i = 1; i <= 3; ++i) {
+    rc = tokenize(az_span_create_from_str(
+                      (char *)(size_t) "void f() { s=my_strdup(\"a\"); }"),
+                  &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_fail_patch_list_add = i;
+    rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+    g_cdd_fail_patch_list_add = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    free_token_list(tl);
+  }
+
+  /* 3e. join_tokens_range empty strdup failure */
+  {
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    rc = tokenize(az_span_create_from_str(
+                      (char *)(size_t) "void f() { outer(my_func()); }"),
+                  &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    g_cdd_strdup_fail = 1;
+    rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+    g_cdd_strdup_fail = 0;
+    ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    free_token_list(tl);
+  }
+
+  /* 4. find_stmt_start failure */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { outer(my_func(\"a\")); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_stmt_start = 1;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_stmt_start = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  free_token_list(tl);
+
+  /* 5. Loop patch_list_add failures across all cases */
+  for (c = 0; c < 8; ++c) {
+    const struct SignatureTransform *tr = NULL;
+    if (c == 4 || c == 5)
+      tr = &t_ret;
+    else if (c == 6 || c == 7)
+      tr = &t_void;
+
+    for (i = 1; i <= 6; ++i) {
+      tl = NULL;
+      out_code = NULL;
+      rc = tokenize(az_span_create_from_str((char *)(size_t)cases[c]), &tl);
+      if (rc != CDD_C_SUCCESS)
+        continue;
+      g_cdd_fail_patch_list_add = i;
+      rc = rewrite_body(tl, NULL, funcs2, 2, tr, &out_code);
+      g_cdd_fail_patch_list_add = 0;
+      free_token_list(tl);
+      if (out_code)
+        C_CDD_FREE(out_code);
+      if (rc == CDD_C_SUCCESS)
+        break;
+    }
+  }
+#endif
+  PASS();
+}
+
+/**
+ * @brief Test all remaining edge case branches in rewriter_body.c.
+ */
+TEST test_rewrite_body_all_branches(void) {
+#ifdef CDD_BUILD_TESTS
+  struct RefactoredFunction funcs[2];
+  struct SignatureTransform t_void;
+  struct SignatureTransform t_ret;
+  struct SignatureTransform t_unk;
+  struct AllocationSiteList allocs;
+  struct TokenList *tl = NULL;
+  char *out_code = NULL;
+  cdd_c_error_t rc;
+  extern C_CDD_EXPORT int g_cdd_fail_find_semicolon;
+  extern C_CDD_EXPORT int g_cdd_fail_find_stmt_start;
+  extern C_CDD_EXPORT int g_cdd_fail_find_refactored_func;
+
+  funcs[0].name = "my_strdup";
+  funcs[0].type = REF_PTR_TO_INT_OUT;
+  funcs[0].original_return_type = "char *";
+
+  funcs[1].name = "my_func";
+  funcs[1].type = REF_PTR_TO_INT_OUT;
+  funcs[1].original_return_type = "char *";
+
+  t_void.type = TRANSFORM_VOID_TO_INT;
+  t_void.return_type = "int";
+  t_void.arg_name = "f";
+  t_void.error_code = NULL;
+  t_void.success_code = "CDD_C_SUCCESS";
+
+  t_ret.type = TRANSFORM_RET_PTR_TO_ARG;
+  t_ret.return_type = "char *";
+  t_ret.arg_name = "f";
+  t_ret.error_code = "out";
+  t_ret.success_code = "CDD_C_SUCCESS";
+
+  t_unk.type = 999;
+  t_unk.return_type = "int";
+  t_unk.arg_name = "f";
+  t_unk.error_code = NULL;
+  t_unk.success_code = "CDD_C_SUCCESS";
+
+  /* 1. Hooks set to 2 so --hook == 0 is false */
+  g_cdd_fail_find_refactored_func = 2;
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void f() { my_func(\"a\"); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  g_cdd_fail_find_refactored_func = 0;
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  g_cdd_fail_find_semicolon = 2;
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void f() { my_func(\"a\"); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  g_cdd_fail_find_semicolon = 0;
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  g_cdd_fail_find_stmt_start = 2;
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { outer(my_func(\"a\")); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  g_cdd_fail_find_stmt_start = 0;
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 2. Statement after RBRACE (line 110) */
+  rc = tokenize(
+      az_span_create_from_str(
+          (char *)(size_t) "void f() { if (1) {} outer(my_func(\"a\")); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 3. Assignment after RBRACE (line 278) */
+  rc = tokenize(
+      az_span_create_from_str(
+          (char *)(size_t) "void f() { if (1) {} s=my_strdup(\"a\"); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 4. Token at end of file (lines 230, 235) */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f() { my_func"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 4b. Refactored function name not followed by lparen (line 235) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { int x = my_func + 1; }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 4c. Assignment with no LHS identifier (lines 276, 289, 296, 306) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { [0] = my_func(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 4d. Assignment starting at token 0 (lines 276, 289) */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "=my_func();"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 4e. Statement immediately following RBRACE (line 398) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { if (1) {} my_func(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 5. Token at start of file without braces (lines 263, 269, 664, 666) */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "my_func();"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 6. Whitespace inside call args (line 344) */
+  rc = tokenize(
+      az_span_create_from_str(
+          (char *)(size_t) "void f() { char *s = my_strdup( \"a\" ); }"),
+      &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 7. No semicolon after call (line 379) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { char *s = my_strdup(\"a\") }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 8. Return at EOF with void transform (lines 520, 523) */
+  rc = tokenize(az_span_create_from_str(((char *)(size_t) "return")), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 9. Unknown transform type (line 536) */
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void f() { return; }"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_unk, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 10. Return without semicolon with ret transform (line 543) */
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void *f() { return s }"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_ret, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 11. Allocation before return statement and inside return statement (line
+   * 550) */
+  {
+    memset(&allocs, 0, sizeof(allocs));
+    rc = tokenize(
+        az_span_create_from_str((
+            char *)(size_t) "void *f() { p = malloc(10); return malloc(20); }"),
+        &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    find_allocations(tl, &allocs);
+    rc = rewrite_body(tl, &allocs, NULL, 0, &t_ret, &out_code);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    if (out_code) {
+      C_CDD_FREE(out_code);
+      out_code = NULL;
+    }
+    allocation_site_list_free(&allocs);
+    free_token_list(tl);
+  }
+
+  /* 11b. Allocation after return statement (line 549) */
+  {
+    memset(&allocs, 0, sizeof(allocs));
+    rc = tokenize(az_span_create_from_str(
+                      (char *)(size_t) "void *f() { return p; malloc(10); }"),
+                  &tl);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    find_allocations(tl, &allocs);
+    rc = rewrite_body(tl, &allocs, NULL, 0, &t_ret, &out_code);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    if (out_code) {
+      C_CDD_FREE(out_code);
+      out_code = NULL;
+    }
+    allocation_site_list_free(&allocs);
+    free_token_list(tl);
+  }
+
+  /* 12. Void function with trailing block (lines 628, 631, 634, 641) */
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "void f() { if (1) {} }"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 12b. Void function with statement lacking semicolon before closing brace
+   * (line 640) */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f() { 1 + 2 }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 13. Void function without closing brace (line 628, 631) */
+  rc = tokenize(az_span_create_from_str((char *)(size_t) "void f()"), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 14. Void function with empty tokens (line 626) */
+  rc = tokenize(az_span_create_from_str(((char *)(size_t) "")), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  /* 15. Void function with only closing brace (line 634) */
+  rc = tokenize(az_span_create_from_str(((char *)(size_t) "}")), &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  rc = rewrite_body(tl, NULL, NULL, 0, &t_void, &out_code);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+#endif
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
+  RUN_TEST(test_rewrite_body_all_branches);
   RUN_TEST(test_rewrite_body_funcs_oom);
   RUN_TEST(test_rewrite_body_funcs_oom_strdup);
   RUN_TEST(test_rewrite_body_funcs_oom_assignment);
@@ -2790,6 +3317,7 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_rewrite_body_corner_cases);
   RUN_TEST(test_rewriter_body_oom);
   RUN_TEST(test_rewrite_body_corner_oom_2);
+  RUN_TEST(test_rewrite_body_error_percolation);
 
   RUN_TEST(test_propagate_void_stmt_return);
   RUN_TEST(test_propagate_void_stmt_transform);

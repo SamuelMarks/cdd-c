@@ -107,12 +107,15 @@ cdd_c_error_t cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
                                          enum cdd_cst_node_kind_t kind,
                                          cdd_cst_query_result_t *out_result) {
   type_query_ctx_t ctx;
-  if (!root || !out_result)
+  if (!out_result)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out_result->nodes = NULL;
   out_result->size = 0;
   out_result->capacity = 0;
+
+  if (!root)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
 
   ctx.target_kind = kind;
   ctx.res = out_result;
