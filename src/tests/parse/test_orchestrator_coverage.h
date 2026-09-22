@@ -36,8 +36,6 @@ TEST test_orchestrator_coverage_fix_code_main(void) {
 
 TEST test_orchestrator_coverage_oom(void) {
   char *out = NULL;
-  /*  (moved to global) */
-
   int i;
 
   for (i = 1; i < 20; ++i) {
@@ -53,12 +51,9 @@ TEST test_orchestrator_coverage_oom(void) {
 
 TEST test_orchestrator_coverage_oom_deep(void) {
   char *out = NULL;
-  /*  (moved to global) */
-  /* extern C_CDD_EXPORT int g_cdd_strdup_fail; (moved to global) */
-
   int i;
-  const char *code = "void test() { char *p = malloc(1); }\n"
-                     "void test2() { char *p = malloc(1); }\n";
+  const char *code = "void test() { char *p = malloc(1); }"
+                     "void test2() { char *p = malloc(1); }";
 
   for (i = 1; i < 50; ++i) {
     g_cdd_alloc_fail = i;
@@ -86,8 +81,7 @@ TEST test_orchestrator_coverage_fix_file(void) {
   f = fopen("test_empty.txt", "w");
 #endif
   if (f)
-    if (f)
-      fclose(f);
+    fclose(f);
 #if defined(_MSC_VER)
   if (fopen_s(&f, "test_empty.c", "w") != 0)
     f = NULL;
@@ -96,8 +90,7 @@ TEST test_orchestrator_coverage_fix_file(void) {
 #endif
   if (f) {
     fputs("int main(){}", f);
-    if (f)
-      fclose(f);
+    fclose(f);
   }
   makedir("my_empty_dir");
   {
@@ -126,6 +119,7 @@ TEST test_orchestrator_coverage_fix_file(void) {
     }
   }
 }
+
 TEST test_orchestrator_coverage_fix_dir_no_inplace_1arg(void) {
   char *argv[] = {(char *)(size_t)(size_t) "my_empty_dir"};
   int rc = fix_code_main(1, argv);
@@ -143,8 +137,7 @@ TEST test_orchestrator_coverage_fix_file_1arg(void) {
 }
 
 TEST test_orchestrator_coverage_fix_dir_errors(void) {
-  char *argv_argc0[] = {
-      (char *)(size_t)(size_t) "dummy"}; /* argv isn't used for argc 0 */
+  char *argv_argc0[] = {(char *)(size_t)(size_t) "dummy"};
   char *argv_argc3[] = {(char *)(size_t)(size_t) "dir",
                         (char *)(size_t)(size_t) "out1",
                         (char *)(size_t)(size_t) "out2"};
@@ -163,7 +156,6 @@ TEST test_orchestrator_coverage_fix_dir_errors(void) {
 TEST test_orchestrator_coverage_fix_file_failures(void) {
   char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
                     (char *)(size_t)(size_t) "out.c"};
-  /*  (moved to global) */
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback */
@@ -171,7 +163,6 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
   rc = fix_code_main(2, argv_c);
   g_cdd_alloc_fail = 0;
   (void)rc;
-  printf("DEBUG: fix_file_failures rc=%d\n", rc);
   ASSERT_EQ((int)EXIT_FAILURE, rc);
 
   PASS();
@@ -180,7 +171,6 @@ TEST test_orchestrator_coverage_fix_file_failures(void) {
 TEST test_orchestrator_coverage_fix_file_failures_2(void) {
   char *argv_c[] = {(char *)(size_t)(size_t) "test_empty.c",
                     (char *)(size_t)(size_t) "out.c"};
-  /*  (moved to global) */
   int rc;
 
   /* Trigger orchestrate_fix failure inside fix_file_callback by skipping first
@@ -202,6 +192,135 @@ TEST test_orchestrator_coverage_fix_file_write_fail(void) {
   ASSERT_EQ((int)EXIT_FAILURE, rc);
   PASS();
 }
+
+TEST test_orchestrator_call_with_whitespace(void) {
+  const char *code = "void A() { char *p = malloc(1); }"
+                     "void B() { A  (); }";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_many_allocs(void) {
+  const char *code = "void A() {"
+                     "  malloc(1);"
+                     "  malloc(2);"
+                     "  malloc(3);"
+                     "  malloc(4);"
+                     "  malloc(5);"
+                     "  malloc(6);"
+                     "}";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_many_callers(void) {
+  const char *code = "void A() { malloc(1); }"
+                     "void C1() { A(); }"
+                     "void C2() { A(); }"
+                     "void C3() { A(); }"
+                     "void C4() { A(); }"
+                     "void C5() { A(); }";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_anonymous_func(void) {
+  const char *code = "() { malloc(1); }";
+  char *out = NULL;
+  orchestrate_fix(code, &out);
+  if (out)
+    C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_main_caller(void) {
+  const char *code = "void A() { malloc(1); }"
+                     "int main() { A(); return 0; }";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_pointer_return(void) {
+  const char *code = "char *A() { char *p = malloc(1); return p; }"
+                     "void B() { A(); }";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_non_function_nodes(void) {
+  const char *code = "#define FOO 1"
+                     "int g_var = 42;"
+                     "void A() { malloc(1); }";
+  char *out = NULL;
+  int rc = orchestrate_fix(code, &out);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(out != NULL);
+  C_CDD_FREE(out);
+  PASS();
+}
+
+TEST test_orchestrator_extra_oom_sweeps(void) {
+  const char *code_allocs = "void A() {"
+                            "  char *p = malloc(1);"
+                            "  malloc(2);"
+                            "  malloc(3);"
+                            "  malloc(4);"
+                            "  malloc(5);"
+                            "}";
+  const char *code_callers = "void A() { malloc(1); }"
+                             "void C1() { A(); }"
+                             "void C2() { A(); }"
+                             "void C3() { A(); }"
+                             "void C4() { A(); }"
+                             "void C5() { A(); }";
+  const char *code_main = "void A() { malloc(1); }"
+                          "int main() { A(); return 0; }";
+  char *out = NULL;
+  int i;
+
+  for (i = 1; i <= 60; ++i) {
+    g_cdd_alloc_fail = i;
+    orchestrate_fix(code_allocs, &out);
+    C_CDD_FREE(out);
+    out = NULL;
+    g_cdd_alloc_fail = 0;
+
+    g_cdd_alloc_fail = i;
+    orchestrate_fix(code_callers, &out);
+    C_CDD_FREE(out);
+    out = NULL;
+    g_cdd_alloc_fail = 0;
+
+    g_cdd_alloc_fail = i;
+    orchestrate_fix(code_main, &out);
+    C_CDD_FREE(out);
+    out = NULL;
+    g_cdd_alloc_fail = 0;
+  }
+
+  PASS();
+}
+
 SUITE(orchestrator_coverage_suite) {
   RUN_TEST(test_orchestrator_coverage_fix_code_main);
   RUN_TEST(test_orchestrator_coverage_oom);
@@ -213,6 +332,14 @@ SUITE(orchestrator_coverage_suite) {
   RUN_TEST(test_orchestrator_coverage_fix_file_failures);
   RUN_TEST(test_orchestrator_coverage_fix_file_failures_2);
   RUN_TEST(test_orchestrator_coverage_fix_file_write_fail);
+  RUN_TEST(test_orchestrator_call_with_whitespace);
+  RUN_TEST(test_orchestrator_many_allocs);
+  RUN_TEST(test_orchestrator_many_callers);
+  RUN_TEST(test_orchestrator_anonymous_func);
+  RUN_TEST(test_orchestrator_main_caller);
+  RUN_TEST(test_orchestrator_pointer_return);
+  RUN_TEST(test_orchestrator_non_function_nodes);
+  RUN_TEST(test_orchestrator_extra_oom_sweeps);
 }
 
 #ifdef __cplusplus

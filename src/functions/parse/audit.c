@@ -43,6 +43,11 @@ C_CDD_EXPORT int g_cdd_audit_fail_find = 0;
  * @brief Executes the audit stats init operation.
  */
 cdd_c_error_t audit_stats_init(struct AuditStats *stats) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_audit_stats_init;
+  if (g_cdd_fail_audit_stats_init && --g_cdd_fail_audit_stats_init == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!stats)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   stats->files_scanned = 0;
@@ -220,8 +225,13 @@ static cdd_c_error_t is_c_source(const char *path, int *out_is_source) {
 /**
  * @brief Helper to detect functions returning allocations directly.
  */
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t
+count_returning_allocs(const struct TokenList *tokens, int *out_count) {
+#else
 static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
                                             int *out_count) {
+#endif
   size_t i;
   int count = 0;
 #ifdef CDD_BUILD_TESTS
@@ -230,7 +240,12 @@ static cdd_c_error_t count_returning_allocs(const struct TokenList *tokens,
       --g_cdd_fail_count_returning_allocs == 0)
     return CDD_C_ERROR_UNKNOWN;
 #endif
+  if (!out_count)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   *out_count = 0;
+
+  if (!tokens || !tokens->tokens || tokens->size == 0)
+    return CDD_C_SUCCESS;
 
   for (i = 0; i < tokens->size - 1; ++i) {
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {

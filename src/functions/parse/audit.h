@@ -87,6 +87,19 @@ extern C_CDD_EXPORT cdd_c_error_t audit_project(const char *root_path,
 extern C_CDD_EXPORT cdd_c_error_t
 audit_print_json(const struct AuditStats *stats, char **out_json);
 
+#ifdef CDD_BUILD_TESTS
+struct TokenList;
+/**
+ * @brief Helper to detect functions returning allocations directly (exposed for
+ * testing).
+ * @param[in] tokens Token list.
+ * @param[out] out_count Pointer to output count.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+count_returning_allocs(const struct TokenList *tokens, int *out_count);
+#endif /* CDD_BUILD_TESTS */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

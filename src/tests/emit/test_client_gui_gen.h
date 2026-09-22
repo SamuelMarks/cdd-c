@@ -36,7 +36,6 @@ TEST test_client_gui_gen_basic(void) {
   int rc;
   FILE *f;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "test_gui";
@@ -99,7 +98,6 @@ TEST test_client_gui_gen_with_server(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.n_servers = 1;
   spec.servers =
@@ -130,7 +128,6 @@ TEST test_client_gui_gen_errors(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "/nonexistent/dir/test_gui";

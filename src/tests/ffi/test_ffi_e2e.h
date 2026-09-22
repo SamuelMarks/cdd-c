@@ -68,7 +68,6 @@ TEST test_ffi_e2e_complex_codebase(void) {
   int rc;
   FILE *f;
 
-  (void)rc;
   write_to_file(filename, code);
   makedir(output_dir);
 

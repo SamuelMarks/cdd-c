@@ -620,11 +620,13 @@ cdd_c_error_t read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   } while (read_now == READ_CHUNK_SIZE);
 
 #ifdef CDD_BUILD_TESTS
-  if (ferror(fh) || g_fail_io_after == 98 || g_fail_io_after == 99) {
+  if (g_fail_io_after == 98 || g_fail_io_after == 99) {
     if (g_fail_io_after == 99)
       errno = 0;
-    else if (g_fail_io_after == 98)
+    else
       errno = EIO;
+  }
+  if (ferror(fh) || g_fail_io_after == 98 || g_fail_io_after == 99) {
 #else
   if (ferror(fh)) {
 #endif
@@ -1048,6 +1050,13 @@ cdd_c_error_t mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       }
 #else
       file->fh = fopen(tmpfilename, mode);
+#ifdef CDD_BUILD_TESTS
+      if (g_fail_io_after == 46) {
+        g_fail_io_after = -1;
+        fclose(file->fh);
+        file->fh = NULL;
+      }
+#endif
       if (!file->fh) {
         C_CDD_FREE(tmpfilename);
         continue;

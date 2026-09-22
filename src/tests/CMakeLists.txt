@@ -37,6 +37,7 @@ set(Header_Files
         "emit/test_codegen_build.h"
         "emit/test_generate_build_system.h"
         "emit/test_codegen_client_body.h"
+        "emit/test_codegen_client_body_internals.h"
         "emit/test_codegen_client_sig.h"
         "emit/test_codegen_defaults.h"
         "emit/test_codegen_eq.h"
@@ -46,6 +47,7 @@ set(Header_Files
         "emit/test_codegen_struct.h"
         "emit/test_codegen_types.h"
         "emit/test_codegen_url.h"
+        "emit/test_codegen_url_internals.h"
         "emit/test_codegen_validation.h"
         "emit/test_codegen_root_arrays.h"
         "emit/test_codegen_sdk_tests.h"
@@ -89,6 +91,7 @@ set(Header_Files
         "parse/test_anonymous.h"
         "parse/test_preprocessor_internals.h"
         "parse/test_code2schema_coverage.h"
+        "parse/test_code2schema_internals.h"
         "parse/test_query_projection.h"
         "parse/test_cli_parser.h"
         "parse/test_fs_coverage.h"
@@ -134,10 +137,14 @@ set_target_properties(
         C
 )
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+    target_compile_definitions("${EXEC_NAME}" PRIVATE CDD_BUILD_TESTS)
+endif()
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "CDD_C_BIN=$<TARGET_FILE:cdd-c>")
 if (C_CDD_USE_ASAN)
-    set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
+    set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1;CDD_C_BIN=$<TARGET_FILE:cdd-c>")
 endif()
 
 # ... (Previous Mock targets remain unchanged) ...

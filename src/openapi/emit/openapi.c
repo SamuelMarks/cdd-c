@@ -21,327 +21,12 @@
 
 /* --- Helper Prototypes --- */
 
-cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val);
-cdd_c_error_t param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
-cdd_c_error_t style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
-cdd_c_error_t oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
-                                             char **_out_val);
-cdd_c_error_t xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
-                                           char **_out_val);
-cdd_c_error_t is_schema_primitive_openapi(const char *type);
-/**
- * @brief Executes the license fields invalid operation.
- */
-static cdd_c_error_t license_fields_invalid(const struct OpenAPI_License *lic);
-/**
- * @brief Executes the server url has query or fragment operation.
- */
-static cdd_c_error_t server_url_has_query_or_fragment(const char *url);
-/**
- * @brief Executes the clone json value operation.
- */
-static cdd_c_error_t clone_json_value(const JSON_Value *val,
-                                      JSON_Value **_out_val);
-cdd_c_error_t merge_schema_extras_object_openapi(JSON_Object *target,
-                                                 const char *extras_json);
-/**
- * @brief Executes the any to json value operation.
- */
-static cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
-                                       JSON_Value **_out_val);
-/**
- * @brief Generates C code for write example object.
- */
-static void write_example_object(JSON_Object *ex_obj,
-                                 const struct OpenAPI_Example *ex);
-/**
- * @brief Generates C code for write examples object.
- */
-static cdd_c_error_t
-write_examples_object(JSON_Object *parent, const char *key,
-                      const struct OpenAPI_Example *examples,
-                      size_t n_examples);
-/**
- * @brief Generates C code for write example fields.
- */
-static void write_example_fields(JSON_Object *parent,
-                                 const struct OpenAPI_Any *example,
-                                 int example_set,
-                                 const struct OpenAPI_Example *examples,
-                                 size_t n_examples);
-/**
- * @brief Generates C code for write schema example.
- */
 static void write_schema_example(JSON_Object *obj,
                                  const struct OpenAPI_Any *example,
                                  int example_set);
-/**
- * @brief Generates C code for write numeric constraints.
- */
-static void write_numeric_constraints(JSON_Object *obj, int has_min,
-                                      double min_val, int exclusive_min,
-                                      int has_max, double max_val,
-                                      int exclusive_max);
-/**
- * @brief Generates C code for write string constraints.
- */
-static void write_string_constraints(JSON_Object *obj, int has_min_len,
-                                     size_t min_len, int has_max_len,
-                                     size_t max_len, const char *pattern);
-/**
- * @brief Generates C code for write array constraints.
- */
-static void write_array_constraints(JSON_Object *obj, int has_min_items,
-                                    size_t min_items, int has_max_items,
-                                    size_t max_items, int unique_items);
-/**
- * @brief Generates C code for write items schema fields.
- */
-static void write_items_schema_fields(JSON_Object *item_obj,
-                                      const struct OpenAPI_SchemaRef *ref);
-/**
- * @brief Generates C code for write external docs.
- */
-static void write_external_docs(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_ExternalDocs *docs);
-/**
- * @brief Generates C code for write discriminator object.
- */
-static void write_discriminator_object(JSON_Object *parent,
-                                       const struct OpenAPI_Discriminator *disc,
-                                       int disc_set);
-/**
- * @brief Generates C code for write xml object.
- */
-static void write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
-                             int xml_set);
-/**
- * @brief Generates C code for write info.
- */
-static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write server object.
- */
-static void write_server_object(JSON_Object *srv_obj,
-                                const struct OpenAPI_Server *srv);
-/**
- * @brief Generates C code for write schema ref.
- */
-static void write_schema_ref(JSON_Object *parent, const char *key,
-                             const struct OpenAPI_SchemaRef *ref);
-/**
- * @brief Generates C code for write schema from type fields.
- */
-static void write_schema_from_type_fields(JSON_Object *parent, const char *key,
-                                          const char *type, int is_array,
-                                          const char *items_type);
-/**
- * @brief Generates C code for write multipart schema.
- */
 static void write_multipart_schema(JSON_Object *parent, const char *key,
                                    const struct OpenAPI_SchemaRef *ref);
-/**
- * @brief Generates C code for write parameter object.
- */
-static void write_parameter_object(JSON_Object *p_obj,
-                                   const struct OpenAPI_Parameter *p);
-/**
- * @brief Generates C code for write header object.
- */
-static void write_header_object(JSON_Object *h_obj,
-                                const struct OpenAPI_Header *h);
-/**
- * @brief Generates C code for write link object.
- */
-static void write_link_object(JSON_Object *l_obj,
-                              const struct OpenAPI_Link *link);
-/**
- * @brief Generates C code for write headers map.
- */
-static cdd_c_error_t write_headers_map(JSON_Object *parent, const char *key,
-                                       const struct OpenAPI_Header *headers,
-                                       size_t n_headers,
-                                       int ignore_content_type);
-/**
- * @brief Generates C code for write headers.
- */
-static cdd_c_error_t write_headers(JSON_Object *parent,
-                                   const struct OpenAPI_Response *resp);
-/**
- * @brief Generates C code for write links.
- */
-static cdd_c_error_t write_links(JSON_Object *parent,
-                                 const struct OpenAPI_Response *resp);
-/**
- * @brief Generates C code for write media type object.
- */
-static cdd_c_error_t
-write_media_type_object(JSON_Object *media_obj,
-                        const struct OpenAPI_MediaType *mt);
-/**
- * @brief Generates C code for write media type map.
- */
-static cdd_c_error_t write_media_type_map(JSON_Object *parent, const char *key,
-                                          const struct OpenAPI_MediaType *mts,
-                                          size_t n_mts);
-/**
- * @brief Generates C code for write encoding object.
- */
-static cdd_c_error_t write_encoding_object(JSON_Object *enc_obj,
-                                           const struct OpenAPI_Encoding *enc);
-/**
- * @brief Generates C code for write encoding map.
- */
-static cdd_c_error_t write_encoding_map(JSON_Object *media_obj,
-                                        const struct OpenAPI_Encoding *encoding,
-                                        size_t n_encoding);
-/**
- * @brief Generates C code for write encoding array.
- */
-static cdd_c_error_t
-write_encoding_array(JSON_Object *parent, const char *key,
-                     const struct OpenAPI_Encoding *encoding,
-                     size_t n_encoding);
-/**
- * @brief Generates C code for write response object.
- */
-static void write_response_object(JSON_Object *r_obj,
-                                  const struct OpenAPI_Response *resp);
-/**
- * @brief Generates C code for write operation object.
- */
-static cdd_c_error_t write_operation_object(JSON_Object *op_obj,
-                                            const struct OpenAPI_Operation *op);
-/**
- * @brief Generates C code for write parameters.
- */
-static cdd_c_error_t write_parameters(JSON_Object *parent,
-                                      const struct OpenAPI_Parameter *params,
-                                      size_t n_params);
-/**
- * @brief Generates C code for write responses.
- */
-static cdd_c_error_t write_responses(JSON_Object *op_obj,
-                                     const struct OpenAPI_Operation *op);
-/**
- * @brief Generates C code for write request body.
- */
-static cdd_c_error_t write_request_body(JSON_Object *op_obj,
-                                        const struct OpenAPI_Operation *op);
-/**
- * @brief Generates C code for write callbacks.
- */
-static cdd_c_error_t write_callbacks(JSON_Object *op_obj,
-                                     const struct OpenAPI_Operation *op);
-/**
- * @brief Generates C code for write operations.
- */
-static cdd_c_error_t write_operations(JSON_Object *path_item,
-                                      const struct OpenAPI_Path *path);
-/**
- * @brief Generates C code for write additional operations.
- */
-static cdd_c_error_t
-write_additional_operations(JSON_Object *path_item,
-                            const struct OpenAPI_Path *path);
-/**
- * @brief Generates C code for write path item object.
- */
-static cdd_c_error_t write_path_item_object(JSON_Object *item_obj,
-                                            const struct OpenAPI_Path *path);
-/**
- * @brief Generates C code for write paths.
- */
-static cdd_c_error_t write_paths(JSON_Object *root_obj,
-                                 const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write servers.
- */
-static cdd_c_error_t write_servers(JSON_Object *root_obj,
-                                   const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write server array.
- */
-static cdd_c_error_t write_server_array(JSON_Object *parent, const char *key,
-                                        const struct OpenAPI_Server *servers,
-                                        size_t n_servers);
-/**
- * @brief Generates C code for write security requirements.
- */
-static cdd_c_error_t
-write_security_requirements(JSON_Object *parent, const char *key,
-                            const struct OpenAPI_SecurityRequirementSet *sets,
-                            size_t count, int set_flag);
-/**
- * @brief Generates C code for write security schemes.
- */
-static cdd_c_error_t write_security_schemes(JSON_Object *components,
-                                            const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component parameters.
- */
-static cdd_c_error_t
-write_component_parameters(JSON_Object *components,
-                           const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component responses.
- */
-static cdd_c_error_t write_component_responses(JSON_Object *components,
-                                               const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component headers.
- */
-static cdd_c_error_t write_component_headers(JSON_Object *components,
-                                             const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component media types.
- */
-static cdd_c_error_t
-write_component_media_types(JSON_Object *components,
-                            const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component examples.
- */
-static cdd_c_error_t write_component_examples(JSON_Object *components,
-                                              const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component links.
- */
-static cdd_c_error_t write_component_links(JSON_Object *components,
-                                           const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component callbacks.
- */
-static cdd_c_error_t write_component_callbacks(JSON_Object *components,
-                                               const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write component path items.
- */
-static cdd_c_error_t
-write_component_path_items(JSON_Object *components,
-                           const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write components.
- */
-static cdd_c_error_t write_components(JSON_Object *root_obj,
-                                      const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write tags.
- */
-static cdd_c_error_t write_tags(JSON_Object *root_obj,
-                                const struct OpenAPI_Spec *spec);
-/**
- * @brief Generates C code for write webhooks.
- */
-static cdd_c_error_t write_webhooks(JSON_Object *root_obj,
-                                    const struct OpenAPI_Spec *spec);
 
-/* --- Implementations --- */
-
-/**
- * @brief Converts verb to string.
- *
- */
 cdd_c_error_t verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
@@ -551,8 +236,8 @@ param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-cdd_c_error_t oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
-                                             char **_out_val) {
+C_CDD_EXPORT cdd_c_error_t
+oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val) {
   switch (t) {
   case OA_OAUTH_FLOW_IMPLICIT: {
     *_out_val = "implicit";
@@ -587,7 +272,7 @@ cdd_c_error_t oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
  * @param type The schema type string.
  * @return 1 if true, 0 otherwise.
  */
-cdd_c_error_t is_schema_primitive_openapi(const char *type) {
+C_CDD_EXPORT cdd_c_error_t is_schema_primitive_openapi(const char *type) {
   if (!type)
     return CDD_C_SUCCESS;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
@@ -598,7 +283,8 @@ cdd_c_error_t is_schema_primitive_openapi(const char *type) {
 /**
  * @brief Executes the license fields invalid operation.
  */
-static cdd_c_error_t license_fields_invalid(const struct OpenAPI_License *lic) {
+C_CDD_EXPORT cdd_c_error_t
+license_fields_invalid(const struct OpenAPI_License *lic) {
   int has_any;
   if (!lic)
     return CDD_C_SUCCESS;
@@ -615,7 +301,7 @@ static cdd_c_error_t license_fields_invalid(const struct OpenAPI_License *lic) {
 /**
  * @brief Executes the server url has query or fragment operation.
  */
-static cdd_c_error_t server_url_has_query_or_fragment(const char *url) {
+C_CDD_EXPORT cdd_c_error_t server_url_has_query_or_fragment(const char *url) {
   if (!url)
     return CDD_C_SUCCESS;
   return strchr(url, '?') != NULL || strchr(url, '#') != NULL;
@@ -624,8 +310,8 @@ static cdd_c_error_t server_url_has_query_or_fragment(const char *url) {
 /**
  * @brief Executes the clone json value operation.
  */
-static cdd_c_error_t clone_json_value(const JSON_Value *val,
-                                      JSON_Value **_out_val) {
+C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
+                                            JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
@@ -654,8 +340,8 @@ static cdd_c_error_t clone_json_value(const JSON_Value *val,
  * @param extras_json The extra json string.
  * @return 0 on success.
  */
-cdd_c_error_t merge_schema_extras_object_openapi(JSON_Object *target,
-                                                 const char *extras_json) {
+C_CDD_EXPORT cdd_c_error_t merge_schema_extras_object_openapi(
+    JSON_Object *target, const char *extras_json) {
   JSON_Value *_ast_clone_json_value_0;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
@@ -678,7 +364,7 @@ cdd_c_error_t merge_schema_extras_object_openapi(JSON_Object *target,
     const char *key = json_object_get_name(extras_obj, i);
     const JSON_Value *val;
     JSON_Value *copy;
-    if (!key || json_object_has_value(target, key))
+    if (json_object_has_value(target, key))
       continue;
     val = json_object_get_value(extras_obj, key);
     copy = (clone_json_value(val, &_ast_clone_json_value_0),
@@ -701,7 +387,8 @@ cdd_c_error_t merge_schema_extras_object_openapi(JSON_Object *target,
 /**
  * @brief Executes the schema ref has data operation.
  */
-static cdd_c_error_t schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
+C_CDD_EXPORT cdd_c_error_t
+schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return CDD_C_SUCCESS;
   return ref->schema_is_boolean || ref->ref_name || ref->ref ||
@@ -730,8 +417,8 @@ static cdd_c_error_t schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
 /**
  * @brief Generates C code for write schema type.
  */
-static void write_schema_type(JSON_Object *obj, const char *type,
-                              int nullable) {
+C_CDD_EXPORT void write_schema_type(JSON_Object *obj, const char *type,
+                                    int nullable) {
   if (!obj || !type)
     return;
   if (nullable && strcmp(type, "null") != 0) {
@@ -752,8 +439,8 @@ static void write_schema_type(JSON_Object *obj, const char *type,
 /**
  * @brief Executes the type union contains operation.
  */
-static cdd_c_error_t type_union_contains(char **types, size_t n_types,
-                                         const char *value) {
+C_CDD_EXPORT cdd_c_error_t type_union_contains(char **types, size_t n_types,
+                                               const char *value) {
   size_t i;
   if (!types || !value)
     return CDD_C_SUCCESS;
@@ -767,9 +454,9 @@ static cdd_c_error_t type_union_contains(char **types, size_t n_types,
 /**
  * @brief Generates C code for write schema type union.
  */
-static void write_schema_type_union(JSON_Object *obj, const char *type,
-                                    int nullable, char **type_union,
-                                    size_t n_type_union) {
+C_CDD_EXPORT void write_schema_type_union(JSON_Object *obj, const char *type,
+                                          int nullable, char **type_union,
+                                          size_t n_type_union) {
   size_t i;
   if (!obj)
     return;
@@ -792,9 +479,9 @@ static void write_schema_type_union(JSON_Object *obj, const char *type,
   if (type)
     write_schema_type(obj, type, nullable);
 }
-static void write_enum_any_values(JSON_Object *obj, const char *key,
-                                  const struct OpenAPI_Any *values,
-                                  size_t n_values) {
+C_CDD_EXPORT void write_enum_any_values(JSON_Object *obj, const char *key,
+                                        const struct OpenAPI_Any *values,
+                                        size_t n_values) {
   JSON_Value *_ast_any_to_json_value_1;
   JSON_Value *enum_val;
   JSON_Array *enum_arr;
@@ -823,17 +510,17 @@ static void write_enum_any_values(JSON_Object *obj, const char *key,
 /**
  * @brief Generates C code for write any array values.
  */
-static void write_any_array_values(JSON_Object *obj, const char *key,
-                                   const struct OpenAPI_Any *values,
-                                   size_t n_values) {
+C_CDD_EXPORT void write_any_array_values(JSON_Object *obj, const char *key,
+                                         const struct OpenAPI_Any *values,
+                                         size_t n_values) {
   write_enum_any_values(obj, key, values, n_values);
 }
 
 /**
  * @brief Executes the any to json value operation.
  */
-static cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
-                                       JSON_Value **_out_val) {
+C_CDD_EXPORT cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
+                                             JSON_Value **_out_val) {
   if (!val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -879,8 +566,8 @@ static cdd_c_error_t any_to_json_value(const struct OpenAPI_Any *val,
 /**
  * @brief Generates C code for write example object.
  */
-static void write_example_object(JSON_Object *ex_obj,
-                                 const struct OpenAPI_Example *ex) {
+C_CDD_EXPORT void write_example_object(JSON_Object *ex_obj,
+                                       const struct OpenAPI_Example *ex) {
   JSON_Value *_ast_any_to_json_value_2;
   JSON_Value *_ast_any_to_json_value_3;
   JSON_Value *val;
@@ -924,10 +611,9 @@ static void write_example_object(JSON_Object *ex_obj,
 /**
  * @brief Generates C code for write examples object.
  */
-static cdd_c_error_t
-write_examples_object(JSON_Object *parent, const char *key,
-                      const struct OpenAPI_Example *examples,
-                      size_t n_examples) {
+C_CDD_EXPORT cdd_c_error_t write_examples_object(
+    JSON_Object *parent, const char *key,
+    const struct OpenAPI_Example *examples, size_t n_examples) {
   JSON_Value *examples_val;
   JSON_Object *examples_obj;
   size_t i;
@@ -961,11 +647,11 @@ write_examples_object(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write example fields.
  */
-static void write_example_fields(JSON_Object *parent,
-                                 const struct OpenAPI_Any *example,
-                                 int example_set,
-                                 const struct OpenAPI_Example *examples,
-                                 size_t n_examples) {
+C_CDD_EXPORT void write_example_fields(JSON_Object *parent,
+                                       const struct OpenAPI_Any *example,
+                                       int example_set,
+                                       const struct OpenAPI_Example *examples,
+                                       size_t n_examples) {
   JSON_Value *_ast_any_to_json_value_4;
   if (!parent)
     return;
@@ -987,8 +673,8 @@ static void write_example_fields(JSON_Object *parent,
 /**
  * @brief Generates C code for write external docs.
  */
-static void write_external_docs(JSON_Object *parent, const char *key,
-                                const struct OpenAPI_ExternalDocs *docs) {
+C_CDD_EXPORT void write_external_docs(JSON_Object *parent, const char *key,
+                                      const struct OpenAPI_ExternalDocs *docs) {
   JSON_Value *ext_val;
   JSON_Object *ext_obj;
 
@@ -1010,9 +696,10 @@ static void write_external_docs(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write discriminator object.
  */
-static void write_discriminator_object(JSON_Object *parent,
-                                       const struct OpenAPI_Discriminator *disc,
-                                       int disc_set) {
+C_CDD_EXPORT void
+write_discriminator_object(JSON_Object *parent,
+                           const struct OpenAPI_Discriminator *disc,
+                           int disc_set) {
   JSON_Value *disc_val;
   JSON_Object *disc_obj;
   JSON_Value *mapping_val;
@@ -1054,8 +741,8 @@ static void write_discriminator_object(JSON_Object *parent,
 /**
  * @brief Generates C code for write xml object.
  */
-static void write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
-                             int xml_set) {
+C_CDD_EXPORT void write_xml_object(JSON_Object *parent,
+                                   const struct OpenAPI_Xml *xml, int xml_set) {
   char *_ast_xml_node_type_to_str_5 = NULL;
   JSON_Value *xml_val;
   JSON_Object *xml_obj;
@@ -1093,7 +780,8 @@ static void write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
 /**
  * @brief Generates C code for write info.
  */
-static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT void write_info(JSON_Object *root_obj,
+                             const struct OpenAPI_Spec *spec) {
   JSON_Value *info_val = json_value_init_object();
   JSON_Object *info_obj = json_value_get_object(info_val);
   JSON_Value *contact_val;
@@ -1155,8 +843,8 @@ static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
 /**
  * @brief Generates C code for write server object.
  */
-static void write_server_object(JSON_Object *srv_obj,
-                                const struct OpenAPI_Server *srv) {
+C_CDD_EXPORT void write_server_object(JSON_Object *srv_obj,
+                                      const struct OpenAPI_Server *srv) {
   if (!srv_obj || !srv)
     return;
 
@@ -1253,10 +941,10 @@ static void write_schema_example(JSON_Object *obj,
 /**
  * @brief Generates C code for write numeric constraints.
  */
-static void write_numeric_constraints(JSON_Object *obj, int has_min,
-                                      double min_val, int exclusive_min,
-                                      int has_max, double max_val,
-                                      int exclusive_max) {
+C_CDD_EXPORT void write_numeric_constraints(JSON_Object *obj, int has_min,
+                                            double min_val, int exclusive_min,
+                                            int has_max, double max_val,
+                                            int exclusive_max) {
   if (!obj)
     return;
   if (has_min) {
@@ -1280,9 +968,10 @@ static void write_numeric_constraints(JSON_Object *obj, int has_min,
 /**
  * @brief Generates C code for write string constraints.
  */
-static void write_string_constraints(JSON_Object *obj, int has_min_len,
-                                     size_t min_len, int has_max_len,
-                                     size_t max_len, const char *pattern) {
+C_CDD_EXPORT void write_string_constraints(JSON_Object *obj, int has_min_len,
+                                           size_t min_len, int has_max_len,
+                                           size_t max_len,
+                                           const char *pattern) {
   if (!obj)
     return;
   if (has_min_len)
@@ -1296,9 +985,9 @@ static void write_string_constraints(JSON_Object *obj, int has_min_len,
 /**
  * @brief Generates C code for write array constraints.
  */
-static void write_array_constraints(JSON_Object *obj, int has_min_items,
-                                    size_t min_items, int has_max_items,
-                                    size_t max_items, int unique_items) {
+C_CDD_EXPORT void write_array_constraints(JSON_Object *obj, int has_min_items,
+                                          size_t min_items, int has_max_items,
+                                          size_t max_items, int unique_items) {
   if (!obj)
     return;
   if (has_min_items)
@@ -1312,8 +1001,9 @@ static void write_array_constraints(JSON_Object *obj, int has_min_items,
 /**
  * @brief Generates C code for write items schema fields.
  */
-static void write_items_schema_fields(JSON_Object *item_obj,
-                                      const struct OpenAPI_SchemaRef *ref) {
+C_CDD_EXPORT void
+write_items_schema_fields(JSON_Object *item_obj,
+                          const struct OpenAPI_SchemaRef *ref) {
   JSON_Value *_ast_any_to_json_value_7;
   JSON_Value *_ast_any_to_json_value_8;
   if (!item_obj || !ref)
@@ -1368,7 +1058,7 @@ static void write_items_schema_fields(JSON_Object *item_obj,
 /**
  * @brief Executes the schema ref keyword operation.
  */
-static cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
+C_CDD_EXPORT cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
   {
     *_out_val = is_dynamic ? "$dynamicRef" : "$ref";
     return CDD_C_SUCCESS;
@@ -1381,8 +1071,8 @@ static cdd_c_error_t schema_ref_keyword(int is_dynamic, char **_out_val) {
  * Handles `$ref`, `type: array`, and basic types.
  * Populates `parent` at `key` (e.g. key="schema").
  */
-static void write_schema_ref(JSON_Object *parent, const char *key,
-                             const struct OpenAPI_SchemaRef *ref) {
+C_CDD_EXPORT void write_schema_ref(JSON_Object *parent, const char *key,
+                                   const struct OpenAPI_SchemaRef *ref) {
   char *_ast_schema_ref_keyword_9 = NULL;
   char *_ast_schema_ref_keyword_10 = NULL;
   JSON_Value *_ast_any_to_json_value_11;
@@ -1629,9 +1319,10 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write schema from type fields.
  */
-static void write_schema_from_type_fields(JSON_Object *parent, const char *key,
-                                          const char *type, int is_array,
-                                          const char *items_type) {
+C_CDD_EXPORT void write_schema_from_type_fields(JSON_Object *parent,
+                                                const char *key,
+                                                const char *type, int is_array,
+                                                const char *items_type) {
   JSON_Value *sch_val = json_value_init_object();
   JSON_Object *sch_obj = json_value_get_object(sch_val);
   char ref_path[128];
@@ -1678,8 +1369,8 @@ static void write_schema_from_type_fields(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write parameter object.
  */
-static void write_parameter_object(JSON_Object *p_obj,
-                                   const struct OpenAPI_Parameter *p) {
+C_CDD_EXPORT void write_parameter_object(JSON_Object *p_obj,
+                                         const struct OpenAPI_Parameter *p) {
   char *_ast_param_in_to_str_14 = NULL;
   char *_ast_style_to_str_15 = NULL;
   const char *in_str;
@@ -1790,8 +1481,8 @@ static void write_parameter_object(JSON_Object *p_obj,
 /**
  * @brief Generates C code for write header object.
  */
-static void write_header_object(JSON_Object *h_obj,
-                                const struct OpenAPI_Header *h) {
+C_CDD_EXPORT void write_header_object(JSON_Object *h_obj,
+                                      const struct OpenAPI_Header *h) {
   char *_ast_style_to_str_16 = NULL;
   const char *style_str;
 
@@ -1872,8 +1563,8 @@ static void write_header_object(JSON_Object *h_obj,
 /**
  * @brief Generates C code for write encoding object.
  */
-static cdd_c_error_t write_encoding_object(JSON_Object *enc_obj,
-                                           const struct OpenAPI_Encoding *enc) {
+C_CDD_EXPORT cdd_c_error_t write_encoding_object(
+    JSON_Object *enc_obj, const struct OpenAPI_Encoding *enc) {
   char *_ast_style_to_str_17 = NULL;
   if (!enc_obj || !enc)
     return CDD_C_SUCCESS;
@@ -1928,9 +1619,9 @@ static cdd_c_error_t write_encoding_object(JSON_Object *enc_obj,
 /**
  * @brief Generates C code for write encoding map.
  */
-static cdd_c_error_t write_encoding_map(JSON_Object *media_obj,
-                                        const struct OpenAPI_Encoding *encoding,
-                                        size_t n_encoding) {
+C_CDD_EXPORT cdd_c_error_t
+write_encoding_map(JSON_Object *media_obj,
+                   const struct OpenAPI_Encoding *encoding, size_t n_encoding) {
   JSON_Value *enc_val;
   JSON_Object *enc_obj;
   size_t i;
@@ -1969,10 +1660,9 @@ static cdd_c_error_t write_encoding_map(JSON_Object *media_obj,
 /**
  * @brief Generates C code for write encoding array.
  */
-static cdd_c_error_t
-write_encoding_array(JSON_Object *parent, const char *key,
-                     const struct OpenAPI_Encoding *encoding,
-                     size_t n_encoding) {
+C_CDD_EXPORT cdd_c_error_t write_encoding_array(
+    JSON_Object *parent, const char *key,
+    const struct OpenAPI_Encoding *encoding, size_t n_encoding) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
@@ -2008,9 +1698,8 @@ write_encoding_array(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write media type object.
  */
-static cdd_c_error_t
-write_media_type_object(JSON_Object *media_obj,
-                        const struct OpenAPI_MediaType *mt) {
+C_CDD_EXPORT cdd_c_error_t write_media_type_object(
+    JSON_Object *media_obj, const struct OpenAPI_MediaType *mt) {
   if (!media_obj || !mt)
     return CDD_C_SUCCESS;
   if (mt->ref) {
@@ -2055,9 +1744,9 @@ write_media_type_object(JSON_Object *media_obj,
 /**
  * @brief Generates C code for write media type map.
  */
-static cdd_c_error_t write_media_type_map(JSON_Object *parent, const char *key,
-                                          const struct OpenAPI_MediaType *mts,
-                                          size_t n_mts) {
+C_CDD_EXPORT cdd_c_error_t
+write_media_type_map(JSON_Object *parent, const char *key,
+                     const struct OpenAPI_MediaType *mts, size_t n_mts) {
   JSON_Value *content_val;
   JSON_Object *content_obj;
   size_t i;
@@ -2093,8 +1782,8 @@ static cdd_c_error_t write_media_type_map(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write link object.
  */
-static void write_link_object(JSON_Object *l_obj,
-                              const struct OpenAPI_Link *link) {
+C_CDD_EXPORT void write_link_object(JSON_Object *l_obj,
+                                    const struct OpenAPI_Link *link) {
   JSON_Value *_ast_any_to_json_value_18;
   JSON_Value *_ast_any_to_json_value_19;
   if (!l_obj || !link)
@@ -2156,10 +1845,9 @@ static void write_link_object(JSON_Object *l_obj,
 /**
  * @brief Generates C code for write headers map.
  */
-static cdd_c_error_t write_headers_map(JSON_Object *parent, const char *key,
-                                       const struct OpenAPI_Header *headers,
-                                       size_t n_headers,
-                                       int ignore_content_type) {
+C_CDD_EXPORT cdd_c_error_t write_headers_map(
+    JSON_Object *parent, const char *key, const struct OpenAPI_Header *headers,
+    size_t n_headers, int ignore_content_type) {
   JSON_Value *headers_val;
   JSON_Object *headers_obj;
   size_t i;
@@ -2201,8 +1889,8 @@ static cdd_c_error_t write_headers_map(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write headers.
  */
-static cdd_c_error_t write_headers(JSON_Object *parent,
-                                   const struct OpenAPI_Response *resp) {
+C_CDD_EXPORT cdd_c_error_t write_headers(JSON_Object *parent,
+                                         const struct OpenAPI_Response *resp) {
   if (!parent || !resp || resp->n_headers == 0 || !resp->headers)
     return CDD_C_SUCCESS;
   return write_headers_map(parent, "headers", resp->headers, resp->n_headers,
@@ -2212,8 +1900,8 @@ static cdd_c_error_t write_headers(JSON_Object *parent,
 /**
  * @brief Generates C code for write links.
  */
-static cdd_c_error_t write_links(JSON_Object *parent,
-                                 const struct OpenAPI_Response *resp) {
+C_CDD_EXPORT cdd_c_error_t write_links(JSON_Object *parent,
+                                       const struct OpenAPI_Response *resp) {
   JSON_Value *links_val;
   JSON_Object *links_obj;
   size_t i;
@@ -2245,8 +1933,8 @@ static cdd_c_error_t write_links(JSON_Object *parent,
 /**
  * @brief Generates C code for write response object.
  */
-static void write_response_object(JSON_Object *r_obj,
-                                  const struct OpenAPI_Response *resp) {
+C_CDD_EXPORT void write_response_object(JSON_Object *r_obj,
+                                        const struct OpenAPI_Response *resp) {
   if (!r_obj || !resp)
     return;
 
@@ -2310,9 +1998,9 @@ static void write_response_object(JSON_Object *r_obj,
 /**
  * @brief Generates C code for write parameters.
  */
-static cdd_c_error_t write_parameters(JSON_Object *parent,
-                                      const struct OpenAPI_Parameter *params,
-                                      size_t n_params) {
+C_CDD_EXPORT cdd_c_error_t
+write_parameters(JSON_Object *parent, const struct OpenAPI_Parameter *params,
+                 size_t n_params) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
@@ -2353,9 +2041,8 @@ static cdd_c_error_t write_parameters(JSON_Object *parent,
 /**
  * @brief Generates C code for write request body object.
  */
-static cdd_c_error_t
-write_request_body_object(JSON_Object *rb_obj,
-                          const struct OpenAPI_RequestBody *rb) {
+C_CDD_EXPORT cdd_c_error_t write_request_body_object(
+    JSON_Object *rb_obj, const struct OpenAPI_RequestBody *rb) {
   JSON_Value *content_val;
   JSON_Object *content_obj;
   JSON_Value *media_val;
@@ -2432,8 +2119,8 @@ write_request_body_object(JSON_Object *rb_obj,
 /**
  * @brief Generates C code for write request body.
  */
-static cdd_c_error_t write_request_body(JSON_Object *op_obj,
-                                        const struct OpenAPI_Operation *op) {
+C_CDD_EXPORT cdd_c_error_t
+write_request_body(JSON_Object *op_obj, const struct OpenAPI_Operation *op) {
   JSON_Value *rb_val;
   JSON_Object *rb_obj;
 
@@ -2491,8 +2178,8 @@ static cdd_c_error_t write_request_body(JSON_Object *op_obj,
 /**
  * @brief Generates C code for write callback object.
  */
-static void write_callback_object(JSON_Object *cb_obj,
-                                  const struct OpenAPI_Callback *cb) {
+C_CDD_EXPORT void write_callback_object(JSON_Object *cb_obj,
+                                        const struct OpenAPI_Callback *cb) {
   size_t i;
   cdd_c_error_t rc;
 
@@ -2532,8 +2219,8 @@ static void write_callback_object(JSON_Object *cb_obj,
 /**
  * @brief Generates C code for write callbacks.
  */
-static cdd_c_error_t write_callbacks(JSON_Object *op_obj,
-                                     const struct OpenAPI_Operation *op) {
+C_CDD_EXPORT cdd_c_error_t write_callbacks(JSON_Object *op_obj,
+                                           const struct OpenAPI_Operation *op) {
   JSON_Value *cbs_val;
   JSON_Object *cbs_obj;
   size_t i;
@@ -2565,16 +2252,31 @@ static cdd_c_error_t write_callbacks(JSON_Object *op_obj,
 /**
  * @brief Generates C code for write responses.
  */
-static cdd_c_error_t write_responses(JSON_Object *op_obj,
-                                     const struct OpenAPI_Operation *op) {
-  JSON_Value *resps_val = json_value_init_object();
-  JSON_Object *resps_obj = json_value_get_object(resps_val);
+C_CDD_EXPORT cdd_c_error_t write_responses(JSON_Object *op_obj,
+                                           const struct OpenAPI_Operation *op) {
+  JSON_Value *resps_val;
+  JSON_Object *resps_obj;
   size_t i;
+
+  if (!op_obj || !op)
+    return CDD_C_SUCCESS;
+
+  resps_val = json_value_init_object();
+  if (!resps_val) {
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    return CDD_C_ERROR_MEMORY;
+  }
+  resps_obj = json_value_get_object(resps_val);
 
   for (i = 0; i < op->n_responses; ++i) {
     const struct OpenAPI_Response *r = &op->responses[i];
     JSON_Value *r_val = json_value_init_object();
     JSON_Object *r_obj = json_value_get_object(r_val);
+    if (!r_val) {
+      json_value_free(resps_val);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      return CDD_C_ERROR_MEMORY;
+    }
 
     write_response_object(r_obj, r);
 
@@ -2591,9 +2293,8 @@ static cdd_c_error_t write_responses(JSON_Object *op_obj,
 /**
  * @brief Generates C code for write operation object.
  */
-static cdd_c_error_t
-write_operation_object(JSON_Object *op_obj,
-                       const struct OpenAPI_Operation *op) {
+C_CDD_EXPORT cdd_c_error_t write_operation_object(
+    JSON_Object *op_obj, const struct OpenAPI_Operation *op) {
   cdd_c_error_t rc;
 
   if (!op_obj || !op)
@@ -2666,8 +2367,8 @@ write_operation_object(JSON_Object *op_obj,
 /**
  * @brief Generates C code for write operations.
  */
-static cdd_c_error_t write_operations(JSON_Object *path_item,
-                                      const struct OpenAPI_Path *path) {
+C_CDD_EXPORT cdd_c_error_t write_operations(JSON_Object *path_item,
+                                            const struct OpenAPI_Path *path) {
   char *_ast_verb_to_str_20 = NULL;
   size_t i;
   cdd_c_error_t rc;
@@ -2699,9 +2400,8 @@ static cdd_c_error_t write_operations(JSON_Object *path_item,
 /**
  * @brief Generates C code for write additional operations.
  */
-static cdd_c_error_t
-write_additional_operations(JSON_Object *path_item,
-                            const struct OpenAPI_Path *path) {
+C_CDD_EXPORT cdd_c_error_t write_additional_operations(
+    JSON_Object *path_item, const struct OpenAPI_Path *path) {
   char *_ast_verb_to_str_21 = NULL;
   JSON_Value *add_val;
   JSON_Object *add_obj;
@@ -2751,8 +2451,8 @@ write_additional_operations(JSON_Object *path_item,
 /**
  * @brief Generates C code for write path item object.
  */
-static cdd_c_error_t write_path_item_object(JSON_Object *item_obj,
-                                            const struct OpenAPI_Path *path) {
+C_CDD_EXPORT cdd_c_error_t
+write_path_item_object(JSON_Object *item_obj, const struct OpenAPI_Path *path) {
   cdd_c_error_t rc;
 
   if (!item_obj || !path)
@@ -2793,8 +2493,8 @@ static cdd_c_error_t write_path_item_object(JSON_Object *item_obj,
 /**
  * @brief Generates C code for write paths.
  */
-static cdd_c_error_t write_paths(JSON_Object *root_obj,
-                                 const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_paths(JSON_Object *root_obj,
+                                       const struct OpenAPI_Spec *spec) {
   JSON_Value *paths_val = json_value_init_object();
   JSON_Object *paths_obj = json_value_get_object(paths_val);
   size_t i;
@@ -2839,8 +2539,8 @@ static cdd_c_error_t write_paths(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write servers.
  */
-static cdd_c_error_t write_servers(JSON_Object *root_obj,
-                                   const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_servers(JSON_Object *root_obj,
+                                         const struct OpenAPI_Spec *spec) {
   if (!spec)
     return CDD_C_SUCCESS;
   return write_server_array(root_obj, "servers", spec->servers,
@@ -2850,9 +2550,9 @@ static cdd_c_error_t write_servers(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write server array.
  */
-static cdd_c_error_t write_server_array(JSON_Object *parent, const char *key,
-                                        const struct OpenAPI_Server *servers,
-                                        size_t n_servers) {
+C_CDD_EXPORT cdd_c_error_t
+write_server_array(JSON_Object *parent, const char *key,
+                   const struct OpenAPI_Server *servers, size_t n_servers) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
@@ -2889,8 +2589,8 @@ static cdd_c_error_t write_server_array(JSON_Object *parent, const char *key,
 /**
  * @brief Generates C code for write tags.
  */
-static cdd_c_error_t write_tags(JSON_Object *root_obj,
-                                const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_tags(JSON_Object *root_obj,
+                                      const struct OpenAPI_Spec *spec) {
   JSON_Value *arr_val;
   JSON_Array *arr;
   size_t i;
@@ -2935,8 +2635,8 @@ static cdd_c_error_t write_tags(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write webhooks.
  */
-static cdd_c_error_t write_webhooks(JSON_Object *root_obj,
-                                    const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_webhooks(JSON_Object *root_obj,
+                                          const struct OpenAPI_Spec *spec) {
   JSON_Value *hooks_val;
   JSON_Object *hooks_obj;
   size_t i;
@@ -2984,7 +2684,7 @@ static cdd_c_error_t write_webhooks(JSON_Object *root_obj,
 /**
  * @brief Generates C code for write security requirements.
  */
-static cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
 write_security_requirements(JSON_Object *parent, const char *key,
                             const struct OpenAPI_SecurityRequirementSet *sets,
                             size_t count, int set_flag) {
@@ -3051,8 +2751,8 @@ write_security_requirements(JSON_Object *parent, const char *key,
 /**
  * @brief Write security schemes to components.
  */
-static cdd_c_error_t write_security_schemes(JSON_Object *components,
-                                            const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_security_schemes(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   char *_ast_oauth_flow_type_to_str_22 = NULL;
   JSON_Value *sec_val;
   JSON_Object *sec_obj;
@@ -3189,9 +2889,8 @@ static cdd_c_error_t write_security_schemes(JSON_Object *components,
 /**
  * @brief Generates C code for write component parameters.
  */
-static cdd_c_error_t
-write_component_parameters(JSON_Object *components,
-                           const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_parameters(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *params_val;
   JSON_Object *params_obj;
   size_t i;
@@ -3226,9 +2925,8 @@ write_component_parameters(JSON_Object *components,
 /**
  * @brief Generates C code for write component responses.
  */
-static cdd_c_error_t
-write_component_responses(JSON_Object *components,
-                          const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_responses(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *resp_val;
   JSON_Object *resp_obj;
   size_t i;
@@ -3263,8 +2961,8 @@ write_component_responses(JSON_Object *components,
 /**
  * @brief Generates C code for write component headers.
  */
-static cdd_c_error_t write_component_headers(JSON_Object *components,
-                                             const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_headers(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *hdrs_val;
   JSON_Object *hdrs_obj;
   size_t i;
@@ -3299,9 +2997,8 @@ static cdd_c_error_t write_component_headers(JSON_Object *components,
 /**
  * @brief Generates C code for write component media types.
  */
-static cdd_c_error_t
-write_component_media_types(JSON_Object *components,
-                            const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_media_types(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *media_val;
   JSON_Object *media_obj;
   size_t i;
@@ -3341,8 +3038,8 @@ write_component_media_types(JSON_Object *components,
 /**
  * @brief Generates C code for write component examples.
  */
-static cdd_c_error_t write_component_examples(JSON_Object *components,
-                                              const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_examples(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *examples_val;
   JSON_Object *examples_obj;
   size_t i;
@@ -3377,8 +3074,8 @@ static cdd_c_error_t write_component_examples(JSON_Object *components,
 /**
  * @brief Generates C code for write component links.
  */
-static cdd_c_error_t write_component_links(JSON_Object *components,
-                                           const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_links(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *links_val;
   JSON_Object *links_obj;
   size_t i;
@@ -3410,9 +3107,8 @@ static cdd_c_error_t write_component_links(JSON_Object *components,
 /**
  * @brief Generates C code for write component callbacks.
  */
-static cdd_c_error_t
-write_component_callbacks(JSON_Object *components,
-                          const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_callbacks(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *cbs_val;
   JSON_Object *cbs_obj;
   size_t i;
@@ -3444,9 +3140,8 @@ write_component_callbacks(JSON_Object *components,
 /**
  * @brief Generates C code for write component path items.
  */
-static cdd_c_error_t
-write_component_path_items(JSON_Object *components,
-                           const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_path_items(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *paths_val;
   JSON_Object *paths_obj;
   size_t i;
@@ -3492,9 +3187,8 @@ write_component_path_items(JSON_Object *components,
 /**
  * @brief Generates C code for write component request bodies.
  */
-static cdd_c_error_t
-write_component_request_bodies(JSON_Object *components,
-                               const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_component_request_bodies(
+    JSON_Object *components, const struct OpenAPI_Spec *spec) {
   JSON_Value *rbs_val;
   JSON_Object *rbs_obj;
   size_t i;
@@ -3537,8 +3231,8 @@ write_component_request_bodies(JSON_Object *components,
 /**
  * @brief Generates C code for write components.
  */
-static cdd_c_error_t write_components(JSON_Object *root_obj,
-                                      const struct OpenAPI_Spec *spec) {
+C_CDD_EXPORT cdd_c_error_t write_components(JSON_Object *root_obj,
+                                            const struct OpenAPI_Spec *spec) {
   JSON_Value *comps_val;
   JSON_Object *comps_obj;
   cdd_c_error_t rc;

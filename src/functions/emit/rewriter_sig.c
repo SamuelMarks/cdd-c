@@ -173,11 +173,20 @@ static cdd_c_error_t find_balanced_end(const struct TokenList *tokens,
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
  */
-static int check_is_void(const struct TokenList *tokens, size_t start,
-                         size_t end) {
+static cdd_c_error_t check_is_void(const struct TokenList *tokens, size_t start,
+                                   size_t end, int *out_is_void) {
   size_t i;
   int saw_void = 0;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_check_is_void;
+  if (g_cdd_fail_check_is_void && --g_cdd_fail_check_is_void == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
 
+  if (!tokens || !out_is_void)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  *out_is_void = 0;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
         tokens->tokens[i].kind == TOKEN_COMMENT)
@@ -185,6 +194,7 @@ static int check_is_void(const struct TokenList *tokens, size_t start,
 
     /* If we see a pointer start ('*') or brackets, it's not void */
     if (tokens->tokens[i].kind == TOKEN_STAR) {
+      *out_is_void = 0;
       return CDD_C_SUCCESS;
     }
 
@@ -192,10 +202,12 @@ static int check_is_void(const struct TokenList *tokens, size_t start,
       saw_void = 1;
     } else {
       /* Any token other than void or whitespace implies not simple void */
+      *out_is_void = 0;
       return CDD_C_SUCCESS;
     }
   }
-  return saw_void;
+  *out_is_void = saw_void;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -231,9 +243,21 @@ static cdd_c_error_t args_represent_void(const char *args, int *out_is_empty) {
 }
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test helper to check if args represent void.
+ */
 C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
                                                     int *out_is_empty) {
   return args_represent_void(args, out_is_empty);
+}
+
+/**
+ * @brief Test helper to verify if a token range represents a void return type.
+ */
+C_CDD_EXPORT cdd_c_error_t test_check_is_void(const struct TokenList *tokens,
+                                              size_t start, size_t end,
+                                              int *out_is_void) {
+  return check_is_void(tokens, start, end, out_is_void);
 }
 #endif
 
@@ -405,7 +429,9 @@ cdd_c_error_t rewrite_signature(const struct TokenList *tokens,
     }
   }
 
-  sig.is_void_ret = check_is_void(tokens, storage_end_idx, type_end_idx);
+  rc = check_is_void(tokens, storage_end_idx, type_end_idx, &sig.is_void_ret);
+  if (rc != CDD_C_SUCCESS)
+    goto cleanup;
 
   /* 5. Extract Arguments */
   {

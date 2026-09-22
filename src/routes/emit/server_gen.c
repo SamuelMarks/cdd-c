@@ -99,6 +99,7 @@ openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
+  fprintf(fp, "#include \"cdd_c_error.h\"\n");
   fprintf(fp, "#include <civetweb.h>\n");
   fprintf(fp, "#include <c_rest_request.h>\n");
   fprintf(fp, "#include <c_rest_response.h>\n");

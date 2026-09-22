@@ -1301,10 +1301,14 @@ TEST test_codegen_url_io_errors(void) {
     g_io_calls = 0;
     g_fail_io_after = i;
     gen_query_code(&op, &code);
-    if (code) {
-      free(code);
-    }
+    free(code);
   }
+
+  /* Exercise builder failure */
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  gen_url_code("/users/{page}", &param, 1, &code);
+  free(code);
 
   g_fail_io_after = -1;
   PASS();

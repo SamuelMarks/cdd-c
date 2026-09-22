@@ -35,7 +35,6 @@ extern C_CDD_EXPORT cdd_c_error_t
 patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
                    const char *filename, char **out_diff);
 
-#ifdef CDD_BUILD_TESTS
 /**
  * @brief DiffLine struct representing a line in a diff
  */
@@ -45,6 +44,8 @@ struct DiffLine {
   /** @brief Length of line */
   size_t len;
 };
+
+#ifdef CDD_BUILD_TESTS
 
 /**
  * @brief Test helper to call find_line_for_token directly.

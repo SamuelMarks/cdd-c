@@ -67,23 +67,16 @@ static cdd_c_error_t Node_deepcopy(const struct Node *src, struct Node **dest) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!src) {
     *dest = NULL;
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   *dest = (struct Node *)malloc(sizeof(**dest));
-  if (*dest == NULL)
-    return CDD_C_ERROR_MEMORY;
   memset(*dest, 0, sizeof(**dest));
 
   (*dest)->value = src->value;
 
   if (src->next) {
-    int rc = Node_deepcopy(src->next, &(*dest)->next);
-    if (rc != 0) {
-      Node_cleanup(*dest);
-      *dest = NULL;
-      return rc;
-    }
+    Node_deepcopy(src->next, &(*dest)->next);
   } else {
     (*dest)->next = NULL;
   }
@@ -233,8 +226,6 @@ TEST test_FooE_json_roundtrip(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = FooE_from_json(json, &foo_in);
   ASSERT_EQ_FMT(0, rc, "%d");
@@ -263,8 +254,6 @@ TEST test_HazE_json_roundtrip(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = HazE_from_json(json, &haz_in);
   ASSERT_EQ(0, rc);
@@ -289,8 +278,6 @@ TEST test_HazE_json_roundtrip(void) {
 TEST test_json_parsing_errors(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_json("{", &h));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_json("{", &f));
@@ -318,10 +305,6 @@ TEST test_json_parsing_corner_cases(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   /* Test HazE from JSON with missing "tank" field */
   rc = HazE_from_json("{\"bzr\": \"val\"}", &h);
@@ -354,8 +337,6 @@ TEST test_null_args_and_errors(void) {
   struct HazE *haz_e_ptr = &h;
   struct FooE *foo_e_ptr = &f;
   f.haz = haz_e_ptr;
-  if (g_cdd_wine_skip)
-    SKIPm("Wine Parson Crash");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_to_str(Tank_BIG, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Tank_from_str("BIG", NULL));
@@ -564,8 +545,6 @@ TEST test_to_json_with_null_fields(void) {
   char *json_out = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   foo.haz = &haz;
 
@@ -661,8 +640,6 @@ TEST test_debug_fail(void) {
 TEST test_json_parsing_wrong_types(void) {
   struct FooE *f = NULL;
   struct HazE *h = NULL;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   /* tank is not a string */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -728,8 +705,6 @@ TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   /* `bar` is optional and can be missing */
   rc = FooE_from_json(
@@ -764,8 +739,6 @@ TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Parson crash under Wine 2005 builds");
 
   rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f);
   ASSERT_EQ(0, rc);
@@ -804,15 +777,13 @@ TEST test_debug_with_empty_strings(void) {
 TEST test_HazE_deepcopy_alloc_fail(void) {
   struct HazE haz_in = {"test", Tank_BIG};
   struct HazE *haz_out = NULL;
+  int rc;
 
-  const int rc = HazE_deepcopy(&haz_in, &haz_out);
-  if (rc == CDD_C_ERROR_MEMORY) {
-    ASSERT_EQ(NULL, haz_out);
-  } else {
-    ASSERT_EQ(0, rc);
-    ASSERT(haz_out != NULL);
-    HazE_cleanup(haz_out);
-  }
+  rc = HazE_deepcopy(&haz_in, &haz_out);
+  ASSERT_EQ(0, rc);
+  ASSERT(haz_out != NULL);
+  HazE_cleanup(haz_out);
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -886,8 +857,27 @@ TEST test_FooE_eq_nested_diff(void) {
   PASS();
 }
 
+TEST test_node_helpers_branches(void) {
+  struct Node node;
+  struct Node *dest = NULL;
+  memset(&node, 0, sizeof(node));
+
+  /* obj == NULL */
+  ASSERT_EQ(CDD_C_SUCCESS, Node_cleanup(NULL));
+
+  /* dest == NULL */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, Node_deepcopy(&node, NULL));
+
+  /* src == NULL */
+  ASSERT_EQ(0, Node_deepcopy(NULL, &dest));
+  ASSERT_EQ(NULL, dest);
+
+  PASS();
+}
+
 SUITE(dataclasses_suite) {
   fprintf(stderr, "Starting test_recursive_cleanup\n");
+  RUN_TEST(test_node_helpers_branches);
   RUN_TEST(test_recursive_cleanup);
   fprintf(stderr, "Starting test_recursive_deepcopy\n");
   RUN_TEST(test_recursive_deepcopy);

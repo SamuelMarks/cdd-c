@@ -29,7 +29,6 @@ static cdd_c_error_t test_rewrite(const char *input, const char *expected) {
   az_span source;
   source = az_span_create_from_str((char *)(size_t)(size_t)input);
 
-  (void)rc;
   if (tokenize(source, &tl) != 0)
     return CDD_C_ERROR_UNKNOWN;
 
@@ -57,7 +56,6 @@ static int test_rewrite_error(const char *input) {
   char *output = NULL;
   int rc;
 
-  (void)rc;
   if (tokenize(az_span_create_from_str((char *)(size_t)(size_t)input), &tl) !=
       0)
     return CDD_C_ERROR_UNKNOWN;
@@ -635,6 +633,27 @@ TEST test_rewriter_sig_error_hooks(void) {
   ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
   ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
   g_cdd_fail_args_represent_void = 0;
+
+  {
+    int is_v = 0;
+    extern C_CDD_EXPORT int g_cdd_fail_check_is_void;
+    extern C_CDD_EXPORT cdd_c_error_t test_check_is_void(
+        const struct TokenList *tokens, size_t start, size_t end,
+        int *out_is_void);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              test_check_is_void(NULL, 0, 0, &is_v));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              test_check_is_void((const struct TokenList *)1, 0, 0, NULL));
+
+    g_cdd_fail_check_is_void = 1;
+    ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+    g_cdd_fail_check_is_void = 0;
+
+    g_cdd_fail_check_is_void = 2;
+    ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
+    ASSERT_NEQ(0, test_rewrite_error("int f(void)"));
+    g_cdd_fail_check_is_void = 0;
+  }
 #endif
 
   PASS();

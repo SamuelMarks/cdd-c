@@ -154,20 +154,22 @@ TEST test_audit_return_alloc(void) {
                        "char* f3() { return realloc(p,10); }\n"
                        "char* f4() { return strdup(\"a\"); }\n"
                        "char* f5() { return foobar(); }\n"
-                       "char* f6() { return foobarr(); }\n");
+                       "char* f6() { return foobarr(); }\n"
+                       "char* f7() { return strndup(\"a\", 1); }\n"
+                       "char* f8() { return x(); }\n");
 
   audit_project(root, &stats);
 
   ASSERT_EQ(1, stats.files_scanned);
-  ASSERT_EQ(4, stats.functions_returning_alloc);
+  ASSERT_EQ(5, stats.functions_returning_alloc);
   /* return malloc(...) is marked as Checked or ignored check logic depending on
      analysis? Actually find_allocations treats return stmt as alloc site.
      var_name is NULL for return statement.
      In current implementation, return statement allocs are added to sites but
      unchecked.
   */
-  ASSERT_EQ(4, stats.allocations_unchecked);
-  ASSERT_EQ(4, stats.violations.size);
+  ASSERT_EQ(5, stats.allocations_unchecked);
+  ASSERT_EQ(5, stats.violations.size);
   ASSERT(stats.violations.items[0].variable_name == NULL);
 
   audit_stats_free(&stats);
@@ -577,6 +579,41 @@ TEST test_audit_failure_hooks(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+TEST test_count_returning_allocs_null_edge(void) {
+  int count = 0;
+  struct TokenList empty_list;
+  cdd_c_error_t rc;
+
+  /* Test NULL out_count */
+  rc = count_returning_allocs(NULL, NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
+  /* Test NULL tokens */
+  rc = count_returning_allocs(NULL, &count);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, count);
+
+  /* Test tokens with NULL tokens pointer */
+  empty_list.tokens = NULL;
+  empty_list.size = 0;
+  empty_list.capacity = 0;
+  rc = count_returning_allocs(&empty_list, &count);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, count);
+
+  /* Test tokens with non-NULL tokens pointer but size == 0 */
+  empty_list.tokens = (struct Token *)1;
+  empty_list.size = 0;
+  empty_list.capacity = 0;
+  rc = count_returning_allocs(&empty_list, &count);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, count);
+
+  PASS();
+}
+#endif /* CDD_BUILD_TESTS */
+
 SUITE(project_audit_suite) {
   RUN_TEST(test_audit_stats_null);
   RUN_TEST(test_audit_edge_cases);
@@ -589,6 +626,9 @@ SUITE(project_audit_suite) {
   RUN_TEST(test_audit_oom);
   RUN_TEST(test_audit_capacity);
   RUN_TEST(test_audit_failure_hooks);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_count_returning_allocs_null_edge);
+#endif
 }
 
 #ifdef __cplusplus

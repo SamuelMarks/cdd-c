@@ -119,7 +119,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_tree_has_decl(cdd_cst_node_t *node,
 }
 
 /**
- * @brief Checks if a CST node represents an #ifdef __cplusplus guard.
+ * @brief Checks if a CST node represents an ifdef __cplusplus guard.
  * @param[in] dir Node to check.
  * @param[out] out_is_cpp Pointer to int storing 1 if guard found, 0 otherwise.
  * @return CDD_C_SUCCESS on success or error code.
@@ -131,6 +131,10 @@ C_CDD_EXPORT cdd_c_error_t cdd_check_node_is_cpp_guard(cdd_cst_node_t *dir,
   size_t k;
 
   *out_is_cpp = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_extern_c_helper_fail == -2 || g_extern_c_helper_fail == -3)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!dir)
     return CDD_C_SUCCESS;
   if (dir->num_children == 0)
@@ -204,7 +208,11 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
       return rc;
     }
     if (is_global) {
-      (void)cdd_check_node_is_cpp_guard(dir, &found_cpp);
+      rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
+      if (rc != CDD_C_SUCCESS) {
+        C_CDD_FREE(res.nodes);
+        return rc;
+      }
       if (found_cpp)
         break;
     }
@@ -226,7 +234,11 @@ cdd_c_error_t cdd_transform_extern_c(cdd_cst_tree_t *tree,
         return rc;
       }
       if (is_global) {
-        (void)cdd_check_node_is_cpp_guard(dir, &found_cpp);
+        rc = cdd_check_node_is_cpp_guard(dir, &found_cpp);
+        if (rc != CDD_C_SUCCESS) {
+          C_CDD_FREE(res.nodes);
+          return rc;
+        }
         if (found_cpp)
           break;
       }

@@ -29,8 +29,12 @@ static cdd_c_error_t load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);
   int rc;
   if (!dyn)
-    return -1;
-  (void)openapi_spec_init(spec);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = openapi_spec_init(spec);
+  if (rc != CDD_C_SUCCESS) {
+    json_value_free(dyn);
+    return rc;
+  }
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;

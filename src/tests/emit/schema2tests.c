@@ -377,8 +377,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
         rc = get_basename(schema_file, &base);
         if (rc != 0) {
           fprintf(stderr, "Failed to get basename of: %s\n", schema_file);
-          if (f)
-            fclose(f);
+          fclose(f);
           json_value_free(root_val);
           return rc;
         }
@@ -422,14 +421,14 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
                   C_CDD_FREE(include_name);
                   continue;
                 }
-              } else {
-                path_to_check = C_CDD_STRDUP(include_name);
               }
 
-              if (path_to_check && access(path_to_check, F_OK) == 0) {
+              if (access(path_to_check ? path_to_check : include_name, F_OK) ==
+                  0) {
                 FPRINTF(f, "#include \"%s\"\n", include_name);
               }
-              C_CDD_FREE(path_to_check);
+              if (path_to_check)
+                C_CDD_FREE(path_to_check);
               C_CDD_FREE(include_name);
             }
           }
@@ -536,8 +535,7 @@ C_CDD_EXPORT cdd_c_error_t jsonschema2tests_main(int argc, char **argv) {
 
       FPRINTF(f, "}\n\n#endif /* !%s_TESTS_H */\n", sanitized);
 
-      if (f)
-        fclose(f);
+      fclose(f);
     }
 
     json_value_free(root_val);

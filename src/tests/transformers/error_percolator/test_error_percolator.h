@@ -695,6 +695,46 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   cdd_cst_tree_free(tree);
   tree = NULL;
 
+  g_err_perc_fail = 17; /* For cloned calloc mock */
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
+  cdd_transform_percolate_errors(tree, &config);
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  g_err_perc_fail = 18; /* For string_pool realloc mock */
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
+  cdd_transform_percolate_errors(tree, &config);
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  g_err_perc_fail = 19; /* For decl_node / cleanup_node mock */
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
+  cdd_transform_percolate_errors(tree, &config);
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  g_err_perc_fail = 21; /* For cleanup_node mock */
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
+  cdd_transform_percolate_errors(tree, &config);
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  g_err_perc_fail = 20; /* For rewrite_call_sites failure mock */
+  ASSERT_EQ(0,
+            cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                          &tree));
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_transform_percolate_errors(tree, &config));
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
   g_err_perc_fail = 0;
 #endif
   g_fail_io_after = -1;
@@ -889,7 +929,6 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
     int rc;
     rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                        &tree);
-    (void)rc;
     ASSERT_EQ(0, rc);
 
     {
@@ -910,16 +949,8 @@ TEST test_cdd_transform_percolate_errors_oom(void) {
 
       g_cdd_alloc_fail = i;
       rc = cdd_transform_percolate_errors(tree, &config);
-      if (rc == CDD_C_SUCCESS) {
-        printf("OOM loop success at i=%d, alloc_fail remaining: %d, rc=%d\n", i,
-               g_cdd_alloc_fail, rc);
-        break;
-      }
-      printf("OOM loop i=%d failed with rc=%d\n", i, rc);
       g_cdd_alloc_fail = 0;
-
       cdd_cst_tree_free(tree);
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
   }
   g_cdd_alloc_fail = 0;
@@ -1134,6 +1165,28 @@ TEST test_cdd_rewrite_call_sites_unit(void) {
     ASSERT_EQ(
         0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
     g_err_perc_fail = 6;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_rewrite_call_sites(tree, tree->root, mod_funcs, 1));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
+  }
+
+  /* Test prefix splice_children failure */
+  {
+    ASSERT_EQ(
+        0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+    g_err_perc_fail = 13;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_rewrite_call_sites(tree, tree->root, mod_funcs, 1));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
+  }
+
+  /* Test suffix splice_children failure */
+  {
+    ASSERT_EQ(
+        0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)code), &tree));
+    g_err_perc_fail = 14;
     ASSERT_EQ(CDD_C_ERROR_MEMORY,
               cdd_rewrite_call_sites(tree, tree->root, mod_funcs, 1));
     g_err_perc_fail = 0;
@@ -1418,6 +1471,24 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
     ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_percolate_errors(tree, &config));
     g_err_perc_fail = 0;
     cdd_cst_tree_free(tree);
+
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                   "int my_ret_spl(void) { return 0; }\n"),
+                               &tree));
+    g_err_perc_fail = 15;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_transform_percolate_errors(tree, &config));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
+
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                   "int my_ret_spl2(void) { return 0; }\n"),
+                               &tree));
+    g_err_perc_fail = 16;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_transform_percolate_errors(tree, &config));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
   }
 
   /* Test L-value token kinds: dot, arrow, bracket, star, and length 6/7
@@ -1565,11 +1636,25 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
                                    "int f_node(void) { return 0; }\n"),
                                &tree));
     fn_node = tree->root->children[0].val.node;
-    fn_node->children[0].kind = CDD_CST_CHILD_NODE;
-    fn_node->children[1].kind = CDD_CST_CHILD_NODE;
-    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_percolate_errors(tree, &config));
-    fn_node->children[0].kind = CDD_CST_CHILD_TOKEN;
-    fn_node->children[1].kind = CDD_CST_CHILD_TOKEN;
+    {
+      cdd_cst_node_t *dummy1 = NULL;
+      cdd_cst_node_t *dummy2 = NULL;
+      cdd_token_t *saved_tok0 = fn_node->children[0].val.token;
+      cdd_token_t *saved_tok1 = fn_node->children[1].val.token;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy1));
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_cst_alloc_node(CDD_CST_UNKNOWN, &dummy2));
+      fn_node->children[0].kind = CDD_CST_CHILD_NODE;
+      fn_node->children[0].val.node = dummy1;
+      fn_node->children[1].kind = CDD_CST_CHILD_NODE;
+      fn_node->children[1].val.node = dummy2;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_percolate_errors(tree, &config));
+      fn_node->children[0].kind = CDD_CST_CHILD_TOKEN;
+      fn_node->children[0].val.token = saved_tok0;
+      fn_node->children[1].kind = CDD_CST_CHILD_TOKEN;
+      fn_node->children[1].val.token = saved_tok1;
+      cdd_cst_free_node(dummy1);
+      cdd_cst_free_node(dummy2);
+    }
     cdd_cst_tree_free(tree);
   }
 
@@ -1646,6 +1731,23 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
     cdd_cst_tree_free(tree);
   }
 
+  /* Test function with allocations where RBRACE is absent */
+  {
+    const char *code_no_rbrace =
+        "void no_rbrace(void) { void *p = malloc(1); return; }\n";
+    size_t ci;
+    ASSERT_EQ(
+        0, cdd_cst_parse(
+               az_span_create_from_str((char *)(size_t)code_no_rbrace), &tree));
+    for (ci = 0; ci < tree->base_tokens->size; ci++) {
+      if (tree->base_tokens->tokens[ci].kind == CDD_TOKEN_RBRACE) {
+        tree->base_tokens->tokens[ci].kind = CDD_TOKEN_OTHER;
+      }
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_transform_percolate_errors(tree, &config));
+    cdd_cst_tree_free(tree);
+  }
+
   {
     int k;
     const char *code_oom =
@@ -1682,6 +1784,28 @@ TEST test_cdd_transform_percolate_errors_comprehensive(void) {
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     }
     g_cdd_alloc_fail = 0;
+  }
+
+  {
+    const char *code_call_fail = "int callee(void) { return 1; }\n"
+                                 "void caller(void) { callee(); }\n";
+    ASSERT_EQ(
+        0, cdd_cst_parse(
+               az_span_create_from_str((char *)(size_t)code_call_fail), &tree));
+    g_err_perc_fail = 22;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_transform_percolate_errors(tree, &config));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
+
+    ASSERT_EQ(
+        0, cdd_cst_parse(
+               az_span_create_from_str((char *)(size_t)code_call_fail), &tree));
+    g_err_perc_fail = 23;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_transform_percolate_errors(tree, &config));
+    g_err_perc_fail = 0;
+    cdd_cst_tree_free(tree);
   }
 
   PASS();

@@ -15,7 +15,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifndef C_CDD_LOG_DEBUG
-#ifdef DEBUG
 /**
  * @brief Logs debug messages.
  * @param fmt Format string.
@@ -23,15 +22,6 @@ extern "C" {
  */
 C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
 #define C_CDD_LOG_DEBUG c_cdd_log_debug
-#else
-/**
- * @brief Logs debug messages.
- * @param fmt Format string.
- * @param ... Arguments.
- */
-C_CDD_EXPORT cdd_c_error_t c_cdd_log_debug(const char *fmt, ...);
-#define C_CDD_LOG_DEBUG 1 ? (void)0 : (void)c_cdd_log_debug
-#endif /* DEBUG */
 #endif /* !C_CDD_LOG_DEBUG */
 
 #ifdef __cplusplus

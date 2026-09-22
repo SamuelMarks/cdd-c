@@ -71,7 +71,6 @@ TEST test_patch_basic_replacement(void) {
   char *result = NULL;
   int rc;
 
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -109,7 +108,6 @@ TEST test_patch_insertion(void) {
   char *result = NULL;
   int rc;
 
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -148,7 +146,6 @@ TEST test_patch_deletion(void) {
   char *result = NULL;
   int rc;
 
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -180,7 +177,6 @@ TEST test_patch_multiple_disjoint(void) {
   char *result = NULL;
   int rc;
 
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -218,7 +214,6 @@ TEST test_patch_overlap_behavior(void) {
   int rc;
 
   /* Assert undefined behavior matches implementation (sorted, first wins) */
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -262,7 +257,6 @@ TEST test_patch_append_end(void) {
   int rc;
   char huge_str[3000];
 
-  (void)rc;
   ASSERT(tl);
   patch_list_init(&pl);
 
@@ -362,7 +356,6 @@ TEST test_patcher_oom(void) {
         g_cdd_alloc_fail = j;
         rc = patch_list_add(&list, 0, 1, tmp);
         g_cdd_alloc_fail = 0;
-        (void)rc;
         if (rc == 0)
           break;
       }
@@ -418,7 +411,6 @@ TEST test_patcher_oom(void) {
             for (j = 1; j < 180; j++) {
               int rc;
               int my_alloc = j;
-              (void)rc;
               if (j == 4)
                 my_alloc = 3000;
               if (j == 5)
@@ -434,6 +426,7 @@ TEST test_patcher_oom(void) {
 
               g_cdd_alloc_fail = my_alloc;
               rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
+              ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
               g_cdd_alloc_fail = 0;
               if (out_oom) {
                 free(out_oom);
@@ -455,7 +448,6 @@ TEST test_patcher_oom(void) {
               for (j = 1; j < 180; j++) {
                 int rc;
                 int my_alloc = j;
-                (void)rc;
                 if (j == 4) {
                   my_alloc = 3000;
                 }
@@ -1080,8 +1072,8 @@ TEST test_patcher_oom(void) {
                 if (j == 90)
                   my_alloc = 3000;
                 g_cdd_alloc_fail = my_alloc;
-
                 rc = patch_list_apply(&p_oom, tl_alloc, &out_oom);
+                ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
                 g_cdd_alloc_fail = 0;
                 if (out_oom) {
                   free(out_oom);
@@ -1112,7 +1104,6 @@ TEST test_patcher_invalid(void) {
   int rc;
   /*  (moved to global) */
 
-  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             patch_list_add(NULL, 0, 1, strdup("a")));
 

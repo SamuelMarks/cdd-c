@@ -100,15 +100,7 @@ static cdd_c_error_t skip_ws_back(const struct TokenList *tokens, size_t i,
 }
 
 /**
- * @brief Add a node to the CST list.
- *
- * @param[in,out] list The list to append to.
- * @param[in] kind Node classification.
- * @param[in] start Byte pointer start.
- * @param[in] length Byte length.
- * @param[in] start_tok Token start index.
- * @param[in] end_tok Token end index (exclusive).
- * @return CDD_C_SUCCESS on success, error code on failure.
+ * @brief Append a node to CST node list.
  */
 cdd_c_error_t cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
                            const uint8_t *start, size_t length,
@@ -1015,10 +1007,6 @@ static cdd_c_error_t parse_recursive(const struct TokenList *tokens,
 
 /**
  * @brief Parses tokens from the given input.
- *
- * @param[in] tokens The token stream.
- * @param[out] out Destination structure.
- * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t parse_tokens(const struct TokenList *tokens,
                            struct CstNodeList *out) {
@@ -1035,8 +1023,6 @@ cdd_c_error_t parse_tokens(const struct TokenList *tokens,
 
 /**
  * @brief Frees the memory associated with cst node list.
- *
- * @param[in,out] list The list to clean.
  */
 void free_cst_node_list(struct CstNodeList *list) {
   if (!list)
@@ -1051,11 +1037,6 @@ void free_cst_node_list(struct CstNodeList *list) {
 
 /**
  * @brief Executes the cst find first operation.
- *
- * @param[in] list The list to search.
- * @param[in] kind The kind to search for.
- * @param[out] out_node Pointer to store found node, or NULL.
- * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t cst_find_first(struct CstNodeList *list,
                              const enum CstNodeKind kind,

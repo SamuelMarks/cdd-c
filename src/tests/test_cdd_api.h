@@ -91,8 +91,52 @@ TEST test_cdd_serve_json_rpc(void) {
 
 TEST test_bin_cdd(void) {
   int rc;
+  const char *env_bin = getenv("CDD_C_BIN");
+  if (env_bin != NULL && env_bin[0] != '\0') {
+    char cmd[1024];
+#if defined(_MSC_VER)
+    sprintf_s(cmd, sizeof(cmd), "\"%s\" --help > NUL 2>&1", env_bin);
+#elif defined(_WIN32)
+    sprintf(cmd, "\"%s\" --help > NUL 2>&1", env_bin);
+#else
+    sprintf(cmd, "\"%s\" --help > /dev/null 2>&1", env_bin);
+#endif
+    rc = system(cmd);
+    if (rc == 0) {
+      ASSERT_EQ(0, rc);
+      PASS();
+    }
+  }
+#if defined(_WIN32)
+  rc = system("cdd-c.exe --help > NUL 2>&1");
+  if (rc != 0) {
+    rc = system(".\\cdd-c.exe --help > NUL 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("..\\cdd-c.exe --help > NUL 2>&1");
+  }
+  if (rc != 0) {
+    rc = system(".\\bin\\cdd-c.exe --help > NUL 2>&1");
+  }
+#else
   rc = system("./bin/cdd-c --help > /dev/null 2>&1");
-  (void)rc;
+  if (rc != 0) {
+    rc = system("./build_gcc/bin/cdd-c --help > /dev/null 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("./build_clang/bin/cdd-c --help > /dev/null 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("./build/bin/cdd-c --help > /dev/null 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("./build_cov/bin/cdd-c --help > /dev/null 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("../bin/cdd-c --help > /dev/null 2>&1");
+  }
+#endif
+  ASSERT_EQ(0, rc);
   PASS();
 }
 

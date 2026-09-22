@@ -33,7 +33,6 @@ TEST test_server_gen_basic(void) {
   int rc;
   FILE *f;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
   spec.paths =
@@ -181,7 +180,6 @@ TEST test_server_gen_fail_open(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base =
@@ -240,7 +238,6 @@ TEST test_server_gen_test_fopen_fail(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "test_server";
@@ -273,7 +270,6 @@ TEST test_server_gen_branches(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "test_server_branches";

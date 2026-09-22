@@ -19,6 +19,10 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_initializer_fail_skip_ws = 0;
+#endif
+
 /* --- Helper: Token Joiner --- */
 
 /**
@@ -142,6 +146,10 @@ static cdd_c_error_t init_list_add(struct InitList *list, char *desig,
 
 static cdd_c_error_t skip_ws(const struct TokenList *tokens, size_t idx,
                              size_t limit, size_t *_out_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_initializer_fail_skip_ws && --g_initializer_fail_skip_ws == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
     idx++;
   {
@@ -261,7 +269,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
   if (!tokens || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  (void)skip_ws(tokens, start_idx, end_idx, &i);
+  rc = skip_ws(tokens, start_idx, end_idx, &i);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* Expect opening brace */
   if (i >= end_idx || tokens->tokens[i].kind != TOKEN_LBRACE) {
@@ -273,7 +283,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
     char *desig_str = NULL;
     struct InitValue *val_obj = NULL;
 
-    (void)skip_ws(tokens, i, end_idx, &i);
+    rc = skip_ws(tokens, i, end_idx, &i);
+    if (rc != CDD_C_SUCCESS)
+      goto error;
 
     if (i >= end_idx)
       break;
@@ -295,7 +307,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       i = next_after_desig;
     }
 
-    (void)skip_ws(tokens, i, end_idx, &i);
+    rc = skip_ws(tokens, i, end_idx, &i);
+    if (rc != CDD_C_SUCCESS)
+      goto error;
 
     /* Allocate Value Object */
     val_obj = (struct InitValue *)C_CDD_CALLOC(1, sizeof(struct InitValue));
@@ -363,7 +377,9 @@ cdd_c_error_t parse_initializer(const struct TokenList *tokens,
       goto error;
     }
 
-    (void)skip_ws(tokens, i, end_idx, &i);
+    rc = skip_ws(tokens, i, end_idx, &i);
+    if (rc != CDD_C_SUCCESS)
+      goto error;
 
     /* Consume comma if present */
     if (i < end_idx && tokens->tokens[i].kind == TOKEN_COMMA) {

@@ -22,6 +22,13 @@
  * @brief Executes the c mapping init operation.
  */
 cdd_c_error_t c_mapping_init(struct OpenApiTypeMapping *out) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_mapping_fail_init;
+  if (g_mapping_fail_init) {
+    g_mapping_fail_init = 0;
+    return CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (!out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   memset(out, 0, sizeof(*out));
@@ -137,14 +144,16 @@ cdd_c_error_t c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int is_array = 0;
   cdd_c_error_t rc = CDD_C_SUCCESS;
 
-  if (!out || !c_type_in)
+  if (!c_type_in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  rc = c_mapping_init(out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = skip_qualifiers(c_type_in, &c_type);
   if (rc != CDD_C_SUCCESS)
     return rc;
-
-  (void)c_mapping_init(out);
 
   /* Pointer/Array detection works on raw type */
   if (strchr(c_type, '*'))

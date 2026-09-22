@@ -296,12 +296,6 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_split_lines(const char *str, size_t len,
 
 /**
  * @brief Executes the patch list to diff operation.
- *
- * @param[in] list The patch list (will be sorted internally).
- * @param[in] tokens The original token stream.
- * @param[in] filename The name of the file to put in the diff header.
- * @param[out] out_diff Pointer to a char* where the diff string will be stored.
- * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t patch_list_to_diff(struct PatchList *list,
                                  const struct TokenList *tokens,

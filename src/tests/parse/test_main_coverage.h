@@ -46,6 +46,17 @@ TEST test_main_coverage_print_version(void) {
 
 TEST test_main_coverage_print_help(void) {
   ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_print_help;
+    char *empty_argv[1];
+    empty_argv[0] = (char *)(size_t) "cdd-c";
+    g_cdd_fail_print_help = 2;
+    ASSERT_EQ(CDD_C_SUCCESS, print_help("cdd-c"));
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_main(1, empty_argv));
+    g_cdd_fail_print_help = 0;
+  }
+#endif
   PASS();
 }
 
@@ -54,6 +65,18 @@ TEST test_main_coverage_handle_audit(void) {
                   (char *)(size_t)(size_t) "dir2"};
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_audit(2, argv));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, handle_audit(0, argv));
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_audit_stats_init;
+    char *argv_one[1];
+    TEST_MKDIR("my_empty_dir");
+    argv_one[0] = (char *)(size_t) "my_empty_dir";
+    g_cdd_fail_audit_stats_init = 2;
+    ASSERT_EQ(CDD_C_SUCCESS, handle_audit(1, argv_one));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, handle_audit(1, argv_one));
+    g_cdd_fail_audit_stats_init = 0;
+  }
+#endif
   PASS();
 }
 

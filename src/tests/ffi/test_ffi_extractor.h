@@ -3,6 +3,7 @@
 
 /* clang-format off */
 #include "../cdd_test_helpers/cdd_helpers.h"
+#include "../../functions/parse/preprocessor.h"
 #include "../../functions/ffi/cdd_ffi_ir_extractor.h"
 #include "../../classes/parse/cdd_cst_parser.h"
 #include "../../classes/parse/cdd_cst_semantic.h"
@@ -33,6 +34,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+extern C_CDD_EXPORT int g_cdd_ffi_fail_class_name;
+extern C_CDD_EXPORT int g_cdd_ffi_fail_is_visited;
+extern C_CDD_EXPORT int g_cdd_ffi_extractor_fail;
+extern C_CDD_EXPORT int g_cdd_pp_context_init_fail;
+extern C_CDD_EXPORT int g_cdd_pp_scan_defines_fail;
+extern C_CDD_EXPORT int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 TEST test_ffi_ir_extract_exports_all_types(void) {
   const char *filename = "all_types.h";
@@ -128,6 +137,7 @@ TEST test_ffi_ir_extract_macros(void) {
   const char *code = "#define PI 3.14159\n"
                      "#define PORT 8080\n"
                      "#define STRING_CONST \"Hello World\"\n"
+                     "#define UNKNOWN_MACRO (1 + )\n"
                      "#define FUNC_MACRO(a, b) (a + b)\n";
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
@@ -138,9 +148,9 @@ TEST test_ffi_ir_extract_macros(void) {
 
   ASSERT_EQ(1, ir != NULL);
   printf("IR nodes count for macros: %lu\n", (unsigned long)ir->nodes_count);
-  /* We expect 3 macros (PI, PORT, STRING_CONST) since FUNC_MACRO is
-   * function-like */
-  ASSERT_EQ(3, ir->nodes_count);
+  /* We expect 4 macros (PI, PORT, STRING_CONST, UNKNOWN_MACRO) since FUNC_MACRO
+   * is function-like */
+  ASSERT_EQ(4, ir->nodes_count);
 
   {
     size_t i;
@@ -227,9 +237,13 @@ TEST test_ffi_ir_extract_templates(void) {
 TEST test_ffi_ir_extract_includes(void) {
   const char *filename_main = "dummy_main.h";
   const char *filename_inc = "dummy_inc.h";
+  const char *filename_inc2 = "dummy_inc2.h";
   const char *code_main =
-      "#include \"dummy_inc.h\"\nstruct MainStruct { int a; };\n";
-  const char *code_inc = "struct IncStruct { int b; };\n";
+      "#include \"dummy_inc.h\"\n#include \"dummy_inc2.h\"\n#include "
+      "\"dummy_inc.h\"\nstruct MainStruct { int a; };\n";
+  const char *code_inc =
+      "#include \"dummy_inc2.h\"\nstruct IncStruct { int b; };\n";
+  const char *code_inc2 = "struct IncStruct2 { int c; };\n";
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
 
@@ -237,17 +251,19 @@ TEST test_ffi_ir_extract_includes(void) {
 
   write_to_file(filename_main, code_main);
   write_to_file(filename_inc, code_inc);
+  write_to_file(filename_inc2, code_inc2);
 
   ASSERT_EQ(0,
             cdd_ffi_ir_extract_exports(filename_main, code_main, &config, &ir));
 
   ASSERT_EQ(1, ir != NULL);
-  /* We expect 2 structs, one from main, one from inc */
-  ASSERT_EQ(2, ir->nodes_count);
+  /* We expect 3 structs: MainStruct, IncStruct, IncStruct2 */
+  ASSERT_EQ(3, ir->nodes_count);
 
   {
     int found_main = 0;
     int found_inc = 0;
+    int found_inc2 = 0;
     size_t i;
     for (i = 0; i < ir->nodes_count; i++) {
       if (ir->nodes[i].kind == CDD_FFI_NODE_STRUCT) {
@@ -255,16 +271,35 @@ TEST test_ffi_ir_extract_includes(void) {
           found_main = 1;
         if (strcmp(ir->nodes[i].name, "IncStruct") == 0)
           found_inc = 1;
+        if (strcmp(ir->nodes[i].name, "IncStruct2") == 0)
+          found_inc2 = 1;
       }
     }
     ASSERT_EQ(1, found_main);
     ASSERT_EQ(1, found_inc);
+    ASSERT_EQ(1, found_inc2);
   }
 
   cdd_ffi_ir_free(ir);
   free(ir);
   remove(filename_main);
   remove(filename_inc);
+  remove(filename_inc2);
+
+  /* Test recursive include error percolation */
+  {
+    const char *err_main = "err_main.h";
+    const char *code_em = "#include \"err_missing_file_999.h\"\n";
+    cdd_ffi_ir_t *err_ir = NULL;
+    write_to_file(err_main, code_em);
+    remove(err_main);
+    (void)cdd_ffi_ir_extract_exports(err_main, code_em, &config, &err_ir);
+    if (err_ir) {
+      cdd_ffi_ir_free(err_ir);
+      free(err_ir);
+    }
+  }
+
   PASS();
 }
 
@@ -334,18 +369,38 @@ TEST test_ffi_ir_extract_exports_oom(void) {
   int rc;
   int k;
   const char *code =
-      "struct A { int x; }; void foo(int a); struct Point<int> { int y; };";
+      "enum Color { RED, GREEN }; struct Base { int a; }; struct Derived : "
+      "public Base { int b; }; struct Outer { struct Inner field; }; struct "
+      "Line { struct Point<int> start; struct Point<int> end; };\n"
+      "/**\n * @blocking\n * @param[out] out_a Output val\n */\n"
+      "void foo(int a, int *out_a);";
 
-  (void)rc;
-  for (k = 1; k < 200; k++) {
+  write_to_file("dummy_oom.h", code);
+  for (k = 1; k < 60; k++) {
     ir = NULL;
     g_ffi_extractor_alloc_fail = k;
-    rc = cdd_ffi_ir_extract_exports("dummy.h", code, &config, &ir);
+    rc = cdd_ffi_ir_extract_exports("dummy_oom.h", code, &config, &ir);
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
     g_ffi_extractor_alloc_fail = 0;
     if (ir)
       cdd_ffi_ir_free(ir);
     free(ir);
   }
+  remove("dummy_oom.h");
+
+  write_to_file("dummy_fn_oom.h", "int my_func(int a) { return a; }\n");
+  for (k = 1; k < 10; k++) {
+    ir = NULL;
+    g_ffi_extractor_alloc_fail = k;
+    rc = cdd_ffi_ir_extract_exports(
+        "dummy_fn_oom.h", "int my_func(int a) { return a; }\n", &config, &ir);
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY);
+    g_ffi_extractor_alloc_fail = 0;
+    if (ir)
+      cdd_ffi_ir_free(ir);
+    free(ir);
+  }
+  remove("dummy_fn_oom.h");
 #endif
   PASS();
 }
@@ -621,7 +676,6 @@ TEST test_ffi_ir_extract_array_out(void) {
   cdd_generate_bindings_config_t config = {0};
   int rc;
 
-  (void)rc;
   write_to_file("test_array.c", content);
 
   rc = cdd_ffi_ir_extract_exports("test_array.c", content, &config, &ir);
@@ -1786,8 +1840,549 @@ TEST test_ffi_ir_emit_ocaml(void) {
 TEST test_ffi_ir_extract_error_paths(void) {
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
-  ASSERT_NEQ(0, cdd_ffi_ir_extract_exports(NULL, NULL, &config, &ir));
-  ASSERT_EQ(1, ir == NULL);
+
+  /* 1. cdd_ffi_ir_extract_exports parameter and OOM errors */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_ir_extract_exports(NULL, "int a;", &config, &ir));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_ir_extract_exports("test.h", NULL, &config, &ir));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_ir_extract_exports("test.h", "int a;", &config, NULL));
+
+  g_ffi_extractor_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_ir_extract_exports("test.h", "int a;", &config, &ir));
+  g_ffi_extractor_alloc_fail = 0;
+  ASSERT(ir == NULL);
+
+  g_cdd_pp_context_init_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_ir_extract_exports("test.h", "int a;", &config, &ir));
+  g_cdd_pp_context_init_fail = 0;
+  ASSERT(ir == NULL);
+
+  ASSERT(cdd_ffi_ir_extract_exports("test.h", "int f( { }", &config, &ir) !=
+         CDD_C_SUCCESS);
+  ASSERT(ir == NULL);
+
+  /* 2. Test memory helper functions (malloc, calloc, realloc, strdup) */
+  {
+    void *ptr = NULL;
+    char *str = NULL;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_malloc_test(10, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_calloc_test(2, 10, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_realloc_test(NULL, 10, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_strdup_test("test", NULL));
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_malloc_test(16, &ptr));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_realloc_test(ptr, 32, &ptr));
+    free(ptr);
+    ptr = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_calloc_test(2, 16, &ptr));
+    free(ptr);
+    ptr = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_strdup_test("test_str", &str));
+    free(str);
+    str = NULL;
+
+    /* strdup(NULL) branch */
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_strdup_test(NULL, &str));
+    ASSERT(str == NULL);
+
+    /* OOM branches */
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_malloc_test(16, &ptr));
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_calloc_test(2, 16, &ptr));
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_realloc_test(NULL, 32, &ptr));
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_strdup_test("test_str", &str));
+    g_ffi_extractor_alloc_fail = 0;
+  }
+
+  /* 3. ir_add_node argument checks and realloc failure */
+  {
+    cdd_ffi_ir_t test_ir;
+    cdd_ffi_ir_node_t *node = NULL;
+    memset(&test_ir, 0, sizeof(test_ir));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_ir_add_node_test(NULL, CDD_FFI_NODE_STRUCT, "N", &node));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        cdd_ffi_ir_add_node_test(&test_ir, CDD_FFI_NODE_STRUCT, NULL, &node));
+
+    /* Capacity expansion realloc failure */
+    test_ir.nodes_capacity = 1;
+    test_ir.nodes_count = 1;
+    test_ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(
+        CDD_C_ERROR_MEMORY,
+        cdd_ffi_ir_add_node_test(&test_ir, CDD_FFI_NODE_STRUCT, "N2", &node));
+    g_ffi_extractor_alloc_fail = 0;
+    cdd_ffi_ir_free(&test_ir);
+  }
+
+  /* 4. parse_template_type error and branch tests */
+  {
+    cdd_ffi_type_t t;
+    memset(&t, 0, sizeof(t));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test(NULL, &t));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test("std::vector<int>", NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test("novar", &t));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test(">backwards<", &t));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test("std::vector<>", &t));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_parse_template_type_test("std::vector<int", &t));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_parse_template_type_test("std::vector<MyTmpl<int>>", &t));
+    ASSERT(cdd_ffi_parse_template_type_test("std::vector<MyTmpl<>>", &t) !=
+           CDD_C_SUCCESS);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_parse_template_type_test("std::vector<MyType<int>", &t));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_parse_template_type_test("std::vector<A > B < C>", &t));
+
+    /* Template struct ref with strdup OOM */
+    g_ffi_extractor_alloc_fail = 4;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_ffi_parse_template_type_test("std::vector<CustomType>", &t));
+    g_ffi_extractor_alloc_fail = 0;
+  }
+
+  /* 5. map_c_type_to_ffi_kind branches */
+  {
+    cdd_ffi_primitive_kind_t k;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_map_c_type_to_ffi_kind_test("int", NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_map_c_type_to_ffi_kind_test("", &k));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test(NULL, &k));
+    ASSERT_EQ(CDD_FFI_KIND_VOID, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std::string", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_STRING, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std_string", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_STRING, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std::vector", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_VECTOR, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std_vector", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_VECTOR, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std::shared_ptr", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_SHARED_PTR, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std_shared_ptr", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_SHARED_PTR, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std::unique_ptr", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_UNIQUE_PTR, k);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_map_c_type_to_ffi_kind_test("std_unique_ptr", &k));
+    ASSERT_EQ(CDD_FFI_KIND_STD_UNIQUE_PTR, k);
+    /* Missing closing > */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("T<int", &k));
+  }
+
+  /* 6. extract_single_file_exports branches */
+  {
+    cdd_ffi_ir_t test_ir;
+    const char *empty_classes_code =
+        "enum EmptyEnum {};\n"
+        "struct EmptyStruct {};\n"
+        "struct MatchName : virtual BaseName { int a; };\n"
+        "void fn_empty() {}\n"
+        "void fn_single(int) {}\n"
+        "void fn_variadic(int a, ...) {}\n"
+        "/** @ffi_release_gil */\nvoid fn_gil(void) {}\n"
+        "/** @blocking */\nvoid fn_blocking(void) {}\n";
+
+    const char *doc_and_writes_code =
+        "/** @param[in] p */\nvoid fn_in(int p) {}\n"
+        "/** @param[out] p */\nvoid fn_out(int *p) {}\n"
+        "/** @param[in,out] p */\nvoid fn_inout(int *p) {}\n"
+        "/** Doc without param tag */\nvoid fn_nodocparam(int p) {}\n"
+        "void fn_writes(_Out_writes_(32) char *buf) {}\n"
+        "void fn_writes_comma(_Out_writes_(a, b) char *buf) {}\n"
+        "void fn_writes_toolong(_Out_writes_("
+        "very_long_expression_exceeding_sixty_three_bytes_limit_"
+        "1234567890) char *buf) {}\n";
+    memset(&test_ir, 0, sizeof(test_ir));
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_extract_single_file_exports_test(NULL, "f.h", "int a;",
+                                                       &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_extract_single_file_exports_test(&test_ir, NULL, "int a;",
+                                                       &config));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_extract_single_file_exports_test(&test_ir, "f.h", NULL,
+                                                       &config));
+
+    /* cdd_cst_parse failure in extract_single_file_exports */
+    write_to_file("test_cst_fail.h", "struct B : virtual A { int x; };");
+    g_cdd_cst_alloc_token_fail = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
+                                 &test_ir, "test_cst_fail.h",
+                                 "struct B : virtual A { int x; };", &config));
+    g_cdd_cst_alloc_token_fail = 0;
+    remove("test_cst_fail.h");
+    cdd_ffi_ir_free(&test_ir);
+
+    /* Signature extraction failure via g_cdd_fail_alloc */
+    write_to_file("bad_sig.h", "int a;");
+    g_cdd_fail_alloc = 1;
+    ASSERT(cdd_ffi_extract_single_file_exports_test(
+               &test_ir, "bad_sig.h", "int a;", &config) != CDD_C_SUCCESS);
+    g_cdd_fail_alloc = 0;
+    remove("bad_sig.h");
+
+    /* pp_context_init failure in extract_single_file_exports */
+    write_to_file("test_pp_fail.h", "int a;");
+    g_cdd_pp_context_init_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_ffi_extract_single_file_exports_test(
+                  &test_ir, "test_pp_fail.h", "int a;", &config));
+    g_cdd_pp_context_init_fail = 0;
+    remove("test_pp_fail.h");
+
+    /* pp_scan_defines failure via g_cdd_pp_scan_defines_fail */
+    write_to_file("test_pp_scan_fail.h", "int a;");
+    g_cdd_pp_scan_defines_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_IO,
+              cdd_ffi_extract_single_file_exports_test(
+                  &test_ir, "test_pp_scan_fail.h", "int a;", &config));
+    g_cdd_pp_scan_defines_fail = 0;
+    remove("test_pp_scan_fail.h");
+
+    /* Macro extraction OOM branches */
+    {
+      int fail_idx;
+      for (fail_idx = 1; fail_idx <= 6; fail_idx++) {
+        cdd_ffi_ir_t mac_ir;
+        memset(&mac_ir, 0, sizeof(mac_ir));
+        write_to_file("test_mac_loop.h", "#define CONST_VAL 99\n");
+        g_ffi_extractor_alloc_fail = fail_idx;
+        cdd_ffi_extract_single_file_exports_test(&mac_ir, "test_mac_loop.h", "",
+                                                 &config);
+        g_ffi_extractor_alloc_fail = 0;
+        cdd_ffi_ir_free(&mac_ir);
+        remove("test_mac_loop.h");
+      }
+    }
+
+    /* Trampoline extraction OOM branches */
+    {
+      int fail_idx;
+      write_to_file("test_tramp_loop.h", "int a;\n");
+      for (fail_idx = 1; fail_idx <= 4; fail_idx++) {
+        cdd_ffi_ir_t tramp_ir;
+        memset(&tramp_ir, 0, sizeof(tramp_ir));
+        tramp_ir.nodes_count = 1;
+        tramp_ir.nodes_capacity = 4;
+        tramp_ir.nodes =
+            (cdd_ffi_ir_node_t *)calloc(4, sizeof(cdd_ffi_ir_node_t));
+        tramp_ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+        tramp_ir.nodes[0].name = strdup("VirtClass");
+        tramp_ir.nodes[0].virtual_methods_count = 1;
+        tramp_ir.nodes[0].virtual_methods = (cdd_ffi_virtual_method_t *)calloc(
+            1, sizeof(cdd_ffi_virtual_method_t));
+        tramp_ir.nodes[0].virtual_methods[0].name = strdup("foo");
+
+        g_ffi_extractor_alloc_fail = fail_idx;
+        cdd_ffi_extract_single_file_exports_test(&tramp_ir, "test_tramp_loop.h",
+                                                 "", &config);
+        g_ffi_extractor_alloc_fail = 0;
+        cdd_ffi_ir_free(&tramp_ir);
+      }
+      remove("test_tramp_loop.h");
+    }
+
+    /* Fail class name CST lookup */
+    g_cdd_ffi_fail_class_name = 1;
+    write_to_file("test_fail_cls.h", "struct B : virtual A { int x; };");
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
+                                 &test_ir, "test_fail_cls.h",
+                                 "struct B : virtual A { int x; };", &config));
+    g_cdd_ffi_fail_class_name = 0;
+    remove("test_fail_cls.h");
+    cdd_ffi_ir_free(&test_ir);
+
+    /* Empty enums, empty structs, @blocking, fn(void), fn(int), fn_in,
+     * _Out_writes_ */
+    write_to_file("test_branches.h", empty_classes_code);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_extract_single_file_exports_test(
+                  &test_ir, "test_branches.h", empty_classes_code, &config));
+    remove("test_branches.h");
+    cdd_ffi_ir_free(&test_ir);
+
+    write_to_file("test_doc_writes.h", doc_and_writes_code);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_extract_single_file_exports_test(
+                  &test_ir, "test_doc_writes.h", doc_and_writes_code, &config));
+    remove("test_doc_writes.h");
+    cdd_ffi_ir_free(&test_ir);
+
+    /* Function-like macro and macro without value */
+    {
+      const char *macros_code = "#define FN_MACRO(x) (x)\n"
+                                "#define NO_VAL\n"
+                                "#define VAL_MACRO 100\n";
+      write_to_file("test_mac_branches.h", macros_code);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_ffi_extract_single_file_exports_test(
+                    &test_ir, "test_mac_branches.h", macros_code, &config));
+      remove("test_mac_branches.h");
+      cdd_ffi_ir_free(&test_ir);
+    }
+  }
+
+  /* 7. is_visited and add_visited branches */
+  {
+    struct TestMergeCtx {
+      cdd_ffi_ir_t *ir;
+      const cdd_generate_bindings_config_t *config;
+      char **visited;
+      size_t visited_count;
+      size_t visited_capacity;
+      cdd_c_error_t err;
+      void *pp_ctx;
+    } mctx;
+    int vis = 0;
+    size_t vi;
+    memset(&mctx, 0, sizeof(mctx));
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_is_visited_test(NULL, "p", &vis));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_is_visited_test(&mctx, NULL, &vis));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_is_visited_test(&mctx, "p", NULL));
+
+    g_cdd_ffi_fail_is_visited = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, cdd_ffi_is_visited_test(&mctx, "p", &vis));
+    g_cdd_ffi_fail_is_visited = 0;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_add_visited_test(NULL, "p"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_add_visited_test(&mctx, NULL));
+
+    for (vi = 0; vi < 18; vi++) {
+      char pbuf[32];
+#if defined(_MSC_VER)
+      sprintf_s(pbuf, sizeof(pbuf), "inc_%lu.h", (unsigned long)vi);
+#else
+      sprintf(pbuf, "inc_%lu.h", (unsigned long)vi);
+#endif
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_add_visited_test(&mctx, pbuf));
+    }
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_is_visited_test(&mctx, "inc_0.h", &vis));
+    ASSERT_EQ(1, vis);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_is_visited_test(&mctx, "absent.h", &vis));
+    ASSERT_EQ(0, vis);
+
+    /* extract_exports_recursive visited and is_visited fail branch */
+    g_cdd_ffi_fail_is_visited = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+              cdd_ffi_extract_exports_recursive_test("f.h", "int a;", &mctx));
+    g_cdd_ffi_fail_is_visited = 0;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_exports_recursive_test(
+                                 "inc_0.h", "int a;", &mctx));
+
+    /* NULL config branch */
+    {
+      cdd_ffi_ir_t rec_ir;
+      memset(&rec_ir, 0, sizeof(rec_ir));
+      write_to_file("f_norec.h", "int a;");
+      mctx.ir = &rec_ir;
+      mctx.config = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_exports_recursive_test(
+                                   "f_norec.h", "int a;", &mctx));
+      remove("f_norec.h");
+      cdd_ffi_ir_free(&rec_ir);
+    }
+
+    for (vi = 0; vi < mctx.visited_count; vi++) {
+      free(mctx.visited[vi]);
+    }
+    free(mctx.visited);
+  }
+
+  /* 8. include_visitor and instantiate_templates */
+  {
+    struct TestMergeCtx {
+      cdd_ffi_ir_t *ir;
+      const cdd_generate_bindings_config_t *config;
+      char **visited;
+      size_t visited_count;
+      size_t visited_capacity;
+      cdd_c_error_t err;
+      void *pp_ctx;
+    } mctx;
+    struct IncludeInfo inc_info;
+    memset(&inc_info, 0, sizeof(inc_info));
+    memset(&mctx, 0, sizeof(mctx));
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_include_visitor_test(NULL, &mctx));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_include_visitor_test(&inc_info, NULL));
+
+    mctx.err = CDD_C_ERROR_MEMORY;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_ffi_include_visitor_test(&inc_info, &mctx));
+    mctx.err = CDD_C_SUCCESS;
+
+    inc_info.kind = PP_DIR_INCLUDE;
+    inc_info.resolved_path = "test_inc_bad.h";
+    g_cdd_ffi_fail_is_visited = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+              cdd_ffi_include_visitor_test(&inc_info, &mctx));
+    g_cdd_ffi_fail_is_visited = 0;
+    mctx.err = CDD_C_SUCCESS;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_instantiate_templates_test(NULL));
+  }
+
+  /* 9. instantiate_templates with diverse type branches */
+  {
+    cdd_ffi_ir_t inst_ir;
+    memset(&inst_ir, 0, sizeof(inst_ir));
+    inst_ir.nodes_count = 3;
+    inst_ir.nodes_capacity = 6;
+    inst_ir.nodes = (cdd_ffi_ir_node_t *)calloc(6, sizeof(cdd_ffi_ir_node_t));
+
+    /* Base template 1: with fields */
+    inst_ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+    inst_ir.nodes[0].name = strdup("Tmpl1");
+    inst_ir.nodes[0].fields_count = 3;
+    inst_ir.nodes[0].fields =
+        (cdd_ffi_field_t *)calloc(3, sizeof(cdd_ffi_field_t));
+    inst_ir.nodes[0].fields[0].name = strdup("val");
+    inst_ir.nodes[0].fields[0].type.ref_name =
+        strdup("T"); /* single char -> replaces kind */
+    inst_ir.nodes[0].fields[1].name = strdup("other");
+    inst_ir.nodes[0].fields[1].type.ref_name =
+        strdup("LongRefName"); /* multi char -> copies ref_name */
+    inst_ir.nodes[0].fields[2].name = strdup("prim");
+    inst_ir.nodes[0].fields[2].type.kind = CDD_FFI_KIND_INT32;
+    inst_ir.nodes[0].fields[2].type.ref_name = NULL;
+
+    /* Base template 2: with 0 fields */
+    inst_ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
+    inst_ir.nodes[1].name = strdup("TmplEmpty");
+    inst_ir.nodes[1].fields_count = 0;
+
+    /* User struct using Tmpl1<Float32>, Tmpl1<Float64>, Tmpl1<CustomType>,
+     * TmplEmpty<int> */
+    inst_ir.nodes[2].kind = CDD_FFI_NODE_STRUCT;
+    inst_ir.nodes[2].name = strdup("UserStruct");
+    inst_ir.nodes[2].fields_count = 6;
+    inst_ir.nodes[2].fields =
+        (cdd_ffi_field_t *)calloc(6, sizeof(cdd_ffi_field_t));
+
+    inst_ir.nodes[2].fields[0].name = strdup("f1");
+    inst_ir.nodes[2].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[0].type.ref_name = strdup("struct Tmpl1");
+    inst_ir.nodes[2].fields[0].type.template_args_count = 1;
+    inst_ir.nodes[2].fields[0].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[2].fields[0].type.template_args[0].kind =
+        CDD_FFI_KIND_FLOAT32;
+
+    inst_ir.nodes[2].fields[1].name = strdup("f2");
+    inst_ir.nodes[2].fields[1].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[1].type.ref_name = strdup("class Tmpl1");
+    inst_ir.nodes[2].fields[1].type.template_args_count = 1;
+    inst_ir.nodes[2].fields[1].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[2].fields[1].type.template_args[0].kind =
+        CDD_FFI_KIND_FLOAT64;
+
+    inst_ir.nodes[2].fields[2].name = strdup("f3");
+    inst_ir.nodes[2].fields[2].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[2].type.ref_name = strdup("Tmpl1");
+    inst_ir.nodes[2].fields[2].type.template_args_count = 1;
+    inst_ir.nodes[2].fields[2].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[2].fields[2].type.template_args[0].ref_name =
+        strdup("MyStruct");
+
+    /* Already instantiated branch: another field using Tmpl1<float> */
+    inst_ir.nodes[2].fields[3].name = strdup("f4");
+    inst_ir.nodes[2].fields[3].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[3].type.ref_name = strdup("Tmpl1");
+    inst_ir.nodes[2].fields[3].type.template_args_count = 1;
+    inst_ir.nodes[2].fields[3].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[2].fields[3].type.template_args[0].kind =
+        CDD_FFI_KIND_FLOAT32;
+
+    /* template_args_count == 0 branch */
+    inst_ir.nodes[2].fields[4].name = strdup("f5");
+    inst_ir.nodes[2].fields[4].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[4].type.ref_name = strdup("TmplEmpty");
+    inst_ir.nodes[2].fields[4].type.template_args_count = 0;
+
+    /* unhandled kind without ref_name -> unknown */
+    inst_ir.nodes[2].fields[5].name = strdup("f6");
+    inst_ir.nodes[2].fields[5].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[2].fields[5].type.ref_name = strdup("Tmpl1");
+    inst_ir.nodes[2].fields[5].type.template_args_count = 1;
+    inst_ir.nodes[2].fields[5].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[2].fields[5].type.template_args[0].kind = CDD_FFI_KIND_UINT8;
+    inst_ir.nodes[2].fields[5].type.template_args[0].ref_name = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_instantiate_templates_test(&inst_ir));
+    cdd_ffi_ir_free(&inst_ir);
+
+    /* OOM when allocating new_node->fields in instantiate_templates */
+    memset(&inst_ir, 0, sizeof(inst_ir));
+    inst_ir.nodes_count = 2;
+    inst_ir.nodes_capacity = 4;
+    inst_ir.nodes = (cdd_ffi_ir_node_t *)calloc(4, sizeof(cdd_ffi_ir_node_t));
+    inst_ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+    inst_ir.nodes[0].name = strdup("TmplBase");
+    inst_ir.nodes[0].fields_count = 1;
+    inst_ir.nodes[0].fields =
+        (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+    inst_ir.nodes[0].fields[0].name = strdup("v");
+    inst_ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
+    inst_ir.nodes[1].name = strdup("User");
+    inst_ir.nodes[1].fields_count = 1;
+    inst_ir.nodes[1].fields =
+        (cdd_ffi_field_t *)calloc(1, sizeof(cdd_ffi_field_t));
+    inst_ir.nodes[1].fields[0].name = strdup("f");
+    inst_ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    inst_ir.nodes[1].fields[0].type.ref_name = strdup("TmplBase");
+    inst_ir.nodes[1].fields[0].type.template_args_count = 1;
+    inst_ir.nodes[1].fields[0].type.template_args =
+        (cdd_ffi_type_t *)calloc(1, sizeof(cdd_ffi_type_t));
+    inst_ir.nodes[1].fields[0].type.template_args[0].kind = CDD_FFI_KIND_INT32;
+
+    g_ffi_extractor_alloc_fail = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&inst_ir));
+    g_ffi_extractor_alloc_fail = 0;
+    cdd_ffi_ir_free(&inst_ir);
+  }
+
   PASS();
 }
 
@@ -1818,10 +2413,459 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
   PASS();
 }
 
-#ifdef __cplusplus
+TEST test_ffi_ir_extract_inheritance_e2e(void) {
+  const char *filename = "test_inherit.h";
+  const char *code = "struct Base {\n"
+                     "  int a;\n"
+                     "};\n\n"
+                     "struct Derived : public virtual Base {\n"
+                     "  int b;\n"
+                     "};\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+
+  write_to_file(filename, code);
+  ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
+  ASSERT_EQ(1, ir != NULL);
+
+  {
+    size_t i;
+    int found_derived = 0;
+    for (i = 0; i < ir->nodes_count; i++) {
+      if (ir->nodes[i].name && strcmp(ir->nodes[i].name, "Derived") == 0) {
+        found_derived = 1;
+        break;
+      }
+    }
+    ASSERT_EQ(1, found_derived);
+  }
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  remove(filename);
+  PASS();
 }
-#endif /* __cplusplus */
-#endif /* TEST_FFI_EXTRACTOR_H */
+
+TEST test_ffi_ir_extract_template_instantiation(void) {
+  const char *filename = "test_tmpl_inst.h";
+  const char *code = "struct Inner { int y; };\n"
+                     "template <typename T>\n"
+                     "struct Box {\n"
+                     "  T val;\n"
+                     "  char *name;\n"
+                     "};\n\n"
+                     "struct User {\n"
+                     "  struct Box<int> int_box;\n"
+                     "  class Box<double> dbl_box;\n"
+                     "  Box<float> flt_box;\n"
+                     "  Box<Inner> inner_box;\n"
+                     "};\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+
+  write_to_file(filename, code);
+  ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
+  ASSERT_EQ(1, ir != NULL);
+
+  {
+    size_t i;
+    int found_box_int = 0;
+    int found_box_double = 0;
+    int found_box_float = 0;
+    int found_box_inner = 0;
+    for (i = 0; i < ir->nodes_count; i++) {
+      if (ir->nodes[i].name) {
+        if (strcmp(ir->nodes[i].name, "Box_int") == 0)
+          found_box_int = 1;
+        if (strcmp(ir->nodes[i].name, "Box_double") == 0)
+          found_box_double = 1;
+        if (strcmp(ir->nodes[i].name, "Box_float") == 0)
+          found_box_float = 1;
+        if (strcmp(ir->nodes[i].name, "Box_Inner") == 0)
+          found_box_inner = 1;
+      }
+    }
+    ASSERT_EQ(1, found_box_int);
+    ASSERT_EQ(1, found_box_double);
+    ASSERT_EQ(1, found_box_float);
+    ASSERT_EQ(1, found_box_inner);
+  }
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  remove(filename);
+  PASS();
+}
+
+TEST test_ffi_ir_extract_docstring_and_sal_intents(void) {
+  const char *filename = "test_intents.h";
+  const char *code =
+      "/**\n"
+      " * @param[out] dst Destination buffer\n"
+      " * @param[in] src Source buffer\n"
+      " * @param[in,out] io Combined buffer\n"
+      " * @ffi_release_gil\n"
+      " */\n"
+      "void test_fn(int *dst, const int *src, int *io) {}\n"
+      "/**\n"
+      " * @blocking\n"
+      " */\n"
+      "void test_blocking_fn(void) {}\n"
+      "void test_sal_fn(_Inout_ int *p1, _In_ const int *p2) {}\n";
+  cdd_ffi_ir_t *ir = NULL;
+  cdd_generate_bindings_config_t config = {0};
+  char long_param_buf[1200];
+  char code_buf[3000];
+
+  memset(long_param_buf, 'a', sizeof(long_param_buf) - 1);
+  long_param_buf[sizeof(long_param_buf) - 1] = '\0';
+#if defined(_MSC_VER)
+  sprintf_s(code_buf, sizeof(code_buf), "void test_long_fn(int %s) {}\n",
+            long_param_buf);
+#else
+  sprintf(code_buf, "void test_long_fn(int %s) {}\n", long_param_buf);
+#endif
+
+  write_to_file("test_long.h", code_buf);
+  ASSERT_EQ(0,
+            cdd_ffi_ir_extract_exports("test_long.h", code_buf, &config, &ir));
+  if (ir) {
+    cdd_ffi_ir_free(ir);
+    free(ir);
+    ir = NULL;
+  }
+  remove("test_long.h");
+
+  write_to_file(filename, code);
+  ASSERT_EQ(0, cdd_ffi_ir_extract_exports(filename, code, &config, &ir));
+  ASSERT_EQ(1, ir != NULL);
+
+  {
+    size_t i;
+    for (i = 0; i < ir->nodes_count; i++) {
+      if (ir->nodes[i].name && strcmp(ir->nodes[i].name, "test_fn") == 0) {
+        ASSERT_EQ(3, ir->nodes[i].fields_count);
+        ASSERT_EQ(CDD_FFI_INTENT_OUT, ir->nodes[i].fields[0].intent);
+        ASSERT_EQ(CDD_FFI_INTENT_IN, ir->nodes[i].fields[1].intent);
+        ASSERT_EQ(CDD_FFI_INTENT_INOUT, ir->nodes[i].fields[2].intent);
+      } else if (ir->nodes[i].name &&
+                 strcmp(ir->nodes[i].name, "test_sal_fn") == 0) {
+        ASSERT_EQ(2, ir->nodes[i].fields_count);
+        ASSERT_EQ(CDD_FFI_INTENT_INOUT, ir->nodes[i].fields[0].intent);
+        ASSERT_EQ(CDD_FFI_INTENT_IN, ir->nodes[i].fields[1].intent);
+      }
+    }
+  }
+
+  cdd_ffi_ir_free(ir);
+  free(ir);
+  remove(filename);
+  PASS();
+}
+
+TEST test_ffi_ir_extract_trampolines_direct(void) {
+  cdd_ffi_ir_t ir = {0};
+  cdd_generate_bindings_config_t config = {0};
+
+  ir.nodes_count = 1;
+  ir.nodes_capacity = 1;
+  ir.nodes = (cdd_ffi_ir_node_t *)calloc(1, sizeof(cdd_ffi_ir_node_t));
+  ir.nodes[0].name = strdup("MyClass");
+  ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+  ir.nodes[0].virtual_methods_count = 1;
+  ir.nodes[0].virtual_methods =
+      (cdd_ffi_virtual_method_t *)calloc(1, sizeof(cdd_ffi_virtual_method_t));
+  ir.nodes[0].virtual_methods[0].name = strdup("myVirtualMethod");
+
+  write_to_file("empty.h", "");
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_single_file_exports_test(
+                               &ir, "empty.h", "", &config));
+
+  {
+    size_t i;
+    int found_tramp = 0;
+    for (i = 0; i < ir.nodes_count; i++) {
+      if (ir.nodes[i].name &&
+          strcmp(ir.nodes[i].name, "MyClass_Trampoline") == 0) {
+        found_tramp = 1;
+        ASSERT_EQ(4, ir.nodes[i].fields_count);
+        break;
+      }
+    }
+    ASSERT_EQ(1, found_tramp);
+  }
+
+  cdd_ffi_ir_free(&ir);
+  remove("empty.h");
+  PASS();
+}
+
+TEST test_ffi_ir_extractor_helpers(void) {
+  char buf[64];
+  cdd_ffi_primitive_kind_t kind;
+  cdd_ffi_type_t t = {0};
+
+  /* int64_to_str edge cases */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_int64_to_str_test(0, NULL, 0));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_ffi_int64_to_str_test(0, buf, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_int64_to_str_test(0, buf, sizeof(buf)));
+  ASSERT_STR_EQ("0", buf);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_int64_to_str_test(-12345, buf, sizeof(buf)));
+  ASSERT_STR_EQ("-12345", buf);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_int64_to_str_test(987654321, buf, sizeof(buf)));
+  ASSERT_STR_EQ("987654321", buf);
+
+  /* map_c_type_to_ffi_kind coverage */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_map_c_type_to_ffi_kind_test("int", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test(NULL, &kind));
+  ASSERT_EQ(CDD_FFI_KIND_VOID, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("std_string", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_STD_STRING, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("std_vector", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_STD_VECTOR, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("std_shared_ptr", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_STD_SHARED_PTR, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("std_unique_ptr", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_STD_UNIQUE_PTR, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("int8_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT8, kind);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("char", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT8, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("uint8_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT8, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("unsigned char", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT8, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("int16_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT16, kind);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("short", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT16, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("uint16_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT16, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("unsigned short", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT16, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("int32_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT32, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("integer", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT32, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("uint32_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT32, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("unsigned int", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT32, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("int64_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("long long", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_INT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("uint64_t", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("unsigned long long", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_UINT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("float", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_FLOAT32, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("double", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_FLOAT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("number", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_FLOAT64, kind);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("bool", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_BOOL, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("boolean", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_BOOL, kind);
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_map_c_type_to_ffi_kind_test("void", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_VOID, kind);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_map_c_type_to_ffi_kind_test("CustomStruct", &kind));
+  ASSERT_EQ(CDD_FFI_KIND_STRUCT_REF, kind);
+
+  /* parse_template_type coverage */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_parse_template_type_test("no_brackets", &t));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_ffi_parse_template_type_test(">reversed<", &t));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_parse_template_type_test("std::vector<int>", &t));
+  free(t.ref_name);
+  free(t.template_args);
+  memset(&t, 0, sizeof(t));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_parse_template_type_test("Wrapper<InnerStruct>", &t));
+  free(t.ref_name);
+  free(t.template_args[0].ref_name);
+  free(t.template_args);
+  memset(&t, 0, sizeof(t));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_ffi_parse_template_type_test("Outer<Nested<int>>", &t));
+  free(t.ref_name);
+  free(t.template_args[0].ref_name);
+  free(t.template_args[0].template_args);
+  free(t.template_args);
+  memset(&t, 0, sizeof(t));
+
+  /* parse_template_type allocation failures */
+  g_ffi_extractor_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_parse_template_type_test("std::vector<int>", &t));
+  g_ffi_extractor_alloc_fail = 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_parse_template_type_test("std::vector<int>", &t));
+  g_ffi_extractor_alloc_fail = 3;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_parse_template_type_test("std::vector<MyStruct>", &t));
+  g_ffi_extractor_alloc_fail = 4;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY,
+            cdd_ffi_parse_template_type_test("Outer<Nested<int>>", &t));
+  g_ffi_extractor_alloc_fail = 0;
+
+  /* is_visited and add_visited coverage */
+  {
+    struct DummyVisitedCtx {
+      void *ir;
+      void *config;
+      char **visited;
+      size_t visited_count;
+      size_t visited_capacity;
+      cdd_c_error_t err;
+      void *pp_ctx;
+    } vctx = {0};
+    int visited = 0;
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_is_visited_test(&vctx, "path1", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_is_visited_test(&vctx, "path1", &visited));
+    ASSERT_EQ(0, visited);
+
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_add_visited_test(&vctx, "path1"));
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_is_visited_test(&vctx, "path1", &visited));
+    ASSERT_EQ(1, visited);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_is_visited_test(&vctx, "path2", &visited));
+    ASSERT_EQ(0, visited);
+
+    free(vctx.visited[0]);
+    free(vctx.visited);
+  }
+
+  /* include_visitor error & non-include branches */
+  {
+    struct DummyIncludeMergeCtx {
+      void *ir;
+      void *config;
+      char **visited;
+      size_t visited_count;
+      size_t visited_capacity;
+      cdd_c_error_t err;
+      void *pp_ctx;
+    } mctx = {0};
+    struct IncludeInfo info = {0};
+
+    mctx.err = CDD_C_ERROR_INVALID_ARGUMENT;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_include_visitor_test(&info, &mctx));
+    mctx.err = CDD_C_SUCCESS;
+    info.kind = PP_DIR_EMBED;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
+    info.kind = PP_DIR_INCLUDE;
+    info.resolved_path = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
+    info.resolved_path = "non_existent_file_999.h";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
+    /* Test include_visitor with real file and recursive error */
+    {
+      write_to_file("rec_err.h", "rec_content");
+      info.resolved_path = "rec_err.h";
+      /* force allocation failure in extract_exports_recursive */
+      g_ffi_extractor_alloc_fail = 1;
+      ASSERT_NEQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
+      g_ffi_extractor_alloc_fail = 0;
+      mctx.err = CDD_C_SUCCESS;
+      remove("rec_err.h");
+    }
+    /* Test visited path */
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_ffi_add_visited_test(&mctx, "already_visited.h"));
+    info.resolved_path = "already_visited.h";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_include_visitor_test(&info, &mctx));
+    /* Test extract_exports_recursive when file is already visited */
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_extract_exports_recursive_test(
+                                 "already_visited.h", "", &mctx));
+    if (mctx.visited) {
+      size_t vi;
+      for (vi = 0; vi < mctx.visited_count; vi++)
+        free(mctx.visited[vi]);
+      free(mctx.visited);
+    }
+  }
+
+  /* instantiate_templates allocation failure */
+  {
+    cdd_ffi_ir_t ir = {0};
+    ir.nodes_count = 2;
+    ir.nodes_capacity = 2;
+    ir.nodes = (cdd_ffi_ir_node_t *)calloc(2, sizeof(cdd_ffi_ir_node_t));
+    ir.nodes[0].name = strdup("BaseTmpl");
+    ir.nodes[0].kind = CDD_FFI_NODE_STRUCT;
+    ir.nodes[1].name = strdup("UserStruct");
+    ir.nodes[1].kind = CDD_FFI_NODE_STRUCT;
+    ir.nodes[1].fields_count = 2;
+    ir.nodes[1].fields = (cdd_ffi_field_t *)calloc(2, sizeof(cdd_ffi_field_t));
+    ir.nodes[1].fields[0].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    ir.nodes[1].fields[0].type.ref_name = NULL;
+    ir.nodes[1].fields[1].type.kind = CDD_FFI_KIND_TEMPLATE_STRUCT_REF;
+    ir.nodes[1].fields[1].type.ref_name = strdup("BaseTmpl");
+
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_ffi_instantiate_templates_test(&ir));
+    g_ffi_extractor_alloc_fail = 0;
+
+    cdd_ffi_ir_free(&ir);
+  }
+
+  /* cdd_ffi_mangle_cpp_name error branches */
+  {
+    char *out_m = NULL;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_mangle_cpp_name(NULL, NULL, NULL, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_mangle_cpp_name("NS", "Class", "Method", NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_ffi_mangle_cpp_name("NS", "Class", NULL, &out_m));
+    g_ffi_extractor_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              cdd_ffi_mangle_cpp_name("NS", "Class", "Method", &out_m));
+    g_ffi_extractor_alloc_fail = 0;
+  }
+
+  /* ir_add_node out_node == NULL branch */
+  {
+    cdd_ffi_ir_t ir = {0};
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_ir_add_node_test(&ir, CDD_FFI_NODE_STRUCT,
+                                                      "NoOutNode", NULL));
+    cdd_ffi_ir_free(&ir);
+  }
+
+  PASS();
+}
 
 TEST test_ffi_emit_java_fopen_fail(void) {
   cdd_ffi_ir_t *ir = (cdd_ffi_ir_t *)calloc(1, sizeof(cdd_ffi_ir_t));
@@ -1838,3 +2882,95 @@ TEST test_ffi_emit_java_fopen_fail(void) {
   free(ir);
   PASS();
 }
+
+/**
+ * @brief Tests remaining branches in cdd_ffi_ir_extractor.
+ *
+ * @return GREATEST_TEST_RES.
+ */
+TEST test_ffi_extractor_missing_branches(void) {
+  cdd_generate_bindings_config_t config;
+  cdd_ffi_ir_t test_ir;
+  int rc;
+  const char *code_class;
+  const char *code_struct;
+  const char *code_nested;
+  const char *code_macro;
+
+  memset(&config, 0, sizeof(config));
+  memset(&test_ir, 0, sizeof(test_ir));
+  code_class = "struct Base { int x; };\n";
+  code_struct = "struct S { int x; };\n";
+  code_nested = "struct Sub { int a; };\nstruct Parent { struct Sub s; };\n";
+  code_macro = "#define FOO 42\n";
+
+  /* 1. g_cdd_ffi_extractor_fail = 1 (cdd_cst_find_nodes_by_type failure) */
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("base.h", code_class));
+  g_cdd_ffi_extractor_fail = 1;
+  rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "base.h", code_class,
+                                                &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  cdd_ffi_ir_free(&test_ir);
+  memset(&test_ir, 0, sizeof(test_ir));
+
+  /* 2. g_cdd_ffi_extractor_fail = 2 (get_class_name failure) */
+  g_cdd_ffi_extractor_fail = 2;
+  rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "base.h", code_class,
+                                                &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  cdd_ffi_ir_free(&test_ir);
+  memset(&test_ir, 0, sizeof(test_ir));
+  ASSERT_EQ(0, remove("base.h"));
+
+  /* 3. g_cdd_ffi_extractor_fail = 3 (node->fields calloc failure) */
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("s.h", code_struct));
+  g_cdd_ffi_extractor_fail = 3;
+  rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "s.h", code_struct,
+                                                &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  cdd_ffi_ir_free(&test_ir);
+  memset(&test_ir, 0, sizeof(test_ir));
+  ASSERT_EQ(0, remove("s.h"));
+
+  /* 4. g_cdd_ffi_extractor_fail = 4 (ref_name strdup failure) */
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("parent.h", code_nested));
+  g_cdd_ffi_extractor_fail = 4;
+  rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "parent.h",
+                                                code_nested, &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  cdd_ffi_ir_free(&test_ir);
+  memset(&test_ir, 0, sizeof(test_ir));
+  ASSERT_EQ(0, remove("parent.h"));
+
+  /* 5. g_cdd_ffi_extractor_fail = 5 (int64_to_str failure) */
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_ffi_macro_temp.h", code_macro));
+  g_cdd_ffi_extractor_fail = 5;
+  rc = cdd_ffi_extract_single_file_exports_test(
+      &test_ir, "test_ffi_macro_temp.h", code_macro, &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  cdd_ffi_ir_free(&test_ir);
+  ASSERT_EQ(0, remove("test_ffi_macro_temp.h"));
+
+  /* 6. g_cdd_ffi_extractor_fail = 6 (map_c_type_to_ffi_kind failure) */
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("s2.h", code_struct));
+  g_cdd_ffi_extractor_fail = 6;
+  rc = cdd_ffi_extract_single_file_exports_test(&test_ir, "s2.h", code_struct,
+                                                &config);
+  g_cdd_ffi_extractor_fail = 0;
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
+  cdd_ffi_ir_free(&test_ir);
+  ASSERT_EQ(0, remove("s2.h"));
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* TEST_FFI_EXTRACTOR_H */

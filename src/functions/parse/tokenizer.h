@@ -430,6 +430,11 @@ extern C_CDD_EXPORT cdd_c_error_t span_equals_str(const az_span span,
                                                   const char *str,
                                                   int *_out_val);
 
+#ifdef CDD_BUILD_TESTS
+/** @brief Test hook to fail identify_keyword_or_id. */
+extern C_CDD_EXPORT int g_cdd_fail_identify_keyword_or_id;
+#endif
+
 #ifdef __cplusplus
 }
 

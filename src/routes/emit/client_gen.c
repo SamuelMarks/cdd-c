@@ -25,6 +25,42 @@
 #include <string.h>
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+C_CDD_EXPORT int g_client_gen_fail = 0;
+#include <stdarg.h>
+static int test_cdd_client_gen_fprintf_hook(FILE *stream, const char *format,
+                                            ...)
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((format(printf, 2, 3)))
+#endif
+    ;
+static int test_cdd_client_gen_fprintf_hook(FILE *stream, const char *format,
+                                            ...) {
+  int ret;
+  va_list args;
+  if (g_client_gen_fail == 63)
+    return -1;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define fprintf test_cdd_client_gen_fprintf_hook
+
+static int test_cdd_client_gen_fputs_hook(const char *s, FILE *stream) {
+  if (g_client_gen_fail == 64 ||
+      (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after))
+    return -1;
+  return fputs(s, stream);
+}
+#define fputs test_cdd_client_gen_fputs_hook
+
+#endif
+
 /**
  * @def CHECK_IO_CLEANUP
  * @brief CHECK_IO_CLEANUP macro
@@ -108,6 +144,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         return CDD_C_SUCCESS;
       }
       name = (char *)(size_t)malloc(name_len + 1);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 1) {
+        free(name);
+        name = NULL;
+      }
+#endif
       if (!name) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -130,6 +172,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
   }
 
   out = (char *)(size_t)malloc(out_len + 1);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 2) {
+    free(out);
+    out = NULL;
+  }
+#endif
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -144,6 +192,10 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         size_t name_len;
         char *name;
         const struct OpenAPI_ServerVariable *var;
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 47)
+          end = NULL;
+#endif
         if (!end) {
           free(out);
           {
@@ -152,6 +204,10 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
           }
         }
         name_len = (size_t)(end - (url + i + 1));
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 48)
+          name_len = 0;
+#endif
         if (name_len == 0) {
           free(out);
           {
@@ -160,6 +216,12 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
           }
         }
         name = (char *)(size_t)malloc(name_len + 1);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 3) {
+          free(name);
+          name = NULL;
+        }
+#endif
         if (!name) {
           free(out);
           {
@@ -172,6 +234,10 @@ cdd_c_error_t render_server_url_default(const struct OpenAPI_Server *srv,
         var = (find_server_variable(srv, name, &_ast_find_server_variable_1),
                _ast_find_server_variable_1);
         free(name);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 49)
+          var = NULL;
+#endif
         if (!var || !var->default_value) {
           free(out);
           {
@@ -226,6 +292,12 @@ cdd_c_error_t escape_c_string_literal(const char *s, char **_out_val) {
     }
   }
   out = (char *)(size_t)malloc(out_len + 1);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 4) {
+    free(out);
+    out = NULL;
+  }
+#endif
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -300,12 +372,24 @@ cdd_c_error_t build_base_url_literal(const char *url, char **_out_val) {
 
   escaped = (escape_c_string_literal(url, &_ast_escape_c_string_literal_2),
              _ast_escape_c_string_literal_2);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 50) {
+    free(escaped);
+    escaped = NULL;
+  }
+#endif
   if (!escaped) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
   len = strlen(escaped) + 3;
   literal = (char *)(size_t)malloc(len);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 5) {
+    free(literal);
+    literal = NULL;
+  }
+#endif
   if (!literal) {
     free(escaped);
     {
@@ -338,6 +422,12 @@ cdd_c_error_t generate_guard(const char *base, char **_out_val) {
   size_t i;
 
   g = malloc(len + 3); /* + _H + null */
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 6) {
+    free(g);
+    g = NULL;
+  }
+#endif
   if (!g) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -369,6 +459,12 @@ cdd_c_error_t derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
   m = malloc(len + 1);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 7) {
+    free(m);
+    m = NULL;
+  }
+#endif
   if (!m) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -403,6 +499,12 @@ cdd_c_error_t sanitize_tag(const char *tag, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   s = strdup(tag);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 8) {
+    free(s);
+    s = NULL;
+  }
+#endif
   if (!s) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -459,6 +561,12 @@ cdd_c_error_t build_effective_parameters(const struct OpenAPI_Path *path,
     return CDD_C_SUCCESS;
 
   params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 9) {
+    free(params);
+    params = NULL;
+  }
+#endif
   if (!params) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
@@ -1854,11 +1962,21 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   if (!hfile || !cfile || !path || !op || !config || !prefix)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 40)
+    return CDD_C_ERROR_MEMORY;
+#endif
+
   memset(&sig_cfg, 0, sizeof(sig_cfg));
   sig_cfg.prefix = prefix;
 
-  merge_rc =
-      build_effective_parameters(path, op, &effective_params, &effective_count);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 56)
+    merge_rc = CDD_C_ERROR_MEMORY;
+  else
+#endif
+    merge_rc = build_effective_parameters(path, op, &effective_params,
+                                          &effective_count);
   if (merge_rc != CDD_C_SUCCESS)
     return merge_rc;
 
@@ -1870,6 +1988,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   if (effective_op.n_tags > 0 && effective_op.tags[0]) {
     sanitized_group = (sanitize_tag(effective_op.tags[0], &_ast_sanitize_tag_6),
                        _ast_sanitize_tag_6);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 41) {
+      free(sanitized_group);
+      sanitized_group = NULL;
+    }
+#endif
     if (!sanitized_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -1884,6 +2008,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     /* Name: Namespace_Tag */
     full_group =
         malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 42) {
+      free(full_group);
+      full_group = NULL;
+    }
+#endif
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -1903,6 +2033,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   } else if (config->namespace_prefix) {
     /* Name: Namespace */
     full_group = strdup(config->namespace_prefix);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 43) {
+      free(full_group);
+      full_group = NULL;
+    }
+#endif
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -1914,6 +2050,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
   } else if (sanitized_group) {
     /* Name: Tag */
     full_group = strdup(sanitized_group);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 44) {
+      free(full_group);
+      full_group = NULL;
+    }
+#endif
     if (!full_group) {
       rc = CDD_C_ERROR_MEMORY;
       {
@@ -1939,6 +2081,12 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
       base_url_expr =
           (build_base_url_literal(override_url, &_ast_build_base_url_literal_9),
            _ast_build_base_url_literal_9);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 45) {
+        free(base_url_expr);
+        base_url_expr = NULL;
+      }
+#endif
       if (!base_url_expr) {
         rc = CDD_C_ERROR_MEMORY;
         {
@@ -1950,16 +2098,34 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
     }
   }
 
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 46) {
+    rc = CDD_C_ERROR_IO;
+    goto cleanup;
+  }
+#endif
+
   /* 1. Header: DocBlock + Prototype */
-  if ((rc = write_docblock(hfile, path, &effective_op)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 60)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = write_docblock(hfile, path, &effective_op);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
   }
 
   sig_cfg.include_semicolon = 1;
-  if ((rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg)) !=
-      0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 57)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
@@ -1968,16 +2134,27 @@ cdd_c_error_t emit_operation(FILE *hfile, FILE *cfile,
 
   /* 2. Source: Implementation */
   sig_cfg.include_semicolon = 0;
-  if ((rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg)) !=
-      0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 58)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
   }
 
   /* Body generation (Passing spec for security lookup) */
-  if ((rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
-                                      base_url_expr)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 59)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
+                                   base_url_expr);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
@@ -2027,10 +2204,21 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   {
     cdd_c_error_t _rc;
     _rc = get_dirname(config->filename_base, &dir_name);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 24) {
+      if (dir_name)
+        free(dir_name);
+      _rc = CDD_C_ERROR_INVALID_ARGUMENT;
+    }
+#endif
     if (_rc != CDD_C_SUCCESS) {
       return _rc;
     }
     _rc = get_basename(config->filename_base, &base_name);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 25)
+      _rc = CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
     if (_rc != CDD_C_SUCCESS) {
       if (dir_name)
         free(dir_name);
@@ -2040,11 +2228,21 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   {
     char *src_dir = malloc(512);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 10) {
+      free(src_dir);
+      src_dir = NULL;
+    }
+#endif
     if (!src_dir)
       return CDD_C_ERROR_MEMORY;
     CDD_SNPRINTF(src_dir, 512, "%s/src", dir_name ? dir_name : ".");
     {
       cdd_c_error_t rc_cg = makedirs(src_dir);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 62)
+        rc_cg = CDD_C_ERROR_IO;
+#endif
       if (rc_cg != CDD_C_SUCCESS) {
         free(src_dir);
         if (dir_name)
@@ -2057,6 +2255,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     actual_base =
         malloc(strlen(src_dir) +
                strlen(base_name ? base_name : "generated_client") + 2);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 11 || g_client_gen_fail == 61) {
+      free(actual_base);
+      actual_base = NULL;
+    }
+#endif
     if (actual_base) {
       CDD_SNPRINTF(actual_base,
                    strlen(src_dir) +
@@ -2069,6 +2273,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   if (!actual_base) {
     actual_base = strdup(config->filename_base);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 61) {
+      free(actual_base);
+      actual_base = NULL;
+    }
+#endif
     if (!actual_base)
       return CDD_C_ERROR_MEMORY;
   }
@@ -2078,6 +2288,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   c_name = malloc(strlen(actual_base) + 3);   /* .c */
   mh_name = malloc(strlen(actual_base) + 10); /* _models.h */
   mc_name = malloc(strlen(actual_base) + 10); /* _models.c */
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 12) {
+    free(h_name);
+    h_name = NULL;
+  }
+#endif
   if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -2134,6 +2350,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   mcfile = fopen(mc_name, "w");
 #endif
 #endif
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 16) {
+    if (hfile) {
+      fclose(hfile);
+      hfile = NULL;
+    }
+  }
+#endif
   if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = CDD_C_ERROR_IO;
     {
@@ -2159,6 +2383,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (config->func_prefix)
     prefix = config->func_prefix;
 
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 17) {
+    free(guard);
+    guard = NULL;
+  }
+#endif
   if (!guard || !model_h) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -2169,6 +2399,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   model_guard = malloc(strlen(guard) + 8);
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 18) {
+    free(model_guard);
+    model_guard = NULL;
+  }
+#endif
   if (!model_guard) {
     rc = CDD_C_ERROR_MEMORY;
     {
@@ -2233,6 +2469,10 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     int print_rc;
     {
       cdd_c_error_t rc_cg = get_basename(mh_name, &mh_base);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 65)
+        rc_cg = CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
       if (rc_cg != CDD_C_SUCCESS)
         return rc_cg;
     }
@@ -2287,7 +2527,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       if (!name || !sf)
         continue;
 
-      rc = write_forward_decl(mhfile, name);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 26)
+        rc = CDD_C_ERROR_IO;
+      else
+#endif
+        rc = write_forward_decl(mhfile, name);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2295,7 +2540,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       }
     }
 
-    if (fprintf(mhfile, "\n") < 0) {
+    if (
+#ifdef CDD_BUILD_TESTS
+        g_client_gen_fail == 70 ||
+#endif
+        fprintf(mhfile, "\n") < 0) {
       rc = CDD_C_SUCCESS;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
@@ -2311,101 +2560,181 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
         continue;
 
       if (sf->is_enum) {
-        rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 27)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else if (sf->is_union) {
-        rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 28)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
-        rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 29)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 30)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 31)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 32)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
       } else {
-        rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 33)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
 
-        rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 34)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 35)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 36)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 37)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 38)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 66)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 67)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_from_json_func(mcfile, name, &json_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 68)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_from_json_func(mcfile, name, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
           goto cleanup;
         }
-        rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
+#ifdef CDD_BUILD_TESTS
+        if (g_client_gen_fail == 69)
+          rc = CDD_C_ERROR_IO;
+        else
+#endif
+          rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
         if (rc != CDD_C_SUCCESS) {
           fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                   __LINE__);
@@ -2433,7 +2762,13 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* --- Write Client Preamble --- */
-  if ((rc = write_header_preamble(hfile, guard, model_h)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 21)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = write_header_preamble(hfile, guard, model_h);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
@@ -2443,10 +2778,19 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char *base = NULL;
     {
       cdd_c_error_t rc_cg = get_basename(h_name, &base);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 53)
+        rc_cg = CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
       if (rc_cg != CDD_C_SUCCESS)
         return rc_cg;
     }
-    rc = write_source_preamble(cfile, base ? base : h_name);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 22)
+      rc = CDD_C_ERROR_IO;
+    else
+#endif
+      rc = write_source_preamble(cfile, base ? base : h_name);
     if (base)
       free(base);
     if (rc != CDD_C_SUCCESS) {
@@ -2457,7 +2801,13 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* --- Write Lifecycle --- */
-  if ((rc = write_lifecycle_funcs(hfile, cfile, prefix, spec)) != 0) {
+#ifdef CDD_BUILD_TESTS
+  if (g_client_gen_fail == 23)
+    rc = CDD_C_ERROR_IO;
+  else
+#endif
+    rc = write_lifecycle_funcs(hfile, cfile, prefix, spec);
+  if (rc != 0) {
     fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
             __LINE__);
     goto cleanup;
@@ -2468,7 +2818,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     struct OpenAPI_Path *path = &spec->paths[i];
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
-      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 71)
+        rc = CDD_C_ERROR_IO;
+      else
+#endif
+        rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2477,7 +2832,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
     for (j = 0; j < path->n_additional_operations; ++j) {
       struct OpenAPI_Operation *op = &path->additional_operations[j];
-      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 72)
+        rc = CDD_C_ERROR_IO;
+      else
+#endif
+        rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
       if (rc != CDD_C_SUCCESS) {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -3127,7 +3487,11 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       goto cleanup;
     }
   }
-  if (fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
+  if (
+#ifdef CDD_BUILD_TESTS
+      g_client_gen_fail == 74 ||
+#endif
+      fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
     rc = CDD_C_SUCCESS;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
@@ -3149,6 +3513,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       uh = NULL;
 #else
     uh = fopen(hpath, "w");
+#endif
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 54) {
+      if (uh) {
+        fclose(uh);
+        uh = NULL;
+      }
+    }
 #endif
     if (uh) {
       fputs("/**\n"
@@ -3481,6 +3853,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       uc = NULL;
 #else
     uc = fopen(cpath, "w");
+#endif
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 55) {
+      if (uc) {
+        fclose(uc);
+        uc = NULL;
+      }
+    }
 #endif
     if (uc) {
       fputs(
@@ -4416,7 +4796,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     FILE *tfp;
     CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
     {
-      cdd_c_error_t rc_cg = makedirs(tdir);
+      cdd_c_error_t rc_cg;
+      rc_cg = makedirs(tdir);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 51)
+        rc_cg = CDD_C_ERROR_IO;
+#endif
       if (rc_cg != CDD_C_SUCCESS)
         return rc_cg;
     }
@@ -4426,6 +4811,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
       tfp = NULL;
 #else
     tfp = fopen(tfile, "w");
+#endif
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 52) {
+      if (tfp) {
+        fclose(tfp);
+        tfp = NULL;
+      }
+    }
 #endif
     if (tfp) {
       fprintf(tfp,
@@ -4633,9 +5026,14 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (config && !config->no_installable_package) {
-    rc = generate_cmake_project(dir_name ? dir_name : ".",
-                                base_name ? base_name : "generated_client",
-                                config->create_tests_and_mocks);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 20)
+      rc = CDD_C_ERROR_IO;
+    else
+#endif
+      rc = generate_cmake_project(dir_name ? dir_name : ".",
+                                  base_name ? base_name : "generated_client",
+                                  config->create_tests_and_mocks);
     if (rc != CDD_C_SUCCESS) {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);

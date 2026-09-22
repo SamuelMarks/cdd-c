@@ -57,20 +57,16 @@ C_CDD_EXPORT /**
     cli_command_free(struct CliCommand *cmd);
 
 /**
- * @brief Extract CLI command parameters from a CST containing a getopt loop.
+ * @brief Parses an AST/CST to extract CLI options and arguments.
  *
  * @param nodes The root CST node (e.g. function body of main).
  * @param tokens The token list.
  * @param cmd The output command.
  * @return 0 on success, non-zero on failure.
  */
-C_CDD_EXPORT /**
-              * @brief Executes the cst extract cli command operation.
-              */
-    cdd_c_error_t
-    cst_extract_cli_command(const struct CstNodeList *nodes,
-                            const struct TokenList *tokens,
-                            struct CliCommand *cmd);
+C_CDD_EXPORT cdd_c_error_t
+cst_extract_cli_command(const struct CstNodeList *nodes,
+                        const struct TokenList *tokens, struct CliCommand *cmd);
 
 #ifdef __cplusplus
 }

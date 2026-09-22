@@ -202,7 +202,13 @@ def is_strdup(name: str) -> bool:
     """
     if not name:
         return False
-    return name == "strdup"
+    return (
+        name == "strdup"
+        or name.endswith("_strdup")
+        or name.endswith("_malloc")
+        or name.endswith("_realloc")
+        or name.endswith("_calloc")
+    )
 
 
 def is_predicate(name: str) -> bool:

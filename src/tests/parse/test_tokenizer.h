@@ -118,7 +118,6 @@ TEST tokenize_c23_digit_separators(void) {
   char buf[32];
 
   rc = tokenize(code, &tl);
-  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT(tl);
   ASSERT_EQ(5, tl->size); /* num WS num WS num */
@@ -198,7 +197,6 @@ TEST tokenize_digit_separator_edge_case(void) {
   int rc;
 
   rc = tokenize(code, &tl);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   /* 123 (num) */

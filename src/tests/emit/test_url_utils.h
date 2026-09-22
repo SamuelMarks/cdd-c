@@ -158,7 +158,6 @@ TEST test_query_lifecycle(void) {
   int rc;
 
   rc = url_query_init(&qp);
-  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, qp.count);
 

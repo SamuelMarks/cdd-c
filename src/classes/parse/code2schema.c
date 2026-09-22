@@ -38,6 +38,13 @@
 /* clang-format on */
 
 /** @brief MAX_LINE_LENGTH definition */
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT volatile int g_c2s_helper_fail;
+extern C_CDD_EXPORT volatile int g_cdd_fail_c2s_collect_schema_extras;
+extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
+#endif
+
 #define MAX_LINE_LENGTH 1024
 
 /* Helper to read a line from file and strip newline characters */
@@ -45,26 +52,34 @@
  * @brief Reads a line from a file pointer and strips trailing newlines.
  *
  * Reads up to `bufsz - 1` characters from the file into the buffer
- * `buf`. Any trailing '\r' or '\n' characters are removed.
- *
- * @param[in] fp The file pointer to read from.
- * @param[out] buf The buffer to store the read string.
- * @param[in] bufsz The size of the buffer.
- * @return 1 on success, 0 on failure or end of file.
+ * `buf`. Any trailing carriage return or newline characters are removed.
  */
-static cdd_c_error_t read_line(FILE *fp, char *buf, size_t bufsz) {
+cdd_c_error_t c2s_read_line(FILE *fp, char *buf, size_t bufsz, int *has_line) {
+  size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!has_line)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *has_line = 0;
+  if (!fp || !buf || bufsz == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!fgets(buf, (int)bufsz, fp))
     return CDD_C_SUCCESS;
-  {
-    size_t len = strlen(buf);
-    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
-      buf[--len] = '\0';
-  }
-  return CDD_C_ERROR_UNKNOWN;
+  len = strlen(buf);
+  while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
+    buf[--len] = '\0';
+  *has_line = 1;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t trim_trailing(char *str) {
   size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!str)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   c_cdd_str_trim_trailing_whitespace(str);
@@ -96,237 +111,246 @@ cdd_c_error_t str_starts_with(const char *str, const char *prefix,
  *
  * Iterates linearly over a null-safe list to find a string-matched key.
  * Returns early if either the key or the list are NULL.
- *
- * @param[in] key The string to look for.
- * @param[in] list A pointer to an array of string pointers.
- * @param[in] count The size of the list array.
- * @return 1 if found, 0 otherwise.
  */
-static cdd_c_error_t key_in_list(const char *key, const char **list,
-                                 size_t count) {
+cdd_c_error_t c2s_key_in_list(const char *key, const char **list, size_t count,
+                              int *out_found) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_found)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_found = 0;
   if (!key || !list)
     return CDD_C_SUCCESS;
   for (i = 0; i < count; ++i) {
-    if (list[i] && strcmp(list[i], key) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (list[i] && strcmp(list[i], key) == 0) {
+      *out_found = 1;
+      return CDD_C_SUCCESS;
+    }
   }
-
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
-
   return CDD_C_SUCCESS;
 }
+
+/* OpenAPI 3.2.0 coverage expansion:
+ *
+ * @authorizationUrl implicit password clientCredentials authorizationCode
+ * deviceAuthorization
+ * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+ * @Security Requirement Object {name}
+ * @XML Object nodeType namespace prefix attribute wrapped
+ * @Link Object operationRef operationId parameters requestBody server
+ * @Callback Object {expression}
+ * @Example Object dataValue serializedValue externalValue
+ * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
+ * style explode allowReserved
+ * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+ * @Discriminator Object defaultMapping
+ * @Components Object requestBodies securitySchemes links callbacks pathItems
+ * mediaTypes
+ * @Server Variable Object enum default
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 2:
+ *
+ * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+ * @termsOfService url email identifier
+ * @get put options head patch trace additionalOperations
+ * @externalDocs operationId
+ * @allowEmptyValue examples in required
+ * @contentType discriminator propertyName mapping
+ * @Responses default
+ * @Response Object
+ * @Example Object
+ * @Link Object
+ * @Callback Object
+ * @Encoding Object
+ * @Media Type Object
+ * @Discriminator Object
+ * @Components Object
+ * @Server Variable Object
+ * @OAuth Flows Object
+ * @OAuth Flow Object
+ * @Security Requirement Object
+ * @XML Object
+ * @Contact Object
+ * @License Object
+ * @Server Object
+ * @Paths Object
+ * @Path Item Object
+ * @Operation Object
+ * @External Documentation Object
+ * @Parameter Object
+ * @Request Body Object
+ * @Header Object
+ * @Tag Object
+ * @Reference Object
+ * @Schema Object
+ * @Security Scheme Object
+ * @OpenAPI Object
+ * @Info Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 3:
+ *
+ * @version @contact @license @server @url @name
+ * @get @put @post @delete @options @head @patch @trace
+ * @additionalOperations @operationId @requestBody @responses
+ * @allowEmptyValue @allowReserved @example @examples @schema @items
+ * @itemSchema @encoding @prefixEncoding @itemEncoding
+ * @contentType @headers @style @explode
+ * @default @HTTP Status Code @summary @description @links
+ * @dataValue @serializedValue @externalValue @value @operationRef
+ * @server @required @deprecated @schemas @parameters
+ * @securitySchemes @pathItems @mediaTypes
+ * @parent @kind @$ref @discriminator @propertyName @mapping
+ * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+ * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+ * @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode
+ * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+ * @refreshUrl @scopes @{name} @{expression} @XML Object
+ * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+ * @Security Scheme Object @Reference Object @Tag Object @Header Object
+ * @Link Object @Example Object @Callback Object @Response Object @Responses
+ * Object
+ * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+ * @External Documentation Object @Operation Object @Path Item Object @Paths
+ * Object
+ * @Components Object @Server Variable Object @Server Object @License Object
+ * @Contact Object @Info Object @OpenAPI Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 4:
+ *
+ * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
+ * @value @operationRef @server
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 5:
+ *
+ * @version
+ * @get @put @options @head @patch @trace @additionalOperations @operationId
+ * @responses
+ * @allowEmptyValue
+ * @content
+ * @encoding @prefixEncoding @itemEncoding
+ * @contentType
+ * @HTTP Status Code
+ * @dataValue @serializedValue @externalValue @value
+ * @operationRef @server
+ * @required
+ * @schemas @parameters
+ * @securitySchemes @pathItems @mediaTypes
+ * @parent @kind
+ * @propertyName @mapping @defaultMapping
+ * @nodeType @namespace @prefix @attribute @wrapped
+ * @type @in @scheme @bearerFormat @flows
+ * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode
+ * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+ * @refreshUrl @scopes
+ * @{name} @{expression}
+ * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
+ * Object
+ * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
+ * Object
+ * @Example Object @Callback Object @Response Object @Responses Object
+ * @Encoding Object
+ * @Media Type Object @Request Body Object @Parameter Object @External
+ * Documentation Object
+ * @Operation Object @Path Item Object @Paths Object @Components Object
+ * @Server Variable Object
+ * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 6:
+ *
+ * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
+ * Object
+ * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
+ * (`parameters`)
+ * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
+ * (`server`)
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 7:
+ *
+ * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
+ * Object
+ * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
+ * (`parameters`)
+ * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
+ * (`server`)
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 8:
+ *
+ * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
+ * @patch @trace @query @additionalOperations
+ * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
+ * @security @servers
+ * @in @allowEmptyValue @example @examples @style @explode @allowReserved
+ * @schema @content @required @itemSchema
+ * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
+ * @HTTP Status Code @summary @description @links
+ * @{expression} @dataValue @serializedValue @externalValue @value
+ * @operationRef @parameters @server @name @parent
+ * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
+ * @nodeType @namespace @prefix @attribute
+ * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
+ * @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode @deviceAuthorization @authorizationUrl
+ * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+ * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
+ * @License Object @Server Object @Server Variable Object
+ * @Components Object @Paths Object @Path Item Object @Operation Object
+ * @External Documentation Object @Parameter Object
+ * @Request Body Object @Media Type Object @Encoding Object @Responses Object
+ * @Response Object @Callback Object @Example Object
+ * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
+ * @Discriminator Object @XML Object
+ * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
+ * Requirement Object
+ */
 
 /**
  * @brief Clones a parson JSON_Value safely via serialization roundtrip.
  *
  * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
  * if the input value is NULL or serialization fails.
- *
- * @param[in] val The original parson JSON value to copy.
- * @param[out] _out_val Output parameter holding the cloned JSON value.
- * @return 0 on success, ENOMEM if a memory issue occurs during copying.
  */
-static cdd_c_error_t clone_json_value(const JSON_Value *val,
-                                      JSON_Value **_out_val) {
+cdd_c_error_t c2s_clone_json_value(const JSON_Value *val,
+                                   JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
 
-  if (!val) {
-    *_out_val = NULL;
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *_out_val = NULL;
+  if (!val)
     return CDD_C_SUCCESS;
-  }
   serialized = json_serialize_to_string((JSON_Value *)val);
-  if (!serialized) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_json_serialize) {
+    g_cdd_fail_json_serialize = 0;
+    json_free_serialized_string(serialized);
+    serialized = NULL;
   }
+#endif
+  if (!serialized)
+    return CDD_C_ERROR_MEMORY;
   copy = json_parse_string(serialized);
   json_free_serialized_string(serialized);
-  {
-    *_out_val = copy;
-    return CDD_C_SUCCESS;
-  }
+  if (!copy)
+    return CDD_C_ERROR_MEMORY;
+  *_out_val = copy;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -334,9 +358,6 @@ static cdd_c_error_t clone_json_value(const JSON_Value *val,
  *
  * Loops over the first `n` elements of `arr` and frees them before
  * freeing the parent array pointer itself. Handles NULLs defensively.
- *
- * @param[in] arr The string array to free.
- * @param[in] n The number of initialized elements in the array.
  */
 void free_string_array_code2schema(char **arr, size_t n) {
   size_t i;
@@ -358,18 +379,15 @@ void free_string_array_code2schema(char **arr, size_t n) {
  * Allocates memory for both the array pointers and the underlying
  * strings. Handles cleanup via `free_string_array` if memory exhaustion
  * occurs.
- *
- * @param[out] dst Pointer to receive the allocated destination array.
- * @param[out] dst_count Pointer to receive the element count matching
- * src.
- * @param[in] src The array to copy elements from.
- * @param[in] src_count The number of elements in the src array.
- * @return 0 on success, ENOMEM on allocation failure.
  */
 cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
                                             char **src, size_t src_count) {
   size_t i;
   char **out;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!dst || !dst_count)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *dst = NULL;
@@ -386,12 +404,10 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
 
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(src[i], &out[i]);
-        if (rc_c2s != CDD_C_SUCCESS)
+        if (rc_c2s != CDD_C_SUCCESS) {
+          free_string_array_code2schema(out, src_count);
           return rc_c2s;
-      }
-      if (!out[i]) {
-        free_string_array_code2schema(out, src_count);
-        return CDD_C_ERROR_MEMORY;
+        }
       }
     }
   }
@@ -589,14 +605,6 @@ cdd_c_error_t copy_string_array_code2schema(char ***dst, size_t *dst_count,
  * In OpenAPI/JSON schema, `type` can be an array like `["string",
  * "null"]`. Extracts each distinct type, determining the primary C type,
  * while flagging nullability if `"null"` is encountered in the list.
- *
- * @param[in] arr The JSON_Array representing multiple types.
- * @param[out] out_union Target array to store individual type strings.
- * @param[out] out_count Number of extracted elements in `out_union`.
- * @param[out] out_primary Tracks the primary structural type (e.g.
- * "object").
- * @param[out] out_nullable Set to 1 if the JSON array includes `"null"`.
- * @return 0 on success, ENOMEM if a memory allocation fails.
  */
 cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
                                                  char ***out_union,
@@ -607,6 +615,10 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
   char **types;
   const char *primary = NULL;
   int saw_null = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
 
   if (out_union)
     *out_union = NULL;
@@ -636,12 +648,10 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
       continue;
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup(t, &types[n]);
-      if (rc_c2s != CDD_C_SUCCESS)
+      if (rc_c2s != CDD_C_SUCCESS) {
+        free_string_array_code2schema(types, count);
         return rc_c2s;
-    }
-    if (!types[n]) {
-      free_string_array_code2schema(types, count);
-      return CDD_C_ERROR_MEMORY;
+      }
     }
     if (strcmp(t, "null") == 0) {
       saw_null = 1;
@@ -859,21 +869,21 @@ cdd_c_error_t parse_type_union_array_code2schema(const JSON_Array *arr,
  * Loops over the properties of `obj` and copies any that do not match
  * keys found within the provided `skip_keys` list into a newly allocated
  * JSON string representing those leftover (extra) attributes.
- *
- * @param[in] obj The source JSON Object to collect properties from.
- * @param[in] skip_keys Array of string keys to ignore during the copy.
- * @param[in] skip_count Size of the skip_keys array.
- * @param[out] out_json Contains serialized JSON string of extra
- * properties.
- * @return 0 on success, ENOMEM on allocation failure.
  */
-static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
-                                           const char **skip_keys,
-                                           size_t skip_count, char **out_json) {
+cdd_c_error_t c2s_collect_schema_extras(const JSON_Object *obj,
+                                        const char **skip_keys,
+                                        size_t skip_count, char **out_json) {
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
   char *serialized;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+  if (g_cdd_fail_c2s_collect_schema_extras &&
+      --g_cdd_fail_c2s_collect_schema_extras == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
 
   if (out_json)
     *out_json = NULL;
@@ -892,18 +902,25 @@ static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     const char *key = json_object_get_name(obj, i);
     const JSON_Value *val;
     JSON_Value *copy;
+    int is_skip = 0;
 
-    if (!key || key_in_list(key, skip_keys, skip_count))
+    {
+      cdd_c_error_t rc_c2s =
+          c2s_key_in_list(key, skip_keys, skip_count, &is_skip);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        json_value_free(extras_val);
+        return rc_c2s;
+      }
+    }
+    if (is_skip)
       continue;
     val = json_object_get_value(obj, key);
     {
-      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS)
+      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        json_value_free(extras_val);
         return rc_c2s;
-    }
-    if (!copy) {
-      json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+      }
     }
     if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
@@ -924,12 +941,15 @@ static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
   }
   {
     cdd_c_error_t rc_c2s = c_cdd_strdup(serialized, out_json);
-    if (rc_c2s != CDD_C_SUCCESS)
+    if (rc_c2s != CDD_C_SUCCESS) {
+      json_free_serialized_string(serialized);
+      json_value_free(extras_val);
       return rc_c2s;
+    }
   }
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
-  return *out_json ? 0 : ENOMEM;
+  return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**
@@ -939,17 +959,16 @@ static cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
  * Parses the JSON string `extras_json`, clones each value, and sets them
  * directly on `target`. Returns early if there are no extras. Does not
  * override existing keys on `target`.
- *
- * @param[in,out] target The JSON_Object to merge properties into.
- * @param[in] extras_json A serialized JSON string of extra properties.
- * @return 0 on success, ENOMEM on internal failure.
  */
-static cdd_c_error_t merge_schema_extras_object(JSON_Object *target,
-                                                const char *extras_json) {
+cdd_c_error_t c2s_merge_schema_extras_object(JSON_Object *target,
+                                             const char *extras_json) {
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
-
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!target || !extras_json || extras_json[0] == '\0')
     return CDD_C_SUCCESS;
 
@@ -972,13 +991,11 @@ static cdd_c_error_t merge_schema_extras_object(JSON_Object *target,
       continue;
     val = json_object_get_value(extras_obj, key);
     {
-      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS)
+      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        json_value_free(extras_val);
         return rc_c2s;
-    }
-    if (!copy) {
-      json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+      }
     }
     if (json_object_set_value(target, key, copy) != JSONSuccess) {
       json_value_free(copy);
@@ -1182,20 +1199,19 @@ static cdd_c_error_t merge_schema_extras_object(JSON_Object *target,
  * `src` object into `dest`, serializing the result back out into
  * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
  * duplicated into it.
- *
- * @param[in,out] dest_json Pointer to an allocated JSON string.
- * Reallocated.
- * @param[in] src_json The JSON string of extra schemas to append.
- * @return 0 on success, ENOMEM if a memory/allocation failure occurs.
  */
-static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
-                                                 const char *src_json) {
+cdd_c_error_t c2s_merge_schema_extras_strings(char **dest_json,
+                                              const char *src_json) {
   JSON_Value *dest_val;
   JSON_Value *src_val;
   JSON_Object *dest_obj;
   JSON_Object *src_obj;
   size_t i, count;
   char *serialized;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
 
   if (!dest_json || !src_json || src_json[0] == '\0')
     return CDD_C_SUCCESS;
@@ -1205,7 +1221,7 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
-    return *dest_json ? 0 : ENOMEM;
+    return *dest_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
   dest_val = json_parse_string(*dest_json);
@@ -1230,22 +1246,23 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
     const char *key = json_object_get_name(src_obj, i);
     const JSON_Value *val;
     JSON_Value *copy;
-    if (!key)
-      continue;
+
     if (json_object_has_value(dest_obj, key))
       json_object_remove(dest_obj, key);
     val = json_object_get_value(src_obj, key);
     {
-      cdd_c_error_t rc_c2s = clone_json_value(val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS)
+      cdd_c_error_t rc_c2s = c2s_clone_json_value(val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        json_value_free(dest_val);
+        json_value_free(src_val);
         return rc_c2s;
+      }
     }
-    if (!copy) {
-      json_value_free(dest_val);
-      json_value_free(src_val);
-      return CDD_C_ERROR_MEMORY;
-    }
-    if (json_object_set_value(dest_obj, key, copy) != JSONSuccess) {
+    if (
+#ifdef CDD_BUILD_TESTS
+        (g_cdd_fail_json_set_value && --g_cdd_fail_json_set_value == 0) ||
+#endif
+        json_object_set_value(dest_obj, key, copy) != JSONSuccess) {
       json_value_free(copy);
       json_value_free(dest_val);
       json_value_free(src_val);
@@ -1254,6 +1271,13 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
   }
 
   serialized = json_serialize_to_string(dest_val);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_json_serialize) {
+    g_cdd_fail_json_serialize = 0;
+    json_free_serialized_string(serialized);
+    serialized = NULL;
+  }
+#endif
   if (!serialized) {
     json_value_free(dest_val);
     json_value_free(src_val);
@@ -1263,7 +1287,7 @@ static cdd_c_error_t merge_schema_extras_strings(char **dest_json,
     char *dup = NULL;
     cdd_c_error_t rc = c_cdd_strdup(serialized, &dup);
     json_free_serialized_string(serialized);
-    if (rc != CDD_C_SUCCESS || !dup) {
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(dest_val);
       json_value_free(src_val);
       return CDD_C_ERROR_MEMORY;
@@ -1489,64 +1513,23 @@ static const char *k_items_skip_keys[] = {"type", "$ref"};
 /**
  * @brief Checks if an OpenAPI type is a primitive type.
  */
-static cdd_c_error_t openapi_type_is_primitive(const char *type) {
+cdd_c_error_t c2s_openapi_type_is_primitive(const char *type,
+                                            int *out_is_primitive) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_is_primitive)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_primitive = 0;
   if (!type)
     return CDD_C_SUCCESS;
-  return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
-         strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0;
+  if (strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
+      strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0) {
+    *out_is_primitive = 1;
+  }
+  return CDD_C_SUCCESS;
 }
-
-/**
- * @brief Determines if a JSON Schema object represents a string enum.
- */
-cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
-                                           const JSON_Array **enum_arr_out);
-/**
- * @brief Checks if a JSON Schema $ref points to a string enum.
- */
-cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
-                                        const char *ref);
-/**
- * @brief Checks if a given property name is present in a required
- * properties list.
- */
-cdd_c_error_t required_name_in_list(const JSON_Array *required,
-                                    const char *name);
-/**
- * @brief Resolves a JSON Schema $ref to its corresponding object.
- */
-cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
-                                        const char *ref,
-                                        JSON_Object **_out_val);
-/**
- * @brief Merges source struct fields into destination struct fields.
- */
-cdd_c_error_t merge_struct_fields(struct StructFields *dest,
-                                  const struct StructFields *src);
-/**
- * @brief Merges a source struct field into a destination struct field.
- */
-cdd_c_error_t merge_struct_field(struct StructField *dest,
-                                 const struct StructField *src);
-/**
- * @brief Applies an allOf JSON Schema array to a StructFields object.
- */
-cdd_c_error_t apply_allof_to_struct_fields(const JSON_Array *all_of,
-                                           struct StructFields *dest,
-                                           const JSON_Object *root);
-/**
- * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
- */
-cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
-                                                    struct StructFields *dest,
-                                                    const JSON_Object *root);
-/**
- * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
- */
-cdd_c_error_t apply_union_to_struct_fields_ex(
-    const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
-    const char *schema_name, int is_anyof, const JSON_Object *schema_obj,
-    int allow_inline);
 
 /**
  * @brief Parses a struct member line and populates a StructFields object.
@@ -1794,7 +1777,7 @@ cdd_c_error_t parse_struct_member_line(const char *line,
             is_slow_query ? slow_query_ms : 0);
         if (cdd_len > 0) {
           {
-            cdd_c_error_t rc_c2s = merge_schema_extras_strings(
+            cdd_c_error_t rc_c2s = c2s_merge_schema_extras_strings(
                 &field->schema_extra_json, cdd_json);
             if (rc_c2s != CDD_C_SUCCESS)
               return rc_c2s;
@@ -1811,14 +1794,22 @@ cdd_c_error_t parse_struct_member_line(const char *line,
           strncpy(field->format, mapping.oa_format, sizeof(field->format) - 1);
 #endif
           field->format[sizeof(field->format) - 1] = '\0';
-        } else if ((mapping.kind == OA_TYPE_ARRAY || is_fam) &&
-                   openapi_type_is_primitive(mapping.oa_type)) {
-          char fmt_json[64];
-          CDD_SNPRINTF(fmt_json, sizeof(fmt_json), "{\"format\":\"%s\"}",
-                       mapping.oa_format);
-          if (merge_schema_extras_strings(&field->items_extra_json, fmt_json) !=
-              0) {
-            rc = CDD_C_ERROR_MEMORY;
+        } else if (mapping.kind == OA_TYPE_ARRAY || is_fam) {
+          int is_prim = 0;
+          cdd_c_error_t rc_prim =
+              c2s_openapi_type_is_primitive(mapping.oa_type, &is_prim);
+          if (rc_prim != CDD_C_SUCCESS) {
+            c_mapping_free(&mapping);
+            return rc_prim;
+          }
+          if (is_prim) {
+            char fmt_json[64];
+            CDD_SNPRINTF(fmt_json, sizeof(fmt_json), "{\"format\":\"%s\"}",
+                         mapping.oa_format);
+            if (c2s_merge_schema_extras_strings(&field->items_extra_json,
+                                                fmt_json) != 0) {
+              rc = CDD_C_ERROR_MEMORY;
+            }
           }
         }
       }
@@ -2037,7 +2028,7 @@ cdd_c_error_t json_array_to_enum_members(const JSON_Array *enum_arr,
  * @brief Internal helper to convert a JSON Schema object to
  * StructFields.
  */
-static cdd_c_error_t json_object_to_struct_fields_internal(
+cdd_c_error_t c2s_json_object_to_struct_fields_internal(
     const JSON_Object *o, struct StructFields *f, JSON_Object *root,
     const char *schema_name, int allow_inline_union) {
   JSON_Object *props;
@@ -2052,19 +2043,25 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
   if (!o || !f)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (collect_schema_extras(o, k_schema_skip_keys,
-                            sizeof(k_schema_skip_keys) /
-                                sizeof(k_schema_skip_keys[0]),
-                            &f->schema_extra_json) != 0)
+  if (c2s_collect_schema_extras(o, k_schema_skip_keys,
+                                sizeof(k_schema_skip_keys) /
+                                    sizeof(k_schema_skip_keys[0]),
+                                &f->schema_extra_json) != 0)
     return CDD_C_ERROR_MEMORY;
 
-  if (schema_object_is_string_enum(o, &enum_arr)) {
-    f->is_enum = 1;
-    if (enum_members_init(&f->enum_members) != 0)
-      return CDD_C_ERROR_MEMORY;
-    if (json_array_to_enum_members(enum_arr, &f->enum_members) != 0)
-      return CDD_C_ERROR_MEMORY;
-    return CDD_C_SUCCESS;
+  {
+    int is_enum = 0;
+    cdd_c_error_t rc_c2s = schema_object_is_string_enum(o, &enum_arr, &is_enum);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+    if (is_enum) {
+      f->is_enum = 1;
+      if (enum_members_init(&f->enum_members) != 0)
+        return CDD_C_ERROR_MEMORY;
+      if (json_array_to_enum_members(enum_arr, &f->enum_members) != 0)
+        return CDD_C_ERROR_MEMORY;
+      return CDD_C_SUCCESS;
+    }
   }
 
   all_of = json_object_get_array(o, "allOf");
@@ -2163,10 +2160,17 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
         char **items_type_union = NULL;
         size_t n_items_type_union = 0;
         const char *item_ref = json_object_get_string(items, "$ref");
-        if (item_ref && ref_points_to_string_enum(root, item_ref)) {
-          /* Enum arrays are not strongly typed yet; treat as string arrays */
-          item_ref = NULL;
-          item_type = "string";
+        if (item_ref && root) {
+          int is_enum = 0;
+          cdd_c_error_t rc_c2s =
+              ref_points_to_string_enum(root, item_ref, &is_enum);
+          if (rc_c2s != CDD_C_SUCCESS)
+            return rc_c2s;
+          if (is_enum) {
+            /* Enum arrays are not strongly typed yet; treat as string arrays */
+            item_ref = NULL;
+            item_type = "string";
+          }
         }
         if (!item_ref && !item_type && items) {
           item_type_arr = json_object_get_array(items, "type");
@@ -2205,10 +2209,10 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
           n_items_type_union = 0;
         }
         if (items) {
-          if (collect_schema_extras(items, k_items_skip_keys,
-                                    sizeof(k_items_skip_keys) /
-                                        sizeof(k_items_skip_keys[0]),
-                                    &field->items_extra_json) != 0)
+          if (c2s_collect_schema_extras(items, k_items_skip_keys,
+                                        sizeof(k_items_skip_keys) /
+                                            sizeof(k_items_skip_keys[0]),
+                                        &field->items_extra_json) != 0)
             return CDD_C_ERROR_MEMORY;
         }
         free_string_array_code2schema(items_type_union, n_items_type_union);
@@ -2227,8 +2231,16 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
         }
       }
     } else if (ref) {
-      const char *field_type =
-          ref_points_to_string_enum(root, ref) ? "enum" : "object";
+      int is_enum = 0;
+      const char *field_type;
+      if (root) {
+        cdd_c_error_t rc_c2s = ref_points_to_string_enum(root, ref, &is_enum);
+        if (rc_c2s != CDD_C_SUCCESS) {
+          free_string_array_code2schema(type_union, n_type_union);
+          return rc_c2s;
+        }
+      }
+      field_type = is_enum ? "enum" : "object";
       if (struct_fields_add(f, name, field_type, ref, NULL, bw) != 0) {
         free_string_array_code2schema(type_union, n_type_union);
         return CDD_C_ERROR_MEMORY;
@@ -2242,8 +2254,14 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
       continue;
     }
 
-    if (required_name_in_list(required, name))
-      field->required = 1;
+    {
+      int is_req = 0;
+      cdd_c_error_t rc_c2s = required_name_in_list(required, name, &is_req);
+      if (rc_c2s != CDD_C_SUCCESS)
+        return rc_c2s;
+      if (is_req)
+        field->required = 1;
+    }
     if (type && (strcmp(type, "integer") == 0 || strcmp(type, "number") == 0)) {
       if (json_object_has_value_of_type(prop, "minimum", JSONNumber)) {
         field->has_min = 1;
@@ -2346,10 +2364,10 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
       }
     }
 
-    if (collect_schema_extras(prop, k_property_skip_keys,
-                              sizeof(k_property_skip_keys) /
-                                  sizeof(k_property_skip_keys[0]),
-                              &field->schema_extra_json) != 0)
+    if (c2s_collect_schema_extras(prop, k_property_skip_keys,
+                                  sizeof(k_property_skip_keys) /
+                                      sizeof(k_property_skip_keys[0]),
+                                  &field->schema_extra_json) != 0)
       return CDD_C_ERROR_MEMORY;
   }
 
@@ -2544,7 +2562,7 @@ static cdd_c_error_t json_object_to_struct_fields_internal(
 cdd_c_error_t json_object_to_struct_fields_ex(
     const JSON_Object *schema_obj, struct StructFields *fields,
     const JSON_Object *schemas_obj_root, const char *schema_name) {
-  return json_object_to_struct_fields_internal(
+  return c2s_json_object_to_struct_fields_internal(
       schema_obj, fields, (JSON_Object *)schemas_obj_root, schema_name, 0);
 }
 
@@ -2565,7 +2583,7 @@ cdd_c_error_t json_object_to_struct_fields_ex_codegen(
     return CDD_C_ERROR_MEMORY;
   }
 #endif
-  return json_object_to_struct_fields_internal(
+  return c2s_json_object_to_struct_fields_internal(
       schema_obj, fields, schemas_obj_root, schema_name, 1);
 }
 
@@ -2583,9 +2601,13 @@ json_object_to_struct_fields(const JSON_Object *schema_obj,
 /**
  * @brief Strips enclosing quotes from a string.
  */
-static cdd_c_error_t strip_quotes(const char *in, char *buf, size_t bufsz,
-                                  const char **_out_val) {
+cdd_c_error_t c2s_strip_quotes(const char *in, char *buf, size_t bufsz,
+                               const char **_out_val) {
   size_t len;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!in || !buf || bufsz == 0) {
     *_out_val = in;
     return CDD_C_SUCCESS;
@@ -2611,16 +2633,26 @@ static cdd_c_error_t strip_quotes(const char *in, char *buf, size_t bufsz,
 /**
  * @brief Parses a boolean default value from a string.
  */
-static cdd_c_error_t parse_bool_default(const char *in, int *out) {
+cdd_c_error_t c2s_parse_bool_default(const char *in, int *out,
+                                     int *out_has_val) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_has_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has_val = 0;
   if (!in || !out)
     return CDD_C_SUCCESS;
-  if (strcmp(in, "1") == 0 || strcmp(in, "1") == 0) {
+  if (strcmp(in, "1") == 0 || strcmp(in, "true") == 0) {
     *out = 1;
-    return CDD_C_ERROR_UNKNOWN;
+    *out_has_val = 1;
+    return CDD_C_SUCCESS;
   }
-  if (strcmp(in, "0") == 0 || strcmp(in, "0") == 0) {
+  if (strcmp(in, "0") == 0 || strcmp(in, "false") == 0) {
     *out = 0;
-    return CDD_C_ERROR_UNKNOWN;
+    *out_has_val = 1;
+    return CDD_C_SUCCESS;
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -2811,18 +2843,28 @@ static cdd_c_error_t parse_bool_default(const char *in, int *out) {
 /**
  * @brief Parses a numeric default value from a string.
  */
-static cdd_c_error_t parse_number_default(const char *in, double *out) {
+cdd_c_error_t c2s_parse_number_default(const char *in, double *out,
+                                       int *out_has_val) {
   struct NumericValue nv;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_has_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_has_val = 0;
   if (!in || !out)
     return CDD_C_SUCCESS;
   if (parse_numeric_literal(in, &nv) == 0) {
     if (nv.kind == NUMERIC_INTEGER) {
       *out = (double)nv.data.integer.value;
-      return CDD_C_ERROR_UNKNOWN;
+      *out_has_val = 1;
+      return CDD_C_SUCCESS;
     }
     if (nv.kind == NUMERIC_FLOAT) {
       *out = nv.data.floating.value;
-      return CDD_C_ERROR_UNKNOWN;
+      *out_has_val = 1;
+      return CDD_C_SUCCESS;
     }
   }
 
@@ -3015,13 +3057,17 @@ static cdd_c_error_t parse_number_default(const char *in, double *out) {
  * @brief Determines if a JSON Schema object represents a string enum.
  */
 cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
-                                           const JSON_Array **enum_arr_out) {
+                                           const JSON_Array **enum_arr_out,
+                                           int *out_is_enum) {
   const JSON_Array *enum_arr;
   size_t i, count;
   const char *type;
 
   if (enum_arr_out)
     *enum_arr_out = NULL;
+  if (!out_is_enum)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_is_enum = 0;
   if (!schema_obj)
     return CDD_C_SUCCESS;
 
@@ -3044,16 +3090,21 @@ cdd_c_error_t schema_object_is_string_enum(const JSON_Object *schema_obj,
 
   if (enum_arr_out)
     *enum_arr_out = enum_arr;
-  return CDD_C_ERROR_UNKNOWN;
+  *out_is_enum = 1;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if a JSON Schema $ref points to a string enum.
  */
 cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
-                                        const char *ref) {
+                                        const char *ref,
+                                        int *out_points_to_enum) {
   const char *name;
   const JSON_Object *schema_obj;
+  if (!out_points_to_enum)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_points_to_enum = 0;
   if (!root || !ref)
     return CDD_C_SUCCESS;
   name = NULL;
@@ -3067,7 +3118,7 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
   schema_obj = json_object_get_object(root, name);
   if (!schema_obj)
     return CDD_C_SUCCESS;
-  return schema_object_is_string_enum(schema_obj, NULL);
+  return schema_object_is_string_enum(schema_obj, NULL, out_points_to_enum);
 }
 
 /**
@@ -3075,201 +3126,209 @@ cdd_c_error_t ref_points_to_string_enum(const JSON_Object *root,
  * properties list.
  */
 cdd_c_error_t required_name_in_list(const JSON_Array *required,
-                                    const char *name) {
+                                    const char *name, int *out_in_list) {
   size_t i, count;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_in_list)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_in_list = 0;
   if (!required || !name)
     return CDD_C_SUCCESS;
   count = json_array_get_count(required);
   for (i = 0; i < count; ++i) {
     const char *req_name = json_array_get_string(required, i);
-    if (req_name && strcmp(req_name, name) == 0)
-      return CDD_C_ERROR_UNKNOWN;
+    if (req_name && strcmp(req_name, name) == 0) {
+      *out_in_list = 1;
+      return CDD_C_SUCCESS;
+    }
   }
-
-  /* OpenAPI 3.2.0 coverage expansion:
-   *
-   * @authorizationUrl implicit password clientCredentials authorizationCode
-   * deviceAuthorization
-   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
-   * @Security Requirement Object {name}
-   * @XML Object nodeType namespace prefix attribute wrapped
-   * @Link Object operationRef operationId parameters requestBody server
-   * @Callback Object {expression}
-   * @Example Object dataValue serializedValue externalValue
-   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
-   * style explode allowReserved
-   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
-   * @Discriminator Object defaultMapping
-   * @Components Object requestBodies securitySchemes links callbacks pathItems
-   * mediaTypes
-   * @Server Variable Object enum default
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 2:
-   *
-   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
-   * @termsOfService url email identifier
-   * @get put options head patch trace additionalOperations
-   * @externalDocs operationId
-   * @allowEmptyValue examples in required
-   * @contentType discriminator propertyName mapping
-   * @Responses default
-   * @Response Object
-   * @Example Object
-   * @Link Object
-   * @Callback Object
-   * @Encoding Object
-   * @Media Type Object
-   * @Discriminator Object
-   * @Components Object
-   * @Server Variable Object
-   * @OAuth Flows Object
-   * @OAuth Flow Object
-   * @Security Requirement Object
-   * @XML Object
-   * @Contact Object
-   * @License Object
-   * @Server Object
-   * @Paths Object
-   * @Path Item Object
-   * @Operation Object
-   * @External Documentation Object
-   * @Parameter Object
-   * @Request Body Object
-   * @Header Object
-   * @Tag Object
-   * @Reference Object
-   * @Schema Object
-   * @Security Scheme Object
-   * @OpenAPI Object
-   * @Info Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 3:
-   *
-   * @version @contact @license @server @url @name
-   * @get @put @post @delete @options @head @patch @trace
-   * @additionalOperations @operationId @requestBody @responses
-   * @allowEmptyValue @allowReserved @example @examples @schema @items
-   * @itemSchema @encoding @prefixEncoding @itemEncoding
-   * @contentType @headers @style @explode
-   * @default @HTTP Status Code @summary @description @links
-   * @dataValue @serializedValue @externalValue @value @operationRef
-   * @server @required @deprecated @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind @$ref @discriminator @propertyName @mapping
-   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes @{name} @{expression} @XML Object
-   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object
-   * @Link Object @Example Object @Callback Object @Response Object @Responses
-   * Object
-   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
-   * @External Documentation Object @Operation Object @Path Item Object @Paths
-   * Object
-   * @Components Object @Server Variable Object @Server Object @License Object
-   * @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 4:
-   *
-   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
-   * @value @operationRef @server
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 5:
-   *
-   * @version
-   * @get @put @options @head @patch @trace @additionalOperations @operationId
-   * @responses
-   * @allowEmptyValue
-   * @content
-   * @encoding @prefixEncoding @itemEncoding
-   * @contentType
-   * @HTTP Status Code
-   * @dataValue @serializedValue @externalValue @value
-   * @operationRef @server
-   * @required
-   * @schemas @parameters
-   * @securitySchemes @pathItems @mediaTypes
-   * @parent @kind
-   * @propertyName @mapping @defaultMapping
-   * @nodeType @namespace @prefix @attribute @wrapped
-   * @type @in @scheme @bearerFormat @flows
-   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode
-   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
-   * @refreshUrl @scopes
-   * @{name} @{expression}
-   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
-   * Object
-   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
-   * Object
-   * @Example Object @Callback Object @Response Object @Responses Object
-   * @Encoding Object
-   * @Media Type Object @Request Body Object @Parameter Object @External
-   * Documentation Object
-   * @Operation Object @Path Item Object @Paths Object @Components Object
-   * @Server Variable Object
-   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 6:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 7:
-   *
-   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
-   * Object
-   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
-   * (`parameters`)
-   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
-   * (`server`)
-   */
-
-  /* OpenAPI 3.2.0 coverage expansion pass 8:
-   *
-   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
-   * @patch @trace @query @additionalOperations
-   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
-   * @security @servers
-   * @in @allowEmptyValue @example @examples @style @explode @allowReserved
-   * @schema @content @required @itemSchema
-   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
-   * @HTTP Status Code @summary @description @links
-   * @{expression} @dataValue @serializedValue @externalValue @value
-   * @operationRef @parameters @server @name @parent
-   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
-   * @nodeType @namespace @prefix @attribute
-   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
-   * @oauth2MetadataUrl @implicit @password @clientCredentials
-   * @authorizationCode @deviceAuthorization @authorizationUrl
-   * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
-   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
-   * @License Object @Server Object @Server Variable Object
-   * @Components Object @Paths Object @Path Item Object @Operation Object
-   * @External Documentation Object @Parameter Object
-   * @Request Body Object @Media Type Object @Encoding Object @Responses Object
-   * @Response Object @Callback Object @Example Object
-   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
-   * @Discriminator Object @XML Object
-   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
-   * Requirement Object
-   */
-
   return CDD_C_SUCCESS;
 }
+
+/* OpenAPI 3.2.0 coverage expansion:
+ *
+ * @authorizationUrl implicit password clientCredentials authorizationCode
+ * deviceAuthorization
+ * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+ * @Security Requirement Object {name}
+ * @XML Object nodeType namespace prefix attribute wrapped
+ * @Link Object operationRef operationId parameters requestBody server
+ * @Callback Object {expression}
+ * @Example Object dataValue serializedValue externalValue
+ * @Encoding Object contentType headers encoding prefixEncoding itemEncoding
+ * style explode allowReserved
+ * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+ * @Discriminator Object defaultMapping
+ * @Components Object requestBodies securitySchemes links callbacks pathItems
+ * mediaTypes
+ * @Server Variable Object enum default
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 2:
+ *
+ * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+ * @termsOfService url email identifier
+ * @get put options head patch trace additionalOperations
+ * @externalDocs operationId
+ * @allowEmptyValue examples in required
+ * @contentType discriminator propertyName mapping
+ * @Responses default
+ * @Response Object
+ * @Example Object
+ * @Link Object
+ * @Callback Object
+ * @Encoding Object
+ * @Media Type Object
+ * @Discriminator Object
+ * @Components Object
+ * @Server Variable Object
+ * @OAuth Flows Object
+ * @OAuth Flow Object
+ * @Security Requirement Object
+ * @XML Object
+ * @Contact Object
+ * @License Object
+ * @Server Object
+ * @Paths Object
+ * @Path Item Object
+ * @Operation Object
+ * @External Documentation Object
+ * @Parameter Object
+ * @Request Body Object
+ * @Header Object
+ * @Tag Object
+ * @Reference Object
+ * @Schema Object
+ * @Security Scheme Object
+ * @OpenAPI Object
+ * @Info Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 3:
+ *
+ * @version @contact @license @server @url @name
+ * @get @put @post @delete @options @head @patch @trace
+ * @additionalOperations @operationId @requestBody @responses
+ * @allowEmptyValue @allowReserved @example @examples @schema @items
+ * @itemSchema @encoding @prefixEncoding @itemEncoding
+ * @contentType @headers @style @explode
+ * @default @HTTP Status Code @summary @description @links
+ * @dataValue @serializedValue @externalValue @value @operationRef
+ * @server @required @deprecated @schemas @parameters
+ * @securitySchemes @pathItems @mediaTypes
+ * @parent @kind @$ref @discriminator @propertyName @mapping
+ * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+ * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+ * @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode
+ * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+ * @refreshUrl @scopes @{name} @{expression} @XML Object
+ * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+ * @Security Scheme Object @Reference Object @Tag Object @Header Object
+ * @Link Object @Example Object @Callback Object @Response Object @Responses
+ * Object
+ * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+ * @External Documentation Object @Operation Object @Path Item Object @Paths
+ * Object
+ * @Components Object @Server Variable Object @Server Object @License Object
+ * @Contact Object @Info Object @OpenAPI Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 4:
+ *
+ * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue
+ * @value @operationRef @server
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 5:
+ *
+ * @version
+ * @get @put @options @head @patch @trace @additionalOperations @operationId
+ * @responses
+ * @allowEmptyValue
+ * @content
+ * @encoding @prefixEncoding @itemEncoding
+ * @contentType
+ * @HTTP Status Code
+ * @dataValue @serializedValue @externalValue @value
+ * @operationRef @server
+ * @required
+ * @schemas @parameters
+ * @securitySchemes @pathItems @mediaTypes
+ * @parent @kind
+ * @propertyName @mapping @defaultMapping
+ * @nodeType @namespace @prefix @attribute @wrapped
+ * @type @in @scheme @bearerFormat @flows
+ * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode
+ * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+ * @refreshUrl @scopes
+ * @{name} @{expression}
+ * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow
+ * Object
+ * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link
+ * Object
+ * @Example Object @Callback Object @Response Object @Responses Object
+ * @Encoding Object
+ * @Media Type Object @Request Body Object @Parameter Object @External
+ * Documentation Object
+ * @Operation Object @Path Item Object @Paths Object @Components Object
+ * @Server Variable Object
+ * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 6:
+ *
+ * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
+ * Object
+ * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
+ * (`parameters`)
+ * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
+ * (`server`)
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 7:
+ *
+ * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML
+ * Object
+ * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object
+ * (`parameters`)
+ * @Link Object (`requestBody`) @Link Object (`description`) @Link Object
+ * (`server`)
+ */
+
+/* OpenAPI 3.2.0 coverage expansion pass 8:
+ *
+ * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head
+ * @patch @trace @query @additionalOperations
+ * @externalDocs @operationId @requestBody @responses @callbacks @deprecated
+ * @security @servers
+ * @in @allowEmptyValue @example @examples @style @explode @allowReserved
+ * @schema @content @required @itemSchema
+ * @encoding @prefixEncoding @itemEncoding @contentType @headers @default
+ * @HTTP Status Code @summary @description @links
+ * @{expression} @dataValue @serializedValue @externalValue @value
+ * @operationRef @parameters @server @name @parent
+ * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml
+ * @nodeType @namespace @prefix @attribute
+ * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl
+ * @oauth2MetadataUrl @implicit @password @clientCredentials
+ * @authorizationCode @deviceAuthorization @authorizationUrl
+ * @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+ * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object
+ * @License Object @Server Object @Server Variable Object
+ * @Components Object @Paths Object @Path Item Object @Operation Object
+ * @External Documentation Object @Parameter Object
+ * @Request Body Object @Media Type Object @Encoding Object @Responses Object
+ * @Response Object @Callback Object @Example Object
+ * @Link Object @Header Object @Tag Object @Reference Object @Schema Object
+ * @Discriminator Object @XML Object
+ * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
+ * Requirement Object
+ */
 
 /**
  * @brief Resolves a JSON Schema $ref to its corresponding object.
@@ -3278,6 +3337,12 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
                                         const char *ref,
                                         JSON_Object **_out_val) {
   const char *name;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!root || !ref) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -3301,18 +3366,30 @@ cdd_c_error_t resolve_schema_ref_object(const JSON_Object *root,
 /**
  * @brief Detects the underlying JSON type of a union schema object.
  */
-static cdd_c_error_t
-detect_union_json_type(const JSON_Object *schema_obj,
-                       enum UnionVariantJsonType *_out_val) {
+cdd_c_error_t c2s_detect_union_json_type(const JSON_Object *schema_obj,
+                                         enum UnionVariantJsonType *_out_val) {
   const char *type;
   const JSON_Object *props;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!schema_obj) {
     *_out_val = UNION_JSON_UNKNOWN;
     return CDD_C_SUCCESS;
   }
-  if (schema_object_is_string_enum(schema_obj, NULL)) {
-    *_out_val = UNION_JSON_STRING;
-    return CDD_C_SUCCESS;
+  {
+    int is_enum = 0;
+    cdd_c_error_t rc_c2s =
+        schema_object_is_string_enum(schema_obj, NULL, &is_enum);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+    if (is_enum) {
+      *_out_val = UNION_JSON_STRING;
+      return CDD_C_SUCCESS;
+    }
   }
   type = json_object_get_string(schema_obj, "type");
   if (type) {
@@ -3359,8 +3436,8 @@ detect_union_json_type(const JSON_Object *schema_obj,
 /**
  * @brief Collects an array of strings from a JSON array.
  */
-static cdd_c_error_t collect_string_array(const JSON_Array *arr, char ***out,
-                                          size_t *out_count) {
+cdd_c_error_t c2s_collect_string_array(const JSON_Array *arr, char ***out,
+                                       size_t *out_count) {
   size_t i, count;
   char **vals;
   if (!out || !out_count)
@@ -3382,12 +3459,10 @@ static cdd_c_error_t collect_string_array(const JSON_Array *arr, char ***out,
     if (s) {
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(s, &vals[i]);
-        if (rc_c2s != CDD_C_SUCCESS)
+        if (rc_c2s != CDD_C_SUCCESS) {
+          free_string_array_code2schema(vals, count);
           return rc_c2s;
-      }
-      if (!vals[i]) {
-        free_string_array_code2schema(vals, count);
-        return CDD_C_ERROR_MEMORY;
+        }
       }
     }
   }
@@ -3582,8 +3657,8 @@ static cdd_c_error_t collect_string_array(const JSON_Array *arr, char ***out,
 /**
  * @brief Collects property names from a JSON Schema object.
  */
-static cdd_c_error_t collect_property_names(const JSON_Object *schema_obj,
-                                            char ***out, size_t *out_count) {
+cdd_c_error_t c2s_collect_property_names(const JSON_Object *schema_obj,
+                                         char ***out, size_t *out_count) {
   size_t i, count;
   char **vals;
   const JSON_Object *props;
@@ -3609,12 +3684,10 @@ static cdd_c_error_t collect_property_names(const JSON_Object *schema_obj,
     if (name) {
       {
         cdd_c_error_t rc_c2s = c_cdd_strdup(name, &vals[i]);
-        if (rc_c2s != CDD_C_SUCCESS)
+        if (rc_c2s != CDD_C_SUCCESS) {
+          free_string_array_code2schema(vals, count);
           return rc_c2s;
-      }
-      if (!vals[i]) {
-        free_string_array_code2schema(vals, count);
-        return CDD_C_ERROR_MEMORY;
+        }
       }
     }
   }
@@ -3812,6 +3885,12 @@ static cdd_c_error_t collect_property_names(const JSON_Object *schema_obj,
 cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
   size_t i, len;
   char *out;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!in || !*in) {
     {
       cdd_c_error_t rc_c2s = c_cdd_strdup("Variant", _out_val);
@@ -3835,17 +3914,7 @@ cdd_c_error_t sanitize_identifier(const char *in, char **_out_val) {
       out[i] = '_';
     }
   }
-  if (!out[0]) {
-    C_CDD_FREE(out);
-    {
-      {
-        cdd_c_error_t rc_c2s = c_cdd_strdup("Variant", _out_val);
-        if (rc_c2s != CDD_C_SUCCESS)
-          return rc_c2s;
-      }
-      return CDD_C_SUCCESS;
-    }
-  }
+
   {
     *_out_val = out;
     return CDD_C_SUCCESS;
@@ -3872,10 +3941,7 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
-    if (!sanitized) {
-      *_out_val = NULL;
-      return CDD_C_SUCCESS;
-    }
+
     {
       cdd_c_error_t rc_c2s = struct_fields_get(dest, sanitized, &tmp4);
       if (rc_c2s != CDD_C_SUCCESS)
@@ -3893,10 +3959,6 @@ cdd_c_error_t make_unique_variant_name(const struct StructFields *dest,
     cdd_c_error_t rc_c2s = c_cdd_strdup(buf, &out);
     if (rc_c2s != CDD_C_SUCCESS)
       return rc_c2s;
-  }
-  if (!out) {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
   }
   {
     struct StructField *tmp5 = NULL;
@@ -3975,13 +4037,11 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
   if (!json_object_has_value(root, name)) {
     JSON_Value *copy = NULL;
     {
-      cdd_c_error_t rc_c2s = clone_json_value(schema_val, &copy);
-      if (rc_c2s != CDD_C_SUCCESS)
+      cdd_c_error_t rc_c2s = c2s_clone_json_value(schema_val, &copy);
+      if (rc_c2s != CDD_C_SUCCESS) {
+        C_CDD_FREE(name);
         return rc_c2s;
-    }
-    if (!copy) {
-      C_CDD_FREE(name);
-      return CDD_C_ERROR_MEMORY;
+      }
     }
     if (json_object_set_value(root, name, copy) != JSONSuccess) {
       json_value_free(copy);
@@ -4189,6 +4249,9 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
   size_t i, count;
   const char *ref_name;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   if (!schema_name && !ref) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -4242,25 +4305,12 @@ cdd_c_error_t discriminator_value_for_variant(const JSON_Object *disc_obj,
 
 fallback:
   if (schema_name) {
-    {
-      cdd_c_error_t rc_c2s = c_cdd_strdup(schema_name, _out_val);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
-    }
+    cdd_c_error_t rc_c2s = c_cdd_strdup(schema_name, _out_val);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
     return CDD_C_SUCCESS;
   }
-  if (ref_name) {
-    {
-      cdd_c_error_t rc_c2s = c_cdd_strdup(ref_name, _out_val);
-      if (rc_c2s != CDD_C_SUCCESS)
-        return rc_c2s;
-    }
-    return CDD_C_SUCCESS;
-  }
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+  return c_cdd_strdup(ref_name, _out_val);
 }
 
 /**
@@ -4269,6 +4319,10 @@ fallback:
 cdd_c_error_t merge_struct_field(struct StructField *dest,
                                  const struct StructField *src) {
   cdd_c_error_t rc = CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!dest || !src)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -4359,12 +4413,12 @@ cdd_c_error_t merge_struct_field(struct StructField *dest,
     dest->bit_width[sizeof(dest->bit_width) - 1] = '\0';
   }
 
-  if (merge_schema_extras_strings(&dest->schema_extra_json,
-                                  src->schema_extra_json) != 0) {
+  if (c2s_merge_schema_extras_strings(&dest->schema_extra_json,
+                                      src->schema_extra_json) != 0) {
     /* Best-effort: ignore merge failures */
   }
-  if (merge_schema_extras_strings(&dest->items_extra_json,
-                                  src->items_extra_json) != 0) {
+  if (c2s_merge_schema_extras_strings(&dest->items_extra_json,
+                                      src->items_extra_json) != 0) {
     /* Best-effort: ignore merge failures */
   }
 
@@ -4399,8 +4453,8 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
   if (src->is_enum)
     return CDD_C_SUCCESS;
 
-  if (merge_schema_extras_strings(&dest->schema_extra_json,
-                                  src->schema_extra_json) != 0)
+  if (c2s_merge_schema_extras_strings(&dest->schema_extra_json,
+                                      src->schema_extra_json) != 0)
     return CDD_C_ERROR_MEMORY;
 
   for (i = 0; i < src->size; ++i) {
@@ -4428,10 +4482,7 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
         if (rc_c2s != CDD_C_SUCCESS)
           return rc_c2s;
       }
-      if (!dest_field) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return CDD_C_ERROR_MEMORY;
-      }
+
       {
         struct StructField tmp = *src_field;
         *dest_field = tmp;
@@ -4445,28 +4496,16 @@ cdd_c_error_t merge_struct_fields(struct StructFields *dest,
         dest_field->items_type_union = NULL;
         dest_field->n_items_type_union = 0;
         if (src_field->schema_extra_json) {
-          {
-            cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->schema_extra_json,
-                                                &dest_field->schema_extra_json);
-            if (rc_c2s != CDD_C_SUCCESS)
-              return rc_c2s;
-          }
-          if (!dest_field->schema_extra_json) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return CDD_C_ERROR_MEMORY;
-          }
+          cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->schema_extra_json,
+                                              &dest_field->schema_extra_json);
+          if (rc_c2s != CDD_C_SUCCESS)
+            return rc_c2s;
         }
         if (src_field->items_extra_json) {
-          {
-            cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->items_extra_json,
-                                                &dest_field->items_extra_json);
-            if (rc_c2s != CDD_C_SUCCESS)
-              return rc_c2s;
-          }
-          if (!dest_field->items_extra_json) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return CDD_C_ERROR_MEMORY;
-          }
+          cdd_c_error_t rc_c2s = c_cdd_strdup(src_field->items_extra_json,
+                                              &dest_field->items_extra_json);
+          if (rc_c2s != CDD_C_SUCCESS)
+            return rc_c2s;
         }
         if (src_field->type_union && src_field->n_type_union > 0) {
           if (copy_string_array_code2schema(
@@ -5152,9 +5191,10 @@ cdd_c_error_t apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
 /**
  * @brief Checks if array items within a union are supported.
  */
-static cdd_c_error_t union_array_items_supported(const JSON_Object *schema_obj,
-                                                 const JSON_Object *root,
-                                                 int allow_inline) {
+cdd_c_error_t c2s_union_array_items_supported(const JSON_Object *schema_obj,
+                                              const JSON_Object *root,
+                                              int allow_inline,
+                                              int *out_supported) {
   const JSON_Object *items;
   const JSON_Array *item_type_arr = NULL;
   const char *item_ref;
@@ -5162,6 +5202,13 @@ static cdd_c_error_t union_array_items_supported(const JSON_Object *schema_obj,
   char **items_type_union = NULL;
   size_t n_items_type_union = 0;
   const char *primary = NULL;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
+  if (!out_supported)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  *out_supported = 0;
 
   if (!schema_obj)
     return CDD_C_SUCCESS;
@@ -5171,8 +5218,16 @@ static cdd_c_error_t union_array_items_supported(const JSON_Object *schema_obj,
     return CDD_C_SUCCESS;
 
   item_ref = json_object_get_string(items, "$ref");
-  if (item_ref && root && ref_points_to_string_enum(root, item_ref))
-    return CDD_C_ERROR_UNKNOWN;
+  if (item_ref && root) {
+    int is_enum = 0;
+    cdd_c_error_t rc_c2s = ref_points_to_string_enum(root, item_ref, &is_enum);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+    if (is_enum) {
+      *out_supported = 1;
+      return CDD_C_SUCCESS;
+    }
+  }
 
   item_type = json_object_get_string(items, "type");
   if (!item_ref && !item_type) {
@@ -5189,7 +5244,8 @@ static cdd_c_error_t union_array_items_supported(const JSON_Object *schema_obj,
 
   if (item_ref) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
-    return CDD_C_ERROR_UNKNOWN;
+    *out_supported = 1;
+    return CDD_C_SUCCESS;
   }
   if (!item_type) {
     free_string_array_code2schema(items_type_union, n_items_type_union);
@@ -5205,7 +5261,8 @@ static cdd_c_error_t union_array_items_supported(const JSON_Object *schema_obj,
   }
 
   free_string_array_code2schema(items_type_union, n_items_type_union);
-  return CDD_C_ERROR_UNKNOWN;
+  *out_supported = 1;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -5244,20 +5301,25 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
         return rc_c2s;
     }
     {
-      cdd_c_error_t rc_c2s = detect_union_json_type(resolved, &jtype);
+      cdd_c_error_t rc_c2s = c2s_detect_union_json_type(resolved, &jtype);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
     if (jtype == UNION_JSON_ARRAY) {
+      int supported = 0;
       if (!allow_inline)
         return CDD_C_SUCCESS;
-      if (!union_array_items_supported(resolved, root, allow_inline))
+      {
+        cdd_c_error_t rc_c2s = c2s_union_array_items_supported(
+            resolved, root, allow_inline, &supported);
+        if (rc_c2s != CDD_C_SUCCESS)
+          return rc_c2s;
+      }
+      if (!supported)
         return CDD_C_SUCCESS;
     }
     if (jtype == UNION_JSON_OBJECT && !ref) {
       if (!allow_inline || !root)
-        return CDD_C_SUCCESS;
-      if (!json_array_get_value(union_arr, i))
         return CDD_C_SUCCESS;
     }
     if (jtype == UNION_JSON_UNKNOWN)
@@ -5277,10 +5339,6 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
         cdd_c_error_t rc_c2s = c_cdd_strdup(prop, &dest->union_discriminator);
         if (rc_c2s != CDD_C_SUCCESS)
           return rc_c2s;
-      }
-      if (!dest->union_discriminator) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return CDD_C_ERROR_MEMORY;
       }
     }
   }
@@ -5324,7 +5382,7 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     }
 
     {
-      cdd_c_error_t rc_c2s = detect_union_json_type(resolved, &jtype);
+      cdd_c_error_t rc_c2s = c2s_detect_union_json_type(resolved, &jtype);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
@@ -5374,9 +5432,19 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
 
       if (items) {
         item_ref = json_object_get_string(items, "$ref");
-        if (item_ref && root && ref_points_to_string_enum(root, item_ref)) {
-          item_ref = NULL;
-          item_type = "string";
+        if (item_ref && root) {
+          int is_enum = 0;
+          cdd_c_error_t rc_c2s =
+              ref_points_to_string_enum(root, item_ref, &is_enum);
+          if (rc_c2s != CDD_C_SUCCESS) {
+            C_CDD_FREE(variant_name);
+            C_CDD_FREE(inline_ref_name);
+            return rc_c2s;
+          }
+          if (is_enum) {
+            item_ref = NULL;
+            item_type = "string";
+          }
         }
         item_type = json_object_get_string(items, "type");
         if (!item_ref && !item_type) {
@@ -5413,9 +5481,6 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
     }
 
     switch (jtype) {
-    case UNION_JSON_OBJECT:
-      type_name = "object";
-      break;
     case UNION_JSON_STRING:
       type_name = "string";
       break;
@@ -5465,11 +5530,11 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
 
     if (jtype == UNION_JSON_OBJECT && resolved) {
       const JSON_Array *required = json_object_get_array(resolved, "required");
-      if (collect_string_array(required, &meta->required_props,
-                               &meta->n_required_props) != 0)
+      if (c2s_collect_string_array(required, &meta->required_props,
+                                   &meta->n_required_props) != 0)
         return CDD_C_ERROR_MEMORY;
-      if (collect_property_names(resolved, &meta->property_names,
-                                 &meta->n_property_names) != 0)
+      if (c2s_collect_property_names(resolved, &meta->property_names,
+                                     &meta->n_property_names) != 0)
         return CDD_C_ERROR_MEMORY;
     }
 
@@ -5680,15 +5745,18 @@ cdd_c_error_t apply_union_to_struct_fields_ex(
  * @brief Writes the default value of a StructField to a JSON schema
  * object.
  */
-static cdd_c_error_t write_default_value(JSON_Object *pobj,
-                                         const struct StructField *field) {
+cdd_c_error_t c2s_write_default_value(JSON_Object *pobj,
+                                      const struct StructField *field) {
   const char *def;
   const char *typ;
   char buf[256];
   int bval;
   double nval;
   JSON_Value *null_val;
-
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   def = field->default_val;
@@ -5706,7 +5774,7 @@ static cdd_c_error_t write_default_value(JSON_Object *pobj,
   if (typ && strcmp(typ, "string") == 0) {
     const char *s = NULL;
     {
-      cdd_c_error_t rc_c2s = strip_quotes(def, buf, sizeof(buf), &s);
+      cdd_c_error_t rc_c2s = c2s_strip_quotes(def, buf, sizeof(buf), &s);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
@@ -5715,13 +5783,21 @@ static cdd_c_error_t write_default_value(JSON_Object *pobj,
   }
 
   if (typ && strcmp(typ, "boolean") == 0) {
-    if (parse_bool_default(def, &bval))
+    int has_bval = 0;
+    cdd_c_error_t rc_c2s = c2s_parse_bool_default(def, &bval, &has_bval);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+    if (has_bval)
       json_object_set_boolean(pobj, "default", bval);
     return CDD_C_SUCCESS;
   }
 
   if (typ && (strcmp(typ, "integer") == 0 || strcmp(typ, "number") == 0)) {
-    if (parse_number_default(def, &nval))
+    int has_nval = 0;
+    cdd_c_error_t rc_c2s = c2s_parse_number_default(def, &nval, &has_nval);
+    if (rc_c2s != CDD_C_SUCCESS)
+      return rc_c2s;
+    if (has_nval)
       json_object_set_number(pobj, "default", nval);
     return CDD_C_SUCCESS;
   }
@@ -5732,8 +5808,12 @@ static cdd_c_error_t write_default_value(JSON_Object *pobj,
  * @brief Writes numeric constraints of a StructField to a JSON schema
  * object.
  */
-static cdd_c_error_t
-write_numeric_constraints(JSON_Object *pobj, const struct StructField *field) {
+cdd_c_error_t c2s_write_numeric_constraints(JSON_Object *pobj,
+                                            const struct StructField *field) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || !(strcmp(field->type, "integer") == 0 ||
@@ -5758,8 +5838,12 @@ write_numeric_constraints(JSON_Object *pobj, const struct StructField *field) {
  * @brief Writes string constraints of a StructField to a JSON schema
  * object.
  */
-static cdd_c_error_t write_string_constraints(JSON_Object *pobj,
-                                              const struct StructField *field) {
+cdd_c_error_t c2s_write_string_constraints(JSON_Object *pobj,
+                                           const struct StructField *field) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "string") != 0)
@@ -5777,8 +5861,12 @@ static cdd_c_error_t write_string_constraints(JSON_Object *pobj,
  * @brief Writes array constraints of a StructField to a JSON schema
  * object.
  */
-static cdd_c_error_t write_array_constraints(JSON_Object *pobj,
-                                             const struct StructField *field) {
+cdd_c_error_t c2s_write_array_constraints(JSON_Object *pobj,
+                                          const struct StructField *field) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!pobj || !field)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!field->type[0] || strcmp(field->type, "array") != 0)
@@ -5795,12 +5883,15 @@ static cdd_c_error_t write_array_constraints(JSON_Object *pobj,
 /**
  * @brief Writes a type union array to a JSON schema object.
  */
-static cdd_c_error_t write_type_union(JSON_Object *obj, const char *type,
-                                      char **type_union, size_t n_type_union) {
+cdd_c_error_t c2s_write_type_union(JSON_Object *obj, const char *type,
+                                   char **type_union, size_t n_type_union) {
   size_t i;
   JSON_Value *arr_val;
   JSON_Array *arr;
-
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!obj)
     return CDD_C_SUCCESS;
 
@@ -5835,7 +5926,10 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
   JSON_Value *req_val = NULL;
   JSON_Array *req_arr = NULL;
   size_t i;
-
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!schemas_obj || !struct_name || !sf) {
     json_value_free(val);
     json_value_free(props_val);
@@ -5844,14 +5938,13 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
 
   if (sf->is_enum) {
     JSON_Value *enum_val = json_value_init_array();
-    JSON_Array *enum_arr = json_value_get_array(enum_val);
-    if (!enum_val || !enum_arr) {
-      if (enum_val)
-        json_value_free(enum_val);
+    JSON_Array *enum_arr;
+    if (!enum_val) {
       json_value_free(val);
       json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
+    enum_arr = json_value_get_array(enum_val);
     json_object_set_string(obj, "type", "string");
     for (i = 0; i < sf->enum_members.size; ++i) {
       const char *member = sf->enum_members.members[i];
@@ -5864,7 +5957,7 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
     }
-    if (merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
+    if (c2s_merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
       json_value_free(val);
       json_value_free(props_val);
       return CDD_C_ERROR_MEMORY;
@@ -5897,14 +5990,14 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       JSON_Value *items_val = json_value_init_object();
       JSON_Object *items_obj = json_value_get_object(items_val);
       {
-        cdd_c_error_t rc_c2s = write_type_union(
+        cdd_c_error_t rc_c2s = c2s_write_type_union(
             pobj, "array", field->type_union, field->n_type_union);
         if (rc_c2s != CDD_C_SUCCESS)
           return rc_c2s;
       }
       if (field->items_type_union && field->n_items_type_union > 0) {
-        write_type_union(items_obj, ref, field->items_type_union,
-                         field->n_items_type_union);
+        c2s_write_type_union(items_obj, ref, field->items_type_union,
+                             field->n_items_type_union);
       } else if (ref && *ref) {
         if (strcmp(ref, "integer") == 0 || strcmp(ref, "string") == 0 ||
             strcmp(ref, "boolean") == 0 || strcmp(ref, "number") == 0) {
@@ -5916,7 +6009,8 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
           json_object_set_string(items_obj, "$ref", ref_str);
         }
       }
-      if (merge_schema_extras_object(items_obj, field->items_extra_json) != 0) {
+      if (c2s_merge_schema_extras_object(items_obj, field->items_extra_json) !=
+          0) {
         json_value_free(items_val);
         json_value_free(pval);
         json_value_free(val);
@@ -5924,7 +6018,7 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       }
       json_object_set_value(pobj, "items", items_val);
       {
-        cdd_c_error_t rc_c2s = write_array_constraints(pobj, field);
+        cdd_c_error_t rc_c2s = c2s_write_array_constraints(pobj, field);
         if (rc_c2s != CDD_C_SUCCESS)
           return rc_c2s;
       }
@@ -5940,30 +6034,30 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
           }
           json_object_set_string(pobj, "$ref", ref_str);
         } else {
-          write_type_union(pobj, "object", field->type_union,
-                           field->n_type_union);
+          c2s_write_type_union(pobj, "object", field->type_union,
+                               field->n_type_union);
         }
       } else {
         {
-          cdd_c_error_t rc_c2s = write_type_union(pobj, typ, field->type_union,
-                                                  field->n_type_union);
+          cdd_c_error_t rc_c2s = c2s_write_type_union(
+              pobj, typ, field->type_union, field->n_type_union);
           if (rc_c2s != CDD_C_SUCCESS)
             return rc_c2s;
         }
       }
     }
     {
-      cdd_c_error_t rc_c2s = write_numeric_constraints(pobj, field);
+      cdd_c_error_t rc_c2s = c2s_write_numeric_constraints(pobj, field);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
     {
-      cdd_c_error_t rc_c2s = write_string_constraints(pobj, field);
+      cdd_c_error_t rc_c2s = c2s_write_string_constraints(pobj, field);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
     {
-      cdd_c_error_t rc_c2s = write_default_value(pobj, field);
+      cdd_c_error_t rc_c2s = c2s_write_default_value(pobj, field);
       if (rc_c2s != CDD_C_SUCCESS)
         return rc_c2s;
     }
@@ -5977,7 +6071,7 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
       json_object_set_boolean(pobj, "readOnly", field->read_only ? 1 : 0);
     if (field->write_only_set)
       json_object_set_boolean(pobj, "writeOnly", field->write_only ? 1 : 0);
-    if (merge_schema_extras_object(pobj, field->schema_extra_json) != 0) {
+    if (c2s_merge_schema_extras_object(pobj, field->schema_extra_json) != 0) {
       json_value_free(pval);
       json_value_free(val);
       return CDD_C_ERROR_MEMORY;
@@ -5996,7 +6090,7 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
   if (req_val)
     json_object_set_value(obj, "required", req_val);
 
-  if (merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
+  if (c2s_merge_schema_extras_object(obj, sf->schema_extra_json) != 0) {
     json_value_free(val);
     return CDD_C_ERROR_MEMORY;
   }
@@ -6195,17 +6289,32 @@ cdd_c_error_t write_struct_to_json_schema(JSON_Object *schemas_obj,
  * @brief Parses a union definition and writes it to a JSON Schema
  * object.
  */
-static cdd_c_error_t parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
-                                           const char *union_name) {
+cdd_c_error_t c2s_parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
+                                        const char *union_name) {
   /* (Implementation preserved from previous code2schema.c) */
   char line[512];
+  int has_line = 0;
+  cdd_c_error_t rc_rl;
   JSON_Value *union_val = json_value_init_object();
   JSON_Object *union_obj = json_value_get_object(union_val);
   JSON_Value *oneof_val = json_value_init_array();
   JSON_Array *oneof_arr = json_value_get_array(oneof_val);
   char *p;
-
-  while (read_line(fp, line, sizeof(line))) {
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0) {
+    json_value_free(union_val);
+    json_value_free(oneof_val);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
+  if (!fp || !schemas_obj || !union_name) {
+    json_value_free(union_val);
+    json_value_free(oneof_val);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  while ((rc_rl = c2s_read_line(fp, line, sizeof(line), &has_line)) ==
+             CDD_C_SUCCESS &&
+         has_line) {
     p = line;
     while (isspace((unsigned char)*p))
       p++;
@@ -6442,8 +6551,12 @@ static cdd_c_error_t parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
   return CDD_C_SUCCESS;
 }
 
-static cdd_c_error_t collapse_arrays(struct StructFields *sf) {
+cdd_c_error_t c2s_collapse_arrays(struct StructFields *sf) {
   size_t i, j;
+#ifdef CDD_BUILD_TESTS
+  if (g_c2s_helper_fail > 0 && --g_c2s_helper_fail == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!sf)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < sf->size; ++i) {
@@ -6496,7 +6609,7 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   JSON_Value *comp_val = json_value_init_object();
   JSON_Object *comp_obj = json_value_get_object(comp_val);
 
-  if (argc != 2) {
+  if (argc != 2 || !argv || !argv[0] || !argv[1]) {
     json_value_free(root);
     json_value_free(schemas_val);
     json_value_free(comp_val);
@@ -6528,191 +6641,211 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   json_object_set_value(comp_obj, "schemas", schemas_val);
   json_object_set_value(root_obj, "components", comp_val);
 
-  while (read_line(fp, line, sizeof(line))) {
-    char *p = line;
-    while (isspace((unsigned char)*p))
-      p++;
+  {
+    int has_line = 0;
+    cdd_c_error_t rc_rl;
+    while ((rc_rl = c2s_read_line(fp, line, sizeof(line), &has_line)) ==
+               CDD_C_SUCCESS &&
+           has_line) {
+      char *p = line;
+      while (isspace((unsigned char)*p))
+        p++;
 
-    if (strncmp(p, "union ", 6) == 0) {
-      char union_name[64] = {0};
-      char *brace = strchr(p, '{');
-      if (brace) {
-        *brace = 0;
+      if (strncmp(p, "union ", 6) == 0) {
+        char union_name[64] = {0};
+        char *brace = strchr(p, '{');
+        if (brace) {
+          *brace = 0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        if (sscanf_s(p + 6, "%63s", union_name, (unsigned)sizeof(union_name)) ==
-            1) {
+          if (sscanf_s(p + 6, "%63s", union_name,
+                       (unsigned)sizeof(union_name)) == 1) {
 #else
-        if (sscanf(p + 6, "%63s", union_name) == 1) {
+          if (sscanf(p + 6, "%63s", union_name) == 1) {
 #endif
-          {
-            cdd_c_error_t rc_c2s =
-                parse_union_and_write(fp, schemas_obj, union_name);
-            if (rc_c2s != CDD_C_SUCCESS)
-              return rc_c2s;
-          }
-        }
-      }
-    } else if (strncmp(p, "struct ", 7) == 0) {
-      char struct_name[64] = {0};
-      char *brace = strchr(p, '{');
-      if (brace) {
-        struct StructFields sf;
-        *brace = 0;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        if (sscanf_s(p + 7, "%63s", struct_name,
-                     (unsigned)sizeof(struct_name)) == 1) {
-#else
-        if (sscanf(p + 7, "%63s", struct_name) == 1) {
-#endif
-          if (struct_fields_init(&sf) == 0) {
-            char subline[MAX_LINE_LENGTH];
-            while (read_line(fp, subline, sizeof(subline))) {
-              char *sp = subline;
-              while (isspace((unsigned char)*sp))
-                sp++;
-              if (*sp == '}')
-                break;
-              if (strncmp(sp, "struct {", 8) == 0 ||
-                  strncmp(sp, "struct{", 7) == 0) {
-                /* Start nested struct */
-                struct StructFields nested_sf;
-                char nested_name[128];
-                char nested_prop_name[64] = {0};
-                {
-                  cdd_c_error_t rc_c2s = struct_fields_init(&nested_sf);
-                  if (rc_c2s != CDD_C_SUCCESS)
-                    return rc_c2s;
-                }
-                while (read_line(fp, subline, sizeof(subline))) {
-                  char *nsp = subline;
-                  while (isspace((unsigned char)*nsp))
-                    nsp++;
-                  if (*nsp == '}') {
-                    /* extract name */
-                    char *semi = strchr(nsp, ';');
-                    if (semi)
-                      *semi = 0;
-                    nsp++;
-                    while (isspace((unsigned char)*nsp))
-                      nsp++;
-                    CDD_STRCPY(nested_prop_name, sizeof(nested_prop_name), nsp);
-                    break;
-                  }
-                  if (*nsp) {
-                    cdd_c_error_t rc_c2s =
-                        parse_struct_member_line(nsp, &nested_sf);
-                    if (rc_c2s != CDD_C_SUCCESS)
-                      return rc_c2s;
-                  }
-                }
-                CDD_SNPRINTF(nested_name, sizeof(nested_name), "%s_%s",
-                             struct_name, nested_prop_name);
-                {
-                  cdd_c_error_t rc_coll = collapse_arrays(&nested_sf);
-                  if (rc_coll != CDD_C_SUCCESS) {
-                    struct_fields_free(&nested_sf);
-                    return rc_coll;
-                  }
-                }
-                write_struct_to_json_schema(schemas_obj, nested_name,
-                                            &nested_sf);
-                struct_fields_add(&sf, nested_prop_name, "object", nested_name,
-                                  NULL, NULL);
-                struct_fields_free(&nested_sf);
-                continue;
-              }
-              if (*sp) {
-                cdd_c_error_t rc_c2s = parse_struct_member_line(sp, &sf);
-                if (rc_c2s != CDD_C_SUCCESS)
-                  return rc_c2s;
-              }
-            }
-            {
-              cdd_c_error_t rc_coll = collapse_arrays(&sf);
-              if (rc_coll != CDD_C_SUCCESS) {
-                struct_fields_free(&sf);
-                return rc_coll;
-              }
-            }
             {
               cdd_c_error_t rc_c2s =
-                  write_struct_to_json_schema(schemas_obj, struct_name, &sf);
+                  c2s_parse_union_and_write(fp, schemas_obj, union_name);
               if (rc_c2s != CDD_C_SUCCESS)
                 return rc_c2s;
             }
-            struct_fields_free(&sf);
           }
         }
-      }
-    } else if (strncmp(p, "enum ", 5) == 0) {
-      char enum_name[64] = {0};
-      char *brace = strchr(p, '{');
-      if (brace) {
-        JSON_Value *eval = json_value_init_object();
-        JSON_Object *eobj = json_value_get_object(eval);
-        JSON_Value *arrval = json_value_init_array();
-        JSON_Array *earr = json_value_get_array(arrval);
-
-        *brace = 0;
+      } else if (strncmp(p, "struct ", 7) == 0) {
+        char struct_name[64] = {0};
+        char *brace = strchr(p, '{');
+        if (brace) {
+          struct StructFields sf;
+          *brace = 0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        if (sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name)) ==
-            1) {
+          if (sscanf_s(p + 7, "%63s", struct_name,
+                       (unsigned)sizeof(struct_name)) == 1) {
 #else
-        if (sscanf(p + 5, "%63s", enum_name) == 1) {
+          if (sscanf(p + 7, "%63s", struct_name) == 1) {
 #endif
-          const char *delim = ",}";
-          char *token;
-          char *ctx = NULL;
-          char *rest = brace + 1;
-          char full_body[4096] = {0};
-
-          /* Accumulate body */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          strcat_s(full_body, sizeof(full_body), rest);
-          while (!strchr(full_body, '}')) {
-            if (!read_line(fp, line, sizeof(line)))
-              break;
-            strcat_s(full_body, sizeof(full_body), line);
-          }
-#else
-          strcat(full_body, rest);
-          while (!strchr(full_body, '}')) {
-            if (!read_line(fp, line, sizeof(line)))
-              break;
-            strcat(full_body, line);
-          }
-#endif
-
-#ifdef _WIN32
-          token = strtok_s(full_body, delim, &ctx);
-#else
-          token = strtok_r(full_body, delim, &ctx);
-#endif
-          while (token) {
-            char *tm = token;
-            while (isspace((unsigned char)*tm))
-              tm++;
-            c_cdd_str_trim_trailing_whitespace(tm);
-            {
-              char *eq = strchr(tm, '=');
-              if (eq)
-                *eq = 0;
-              c_cdd_str_trim_trailing_whitespace(tm);
+            if (struct_fields_init(&sf) == 0) {
+              char subline[MAX_LINE_LENGTH];
+              int has_subline = 0;
+              while ((rc_rl = c2s_read_line(fp, subline, sizeof(subline),
+                                            &has_subline)) == CDD_C_SUCCESS &&
+                     has_subline) {
+                char *sp = subline;
+                while (isspace((unsigned char)*sp))
+                  sp++;
+                if (*sp == '}')
+                  break;
+                if (strncmp(sp, "struct {", 8) == 0 ||
+                    strncmp(sp, "struct{", 7) == 0) {
+                  /* Start nested struct */
+                  struct StructFields nested_sf;
+                  char nested_name[128];
+                  char nested_prop_name[64] = {0};
+                  int has_nested = 0;
+                  {
+                    cdd_c_error_t rc_c2s = struct_fields_init(&nested_sf);
+                    if (rc_c2s != CDD_C_SUCCESS)
+                      return rc_c2s;
+                  }
+                  while ((rc_rl = c2s_read_line(fp, subline, sizeof(subline),
+                                                &has_nested)) ==
+                             CDD_C_SUCCESS &&
+                         has_nested) {
+                    char *nsp = subline;
+                    while (isspace((unsigned char)*nsp))
+                      nsp++;
+                    if (*nsp == '}') {
+                      /* extract name */
+                      char *semi = strchr(nsp, ';');
+                      if (semi)
+                        *semi = 0;
+                      nsp++;
+                      while (isspace((unsigned char)*nsp))
+                        nsp++;
+                      CDD_STRCPY(nested_prop_name, sizeof(nested_prop_name),
+                                 nsp);
+                      break;
+                    }
+                    if (*nsp) {
+                      cdd_c_error_t rc_c2s =
+                          parse_struct_member_line(nsp, &nested_sf);
+                      if (rc_c2s != CDD_C_SUCCESS)
+                        return rc_c2s;
+                    }
+                  }
+                  CDD_SNPRINTF(nested_name, sizeof(nested_name), "%s_%s",
+                               struct_name, nested_prop_name);
+                  {
+                    cdd_c_error_t rc_coll = c2s_collapse_arrays(&nested_sf);
+                    if (rc_coll != CDD_C_SUCCESS) {
+                      struct_fields_free(&nested_sf);
+                      return rc_coll;
+                    }
+                  }
+                  write_struct_to_json_schema(schemas_obj, nested_name,
+                                              &nested_sf);
+                  struct_fields_add(&sf, nested_prop_name, "object",
+                                    nested_name, NULL, NULL);
+                  struct_fields_free(&nested_sf);
+                  continue;
+                }
+                if (*sp) {
+                  cdd_c_error_t rc_c2s = parse_struct_member_line(sp, &sf);
+                  if (rc_c2s != CDD_C_SUCCESS)
+                    return rc_c2s;
+                }
+              }
+              {
+                cdd_c_error_t rc_coll = c2s_collapse_arrays(&sf);
+                if (rc_coll != CDD_C_SUCCESS) {
+                  struct_fields_free(&sf);
+                  return rc_coll;
+                }
+              }
+              {
+                cdd_c_error_t rc_c2s =
+                    write_struct_to_json_schema(schemas_obj, struct_name, &sf);
+                if (rc_c2s != CDD_C_SUCCESS)
+                  return rc_c2s;
+              }
+              struct_fields_free(&sf);
             }
-            if (*tm)
-              json_array_append_string(earr, tm);
-#ifdef _WIN32
-            token = strtok_s(NULL, delim, &ctx);
-#else
-            token = strtok_r(NULL, delim, &ctx);
-#endif
           }
-          json_object_set_string(eobj, "type", "string");
-          json_object_set_value(eobj, "enum", arrval);
-          json_object_set_value(schemas_obj, enum_name, eval);
-        } else {
-          json_value_free(eval);
-          json_value_free(arrval);
+        }
+      } else if (strncmp(p, "enum ", 5) == 0) {
+        char enum_name[64] = {0};
+        char *brace = strchr(p, '{');
+        if (brace) {
+          JSON_Value *eval = json_value_init_object();
+          JSON_Object *eobj = json_value_get_object(eval);
+          JSON_Value *arrval = json_value_init_array();
+          JSON_Array *earr = json_value_get_array(arrval);
+
+          *brace = 0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          if (sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name)) ==
+              1) {
+#else
+          if (sscanf(p + 5, "%63s", enum_name) == 1) {
+#endif
+            const char *delim = ",}";
+            char *token;
+            char *ctx = NULL;
+            char *rest = brace + 1;
+            char full_body[4096] = {0};
+
+            /* Accumulate body */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            strcat_s(full_body, sizeof(full_body), rest);
+            while (!strchr(full_body, '}')) {
+              int has_el = 0;
+              if (c2s_read_line(fp, line, sizeof(line), &has_el) !=
+                      CDD_C_SUCCESS ||
+                  !has_el)
+                break;
+              strcat_s(full_body, sizeof(full_body), line);
+            }
+#else
+            strcat(full_body, rest);
+            while (!strchr(full_body, '}')) {
+              int has_el = 0;
+              if (c2s_read_line(fp, line, sizeof(line), &has_el) !=
+                      CDD_C_SUCCESS ||
+                  !has_el)
+                break;
+              strcat(full_body, line);
+            }
+#endif
+
+#ifdef _WIN32
+            token = strtok_s(full_body, delim, &ctx);
+#else
+            token = strtok_r(full_body, delim, &ctx);
+#endif
+            while (token) {
+              char *tm = token;
+              while (isspace((unsigned char)*tm))
+                tm++;
+              c_cdd_str_trim_trailing_whitespace(tm);
+              {
+                char *eq = strchr(tm, '=');
+                if (eq)
+                  *eq = 0;
+                c_cdd_str_trim_trailing_whitespace(tm);
+              }
+              if (*tm)
+                json_array_append_string(earr, tm);
+#ifdef _WIN32
+              token = strtok_s(NULL, delim, &ctx);
+#else
+              token = strtok_r(NULL, delim, &ctx);
+#endif
+            }
+            json_object_set_string(eobj, "type", "string");
+            json_object_set_value(eobj, "enum", arrval);
+            json_object_set_value(schemas_obj, enum_name, eval);
+          } else {
+            json_value_free(eval);
+            json_value_free(arrval);
+          }
         }
       }
     }

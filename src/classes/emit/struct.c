@@ -220,6 +220,11 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
                                 const char *default_val,
                                 const char *bit_width) {
   struct StructField *f;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_add;
+  if (g_cdd_fail_struct_fields_add && --g_cdd_fail_struct_fields_add == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!sf || !name || !type)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -288,6 +293,11 @@ cdd_c_error_t struct_fields_add(struct StructFields *sf, const char *name,
 cdd_c_error_t struct_fields_get(const struct StructFields *sf, const char *name,
                                 struct StructField **_out_val) {
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT volatile int g_cdd_fail_struct_fields_get;
+  if (g_cdd_fail_struct_fields_get && --g_cdd_fail_struct_fields_get == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!sf || !name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

@@ -103,6 +103,36 @@ extern C_CDD_EXPORT cdd_c_error_t querystring_param_json_array_item_ref(
     const struct OpenAPI_Parameter *p, const char **_out_val);
 extern C_CDD_EXPORT cdd_c_error_t
 write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p);
+
+/** @brief UrlSegment structure */
+struct UrlSegment {
+  /** @brief is_var */
+  int is_var;
+  /** @brief text */
+  char *text;
+};
+
+extern C_CDD_EXPORT cdd_c_error_t querystring_param_raw_primitive_type(
+    const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t
+write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT cdd_c_error_t
+write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT cdd_c_error_t
+write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
+                               const char *prefix, const char *delim);
+extern C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
+    FILE *fp, const struct OpenAPI_Parameter *p, char delim_char,
+    const char *encode_fn, int is_form_csv);
+extern C_CDD_EXPORT cdd_c_error_t write_joined_query_array_encoded_delim(
+    FILE *fp, const struct OpenAPI_Parameter *p, const char *delim_enc,
+    const char *encode_fn);
+extern C_CDD_EXPORT cdd_c_error_t
+find_param(const char *name, const struct OpenAPI_Parameter *params,
+           size_t n_params, const struct OpenAPI_Parameter **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t parse_segments(
+    const char *tmpl, struct UrlSegment **out_segments, size_t *out_count);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

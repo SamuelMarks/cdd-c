@@ -27,7 +27,6 @@ TEST test_cdd_cst_eval_primitive_type_basic(void) {
 
   /* int under LP64 */
   rc = cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, &info);
-  (void)rc;
   ASSERT_EQ(0, rc);
   ASSERT_EQ(4, info.size);
   ASSERT_EQ(4, info.alignment);
@@ -56,7 +55,6 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   const char *src = (char *)(size_t)(size_t) "int a;";
 
   rc = cdd_cst_scope_env_init(&env);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -94,7 +92,6 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   const char *src = (char *)(size_t)(size_t) "int *a;";
 
   rc = cdd_cst_scope_env_init(&env);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)src), &tree);
@@ -327,7 +324,6 @@ TEST test_type_eval_branches(void) {
   int rc;
 #endif
 
-  (void)rc;
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
   tok.kind = CDD_TOKEN_KEYWORD___INT128;
   tok.start = (const uint8_t *)"__int128";
@@ -448,7 +444,6 @@ TEST test_cdd_cst_type_eval_branches(void) {
   cdd_cst_scope_env_init(&env);
   {
     cdd_c_error_t rc;
-    (void)rc;
     {
       enum cdd_cst_abi_model_t abi = CDD_CST_ABI_LP64;
       cdd_cst_node_t dummy_node = {0};
@@ -477,6 +472,7 @@ TEST test_cdd_cst_type_eval_branches(void) {
       ASSERT_EQ(CDD_C_SUCCESS,
                 cdd_cst_eval_alignof(env, &dummy_node, abi, &al));
       rc = cdd_cst_eval_primitive_type("int", abi, NULL);
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
       g_cdd_alloc_fail = 0;
       /* It turns out extract_type_name was wrong so just hit branch inside eval
        */

@@ -52,8 +52,25 @@ extern C_CDD_EXPORT cdd_c_error_t
 rewrite_signature(const struct TokenList *tokens, char **out_code);
 
 #ifdef CDD_BUILD_TESTS
+/**
+ * @brief Test helper to check if args represent void.
+ * @param[in] args Arguments string.
+ * @param[out] out_is_empty Set to 1 if args represent void or empty.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
 extern C_CDD_EXPORT cdd_c_error_t test_args_represent_void(const char *args,
                                                            int *out_is_empty);
+
+/**
+ * @brief Test helper to verify if a token range represents a void return type.
+ * @param[in] tokens Token list.
+ * @param[in] start Start index in token list.
+ * @param[in] end End index in token list.
+ * @param[out] out_is_void Set to 1 if return type is void.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t test_check_is_void(
+    const struct TokenList *tokens, size_t start, size_t end, int *out_is_void);
 #endif
 
 #ifdef __cplusplus

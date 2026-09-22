@@ -944,7 +944,7 @@ static cdd_c_error_t sanitize_ident(char *out, size_t outsz, const char *in) {
     }
   }
   out[j] = '\0';
-  if (j > 0 && out[0] >= '0' && out[0] <= '9') {
+  if (j > 0 && isdigit((unsigned char)out[0])) {
     if (j + 1 < outsz) {
       memmove(out + 1, out, j + 1);
       out[0] = '_';
@@ -1281,11 +1281,6 @@ get_success_schema(const struct OpenAPI_Operation *op,
 
 /**
  * @brief Generates C code for codegen client write signature.
- *
- * @param[in] fp File stream to write to.
- * @param[in] op OpenAPI Operation definition.
- * @param[in] config Codegen signature configuration.
- * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t
 codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
@@ -1540,8 +1535,7 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
             const struct OpenAPI_Header *hdr = &enc->headers[h];
             const char *hdr_type = hdr->type ? hdr->type : "string";
             int hdr_is_array =
-                hdr->is_array ||
-                ((hdr_type != NULL) && strcmp(hdr_type, "array") == 0);
+                hdr->is_array || (strcmp(hdr_type, "array") == 0);
             char param_name[256];
             int is_ct = 0;
             if (!hdr->name)
@@ -1589,10 +1583,9 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
   if (rc != CDD_C_SUCCESS)
     return rc;
 
-  if (success_is_binary)
-    success_schema = NULL;
-
-  if (success_schema) {
+  if (success_is_binary) {
+    CHECK_IO(fprintf(fp, ", unsigned char **out, size_t *out_len"));
+  } else {
     int schema_inline = 0;
     rc = schema_has_inline(success_schema, &schema_inline);
     if (rc != CDD_C_SUCCESS)
@@ -1609,7 +1602,7 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
             CHECK_IO(fprintf(fp, ", struct %s ***out, size_t *out_len",
                              success_schema->ref_name));
           }
-        } else if (success_schema->inline_type) {
+        } else {
           const char *out_type = NULL;
           rc = map_array_item_type_out(success_schema->inline_type, &out_type);
           if (rc != CDD_C_SUCCESS)
@@ -1618,7 +1611,7 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
         }
       } else if (success_schema->ref_name) {
         CHECK_IO(fprintf(fp, ", struct %s **out", success_schema->ref_name));
-      } else if (success_schema->inline_type) {
+      } else {
         const char *out_type = NULL;
         rc = map_type_to_c_out(success_schema->inline_type, &out_type);
         if (rc != CDD_C_SUCCESS)
@@ -1626,8 +1619,6 @@ codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
         CHECK_IO(fprintf(fp, ", %sout", out_type));
       }
     }
-  } else if (success_is_binary) {
-    CHECK_IO(fprintf(fp, ", unsigned char **out, size_t *out_len"));
   }
 
   /* 4. Global Error Output */

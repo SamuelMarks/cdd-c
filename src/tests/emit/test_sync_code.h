@@ -41,6 +41,18 @@ TEST test_sync_code_wrong_args(void) {
 TEST test_sync_code_main_argc(void) {
   char *argv[] = {(char *)(size_t)(size_t) "foo.h"};
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, sync_code_main(1, argv));
+#ifdef CDD_BUILD_TESTS
+  {
+    char *argv2[2];
+    extern C_CDD_EXPORT int g_cdd_fail_type_def_list_init;
+    argv2[0] = (char *)(size_t) "foo.h";
+    argv2[1] = (char *)(size_t) "foo.c";
+    g_cdd_fail_type_def_list_init = 2;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, sync_code_main(2, argv2));
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, sync_code_main(2, argv2));
+    g_cdd_fail_type_def_list_init = 0;
+  }
+#endif
   g_fail_io_after = -1;
   PASS();
 }
@@ -220,7 +232,6 @@ TEST test_patch_header_basic(void) {
   size_t sz;
   int rc;
 
-  (void)rc;
   write_to_file(h_path, ""
                         "void foo();\n");
 
@@ -255,7 +266,6 @@ TEST test_patch_header_ptr_arg(void) {
   size_t sz;
   int rc;
 
-  (void)rc;
   write_to_file(h_path, "char* bar(int x);\n");
 
   rc = patch_header_from_source(h_path, src);
@@ -293,7 +303,6 @@ TEST test_patch_header_ignore_others(void) {
   size_t sz;
   int rc;
 
-  (void)rc;
   write_to_file(h_path, ""
                         "void other();\nvoid foo();\n");
 
@@ -318,7 +327,6 @@ TEST test_patch_header_bounds(void) {
   int rc;
 
   /* End of file while looking for semicolon */
-  (void)rc;
   write_to_file(h_path, "void foo()");
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -364,7 +372,6 @@ TEST test_patch_header_failures(void) {
    */
   /* extern C_CDD_EXPORT int g_cdd_sync_fail_fopen_write; (moved to global) */
 
-  (void)rc;
   write_to_file(h_path, "void foo();\n");
 
   /* Test func_sig_list_init failure */

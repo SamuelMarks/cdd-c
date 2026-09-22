@@ -816,7 +816,6 @@ TEST test_ffi_emit_objc_dir(void) {
   int rc;
 
 #ifdef _WIN32
-  (void)rc;
   _mkdir("test_objc_dir_new");
   _mkdir("test_objc_dir_new/Bindings.m");
 #else
@@ -848,7 +847,6 @@ TEST test_ffi_emit_perl_dir(void) {
   int rc;
 
 #ifdef _WIN32
-  (void)rc;
   _mkdir("test_perl_dir");
   _mkdir("test_perl_dir/Bindings.xs");
   _mkdir("test_perl_dir/Makefile.PL");

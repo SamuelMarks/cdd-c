@@ -111,11 +111,6 @@ static cdd_c_error_t add_option(struct CliCommand *cmd,
 
 /**
  * @brief Executes the cst extract cli command operation.
- *
- * @param[in] nodes CST node list
- * @param[in] tokens Token list
- * @param[out] cmd CLI command structure to populate
- * @return CDD_C_SUCCESS on success, error enum on failure
  */
 cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
                                       const struct TokenList *tokens,
@@ -124,10 +119,12 @@ cdd_c_error_t cst_extract_cli_command(const struct CstNodeList *nodes,
   int in_getopt = 0;
   cdd_c_error_t rc;
 
-  if (!nodes || !tokens || !cmd)
+  if (!nodes || !tokens)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  (void)cli_command_init(cmd);
+  rc = cli_command_init(cmd);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = c_cdd_strdup("cli_app", &cmd->name);
   if (rc != CDD_C_SUCCESS) {
     cli_command_free(cmd);
@@ -241,14 +238,14 @@ C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void) {
   cdd_c_error_t err2 = cdd_strndup2("abc", 3, NULL);
   cdd_c_error_t err3 = add_option(NULL, &opt);
   cdd_c_error_t err4 = add_option((struct CliCommand *)1, NULL);
-  cdd_c_error_t err5, err6;
+  cdd_c_error_t err5, err6, err_extra;
 
   g_cdd_alloc_fail = 1;
   err5 = cdd_strndup2("abc", 3, &out);
   g_cdd_alloc_fail = 0;
 
   g_cdd_alloc_fail = 2;
-  (void)cdd_strndup2("abc", 3, &out);
+  err_extra = cdd_strndup2("abc", 3, &out);
   free(out);
   out = NULL;
   err6 = cdd_strndup2("abc", 3, &out);
@@ -259,6 +256,7 @@ C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void) {
                          (err3 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
                          (err4 ^ CDD_C_ERROR_INVALID_ARGUMENT) |
                          (err5 ^ CDD_C_ERROR_MEMORY) |
-                         (err6 ^ CDD_C_ERROR_MEMORY));
+                         (err6 ^ CDD_C_ERROR_MEMORY) |
+                         (err_extra ^ CDD_C_SUCCESS));
 }
 #endif

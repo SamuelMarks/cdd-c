@@ -793,6 +793,8 @@ static cdd_c_error_t get_first_token(cdd_cst_node_t *node,
     } else {
       cdd_token_t *t = NULL;
       cdd_c_error_t rc = get_first_token(node->children[i].val.node, &t);
+      if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+        return rc;
       if (rc == CDD_C_SUCCESS) {
         *out_tok = t;
         return CDD_C_SUCCESS;
@@ -815,6 +817,8 @@ static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
     } else {
       cdd_token_t *t = NULL;
       cdd_c_error_t rc = get_last_token(node->children[i].val.node, &t);
+      if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND)
+        return rc;
       if (rc == CDD_C_SUCCESS) {
         *out_tok = t;
         return CDD_C_SUCCESS;
@@ -864,16 +868,66 @@ cdd_c_error_t cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   cdd_trivia_t *trail = NULL;
   cdd_token_t *t_first = NULL;
   cdd_token_t *t_last = NULL;
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  (void)rc;
+  cdd_c_error_t rc;
   if (!source_node || !target_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  cdd_cst_extract_leading_trivia(source_node, &lead);
-  cdd_cst_extract_trailing_trivia(source_node, &trail);
+  rc = cdd_cst_extract_leading_trivia(source_node, &lead);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  rc = cdd_cst_extract_trailing_trivia(source_node, &trail);
+  if (rc != CDD_C_SUCCESS) {
+    if (lead) {
+      cdd_trivia_t *cur = lead;
+      while (cur) {
+        cdd_trivia_t *next = cur->next;
+        C_CDD_FREE(cur);
+        cur = next;
+      }
+    }
+    return rc;
+  }
 
-  get_first_token(target_node, &t_first);
-  get_last_token(target_node, &t_last);
+  rc = get_first_token(target_node, &t_first);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND) {
+    if (lead) {
+      cdd_trivia_t *cur = lead;
+      while (cur) {
+        cdd_trivia_t *next = cur->next;
+        C_CDD_FREE(cur);
+        cur = next;
+      }
+    }
+    if (trail) {
+      cdd_trivia_t *cur = trail;
+      while (cur) {
+        cdd_trivia_t *next = cur->next;
+        C_CDD_FREE(cur);
+        cur = next;
+      }
+    }
+    return rc;
+  }
+  rc = get_last_token(target_node, &t_last);
+  if (rc != CDD_C_SUCCESS && rc != CDD_C_ERROR_NOT_FOUND) {
+    if (lead) {
+      cdd_trivia_t *cur = lead;
+      while (cur) {
+        cdd_trivia_t *next = cur->next;
+        C_CDD_FREE(cur);
+        cur = next;
+      }
+    }
+    if (trail) {
+      cdd_trivia_t *cur = trail;
+      while (cur) {
+        cdd_trivia_t *next = cur->next;
+        C_CDD_FREE(cur);
+        cur = next;
+      }
+    }
+    return rc;
+  }
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;
@@ -915,15 +969,16 @@ cdd_c_error_t
 cdd_cst_replace_node_preserve_trivia(cdd_cst_builder_t *builder,
                                      cdd_cst_node_t *target_node,
                                      cdd_cst_node_t *replacement_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
-  (void)rc;
+  cdd_c_error_t rc;
   if (!builder || !target_node || !replacement_node)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (builder->error_state != 0)
     return (cdd_c_error_t)builder->error_state;
 
   /* transfer_trivia unbinds trivia from target and moves to replacement */
-  cdd_cst_transfer_trivia(target_node, replacement_node);
+  rc = cdd_cst_transfer_trivia(target_node, replacement_node);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* utilize underlying replace mechanism which handles parent array swapping */
   rc = cdd_cst_replace_node(builder->tree, target_node, replacement_node);

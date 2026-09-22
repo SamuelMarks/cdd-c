@@ -57,7 +57,9 @@ cdd_c_error_t sync_code_main(int argc, char **argv) {
   header_filename = argv[0];
   impl_filename = argv[1];
 
-  (void)type_def_list_init(&types);
+  rc = type_def_list_init(&types);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   /* 1. Inspect Header */
   rc = c_inspector_scan_file_types(header_filename, &types);

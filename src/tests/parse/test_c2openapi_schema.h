@@ -32,8 +32,7 @@ TEST test_register_single_struct(void) {
   int rc;
 
   /* Setup */
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   write_to_file(header_file, "struct User { int id; char *name; };");
@@ -70,7 +69,7 @@ TEST test_register_deduplication(void) {
   struct TypeDefList types;
   char *header_file = (char *)(size_t)(size_t) "test_reg_dedup.h";
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   /* Define struct twice (simulator for parsing multiple files) */
@@ -101,7 +100,7 @@ TEST test_register_multiple_structs(void) {
   struct TypeDefList types;
   char *header_file = (char *)(size_t)(size_t) "test_reg_multi.h";
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   write_to_file(header_file,
@@ -141,7 +140,7 @@ TEST test_register_null_safety(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -162,8 +161,7 @@ TEST test_register_enum_schema(void) {
   char *header_file = (char *)(size_t)(size_t) "test_reg_enum.h";
   int rc;
 
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
@@ -202,8 +200,7 @@ TEST test_register_type_union_copy(void) {
   char *types_arr[] = {(char *)(size_t)(size_t) "string",
                        (char *)(size_t)(size_t) "integer"};
 
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   type_def_list_init(&types);
 
   /* Instead of scanning a file, we manually construct a TypeDefList */

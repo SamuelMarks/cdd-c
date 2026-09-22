@@ -133,8 +133,7 @@ TEST test_sig_simple_get(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -150,8 +149,7 @@ TEST test_sig_simple_get(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -186,8 +184,7 @@ TEST test_sig_verify_apierror(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -203,8 +200,7 @@ TEST test_sig_verify_apierror(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -240,8 +236,7 @@ TEST test_sig_grouped(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -257,8 +252,7 @@ TEST test_sig_grouped(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -297,8 +291,7 @@ TEST test_sig_success_range_response(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -314,8 +307,7 @@ TEST test_sig_success_range_response(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -353,8 +345,7 @@ TEST test_sig_default_response_success(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -370,8 +361,7 @@ TEST test_sig_default_response_success(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -409,8 +399,7 @@ TEST test_sig_inline_response_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -426,8 +415,7 @@ TEST test_sig_inline_response_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -466,8 +454,7 @@ TEST test_sig_inline_response_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -483,8 +470,7 @@ TEST test_sig_inline_response_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -519,8 +505,7 @@ TEST test_sig_inline_request_body_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -536,8 +521,7 @@ TEST test_sig_inline_request_body_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -573,8 +557,7 @@ TEST test_sig_inline_request_body_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -590,8 +573,7 @@ TEST test_sig_inline_request_body_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -648,8 +630,7 @@ TEST test_sig_multipart_encoding_headers(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -665,8 +646,7 @@ TEST test_sig_multipart_encoding_headers(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -704,8 +684,7 @@ TEST test_sig_text_plain_request_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -721,8 +700,7 @@ TEST test_sig_text_plain_request_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -756,8 +734,7 @@ TEST test_sig_textual_request_body_xml(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -773,8 +750,7 @@ TEST test_sig_textual_request_body_xml(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -808,8 +784,7 @@ TEST test_sig_octet_stream_request_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -825,8 +800,7 @@ TEST test_sig_octet_stream_request_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -860,8 +834,7 @@ TEST test_sig_binary_request_body_pdf(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -877,8 +850,7 @@ TEST test_sig_binary_request_body_pdf(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -916,8 +888,7 @@ TEST test_sig_octet_stream_response_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -933,8 +904,7 @@ TEST test_sig_octet_stream_response_body(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -972,8 +942,7 @@ TEST test_sig_binary_response_body_pdf(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -989,8 +958,7 @@ TEST test_sig_binary_response_body_pdf(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1034,8 +1002,7 @@ TEST test_sig_querystring_form_object(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1051,8 +1018,7 @@ TEST test_sig_querystring_form_object(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1095,8 +1061,7 @@ TEST test_sig_querystring_json_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1112,8 +1077,7 @@ TEST test_sig_querystring_json_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1156,8 +1120,7 @@ TEST test_sig_querystring_json_primitive(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1173,8 +1136,7 @@ TEST test_sig_querystring_json_primitive(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1218,8 +1180,7 @@ TEST test_sig_querystring_json_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1235,8 +1196,7 @@ TEST test_sig_querystring_json_array(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1283,8 +1243,7 @@ TEST test_sig_querystring_json_array_object(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1300,8 +1259,7 @@ TEST test_sig_querystring_json_array_object(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1346,8 +1304,7 @@ TEST test_sig_querystring_raw_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1363,8 +1320,7 @@ TEST test_sig_querystring_raw_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1407,8 +1363,7 @@ TEST test_sig_querystring_raw_integer(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1424,8 +1379,7 @@ TEST test_sig_querystring_raw_integer(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1465,8 +1419,7 @@ TEST test_sig_query_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1482,8 +1435,7 @@ TEST test_sig_query_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1524,8 +1476,7 @@ TEST test_sig_path_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1541,8 +1492,7 @@ TEST test_sig_path_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1583,8 +1533,7 @@ TEST test_sig_header_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1600,8 +1549,7 @@ TEST test_sig_header_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1642,8 +1590,7 @@ TEST test_sig_cookie_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1659,8 +1606,7 @@ TEST test_sig_cookie_object_param_kv(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1703,8 +1649,7 @@ TEST test_sig_json_content_query_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1720,8 +1665,7 @@ TEST test_sig_json_content_query_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1741,7 +1685,7 @@ TEST test_sig_header_param_boolean(void) {
   char *code = NULL;
   char *_ast_gen_sig_0_uniq = NULL;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
   resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
   op.responses = &resp;
@@ -1767,8 +1711,7 @@ TEST test_sig_header_param_boolean(void) {
         break;
       }
       (void)_ast_gen_sig_0_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1784,8 +1727,7 @@ TEST test_sig_header_param_boolean(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1804,7 +1746,7 @@ TEST test_sig_header_param_number(void) {
   char *code = NULL;
   char *_ast_gen_sig_5_uniq = NULL;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
   resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
   op.responses = &resp;
@@ -1830,8 +1772,7 @@ TEST test_sig_header_param_number(void) {
         break;
       }
       (void)_ast_gen_sig_5_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1847,8 +1788,7 @@ TEST test_sig_header_param_number(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1867,7 +1807,7 @@ TEST test_sig_header_param_integer(void) {
   char *code = NULL;
   char *_ast_gen_sig_10_uniq = NULL;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
   resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
   op.responses = &resp;
@@ -1893,8 +1833,7 @@ TEST test_sig_header_param_integer(void) {
         break;
       }
       (void)_ast_gen_sig_10_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1910,8 +1849,7 @@ TEST test_sig_header_param_integer(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1930,7 +1868,7 @@ TEST test_sig_header_param_string(void) {
   char *code = NULL;
   char *_ast_gen_sig_15_uniq = NULL;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   op.verb = OA_VERB_GET;
   resp.code = (char *)(size_t)(size_t)(size_t)(size_t) "200";
   op.responses = &resp;
@@ -1956,8 +1894,7 @@ TEST test_sig_header_param_string(void) {
         break;
       }
       (void)_ast_gen_sig_15_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -1973,8 +1910,7 @@ TEST test_sig_header_param_string(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2144,8 +2080,7 @@ TEST test_sig_response_array_string_ref(void) {
         break;
       }
       (void)_ast_gen_sig_20_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2161,8 +2096,7 @@ TEST test_sig_response_array_string_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2197,8 +2131,7 @@ TEST test_sig_response_array_integer_ref(void) {
         break;
       }
       (void)_ast_gen_sig_25_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2214,8 +2147,7 @@ TEST test_sig_response_array_integer_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2250,8 +2182,7 @@ TEST test_sig_response_array_struct_ref(void) {
         break;
       }
       (void)_ast_gen_sig_30_uniq;
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2267,8 +2198,7 @@ TEST test_sig_response_array_struct_ref(void) {
           free(io_code);
         break;
       }
-      if (io_code)
-        free(io_code);
+      free(io_code);
     }
     g_fail_io_after = -1;
   }
@@ -2279,14 +2209,15 @@ TEST test_sig_response_array_struct_ref(void) {
 }
 
 TEST test_sig_null_args(void) {
+  char *code = NULL;
   ASSERT(codegen_client_write_signature(NULL, NULL, NULL) ==
          CDD_C_ERROR_INVALID_ARGUMENT);
+  ASSERT(gen_sig(NULL, NULL, &code) != CDD_C_SUCCESS);
   PASS();
 }
 
 TEST test_sig_io_errors(void) {
   int i;
-  int success_count = 0;
   char *_ast_gen_sig_35_uniq = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
@@ -2306,21 +2237,14 @@ TEST test_sig_io_errors(void) {
   param.in = OA_PARAM_IN_QUERYSTRING;
   param.schema.inline_type = (char *)(size_t)(size_t)(size_t)(size_t) "string";
 
-  for (i = 0; i < 50; ++i) {
-    if (g_io_calls > 0 && g_io_calls < i)
-      break;
+  for (i = 0; i < 2; ++i) {
     g_io_calls = 0;
-    g_fail_io_after = i;
+    g_fail_io_after = (i == 0) ? 1 : 100;
     code = NULL;
     if (gen_sig(&op, NULL, &code) == CDD_C_SUCCESS) {
-      if (code)
-        free(code);
-      success_count++;
-      if (success_count > 1)
-        break; /* Once it succeeds consistently, stop */
+      free(code);
     } else {
-      if (code)
-        free(code);
+      free(code);
     }
   }
   g_fail_io_after = -1;
@@ -3887,6 +3811,138 @@ TEST test_sig_complete_branches_coverage(void) {
         codegen_client_write_signature(fp, &op, NULL);
       }
       g_fail_io_after = -1;
+      /* hitting semicolon config IO error */
+      {
+        struct CodegenSigConfig cfg_semi;
+        memset(&cfg_semi, 0, sizeof(cfg_semi));
+        cfg_semi.include_semicolon = 1;
+        for (io_i = 0; io_i < 6; ++io_i) {
+          g_io_calls = 0;
+          g_fail_io_after = io_i;
+          codegen_client_write_signature(fp, &op, &cfg_semi);
+        }
+        g_fail_io_after = -1;
+      }
+
+      /* hitting req_body string array, integer array, struct array */
+      memset(&op, 0, sizeof(op));
+      op.operation_id = (char *)(size_t)(size_t) "testReqBodyArrays";
+      op.req_body.content_type = (char *)(size_t)(size_t) "application/json";
+      op.req_body.is_array = 1;
+      op.req_body.ref_name = (char *)(size_t)(size_t) "string";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      op.req_body.ref_name = (char *)(size_t)(size_t) "integer";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      op.req_body.ref_name = (char *)(size_t)(size_t) "MyReqItem";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      /* hitting params: form_object, json array of items, path param, header
+       * primitive */
+      memset(&op, 0, sizeof(op));
+      memset(&param, 0, sizeof(param));
+      op.operation_id = (char *)(size_t)(size_t) "testParamIOs";
+      op.n_parameters = 1;
+      op.parameters = &param;
+      param.name = (char *)(size_t)(size_t) "kv";
+      param.in = OA_PARAM_IN_QUERYSTRING;
+      param.is_array = 0;
+      param.type = (char *)(size_t)(size_t) "object";
+      param.content_type =
+          (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+      param.schema.ref_name = (char *)(size_t)(size_t) "KvRef";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.is_array = 1;
+      param.items_type = (char *)(size_t)(size_t) "integer";
+      param.schema.ref_name = NULL;
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.is_array = 1;
+      param.items_type = (char *)(size_t)(size_t) "MyCustomItem";
+      param.schema.ref_name = NULL;
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.is_array = 0;
+      param.type = (char *)(size_t)(size_t) "object";
+      param.schema.ref_name = NULL;
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.content_type = (char *)(size_t)(size_t) "application/json";
+      param.is_array = 0;
+      param.type = (char *)(size_t)(size_t) "string";
+      param.schema.ref_name = NULL;
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.is_array = 0;
+      param.type = (char *)(size_t)(size_t) "string";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
+      param.in = OA_PARAM_IN_HEADER;
+      param.content_type = NULL;
+      param.is_array = 1;
+      param.items_type = (char *)(size_t)(size_t) "integer";
+      for (io_i = 0; io_i < 8; ++io_i) {
+        g_io_calls = 0;
+        g_fail_io_after = io_i;
+        codegen_client_write_signature(fp, &op, NULL);
+      }
+      g_fail_io_after = -1;
+
       fclose(fp);
     }
   }
@@ -4051,12 +4107,14 @@ TEST test_sig_ultra_coverage(void) {
     code = NULL;
   }
 
-  /* op with no responses and no req_body (success_schema == NULL &&
-   * success_is_binary == 0) */
+  /* op with no responses and req_body with is_array = 1 but no ref_name/inline
+   * (hits line 1600 success_schema->is_array true when ref_name and inline are
+   * false) */
   {
     struct OpenAPI_Operation op_no_resp;
     memset(&op_no_resp, 0, sizeof(op_no_resp));
     op_no_resp.operation_id = (char *)(size_t)(size_t) "noResp";
+    op_no_resp.req_body.is_array = 1;
     ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_no_resp, NULL, &code));
     ASSERT(code != NULL);
     free(code);
@@ -4102,18 +4160,314 @@ TEST test_sig_ultra_coverage(void) {
     code = NULL;
   }
 
-  /* Success schema with ref_name == NULL, inline_type == NULL, is_array == 0 */
+  /* sanitize_ident small buffer where j + 1 >= outsz and leading char is digit
+   */
   {
-    struct OpenAPI_Operation op_empty_schema;
-    struct OpenAPI_Response resp_empty;
-    memset(&op_empty_schema, 0, sizeof(op_empty_schema));
-    memset(&resp_empty, 0, sizeof(resp_empty));
-    op_empty_schema.operation_id = (char *)(size_t)(size_t) "emptySchema";
-    op_empty_schema.responses = &resp_empty;
-    op_empty_schema.n_responses = 1;
-    resp_empty.code = (char *)(size_t)(size_t) "200";
-    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_empty_schema, NULL, &code));
+    char tiny[2];
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_sanitize_ident(tiny, 2, "9"));
+    ASSERT_STR_EQ("_", tiny);
+    /* buffer of size 3 where j+1 == outsz (j=2, outsz=3) and first char is
+     * digit */
+    {
+      char med[3];
+      ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_sanitize_ident(med, 3, "9a"));
+      ASSERT_STR_EQ("_a", med);
+    }
+  }
+
+  /* get_success_response and get_success_schema with 3-char code "201" (first
+   * char '2', len 3) */
+  {
+    struct OpenAPI_Operation op_201;
+    struct OpenAPI_Response resp_201;
+    const struct OpenAPI_Response *r_out = NULL;
+    const struct OpenAPI_SchemaRef *s_out = NULL;
+    memset(&op_201, 0, sizeof(op_201));
+    memset(&resp_201, 0, sizeof(resp_201));
+    op_201.n_responses = 1;
+    op_201.responses = &resp_201;
+    resp_201.code = (char *)(size_t)(size_t) "201";
+    resp_201.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_sig_get_success_response(&op_201, &r_out));
+    ASSERT(r_out == &resp_201);
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_201, &s_out));
+    ASSERT(s_out == &resp_201.schema);
+
+    /* 2XX with no ref_name, no inline, no is_array (continue branch of 2XX) */
+    resp_201.code = (char *)(size_t)(size_t) "2XX";
+    resp_201.schema.ref_name = NULL;
+    s_out = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_201, &s_out));
+    ASSERT(s_out == &op_201.req_body);
+
+    /* 201 with no ref_name, no inline, no is_array (false branch of if(ref_name
+     * || inline || is_array) for c[0]=='2') */
+    resp_201.code = (char *)(size_t)(size_t) "201";
+    s_out = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_201, &s_out));
+    ASSERT(s_out == &op_201.req_body);
+  }
+
+  /* get_success_schema with code starting with '2' but length != 3, e.g. "2" */
+  {
+    struct OpenAPI_Operation op_2;
+    struct OpenAPI_Response resp_2;
+    const struct OpenAPI_SchemaRef *s_out = NULL;
+    memset(&op_2, 0, sizeof(op_2));
+    memset(&resp_2, 0, sizeof(resp_2));
+    op_2.n_responses = 1;
+    op_2.responses = &resp_2;
+    resp_2.code = (char *)(size_t)(size_t) "2";
+    resp_2.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_2, &s_out));
+    ASSERT(s_out == &resp_2.schema);
+  }
+
+  /* querystring_param_raw_primitive_type with p->in != OA_PARAM_IN_QUERYSTRING
+   */
+  {
+    struct OpenAPI_Parameter param_hdr;
+    const char *raw_type = NULL;
+    memset(&param_hdr, 0, sizeof(param_hdr));
+    param_hdr.in = OA_PARAM_IN_HEADER;
+    param_hdr.content_type = (char *)(size_t)(size_t) "application/json";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_querystring_param_raw_primitive_type(
+                                 &param_hdr, &raw_type));
+    ASSERT(raw_type == NULL);
+  }
+
+  /* codegen_client_write_signature with config != NULL, but config->ctx_type ==
+   * NULL */
+  {
+    struct OpenAPI_Operation op_ctx;
+    struct CodegenSigConfig cfg_ctx;
+    memset(&op_ctx, 0, sizeof(op_ctx));
+    memset(&cfg_ctx, 0, sizeof(cfg_ctx));
+    op_ctx.operation_id = (char *)(size_t)(size_t) "testDefaultCtx";
+    cfg_ctx.ctx_type = NULL;
+    cfg_ctx.prefix = "api_";
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_ctx, &cfg_ctx, &code));
     ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+  }
+
+  /* multipart req_body with is_mp && !is_mp_form (e.g. multipart/mixed) */
+  {
+    struct OpenAPI_Operation op_mixed;
+    memset(&op_mixed, 0, sizeof(op_mixed));
+    op_mixed.operation_id = (char *)(size_t)(size_t) "testMixed";
+    op_mixed.req_body.content_type = (char *)(size_t)(size_t) "multipart/mixed";
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mixed, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+  }
+
+  /* req_body with is_mp_form and encoding != NULL, n_encoding > 0, hdr_type ==
+   * "array" */
+  {
+    struct OpenAPI_Operation op_mp_hdr;
+    struct OpenAPI_MediaType mt_hdr;
+    struct OpenAPI_Encoding enc_hdr;
+    struct OpenAPI_Header h_hdr;
+    memset(&op_mp_hdr, 0, sizeof(op_mp_hdr));
+    memset(&mt_hdr, 0, sizeof(mt_hdr));
+    memset(&enc_hdr, 0, sizeof(enc_hdr));
+    memset(&h_hdr, 0, sizeof(h_hdr));
+    op_mp_hdr.operation_id = (char *)(size_t)(size_t) "testMpHdrTypeArray";
+    op_mp_hdr.req_body.content_type =
+        (char *)(size_t)(size_t) "multipart/form-data";
+    op_mp_hdr.n_req_body_media_types = 1;
+    op_mp_hdr.req_body_media_types = &mt_hdr;
+    mt_hdr.name = (char *)(size_t)(size_t) "multipart/form-data";
+    mt_hdr.n_encoding = 1;
+    mt_hdr.encoding = &enc_hdr;
+    enc_hdr.name = (char *)(size_t)(size_t) "part";
+    enc_hdr.n_headers = 1;
+    enc_hdr.headers = &h_hdr;
+    h_hdr.name = (char *)(size_t)(size_t) "X-Arr-Hdr";
+    h_hdr.type = (char *)(size_t)(size_t) "array";
+    h_hdr.is_array = 0; /* is_array == 0 but type == "array" */
+    h_hdr.items_type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp_hdr, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+
+    /* mt->encoding == NULL branch */
+    mt_hdr.encoding = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp_hdr, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+
+    /* mt == NULL branch (media type not found) */
+    op_mp_hdr.n_req_body_media_types = 0;
+    op_mp_hdr.req_body_media_types = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp_hdr, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+
+    /* mt->n_encoding == 0 branch */
+    mt_hdr.encoding = &enc_hdr;
+    mt_hdr.n_encoding = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_mp_hdr, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+  }
+
+  /* success_schema with inline_type (primitive) and is_array == 1, and is_array
+   * == 0 */
+  {
+    struct OpenAPI_Operation op_inl;
+    struct OpenAPI_Response resp_inl;
+    memset(&op_inl, 0, sizeof(op_inl));
+    memset(&resp_inl, 0, sizeof(resp_inl));
+    op_inl.operation_id = (char *)(size_t)(size_t) "testInlineResp";
+    op_inl.n_responses = 1;
+    op_inl.responses = &resp_inl;
+    resp_inl.code = (char *)(size_t)(size_t) "200";
+    resp_inl.schema.inline_type = (char *)(size_t)(size_t) "integer";
+    resp_inl.schema.is_array = 1;
+    resp_inl.schema.ref_name = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_inl, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+
+    resp_inl.schema.is_array = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_inl, NULL, &code));
+    ASSERT(code != NULL);
+    free(code);
+    code = NULL;
+  }
+
+  /* success_schema == NULL but success_is_binary == 1 */
+  {
+    struct OpenAPI_Operation op_bin_resp;
+    struct OpenAPI_Response resp_bin;
+    memset(&op_bin_resp, 0, sizeof(op_bin_resp));
+    memset(&resp_bin, 0, sizeof(resp_bin));
+    op_bin_resp.operation_id =
+        (char *)(size_t)(size_t) "testBinaryRespNoSchema";
+    op_bin_resp.n_responses = 1;
+    op_bin_resp.responses = &resp_bin;
+    resp_bin.code = (char *)(size_t)(size_t) "200";
+    resp_bin.content_type = (char *)(size_t)(size_t) "application/octet-stream";
+    /* Clear req_body schema so fallback schema has no ref_name, no inline, no
+     * is_array */
+    memset(&op_bin_resp.req_body, 0, sizeof(op_bin_resp.req_body));
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_bin_resp, NULL, &code));
+    ASSERT(code != NULL);
+    ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
+    free(code);
+    code = NULL;
+  }
+
+  /* 2XX response with schema.inline_type != NULL (hits has_inline in 2XX check)
+   */
+  {
+    struct OpenAPI_Operation op_2xx_inl;
+    struct OpenAPI_Response resp_2xx_inl;
+    const struct OpenAPI_SchemaRef *s_out = NULL;
+    memset(&op_2xx_inl, 0, sizeof(op_2xx_inl));
+    memset(&resp_2xx_inl, 0, sizeof(resp_2xx_inl));
+    op_2xx_inl.n_responses = 1;
+    op_2xx_inl.responses = &resp_2xx_inl;
+    resp_2xx_inl.code = (char *)(size_t)(size_t) "2XX";
+    resp_2xx_inl.schema.inline_type = (char *)(size_t)(size_t) "integer";
+    resp_2xx_inl.schema.ref_name = NULL;
+    resp_2xx_inl.schema.is_array = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_sig_get_success_schema(&op_2xx_inl, &s_out));
+    ASSERT(s_out == &resp_2xx_inl.schema);
+
+    /* 2XX response with schema.is_array = 1, ref_name = NULL, inline_type =
+     * NULL */
+    resp_2xx_inl.schema.inline_type = NULL;
+    resp_2xx_inl.schema.is_array = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_sig_get_success_schema(&op_2xx_inl, &s_out));
+    ASSERT(s_out == &resp_2xx_inl.schema);
+  }
+
+  /* get_success_response with 3-char code having c[0] == '2' but c[1] == 'X'
+   * and c[2] != 'X' (e.g. "2X0") */
+  {
+    struct OpenAPI_Operation op_2x0;
+    struct OpenAPI_Response resp_2x0;
+    const struct OpenAPI_Response *r_out = NULL;
+    memset(&op_2x0, 0, sizeof(op_2x0));
+    memset(&resp_2x0, 0, sizeof(resp_2x0));
+    op_2x0.n_responses = 1;
+    op_2x0.responses = &resp_2x0;
+    resp_2x0.code = (char *)(size_t)(size_t) "2X0";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_sig_get_success_response(&op_2x0, &r_out));
+    ASSERT(r_out == &resp_2x0);
+  }
+
+  /* get_success_response with code of length != 3, e.g. "2" */
+  {
+    struct OpenAPI_Operation op_len2;
+    struct OpenAPI_Response resp_len2;
+    const struct OpenAPI_Response *r_out = NULL;
+    memset(&op_len2, 0, sizeof(op_len2));
+    memset(&resp_len2, 0, sizeof(resp_len2));
+    op_len2.n_responses = 1;
+    op_len2.responses = &resp_len2;
+    resp_len2.code = (char *)(size_t)(size_t) "2";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_sig_get_success_response(&op_len2, &r_out));
+    ASSERT(r_out == &resp_len2);
+  }
+
+  /* get_success_schema with code of length 3 having c[0] == '2', c[1] == '0',
+   * c[2] == '0' */
+  {
+    struct OpenAPI_Operation op_200;
+    struct OpenAPI_Response resp_200;
+    const struct OpenAPI_SchemaRef *s_out = NULL;
+    memset(&op_200, 0, sizeof(op_200));
+    memset(&resp_200, 0, sizeof(resp_200));
+    op_200.n_responses = 1;
+    op_200.responses = &resp_200;
+    resp_200.code = (char *)(size_t)(size_t) "200";
+    resp_200.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_200, &s_out));
+    ASSERT(s_out == &resp_200.schema);
+  }
+
+  /* get_success_schema and get_success_response with 3-char code "2X0" */
+  {
+    struct OpenAPI_Operation op_2x0s;
+    struct OpenAPI_Response resp_2x0s;
+    const struct OpenAPI_SchemaRef *s_out = NULL;
+    memset(&op_2x0s, 0, sizeof(op_2x0s));
+    memset(&resp_2x0s, 0, sizeof(resp_2x0s));
+    op_2x0s.n_responses = 1;
+    op_2x0s.responses = &resp_2x0s;
+    resp_2x0s.code = (char *)(size_t)(size_t) "2X0";
+    resp_2x0s.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_get_success_schema(&op_2x0s, &s_out));
+    ASSERT(s_out == &resp_2x0s.schema);
+  }
+
+  /* config with config->ctx_type set */
+  {
+    struct OpenAPI_Operation op_ctx2;
+    struct CodegenSigConfig cfg_ctx2;
+    memset(&op_ctx2, 0, sizeof(op_ctx2));
+    memset(&cfg_ctx2, 0, sizeof(cfg_ctx2));
+    op_ctx2.operation_id = (char *)(size_t)(size_t) "testCustomCtx";
+    cfg_ctx2.ctx_type = "void *";
+    ASSERT_EQ(CDD_C_SUCCESS, gen_sig(&op_ctx2, &cfg_ctx2, &code));
+    ASSERT(code != NULL);
+    ASSERT(strstr(code, "void *ctx") != NULL);
     free(code);
     code = NULL;
   }

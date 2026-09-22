@@ -179,19 +179,6 @@ TEST test_c2openapi_full_flow(void) {
         ASSERT(schemas != NULL);
         {
           JSON_Object *user = json_object_get_object(schemas, "User");
-          if (!user) {
-            printf("FAILED to find User in schemas!\n");
-            {
-              size_t num = json_object_get_count(schemas);
-              printf("Schemas has %lu items. Keys:\n", (unsigned long)num);
-              {
-                size_t i;
-                for (i = 0; i < num; ++i) {
-                  printf("  '%s'\n", json_object_get_name(schemas, i));
-                }
-              }
-            }
-          }
           ASSERT(user != NULL);
           {
             JSON_Object *props = json_object_get_object(user, "properties");
@@ -658,9 +645,6 @@ TEST test_c2o_cli_source_file_checks(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -751,9 +735,6 @@ TEST test_c2o_cli_doc_sec_unset(void) {
       argv[1] = (char *)(size_t)src_dir;
       argv[2] = (char *)(size_t)out_json;
       rc = c2openapi_cli_main(3, argv);
-      if (rc != 0) {
-        printf("\nERROR rc=%d\n", rc);
-      }
       ASSERT_EQ(0, rc);
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
@@ -806,9 +787,6 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -878,9 +856,6 @@ TEST test_c2o_cli_mappings_errors_find(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -927,9 +902,6 @@ TEST test_c2o_cli_set_str_mismatch(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -978,9 +950,6 @@ TEST test_c2o_cli_server_variables(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -1030,9 +999,6 @@ TEST test_c2o_cli_server_variables_validation(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -1101,9 +1067,6 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
     argv[1] = (char *)(size_t)src_dir;
     argv[2] = (char *)(size_t)out_json;
     rc = c2openapi_cli_main(3, argv);
-    if (rc != 0) {
-      printf("\nERROR rc=%d\n", rc);
-    }
     ASSERT_EQ(0, rc);
 
     remove(c_file);
@@ -1169,9 +1132,6 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
       argv[1] = (char *)(size_t)src_dir;
       argv[2] = (char *)(size_t)out_json;
       rc = c2openapi_cli_main(3, argv);
-      if (rc != 0) {
-        printf("\nERROR rc=%d\n", rc);
-      }
       ASSERT_EQ(0, rc);
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
@@ -1250,9 +1210,6 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
       argv[1] = (char *)(size_t)src_dir;
       argv[2] = (char *)(size_t)out_json;
       rc = c2openapi_cli_main(3, argv);
-      if (rc != 0) {
-        printf("\nERROR rc=%d\n", rc);
-      }
       ASSERT_EQ(0, rc);
 
       for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {

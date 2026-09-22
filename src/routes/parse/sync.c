@@ -47,7 +47,9 @@ extern C_CDD_EXPORT int g_cdd_fail_codegen_write;
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
 static cdd_c_error_t make_cdd_tmpfile(FILE **out_file) {
+#if !defined(__wasm__) && !defined(__wasm32__)
   FILE *f = NULL;
+#endif
   if (!out_file)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -871,6 +873,7 @@ static cdd_c_error_t apply_updates(const char *filename,
 
   if (rc == CDD_C_SUCCESS) {
     FILE *f = NULL;
+    (void)f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
 #else
@@ -890,11 +893,6 @@ static cdd_c_error_t apply_updates(const char *filename,
 
 /**
  * @brief Synchronize a C source file with an OpenAPI specification.
- *
- * @param[in] filename Path to the C source file to update.
- * @param[in] spec The parsed OpenAPI specification.
- * @param[in] config Configuration options.
- * @return CDD_C_SUCCESS on success, error code on failure.
  */
 cdd_c_error_t api_sync_file(const char *filename,
                             const struct OpenAPI_Spec *spec,

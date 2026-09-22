@@ -9,6 +9,11 @@ extern "C" {
 #include "classes/parse/cdd_cst_node.h"
 #include "cdd_c_error.h"
 #include <stddef.h>
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
 #include "c_cdd_export.h"
 /* clang-format on */
 
@@ -73,6 +78,117 @@ cdd_transform_msvc(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
  */
 C_CDD_EXPORT cdd_c_error_t
 cdd_transform_gnu(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
+
+/**
+ * @brief Pools a string safely in the CST tree string pool.
+ * @param[in,out] tree The CST tree.
+ * @param[in] str The string to pool.
+ * @param[out] out_pooled Pointer to receive the pooled string pointer.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe(cdd_cst_tree_t *tree,
+                                                const char *str,
+                                                const char **out_pooled);
+
+/**
+ * @brief Pools a sized string buffer safely in the CST tree string pool.
+ * @param[in,out] tree The CST tree.
+ * @param[in] str The string buffer to pool.
+ * @param[in] len The length of the string.
+ * @param[out] out_pooled Pointer to receive the pooled string pointer.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree,
+                                                    const char *str, size_t len,
+                                                    const char **out_pooled);
+
+/**
+ * @brief Appends an integer as decimal characters to a string buffer.
+ * @param[in,out] p Pointer to destination buffer.
+ * @param[in] v Integer value to append.
+ * @param[out] out_p Pointer to receive updated buffer pointer.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
+
+/**
+ * @brief Parses a 128-bit decimal literal into high and low 64-bit halves.
+ * @param[in] str Decimal literal string.
+ * @param[in] len Length of string.
+ * @param[out] out_high Pointer to store high 64 bits.
+ * @param[out] out_low Pointer to store low 64 bits.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_parse_128_literal(const char *str, size_t len,
+                                                 uint64_t *out_high,
+                                                 uint64_t *out_low);
+
+/**
+ * @brief Parses a 128-bit hexadecimal literal into high and low 64-bit halves.
+ * @param[in] str Hexadecimal literal string.
+ * @param[in] len Length of string.
+ * @param[out] out_high Pointer to store high 64 bits.
+ * @param[out] out_low Pointer to store low 64 bits.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_parse_hex_128_literal(const char *str,
+                                                     size_t len,
+                                                     uint64_t *out_high,
+                                                     uint64_t *out_low);
+
+/**
+ * @brief Infers a C type name string from an array of expression tokens.
+ * @param[in] tokens Token array.
+ * @param[in] num_tokens Number of tokens.
+ * @param[out] out_type Pointer to receive inferred type string or NULL if
+ * already a type.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens,
+                                          size_t num_tokens,
+                                          const char **out_type);
+
+/** @brief Context for magic identifiers transformation */
+struct magic_ctx {
+  cdd_cst_tree_t *tree;     /**< The CST tree */
+  const uint8_t *func_name; /**< Current function name */
+  size_t func_len;          /**< Length of function name */
+};
+
+/** @brief Context for trampoline detection */
+struct tramp_ctx {
+  const uint8_t *name;       /**< Identifier name */
+  size_t length;             /**< Length of name */
+  int is_tramp;              /**< Set to 1 if trampoline detected */
+  cdd_cst_node_t *func_node; /**< Function node */
+};
+
+/**
+ * @brief Visitor for expanding __FUNCTION__, __PRETTY_FUNCTION__, and __func__.
+ * @param[in,out] node Current CST node.
+ * @param[in,out] user_data Pointer to struct magic_ctx.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_magic_visitor(cdd_cst_node_t *node,
+                                             void *user_data);
+
+/**
+ * @brief Visitor for detecting nested function trampolines.
+ * @param[in,out] node Current CST node.
+ * @param[in,out] user_data Pointer to struct tramp_ctx.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_tramp_visitor(cdd_cst_node_t *node,
+                                             void *user_data);
+
+/**
+ * @brief Visitor for validating inline assembly statements.
+ * @param[in,out] node Current CST node.
+ * @param[in,out] user_data Optional user context.
+ * @return CDD_C_SUCCESS on success, or error code.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node,
+                                           void *user_data);
 
 /**
  * @brief Checks if a token in a CST node represents a function call site.

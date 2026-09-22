@@ -39,7 +39,6 @@ TEST test_cli_gen_basic(void) {
   struct OpenAPI_OAuthFlow flow = {0};
   struct OpenAPI_Callback cb = {0};
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
   spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
@@ -142,7 +141,6 @@ TEST test_cli_gen_fail_open(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
 
@@ -175,7 +173,6 @@ TEST test_cli_gen_full(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
   spec.info.title = (char *)(size_t)(size_t) "Full API";
@@ -260,7 +257,6 @@ TEST test_cli_gen_malloc_fail(void) {
   int rc;
   int i;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   memset(&config, 0, sizeof(config));
   config.filename_base = (char *)(size_t)(size_t) "test_build_dir/cli";
@@ -289,7 +285,6 @@ TEST test_cli_gen_partial(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
   spec.info.title = (char *)(size_t)(size_t) "Partial API";
@@ -375,7 +370,6 @@ TEST test_cli_gen_partial2(void) {
   struct OpenApiClientConfig config;
   int rc;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.0";
   spec.info.title = (char *)(size_t)(size_t) "Partial API 2";

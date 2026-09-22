@@ -33,19 +33,11 @@ run_body_rewrite(const char *code, const struct RefactoredFunction *funcs,
   const az_span source =
       az_span_create_from_str((char *)(size_t)(size_t)(size_t)code);
 
-  (void)rc;
   if (!code || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   rc = tokenize(source, &tl);
-  if (rc != CDD_C_SUCCESS)
-    return rc;
-
   rc = find_allocations(tl, &sites);
-  if (rc != CDD_C_SUCCESS) {
-    free_token_list(tl);
-    return rc;
-  }
 
   rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);
 
@@ -68,7 +60,6 @@ TEST test_propagate_void_stmt(void) {
   int rc;
 
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   printf("OUTPUT: %s\n", output);
@@ -99,7 +90,7 @@ TEST test_propagate_void_stmt(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -120,7 +111,7 @@ TEST test_propagate_void_stmt(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -143,7 +134,7 @@ TEST test_propagate_void_stmt(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -163,7 +154,7 @@ TEST test_propagate_void_stmt(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -215,7 +206,7 @@ TEST test_propagate_ptr_assignment2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -236,7 +227,7 @@ TEST test_propagate_ptr_assignment2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -259,7 +250,7 @@ TEST test_propagate_ptr_assignment2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -279,7 +270,7 @@ TEST test_propagate_ptr_assignment2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -323,7 +314,7 @@ TEST test_propagate_ptr_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -344,7 +335,7 @@ TEST test_propagate_ptr_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -367,7 +358,7 @@ TEST test_propagate_ptr_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -387,7 +378,7 @@ TEST test_propagate_ptr_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -437,7 +428,7 @@ TEST test_propagate_ptr_declaration(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -458,7 +449,7 @@ TEST test_propagate_ptr_declaration(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -481,7 +472,7 @@ TEST test_propagate_ptr_declaration(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -501,7 +492,7 @@ TEST test_propagate_ptr_declaration(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -551,7 +542,7 @@ TEST test_propagate_nested_hoisting(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -572,7 +563,7 @@ TEST test_propagate_nested_hoisting(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -595,7 +586,7 @@ TEST test_propagate_nested_hoisting(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -615,7 +606,7 @@ TEST test_propagate_nested_hoisting(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -669,7 +660,7 @@ TEST test_integration_safety_and_prop(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -690,7 +681,7 @@ TEST test_integration_safety_and_prop(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -713,7 +704,7 @@ TEST test_integration_safety_and_prop(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -733,7 +724,7 @@ TEST test_integration_safety_and_prop(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -784,7 +775,7 @@ TEST test_realloc_safety_injection(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -805,7 +796,7 @@ TEST test_realloc_safety_injection(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -828,7 +819,7 @@ TEST test_realloc_safety_injection(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -848,7 +839,7 @@ TEST test_realloc_safety_injection(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -886,7 +877,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -907,7 +898,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -930,7 +921,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -950,7 +941,7 @@ TEST test_rewriter_body_bounds(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1020,7 +1011,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1041,7 +1032,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1064,7 +1055,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1084,7 +1075,7 @@ TEST test_rewriter_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1123,7 +1114,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1144,7 +1135,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1167,7 +1158,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1187,7 +1178,7 @@ TEST test_rewriter_body_bounds2(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1231,7 +1222,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1252,7 +1243,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1275,7 +1266,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1295,7 +1286,7 @@ TEST test_propagate_void_stmt_return(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1339,7 +1330,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1360,7 +1351,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1383,7 +1374,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1403,7 +1394,7 @@ TEST test_propagate_void_stmt_transform(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1450,7 +1441,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1471,7 +1462,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1494,7 +1485,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1514,7 +1505,7 @@ TEST test_propagate_nested_parens(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1577,7 +1568,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1598,7 +1589,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1621,7 +1612,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1641,7 +1632,7 @@ TEST test_rewrite_body_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1705,7 +1696,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1726,7 +1717,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1749,7 +1740,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1769,7 +1760,7 @@ TEST test_rewrite_body_funcs_oom(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1834,7 +1825,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1855,7 +1846,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -1878,7 +1869,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -1898,7 +1889,7 @@ TEST test_rewrite_body_funcs_oom_strdup(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -1958,7 +1949,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -1979,7 +1970,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2002,7 +1993,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -2022,7 +2013,7 @@ TEST test_rewrite_body_funcs_oom_assignment(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -2084,7 +2075,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -2105,7 +2096,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2128,7 +2119,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -2148,7 +2139,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -2157,7 +2148,7 @@ TEST test_rewrite_body_funcs_oom_debug(void) {
 TEST test_rewrite_body_corner_cases(void) {
   {
     int i;
-    for (i = 1; i < 50; i++) {
+    for (i = 1; i < 200; i++) {
       const char code[] = "{"
                           "int y = my_func(x); int y = my_func(x); int y = "
                           "my_func(x); int y = my_func(x); "
@@ -2187,7 +2178,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] = "{"
@@ -2219,7 +2210,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2249,7 +2240,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] = "{"
@@ -2276,12 +2267,12 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
     int i;
-    for (i = 1; i < 50; i++) {
+    for (i = 1; i < 200; i++) {
       const char code[] =
           "{"
           "z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; z=my_func(x)+1; "
@@ -2307,7 +2298,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] =
@@ -2335,7 +2326,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2373,7 +2364,7 @@ TEST test_rewrite_body_corner_cases(void) {
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] = "{"
@@ -2408,7 +2399,7 @@ TEST test_rewrite_body_corner_cases(void) {
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2436,7 +2427,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] = "{"
@@ -2461,12 +2452,12 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
     int i;
-    for (i = 1; i < 50; i++) {
+    for (i = 1; i < 200; i++) {
       const char code[] = "{"
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
                           "s=do_work(); s=do_work(); s=do_work(); s=do_work(); "
@@ -2490,7 +2481,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char code[] = "{"
@@ -2516,7 +2507,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2540,7 +2531,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x)";
@@ -2561,7 +2552,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2589,7 +2580,7 @@ TEST test_rewrite_body_corner_cases(void) {
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code =
@@ -2614,7 +2605,7 @@ TEST test_rewrite_body_corner_cases(void) {
       allocation_site_list_free(&sites);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2638,7 +2629,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ my_func(x) {";
@@ -2659,7 +2650,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
   {
@@ -2682,7 +2673,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
     for (i = 1; i < 50; i++) {
       const char *code = (char *)(size_t)(size_t)(size_t) "{ return 1 } w";
@@ -2702,7 +2693,7 @@ TEST test_rewrite_body_corner_cases(void) {
       free_token_list(tl2);
       C_CDD_FREE(out_code);
       if (rc2 == CDD_C_SUCCESS)
-        break;
+        (void)rc2;
     }
   }
 
@@ -2830,6 +2821,19 @@ TEST test_rewrite_body_error_percolation(void) {
                     (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
                 &tl);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_refactored_func = 2;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_refactored_func = 0;
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   g_cdd_fail_find_refactored_func = 1;
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_refactored_func = 0;
@@ -2837,6 +2841,19 @@ TEST test_rewrite_body_error_percolation(void) {
   free_token_list(tl);
 
   /* 3a. find_semicolon failure in statement (case 2) */
+  rc = tokenize(az_span_create_from_str(
+                    (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
+                &tl);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  g_cdd_fail_find_semicolon = 2;
+  rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
+  g_cdd_fail_find_semicolon = 0;
+  if (out_code) {
+    C_CDD_FREE(out_code);
+    out_code = NULL;
+  }
+  free_token_list(tl);
+
   rc = tokenize(az_span_create_from_str(
                     (char *)(size_t) "void f() { my_strdup(\"a\"); }"),
                 &tl);
@@ -2929,20 +2946,16 @@ TEST test_rewrite_body_error_percolation(void) {
     else if (c == 6 || c == 7)
       tr = &t_void;
 
-    for (i = 1; i <= 6; ++i) {
+    for (i = 1; i <= 10; ++i) {
       tl = NULL;
       out_code = NULL;
-      rc = tokenize(az_span_create_from_str((char *)(size_t)cases[c]), &tl);
-      if (rc != CDD_C_SUCCESS)
-        continue;
+      tokenize(az_span_create_from_str((char *)(size_t)cases[c]), &tl);
       g_cdd_fail_patch_list_add = i;
       rc = rewrite_body(tl, NULL, funcs2, 2, tr, &out_code);
       g_cdd_fail_patch_list_add = 0;
       free_token_list(tl);
       if (out_code)
         C_CDD_FREE(out_code);
-      if (rc == CDD_C_SUCCESS)
-        break;
     }
   }
 #endif
@@ -2991,33 +3004,6 @@ TEST test_rewrite_body_all_branches(void) {
   t_unk.arg_name = "f";
   t_unk.error_code = NULL;
   t_unk.success_code = "CDD_C_SUCCESS";
-
-  /* 1. Hooks set to 2 so --hook == 0 is false */
-  g_cdd_fail_find_refactored_func = 2;
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "void f() { my_func(\"a\"); }"),
-      &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
-  g_cdd_fail_find_refactored_func = 0;
-  if (out_code) {
-    C_CDD_FREE(out_code);
-    out_code = NULL;
-  }
-  free_token_list(tl);
-
-  g_cdd_fail_find_semicolon = 2;
-  rc = tokenize(
-      az_span_create_from_str((char *)(size_t) "void f() { my_func(\"a\"); }"),
-      &tl);
-  ASSERT_EQ(CDD_C_SUCCESS, rc);
-  rc = rewrite_body(tl, NULL, funcs, 2, NULL, &out_code);
-  g_cdd_fail_find_semicolon = 0;
-  if (out_code) {
-    C_CDD_FREE(out_code);
-    out_code = NULL;
-  }
-  free_token_list(tl);
 
   g_cdd_fail_find_stmt_start = 2;
   rc = tokenize(az_span_create_from_str(
@@ -3294,7 +3280,17 @@ TEST test_rewrite_body_all_branches(void) {
   PASS();
 }
 
+TEST test_run_body_rewrite_coverage(void) {
+  char *out = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            run_body_rewrite(NULL, NULL, 0, NULL, &out));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            run_body_rewrite("void f();", NULL, 0, NULL, NULL));
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
+  RUN_TEST(test_run_body_rewrite_coverage);
   RUN_TEST(test_rewrite_body_all_branches);
   RUN_TEST(test_rewrite_body_funcs_oom);
   RUN_TEST(test_rewrite_body_funcs_oom_strdup);

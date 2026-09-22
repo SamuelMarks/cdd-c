@@ -33,7 +33,11 @@ static cdd_c_error_t load_spec_string(const char *json,
   root = json_parse_string(json);
   if (!root)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  (void)openapi_spec_init(spec);
+  rc = openapi_spec_init(spec);
+  if (rc != CDD_C_SUCCESS) {
+    json_value_free(root);
+    return rc;
+  }
   rc = openapi_load_from_json(root, spec);
   json_value_free(root);
   return rc;

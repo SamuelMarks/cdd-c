@@ -186,7 +186,6 @@ TEST test_make_oom(void) {
   int rc;
 #endif
 
-  (void)rc;
   config.project_name = (char *)(size_t)(size_t) "proj";
   config.extra_sources = (char **)(size_t)srcs;
   config.extra_source_count = 2;

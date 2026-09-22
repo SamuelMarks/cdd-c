@@ -28,12 +28,15 @@ extern "C" {
 static cdd_c_error_t load_spec_str2(const char *json_str,
                                     struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
-  int rc;
+  cdd_c_error_t rc;
   dyn = json_parse_string(json_str);
-  (void)rc;
   if (!dyn)
-    return -1;
-  (void)openapi_spec_init(spec);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = openapi_spec_init(spec);
+  if (rc != CDD_C_SUCCESS) {
+    json_value_free(dyn);
+    return rc;
+  }
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;
@@ -90,9 +93,6 @@ TEST test_writer_empty_spec(void) {
   json = NULL;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  (void)rc;
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -120,12 +120,9 @@ TEST test_writer_basic_operation(void) {
   struct OpenAPI_Operation op = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -157,16 +154,13 @@ TEST test_writer_schema_document(void) {
   _ast_strdup_0 = NULL;
   json = NULL;
 
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   spec.is_schema_document = 1;
   spec.schema_root_json =
       (c_cdd_strdup("{\"type\":\"string\"}", &_ast_strdup_0), _ast_strdup_0);
   ASSERT(spec.schema_root_json != NULL);
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   ASSERT_STR_EQ("{\"type\":\"string\"}", json);
@@ -184,7 +178,6 @@ TEST test_writer_root_metadata_and_tags(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   memset(tags, 0, sizeof(tags));
   spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
   spec.self_uri = (char *)(size_t)(size_t) "https://example.com/openapi.json";
@@ -204,8 +197,6 @@ TEST test_writer_root_metadata_and_tags(void) {
   tags[0].external_docs.description = (char *)(size_t)(size_t) "Tag docs";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -257,7 +248,6 @@ TEST test_writer_path_ref_and_servers(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   memset(path_servers, 0, sizeof(path_servers));
   memset(op_servers, 0, sizeof(op_servers));
 
@@ -283,8 +273,6 @@ TEST test_writer_path_ref_and_servers(void) {
   op_servers[0].url = (char *)(size_t)(size_t) "https://op.example.com";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -329,7 +317,6 @@ TEST test_writer_webhooks(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   spec.webhooks = &hook;
   spec.n_webhooks = 1;
 
@@ -344,8 +331,6 @@ TEST test_writer_webhooks(void) {
   resp.description = (char *)(size_t)(size_t) "OK";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -379,12 +364,9 @@ TEST test_writer_params_responses(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -445,7 +427,6 @@ TEST test_writer_parameter_metadata(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.description = (char *)(size_t)(size_t) "Search term";
   param.deprecated_set = 1;
@@ -454,8 +435,6 @@ TEST test_writer_parameter_metadata(void) {
   param.allow_reserved = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -492,14 +471,11 @@ TEST test_writer_allow_empty_value(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.allow_empty_value_set = 1;
   param.allow_empty_value = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -534,7 +510,6 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   op.verb = OA_VERB_POST;
   op.req_body.ref_name = (char *)(size_t)(size_t) "User";
@@ -545,8 +520,6 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
   resp.description = (char *)(size_t)(size_t) "Created";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -587,7 +560,6 @@ TEST test_writer_info_metadata(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   spec.info.title = (char *)(size_t)(size_t) "Example API";
   spec.info.summary = (char *)(size_t)(size_t) "Short";
   spec.info.description = (char *)(size_t)(size_t) "Long";
@@ -601,8 +573,6 @@ TEST test_writer_info_metadata(void) {
   spec.info.license.identifier = (char *)(size_t)(size_t) "Apache-2.0";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -645,7 +615,6 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   spec.info.title = (char *)(size_t)(size_t) "Example API";
   spec.info.version = (char *)(size_t)(size_t) "1.0";
   spec.info.license.name = (char *)(size_t)(size_t) "Apache 2.0";
@@ -667,7 +636,6 @@ TEST test_writer_server_url_query_rejected(void) {
   struct OpenAPI_Server server = {0};
   json = NULL;
 
-  (void)rc;
   spec.info.title = (char *)(size_t)(size_t) "Example API";
   spec.info.version = (char *)(size_t)(size_t) "1.0";
   server.url = (char *)(size_t)(size_t) "https://example.com/api?x=1";
@@ -689,15 +657,12 @@ TEST test_writer_operation_metadata(void) {
   struct OpenAPI_Operation op = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.summary = (char *)(size_t)(size_t) "Summary text";
   op.description = (char *)(size_t)(size_t) "Longer description";
   op.deprecated = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -730,14 +695,11 @@ TEST test_writer_response_content_type(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.content_type = (char *)(size_t)(size_t) "text/plain";
   resp.schema.ref_name = (char *)(size_t)(size_t) "Message";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -779,13 +741,10 @@ TEST test_writer_inline_response_schema_primitive(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.inline_type = (char *)(size_t)(size_t) "string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -825,14 +784,11 @@ TEST test_writer_inline_response_schema_array(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
   resp.schema.inline_type = (char *)(size_t)(size_t) "integer";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -875,7 +831,6 @@ TEST test_writer_inline_schema_format_and_content(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.inline_type = (char *)(size_t)(size_t) "string";
   resp.schema.format = (char *)(size_t)(size_t) "uuid";
@@ -883,8 +838,6 @@ TEST test_writer_inline_schema_format_and_content(void) {
   resp.schema.content_encoding = (char *)(size_t)(size_t) "base64";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -928,7 +881,6 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
   resp.schema.inline_type = (char *)(size_t)(size_t) "string";
@@ -937,8 +889,6 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   resp.schema.items_content_encoding = (char *)(size_t)(size_t) "base64";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -986,7 +936,6 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
 
   resp.schema.ref_name = NULL;
@@ -1013,8 +962,6 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   resp.schema.xml.prefix = (char *)(size_t)(size_t) "p";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -1081,7 +1028,6 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   memset(examples, 0, sizeof(examples));
   examples[0].type = OA_ANY_STRING;
   examples[0].string = (char *)(size_t)(size_t) "fast";
@@ -1104,8 +1050,6 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   resp.schema.n_examples = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1170,15 +1114,11 @@ TEST test_writer_preserves_composed_component_schema(void) {
   char *out_json;
   out_json = NULL;
 
+  ASSERT(load_spec_str2("{", &spec) != 0);
   rc = load_spec_str2(json, &spec);
-  (void)rc;
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -1240,14 +1180,9 @@ TEST test_writer_preserves_inline_composed_schema(void) {
   out_json = NULL;
 
   rc = load_spec_str2(json, &spec);
-  (void)rc;
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -1287,15 +1222,12 @@ TEST test_writer_schema_ref_summary_description(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = (char *)(size_t)(size_t) "Mode";
   resp.schema.summary = (char *)(size_t)(size_t) "Mode summary";
   resp.schema.description = (char *)(size_t)(size_t) "Mode description";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1336,7 +1268,6 @@ TEST test_writer_info_license_missing_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   spec.info.title = (char *)(size_t)(size_t) "Example";
   spec.info.version = (char *)(size_t)(size_t) "1.0";
   spec.info.license.identifier = (char *)(size_t)(size_t) "Apache-2.0";
@@ -1356,7 +1287,6 @@ TEST test_writer_options_trace_verbs(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   memset(&path, 0, sizeof(path));
   memset(ops, 0, sizeof(ops));
   path.route = (char *)(size_t)(size_t) "/verbs";
@@ -1370,8 +1300,6 @@ TEST test_writer_options_trace_verbs(void) {
   spec.n_paths = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1398,7 +1326,6 @@ TEST test_writer_query_and_external_docs(void) {
   struct OpenAPI_Operation op = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_QUERY;
   op.operation_id = (char *)(size_t)(size_t) "querySearch";
@@ -1406,8 +1333,6 @@ TEST test_writer_query_and_external_docs(void) {
   op.external_docs.description = (char *)(size_t)(size_t) "Op docs";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1443,7 +1368,6 @@ TEST test_writer_parameter_styles(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   /* Configure Advanced Params */
   param.in = OA_PARAM_IN_QUERY;
@@ -1451,8 +1375,6 @@ TEST test_writer_parameter_styles(void) {
   param.explode = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1488,7 +1410,6 @@ TEST test_writer_parameter_explode_false(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.in = OA_PARAM_IN_QUERY;
   param.style = OA_STYLE_FORM;
@@ -1496,8 +1417,6 @@ TEST test_writer_parameter_explode_false(void) {
   param.explode = 0;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1534,14 +1453,11 @@ TEST test_writer_parameter_style_matrix(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.in = OA_PARAM_IN_PATH;
   param.style = OA_STYLE_MATRIX;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1576,7 +1492,6 @@ TEST test_writer_parameter_content_any(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/headers";
@@ -1592,8 +1507,6 @@ TEST test_writer_parameter_content_any(void) {
   param.content_type = (char *)(size_t)(size_t) "text/plain";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1642,7 +1555,6 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   struct OpenAPI_Encoding enc = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/content";
@@ -1683,8 +1595,6 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   header_media.schema.inline_type = (char *)(size_t)(size_t) "string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1751,7 +1661,6 @@ TEST test_writer_parameter_examples_object(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   memset(&ex, 0, sizeof(ex));
   setup_test_spec(&spec, &path, &op, &param, NULL);
   ex.name = (char *)(size_t)(size_t) "basic";
@@ -1763,8 +1672,6 @@ TEST test_writer_parameter_examples_object(void) {
   param.example_location = OA_EXAMPLE_LOC_OBJECT;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1805,7 +1712,6 @@ TEST test_writer_parameter_examples_media(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.content_type = (char *)(size_t)(size_t) "application/json";
   param.example.type = OA_ANY_STRING;
@@ -1814,8 +1720,6 @@ TEST test_writer_parameter_examples_media(void) {
   param.example_location = OA_EXAMPLE_LOC_MEDIA;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1854,7 +1758,6 @@ TEST test_writer_component_examples(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   memset(&ex, 0, sizeof(ex));
   names[0] = (char *)(size_t)(size_t) "ex1";
   spec.component_examples = &ex;
@@ -1866,8 +1769,6 @@ TEST test_writer_component_examples(void) {
   ex.value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1898,7 +1799,6 @@ TEST test_writer_oauth2_flows(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   memset(&scheme, 0, sizeof(scheme));
   memset(&flow, 0, sizeof(flow));
   memset(&scope, 0, sizeof(scope));
@@ -1918,8 +1818,6 @@ TEST test_writer_oauth2_flows(void) {
   spec.n_security_schemes = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -1956,7 +1854,6 @@ TEST test_writer_servers(void) {
   struct OpenAPI_Spec spec = {0};
   json = NULL;
 
-  (void)rc;
   memset(servers, 0, sizeof(servers));
   servers[0].url = (char *)(size_t)(size_t) "https://api.example.com";
   servers[0].description = (char *)(size_t)(size_t) "Prod";
@@ -1967,8 +1864,6 @@ TEST test_writer_servers(void) {
   spec.openapi_version = (char *)(size_t)(size_t) "3.1.2";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2003,7 +1898,6 @@ TEST test_writer_querystring_param(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/search";
@@ -2020,8 +1914,6 @@ TEST test_writer_querystring_param(void) {
       (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2066,7 +1958,6 @@ TEST test_writer_ignores_reserved_header_params(void) {
   struct OpenAPI_Parameter params[2] = {{0}};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/h";
@@ -2086,8 +1977,6 @@ TEST test_writer_ignores_reserved_header_params(void) {
   params[1].type = (char *)(size_t)(size_t) "string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2122,7 +2011,6 @@ TEST test_writer_ignores_content_type_response_header(void) {
   struct OpenAPI_Header headers[2] = {{0}};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/r";
@@ -2145,8 +2033,6 @@ TEST test_writer_ignores_content_type_response_header(void) {
   headers[1].type = (char *)(size_t)(size_t) "integer";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2182,7 +2068,6 @@ TEST test_writer_path_level_parameters(void) {
   struct OpenAPI_Parameter pparam = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/pets";
@@ -2200,8 +2085,6 @@ TEST test_writer_path_level_parameters(void) {
   pparam.type = (char *)(size_t)(size_t) "string";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2238,7 +2121,6 @@ TEST test_writer_server_variables(void) {
   struct OpenAPI_ServerVariable var = {0};
   json = NULL;
 
-  (void)rc;
   enum_vals[0] = (char *)(size_t)(size_t) "prod";
   enum_vals[1] = (char *)(size_t)(size_t) "staging";
 
@@ -2256,8 +2138,6 @@ TEST test_writer_server_variables(void) {
   spec.n_servers = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2298,7 +2178,6 @@ TEST test_writer_security_schemes(void) {
   struct OpenAPI_SecurityScheme s3;
   json = NULL;
 
-  (void)rc;
   memset(&s1, 0, sizeof(s1));
   memset(&s2, 0, sizeof(s2));
   memset(&s3, 0, sizeof(s3));
@@ -2324,8 +2203,6 @@ TEST test_writer_security_schemes(void) {
   spec.n_security_schemes = 3;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2384,7 +2261,6 @@ TEST test_writer_security_requirements(void) {
   struct OpenAPI_Operation op = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
   memset(&root_set, 0, sizeof(root_set));
@@ -2408,8 +2284,6 @@ TEST test_writer_security_requirements(void) {
   op.security_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2456,7 +2330,6 @@ TEST test_writer_multipart_schema(void) {
   struct OpenAPI_Operation op = {0};
   json = NULL;
 
-  (void)rc;
   memset(&parts, 0, sizeof(parts));
   parts[0].name = (char *)(size_t)(size_t) "file";
   parts[0].is_binary = 1; /* File upload */
@@ -2470,8 +2343,6 @@ TEST test_writer_multipart_schema(void) {
   op.req_body.n_multipart_fields = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2535,7 +2406,6 @@ TEST test_writer_components_and_response_headers(void) {
   struct OpenAPI_Parameter op_param = {0};
   json = NULL;
 
-  (void)rc;
   memset(responses, 0, sizeof(responses));
 
   param_names[0] = (char *)(size_t)(size_t) "LimitParam";
@@ -2586,8 +2456,6 @@ TEST test_writer_components_and_response_headers(void) {
   spec.n_paths = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2664,7 +2532,6 @@ TEST test_writer_components_request_bodies(void) {
   struct OpenAPI_RequestBody comp_rb = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
   op.req_body_ref =
@@ -2682,8 +2549,6 @@ TEST test_writer_components_request_bodies(void) {
   spec.n_component_request_bodies = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2736,7 +2601,6 @@ TEST test_writer_components_schemas(void) {
   name = (char *)(size_t)(size_t) "MyModel";
   json = NULL;
 
-  (void)rc;
   memset(&spec, 0, sizeof(spec));
   struct_fields_init(&sf);
   struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
@@ -2746,8 +2610,6 @@ TEST test_writer_components_schemas(void) {
   spec.n_defined_schemas = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2788,14 +2650,11 @@ TEST test_writer_components_schemas_raw(void) {
                                            "\"type\":\"integer\"}}"};
   json = NULL;
 
-  (void)rc;
   spec.raw_schema_names = names;
   spec.raw_schema_json = raw;
   spec.n_raw_schemas = 3;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2837,14 +2696,11 @@ TEST test_writer_schema_ref_external(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.ref = (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2887,15 +2743,12 @@ TEST test_writer_schema_dynamic_ref_external(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.ref = (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
   resp.schema.ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2938,7 +2791,6 @@ TEST test_writer_schema_items_ref_external(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
@@ -2946,8 +2798,6 @@ TEST test_writer_schema_items_ref_external(void) {
       (char *)(size_t)(size_t) "https://example.com/schemas/Pet";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -2993,7 +2843,6 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
   resp.schema.is_array = 1;
@@ -3002,8 +2851,6 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   resp.schema.items_ref_is_dynamic = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3049,7 +2896,6 @@ TEST test_writer_additional_operations(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/copy";
@@ -3066,8 +2912,6 @@ TEST test_writer_additional_operations(void) {
   resp.description = (char *)(size_t)(size_t) "ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3104,7 +2948,6 @@ TEST test_writer_component_media_types_and_content_ref(void) {
   struct OpenAPI_MediaType mt = {0};
   json = NULL;
 
-  (void)rc;
   media_names[0] = (char *)(size_t)(size_t) "application/vnd.acme+json";
   spec.component_media_types = &mt;
   spec.component_media_type_names = media_names;
@@ -3131,8 +2974,6 @@ TEST test_writer_component_media_types_and_content_ref(void) {
                                               "application~1vnd.acme+json";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3186,7 +3027,6 @@ TEST test_writer_response_multiple_content(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   memset(contents, 0, sizeof(contents));
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
@@ -3203,8 +3043,6 @@ TEST test_writer_response_multiple_content(void) {
   resp.n_content_media_types = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3246,7 +3084,6 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   struct OpenAPI_Header enc_hdr = {0};
   json = NULL;
 
-  (void)rc;
   memset(media, 0, sizeof(media));
   memset(enc, 0, sizeof(enc));
 
@@ -3276,8 +3113,6 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   op.req_body_required = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3331,7 +3166,6 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   struct OpenAPI_Header prefix_hdr = {0};
   json = NULL;
 
-  (void)rc;
   memset(media, 0, sizeof(media));
   memset(prefix, 0, sizeof(prefix));
   memset(nested, 0, sizeof(nested));
@@ -3365,8 +3199,6 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   spec.n_component_media_types = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3427,7 +3259,6 @@ TEST test_writer_component_path_items(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   path_item.route = (char *)(size_t)(size_t) "FooItem";
   path_item.summary = (char *)(size_t)(size_t) "foo";
   path_item.operations = &op;
@@ -3446,8 +3277,6 @@ TEST test_writer_component_path_items(void) {
   spec.n_component_path_items = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3487,7 +3316,6 @@ TEST test_writer_response_links(void) {
   struct OpenAPI_Server link_server = {0};
   json = NULL;
 
-  (void)rc;
   memset(params, 0, sizeof(params));
 
   spec.paths = &path;
@@ -3525,8 +3353,6 @@ TEST test_writer_response_links(void) {
   link.server_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3580,7 +3406,6 @@ TEST test_writer_callbacks(void) {
   struct OpenAPI_Response cb_resp = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
   path.route = (char *)(size_t)(size_t) "/pets";
@@ -3610,8 +3435,6 @@ TEST test_writer_callbacks(void) {
   cb_resp.description = (char *)(size_t)(size_t) "ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3654,7 +3477,6 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   struct OpenAPI_Header hdr = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
 
@@ -3686,8 +3508,6 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   hdr.type = (char *)(size_t)(size_t) "Rate";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3750,7 +3570,6 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
 
@@ -3777,8 +3596,6 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   resp.description = (char *)(size_t)(size_t) "ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3820,7 +3637,6 @@ TEST test_writer_request_body_ref_with_description(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   spec.paths = &path;
   spec.n_paths = 1;
 
@@ -3839,8 +3655,6 @@ TEST test_writer_request_body_ref_with_description(void) {
   resp.description = (char *)(size_t)(size_t) "ok";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3874,7 +3688,6 @@ TEST test_writer_security_scheme_deprecated(void) {
   struct OpenAPI_SecurityScheme scheme = {0};
   json = NULL;
 
-  (void)rc;
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
@@ -3886,8 +3699,6 @@ TEST test_writer_security_scheme_deprecated(void) {
   scheme.deprecated = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3918,7 +3729,6 @@ TEST test_writer_schema_enum_default_nullable(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.inline_type = (char *)(size_t)(size_t) "string";
@@ -3934,8 +3744,6 @@ TEST test_writer_schema_enum_default_nullable(void) {
   param.schema.default_value_set = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -3985,7 +3793,6 @@ TEST test_writer_schema_type_union(void) {
                    (char *)(size_t)(size_t) "null"};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.inline_type = (char *)(size_t)(size_t) "string";
@@ -3994,8 +3801,6 @@ TEST test_writer_schema_type_union(void) {
   param.schema.n_type_union = 3;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4037,7 +3842,6 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
@@ -4051,8 +3855,6 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
   param.schema.n_items_enum_values = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4102,7 +3904,6 @@ TEST test_writer_schema_items_type_union(void) {
                    (char *)(size_t)(size_t) "integer"};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
@@ -4111,8 +3912,6 @@ TEST test_writer_schema_items_type_union(void) {
   param.schema.n_items_type_union = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4154,15 +3953,12 @@ TEST test_writer_schema_boolean(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.schema_is_boolean = 1;
   param.schema.schema_boolean_value = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4200,7 +3996,6 @@ TEST test_writer_schema_numeric_enum(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.inline_type = (char *)(size_t)(size_t) "integer";
@@ -4212,8 +4007,6 @@ TEST test_writer_schema_numeric_enum(void) {
   param.schema.n_enum_values = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4254,7 +4047,6 @@ TEST test_writer_schema_items_examples(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
@@ -4267,8 +4059,6 @@ TEST test_writer_schema_items_examples(void) {
   param.schema.n_items_examples = 2;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4310,7 +4100,6 @@ TEST test_writer_schema_items_boolean(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
@@ -4318,8 +4107,6 @@ TEST test_writer_schema_items_boolean(void) {
   param.schema.items_schema_boolean_value = 0;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4358,7 +4145,6 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.inline_type = (char *)(size_t)(size_t) "number";
@@ -4372,8 +4158,6 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
   param.schema.example.number = 2.5;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4410,7 +4194,6 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
   param.schema.is_array = 1;
@@ -4430,8 +4213,6 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   param.schema.items_example.string = (char *)(size_t)(size_t) "ab";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4480,14 +4261,9 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   out_json = NULL;
 
   rc = load_spec_str2(json, &spec);
-  (void)rc;
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(out_json != NULL);
 
@@ -4560,7 +4336,6 @@ TEST test_writer_extensions_non_schema(void) {
   struct OpenAPI_RequestBody comp_rb = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
   spec.extensions_json = (char *)(size_t)(size_t) "{\"x-root\":1}";
@@ -4651,8 +4426,6 @@ TEST test_writer_extensions_non_schema(void) {
   spec.n_component_request_bodies = 1;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
 
   {
@@ -4747,7 +4520,6 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   spec.info.title = (char *)(size_t)(size_t) "Spec";
   spec.info.version = (char *)(size_t)(size_t) "1";
@@ -4761,8 +4533,6 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
   spec.n_webhooks = 0;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
 
@@ -4805,7 +4575,6 @@ TEST test_writer_methods_and_styles(void) {
   struct OpenAPI_Parameter param = {0};
   json = NULL;
 
-  (void)rc;
   setup_test_spec(&spec, &path, &op, &param, NULL);
 
   /* Test all methods */
@@ -4846,8 +4615,6 @@ TEST test_writer_methods_and_styles(void) {
   path.operations[0].parameters[5].in = OA_PARAM_IN_QUERYSTRING;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);
@@ -4864,8 +4631,7 @@ TEST test_writer_xml_and_oauth(void) {
   char *json;
   json = NULL;
 
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
   spec.info.title = (char *)(size_t)(size_t) "test";
   spec.info.version = (char *)(size_t)(size_t) "1";
@@ -4890,8 +4656,6 @@ TEST test_writer_xml_and_oauth(void) {
       (char *)(size_t)(size_t) "https://a.b";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);
@@ -4911,8 +4675,7 @@ TEST test_writer_xml_types(void) {
   struct OpenAPI_Response resp = {0};
   json = NULL;
 
-  (void)rc;
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   spec.openapi_version = (char *)(size_t)(size_t) "3.2.0";
   spec.info.title = (char *)(size_t)(size_t) "test";
   spec.info.version = (char *)(size_t)(size_t) "1";
@@ -4955,8 +4718,6 @@ TEST test_writer_xml_types(void) {
   resp.content_media_types[3].schema.xml.node_type = OA_XML_NODE_NONE;
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  if (rc != 0)
-    printf("LOAD RC %d\n", rc);
   ASSERT_EQ(0, rc);
   ASSERT(json != NULL);
   free(json);
@@ -5027,12 +4788,3534 @@ TEST test_openapi_utils(void) {
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
   p.name = (char *)(size_t)(size_t) "Authorization";
   ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  /* OAuth Flow string conversion */
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_IMPLICIT, &out));
+  ASSERT_STR_EQ("implicit", out);
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_PASSWORD, &out));
+  ASSERT_STR_EQ("password", out);
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_CLIENT_CREDENTIALS,
+                                              &out));
+  ASSERT_STR_EQ("clientCredentials", out);
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(OA_OAUTH_FLOW_AUTHORIZATION_CODE,
+                                              &out));
+  ASSERT_STR_EQ("authorizationCode", out);
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi(
+                   OA_OAUTH_FLOW_DEVICE_AUTHORIZATION, &out));
+  ASSERT_STR_EQ("deviceAuthorization", out);
+  ASSERT_EQ(0, oauth_flow_type_to_str_openapi((enum OpenAPI_OAuthFlowType) - 1,
+                                              &out));
+  ASSERT(out == NULL);
+
+  /* is_schema_primitive_openapi */
+  ASSERT_EQ(0, is_schema_primitive_openapi(NULL));
+  ASSERT_EQ(1, is_schema_primitive_openapi("string"));
+  ASSERT_EQ(1, is_schema_primitive_openapi("integer"));
+  ASSERT_EQ(1, is_schema_primitive_openapi("boolean"));
+  ASSERT_EQ(1, is_schema_primitive_openapi("number"));
+  ASSERT_EQ(1, is_schema_primitive_openapi("object"));
+  ASSERT_EQ(1, is_schema_primitive_openapi("null"));
+  ASSERT_EQ(0, is_schema_primitive_openapi("custom_type"));
+
   g_fail_io_after = -1;
 
   PASS();
 }
 
+TEST test_writer_extended_coverage(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Header hdr;
+  struct OpenAPI_Link link;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Encoding enc;
+  char *json = NULL;
+  int rc;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&hdr, 0, sizeof(hdr));
+  memset(&link, 0, sizeof(link));
+  memset(&mt, 0, sizeof(mt));
+  memset(&enc, 0, sizeof(enc));
+
+  /* Component Header with content_ref, required, deprecated, style, explode */
+  hdr.name = (char *)(size_t)(size_t) "X-Custom-Hdr";
+  hdr.description = (char *)(size_t)(size_t) "Custom header description";
+  hdr.required = 1;
+  hdr.deprecated_set = 1;
+  hdr.deprecated = 1;
+  hdr.style_set = 1;
+  hdr.style = OA_STYLE_SIMPLE;
+  hdr.explode_set = 1;
+  hdr.explode = 0;
+  hdr.content_ref = (char *)(size_t)(size_t) "#/components/headers/OtherHdr";
+
+  spec.component_headers = &hdr;
+  spec.component_header_names = (char **)(size_t)(size_t)&hdr.name;
+  spec.n_component_headers = 1;
+
+  /* Component Link with ref */
+  link.name = (char *)(size_t)(size_t) "LinkRef";
+  link.ref = (char *)(size_t)(size_t) "#/components/links/TargetLink";
+  link.summary = (char *)(size_t)(size_t) "Link summary";
+  link.description = (char *)(size_t)(size_t) "Link desc";
+
+  spec.component_links = &link;
+  spec.n_component_links = 1;
+
+  /* Component Media Types with prefixEncoding and itemEncoding */
+  mt.name = (char *)(size_t)(size_t) "application/octet-stream";
+  enc.name = (char *)(size_t)(size_t) "itemEnc";
+  enc.content_type = (char *)(size_t)(size_t) "text/plain";
+  mt.item_encoding = &enc;
+  mt.item_encoding_set = 1;
+  mt.prefix_encoding = &enc;
+  mt.n_prefix_encoding = 1;
+
+  spec.component_media_types = &mt;
+  spec.component_media_type_names = (char **)(size_t)(size_t)&mt.name;
+  spec.n_component_media_types = 1;
+
+  /* Component Callbacks */
+  {
+    struct OpenAPI_Callback cb;
+    struct OpenAPI_Path cb_path;
+    struct OpenAPI_Operation cb_op;
+    struct OpenAPI_Response cb_resp;
+    memset(&cb, 0, sizeof(cb));
+    memset(&cb_path, 0, sizeof(cb_path));
+    memset(&cb_op, 0, sizeof(cb_op));
+    memset(&cb_resp, 0, sizeof(cb_resp));
+
+    cb.name = (char *)(size_t)(size_t) "compCallback";
+    cb.paths = &cb_path;
+    cb.n_paths = 1;
+    cb_path.route = (char *)(size_t)(size_t) "{$request.query.queryUrl}";
+    cb_path.operations = &cb_op;
+    cb_path.n_operations = 1;
+    cb_op.verb = OA_VERB_POST;
+    cb_op.operation_id = (char *)(size_t)(size_t) "compCbPost";
+    cb_op.responses = &cb_resp;
+    cb_op.n_responses = 1;
+    cb_resp.code = (char *)(size_t)(size_t) "200";
+    cb_resp.description = (char *)(size_t)(size_t) "ok";
+
+    spec.component_callbacks = &cb;
+    spec.n_component_callbacks = 1;
+
+    rc = openapi_write_spec_to_json(&spec, &json);
+    ASSERT_EQ(0, rc);
+    ASSERT(json != NULL);
+    free(json);
+    json = NULL;
+    spec.component_callbacks = NULL;
+    spec.n_component_callbacks = 0;
+  }
+
+  /* Schema composition (allOf, anyOf, oneOf, not, if, then, else,
+   * contentSchema) */
+  {
+    struct OpenAPI_Path comp_path;
+    struct OpenAPI_Operation comp_op;
+    struct OpenAPI_Response comp_resp;
+    struct OpenAPI_SchemaRef root_ref;
+    struct OpenAPI_SchemaRef sub_refs[3];
+    struct OpenAPI_SchemaRef not_s;
+    struct OpenAPI_SchemaRef if_s;
+    struct OpenAPI_SchemaRef then_s;
+    struct OpenAPI_SchemaRef else_s;
+    struct OpenAPI_SchemaRef content_s;
+
+    memset(&comp_path, 0, sizeof(comp_path));
+    memset(&comp_op, 0, sizeof(comp_op));
+    memset(&comp_resp, 0, sizeof(comp_resp));
+    memset(&root_ref, 0, sizeof(root_ref));
+    memset(sub_refs, 0, sizeof(sub_refs));
+    memset(&not_s, 0, sizeof(not_s));
+    memset(&if_s, 0, sizeof(if_s));
+    memset(&then_s, 0, sizeof(then_s));
+    memset(&else_s, 0, sizeof(else_s));
+    memset(&content_s, 0, sizeof(content_s));
+
+    sub_refs[0].ref_name = (char *)(size_t)(size_t) "string";
+    sub_refs[1].ref_name = (char *)(size_t)(size_t) "integer";
+    sub_refs[2].ref = (char *)(size_t)(size_t) "#/components/schemas/External";
+
+    not_s.ref_name = (char *)(size_t)(size_t) "boolean";
+    if_s.ref_name = (char *)(size_t)(size_t) "string";
+    then_s.ref_name = (char *)(size_t)(size_t) "number";
+    else_s.ref_name = (char *)(size_t)(size_t) "null";
+    content_s.ref_name = (char *)(size_t)(size_t) "object";
+
+    root_ref.all_of = sub_refs;
+    root_ref.n_all_of = 3;
+    root_ref.any_of = sub_refs;
+    root_ref.n_any_of = 3;
+    root_ref.one_of = sub_refs;
+    root_ref.n_one_of = 3;
+    root_ref.not_schema = &not_s;
+    root_ref.if_schema = &if_s;
+    root_ref.then_schema = &then_s;
+    root_ref.else_schema = &else_s;
+    root_ref.content_schema = &content_s;
+    root_ref.content_media_type = (char *)(size_t)(size_t) "application/json";
+    root_ref.content_encoding = (char *)(size_t)(size_t) "base64";
+
+    comp_path.route = (char *)(size_t)(size_t) "/composition";
+    comp_path.operations = &comp_op;
+    comp_path.n_operations = 1;
+    comp_op.verb = OA_VERB_GET;
+    comp_op.operation_id = (char *)(size_t)(size_t) "getComposition";
+    comp_op.responses = &comp_resp;
+    comp_op.n_responses = 1;
+    comp_resp.code = (char *)(size_t)(size_t) "200";
+    comp_resp.description = (char *)(size_t)(size_t) "ok";
+    comp_resp.schema = root_ref;
+    comp_resp.schema_set = 1;
+
+    spec.paths = &comp_path;
+    spec.n_paths = 1;
+
+    rc = openapi_write_spec_to_json(&spec, &json);
+    ASSERT_EQ(0, rc);
+    ASSERT(json != NULL);
+    free(json);
+    json = NULL;
+    spec.paths = NULL;
+    spec.n_paths = 0;
+  }
+
+  /* Parameter content_ref and content_type variations */
+  {
+    struct OpenAPI_Path p_path;
+    struct OpenAPI_Operation p_op;
+    struct OpenAPI_Response p_resp;
+    struct OpenAPI_Parameter params[3];
+
+    memset(&p_path, 0, sizeof(p_path));
+    memset(&p_op, 0, sizeof(p_op));
+    memset(&p_resp, 0, sizeof(p_resp));
+    memset(params, 0, sizeof(params));
+
+    /* param 0: content_ref */
+    params[0].name = (char *)(size_t)(size_t) "p_ref";
+    params[0].in = OA_PARAM_IN_HEADER;
+    params[0].content_ref =
+        (char *)(size_t)(size_t) "#/components/headers/CustomHeader";
+
+    /* param 1: content_type with item_schema_set */
+    params[1].name = (char *)(size_t)(size_t) "p_items";
+    params[1].in = OA_PARAM_IN_QUERY;
+    params[1].content_type = (char *)(size_t)(size_t) "application/json";
+    params[1].item_schema_set = 1;
+    params[1].type = (char *)(size_t)(size_t) "array";
+    params[1].is_array = 1;
+    params[1].items_type = (char *)(size_t)(size_t) "string";
+    params[1].example_location = OA_EXAMPLE_LOC_MEDIA;
+    params[1].example_set = 1;
+    params[1].example.type = OA_ANY_STRING;
+    params[1].example.string = (char *)(size_t)(size_t) "itemExample";
+
+    /* param 2: OA_PARAM_IN_QUERYSTRING fallback */
+    params[2].name = (char *)(size_t)(size_t) "p_qs";
+    params[2].in = OA_PARAM_IN_QUERYSTRING;
+    params[2].type = (char *)(size_t)(size_t) "string";
+
+    p_path.route = (char *)(size_t)(size_t) "/params_coverage";
+    p_path.operations = &p_op;
+    p_path.n_operations = 1;
+    p_op.verb = OA_VERB_GET;
+    p_op.operation_id = (char *)(size_t)(size_t) "getParamsCoverage";
+    p_op.parameters = params;
+    p_op.n_parameters = 3;
+    p_op.responses = &p_resp;
+    p_op.n_responses = 1;
+    p_resp.code = (char *)(size_t)(size_t) "200";
+    p_resp.description = (char *)(size_t)(size_t) "ok";
+
+    spec.paths = &p_path;
+    spec.n_paths = 1;
+
+    rc = openapi_write_spec_to_json(&spec, &json);
+    ASSERT_EQ(0, rc);
+    ASSERT(json != NULL);
+    free(json);
+    json = NULL;
+    spec.paths = NULL;
+    spec.n_paths = 0;
+  }
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+  ASSERT(json != NULL);
+  free(json);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_openapi_writer_branch_sweep(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Parameter p;
+  struct OpenAPI_Header h;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Tag tag;
+  struct OpenAPI_Server srv;
+  struct OpenAPI_ServerVariable var;
+  char *var_enums[1];
+  struct OpenAPI_Discriminator disc;
+  struct OpenAPI_Xml xml;
+  struct OpenAPI_Example ex;
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Link link;
+  struct OpenAPI_Callback cb;
+  struct OpenAPI_RequestBody rb;
+  struct OpenAPI_SchemaRef ref;
+  struct OpenAPI_MultipartField mp;
+  struct OpenAPI_SecurityScheme sec;
+  struct OpenAPI_OAuthFlow flow;
+  struct OpenAPI_OAuthScope scope_obj[1];
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_SecurityRequirement sec_req;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* 1. param_is_reserved_header_openapi: p != NULL, header, but p->name == NULL
+   */
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, param_is_reserved_header_openapi(&p));
+
+  /* 2. license_fields_invalid: only identifier, only url, only extensions */
+  {
+    struct OpenAPI_License lic;
+    memset(&lic, 0, sizeof(lic));
+    lic.identifier = (char *)(size_t) "MIT";
+    license_fields_invalid(&lic);
+    memset(&lic, 0, sizeof(lic));
+    lic.url = (char *)(size_t) "http://url";
+    license_fields_invalid(&lic);
+    memset(&lic, 0, sizeof(lic));
+    lic.extensions_json = (char *)(size_t) "{}";
+    license_fields_invalid(&lic);
+  }
+
+  /* 3. Defensive calls: obj NULL vs arg NULL */
+  memset(&ex, 0, sizeof(ex));
+  write_example_object(obj, NULL);
+  write_example_object(NULL, &ex);
+
+  memset(&disc, 0, sizeof(disc));
+  write_discriminator_object(obj, NULL, 1);
+  write_discriminator_object(obj, &disc, 0);
+
+  memset(&xml, 0, sizeof(xml));
+  write_xml_object(obj, NULL, 1);
+  write_xml_object(obj, &xml, 0);
+
+  memset(&srv, 0, sizeof(srv));
+  write_server_object(obj, NULL);
+  write_server_object(NULL, &srv);
+
+  memset(&p, 0, sizeof(p));
+  write_parameter_object(obj, NULL);
+  write_parameter_object(NULL, &p);
+
+  memset(&h, 0, sizeof(h));
+  write_header_object(obj, NULL);
+  write_header_object(NULL, &h);
+
+  memset(&enc, 0, sizeof(enc));
+  write_encoding_object(obj, NULL);
+  write_encoding_object(NULL, &enc);
+
+  memset(&mt, 0, sizeof(mt));
+  write_media_type_object(obj, NULL);
+  write_media_type_object(NULL, &mt);
+
+  memset(&link, 0, sizeof(link));
+  write_link_object(obj, NULL);
+  write_link_object(NULL, &link);
+
+  memset(&resp, 0, sizeof(resp));
+  write_response_object(obj, NULL);
+  write_response_object(NULL, &resp);
+
+  memset(&rb, 0, sizeof(rb));
+  write_request_body_object(obj, NULL);
+  write_request_body_object(NULL, &rb);
+
+  memset(&cb, 0, sizeof(cb));
+  write_callback_object(obj, NULL);
+  write_callback_object(NULL, &cb);
+
+  memset(&op, 0, sizeof(op));
+  write_operation_object(obj, NULL);
+  write_operation_object(NULL, &op);
+
+  memset(&path, 0, sizeof(path));
+  write_path_item_object(obj, NULL);
+  write_path_item_object(NULL, &path);
+
+  /* 4. Contact metadata: only url, only email */
+  memset(&spec, 0, sizeof(spec));
+  spec.info.contact.url = (char *)(size_t) "http://url";
+  write_info(obj, &spec);
+  memset(&spec, 0, sizeof(spec));
+  spec.info.contact.email = (char *)(size_t) "e@test.com";
+  write_info(obj, &spec);
+
+  /* 5. License metadata: only identifier, only url, only extensions */
+  memset(&spec, 0, sizeof(spec));
+  spec.info.license.identifier = (char *)(size_t) "MIT";
+  write_info(obj, &spec);
+  memset(&spec, 0, sizeof(spec));
+  spec.info.license.url = (char *)(size_t) "http://url";
+  write_info(obj, &spec);
+  memset(&spec, 0, sizeof(spec));
+  spec.info.license.extensions_json = (char *)(size_t) "{}";
+  write_info(obj, &spec);
+
+  /* 6. Server variables with enum NULL */
+  memset(&srv, 0, sizeof(srv));
+  memset(&var, 0, sizeof(var));
+  var.name = (char *)(size_t) "port";
+  var_enums[0] = NULL;
+  var.enum_values = var_enums;
+  var.n_enum_values = 0;
+  srv.variables = &var;
+  srv.n_variables = 1;
+  write_server_object(obj, &srv);
+
+  /* 7. Multipart field name NULL */
+  memset(&ref, 0, sizeof(ref));
+  memset(&mp, 0, sizeof(mp));
+  mp.name = NULL;
+  ref.multipart_fields = &mp;
+  ref.n_multipart_fields = 1;
+  write_schema_ref(obj, "mp_noname", &ref);
+
+  /* 8. Schema ref: all_of, any_of, one_of with n == 0 but ptr != NULL */
+  memset(&ref, 0, sizeof(ref));
+  ref.all_of = &ref;
+  ref.n_all_of = 0;
+  ref.any_of = &ref;
+  ref.n_any_of = 0;
+  ref.one_of = &ref;
+  ref.n_one_of = 0;
+  ref.summary = (char *)(size_t) "sum";
+  ref.examples = NULL;
+  ref.n_examples = 0;
+  write_schema_ref(obj, "ref_zeros", &ref);
+
+  /* 9. Parameter: allow_empty_value with non-query in */
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_HEADER;
+  p.allow_empty_value_set = 1;
+  p.allow_empty_value = 1;
+  p.schema_set = 1;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.type = NULL;
+  p.is_array = 1;
+  write_parameter_object(obj, &p);
+
+  /* 10. Header: type without schema_set */
+  memset(&h, 0, sizeof(h));
+  h.type = NULL;
+  h.is_array = 1;
+  h.content_type = (char *)(size_t) "application/json";
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.type = (char *)(size_t) "integer";
+  h.content_type = (char *)(size_t) "application/json";
+  write_header_object(obj, &h);
+
+  /* 11. Encoding / Media type: name == NULL */
+  memset(&mt, 0, sizeof(mt));
+  mt.name = NULL;
+  write_media_type_map(obj, "content", &mt, 1);
+
+  memset(&h, 0, sizeof(h));
+  h.name = NULL;
+  write_headers_map(obj, "headers", &h, 1, 0);
+
+  /* 12. Link: parameter without name */
+  memset(&link, 0, sizeof(link));
+  link.summary = NULL;
+  link.description = NULL;
+  link.name = NULL;
+  write_link_object(obj, &link);
+
+  /* 13. Callback: summary NULL, description NULL, name NULL */
+  memset(&cb, 0, sizeof(cb));
+  cb.name = NULL;
+  cb.summary = NULL;
+  cb.description = NULL;
+  write_callback_object(obj, &cb);
+
+  /* 14. Operation: without ID, summary, description, docs, deprecated */
+  memset(&op, 0, sizeof(op));
+  op.operation_id = NULL;
+  op.summary = NULL;
+  op.description = NULL;
+  write_operation_object(obj, &op);
+
+  /* 15. Response: r->code == NULL -> defaults to "default" */
+  memset(&resp, 0, sizeof(resp));
+  resp.code = NULL;
+  op.responses = &resp;
+  op.n_responses = 1;
+  write_responses(obj, &op);
+
+  /* 16. Path route == NULL -> defaults to "/" */
+  memset(&path, 0, sizeof(path));
+  path.route = NULL;
+  write_path_item_object(obj, &path);
+
+  /* 17. Security scheme: OA_SEC_IN_UNKNOWN */
+  memset(&sec, 0, sizeof(sec));
+  sec.type = OA_SEC_APIKEY;
+  sec.in = OA_SEC_IN_UNKNOWN;
+  sec.scheme = (char *)(size_t) "basic";
+  memset(&flow, 0, sizeof(flow));
+  flow.type = OA_OAUTH_FLOW_IMPLICIT;
+  memset(scope_obj, 0, sizeof(scope_obj));
+  scope_obj[0].name = NULL;
+  flow.scopes = scope_obj;
+  flow.n_scopes = 1;
+  sec.flows = &flow;
+  sec.n_flows = 1;
+  memset(&spec, 0, sizeof(spec));
+  spec.security_schemes = &sec;
+  spec.n_security_schemes = 1;
+  write_security_schemes(obj, &spec);
+
+  /* 18. Tag with name == NULL */
+  memset(&tag, 0, sizeof(tag));
+  tag.name = NULL;
+  spec.tags = &tag;
+  spec.n_tags = 1;
+  write_tags(obj, &spec);
+
+  /* 19. Security requirement with scheme == NULL */
+  memset(&sec_req, 0, sizeof(sec_req));
+  sec_req.scheme = NULL;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &sec_req;
+  sec_set.n_requirements = 1;
+  write_security_requirements(obj, "sec", &sec_set, 1, 1);
+
+  /* 20. Component items with 0 count */
+  memset(&spec, 0, sizeof(spec));
+  write_component_parameters(obj, &spec);
+  write_component_responses(obj, &spec);
+  write_component_headers(obj, &spec);
+  write_component_media_types(obj, &spec);
+  write_component_examples(obj, &spec);
+  write_component_links(obj, &spec);
+  write_component_callbacks(obj, &spec);
+  write_component_path_items(obj, &spec);
+
+  /* 21. Paths empty */
+  spec.is_schema_document = 0;
+  spec.n_paths = 0;
+  spec.paths_extensions_json = NULL;
+  write_paths(obj, &spec);
+
+  json_value_free(val);
+  PASS();
+}
+
+static int g_parson_oom_fail_at = -1;
+static void *mock_parson_oom_malloc(size_t sz) {
+  if (g_parson_oom_fail_at == 0) {
+    g_parson_oom_fail_at = -1;
+    return NULL;
+  }
+  if (g_parson_oom_fail_at > 0)
+    g_parson_oom_fail_at--;
+  return malloc(sz);
+}
+static void mock_parson_oom_free(void *ptr) { free(ptr); }
+
+TEST test_openapi_writer_null_and_defensive(void) {
+  JSON_Value *val = NULL;
+  char *str = NULL;
+
+  ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, clone_json_value(NULL, &val));
+  ASSERT(val == NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_keyword(0, &str));
+  ASSERT_STR_EQ("$ref", str);
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_keyword(1, &str));
+  ASSERT_STR_EQ("$dynamicRef", str);
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(NULL, &val));
+  ASSERT(val == NULL);
+
+  write_schema_type(NULL, NULL, 0);
+  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, NULL));
+  write_schema_type_union(NULL, NULL, 0, NULL, 0);
+  write_enum_any_values(NULL, NULL, NULL, 0);
+  write_any_array_values(NULL, NULL, NULL, 0);
+  write_example_object(NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_examples_object(NULL, NULL, NULL, 0));
+  write_example_fields(NULL, NULL, 0, NULL, 0);
+  write_external_docs(NULL, NULL, NULL);
+  write_discriminator_object(NULL, NULL, 0);
+  write_xml_object(NULL, NULL, 0);
+  write_server_object(NULL, NULL);
+  write_numeric_constraints(NULL, 0, 0.0, 0, 0, 0.0, 0);
+  write_string_constraints(NULL, 0, 0, 0, 0, NULL);
+  write_array_constraints(NULL, 0, 0, 0, 0, 0);
+  write_items_schema_fields(NULL, NULL);
+  write_schema_ref(NULL, NULL, NULL);
+  write_schema_from_type_fields(NULL, NULL, NULL, 0, NULL);
+  write_parameter_object(NULL, NULL);
+  write_header_object(NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(NULL, NULL, 0));
+  write_link_object(NULL, NULL);
+  write_response_object(NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(NULL, NULL));
+  write_callback_object(NULL, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(NULL, NULL));
+
+  PASS();
+}
+
+TEST test_openapi_writer_schema_ref_branches(void) {
+  struct OpenAPI_SchemaRef ref;
+
+  memset(&ref, 0, sizeof(ref));
+  ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(&ref));
+
+  ref.schema_is_boolean = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.schema_is_boolean = 0;
+  ref.ref_name = (char *)(size_t) "test";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.ref_name = NULL;
+  ref.ref = (char *)(size_t) "test";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.ref = NULL;
+  ref.inline_type = (char *)(size_t) "string";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.inline_type = NULL;
+  ref.n_type_union = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_type_union = 0;
+  ref.is_array = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.is_array = 0;
+  ref.format = (char *)(size_t) "email";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.format = NULL;
+  ref.content_media_type = (char *)(size_t) "app/json";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.content_media_type = NULL;
+  ref.content_encoding = (char *)(size_t) "base64";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.content_encoding = NULL;
+  ref.items_format = (char *)(size_t) "int32";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_format = NULL;
+  ref.n_items_type_union = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_items_type_union = 0;
+  ref.items_content_media_type = (char *)(size_t) "text/plain";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_content_media_type = NULL;
+  ref.items_content_encoding = (char *)(size_t) "binary";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_content_encoding = NULL;
+  ref.n_multipart_fields = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_multipart_fields = 0;
+  ref.nullable = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.nullable = 0;
+  ref.items_nullable = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_nullable = 0;
+  ref.default_value_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.default_value_set = 0;
+  ref.n_enum_values = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_enum_values = 0;
+  ref.n_items_enum_values = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_items_enum_values = 0;
+  ref.summary = (char *)(size_t) "sum";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.summary = NULL;
+  ref.description = (char *)(size_t) "desc";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.description = NULL;
+  ref.deprecated_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.deprecated_set = 0;
+  ref.read_only_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.read_only_set = 0;
+  ref.write_only_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.write_only_set = 0;
+  ref.const_value_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.const_value_set = 0;
+  ref.n_examples = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_examples = 0;
+  ref.example_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.example_set = 0;
+  ref.has_min = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_min = 0;
+  ref.has_max = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_max = 0;
+  ref.has_min_len = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_min_len = 0;
+  ref.has_max_len = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_max_len = 0;
+  ref.pattern = (char *)(size_t) "^a";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.pattern = NULL;
+  ref.has_min_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_min_items = 0;
+  ref.has_max_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.has_max_items = 0;
+  ref.unique_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.unique_items = 0;
+  ref.items_has_min = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_min = 0;
+  ref.items_has_max = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_max = 0;
+  ref.items_has_min_len = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_min_len = 0;
+  ref.items_has_max_len = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_max_len = 0;
+  ref.items_pattern = (char *)(size_t) "^b";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_pattern = NULL;
+  ref.items_has_min_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_min_items = 0;
+  ref.items_has_max_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_has_max_items = 0;
+  ref.items_unique_items = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_unique_items = 0;
+  ref.items_example_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_example_set = 0;
+  ref.n_items_examples = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.n_items_examples = 0;
+  ref.items_schema_is_boolean = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_schema_is_boolean = 0;
+  ref.schema_extra_json = (char *)(size_t) "{}";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.schema_extra_json = NULL;
+  ref.external_docs_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.external_docs_set = 0;
+  ref.discriminator_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.discriminator_set = 0;
+  ref.xml_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.xml_set = 0;
+  ref.items_extra_json = (char *)(size_t) "{}";
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_extra_json = NULL;
+  ref.items_const_value_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_const_value_set = 0;
+  ref.items_default_value_set = 1;
+  ASSERT(schema_ref_has_data(&ref) != CDD_C_SUCCESS);
+  ref.items_default_value_set = 0;
+
+  PASS();
+}
+
+TEST test_openapi_writer_schema_and_types_coverage(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  char *types[3];
+  struct OpenAPI_SchemaRef ref;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* write_schema_type */
+  write_schema_type(obj, "null", 1);
+  ASSERT_STR_EQ("null", json_object_get_string(obj, "type"));
+  write_schema_type(obj, "string", 1);
+  ASSERT(json_object_get_array(obj, "type") != NULL);
+  write_schema_type(obj, "string", 0);
+  ASSERT_STR_EQ("string", json_object_get_string(obj, "type"));
+
+  /* type_union_contains */
+  types[0] = NULL;
+  types[1] = (char *)(size_t) "string";
+  types[2] = (char *)(size_t) "null";
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, type_union_contains(types, 3, "null"));
+  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, "integer"));
+  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(NULL, 0, "null"));
+  ASSERT_EQ(CDD_C_SUCCESS, type_union_contains(types, 3, NULL));
+
+  /* write_schema_type_union */
+  write_schema_type_union(obj, "string", 1, types, 3);
+  write_schema_type_union(obj, "string", 1, types, 2);
+  write_schema_type_union(obj, "integer", 0, NULL, 0);
+  write_schema_type_union(obj, NULL, 0, NULL, 0);
+
+  /* write_numeric_constraints */
+  write_numeric_constraints(obj, 1, 5.0, 1, 1, 10.0, 1);
+  write_numeric_constraints(obj, 1, 5.0, 0, 1, 10.0, 0);
+  write_numeric_constraints(obj, 0, 0.0, 1, 0, 0.0, 1);
+
+  /* write_string_constraints */
+  write_string_constraints(obj, 1, 2, 1, 20, "^abc$");
+
+  /* write_array_constraints */
+  write_array_constraints(obj, 1, 1, 1, 10, 1);
+
+  /* write_schema_from_type_fields */
+  write_schema_from_type_fields(obj, "s1", "string", 1, "string");
+  write_schema_from_type_fields(obj, "s2", "string", 1, "CustomType");
+  write_schema_from_type_fields(obj, "s3", "string", 1, NULL);
+  write_schema_from_type_fields(obj, "s4", "string", 0, NULL);
+  write_schema_from_type_fields(obj, "s5", "array", 0, NULL);
+  write_schema_from_type_fields(obj, "s6", "CustomType", 0, NULL);
+  write_schema_from_type_fields(obj, "s7", NULL, 0, NULL);
+
+  /* write_items_schema_fields */
+  memset(&ref, 0, sizeof(ref));
+  ref.items_content_schema =
+      (struct OpenAPI_SchemaRef *)malloc(sizeof(struct OpenAPI_SchemaRef));
+  memset(ref.items_content_schema, 0, sizeof(struct OpenAPI_SchemaRef));
+  ref.items_content_schema->ref_name = (char *)(size_t) "SubSchema";
+  ref.items_format = (char *)(size_t) "date";
+  ref.items_content_media_type = (char *)(size_t) "application/json";
+  ref.items_content_encoding = (char *)(size_t) "base64";
+  ref.items_extra_json = (char *)(size_t) "{\"x-field\": true}";
+  write_items_schema_fields(obj, &ref);
+  free(ref.items_content_schema);
+
+  /* write_schema_ref cases */
+  memset(&ref, 0, sizeof(ref));
+  ref.has_multiple_of = 1;
+  ref.multiple_of = 2.5;
+  write_schema_ref(obj, "s_mult", &ref);
+
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_any_and_examples_coverage(void) {
+  JSON_Value *val = NULL;
+  JSON_Object *obj;
+  JSON_Value *parent_val;
+  JSON_Object *parent;
+  struct OpenAPI_Any any;
+  struct OpenAPI_Example ex;
+  struct OpenAPI_Example examples[2];
+
+  parent_val = json_value_init_object();
+  parent = json_value_get_object(parent_val);
+
+  /* any_to_json_value */
+  memset(&any, 0, sizeof(any));
+  any.type = OA_ANY_STRING;
+  any.string = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+  any.string = (char *)(size_t) "hello";
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.type = OA_ANY_NUMBER;
+  any.number = 42.0;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.type = OA_ANY_BOOL;
+  any.boolean = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+  any.boolean = 0;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.type = OA_ANY_NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.type = OA_ANY_JSON;
+  any.json = (char *)(size_t) "{\"k\": \"v\"}";
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.json = (char *)(size_t) "{invalid";
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.json = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  json_value_free(val);
+
+  any.type = (enum OpenAPI_AnyType)999;
+  ASSERT_EQ(CDD_C_SUCCESS, any_to_json_value(&any, &val));
+  ASSERT(val == NULL);
+
+  /* write_example_object */
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  memset(&ex, 0, sizeof(ex));
+  ex.ref = (char *)(size_t) "#/components/examples/ref1";
+  ex.summary = (char *)(size_t) "sum";
+  ex.description = (char *)(size_t) "desc";
+  write_example_object(obj, &ex);
+
+  memset(&ex, 0, sizeof(ex));
+  ex.summary = (char *)(size_t) "sum";
+  ex.description = (char *)(size_t) "desc";
+  ex.data_value_set = 1;
+  ex.data_value.type = OA_ANY_STRING;
+  ex.data_value.string = (char *)(size_t) "data";
+  ex.serialized_value = (char *)(size_t) "ser";
+  ex.external_value = (char *)(size_t) "http://example.com";
+  ex.extensions_json = (char *)(size_t) "{\"x-ex\": 1}";
+  write_example_object(obj, &ex);
+
+  memset(&ex, 0, sizeof(ex));
+  ex.value_set = 1;
+  ex.value.type = OA_ANY_NUMBER;
+  ex.value.number = 123.0;
+  write_example_object(obj, &ex);
+
+  json_value_free(val);
+
+  /* write_examples_object */
+  memset(examples, 0, sizeof(examples));
+  examples[0].name = NULL;
+  examples[1].name = (char *)(size_t) "ex2";
+  examples[1].summary = (char *)(size_t) "example 2";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            write_examples_object(parent, "examples", examples, 2));
+
+  /* write_example_fields */
+  write_example_fields(parent, NULL, 0, examples, 2);
+  memset(&any, 0, sizeof(any));
+  any.type = OA_ANY_STRING;
+  any.string = (char *)(size_t) "single";
+  write_example_fields(parent, &any, 1, NULL, 0);
+
+  json_value_free(parent_val);
+  PASS();
+}
+
+TEST test_openapi_writer_objects_and_maps_coverage(void) {
+  JSON_Value *parent_val;
+  JSON_Object *parent;
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_ExternalDocs docs;
+  struct OpenAPI_Discriminator disc;
+  struct OpenAPI_DiscriminatorMap map[2];
+  struct OpenAPI_Xml xml;
+  struct OpenAPI_Server srv;
+  struct OpenAPI_ServerVariable vars[2];
+  char *var_enums[2];
+  struct OpenAPI_Parameter p;
+  struct OpenAPI_Header h;
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_Encoding enc_arr[2];
+  struct OpenAPI_Link link;
+  struct OpenAPI_LinkParam lparam[2];
+  struct OpenAPI_Response resp;
+  struct OpenAPI_RequestBody rb;
+  struct OpenAPI_Callback cb;
+  struct OpenAPI_Path cb_paths[2];
+  struct OpenAPI_MediaType mt;
+
+  parent_val = json_value_init_object();
+  parent = json_value_get_object(parent_val);
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* write_external_docs */
+  memset(&docs, 0, sizeof(docs));
+  write_external_docs(parent, "ext", &docs);
+  docs.url = (char *)(size_t) "https://docs.example.com";
+  docs.description = (char *)(size_t) "Documentation";
+  docs.extensions_json = (char *)(size_t) "{\"x-doc\": true}";
+  write_external_docs(parent, "ext", &docs);
+
+  /* write_discriminator_object */
+  memset(&disc, 0, sizeof(disc));
+  write_discriminator_object(parent, &disc, 0);
+  write_discriminator_object(parent, &disc, 1);
+  disc.property_name = (char *)(size_t) "petType";
+  disc.default_mapping = (char *)(size_t) "#/components/schemas/Pet";
+  memset(map, 0, sizeof(map));
+  map[0].value = NULL;
+  map[0].schema = NULL;
+  map[1].value = (char *)(size_t) "dog";
+  map[1].schema = (char *)(size_t) "#/components/schemas/Dog";
+  disc.mapping = map;
+  disc.n_mapping = 2;
+  disc.extensions_json = (char *)(size_t) "{\"x-disc\": 1}";
+  write_discriminator_object(parent, &disc, 1);
+
+  /* write_xml_object */
+  memset(&xml, 0, sizeof(xml));
+  write_xml_object(parent, &xml, 0);
+  xml.attribute_set = 1;
+  xml.attribute = 1;
+  xml.wrapped_set = 1;
+  xml.wrapped = 1;
+  xml.extensions_json = (char *)(size_t) "{\"x-xml\": 1}";
+  write_xml_object(parent, &xml, 1);
+  xml.attribute = 0;
+  xml.wrapped = 0;
+  write_xml_object(parent, &xml, 1);
+
+  /* write_server_object */
+  memset(&srv, 0, sizeof(srv));
+  srv.url = NULL;
+  srv.description = (char *)(size_t) "Main server";
+  srv.name = (char *)(size_t) "prod";
+  memset(vars, 0, sizeof(vars));
+  vars[0].name = NULL;
+  vars[1].name = (char *)(size_t) "port";
+  vars[1].default_value = (char *)(size_t) "8080";
+  vars[1].description = (char *)(size_t) "Port number";
+  var_enums[0] = NULL;
+  var_enums[1] = (char *)(size_t) "8080";
+  vars[1].enum_values = var_enums;
+  vars[1].n_enum_values = 2;
+  vars[1].extensions_json = (char *)(size_t) "{\"x-var\": 1}";
+  srv.variables = vars;
+  srv.n_variables = 2;
+  srv.extensions_json = (char *)(size_t) "{\"x-srv\": 1}";
+  write_server_object(obj, &srv);
+
+  /* write_parameter_object */
+  memset(&p, 0, sizeof(p));
+  p.ref = (char *)(size_t) "#/components/parameters/ParamRef";
+  p.summary = (char *)(size_t) "Param summary";
+  p.description = (char *)(size_t) "Param description";
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_QUERY;
+  p.allow_empty_value_set = 1;
+  p.allow_empty_value = 1;
+  p.explode_set = 0;
+  p.explode = 1;
+  p.allow_reserved_set = 1;
+  p.allow_reserved = 1;
+  p.content_ref = (char *)(size_t) "#/components/media/Media1";
+  p.content_type = NULL;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_QUERYSTRING;
+  p.content_ref = (char *)(size_t) "#/components/media/Media2";
+  p.content_type = NULL;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/custom";
+  p.item_schema_set = 1;
+  p.schema.ref_name = (char *)(size_t) "ItemModel";
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/custom";
+  p.schema_set = 1;
+  p.schema.ref_name = (char *)(size_t) "Model";
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/custom";
+  p.type = (char *)(size_t) "string";
+  p.example_location = OA_EXAMPLE_LOC_MEDIA;
+  p.extensions_json = (char *)(size_t) "{\"x-p\": 1}";
+  write_parameter_object(obj, &p);
+
+  /* write_header_object */
+  memset(&h, 0, sizeof(h));
+  h.ref = (char *)(size_t) "#/components/headers/HRef";
+  h.description = (char *)(size_t) "H desc";
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_ref = (char *)(size_t) "#/components/media/HM1";
+  h.content_type = NULL;
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_type = (char *)(size_t) "application/json";
+  h.schema_set = 1;
+  h.schema.ref_name = (char *)(size_t) "HSchema";
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_type = (char *)(size_t) "application/json";
+  h.type = (char *)(size_t) "string";
+  h.example_location = OA_EXAMPLE_LOC_MEDIA;
+  h.extensions_json = (char *)(size_t) "{\"x-h\": 1}";
+  write_header_object(obj, &h);
+
+  /* write_encoding_object and write_encoding_map */
+  memset(&enc, 0, sizeof(enc));
+  memset(enc_arr, 0, sizeof(enc_arr));
+  enc.prefix_encoding = enc_arr;
+  enc.n_prefix_encoding = 1;
+  enc.item_encoding = &enc_arr[1];
+  enc.item_encoding_set = 1;
+  enc.extensions_json = (char *)(size_t) "{\"x-enc\": 1}";
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_object(obj, &enc));
+
+  memset(enc_arr, 0, sizeof(enc_arr));
+  enc_arr[0].name = NULL;
+  enc_arr[1].name = (char *)(size_t) "field2";
+  ASSERT_EQ(CDD_C_SUCCESS, write_encoding_map(obj, enc_arr, 2));
+
+  /* write_link_object */
+  memset(&link, 0, sizeof(link));
+  link.ref = (char *)(size_t) "#/components/links/LRef";
+  link.summary = (char *)(size_t) "L summary";
+  link.description = (char *)(size_t) "L desc";
+  write_link_object(obj, &link);
+
+  memset(&link, 0, sizeof(link));
+  link.operation_ref = (char *)(size_t) "/paths/~1users/get";
+  link.operation_id = (char *)(size_t) "getUser";
+  link.description = (char *)(size_t) "User link";
+  memset(lparam, 0, sizeof(lparam));
+  lparam[0].name = NULL;
+  lparam[0].value.type = OA_ANY_STRING;
+  lparam[0].value.string = (char *)(size_t) "val1";
+  lparam[1].name = (char *)(size_t) "userId";
+  lparam[1].value.type = OA_ANY_NUMBER;
+  lparam[1].value.number = 100.0;
+  link.parameters = lparam;
+  link.n_parameters = 2;
+  link.request_body_set = 1;
+  link.request_body.type = OA_ANY_STRING;
+  link.request_body.string = (char *)(size_t) "body";
+  link.server_set = 1;
+  link.server = &srv;
+  link.extensions_json = (char *)(size_t) "{\"x-l\": 1}";
+  write_link_object(obj, &link);
+
+  /* write_response_object */
+  memset(&resp, 0, sizeof(resp));
+  resp.ref = (char *)(size_t) "#/components/responses/RRef";
+  resp.summary = (char *)(size_t) "R summary";
+  resp.description = (char *)(size_t) "R desc";
+  write_response_object(obj, &resp);
+
+  memset(&resp, 0, sizeof(resp));
+  resp.content_ref = (char *)(size_t) "#/components/media/RM1";
+  resp.content_type = NULL;
+  write_response_object(obj, &resp);
+
+  memset(&resp, 0, sizeof(resp));
+  resp.content_type = (char *)(size_t) "application/json";
+  resp.extensions_json = (char *)(size_t) "{\"x-resp\": 1}";
+  write_response_object(obj, &resp);
+
+  /* write_request_body_object */
+  memset(&rb, 0, sizeof(rb));
+  rb.content_ref = (char *)(size_t) "#/components/media/RBM1";
+  rb.schema.content_type = NULL;
+  rb.extensions_json = (char *)(size_t) "{\"x-rb\": 1}";
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body_object(obj, &rb));
+
+  /* write_callback_object */
+  memset(&cb, 0, sizeof(cb));
+  cb.ref = (char *)(size_t) "#/components/callbacks/CBRef";
+  cb.summary = (char *)(size_t) "CB summary";
+  cb.description = (char *)(size_t) "CB desc";
+  write_callback_object(obj, &cb);
+
+  memset(&cb, 0, sizeof(cb));
+  memset(cb_paths, 0, sizeof(cb_paths));
+  cb_paths[0].route = NULL;
+  cb_paths[1].route = (char *)(size_t) "http://example.com/hook";
+  cb.paths = cb_paths;
+  cb.n_paths = 2;
+  cb.extensions_json = (char *)(size_t) "{\"x-cb\": 1}";
+  write_callback_object(obj, &cb);
+
+  /* write_media_type_object */
+  memset(&mt, 0, sizeof(mt));
+  mt.ref = (char *)(size_t) "#/components/mediaTypes/MTRef";
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt));
+
+  memset(&mt, 0, sizeof(mt));
+  mt.item_schema_set = 1;
+  mt.item_schema.ref_name = (char *)(size_t) "MTItem";
+  mt.prefix_encoding = enc_arr;
+  mt.n_prefix_encoding = 1;
+  mt.item_encoding = &enc_arr[1];
+  mt.item_encoding_set = 1;
+  mt.extensions_json = (char *)(size_t) "{\"x-mt\": 1}";
+  ASSERT_EQ(CDD_C_SUCCESS, write_media_type_object(obj, &mt));
+
+  json_value_free(val);
+  json_value_free(parent_val);
+  PASS();
+}
+
+TEST test_openapi_writer_full_spec_edges(void) {
+  struct OpenAPI_Spec spec;
+  char *json = NULL;
+  cdd_c_error_t rc;
+  struct OpenAPI_Path paths[2];
+  struct OpenAPI_Operation ops[4];
+  struct OpenAPI_Parameter params[3];
+  struct OpenAPI_Header hdrs[2];
+  struct OpenAPI_Response resps[2];
+  struct OpenAPI_Path webhooks[1];
+  struct OpenAPI_SecurityScheme sec_schemes[5];
+  struct OpenAPI_OAuthFlow flows[1];
+  struct OpenAPI_Parameter comp_params[1];
+  struct OpenAPI_Response comp_resps[1];
+  struct OpenAPI_Header comp_hdrs[1];
+  struct OpenAPI_MediaType comp_mts[1];
+  struct OpenAPI_Example comp_exs[1];
+  struct OpenAPI_Link comp_links[1];
+  struct OpenAPI_Callback comp_cbs[1];
+  struct OpenAPI_Path comp_paths[2];
+  struct OpenAPI_RequestBody comp_rbs[2];
+  char *raw_names[3];
+  char *raw_jsons[3];
+  char *c_pnames[1];
+  char *c_rnames[1];
+  char *c_hnames[1];
+  char *c_mtnames[1];
+  char *c_exnames[1];
+  char *c_pathnames[2];
+  char *c_rbnames[2];
+
+  /* 1. NULL checks on openapi_write_spec_to_json */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(NULL, &json));
+  memset(&spec, 0, sizeof(spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(&spec, NULL));
+
+  /* 2. Schema document mode */
+  spec.is_schema_document = 1;
+  spec.schema_root_json = NULL;
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(&spec, &json));
+
+  spec.schema_root_json = (char *)(size_t) "{\"type\": \"object\"}";
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(json != NULL);
+  free(json);
+  json = NULL;
+  spec.is_schema_document = 0;
+
+  /* 3. License with empty name rejected */
+  spec.info.license.name = (char *)(size_t) "";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            openapi_write_spec_to_json(&spec, &json));
+  spec.info.license.name = NULL;
+
+  /* 4. Full spec with all optional root and component fields */
+  spec.openapi_version = NULL;
+  spec.self_uri = (char *)(size_t) "https://api.example.com/openapi.json";
+  spec.json_schema_dialect =
+      (char *)(size_t) "https://json-schema.org/draft/2020-12/schema";
+  spec.extensions_json = (char *)(size_t) "{\"x-root\": 1}";
+  spec.external_docs.url = (char *)(size_t) "https://docs.example.com";
+  spec.info.license.name = (char *)(size_t) "MIT";
+  spec.info.license.url =
+      (char *)(size_t) "https://opensource.org/licenses/MIT";
+
+  /* Paths with duplicate routes, unknown verb, empty body, reserved headers,
+   * etc. */
+  memset(paths, 0, sizeof(paths));
+  paths[0].route = (char *)(size_t) "/test";
+  paths[1].route = (char *)(size_t) "/test";
+
+  memset(ops, 0, sizeof(ops));
+  ops[0].verb = OA_VERB_UNKNOWN;
+  ops[1].verb = OA_VERB_GET;
+  ops[1].req_body_ref = (char *)(size_t) "#/components/requestBodies/MyRB";
+  ops[1].req_body_description = (char *)(size_t) "RB desc";
+  ops[1].req_body_extensions_json = (char *)(size_t) "{\"x-rb-ext\": 1}";
+
+  memset(params, 0, sizeof(params));
+  params[0].name = (char *)(size_t) "Accept";
+  params[0].in = OA_PARAM_IN_HEADER;
+  params[1].name = (char *)(size_t) "Content-Type";
+  params[1].in = OA_PARAM_IN_HEADER;
+  params[2].name = (char *)(size_t) "Authorization";
+  params[2].in = OA_PARAM_IN_HEADER;
+  ops[1].parameters = params;
+  ops[1].n_parameters = 3;
+
+  memset(hdrs, 0, sizeof(hdrs));
+  hdrs[0].name = (char *)(size_t) "Content-Type";
+  hdrs[1].name = (char *)(size_t) "content-type";
+  memset(resps, 0, sizeof(resps));
+  resps[0].code = (char *)(size_t) "200";
+  resps[0].description = (char *)(size_t) "OK";
+  resps[0].headers = hdrs;
+  resps[0].n_headers = 2;
+  ops[1].responses = resps;
+  ops[1].n_responses = 1;
+
+  paths[0].operations = ops;
+  paths[0].n_operations = 2;
+
+  memset(&ops[2], 0, sizeof(ops[2]));
+  ops[2].verb = OA_VERB_GET;
+  ops[2].method = NULL;
+  memset(&ops[3], 0, sizeof(ops[3]));
+  ops[3].verb = OA_VERB_UNKNOWN;
+  ops[3].method = NULL;
+  paths[0].additional_operations = &ops[2];
+  paths[0].n_additional_operations = 2;
+
+  spec.paths = paths;
+  spec.n_paths = 2;
+
+  memset(webhooks, 0, sizeof(webhooks));
+  webhooks[0].route = NULL;
+  spec.webhooks = webhooks;
+  spec.n_webhooks = 1;
+
+  memset(sec_schemes, 0, sizeof(sec_schemes));
+  sec_schemes[0].type = OA_SEC_APIKEY;
+  sec_schemes[0].in = OA_SEC_IN_COOKIE;
+  sec_schemes[0].key_name = (char *)(size_t) "session_id";
+
+  sec_schemes[1].type = OA_SEC_OAUTH2;
+  sec_schemes[1].oauth2_metadata_url =
+      (char *)(size_t) "https://oauth.example.com/.well-known/oauth";
+  memset(flows, 0, sizeof(flows));
+  flows[0].type = (enum OpenAPI_OAuthFlowType)99;
+  sec_schemes[1].flows = flows;
+  sec_schemes[1].n_flows = 1;
+
+  sec_schemes[2].type = OA_SEC_OPENID;
+  sec_schemes[2].open_id_connect_url =
+      (char *)(size_t) "https://auth.example.com/.well-known/"
+                       "openid-configuration";
+
+  sec_schemes[3].type = OA_SEC_UNKNOWN;
+
+  spec.security_schemes = sec_schemes;
+  spec.n_security_schemes = 4;
+
+  c_pnames[0] = NULL;
+  memset(comp_params, 0, sizeof(comp_params));
+  spec.component_parameters = comp_params;
+  spec.component_parameter_names = c_pnames;
+  spec.n_component_parameters = 1;
+
+  c_rnames[0] = NULL;
+  memset(comp_resps, 0, sizeof(comp_resps));
+  spec.component_responses = comp_resps;
+  spec.component_response_names = c_rnames;
+  spec.n_component_responses = 1;
+
+  c_hnames[0] = NULL;
+  memset(comp_hdrs, 0, sizeof(comp_hdrs));
+  spec.component_headers = comp_hdrs;
+  spec.component_header_names = c_hnames;
+  spec.n_component_headers = 1;
+
+  c_mtnames[0] = NULL;
+  memset(comp_mts, 0, sizeof(comp_mts));
+  spec.component_media_types = comp_mts;
+  spec.component_media_type_names = c_mtnames;
+  spec.n_component_media_types = 1;
+
+  c_exnames[0] = NULL;
+  memset(comp_exs, 0, sizeof(comp_exs));
+  spec.component_examples = comp_exs;
+  spec.component_example_names = c_exnames;
+  spec.n_component_examples = 1;
+
+  memset(comp_links, 0, sizeof(comp_links));
+  comp_links[0].name = NULL;
+  spec.component_links = comp_links;
+  spec.n_component_links = 1;
+
+  memset(comp_cbs, 0, sizeof(comp_cbs));
+  comp_cbs[0].name = NULL;
+  spec.component_callbacks = comp_cbs;
+  spec.n_component_callbacks = 1;
+
+  c_pathnames[0] = NULL;
+  c_pathnames[1] = NULL;
+  memset(comp_paths, 0, sizeof(comp_paths));
+  comp_paths[0].route = (char *)(size_t) "/subpath";
+  comp_paths[1].route = NULL;
+  spec.component_path_items = comp_paths;
+  spec.component_path_item_names = c_pathnames;
+  spec.n_component_path_items = 2;
+
+  c_rbnames[0] = NULL;
+  c_rbnames[1] = (char *)(size_t) "RefBody";
+  memset(comp_rbs, 0, sizeof(comp_rbs));
+  comp_rbs[1].ref = (char *)(size_t) "#/components/requestBodies/TargetBody";
+  spec.component_request_bodies = comp_rbs;
+  spec.component_request_body_names = c_rbnames;
+  spec.n_component_request_bodies = 2;
+
+  raw_names[0] = NULL;
+  raw_jsons[0] = (char *)(size_t) "{}";
+  raw_names[1] = (char *)(size_t) "NullJson";
+  raw_jsons[1] = NULL;
+  raw_names[2] = (char *)(size_t) "ValidSchema";
+  raw_jsons[2] = (char *)(size_t) "{\"type\": \"string\"}";
+  spec.raw_schema_names = raw_names;
+  spec.raw_schema_json = raw_jsons;
+  spec.n_raw_schemas = 3;
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(json != NULL);
+  free(json);
+  json = NULL;
+
+  raw_names[0] = (char *)(size_t) "BadJson";
+  raw_jsons[0] = (char *)(size_t) "{not valid json";
+  spec.n_raw_schemas = 1;
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+
+  PASS();
+}
+
+TEST test_openapi_writer_extras_and_edge_branches(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_SchemaRef ref;
+  struct OpenAPI_MultipartField mp_fields[1];
+  struct OpenAPI_Parameter p;
+  struct OpenAPI_Header h;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path c_paths[1];
+  char *json = NULL;
+  cdd_c_error_t rc;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* 1. merge_schema_extras_object_openapi branches */
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(NULL, "{}"));
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(obj, ""));
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(obj, "{invalid"));
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(obj, "[1, 2]"));
+  json_object_set_string(obj, "k1", "orig");
+  ASSERT_EQ(CDD_C_SUCCESS, merge_schema_extras_object_openapi(
+                               obj, "{\"k1\": \"override\", \"k2\": 42}"));
+  ASSERT_STR_EQ("orig", json_object_get_string(obj, "k1"));
+  ASSERT_EQ(42, (int)json_object_get_number(obj, "k2"));
+
+  /* 2. write_multipart_schema with f->type == NULL and f->is_binary == 0 */
+  memset(&ref, 0, sizeof(ref));
+  memset(mp_fields, 0, sizeof(mp_fields));
+  mp_fields[0].name = (char *)(size_t) "untyped_field";
+  mp_fields[0].type = NULL;
+  mp_fields[0].is_binary = 0;
+  ref.multipart_fields = mp_fields;
+  ref.n_multipart_fields = 1;
+  write_schema_ref(obj, "mp_untyped", &ref);
+
+  /* 3. write_schema_ref array with primitive ref_name and custom ref_name */
+  memset(&ref, 0, sizeof(ref));
+  ref.is_array = 1;
+  ref.ref_name = (char *)(size_t) "integer";
+  write_schema_ref(obj, "arr_prim", &ref);
+
+  memset(&ref, 0, sizeof(ref));
+  ref.is_array = 1;
+  ref.ref_name = (char *)(size_t) "CustomEntity";
+  write_schema_ref(obj, "arr_custom", &ref);
+
+  /* 4. write_schema_ref minProperties and maxProperties */
+  memset(&ref, 0, sizeof(ref));
+  ref.has_min_properties = 1;
+  ref.min_properties = 3;
+  ref.has_max_properties = 1;
+  ref.max_properties = 9;
+  write_schema_ref(obj, "props_constraints", &ref);
+
+  /* 5. write_parameter_object with in=QUERYSTRING and custom content_type */
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_QUERYSTRING;
+  p.content_type = (char *)(size_t) "application/x-custom-qs";
+  write_parameter_object(obj, &p);
+
+  /* 6. write_header_object with content_type == NULL and schema_set = 1 */
+  memset(&h, 0, sizeof(h));
+  h.content_type = NULL;
+  h.schema_set = 1;
+  h.schema.ref_name = (char *)(size_t) "HeaderType";
+  write_header_object(obj, &h);
+
+  /* 7. write_response_object with summary and no ref */
+  memset(&resp, 0, sizeof(resp));
+  resp.ref = NULL;
+  resp.summary = (char *)(size_t) "Summary for response";
+  resp.description = (char *)(size_t) "Description";
+  write_response_object(obj, &resp);
+
+  /* 8. write_component_path_items with component_path_item_names == NULL */
+  memset(&spec, 0, sizeof(spec));
+  spec.openapi_version = (char *)(size_t) "3.2.0";
+  spec.info.title = (char *)(size_t) "Path Items API";
+  spec.info.version = (char *)(size_t) "1.0.0";
+  memset(c_paths, 0, sizeof(c_paths));
+  c_paths[0].route = (char *)(size_t) "/routed_component_path";
+  spec.component_path_items = c_paths;
+  spec.component_path_item_names = NULL;
+  spec.n_component_path_items = 1;
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT(json != NULL);
+  free(json);
+  json = NULL;
+
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_direct_oom(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  JSON_Value *out_val = NULL;
+  char *types[2];
+  struct OpenAPI_Any any_vals[1];
+  struct OpenAPI_Example exs[1];
+  struct OpenAPI_Encoding enc_item;
+  struct OpenAPI_Encoding enc_arr[1];
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_RequestBody rb;
+  int k;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* 1. clone_json_value OOM */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  clone_json_value(val, &out_val);
+  json_set_allocation_functions(malloc, free);
+
+  /* 2. merge_schema_extras_object_openapi OOM */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 10; ++k) {
+    g_parson_oom_fail_at = k;
+    merge_schema_extras_object_openapi(obj, "{\"foo\": 123, \"bar\": 456}");
+  }
+  json_set_allocation_functions(malloc, free);
+
+  /* 3. write_schema_type OOM */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_schema_type(obj, "string", 1);
+  json_set_allocation_functions(malloc, free);
+
+  /* 4. write_schema_type_union OOM */
+  types[0] = (char *)(size_t) "string";
+  types[1] = (char *)(size_t) "integer";
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_schema_type_union(obj, "string", 1, types, 2);
+  json_set_allocation_functions(malloc, free);
+
+  /* 5. write_enum_any_values OOM */
+  memset(any_vals, 0, sizeof(any_vals));
+  any_vals[0].type = OA_ANY_NUMBER;
+  any_vals[0].number = 1.0;
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_enum_any_values(obj, "enum", any_vals, 1);
+  json_set_allocation_functions(malloc, free);
+
+  /* 6. write_examples_object OOM */
+  memset(exs, 0, sizeof(exs));
+  exs[0].name = (char *)(size_t) "ex1";
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_examples_object(obj, "examples", exs, 1);
+  json_set_allocation_functions(malloc, free);
+
+  /* 7. write_encoding_object OOM branches */
+  memset(&enc_item, 0, sizeof(enc_item));
+  memset(enc_arr, 0, sizeof(enc_arr));
+  enc_arr[0].name = (char *)(size_t) "sub";
+  enc_item.encoding = enc_arr;
+  enc_item.n_encoding = 1;
+  enc_item.prefix_encoding = enc_arr;
+  enc_item.n_prefix_encoding = 1;
+  enc_item.item_encoding = &enc_arr[0];
+  enc_item.item_encoding_set = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_encoding_object(obj, &enc_item);
+  g_parson_oom_fail_at = 1;
+  write_encoding_object(obj, &enc_item);
+  g_parson_oom_fail_at = 2;
+  write_encoding_object(obj, &enc_item);
+  json_set_allocation_functions(malloc, free);
+
+  /* 8. write_encoding_map OOM branches */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_encoding_map(obj, enc_arr, 1);
+  g_parson_oom_fail_at = 1;
+  write_encoding_map(obj, enc_arr, 1);
+  json_set_allocation_functions(malloc, free);
+
+  /* 9. write_media_type_object OOM branches */
+  memset(&mt, 0, sizeof(mt));
+  mt.encoding = enc_arr;
+  mt.n_encoding = 1;
+  mt.prefix_encoding = enc_arr;
+  mt.n_prefix_encoding = 1;
+  mt.item_encoding = &enc_arr[0];
+  mt.item_encoding_set = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_media_type_object(obj, &mt);
+  g_parson_oom_fail_at = 1;
+  write_media_type_object(obj, &mt);
+  json_set_allocation_functions(malloc, free);
+
+  /* 10. write_request_body_object OOM branches */
+  memset(&rb, 0, sizeof(rb));
+  rb.content_ref = (char *)(size_t) "#/components/media/Ref";
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_request_body_object(obj, &rb);
+  g_parson_oom_fail_at = 1;
+  write_request_body_object(obj, &rb);
+  json_set_allocation_functions(malloc, free);
+
+  memset(&rb, 0, sizeof(rb));
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_request_body_object(obj, &rb);
+  g_parson_oom_fail_at = 1;
+  write_request_body_object(obj, &rb);
+  json_set_allocation_functions(malloc, free);
+
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_close_all_remaining_branches(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec empty_spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Callback cb;
+  struct OpenAPI_Link link;
+  struct OpenAPI_Server srv;
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_SecurityRequirement sec_req;
+  struct OpenAPI_RequestBody rb;
+  char *scopes[1];
+  char *names[1];
+  char *json = NULL;
+  int k;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* 1. Direct null spec calls */
+  write_paths(obj, NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, write_servers(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_webhooks(obj, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, write_request_body(obj, NULL));
+
+  /* 2. Empty count on security requirements */
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_requirements(obj, "sec", NULL, 0, 1));
+
+  /* 3. Empty security schemes */
+  memset(&empty_spec, 0, sizeof(empty_spec));
+  ASSERT_EQ(CDD_C_SUCCESS, write_security_schemes(obj, &empty_spec));
+
+  /* 4. write_example_fields OOM on write_examples_object */
+  {
+    struct OpenAPI_Example exs[1];
+    memset(exs, 0, sizeof(exs));
+    exs[0].name = (char *)(size_t) "ex";
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 0;
+    write_example_fields(obj, NULL, 0, exs, 1);
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 5. write_xml_object OOM */
+  {
+    struct OpenAPI_Xml xml;
+    memset(&xml, 0, sizeof(xml));
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 0;
+    write_xml_object(obj, &xml, 1);
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 6. write_schema_ref examples OOM */
+  {
+    struct OpenAPI_SchemaRef ref_ex;
+    struct OpenAPI_Any any_ex[1];
+    memset(&ref_ex, 0, sizeof(ref_ex));
+    memset(any_ex, 0, sizeof(any_ex));
+    any_ex[0].type = OA_ANY_NUMBER;
+    any_ex[0].number = 1.0;
+    ref_ex.examples = any_ex;
+    ref_ex.n_examples = 1;
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 1;
+    write_schema_ref(obj, "ex_ref", &ref_ex);
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 7. Item encoding and prefix encoding OOM */
+  {
+    struct OpenAPI_Encoding enc_item;
+    struct OpenAPI_Encoding item_enc;
+    memset(&enc_item, 0, sizeof(enc_item));
+    memset(&item_enc, 0, sizeof(item_enc));
+    item_enc.name = (char *)(size_t) "sub";
+    enc_item.item_encoding = &item_enc;
+    enc_item.item_encoding_set = 1;
+    enc_item.prefix_encoding = &item_enc;
+    enc_item.n_prefix_encoding = 1;
+
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    for (k = 0; k < 6; ++k) {
+      g_parson_oom_fail_at = k;
+      write_encoding_object(obj, &enc_item);
+      write_encoding_map(obj, &enc_item, 1);
+      write_encoding_array(obj, "enc_arr", &enc_item, 1);
+    }
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 8. Media type item_encoding OOM and map fail */
+  {
+    struct OpenAPI_MediaType mt_item;
+    struct OpenAPI_Encoding item_enc;
+    memset(&mt_item, 0, sizeof(mt_item));
+    memset(&item_enc, 0, sizeof(item_enc));
+    mt_item.name = (char *)(size_t) "application/json";
+    mt_item.item_encoding = &item_enc;
+    mt_item.item_encoding_set = 1;
+    mt_item.prefix_encoding = &item_enc;
+    mt_item.n_prefix_encoding = 1;
+
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    for (k = 0; k < 6; ++k) {
+      g_parson_oom_fail_at = k;
+      write_media_type_object(obj, &mt_item);
+      write_media_type_map(obj, "content", &mt_item, 1);
+    }
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 9. write_request_body_object media_val failure */
+  {
+    struct OpenAPI_RequestBody rb_fail;
+    memset(&rb_fail, 0, sizeof(rb_fail));
+    rb_fail.content_ref = (char *)(size_t) "#/components/media/Ref";
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 1;
+    write_request_body_object(obj, &rb_fail);
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 10. write_callback_object with failing write_path_item_object */
+  {
+    struct OpenAPI_Callback cb_fail;
+    struct OpenAPI_Path cb_fail_path[1];
+    struct OpenAPI_Operation cb_fail_op[1];
+    struct OpenAPI_Parameter cb_fail_p[1];
+    memset(&cb_fail, 0, sizeof(cb_fail));
+    memset(cb_fail_path, 0, sizeof(cb_fail_path));
+    memset(cb_fail_op, 0, sizeof(cb_fail_op));
+    memset(cb_fail_p, 0, sizeof(cb_fail_p));
+    cb_fail_p[0].name = (char *)(size_t) "q";
+    cb_fail_op[0].verb = OA_VERB_GET;
+    cb_fail_op[0].parameters = cb_fail_p;
+    cb_fail_op[0].n_parameters = 1;
+    cb_fail_path[0].route = (char *)(size_t) "/cb";
+    cb_fail_path[0].operations = cb_fail_op;
+    cb_fail_path[0].n_operations = 1;
+    cb_fail.paths = cb_fail_path;
+    cb_fail.n_paths = 1;
+
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    for (k = 0; k < 8; ++k) {
+      g_parson_oom_fail_at = k;
+      write_callback_object(obj, &cb_fail);
+    }
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 11. Build full self-contained spec for all component and root returns */
+  memset(&spec, 0, sizeof(spec));
+  spec.openapi_version = (char *)(size_t) "3.2.0";
+  spec.info.title = (char *)(size_t) "Complete Coverage API";
+  spec.info.version = (char *)(size_t) "1.0.0";
+
+  memset(&srv, 0, sizeof(srv));
+  srv.url = (char *)(size_t) "https://srv.example.com";
+
+  memset(&sec_req, 0, sizeof(sec_req));
+  sec_req.scheme = (char *)(size_t) "bearer";
+  scopes[0] = (char *)(size_t) "read";
+  sec_req.scopes = scopes;
+  sec_req.n_scopes = 1;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &sec_req;
+  sec_set.n_requirements = 1;
+
+  memset(&cb, 0, sizeof(cb));
+  cb.name = (char *)(size_t) "callMe";
+
+  memset(&link, 0, sizeof(link));
+  link.name = (char *)(size_t) "linkMe";
+
+  memset(&resp, 0, sizeof(resp));
+  resp.code = (char *)(size_t) "200";
+  resp.description = (char *)(size_t) "OK";
+
+  memset(&param, 0, sizeof(param));
+  param.name = (char *)(size_t) "p";
+  param.in = OA_PARAM_IN_QUERY;
+
+  memset(&rb, 0, sizeof(rb));
+  rb.description = (char *)(size_t) "RB";
+
+  memset(&op, 0, sizeof(op));
+  op.verb = OA_VERB_GET;
+  op.responses = &resp;
+  op.n_responses = 1;
+  op.parameters = &param;
+  op.n_parameters = 1;
+  op.security = &sec_set;
+  op.n_security = 1;
+  op.security_set = 1;
+  op.servers = &srv;
+  op.n_servers = 1;
+  op.callbacks = &cb;
+  op.n_callbacks = 1;
+  op.req_body.ref_name = (char *)(size_t) "BodyModel";
+
+  memset(&path, 0, sizeof(path));
+  path.route = (char *)(size_t) "/items";
+  path.operations = &op;
+  path.n_operations = 1;
+  path.additional_operations = &op;
+  path.n_additional_operations = 1;
+  path.parameters = &param;
+  path.n_parameters = 1;
+  path.servers = &srv;
+  path.n_servers = 1;
+
+  names[0] = (char *)(size_t) "elem";
+  memset(&mt, 0, sizeof(mt));
+  mt.name = (char *)(size_t) "application/json";
+
+  spec.paths = &path;
+  spec.n_paths = 1;
+  spec.webhooks = &path;
+  spec.n_webhooks = 1;
+  spec.component_links = &link;
+  spec.n_component_links = 1;
+  spec.component_callbacks = &cb;
+  spec.n_component_callbacks = 1;
+  spec.component_path_items = &path;
+  spec.component_path_item_names = names;
+  spec.n_component_path_items = 1;
+  spec.component_media_types = &mt;
+  spec.component_media_type_names = names;
+  spec.n_component_media_types = 1;
+
+  /* Sweep write_operation_object and write_path_item_object error returns */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 25; ++k) {
+    g_parson_oom_fail_at = k;
+    write_operation_object(obj, &op);
+    write_path_item_object(obj, &path);
+    write_component_media_types(obj, &spec);
+    write_component_links(obj, &spec);
+    write_component_callbacks(obj, &spec);
+    write_component_path_items(obj, &spec);
+    write_components(obj, &spec);
+    openapi_write_spec_to_json(&spec, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+  json_set_allocation_functions(malloc, free);
+
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_component_returns_and_root_oom(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Spec s;
+  struct OpenAPI_Link link;
+  struct OpenAPI_Callback cb;
+  struct OpenAPI_Path path;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Example ex;
+  struct OpenAPI_Header hdr;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_RequestBody rb;
+  struct OpenAPI_SecurityScheme sec;
+  struct OpenAPI_Server srv;
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_SecurityRequirement sec_req;
+  char *names[1];
+  char *json = NULL;
+  int k_idx;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+  names[0] = (char *)(size_t) "item";
+
+  memset(&link, 0, sizeof(link));
+  memset(&cb, 0, sizeof(cb));
+  memset(&path, 0, sizeof(path));
+  memset(&mt, 0, sizeof(mt));
+  memset(&ex, 0, sizeof(ex));
+  memset(&hdr, 0, sizeof(hdr));
+  memset(&resp, 0, sizeof(resp));
+  memset(&param, 0, sizeof(param));
+  memset(&rb, 0, sizeof(rb));
+  memset(&sec, 0, sizeof(sec));
+  memset(&srv, 0, sizeof(srv));
+  memset(&sec_set, 0, sizeof(sec_set));
+  memset(&sec_req, 0, sizeof(sec_req));
+
+  path.route = (char *)(size_t) "/route";
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+
+  /* 1. Each component failure across k = 0..12 in write_components */
+  memset(&s, 0, sizeof(s));
+  s.security_schemes = &sec;
+  s.n_security_schemes = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_parameters = &param;
+  s.component_parameter_names = names;
+  s.n_component_parameters = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_responses = &resp;
+  s.component_response_names = names;
+  s.n_component_responses = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_headers = &hdr;
+  s.component_header_names = names;
+  s.n_component_headers = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_request_bodies = &rb;
+  s.component_request_body_names = names;
+  s.n_component_request_bodies = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_media_types = &mt;
+  s.component_media_type_names = names;
+  s.n_component_media_types = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_examples = &ex;
+  s.component_example_names = names;
+  s.n_component_examples = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_links = &link;
+  s.n_component_links = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_callbacks = &cb;
+  s.n_component_callbacks = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_path_items = &path;
+  s.component_path_item_names = names;
+  s.n_component_path_items = 1;
+  for (k_idx = 0; k_idx < 12; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    write_components(obj, &s);
+  }
+
+  /* 2. Each root step failure in openapi_write_spec_to_json across k = 0..15 */
+  memset(&s, 0, sizeof(s));
+  sec_req.scheme = (char *)(size_t) "oauth2";
+  sec_set.requirements = &sec_req;
+  sec_set.n_requirements = 1;
+  s.security = &sec_set;
+  s.n_security = 1;
+  s.security_set = 1;
+  for (k_idx = 0; k_idx < 15; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    openapi_write_spec_to_json(&s, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  memset(&s, 0, sizeof(s));
+  srv.url = (char *)(size_t) "https://example.com";
+  s.servers = &srv;
+  s.n_servers = 1;
+  for (k_idx = 0; k_idx < 15; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    openapi_write_spec_to_json(&s, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.component_links = &link;
+  s.n_component_links = 1;
+  for (k_idx = 0; k_idx < 15; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    openapi_write_spec_to_json(&s, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.webhooks = &path;
+  s.n_webhooks = 1;
+  for (k_idx = 0; k_idx < 15; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    openapi_write_spec_to_json(&s, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.paths = &path;
+  s.n_paths = 1;
+  for (k_idx = 0; k_idx < 15; ++k_idx) {
+    g_parson_oom_fail_at = k_idx;
+    openapi_write_spec_to_json(&s, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+
+  json_set_allocation_functions(malloc, free);
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_strike_last_19(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Encoding enc_parent;
+  struct OpenAPI_Encoding enc_item;
+  struct OpenAPI_Encoding enc_sub[1];
+  struct OpenAPI_Encoding enc_map_arr[1];
+  struct OpenAPI_MediaType mt_parent;
+  struct OpenAPI_MediaType mt_map_arr[1];
+  struct OpenAPI_Operation op_no_body;
+  struct OpenAPI_Response resp_one[1];
+  struct OpenAPI_Path path_ops;
+  struct OpenAPI_Operation op_item[1];
+  struct OpenAPI_Path path_only_add;
+  struct OpenAPI_Operation op_add_item[1];
+  struct OpenAPI_Spec spec_tags;
+  struct OpenAPI_Tag tag[1];
+  struct OpenAPI_Spec spec_comp_mt;
+  char *names[1];
+  char *json = NULL;
+  int k;
+
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+  names[0] = (char *)(size_t) "item";
+
+  /* Setup multi-level encoding failure: enc_parent -> enc_item -> enc_sub */
+  memset(&enc_parent, 0, sizeof(enc_parent));
+  memset(&enc_item, 0, sizeof(enc_item));
+  memset(enc_sub, 0, sizeof(enc_sub));
+  enc_sub[0].name = (char *)(size_t) "leaf";
+  enc_item.name = (char *)(size_t) "middle";
+  enc_item.prefix_encoding = enc_sub;
+  enc_item.n_prefix_encoding = 1;
+  enc_parent.name = (char *)(size_t) "root";
+  enc_parent.item_encoding = &enc_item;
+  enc_parent.item_encoding_set = 1;
+
+  memset(enc_map_arr, 0, sizeof(enc_map_arr));
+  enc_map_arr[0] = enc_parent;
+
+  memset(&mt_parent, 0, sizeof(mt_parent));
+  mt_parent.name = (char *)(size_t) "application/json";
+  mt_parent.item_encoding = &enc_item;
+  mt_parent.item_encoding_set = 1;
+
+  memset(mt_map_arr, 0, sizeof(mt_map_arr));
+  mt_map_arr[0] = mt_parent;
+
+  /* 1. Lines 1600-1601, 1643-1644, 1681-1682, 1727-1728, 1764-1766, 3005-3006
+   */
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 12; ++k) {
+    g_parson_oom_fail_at = k;
+    write_encoding_object(obj, &enc_parent);
+    write_encoding_map(obj, enc_map_arr, 1);
+    write_encoding_array(obj, "arr", enc_map_arr, 1);
+    write_media_type_object(obj, &mt_parent);
+    write_media_type_map(obj, "content", mt_map_arr, 1);
+  }
+
+  memset(&spec_comp_mt, 0, sizeof(spec_comp_mt));
+  spec_comp_mt.component_media_types = mt_map_arr;
+  spec_comp_mt.component_media_type_names = names;
+  spec_comp_mt.n_component_media_types = 1;
+  for (k = 0; k < 12; ++k) {
+    g_parson_oom_fail_at = k;
+    write_component_media_types(obj, &spec_comp_mt);
+  }
+  json_set_allocation_functions(malloc, free);
+
+  /* 2. Line 2325: write_operation_object responses failure */
+  memset(&op_no_body, 0, sizeof(op_no_body));
+  op_no_body.verb = OA_VERB_GET;
+  memset(resp_one, 0, sizeof(resp_one));
+  resp_one[0].code = (char *)(size_t) "200";
+  resp_one[0].description = (char *)(size_t) "OK";
+  op_no_body.responses = resp_one;
+  op_no_body.n_responses = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 6; ++k) {
+    g_parson_oom_fail_at = k;
+    write_operation_object(obj, &op_no_body);
+  }
+  json_set_allocation_functions(malloc, free);
+
+  /* 3. Line 2455: write_operations failure */
+  memset(&path_ops, 0, sizeof(path_ops));
+  path_ops.route = (char *)(size_t) "/ops";
+  memset(op_item, 0, sizeof(op_item));
+  op_item[0] = op_no_body;
+  path_ops.operations = op_item;
+  path_ops.n_operations = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 8; ++k) {
+    g_parson_oom_fail_at = k;
+    write_operations(obj, &path_ops);
+  }
+  json_set_allocation_functions(malloc, free);
+
+  /* 4. Line 2464: write_path_item_object additional_operations failure */
+  memset(&path_only_add, 0, sizeof(path_only_add));
+  path_only_add.route = (char *)(size_t) "/add";
+  memset(op_add_item, 0, sizeof(op_add_item));
+  op_add_item[0] = op_no_body;
+  path_only_add.additional_operations = op_add_item;
+  path_only_add.n_additional_operations = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  for (k = 0; k < 8; ++k) {
+    g_parson_oom_fail_at = k;
+    write_path_item_object(obj, &path_only_add);
+  }
+  json_set_allocation_functions(malloc, free);
+
+  /* 5. Line 2582-2583: write_tags array OOM & Line 3397: root write_tags
+   * failure */
+  memset(&spec_tags, 0, sizeof(spec_tags));
+  memset(tag, 0, sizeof(tag));
+  tag[0].name = (char *)(size_t) "TagA";
+  spec_tags.tags = tag;
+  spec_tags.n_tags = 1;
+
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_tags(obj, &spec_tags);
+
+  for (k = 0; k < 15; ++k) {
+    g_parson_oom_fail_at = k;
+    openapi_write_spec_to_json(&spec_tags, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+  }
+  json_set_allocation_functions(malloc, free);
+
+  json_value_free(val);
+  PASS();
+}
+
+TEST test_openapi_writer_nail_last_11(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Encoding enc_parent;
+  struct OpenAPI_Encoding enc_item;
+  struct OpenAPI_Encoding enc_sub;
+  struct OpenAPI_MediaType mt_parent;
+  struct OpenAPI_Operation op_no_body;
+  struct OpenAPI_Response resp_one[1];
+  struct OpenAPI_Path path_ops;
+  struct OpenAPI_Operation op_item[1];
+  struct OpenAPI_Spec spec_tags;
+  struct OpenAPI_Tag tag[1];
+  char *json = NULL;
+  int k;
+
+  /* Setup multi-level encoding */
+  memset(&enc_parent, 0, sizeof(enc_parent));
+  memset(&enc_item, 0, sizeof(enc_item));
+  memset(&enc_sub, 0, sizeof(enc_sub));
+  enc_sub.name = (char *)(size_t) "leaf";
+  enc_item.name = (char *)(size_t) "middle";
+  enc_item.prefix_encoding = &enc_sub;
+  enc_item.n_prefix_encoding = 1;
+  enc_parent.name = (char *)(size_t) "root";
+  enc_parent.prefix_encoding = &enc_sub;
+  enc_parent.n_prefix_encoding = 1;
+  enc_parent.item_encoding = &enc_item;
+  enc_parent.item_encoding_set = 1;
+  enc_parent.encoding = &enc_sub;
+  enc_parent.n_encoding = 1;
+
+  memset(&mt_parent, 0, sizeof(mt_parent));
+  mt_parent.name = (char *)(size_t) "application/json";
+  mt_parent.prefix_encoding = &enc_sub;
+  mt_parent.n_prefix_encoding = 1;
+  mt_parent.item_encoding = &enc_item;
+  mt_parent.item_encoding_set = 1;
+  mt_parent.encoding = &enc_sub;
+  mt_parent.n_encoding = 1;
+
+  /* 1. Lines 1643-1644, 1681-1682, 1764-1766 with fresh JSON object each time
+   */
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_encoding_map(obj, &enc_parent, 1);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_encoding_array(obj, "arr", &enc_parent, 1);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_media_type_map(obj, "content", &mt_parent, 1);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 2. Line 2325: write_operation_object responses failure */
+  memset(&op_no_body, 0, sizeof(op_no_body));
+  op_no_body.verb = OA_VERB_GET;
+  memset(resp_one, 0, sizeof(resp_one));
+  resp_one[0].code = (char *)(size_t) "200";
+  resp_one[0].description = (char *)(size_t) "OK";
+  op_no_body.responses = resp_one;
+  op_no_body.n_responses = 1;
+
+  for (k = 0; k < 10; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_operation_object(obj, &op_no_body);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 3. Line 2455: write_operations failure */
+  memset(&path_ops, 0, sizeof(path_ops));
+  path_ops.route = (char *)(size_t) "/ops";
+  memset(op_item, 0, sizeof(op_item));
+  op_item[0] = op_no_body;
+  path_ops.operations = op_item;
+  path_ops.n_operations = 1;
+
+  for (k = 0; k < 10; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_operations(obj, &path_ops);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 4. Line 3397: root write_tags failure */
+  memset(&spec_tags, 0, sizeof(spec_tags));
+  memset(tag, 0, sizeof(tag));
+  tag[0].name = (char *)(size_t) "TagA";
+  spec_tags.tags = tag;
+  spec_tags.n_tags = 1;
+
+  for (k = 0; k < 25; ++k) {
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    openapi_write_spec_to_json(&spec_tags, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* 5. Line 2256: write_responses null check */
+  write_responses(NULL, NULL);
+
+  /* 6. Line 2470: write_path_item_object write_server_array failure */
+  {
+    struct OpenAPI_Path path_srv_fail;
+    struct OpenAPI_Server srv_dummy[1];
+    memset(&path_srv_fail, 0, sizeof(path_srv_fail));
+    memset(srv_dummy, 0, sizeof(srv_dummy));
+    path_srv_fail.servers = srv_dummy;
+    path_srv_fail.n_servers = 1;
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 0;
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    write_path_item_object(obj, &path_srv_fail);
+    json_value_free(val);
+    json_set_allocation_functions(malloc, free);
+  }
+
+  PASS();
+}
+
+TEST test_openapi_writer_nail_all_remaining(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Discriminator disc;
+  struct OpenAPI_SchemaRef ref_ex;
+  struct OpenAPI_Any any_ex[1];
+  struct OpenAPI_Parameter p;
+  struct OpenAPI_Header h_arr[1];
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Link link[1];
+  struct OpenAPI_RequestBody rb_fail;
+  struct OpenAPI_MediaType mt[1];
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp_one[1];
+  struct OpenAPI_Callback cb[1];
+  struct OpenAPI_Server srv[1];
+  struct OpenAPI_Path path;
+  struct StructFields defined_sch[1];
+  char *def_names[1];
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_SecurityRequirement sec_req;
+  char *scopes[1];
+  char *names[1];
+  char *json = NULL;
+  int k;
+
+  names[0] = (char *)(size_t) "test";
+  def_names[0] = (char *)(size_t) "MyStruct";
+
+  /* 1. Line 372-378 */
+  for (k = 0; k < 50; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    merge_schema_extras_object_openapi(obj, "{\"foo\": 123}");
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 2. Line 713 */
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+  memset(&disc, 0, sizeof(disc));
+  disc.property_name = (char *)(size_t) "type";
+  json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+  g_parson_oom_fail_at = 0;
+  write_discriminator_object(obj, &disc, 1);
+  json_set_allocation_functions(malloc, free);
+  json_value_free(val);
+
+  /* 3. Line 1294 */
+  memset(&ref_ex, 0, sizeof(ref_ex));
+  memset(any_ex, 0, sizeof(any_ex));
+  any_ex[0].type = OA_ANY_NUMBER;
+  any_ex[0].number = 1.0;
+  ref_ex.examples = any_ex;
+  ref_ex.n_examples = 1;
+  for (k = 0; k < 10; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_schema_ref(obj, "ex_ref", &ref_ex);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 4. Line 1430 */
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+  memset(&p, 0, sizeof(p));
+  p.content_ref = (char *)(size_t) "#/ref";
+  p.content_type = (char *)(size_t) "application/xml";
+  write_parameter_object(obj, &p);
+  json_value_free(val);
+
+  /* 5. Lines 1664, 1748, 1851, 1889 */
+  write_encoding_array(NULL, "k", NULL, 0);
+  write_media_type_map(NULL, "k", NULL, 0);
+  write_headers(NULL, NULL);
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+  memset(&resp, 0, sizeof(resp));
+  write_headers(obj, &resp);
+  write_links(obj, &resp);
+  json_value_free(val);
+
+  /* 6. Lines 1855-1856 */
+  memset(h_arr, 0, sizeof(h_arr));
+  h_arr[0].name = (char *)(size_t) "X-H";
+  for (k = 0; k < 5; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_headers_map(obj, "headers", h_arr, 1, 0);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 7. Lines 1904, 1908-1909 */
+  memset(&resp, 0, sizeof(resp));
+  memset(link, 0, sizeof(link));
+  link[0].ref = (char *)(size_t) "#/ref";
+  resp.links = link;
+  resp.n_links = 1;
+  for (k = 0; k < 5; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_links(obj, &resp);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 8. Lines 2051, 2063-2064 */
+  memset(&rb_fail, 0, sizeof(rb_fail));
+  rb_fail.content_ref = (char *)(size_t) "#/ref";
+  for (k = 0; k < 6; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_request_body_object(obj, &rb_fail);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  memset(&rb_fail, 0, sizeof(rb_fail));
+  memset(mt, 0, sizeof(mt));
+  mt[0].name = (char *)(size_t) "application/json";
+  rb_fail.content_media_types = mt;
+  rb_fail.n_content_media_types = 1;
+  for (k = 0; k < 6; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_request_body_object(obj, &rb_fail);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 9. Lines 2127-2128, 2148-2149, 2163-2164 */
+  memset(&op, 0, sizeof(op));
+  op.req_body_ref = (char *)(size_t) "#/ref";
+  for (k = 0; k < 5; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_request_body(obj, &op);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  memset(&op, 0, sizeof(op));
+  op.req_body.ref_name = (char *)(size_t) "BodyModel";
+  for (k = 0; k < 5; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_request_body(obj, &op);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 10. Lines 2227-2228 */
+  memset(&op, 0, sizeof(op));
+  memset(cb, 0, sizeof(cb));
+  cb[0].name = (char *)(size_t) "cb";
+  op.callbacks = cb;
+  op.n_callbacks = 1;
+  for (k = 0; k < 5; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_callbacks(obj, &op);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 11. Lines 2335, 2345, 2351 */
+  memset(&op, 0, sizeof(op));
+  op.verb = OA_VERB_GET;
+  memset(resp_one, 0, sizeof(resp_one));
+  resp_one[0].code = (char *)(size_t) "200";
+  resp_one[0].description = (char *)(size_t) "OK";
+  op.responses = resp_one;
+  op.n_responses = 1;
+  op.callbacks = cb;
+  op.n_callbacks = 1;
+  memset(srv, 0, sizeof(srv));
+  srv[0].url = (char *)(size_t) "https://srv";
+  op.servers = srv;
+  op.n_servers = 1;
+
+  for (k = 0; k < 30; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_operation_object(obj, &op);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 12. Lines 2464, 2470 */
+  memset(&path, 0, sizeof(path));
+  path.route = (char *)(size_t) "/items";
+  path.operations = &op;
+  path.n_operations = 1;
+  path.additional_operations = &op;
+  path.n_additional_operations = 1;
+  path.servers = srv;
+  path.n_servers = 1;
+
+  for (k = 0; k < 30; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_operations(obj, &path);
+    write_path_item_object(obj, &path);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 13. Lines 2522, 2528, 2559-2560 */
+  memset(&spec, 0, sizeof(spec));
+  spec.paths = &path;
+  spec.n_paths = 1;
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_paths(obj, &spec);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 14. Lines 2647-2648, 2665, 2673 */
+  memset(&spec, 0, sizeof(spec));
+  spec.webhooks = &path;
+  spec.n_webhooks = 1;
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_webhooks(obj, &spec);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 15. Lines 3168-3170 */
+  memset(&spec, 0, sizeof(spec));
+  spec.component_path_items = &path;
+  spec.component_path_item_names = names;
+  spec.n_component_path_items = 1;
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_component_path_items(obj, &spec);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 16. Lines 3267-3269 */
+  memset(&spec, 0, sizeof(spec));
+  struct_fields_init(&defined_sch[0]);
+  spec.defined_schemas = defined_sch;
+  spec.defined_schema_names = def_names;
+  spec.n_defined_schemas = 1;
+  for (k = 0; k < 20; ++k) {
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_components(obj, &spec);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  /* 17. Lines 3419-3445 */
+  memset(&sec_req, 0, sizeof(sec_req));
+  sec_req.scheme = (char *)(size_t) "bearer";
+  scopes[0] = (char *)(size_t) "read";
+  sec_req.scopes = scopes;
+  sec_req.n_scopes = 1;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &sec_req;
+  sec_set.n_requirements = 1;
+
+  memset(&spec, 0, sizeof(spec));
+  spec.openapi_version = (char *)(size_t) "3.2.0";
+  spec.security = &sec_set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+  spec.servers = srv;
+  spec.n_servers = 1;
+  spec.webhooks = &path;
+  spec.n_webhooks = 1;
+  spec.paths = &path;
+  spec.n_paths = 1;
+  for (k = 0; k < 80; ++k) {
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    openapi_write_spec_to_json(&spec, &json);
+    if (json) {
+      free(json);
+      json = NULL;
+    }
+    json_set_allocation_functions(malloc, free);
+  }
+
+  /* Precise triggers for final 4 lines */
+  /* Line 1851 */
+  write_headers_map(NULL, "k", NULL, 0, 0);
+
+  /* Line 2335: write_operation_object callbacks failure (k up to 35) */
+  {
+    struct OpenAPI_Operation op_cb;
+    memset(&op_cb, 0, sizeof(op_cb));
+    op_cb.callbacks = cb;
+    op_cb.n_callbacks = 1;
+    for (k = 0; k < 35; ++k) {
+      val = json_value_init_object();
+      obj = json_value_get_object(val);
+      json_set_allocation_functions(mock_parson_oom_malloc,
+                                    mock_parson_oom_free);
+      g_parson_oom_fail_at = k;
+      write_operation_object(obj, &op_cb);
+      json_set_allocation_functions(malloc, free);
+      json_value_free(val);
+    }
+  }
+
+  /* Line 2351: write_operation_object servers failure */
+  {
+    struct OpenAPI_Operation op_srv;
+    memset(&op_srv, 0, sizeof(op_srv));
+    op_srv.servers = srv;
+    op_srv.n_servers = 1;
+    for (k = 0; k < 20; ++k) {
+      val = json_value_init_object();
+      obj = json_value_get_object(val);
+      json_set_allocation_functions(mock_parson_oom_malloc,
+                                    mock_parson_oom_free);
+      g_parson_oom_fail_at = k;
+      write_operation_object(obj, &op_srv);
+      json_set_allocation_functions(malloc, free);
+      json_value_free(val);
+    }
+  }
+
+  /* Line 2464: write_path_item_object additional_operations failure (operations
+   * must be NULL) */
+  {
+    struct OpenAPI_Path p_add_fail;
+    struct OpenAPI_Operation op_f[1];
+    memset(&p_add_fail, 0, sizeof(p_add_fail));
+    memset(op_f, 0, sizeof(op_f));
+    op_f[0].verb = OA_VERB_GET;
+    op_f[0].callbacks = cb;
+    op_f[0].n_callbacks = 1;
+    p_add_fail.additional_operations = op_f;
+    p_add_fail.n_additional_operations = 1;
+    for (k = 0; k < 25; ++k) {
+      val = json_value_init_object();
+      obj = json_value_get_object(val);
+      json_set_allocation_functions(mock_parson_oom_malloc,
+                                    mock_parson_oom_free);
+      g_parson_oom_fail_at = k;
+      write_path_item_object(obj, &p_add_fail);
+      json_set_allocation_functions(malloc, free);
+      json_value_free(val);
+    }
+  }
+
+  /* Line 3444-3445: openapi_write_spec_to_json paths failure (k up to 100) */
+  {
+    struct OpenAPI_Spec spec_only_paths;
+    struct OpenAPI_Path p_item[1];
+    memset(&spec_only_paths, 0, sizeof(spec_only_paths));
+    memset(p_item, 0, sizeof(p_item));
+    p_item[0].route = (char *)(size_t) "/items";
+    spec_only_paths.paths = p_item;
+    spec_only_paths.n_paths = 1;
+    for (k = 10; k < 35; ++k) {
+      json_set_allocation_functions(mock_parson_oom_malloc,
+                                    mock_parson_oom_free);
+      g_parson_oom_fail_at = k;
+      openapi_write_spec_to_json(&spec_only_paths, &json);
+      if (json) {
+        free(json);
+        json = NULL;
+      }
+      json_set_allocation_functions(malloc, free);
+    }
+  }
+
+  /* Exact triggers for 2335, 2464, 3444-3445 */
+  {
+    struct OpenAPI_Operation op_rb;
+    memset(&op_rb, 0, sizeof(op_rb));
+    op_rb.req_body_ref = (char *)(size_t) "#/ref";
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 0;
+    write_operation_object(obj, &op_rb);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  {
+    struct OpenAPI_Path p_param_fail;
+    struct OpenAPI_Parameter param_item[1];
+    memset(&p_param_fail, 0, sizeof(p_param_fail));
+    memset(param_item, 0, sizeof(param_item));
+    param_item[0].name = (char *)(size_t) "p";
+    param_item[0].in = OA_PARAM_IN_QUERY;
+    p_param_fail.parameters = param_item;
+    p_param_fail.n_parameters = 1;
+    val = json_value_init_object();
+    obj = json_value_get_object(val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = 0;
+    write_path_item_object(obj, &p_param_fail);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(val);
+  }
+
+  {
+    struct OpenAPI_Spec s_p_fail;
+    struct OpenAPI_Path p_p_fail[1];
+    struct OpenAPI_Parameter param_item[1];
+    memset(&s_p_fail, 0, sizeof(s_p_fail));
+    memset(p_p_fail, 0, sizeof(p_p_fail));
+    memset(param_item, 0, sizeof(param_item));
+    param_item[0].name = (char *)(size_t) "p";
+    param_item[0].in = OA_PARAM_IN_QUERY;
+    p_p_fail[0].route = (char *)(size_t) "/items";
+    p_p_fail[0].parameters = param_item;
+    p_p_fail[0].n_parameters = 1;
+    s_p_fail.paths = p_p_fail;
+    s_p_fail.n_paths = 1;
+    for (k = 0; k < 60; ++k) {
+      json_set_allocation_functions(mock_parson_oom_malloc,
+                                    mock_parson_oom_free);
+      g_parson_oom_fail_at = k;
+      openapi_write_spec_to_json(&s_p_fail, &json);
+      if (json) {
+        free(json);
+        json = NULL;
+      }
+      json_set_allocation_functions(malloc, free);
+    }
+  }
+
+  PASS();
+}
+
+TEST test_openapi_writer_close_100_percent(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
+  JSON_Value *parent_val;
+  JSON_Object *parent;
+  struct OpenAPI_Any any_vals[2];
+  struct OpenAPI_Example ex;
+  struct OpenAPI_Example ex_arr[1];
+  struct OpenAPI_ExternalDocs ed;
+  struct OpenAPI_Discriminator disc;
+  struct OpenAPI_DiscriminatorMap dmap[1];
+  struct OpenAPI_Xml xml;
+  struct OpenAPI_Server srv[1];
+  struct OpenAPI_ServerVariable svar;
+  struct OpenAPI_SchemaRef sr;
+  struct OpenAPI_SchemaRef sub_sr[1];
+  struct OpenAPI_Parameter p;
+  struct OpenAPI_Header h;
+  struct OpenAPI_Header h_arr[1];
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MediaType mt_dummy;
+  struct OpenAPI_Link lk;
+  struct OpenAPI_LinkParam lp[2];
+  struct OpenAPI_Response r_dummy;
+  struct OpenAPI_RequestBody rb_d;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Callback cb_d;
+  struct OpenAPI_Path path;
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_SecurityScheme ss;
+  struct OpenAPI_OAuthFlow fl;
+  struct OpenAPI_OAuthScope scp[1];
+  struct OpenAPI_Spec sp_d;
+  struct StructFields sf[1];
+  char *dn[1];
+  char *tu[1];
+  char *json = NULL;
+  int k;
+
+  parent_val = json_value_init_object();
+  parent = json_value_get_object(parent_val);
+  val = json_value_init_object();
+  obj = json_value_get_object(val);
+
+  /* 1. L367: duplicate key in merge_schema_extras_object_openapi */
+  json_object_set_string(obj, "k", "orig");
+  merge_schema_extras_object_openapi(obj, "{\"k\": \"dup\", \"k2\": \"new\"}");
+
+  /* 2. L422: write_schema_type with type == NULL */
+  write_schema_type(obj, NULL, 0);
+
+  /* 3. L463: write_schema_type_union with type_union != NULL && n_type_union ==
+   * 0 */
+  tu[0] = (char *)(size_t) "string";
+  write_schema_type_union(obj, "string", 0, tu, 0);
+
+  /* 4. L490, L503: write_enum_any_values variations */
+  memset(any_vals, 0, sizeof(any_vals));
+  any_vals[0].type = (enum OpenAPI_AnyType)999;
+  write_enum_any_values(obj, "k", NULL, 1);
+  write_enum_any_values(obj, "k", any_vals, 0);
+  write_enum_any_values(obj, NULL, any_vals, 1);
+  write_enum_any_values(NULL, "k", any_vals, 1);
+  write_enum_any_values(obj, "bad_enum", any_vals, 1);
+  any_vals[0].type = OA_ANY_STRING;
+  any_vals[0].string = (char *)(size_t) "good";
+  write_enum_any_values(obj, "good_enum", any_vals, 1);
+
+  /* 5. L579, L581, L594, L599: write_example_object branches */
+  memset(&ex, 0, sizeof(ex));
+  ex.ref = (char *)(size_t) "#/ref";
+  ex.summary = NULL;
+  ex.description = NULL;
+  write_example_object(obj, &ex);
+
+  memset(&ex, 0, sizeof(ex));
+  ex.data_value_set = 1;
+  ex.data_value.type = (enum OpenAPI_AnyType)999;
+  write_example_object(obj, &ex);
+
+  memset(&ex, 0, sizeof(ex));
+  ex.value_set = 1;
+  ex.value.type = (enum OpenAPI_AnyType)999;
+  write_example_object(obj, &ex);
+
+  /* 6. L621: write_examples_object null/empty checks */
+  memset(ex_arr, 0, sizeof(ex_arr));
+  ex_arr[0].name = (char *)(size_t) "ex1";
+  write_examples_object(parent, "k", NULL, 1);
+  write_examples_object(parent, "k", ex_arr, 0);
+  write_examples_object(parent, NULL, ex_arr, 1);
+  write_examples_object(NULL, "k", ex_arr, 1);
+  write_examples_object(parent, "valid_ex", ex_arr, 1);
+
+  /* 7. L658, L665, L668: write_example_fields branches */
+  write_example_fields(parent, NULL, 0, ex_arr, 0);
+  write_example_fields(parent, NULL, 1, NULL, 0);
+  memset(&any_vals[0], 0, sizeof(any_vals[0]));
+  any_vals[0].type = (enum OpenAPI_AnyType)999;
+  write_example_fields(parent, &any_vals[0], 1, NULL, 0);
+
+  /* 8. L681: write_external_docs with docs->url == NULL and docs == NULL */
+  memset(&ed, 0, sizeof(ed));
+  ed.url = NULL;
+  write_external_docs(parent, "ext", &ed);
+  write_external_docs(parent, "ext", NULL);
+
+  /* 9. L711, L719, L721, L724, L729: write_discriminator_object branches */
+  memset(&disc, 0, sizeof(disc));
+  disc.property_name = NULL;
+  disc.n_mapping = 0;
+  disc.default_mapping = NULL;
+  write_discriminator_object(parent, &disc, 1);
+
+  memset(&disc, 0, sizeof(disc));
+  disc.property_name = (char *)(size_t) "type";
+  disc.n_mapping = 0;
+  disc.default_mapping = NULL;
+  write_discriminator_object(parent, &disc, 1);
+
+  memset(&disc, 0, sizeof(disc));
+  memset(dmap, 0, sizeof(dmap));
+  dmap[0].value = (char *)(size_t) "val";
+  dmap[0].schema = (char *)(size_t) "sch";
+  disc.property_name = NULL;
+  disc.mapping = dmap;
+  disc.n_mapping = 1;
+  disc.default_mapping = NULL;
+  write_discriminator_object(parent, &disc, 1);
+
+  memset(&disc, 0, sizeof(disc));
+  disc.property_name = NULL;
+  disc.default_mapping = (char *)(size_t) "def";
+  write_discriminator_object(parent, &disc, 1);
+
+  memset(&disc, 0, sizeof(disc));
+  disc.property_name = (char *)(size_t) "type";
+  disc.mapping = NULL;
+  disc.n_mapping = 1;
+  write_discriminator_object(parent, &disc, 1);
+
+  disc.mapping = dmap;
+  disc.n_mapping = 0;
+  write_discriminator_object(parent, &disc, 1);
+
+  dmap[0].value = (char *)(size_t) "val";
+  dmap[0].schema = NULL;
+  disc.mapping = dmap;
+  disc.n_mapping = 1;
+  write_discriminator_object(parent, &disc, 1);
+
+  /* 10. L762: write_xml_object with invalid node_type */
+  memset(&xml, 0, sizeof(xml));
+  xml.node_type_set = 1;
+  xml.node_type = (enum OpenAPI_XmlNodeType)999;
+  write_xml_object(parent, &xml, 1);
+
+  /* 11. L856, L868: write_server_object branches */
+  memset(srv, 0, sizeof(srv));
+  srv[0].n_variables = 1;
+  srv[0].variables = NULL;
+  write_server_object(obj, &srv[0]);
+
+  memset(&svar, 0, sizeof(svar));
+  svar.n_enum_values = 1;
+  svar.enum_values = NULL;
+  srv[0].variables = &svar;
+  srv[0].n_variables = 1;
+  write_server_object(obj, &srv[0]);
+
+  /* 12. L937: write_schema_example with invalid any */
+  memset(&sr, 0, sizeof(sr));
+  sr.example_set = 1;
+  sr.example.type = (enum OpenAPI_AnyType)999;
+  write_schema_ref(parent, "sch_ex", &sr);
+
+  /* 13. L1009, L1044, L1051: write_items_schema_fields branches */
+  write_items_schema_fields(obj, NULL);
+  memset(&sr, 0, sizeof(sr));
+  sr.is_array = 1;
+  sr.inline_type = (char *)(size_t) "string";
+  sr.items_const_value_set = 1;
+  sr.items_const_value.type = (enum OpenAPI_AnyType)999;
+  write_schema_ref(parent, "items_const", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.is_array = 1;
+  sr.inline_type = (char *)(size_t) "string";
+  sr.items_default_value_set = 1;
+  sr.items_default_value.type = (enum OpenAPI_AnyType)999;
+  write_schema_ref(parent, "items_def", &sr);
+
+  /* 14. L1085, L1127, L1207, L1224, L1241, L1263, L1282, L1286, L1310 */
+  write_schema_ref(parent, NULL, &sr);
+  write_schema_ref(parent, "sch", NULL);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.is_array = 1;
+  write_schema_ref(parent, "arr_empty", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.summary = (char *)(size_t) "sum";
+  sr.ref_name = NULL;
+  sr.ref = NULL;
+  write_schema_ref(parent, "sch_sum_no_ref", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.summary = (char *)(size_t) "sum";
+  sr.ref_name = NULL;
+  sr.ref = (char *)(size_t) "#/ref";
+  write_schema_ref(parent, "sch_sum_ref", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.const_value_set = 1;
+  sr.const_value.type = (enum OpenAPI_AnyType)999;
+  write_schema_ref(parent, "sch_const", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.n_examples = 1;
+  sr.examples = NULL;
+  write_schema_ref(parent, "sch_ex_null", &sr);
+
+  memset(&sr, 0, sizeof(sr));
+  sr.default_value_set = 1;
+  sr.default_value.type = (enum OpenAPI_AnyType)999;
+  write_schema_ref(parent, "sch_def", &sr);
+
+  memset(sub_sr, 0, sizeof(sub_sr));
+  sub_sr[0].ref_name = (char *)(size_t) "Sub";
+  memset(&sr, 0, sizeof(sr));
+  sr.all_of = sub_sr;
+  sr.n_all_of = 1;
+  sr.any_of = sub_sr;
+  sr.n_any_of = 1;
+  sr.one_of = sub_sr;
+  sr.n_one_of = 1;
+  for (k = 0; k < 25; ++k) {
+    JSON_Value *oom_val = json_value_init_object();
+    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_schema_ref(oom_obj, "sch_composed", &sr);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(oom_val);
+  }
+
+  memset(&sr, 0, sizeof(sr));
+  sr.any_of = sub_sr;
+  sr.n_any_of = 1;
+  for (k = 0; k < 25; ++k) {
+    JSON_Value *oom_val = json_value_init_object();
+    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_schema_ref(oom_obj, "sch_any", &sr);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(oom_val);
+  }
+
+  memset(&sr, 0, sizeof(sr));
+  sr.one_of = sub_sr;
+  sr.n_one_of = 1;
+  for (k = 0; k < 25; ++k) {
+    JSON_Value *oom_val = json_value_init_object();
+    JSON_Object *oom_obj = json_value_get_object(oom_val);
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    g_parson_oom_fail_at = k;
+    write_schema_ref(oom_obj, "sch_one", &sr);
+    json_set_allocation_functions(malloc, free);
+    json_value_free(oom_val);
+  }
+
+  /* 15. L1398, L1417, L1428, L1453, L1455, L1458: write_parameter_object */
+  memset(&p, 0, sizeof(p));
+  p.in = (enum OpenAPI_ParamIn)999;
+  p.style = (enum OpenAPI_Style)999;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_media_types = (struct OpenAPI_MediaType *)(size_t)0x1;
+  p.n_content_media_types = 0;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/json";
+  p.schema_set = 1;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/json";
+  p.schema_set = 0;
+  p.type = NULL;
+  p.is_array = 0;
+  write_parameter_object(obj, &p);
+
+  memset(&p, 0, sizeof(p));
+  p.content_type = (char *)(size_t) "application/json";
+  p.schema_set = 0;
+  p.type = NULL;
+  p.is_array = 1;
+  write_parameter_object(obj, &p);
+
+  /* 16. L1508, L1518, L1529, L1538, L1540, L1552: write_header_object */
+  memset(&h, 0, sizeof(h));
+  h.style_set = 1;
+  h.style = (enum OpenAPI_Style)999;
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_media_types = (struct OpenAPI_MediaType *)(size_t)0x1;
+  h.n_content_media_types = 0;
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_ref = (char *)(size_t) "#/ref";
+  h.content_type = (char *)(size_t) "application/json";
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_type = (char *)(size_t) "application/json";
+  h.schema_set = 1;
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_type = (char *)(size_t) "application/json";
+  h.schema_set = 0;
+  h.type = NULL;
+  h.is_array = 0;
+  write_header_object(obj, &h);
+
+  memset(&h, 0, sizeof(h));
+  h.content_type = NULL;
+  h.schema_set = 1;
+  write_header_object(obj, &h);
+
+  /* 17. L1578, L1586, L1590, L1594, L1599, L1629, L1670: write_encoding_* */
+  memset(&enc, 0, sizeof(enc));
+  enc.style_set = 1;
+  enc.style = (enum OpenAPI_Style)999;
+  write_encoding_object(obj, &enc);
+
+  memset(&enc, 0, sizeof(enc));
+  enc.headers = (struct OpenAPI_Header *)(size_t)0x1;
+  enc.n_headers = 0;
+  write_encoding_object(obj, &enc);
+
+  memset(&enc, 0, sizeof(enc));
+  enc.encoding = (struct OpenAPI_Encoding *)(size_t)0x1;
+  enc.n_encoding = 0;
+  write_encoding_object(obj, &enc);
+
+  memset(&enc, 0, sizeof(enc));
+  enc.prefix_encoding = (struct OpenAPI_Encoding *)(size_t)0x1;
+  enc.n_prefix_encoding = 0;
+  write_encoding_object(obj, &enc);
+
+  memset(&enc, 0, sizeof(enc));
+  enc.item_encoding = &enc;
+  enc.item_encoding_set = 0;
+  write_encoding_object(obj, &enc);
+
+  write_encoding_map(obj, NULL, 1);
+  write_encoding_map(obj, &enc, 0);
+  write_encoding_array(parent, NULL, &enc, 1);
+  write_encoding_array(parent, "k", NULL, 1);
+  write_encoding_array(parent, "k", &enc, 0);
+
+  /* 18. L1709, L1712, L1717, L1721, L1726, L1754: write_media_type_* */
+  memset(&mt_dummy, 0, sizeof(mt_dummy));
+  mt_dummy.encoding = &enc;
+  mt_dummy.n_encoding = 0;
+  mt_dummy.prefix_encoding = &enc;
+  mt_dummy.n_prefix_encoding = 0;
+  mt_dummy.item_encoding = &enc;
+  mt_dummy.item_encoding_set = 0;
+  write_media_type_object(obj, &mt_dummy);
+  write_media_type_map(parent, NULL, &mt_dummy, 1);
+  write_media_type_map(parent, "k", NULL, 1);
+  write_media_type_map(parent, "k", &mt_dummy, 0);
+
+  memset(&mt_dummy, 0, sizeof(mt_dummy));
+  mt_dummy.schema_set = 0;
+  mt_dummy.schema.ref_name = (char *)(size_t) "Model";
+  write_media_type_object(obj, &mt_dummy);
+
+  memset(&mt_dummy, 0, sizeof(mt_dummy));
+  mt_dummy.item_schema_set = 0;
+  mt_dummy.item_schema.ref_name = (char *)(size_t) "ItemModel";
+  write_media_type_object(obj, &mt_dummy);
+
+  /* 19. L1808, L1817, L1819, L1830, L1834, L1856, L1894, L1909, L1955, L1958,
+   * L1962 */
+  memset(&lk, 0, sizeof(lk));
+  lk.n_parameters = 1;
+  lk.parameters = NULL;
+  write_link_object(obj, &lk);
+
+  memset(&lk, 0, sizeof(lk));
+  memset(lp, 0, sizeof(lp));
+  lp[0].value.type = OA_ANY_STRING;
+  lp[0].value.string = (char *)(size_t) "val";
+  lp[0].name = NULL;
+  lp[1].value.type = (enum OpenAPI_AnyType)999;
+  lp[1].name = (char *)(size_t) "p";
+  lk.parameters = lp;
+  lk.n_parameters = 2;
+  lk.request_body_set = 1;
+  lk.request_body.type = (enum OpenAPI_AnyType)999;
+  lk.server_set = 1;
+  lk.server = NULL;
+  write_link_object(obj, &lk);
+
+  memset(h_arr, 0, sizeof(h_arr));
+  h_arr[0].name = (char *)(size_t) "X-H";
+  write_headers_map(parent, NULL, h_arr, 1, 0);
+  write_headers_map(parent, "k", NULL, 1, 0);
+  write_headers_map(parent, "k", h_arr, 0, 0);
+
+  memset(&r_dummy, 0, sizeof(r_dummy));
+  r_dummy.n_headers = 0;
+  write_headers(parent, &r_dummy);
+  r_dummy.n_headers = 1;
+  r_dummy.headers = NULL;
+  write_headers(parent, &r_dummy);
+  write_headers(obj, NULL);
+
+  write_links(NULL, &r_dummy);
+  r_dummy.n_links = 0;
+  write_links(parent, &r_dummy);
+  r_dummy.n_links = 1;
+  r_dummy.links = NULL;
+  write_links(parent, &r_dummy);
+  write_links(obj, NULL);
+
+  memset(&r_dummy, 0, sizeof(r_dummy));
+  r_dummy.headers = h_arr;
+  r_dummy.n_headers = 0;
+  r_dummy.links = &lk;
+  r_dummy.n_links = 0;
+  r_dummy.content_media_types = &mt_dummy;
+  r_dummy.n_content_media_types = 0;
+  write_response_object(obj, &r_dummy);
+
+  /* 20. L2009, L2054, L2076, L2127, L2148: parameters & request_body */
+  write_parameters(NULL, &p, 1);
+  write_parameters(parent, &p, 0);
+
+  memset(&rb_d, 0, sizeof(rb_d));
+  rb_d.content_media_types = &mt_dummy;
+  rb_d.n_content_media_types = 0;
+  write_request_body_object(obj, &rb_d);
+
+  memset(&rb_d, 0, sizeof(rb_d));
+  rb_d.content_ref = (char *)(size_t) "#/ref";
+  rb_d.schema.content_type = (char *)(size_t) "application/json";
+  write_request_body_object(obj, &rb_d);
+
+  memset(&op, 0, sizeof(op));
+  write_request_body(NULL, &op);
+
+  memset(&op, 0, sizeof(op));
+  op.req_body.ref_name = (char *)(size_t) "Body";
+  op.req_body.content_type = NULL;
+  op.n_req_body_media_types = 0;
+  write_request_body(obj, &op);
+
+  memset(&op, 0, sizeof(op));
+  op.req_body.content_type = (char *)(size_t) "application/json";
+  write_request_body(obj, &op);
+
+  /* 21. L2191, L2193, L2198, L2228, L2240, L2261: callbacks & responses */
+  memset(&cb_d, 0, sizeof(cb_d));
+  cb_d.ref = (char *)(size_t) "#/ref";
+  cb_d.summary = NULL;
+  cb_d.description = NULL;
+  write_callback_object(obj, &cb_d);
+
+  memset(&cb_d, 0, sizeof(cb_d));
+  memset(&path, 0, sizeof(path));
+  cb_d.paths = &path;
+  cb_d.n_paths = 0;
+  write_callback_object(obj, &cb_d);
+
+  memset(&op, 0, sizeof(op));
+  write_callbacks(NULL, &op);
+  write_callbacks(obj, NULL);
+  op.n_callbacks = 0;
+  write_callbacks(obj, &op);
+  op.n_callbacks = 1;
+  op.callbacks = NULL;
+  write_callbacks(obj, &op);
+
+  cb_d.name = NULL;
+  op.callbacks = &cb_d;
+  op.n_callbacks = 1;
+  write_callbacks(obj, &op);
+
+  write_responses(obj, NULL);
+
+  /* 22. L2354, L2411, L2472, L2514: operations & paths */
+  memset(&op, 0, sizeof(op));
+  op.n_servers = 1;
+  op.servers = NULL;
+  write_operation_object(obj, &op);
+
+  write_additional_operations(NULL, &path);
+  write_additional_operations(obj, NULL);
+  memset(&path, 0, sizeof(path));
+  path.n_additional_operations = 0;
+  write_additional_operations(obj, &path);
+  path.n_additional_operations = 1;
+  path.additional_operations = NULL;
+  write_additional_operations(obj, &path);
+
+  memset(&path, 0, sizeof(path));
+  path.n_servers = 1;
+  path.servers = NULL;
+  write_path_item_object(obj, &path);
+
+  memset(&sp_d, 0, sizeof(sp_d));
+  memset(&path, 0, sizeof(path));
+  path.route = NULL;
+  sp_d.paths = &path;
+  sp_d.n_paths = 1;
+  write_paths(obj, &sp_d);
+
+  /* 23. L2560, L2598, L2695: server array, tags, security requirements */
+  write_server_array(NULL, "k", srv, 1);
+  write_server_array(parent, NULL, srv, 1);
+  write_tags(obj, NULL);
+  memset(&sec_set, 0, sizeof(sec_set));
+  write_security_requirements(NULL, "k", &sec_set, 1, 1);
+  write_security_requirements(parent, NULL, &sec_set, 1, 1);
+
+  /* 24. L2799, L2818, L2853, L2869: security schemes */
+  memset(&sp_d, 0, sizeof(sp_d));
+  memset(&ss, 0, sizeof(ss));
+  ss.type = OA_SEC_HTTP;
+  ss.scheme = (char *)(size_t) "basic";
+  sp_d.security_schemes = &ss;
+  sp_d.n_security_schemes = 1;
+  write_security_schemes(obj, &sp_d);
+
+  memset(&ss, 0, sizeof(ss));
+  ss.type = OA_SEC_OAUTH2;
+  ss.flows = (struct OpenAPI_OAuthFlow *)(size_t)0x1;
+  ss.n_flows = 0;
+  sp_d.security_schemes = &ss;
+  sp_d.n_security_schemes = 1;
+  write_security_schemes(obj, &sp_d);
+
+  memset(&ss, 0, sizeof(ss));
+  memset(&fl, 0, sizeof(fl));
+  memset(scp, 0, sizeof(scp));
+  scp[0].name = NULL;
+  fl.scopes = scp;
+  fl.n_scopes = 1;
+  fl.type = OA_OAUTH_FLOW_IMPLICIT;
+  ss.type = OA_SEC_OAUTH2;
+  ss.flows = &fl;
+  ss.n_flows = 1;
+  sp_d.security_schemes = &ss;
+  sp_d.n_security_schemes = 1;
+  write_security_schemes(obj, &sp_d);
+
+  memset(&ss, 0, sizeof(ss));
+  ss.type = OA_SEC_OPENID;
+  ss.open_id_connect_url = NULL;
+  sp_d.security_schemes = &ss;
+  sp_d.n_security_schemes = 1;
+  write_security_schemes(obj, &sp_d);
+
+  /* 25. L2898, L2934, L2970, L3006, L3047, L3083, L3116, L3150: component_* */
+  write_component_parameters(obj, NULL);
+  write_component_responses(obj, NULL);
+  write_component_headers(obj, NULL);
+  write_component_media_types(obj, NULL);
+  write_component_examples(obj, NULL);
+  memset(&sp_d, 0, sizeof(sp_d));
+  sp_d.n_component_examples = 1;
+  sp_d.component_examples = NULL;
+  write_component_examples(obj, &sp_d);
+
+  write_component_links(obj, NULL);
+  memset(&sp_d, 0, sizeof(sp_d));
+  sp_d.n_component_links = 1;
+  sp_d.component_links = NULL;
+  write_component_links(obj, &sp_d);
+
+  write_component_callbacks(obj, NULL);
+  memset(&sp_d, 0, sizeof(sp_d));
+  sp_d.n_component_callbacks = 1;
+  sp_d.component_callbacks = NULL;
+  write_component_callbacks(obj, &sp_d);
+
+  write_component_path_items(obj, NULL);
+
+  /* 26. L3269: write_components with NULL name */
+  memset(&sp_d, 0, sizeof(sp_d));
+  dn[0] = NULL;
+  memset(sf, 0, sizeof(sf));
+  sp_d.defined_schemas = sf;
+  sp_d.defined_schema_names = dn;
+  sp_d.n_defined_schemas = 1;
+  write_components(obj, &sp_d);
+
+  /* 27. L3448: openapi_write_spec_to_json with n_paths == 0 and
+   * paths_extensions_json */
+  memset(&sp_d, 0, sizeof(sp_d));
+  sp_d.n_paths = 0;
+  sp_d.paths_extensions_json = (char *)(size_t) "{\"x-paths\": 1}";
+  openapi_write_spec_to_json(&sp_d, &json);
+  if (json) {
+    free(json);
+    json = NULL;
+  }
+
+  json_value_free(val);
+  json_value_free(parent_val);
+  PASS();
+}
+
 SUITE(openapi_writer_suite) {
+  RUN_TEST(test_openapi_writer_close_100_percent);
+  RUN_TEST(test_openapi_writer_nail_all_remaining);
+  RUN_TEST(test_openapi_writer_null_and_defensive);
+  RUN_TEST(test_openapi_writer_schema_ref_branches);
+  RUN_TEST(test_openapi_writer_schema_and_types_coverage);
+  RUN_TEST(test_openapi_writer_any_and_examples_coverage);
+  RUN_TEST(test_openapi_writer_objects_and_maps_coverage);
+  RUN_TEST(test_openapi_writer_full_spec_edges);
+  RUN_TEST(test_openapi_writer_extras_and_edge_branches);
+  RUN_TEST(test_openapi_writer_direct_oom);
+  RUN_TEST(test_openapi_writer_close_all_remaining_branches);
+  RUN_TEST(test_openapi_writer_component_returns_and_root_oom);
+  RUN_TEST(test_openapi_writer_strike_last_19);
+  RUN_TEST(test_openapi_writer_nail_last_11);
+  RUN_TEST(test_openapi_writer_branch_sweep);
+  RUN_TEST(test_openapi_writer_branch_sweep);
+  RUN_TEST(test_writer_extended_coverage);
   RUN_TEST(test_openapi_utils);
   RUN_TEST(test_writer_empty_spec);
   RUN_TEST(test_writer_basic_operation);

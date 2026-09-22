@@ -42,7 +42,6 @@ TEST test_cst_print_exact(void) {
   az_span span;
   span = az_span_create((uint8_t *)(size_t)src, strlen(src));
   rc = tokenize(span, &tokens);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   /* Invalid args */

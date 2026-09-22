@@ -109,7 +109,9 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
   cdd_c_error_t rc;
   if (argc != 1)
     return CDD_C_ERROR_UNKNOWN;
-  (void)audit_stats_init(&stats);
+  rc = audit_stats_init(&stats);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   rc = audit_project(argv[0], &stats);
   audit_stats_free(&stats);
   return rc;
@@ -122,6 +124,11 @@ C_CDD_EXPORT cdd_c_error_t handle_audit(int argc, char **argv) {
  * @param[in] program_name The program executable name (usually argv[0])
  */
 C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_print_help;
+  if (g_cdd_fail_print_help && --g_cdd_fail_print_help == 0)
+    return CDD_C_ERROR_UNKNOWN;
+#endif
   printf("Usage: %s [OPTIONS] <COMMAND>\n\n", program_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
@@ -174,10 +181,6 @@ C_CDD_EXPORT cdd_c_error_t print_help(const char *program_name) {
  * Loads the provided OpenAPI specification and acts as a router to the
  * correct sub-command: `to_sdk`, `to_sdk_cli`, or `to_server`.
  * Generates C bindings, structs, and implementations.
- *
- * @param[in] argc Argument count, stripped of the main program name
- * @param[in] argv Argument values for the command execution
- * @return EXIT_SUCCESS if code generation completes without error
  */
 C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
   const char *input_file = NULL;
@@ -318,11 +321,6 @@ C_CDD_EXPORT cdd_c_error_t from_openapi_cli_main(int argc, char **argv) {
  *
  * Invokes the internal C-to-OpenAPI translation logic and writes the
  * result.
- *
- * @param[in] argc Argument count including command flags
- * @param[in] argv Argument values pointing to the source directory and
- * options
- * @return EXIT_SUCCESS if parsing and serialization succeed
  */
 C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   const char *input_dir =
@@ -392,20 +390,6 @@ C_CDD_EXPORT cdd_c_error_t to_openapi_cli_main(int argc, char **argv) {
   return c2openapi_cli_main(3, c2_argv);
 }
 
-/** @brief main definition */
-/**
- * @brief Main entry point dispatcher.
- *
- * This function routes execution to the specific sub-command requested by the
- * user, e.g., `audit`, `c2openapi`, `generate_build_system`. It handles
- * `--version` and
- * `--help` directly.
- *
- * @param[in] argc Passed straight from application main.
- * @param[in] argv Passed straight from application main.
- * @return Returns an exit code (0 for success, non-zero for failure).
- */
-C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv);
 /**
  * @brief Main entry point dispatcher execution logic.
  *
@@ -416,20 +400,20 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
   const char *cmd;
 
   if (argc < 2) {
-    (void)print_help(argc > 0 ? argv[0] : "cdd-c");
+    rc = print_help(argc > 0 ? argv[0] : "cdd-c");
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
 
   cmd = argv[1];
 
   if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
-    (void)print_version();
-    return CDD_C_SUCCESS;
+    return print_version();
   }
 
   if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
-    (void)print_help(argv[0]);
-    return CDD_C_SUCCESS;
+    return print_help(argv[0]);
   }
 
   if (strcmp(cmd, "audit") == 0) {
@@ -502,8 +486,7 @@ C_CDD_EXPORT cdd_c_error_t cdd_main(int argc, char **argv) {
     /* Register Tools: cdd_generate (Code Scaffold), cdd_inspect (Schema
      * Inspection), cdd_sync (Bidirectional Sync) */
     printf("Starting MCP server for cdd generator via stdio...\n");
-    (void)serve_mcp_stdio_main(argc - 1, argv + 1);
-    return CDD_C_SUCCESS;
+    return serve_mcp_stdio_main(argc - 1, argv + 1);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {

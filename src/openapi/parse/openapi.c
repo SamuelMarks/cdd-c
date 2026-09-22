@@ -684,6 +684,11 @@ void openapi_free_servers_array(struct OpenAPI_Server *servers,
  * @brief Executes the openapi spec init operation.
  */
 cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_openapi_spec_init_fail;
+  if (g_openapi_spec_init_fail && --g_openapi_spec_init_fail == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (spec) {
@@ -5079,6 +5084,30 @@ static cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
         return _rc;
     }
   }
+  if (src->content_schema) {
+    dst->content_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->content_schema)
+      return CDD_C_ERROR_MEMORY;
+    {
+      cdd_c_error_t _rc =
+          copy_schema_ref(dst->content_schema, src->content_schema);
+      if (_rc != CDD_C_SUCCESS)
+        return _rc;
+    }
+  }
+  if (src->items_content_schema) {
+    dst->items_content_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->items_content_schema)
+      return CDD_C_ERROR_MEMORY;
+    {
+      cdd_c_error_t _rc =
+          copy_schema_ref(dst->items_content_schema, src->items_content_schema);
+      if (_rc != CDD_C_SUCCESS)
+        return _rc;
+    }
+  }
 
   if (src->n_multipart_fields > 0 && src->multipart_fields) {
     dst->multipart_fields = (struct OpenAPI_MultipartField *)calloc(
@@ -7333,6 +7362,7 @@ static const char *k_schema_skip_keys[] = {"$ref",
                                            "format",
                                            "contentMediaType",
                                            "contentEncoding",
+                                           "contentSchema",
                                            "externalDocs",
                                            "discriminator",
                                            "xml",
@@ -7375,6 +7405,7 @@ static const char *k_items_skip_keys[] = {"$ref",
                                           "format",
                                           "contentMediaType",
                                           "contentEncoding",
+                                          "contentSchema",
                                           "enum",
                                           "const",
                                           "default",
@@ -7683,6 +7714,15 @@ static cdd_c_error_t parse_schema_ref(const JSON_Object *schema,
         json_object_get_object(schema, "else"), &out->else_schema, spec);
     if (rc != CDD_C_SUCCESS)
       return rc;
+  }
+  if (json_object_has_value(schema, "contentSchema")) {
+    const JSON_Object *cs_obj = json_object_get_object(schema, "contentSchema");
+    if (cs_obj) {
+      cdd_c_error_t rc =
+          parse_schema_ref_ptr(cs_obj, &out->content_schema, spec);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
+    }
   }
 
   {
@@ -8000,6 +8040,16 @@ static cdd_c_error_t parse_schema_ref(const JSON_Object *schema,
                             &out->items_default_value_set);
         if (_rc != CDD_C_SUCCESS)
           return _rc;
+      }
+      if (json_object_has_value(items, "contentSchema")) {
+        const JSON_Object *cs_obj =
+            json_object_get_object(items, "contentSchema");
+        if (cs_obj) {
+          cdd_c_error_t rc =
+              parse_schema_ref_ptr(cs_obj, &out->items_content_schema, spec);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
+        }
       }
       if (collect_schema_extras(items, k_items_skip_keys,
                                 sizeof(k_items_skip_keys) /
@@ -12830,6 +12880,7 @@ scan_querystring_usage(const struct OpenAPI_Parameter *params, size_t n_params,
 static cdd_c_error_t
 validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
+  cdd_c_error_t rc;
   for (i = 0; i < n_paths; ++i) {
     const struct OpenAPI_Path *path = &paths[i];
     size_t path_qs = 0;
@@ -12839,8 +12890,10 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
     if (!path->route)
       continue;
 
-    (void)scan_querystring_usage(path->parameters, path->n_parameters, &path_qs,
-                                 &path_has_query);
+    rc = scan_querystring_usage(path->parameters, path->n_parameters, &path_qs,
+                                &path_has_query);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (path_qs > 1)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     if (path_qs > 0 && path_has_query)
@@ -12851,9 +12904,11 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
       int op_has_query = 0;
       size_t total_qs;
       int has_query;
-      (void)scan_querystring_usage(path->operations[op_idx].parameters,
-                                   path->operations[op_idx].n_parameters,
-                                   &op_qs, &op_has_query);
+      rc = scan_querystring_usage(path->operations[op_idx].parameters,
+                                  path->operations[op_idx].n_parameters, &op_qs,
+                                  &op_has_query);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       total_qs = path_qs + op_qs;
       has_query = path_has_query || op_has_query;
       if (total_qs > 1)
@@ -12867,10 +12922,12 @@ validate_querystring_usage(const struct OpenAPI_Path *paths, size_t n_paths) {
       int op_has_query = 0;
       size_t total_qs;
       int has_query;
-      (void)scan_querystring_usage(
+      rc = scan_querystring_usage(
           path->additional_operations[op_idx].parameters,
           path->additional_operations[op_idx].n_parameters, &op_qs,
           &op_has_query);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
       total_qs = path_qs + op_qs;
       has_query = path_has_query || op_has_query;
       if (total_qs > 1)

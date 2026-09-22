@@ -59,7 +59,6 @@ TEST test_schema_codegen_circular_refs(void) {
                        "{\"$ref\": \"#/components/schemas/A\"}}}"
                        "}}}";
 
-  (void)rc;
   argv[0] = filename;
   argv[1] = "circular_out";
 
@@ -330,7 +329,6 @@ TEST test_schema_codegen_union_output(void) {
       111, 114, 34,  58,  123, 34,  112, 114, 111, 112, 101, 114, 116, 121, 78,
       97,  109, 101, 34,  58,  34,  112, 101, 116, 84,  121, 112, 101, 34,  125,
       125, 125, 125, 125, 0};
-  (void)rc;
   argv[0] = filename;
   argv[1] = "union_out";
 
@@ -385,7 +383,6 @@ TEST test_schema_codegen_union_inline_variants(void) {
       "\"string\"}}"
       "]}"
       "}}}";
-  (void)rc;
   argv[0] = filename;
   argv[1] = "union_inline_out";
 
@@ -435,7 +432,6 @@ TEST test_schema_codegen_enum_output(void) {
       "\"schemas\":{"
       "\"Color\":{\"type\":\"string\",\"enum\":[\"RED\",\"GREEN\"]}"
       "}}}";
-  (void)rc;
   argv[0] = filename;
   argv[1] = "enum_out";
 
@@ -669,7 +665,6 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
       32,  32,  125, 32,  32,  125, 125, 125, 0};
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
@@ -744,7 +739,6 @@ TEST test_schema_codegen_union_arrays(void) {
       47,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 47,  115, 99,  104,
       101, 109, 97,  115, 47,  80,  101, 116, 34,  32,  125, 32,  125, 32,  93,
       32,  125, 125, 125, 125, 0};
-  (void)rc;
   argv[0] = filename;
   argv[1] = "union_array_out";
 
@@ -786,7 +780,6 @@ TEST test_schema_codegen_specific_structs(void) {
       "\"OAuth2TokenResponse\":{\"type\":\"object\",\"properties\":{\"access_"
       "token\":{\"type\":\"string\"}}}"
       "}}}";
-  (void)rc;
   argv[0] = filename;
   argv[1] = "specific_out";
 
@@ -844,7 +837,6 @@ TEST test_schema_codegen_main_paths(void) {
 
   /* 1. argc < 2 */
   rc = schema2code_main(1, (char **)(size_t)argv);
-  (void)rc;
   ASSERT(rc != 0);
 
   /* 2. get_basename fails */
@@ -967,7 +959,6 @@ TEST test_schema_codegen_init_fail(void) {
       "{\"components\": {\"schemas\": {\"MyStruct\": {\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_init.json", "w") != 0)
     f = NULL;
 #else
@@ -1015,7 +1006,6 @@ TEST test_schema_codegen_parse_error(void) {
       "{\"components\": {\"schemas\": {\"MyStruct\": 123}}}";
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_parse.json", "w") != 0)
     f = NULL;
 #else
@@ -1051,7 +1041,6 @@ TEST test_schema_codegen_source_fail(void) {
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
@@ -1082,7 +1071,6 @@ TEST test_schema_codegen_source_fail(void) {
     char *argv_bad[] = {(char *)(size_t)(size_t) "test_codegen_schema_io.json",
                         (char *)(size_t)(size_t) "test_out_source"};
     rc = schema2code_main(2, argv_bad);
-    (void)rc;
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, rc);
 #endif
@@ -1104,7 +1092,6 @@ TEST test_schema_codegen_system_error(void) {
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "test_codegen_schema_io.json", "w") != 0)
     f = NULL;
 #else
@@ -1143,7 +1130,6 @@ TEST test_schema_codegen_main_errors(void) {
                             "{\"type\": \"object\",\"properties\": {}}}}}";
   FILE *f;
 #if defined(_MSC_VER)
-  (void)rc;
   if (fopen_s(&f, "file.json", "w") != 0)
     f = NULL;
 #else

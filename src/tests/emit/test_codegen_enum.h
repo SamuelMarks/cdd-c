@@ -215,7 +215,6 @@ TEST test_enum_exhaustive_io(void) {
   struct EnumMembers em;
   struct CodegenEnumConfig config = {"MY_GUARD"};
 
-  (void)rc;
   enum_members_init(&em);
   enum_members_add(&em, "VAL1");
   enum_members_add(&em, "VAL2");

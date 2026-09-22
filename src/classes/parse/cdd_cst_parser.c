@@ -17,9 +17,7 @@ C_CDD_EXPORT int g_cdd_cst_parser_fast_grow = 0;
 static cdd_c_error_t alloc_node(enum cdd_cst_node_kind_t kind,
                                 cdd_cst_node_t *parent,
                                 cdd_cst_node_t **out_node) {
-  cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_cst_node_t *n;
-  (void)rc;
   n = (cdd_cst_node_t *)C_CDD_CALLOC(1, sizeof(cdd_cst_node_t));
   if (n) {
     n->kind = kind;
@@ -738,7 +736,8 @@ static cdd_c_error_t parse_declaration_or_statement_internal(
     return CDD_C_SUCCESS;
   }
 
-  if (t->kind == CDD_TOKEN_KEYWORD_CLASS) {
+  if (t->kind == CDD_TOKEN_KEYWORD_CLASS ||
+      t->kind == CDD_TOKEN_KEYWORD_STRUCT) {
     rc = alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
     if (rc != CDD_C_SUCCESS)
       return rc;
@@ -1187,13 +1186,17 @@ cdd_c_error_t cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
     cdd_token_t *t = NULL;
 
     rc = peek(&state, &t);
-    if (rc != CDD_C_SUCCESS)
+    if (rc != CDD_C_SUCCESS) {
+      cdd_cst_tree_free(tree);
       return rc;
+    }
     if (t->kind == CDD_TOKEN_EOF) {
 
       rc = advance(&state, &t);
-      if (rc != CDD_C_SUCCESS)
+      if (rc != CDD_C_SUCCESS) {
+        cdd_cst_tree_free(tree);
         return rc;
+      }
       rc = append_child_token(tree->root, t);
       if (rc != CDD_C_SUCCESS) {
         state.err = (int)rc;

@@ -409,6 +409,147 @@ extern C_CDD_EXPORT void doc_metadata_free(struct DocMetadata *meta);
 extern C_CDD_EXPORT cdd_c_error_t doc_parse_block(const char *comment,
                                                   struct DocMetadata *out);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Tests trim_segment function.
+ *
+ * @param[in] s String to trim.
+ * @param[out] out Pointer to receive trimmed string.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t trim_segment_test(char *s, char **out);
+
+/**
+ * @brief Tests parse_bool_text function.
+ *
+ * @param[in] s String to parse.
+ * @param[out] out Pointer to receive parsed integer bool.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_bool_text_test(const char *s, int *out);
+
+/**
+ * @brief Tests parse_tag_meta_line function.
+ *
+ * @param[in] line Line start pointer.
+ * @param[in] end Line end pointer.
+ * @param[in,out] out Metadata to populate.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_tag_meta_line_test(
+    const char *line, const char *end, struct DocMetadata *out);
+
+/**
+ * @brief Tests parse_style_text function.
+ *
+ * @param[in] s Style name string.
+ * @param[out] out Pointer to receive parsed enum value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_style_text_test(const char *s, enum DocParamStyle *out);
+
+/**
+ * @brief Tests parse_optional_example_attr function.
+ *
+ * @param[in] attr Attribute string.
+ * @param[out] out Pointer to receive parsed example string.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_optional_example_attr_test(const char *attr, char **out);
+
+/**
+ * @brief Tests parse_optional_bool_attr function.
+ *
+ * @param[in] attr Attribute string.
+ * @param[in] key Key name.
+ * @param[out] out_set Pointer to receive set flag.
+ * @param[out] out_val Pointer to receive value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_optional_bool_attr_test(
+    const char *attr, const char *key, int *out_set, int *out_val);
+
+/**
+ * @brief Tests split_scopes function.
+ *
+ * @param[in] s Scopes string.
+ * @param[out] out_scopes Pointer to receive string array.
+ * @param[out] out_count Pointer to receive count.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t split_scopes_test(const char *s,
+                                                    char ***out_scopes,
+                                                    size_t *out_count);
+
+/**
+ * @brief Tests parse_security_type_text function.
+ *
+ * @param[in] s Security type string.
+ * @param[out] out Pointer to receive parsed enum value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_security_type_text_test(const char *s, enum DocSecurityType *out);
+
+/**
+ * @brief Tests parse_security_in_text function.
+ *
+ * @param[in] s Security in location string.
+ * @param[out] out Pointer to receive parsed enum value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_security_in_text_test(const char *s, enum DocSecurityIn *out);
+
+/**
+ * @brief Tests parse_oauth_flow_type_text function.
+ *
+ * @param[in] s OAuth flow type string.
+ * @param[out] out Pointer to receive parsed enum value.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_oauth_flow_type_text_test(const char *s, enum DocOAuthFlowType *out);
+
+/**
+ * @brief Tests parse_oauth_scopes function.
+ *
+ * @param[in] s Scopes string.
+ * @param[out] out Pointer to receive array of scopes.
+ * @param[out] out_count Pointer to receive count.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_oauth_scopes_test(
+    const char *s, struct DocOAuthScope **out, size_t *out_count);
+
+/**
+ * @brief Tests split_enum_values function.
+ *
+ * @param[in] s Enum values string.
+ * @param[out] out_vals Pointer to receive string array.
+ * @param[out] out_count Pointer to receive count.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t split_enum_values_test(const char *s,
+                                                         char ***out_vals,
+                                                         size_t *out_count);
+
+/**
+ * @brief Tests find_key_token function.
+ *
+ * @param[in] s String to search.
+ * @param[in] key Key to find.
+ * @param[out] key_len Pointer to receive key length.
+ * @param[out] out Pointer to receive pointer to key token in s.
+ * @return CDD_C_SUCCESS on success, error code otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t find_key_token_test(char *s, const char *key,
+                                                      size_t *key_len,
+                                                      char **out);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -891,7 +891,6 @@ TEST test_cdd_cst_semantic_missing_branches_6(void) {
 }
 
 TEST test_cdd_cst_semantic_missing_branches_7(void) {
-  cdd_c_error_t rc;
   cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_scope_env_t *env = NULL;
 
@@ -917,7 +916,6 @@ TEST test_cdd_cst_semantic_missing_branches_7(void) {
   (void)id_node2;
   (void)decl2;
   (void)env;
-  (void)rc;
   PASS();
 }
 

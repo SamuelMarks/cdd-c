@@ -38,7 +38,6 @@ TEST test_cdd_transform_macros(void) {
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -72,7 +71,6 @@ TEST test_cdd_transform_macros_operators(void) {
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_macros(tree, &config);
@@ -110,7 +108,6 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
   memset(&config, 0, sizeof(config));
 
   /* Null arg */
-  (void)rc;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_macros(NULL, &config));
 
   /* Null root */
@@ -131,6 +128,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     g_cdd_cst_realloc_fail = 0;
 #endif
     rc = cdd_transform_macros(tree, &config);
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY ||
+           rc == CDD_C_ERROR_UNKNOWN);
 #ifdef CDD_BUILD_TESTS
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = 0;
@@ -148,6 +147,8 @@ TEST test_cdd_transform_macros_alloc_fails(void) {
     g_cdd_cst_realloc_fail = k;
 #endif
     rc = cdd_transform_macros(tree, &config);
+    ASSERT(rc == CDD_C_SUCCESS || rc == CDD_C_ERROR_MEMORY ||
+           rc == CDD_C_ERROR_UNKNOWN);
 #ifdef CDD_BUILD_TESTS
     g_cdd_cst_alloc_node_fail = 0;
     g_cdd_cst_realloc_fail = 0;

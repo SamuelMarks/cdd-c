@@ -582,7 +582,6 @@ TEST test_safe_crt_oom(void) {
     g_cdd_alloc_fail = fail_count;
     g_cdd_strdup_fail = fail_count;
     rc = cst_generate_safe_crt_patches(nodes, tokens, &patches);
-    (void)rc;
 
     g_cdd_alloc_fail = 0;
     g_cdd_strdup_fail = 0;

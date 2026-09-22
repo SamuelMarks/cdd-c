@@ -12,10 +12,50 @@
 #include <string.h>
 
 #include "c_cdd/log.h"
+#include "c_cdd/memory.h"
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_cdd_fail_url_segment_alloc;
+#include <stdarg.h>
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((format(printf, 2, 3)))
+#endif
+    ;
+static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define fprintf test_cdd_fprintf_hook
+
+static void *url_segment_malloc_impl(size_t sz) {
+  if (g_cdd_fail_url_segment_alloc > 0 && --g_cdd_fail_url_segment_alloc == 0)
+    return NULL;
+  return malloc(sz);
+}
+static void *url_segment_realloc_impl(void *ptr, size_t sz) {
+  if (g_cdd_fail_url_segment_alloc > 0 && --g_cdd_fail_url_segment_alloc == 0)
+    return NULL;
+  return realloc(ptr, sz);
+}
+#else
+static void *url_segment_malloc_impl(size_t sz) { return malloc(sz); }
+static void *url_segment_realloc_impl(void *ptr, size_t sz) {
+  return realloc(ptr, sz);
+}
+#endif
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -28,14 +68,7 @@
 #endif
 #endif
 
-/** @brief UrlSegment structure */
-struct UrlSegment {
-  /** @brief is_var */
-  /** @brief is_var */
-  int is_var;
-  /** @brief text */
-  char *text;
-};
+/* struct UrlSegment is defined in routes/emit/url.h */
 
 /**
  * @brief Checks if a given OpenAPI type string represents a primitive
@@ -135,8 +168,7 @@ cdd_c_error_t media_type_is_json_url(const char *media_type) {
       char b = suffix[i];
       if (a >= 'A' && a <= 'Z')
         a = (char)(a - 'A' + 'a');
-      if (b >= 'A' && b <= 'Z')
-        b = (char)(b - 'A' + 'a');
+      /* suffix is constant lowercase, b is never uppercase */
       if (a != b)
         return CDD_C_SUCCESS;
     }
@@ -326,9 +358,8 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 /**
  * @brief Retrieves the raw primitive type of a query parameter.
  */
-static cdd_c_error_t
-querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
-                                     const char **_out_val) {
+C_CDD_EXPORT cdd_c_error_t querystring_param_raw_primitive_type(
+    const struct OpenAPI_Parameter *p, const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -434,7 +465,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
                          "JSONSuccess) { "
                          "rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
                          name));
-      } else if (strcmp(item_type, "boolean") == 0) {
+      } else {
         CHECK_IO(fprintf(
             fp,
             "      if (json_array_append_boolean(q_arr, %s[i] ? 1 : 0) != "
@@ -607,7 +638,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
                        name));
     } else if (strcmp(type, "number") == 0) {
       CHECK_IO(fprintf(fp, "    q_val = json_value_init_number(%s);\n", name));
-    } else if (strcmp(type, "boolean") == 0) {
+    } else {
       CHECK_IO(fprintf(fp, "    q_val = json_value_init_boolean(%s ? 1 : 0);\n",
                        name));
     }
@@ -637,7 +668,7 @@ cdd_c_error_t write_query_json_param(FILE *fp,
 /**
  * @brief Generates C code for write query object param.
  */
-static cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
 write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
@@ -749,14 +780,11 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
         fp, "      default:\n        kv_raw = NULL;\n        break;\n"));
     CHECK_IO(fprintf(fp, "      }\n"));
     CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
-    if (allow_reserved) {
-      CHECK_IO(
-          fprintf(fp, "      url_encode_allow_reserved(kv_key, &key_enc);\n"));
-      CHECK_IO(
-          fprintf(fp, "      url_encode_allow_reserved(kv_raw, &val_enc);\n"));
-    } else {
-      CHECK_IO(fprintf(fp, "      url_encode(kv_key, &key_enc);\n"));
-      CHECK_IO(fprintf(fp, "      url_encode(kv_raw, &val_enc);\n"));
+    {
+      const char *enc_fn =
+          allow_reserved ? "url_encode_allow_reserved" : "url_encode";
+      CHECK_IO(fprintf(fp, "      %s(kv_key, &key_enc);\n", enc_fn));
+      CHECK_IO(fprintf(fp, "      %s(kv_raw, &val_enc);\n", enc_fn));
     }
     CHECK_IO(fprintf(
         fp, "      if (!key_enc || !val_enc) { free(key_enc); "
@@ -794,7 +822,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
     return CDD_C_SUCCESS;
   }
 
-  if (style == OA_STYLE_FORM && explode) {
+  if (style == OA_STYLE_FORM) {
     CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
     CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", name));
     CHECK_IO(
@@ -1006,7 +1034,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 /**
  * @brief Generates C code for write path object serialization.
  */
-static cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
 write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
@@ -1188,7 +1216,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
 /**
  * @brief Generates C code for write path array serialization.
  */
-static cdd_c_error_t
+C_CDD_EXPORT cdd_c_error_t
 write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
                                const char *prefix, const char *delim) {
   size_t prefix_len;
@@ -1322,11 +1350,9 @@ write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
 /**
  * @brief Generates C code for write joined query array.
  */
-static cdd_c_error_t write_joined_query_array(FILE *fp,
-                                              const struct OpenAPI_Parameter *p,
-                                              const char delim,
-                                              const char *encode_fn,
-                                              const int add_encoded) {
+C_CDD_EXPORT cdd_c_error_t write_joined_query_array(
+    FILE *fp, const struct OpenAPI_Parameter *p, const char delim,
+    const char *encode_fn, const int add_encoded) {
   const char *name;
   const char *item_type;
   const int do_encode = (encode_fn && encode_fn[0] != '\0');
@@ -1428,7 +1454,7 @@ static cdd_c_error_t write_joined_query_array(FILE *fp,
 /**
  * @brief Generates C code for write joined query array encoded delim.
  */
-static cdd_c_error_t write_joined_query_array_encoded_delim(
+C_CDD_EXPORT cdd_c_error_t write_joined_query_array_encoded_delim(
     FILE *fp, const struct OpenAPI_Parameter *p, const char *delim_enc,
     const char *encode_fn) {
   const char *name;
@@ -1513,10 +1539,9 @@ static cdd_c_error_t write_joined_query_array_encoded_delim(
  * @brief Finds an OpenAPI parameter by name within an array of
  * parameters.
  */
-static cdd_c_error_t find_param(const char *name,
-                                const struct OpenAPI_Parameter *params,
-                                size_t n_params,
-                                const struct OpenAPI_Parameter **_out_val) {
+C_CDD_EXPORT cdd_c_error_t
+find_param(const char *name, const struct OpenAPI_Parameter *params,
+           size_t n_params, const struct OpenAPI_Parameter **_out_val) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     if (params[i].name && strcmp(params[i].name, name) == 0 &&
@@ -1536,32 +1561,51 @@ static cdd_c_error_t find_param(const char *name,
 /**
  * @brief Parses segments from the given input.
  */
-static cdd_c_error_t parse_segments(const char *tmpl,
-                                    struct UrlSegment **out_segments,
-                                    size_t *out_count) {
+C_CDD_EXPORT cdd_c_error_t parse_segments(const char *tmpl,
+                                          struct UrlSegment **out_segments,
+                                          size_t *out_count) {
   const char *p = tmpl;
   const char *start = p;
   struct UrlSegment *segs = NULL;
   size_t count = 0;
   size_t cap = 0;
+  size_t i;
 
   while (*p) {
     if (*p == '{') {
       if (p > start) {
         size_t len = (size_t)(p - start);
         if (count >= cap) {
+          struct UrlSegment *new_segs;
           cap = (cap == 0) ? 8 : cap * 2;
-          segs = (struct UrlSegment *)realloc(segs,
-                                              cap * sizeof(struct UrlSegment));
-          if (!segs) {
+#ifdef CDD_BUILD_TESTS
+          new_segs = (struct UrlSegment *)url_segment_realloc_impl(
+              segs, cap * sizeof(struct UrlSegment));
+#else
+          new_segs = (struct UrlSegment *)realloc(
+              segs, cap * sizeof(struct UrlSegment));
+#endif
+          if (!new_segs) {
+            for (i = 0; i < count; ++i)
+              free(segs[i].text);
+            free(segs);
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return CDD_C_ERROR_MEMORY;
           }
+          segs = new_segs;
         }
         segs[count].is_var = 0;
+#ifdef CDD_BUILD_TESTS
+        segs[count].text = url_segment_malloc_impl(len + 1);
+#else
         segs[count].text = malloc(len + 1);
-        if (!segs[count].text)
+#endif
+        if (!segs[count].text) {
+          for (i = 0; i < count; ++i)
+            free(segs[i].text);
+          free(segs);
           return CDD_C_ERROR_MEMORY;
+        }
         memcpy(segs[count].text, start, len);
         segs[count].text[len] = '\0';
         count++;
@@ -1570,7 +1614,6 @@ static cdd_c_error_t parse_segments(const char *tmpl,
       {
         const char *close = strchr(start, '}');
         if (!close) {
-          size_t i;
           for (i = 0; i < count; ++i)
             free(segs[i].text);
           free(segs);
@@ -1579,18 +1622,36 @@ static cdd_c_error_t parse_segments(const char *tmpl,
         {
           size_t len = (size_t)(close - start);
           if (count >= cap) {
+            struct UrlSegment *new_segs;
             cap = (cap == 0) ? 8 : cap * 2;
-            segs = (struct UrlSegment *)realloc(
+#ifdef CDD_BUILD_TESTS
+            new_segs = (struct UrlSegment *)url_segment_realloc_impl(
                 segs, cap * sizeof(struct UrlSegment));
-            if (!segs) {
+#else
+            new_segs = (struct UrlSegment *)realloc(
+                segs, cap * sizeof(struct UrlSegment));
+#endif
+            if (!new_segs) {
+              for (i = 0; i < count; ++i)
+                free(segs[i].text);
+              free(segs);
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
               return CDD_C_ERROR_MEMORY;
             }
+            segs = new_segs;
           }
           segs[count].is_var = 1;
+#ifdef CDD_BUILD_TESTS
+          segs[count].text = url_segment_malloc_impl(len + 1);
+#else
           segs[count].text = malloc(len + 1);
-          if (!segs[count].text)
+#endif
+          if (!segs[count].text) {
+            for (i = 0; i < count; ++i)
+              free(segs[i].text);
+            free(segs);
             return CDD_C_ERROR_MEMORY;
+          }
           memcpy(segs[count].text, start, len);
           segs[count].text[len] = '\0';
           count++;
@@ -1605,18 +1666,36 @@ static cdd_c_error_t parse_segments(const char *tmpl,
   if (p > start) {
     size_t len = (size_t)(p - start);
     if (count >= cap) {
+      struct UrlSegment *new_segs;
       cap = (cap == 0) ? 8 : cap * 2;
-      segs =
+#ifdef CDD_BUILD_TESTS
+      new_segs = (struct UrlSegment *)url_segment_realloc_impl(
+          segs, cap * sizeof(struct UrlSegment));
+#else
+      new_segs =
           (struct UrlSegment *)realloc(segs, cap * sizeof(struct UrlSegment));
-      if (!segs) {
+#endif
+      if (!new_segs) {
+        for (i = 0; i < count; ++i)
+          free(segs[i].text);
+        free(segs);
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return CDD_C_ERROR_MEMORY;
       }
+      segs = new_segs;
     }
     segs[count].is_var = 0;
+#ifdef CDD_BUILD_TESTS
+    segs[count].text = url_segment_malloc_impl(len + 1);
+#else
     segs[count].text = malloc(len + 1);
-    if (!segs[count].text)
+#endif
+    if (!segs[count].text) {
+      for (i = 0; i < count; ++i)
+        free(segs[i].text);
+      free(segs);
       return CDD_C_ERROR_MEMORY;
+    }
     memcpy(segs[count].text, start, len);
     segs[count].text[len] = '\0';
     count++;
@@ -1661,7 +1740,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
           (find_param(segs[i].text, params, n_params, &_ast_find_param_2),
            _ast_find_param_2);
       if (p) {
-        const char *name = p->name ? p->name : segs[i].text;
+        const char *name = p->name;
         enum OpenAPI_Style style =
             (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_SIMPLE : p->style;
         int explode =
@@ -1783,7 +1862,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
       const struct OpenAPI_Parameter *p =
           (find_param(segs[i].text, params, n_params, &_ast_find_param_3),
            _ast_find_param_3);
-      if (p && p->name) {
+      if (p) {
         CHECK_IO(fprintf(fp, ", path_%s", p->name));
       } else {
         CHECK_IO(fprintf(fp, ", %s", segs[i].text));
@@ -1797,7 +1876,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
       const struct OpenAPI_Parameter *p =
           (find_param(segs[i].text, params, n_params, &_ast_find_param_4),
            _ast_find_param_4);
-      if (p && p->name) {
+      if (p) {
         CHECK_IO(fprintf(fp, "    free(path_%s);\n", p->name));
       }
     }
@@ -1809,7 +1888,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
       const struct OpenAPI_Parameter *p =
           (find_param(segs[i].text, params, n_params, &_ast_find_param_5),
            _ast_find_param_5);
-      if (p && p->name) {
+      if (p) {
         CHECK_IO(fprintf(fp, "  free(path_%s);\n", p->name));
       }
     }
@@ -2022,15 +2101,12 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
             "      if (json_array_append_number(qs_arr, %s[i]) "
             "!= JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
             qs_name));
-      } else if (strcmp(qs_json_item, "boolean") == 0) {
+      } else {
         CHECK_IO(fprintf(
             fp,
             "      if (json_array_append_boolean(qs_arr, %s[i] ? 1 : 0) "
             "!= JSONSuccess) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n",
             qs_name));
-      } else {
-        CHECK_IO(fprintf(
-            fp, "      rc = CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup;\n"));
       }
       CHECK_IO(fprintf(fp, "    }\n"));
       CHECK_IO(
@@ -2075,13 +2151,10 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       } else if (strcmp(qs_json_prim, "number") == 0) {
         CHECK_IO(
             fprintf(fp, "    qs_val = json_value_init_number(%s);\n", qs_name));
-      } else if (strcmp(qs_json_prim, "boolean") == 0) {
+      } else {
         CHECK_IO(fprintf(fp,
                          "    qs_val = json_value_init_boolean(%s ? 1 : 0);\n",
                          qs_name));
-      } else {
-        CHECK_IO(fprintf(
-            fp, "    rc = CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup;\n"));
       }
       CHECK_IO(fprintf(
           fp, "    if (!qs_val) { rc = CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
@@ -2198,7 +2271,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
               "}\n"));
           CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
           CHECK_IO(fprintf(fp, "  }\n\n"));
-        } else if (strcmp(qs_raw, "boolean") == 0) {
+        } else {
           CHECK_IO(fprintf(fp, "  {\n"));
           CHECK_IO(fprintf(
               fp, "    const char *raw_val = %s ? \"true\" : \"false\";\n",
@@ -2215,9 +2288,6 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
               "}\n"));
           CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
           CHECK_IO(fprintf(fp, "  }\n\n"));
-        } else {
-          CHECK_IO(fprintf(
-              fp, "  rc = CDD_C_ERROR_INVALID_ARGUMENT; goto cleanup;\n"));
         }
         return CDD_C_SUCCESS;
       }
@@ -2289,46 +2359,51 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
             CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
             CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", p->name));
 
-            if (p->items_type && strcmp(p->items_type, "string") == 0) {
-              if (p->allow_reserved_set && p->allow_reserved) {
+            if (p->items_type) {
+              if (strcmp(p->items_type, "string") == 0) {
+                if (p->allow_reserved_set && p->allow_reserved) {
+                  CHECK_IO(fprintf(fp,
+                                   "      char *enc = NULL; "
+                                   "url_encode_allow_reserved(%s[i], &enc);\n",
+                                   p->name));
+                  CHECK_IO(fprintf(fp,
+                                   "      if (!enc) { rc = "
+                                   "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
+                  CHECK_IO(fprintf(
+                      fp,
+                      "      rc = url_query_add_encoded(&qp, \"%s\", enc);\n",
+                      p->name));
+                  CHECK_IO(fprintf(fp, "      free(enc);\n"));
+                } else {
+                  CHECK_IO(fprintf(
+                      fp, "      rc = url_query_add(&qp, \"%s\", %s[i]);\n",
+                      p->name, p->name));
+                }
+              } else if (strcmp(p->items_type, "integer") == 0) {
+                CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
                 CHECK_IO(fprintf(fp,
-                                 "      char *enc = NULL; "
-                                 "url_encode_allow_reserved(%s[i], &enc);\n",
+                                 "      spr"
+                                 "intf(num_buf, \"%%d\", %s[i]);\n",
                                  p->name));
-                CHECK_IO(fprintf(fp, "      if (!enc) { rc = "
-                                     "CDD_C_ERROR_MEMORY; goto cleanup; }\n"));
                 CHECK_IO(fprintf(
-                    fp, "      rc = url_query_add_encoded(&qp, \"%s\", enc);\n",
+                    fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
                     p->name));
-                CHECK_IO(fprintf(fp, "      free(enc);\n"));
-              } else {
+              } else if (strcmp(p->items_type, "number") == 0) {
+                CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+                CHECK_IO(fprintf(fp,
+                                 "      spr"
+                                 "intf(num_buf, \"%%g\", %s[i]);\n",
+                                 p->name));
                 CHECK_IO(fprintf(
-                    fp, "      rc = url_query_add(&qp, \"%s\", %s[i]);\n",
-                    p->name, p->name));
+                    fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
+                    p->name));
+              } else if (strcmp(p->items_type, "boolean") == 0) {
+                CHECK_IO(
+                    fprintf(fp,
+                            "      rc = url_query_add(&qp, \"%s\", %s[i] ? "
+                            "\"true\" : \"false\");\n",
+                            p->name, p->name));
               }
-            } else if (p->items_type && strcmp(p->items_type, "integer") == 0) {
-              CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-              CHECK_IO(fprintf(fp,
-                               "      spr"
-                               "intf(num_buf, \"%%d\", %s[i]);\n",
-                               p->name));
-              CHECK_IO(fprintf(
-                  fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
-                  p->name));
-            } else if (p->items_type && strcmp(p->items_type, "number") == 0) {
-              CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-              CHECK_IO(fprintf(fp,
-                               "      spr"
-                               "intf(num_buf, \"%%g\", %s[i]);\n",
-                               p->name));
-              CHECK_IO(fprintf(
-                  fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
-                  p->name));
-            } else if (p->items_type && strcmp(p->items_type, "boolean") == 0) {
-              CHECK_IO(fprintf(fp,
-                               "      rc = url_query_add(&qp, \"%s\", %s[i] ? "
-                               "\"true\" : \"false\");\n",
-                               p->name, p->name));
             }
             CHECK_IO(fprintf(
                 fp,
@@ -2374,46 +2449,49 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
           /* === fallback explode=true === */
           CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
           CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", p->name));
-          if (p->items_type && strcmp(p->items_type, "string") == 0) {
-            if (p->allow_reserved_set && p->allow_reserved) {
+          if (p->items_type) {
+            if (strcmp(p->items_type, "string") == 0) {
+              if (p->allow_reserved_set && p->allow_reserved) {
+                CHECK_IO(fprintf(fp,
+                                 "      char *enc = NULL; "
+                                 "url_encode_allow_reserved(%s[i], &enc);\n",
+                                 p->name));
+                CHECK_IO(fprintf(fp,
+                                 "      if (!enc) { rc = CDD_C_ERROR_MEMORY; "
+                                 "goto cleanup; }\n"));
+                CHECK_IO(fprintf(
+                    fp, "      rc = url_query_add_encoded(&qp, \"%s\", enc);\n",
+                    p->name));
+                CHECK_IO(fprintf(fp, "      free(enc);\n"));
+              } else {
+                CHECK_IO(fprintf(
+                    fp, "      rc = url_query_add(&qp, \"%s\", %s[i]);\n",
+                    p->name, p->name));
+              }
+            } else if (strcmp(p->items_type, "integer") == 0) {
+              CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
               CHECK_IO(fprintf(fp,
-                               "      char *enc = NULL; "
-                               "url_encode_allow_reserved(%s[i], &enc);\n",
+                               "      spr"
+                               "intf(num_buf, \"%%d\", %s[i]);\n",
                                p->name));
-              CHECK_IO(fprintf(fp, "      if (!enc) { rc = CDD_C_ERROR_MEMORY; "
-                                   "goto cleanup; }\n"));
               CHECK_IO(fprintf(
-                  fp, "      rc = url_query_add_encoded(&qp, \"%s\", enc);\n",
+                  fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
                   p->name));
-              CHECK_IO(fprintf(fp, "      free(enc);\n"));
-            } else {
-              CHECK_IO(
-                  fprintf(fp, "      rc = url_query_add(&qp, \"%s\", %s[i]);\n",
-                          p->name, p->name));
+            } else if (strcmp(p->items_type, "number") == 0) {
+              CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+              CHECK_IO(fprintf(fp,
+                               "      spr"
+                               "intf(num_buf, \"%%g\", %s[i]);\n",
+                               p->name));
+              CHECK_IO(fprintf(
+                  fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
+                  p->name));
+            } else if (strcmp(p->items_type, "boolean") == 0) {
+              CHECK_IO(fprintf(fp,
+                               "      rc = url_query_add(&qp, \"%s\", %s[i] ? "
+                               "\"true\" : \"false\");\n",
+                               p->name, p->name));
             }
-          } else if (p->items_type && strcmp(p->items_type, "integer") == 0) {
-            CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
-            CHECK_IO(fprintf(fp,
-                             "      spr"
-                             "intf(num_buf, \"%%d\", %s[i]);\n",
-                             p->name));
-            CHECK_IO(
-                fprintf(fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
-                        p->name));
-          } else if (p->items_type && strcmp(p->items_type, "number") == 0) {
-            CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
-            CHECK_IO(fprintf(fp,
-                             "      spr"
-                             "intf(num_buf, \"%%g\", %s[i]);\n",
-                             p->name));
-            CHECK_IO(
-                fprintf(fp, "      rc = url_query_add(&qp, \"%s\", num_buf);\n",
-                        p->name));
-          } else if (p->items_type && strcmp(p->items_type, "boolean") == 0) {
-            CHECK_IO(fprintf(fp,
-                             "      rc = url_query_add(&qp, \"%s\", %s[i] ? "
-                             "\"true\" : \"false\");\n",
-                             p->name, p->name));
           }
           CHECK_IO(fprintf(
               fp,
@@ -2464,7 +2542,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
               fp, "    rc = url_query_add(&qp, \"%s\", num_buf);\n", p->name));
           CHECK_IO(
               fprintf(fp, "    if (rc != CDD_C_SUCCESS) goto cleanup;\n  }\n"));
-        } else if (strcmp(p->type, "boolean") == 0) {
+        } else {
           CHECK_IO(fprintf(fp,
                            "  rc = url_query_add(&qp, \"%s\", %s ? \"true\" : "
                            "\"false\");\n",

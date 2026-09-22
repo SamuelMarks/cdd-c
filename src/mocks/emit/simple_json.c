@@ -361,10 +361,13 @@ enum cdd_c_error HazE_from_json(const char *json, struct HazE **haz_e) {
  * @brief Executes the FooE cleanup operation.
  */
 enum cdd_c_error FooE_cleanup(struct FooE *foo_e) {
+  enum cdd_c_error rc;
   if (foo_e == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   C_CDD_FREE((void *)foo_e->bar);
-  (void)HazE_cleanup(foo_e->haz);
+  rc = HazE_cleanup(foo_e->haz);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   C_CDD_FREE(foo_e);
   return CDD_C_SUCCESS;
 }

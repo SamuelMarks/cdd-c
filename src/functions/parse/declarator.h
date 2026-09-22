@@ -97,12 +97,9 @@ extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
  * @param[out] out_info Pointer to destination structure.
  * @return 0 on success, EINVAL on syntax error, ENOMEM on alloc failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Parses declaration from the given input.
-                     */
-    cdd_c_error_t
-    parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
-                      struct DeclInfo *out_info);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
+                  struct DeclInfo *out_info);
 
 #ifdef CDD_BUILD_TESTS
 /**

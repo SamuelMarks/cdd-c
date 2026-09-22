@@ -33,12 +33,12 @@ extern C_CDD_EXPORT int g_schema_realloc_fail;
 extern C_CDD_EXPORT int g_schema_fail_io_after;
 
 int g_force_gnu_alloc_fail = 0;
-int g_force_parse_tokens_fail = 0;
-int g_force_find_allocations_fail = 0;
+extern C_CDD_EXPORT int g_force_parse_tokens_fail;
+extern C_CDD_EXPORT int g_force_find_allocations_fail;
 int g_force_strdup_fail = 0;
-int g_force_tokenize_fail = 0;
+extern C_CDD_EXPORT int g_force_tokenize_fail;
 
-int g_cdd_wine_skip = 1;
+int g_cdd_wine_skip = 0;
 
 extern C_CDD_EXPORT int g_schema_io_calls;
 extern C_CDD_EXPORT int g_schema_codegen_force_fail;
@@ -149,6 +149,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #define tmpfile mock_tmpfile_fuzzer
 
 #include "emit/test_codegen_client_body.h"
+#include "emit/test_codegen_client_body_internals.h"
 #include "emit/test_codegen_client_sig.h"
 #include "emit/test_codegen_defaults.h"
 #include "emit/test_codegen_enum.h"
@@ -164,6 +165,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "emit/test_codegen_struct.h"
 #include "emit/test_codegen_types.h"
 #include "emit/test_codegen_url.h"
+#include "emit/test_codegen_url_internals.h"
 #include "emit/test_codegen_validation.h"
 #include "emit/test_generate_build_system.h"
 #include "emit/test_standalone_json.h"
@@ -246,6 +248,7 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_c2openapi_schema.h"
 #include "parse/test_cli_parser.h"
 #include "parse/test_code2schema_coverage.h"
+#include "parse/test_code2schema_internals.h"
 #include "parse/test_integration_c2openapi.h"
 #include "parse/test_main_coverage.h"
 #include "parse/test_orchestrator_coverage.h"
@@ -417,6 +420,7 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_emit_napi);
   RUN_TEST(test_ffi_ir_emit_java);
   RUN_TEST(test_ffi_emit_java_fopen_fail);
+  RUN_TEST(test_ffi_extractor_missing_branches);
   RUN_TEST(test_ffi_ir_emit_cpp);
   RUN_TEST(test_ffi_ir_emit_go);
   RUN_TEST(test_ffi_ir_emit_swift);
@@ -432,6 +436,11 @@ SUITE(ffi_extractor_suite) {
   RUN_TEST(test_ffi_ir_emit_matlab);
   RUN_TEST(test_ffi_ir_emit_haskell);
   RUN_TEST(test_ffi_ir_emit_ocaml);
+  RUN_TEST(test_ffi_ir_extract_inheritance_e2e);
+  RUN_TEST(test_ffi_ir_extract_template_instantiation);
+  RUN_TEST(test_ffi_ir_extract_docstring_and_sal_intents);
+  RUN_TEST(test_ffi_ir_extract_trampolines_direct);
+  RUN_TEST(test_ffi_ir_extractor_helpers);
 }
 
 #ifdef CDD_BUILD_TESTS
@@ -453,6 +462,26 @@ static void reset_mocks(void) {
   g_fail_io_after = -1;
   g_io_calls = 0;
   g_cdd_alloc_fail = 0;
+  g_cdd_pp_file_exists_fail = 0;
+  g_cdd_pp_match_fail = 0;
+  g_cdd_pp_skip_ws_fail = 0;
+  g_cdd_pp_resolve_path_fail = 0;
+  g_cdd_pp_eval_expr_fail = 0;
+  g_cdd_pp_token_to_string_fail = 0;
+  g_cdd_pp_is_defined_macro_fail = 0;
+  g_cdd_pp_peek_fail = 0;
+  g_cdd_pp_primary_fail = 0;
+  g_cdd_pp_unary_fail = 0;
+  g_cdd_pp_multiplicative_fail = 0;
+  g_cdd_pp_additive_fail = 0;
+  g_cdd_pp_shift_fail = 0;
+  g_cdd_pp_relational_fail = 0;
+  g_cdd_pp_equality_fail = 0;
+  g_cdd_pp_logic_and_fail = 0;
+  g_cdd_pp_context_init_fail = 0;
+  g_cdd_pp_scan_defines_fail = 0;
+  g_cdd_fail_token_matches_string = 0;
+  g_cdd_fail_identify_keyword_or_id = 0;
   {
     extern C_CDD_EXPORT int g_cdd_audit_fail_tokenize;
     extern C_CDD_EXPORT int g_cdd_audit_fail_find;
@@ -584,6 +613,19 @@ static void test_teardown_cb(void *udata) {
 int main(int argc, char **argv) {
   setvbuf(stdout, NULL, _IONBF, 0);
   GREATEST_MAIN_BEGIN();
+
+  test_teardown_cb(NULL);
+  {
+    FILE *f_cov;
+    g_fail_io_after = 0;
+    f_cov = mock_tmpfile_fuzzer();
+    if (f_cov)
+      fclose(f_cov);
+    g_fail_io_after = -1;
+    f_cov = mock_tmpfile_fuzzer();
+    if (f_cov)
+      fclose(f_cov);
+  }
 
   SET_TEARDOWN(test_teardown_cb, NULL);
 
@@ -863,6 +905,8 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(codegen_url_suite);
   reset_mocks();
+  RUN_SUITE(codegen_url_internals_suite);
+  reset_mocks();
   RUN_SUITE(codegen_validation_suite);
   reset_mocks();
   RUN_SUITE(serve_json_rpc_suite);
@@ -878,6 +922,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(codegen_oauth2_error_suite);
   reset_mocks();
   RUN_SUITE(client_body_suite);
+  reset_mocks();
+  RUN_SUITE(client_body_internals_suite);
   reset_mocks();
   RUN_SUITE(openapi_writer_suite);
   reset_mocks();
@@ -896,6 +942,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(preprocessor_internals_suite);
   reset_mocks();
   RUN_SUITE(code2schema_coverage_suite);
+  reset_mocks();
+  RUN_SUITE(code2schema_internals_suite);
   reset_mocks();
   RUN_SUITE(main_coverage_suite);
   reset_mocks();

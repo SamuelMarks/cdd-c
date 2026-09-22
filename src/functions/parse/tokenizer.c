@@ -289,6 +289,13 @@ cdd_c_error_t identify_keyword_or_id(const uint8_t *start, size_t len,
   int _ast_span_equals_str_55 = 0;
   int _ast_span_equals_str_56 = 0;
   az_span s;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_identify_keyword_or_id;
+  if (g_cdd_fail_identify_keyword_or_id &&
+      --g_cdd_fail_identify_keyword_or_id == 0) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = TOKEN_IDENTIFIER;
@@ -783,6 +790,11 @@ cdd_c_error_t token_find_next(const struct TokenList *list, size_t start_idx,
                               size_t end_idx, const enum TokenKind kind,
                               size_t *_out_val) {
   size_t i, limit;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_token_find_next;
+  if (g_cdd_fail_token_find_next && --g_cdd_fail_token_find_next == 0)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#endif
   if (!_out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   *_out_val = SIZE_MAX;

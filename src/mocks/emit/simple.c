@@ -21,9 +21,12 @@ enum cdd_c_error Haz_cleanup(struct Haz *haz) {
  * @brief Executes the Foo cleanup operation.
  */
 enum cdd_c_error Foo_cleanup(struct Foo *foo) {
+  enum cdd_c_error rc;
   if (foo == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  (void)Haz_cleanup(foo->haz);
+  rc = Haz_cleanup(foo->haz);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   C_CDD_FREE(foo);
   return CDD_C_SUCCESS;
 }

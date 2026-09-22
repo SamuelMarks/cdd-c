@@ -105,10 +105,16 @@ repos:
     pass_filenames: false
   - id: check-enum-returns
     name: Check Enum Returns
-    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" --exclude-files "vcpkg/*" --exclude-files "vcpkg*/*" -- -Iinclude -Isrc -I../c-fs/include -I../c-str-span/include -I../c89stringutils/include -I../parson -I../greatest
+    entry: python scripts/check_enum_returns_clang.py . --build-dir build --exclude-files "build*/*" --exclude-files "test_bindings_out/*" --exclude-files "impl.c" --exclude-files "union_array_schema.json.c" --exclude-files "dummy_c_code.c" --exclude-files "*test_*dir*/*" --exclude-files "out_dir*/*" --exclude-files "out_dir/*" --exclude-files "out_server*/*" --exclude-files "out_server/*" --exclude-files "vcpkg/*" --exclude-files "vcpkg*/*" -- -Iinclude -Isrc -I../c-fs/include -I../c-str-span/include -I../c89stringutils/include -I../parson -I../greatest
     language: python
     additional_dependencies: [libclang]
     pass_filenames: false
+  - id: check-no-discard-void-clang
+    name: Check No-Discard Void Casts
+    entry: python -c "import os, sys, urllib.request; p = next((x for x in ('/opt/homebrew/opt/llvm/lib/libclang.dylib', '/opt/homebrew/lib/libclang.dylib', '/usr/local/lib/libclang.dylib') if os.path.exists(x)), None); bdir = next((d for d in ('build', 'build_gcc') if os.path.exists(d + '/compile_commands.json')), None); args = [sys.argv[0]]; (args.extend(['--libclang-path', p]) if p and '--libclang-path' not in sys.argv else None); (args.extend(['--build-dir', bdir]) if bdir and '--build-dir' not in sys.argv else None); args.extend(sys.argv[1:]); sys.argv = args; src = open(os.path.expanduser('~/repos/c-ci/precommit_hooks/check_no_discard_void_clang.py')).read() if os.path.exists(os.path.expanduser('~/repos/c-ci/precommit_hooks/check_no_discard_void_clang.py')) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/refs/heads/master/precommit_hooks/check_no_discard_void_clang.py').read().decode('utf-8'); exec(src)"
+    language: python
+    additional_dependencies: [libclang]
+    types: [c]
   - id: update-shields
     name: Update README Shields
     entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"

@@ -64,7 +64,7 @@ TEST test_aggregator_add_new(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "op1");
 
   ASSERT_EQ(0, openapi_aggregator_add_operation(&spec, "/users", &op));
@@ -90,7 +90,7 @@ TEST test_aggregator_merge_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op1, "getUsers");
   op1.verb = OA_VERB_GET;
 
@@ -122,7 +122,7 @@ TEST test_aggregator_distinct_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op1, "opA");
   dummy_op(&op2, "opB");
 
@@ -146,7 +146,7 @@ TEST test_aggregator_add_additional_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "copyUser");
   op.is_additional = 1;
   op.method = strdup("COPY");
@@ -175,7 +175,7 @@ TEST test_aggregator_add_webhook(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "webhookOp");
   op.verb = OA_VERB_POST;
 
@@ -200,7 +200,7 @@ TEST test_aggregator_add_webhook(void) {
 TEST test_aggregator_bad_args(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "x");
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -225,7 +225,7 @@ TEST test_aggregator_oom(void) {
   struct OpenAPI_Operation op = {0};
   int i;
 
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "op1");
 
   /* Test path alloc failure */
@@ -275,7 +275,7 @@ TEST test_aggregator_oom(void) {
 TEST test_aggregator_webhook_additional(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "op1");
   op.is_additional = 1;
   ASSERT_EQ(0, openapi_aggregator_add_webhook_operation(&spec, "/hooks", &op));
@@ -286,7 +286,7 @@ TEST test_aggregator_webhook_additional(void) {
 TEST test_aggregator_webhook_bad_args(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op, "op1");
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             openapi_aggregator_add_webhook_operation(NULL, "/hooks", &op));
@@ -302,7 +302,7 @@ TEST test_aggregator_webhook_existing(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1 = {0};
   struct OpenAPI_Operation op2 = {0};
-  (void)openapi_spec_init(&spec);
+  ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&spec));
   dummy_op(&op1, "hook1");
   dummy_op(&op2, "hook2");
 

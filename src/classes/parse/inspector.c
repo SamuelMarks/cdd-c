@@ -36,6 +36,11 @@
  * @brief Executes the type def list init operation.
  */
 cdd_c_error_t type_def_list_init(struct TypeDefList *list) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_cdd_fail_type_def_list_init;
+  if (g_cdd_fail_type_def_list_init && --g_cdd_fail_type_def_list_init == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!list)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   list->size = 0;
@@ -187,8 +192,9 @@ cdd_c_error_t c_inspector_scan_file_types(const char *filename,
             const char *name_start = p + (is_enum ? 5 : 7);
             const char *name_end_ptr = brace;
 
-            /* Handle C23 enum fixed type: enum Name : type { */
-            if (is_enum) {
+            /* Handle C23 enum fixed type or C++ inheritance: [enum|struct] Name
+             * : ... { */
+            {
               char *colon = NULL;
               char *scan = (char *)(size_t)name_start;
               while (scan < brace) {

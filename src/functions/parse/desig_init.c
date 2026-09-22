@@ -43,9 +43,6 @@ static cdd_c_error_t c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 
 /**
  * @brief Initializes a designated initializer list.
- *
- * @param[out] list Designated initializer list to initialize
- * @return CDD_C_SUCCESS on success, error enum on failure
  */
 cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
   if (!list)
@@ -58,8 +55,6 @@ cdd_c_error_t desig_init_list_init(struct DesigInitList *list) {
 
 /**
  * @brief Frees a designated initializer list.
- *
- * @param[in,out] list Designated initializer list to release
  */
 void desig_init_list_free(struct DesigInitList *list) {
   size_t i;
@@ -79,10 +74,6 @@ void desig_init_list_free(struct DesigInitList *list) {
 
 /**
  * @brief Executes the scan for designated initializers operation.
- *
- * @param[in] tokens Token list to scan
- * @param[out] list Designated initializer list to populate
- * @return CDD_C_SUCCESS on success, error enum on failure
  */
 cdd_c_error_t scan_for_designated_initializers(const struct TokenList *tokens,
                                                struct DesigInitList *list) {

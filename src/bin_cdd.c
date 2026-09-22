@@ -1,5 +1,6 @@
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
+#include "c_cdd/suppress_gui.h"
 
 #include "cdd_c_error.h"
 #include "functions/parse/main.h"
@@ -32,6 +33,8 @@ static cdd_c_error_t cdd_cli_main_internal(int argc, char **argv) {
  */
 int main(int argc, char **argv) {
   cdd_c_error_t rc;
+
+  cdd_suppress_gui_popups();
   rc = cdd_cli_main_internal(argc, argv);
   if (rc != CDD_C_SUCCESS) {
     return 1;

@@ -23,7 +23,6 @@ TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
   char *argv[2];
   int rc;
-  (void)rc;
   argv[0] = arg0;
   argv[1] = NULL;
   rc = jsonschema2tests_main(1, argv);
@@ -106,7 +105,6 @@ TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
   char *argv[3];
   int rc;
-  (void)rc;
   argv[0] = (char *)(size_t)(size_t)schema_filename;
   argv[1] = (char *)(size_t)(size_t) "header.h";
   argv[2] = (char *)(size_t)(size_t) "";
@@ -203,7 +201,6 @@ TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[3];
   int rc;
-  (void)rc;
   argv[0] = (char *)(size_t)(size_t)schema_file;
   argv[1] = (char *)(size_t)(size_t) "header.h";
   argv[2] = (char *)(size_t)(size_t) "build" PATH_SEP "out.h";
@@ -313,9 +310,15 @@ TEST test_schema2tests_sanitize_names(void) {
   const char *const schema_file = argv[0];
   int rc;
 
-  rc = write_to_file(schema_file, "{\"$defs\":{\"E-1\":{\"type\":\"string\","
-                                  "\"enum\":[\"val-1\"]}}}");
-  (void)rc;
+  rc = write_to_file(
+      schema_file, "{\"$defs\":{"
+                   "\"E-1\":{\"type\":\"string\",\"enum\":[\"val-1\"]},"
+                   "\"JustString\":{\"type\":\"string\"},"
+                   "\"MyInt\":{\"type\":\"integer\"},"
+                   "\"LongName012345678901234567890123456789012345678901234567"
+                   "890123456789012345678901234567890123456789012345678901234"
+                   "5678901234567890123456789\":{\"type\":\"object\"}"
+                   "}}");
   ASSERT_EQ(0, rc);
 
   rc = jsonschema2tests_main(3, argv);
@@ -324,7 +327,6 @@ TEST test_schema2tests_sanitize_names(void) {
   remove(schema_file);
   remove("build" PATH_SEP "test_sanitize.h");
   remove("build" PATH_SEP "test_main.c");
-  g_fail_io_after = -1;
   PASS();
 }
 
@@ -386,10 +388,13 @@ TEST test_schema2tests_output_in_current_dir(void) {
                   (char *)(size_t)(size_t) "test_cur.h"};
   const char *const schema_content =
       "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
+  write_to_file("MyStruct.h", "/* mock */");
   ASSERT_EQ(0, write_to_file(argv[0], schema_content));
   ASSERT_EQ(0, jsonschema2tests_main(3, argv));
+
   remove(argv[0]);
   remove(argv[2]);
+  remove("MyStruct.h");
   remove("test_main.c");
   g_fail_io_after = -1;
   PASS();
@@ -416,7 +421,7 @@ TEST test_schema2tests_io_fails(void) {
   }
   g_fail_io_after = -1;
 
-  for (i = 1; i < 60; i++) {
+  for (i = 1; i < 120; i++) {
     g_cdd_alloc_fail = i;
     jsonschema2tests_main(3, argv);
   }

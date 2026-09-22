@@ -347,6 +347,8 @@ TEST test_cst_splice_children(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_splice_children(tree, &root, 0, 2, new_children, 1));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_cst_splice_children(tree, &root, 5, 0, new_children, 1));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
   /* Out of bounds */
 

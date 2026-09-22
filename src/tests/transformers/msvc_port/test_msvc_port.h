@@ -66,7 +66,6 @@ TEST test_cdd_transform_msvc(void) {
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_msvc(tree, &config);
@@ -154,7 +153,6 @@ TEST test_cdd_transform_msvc_context(void) {
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
                      &tree);
-  (void)rc;
   ASSERT_EQ(0, rc);
 
   rc = cdd_transform_msvc(tree, &config);
@@ -183,7 +181,6 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
-  (void)rc;
   cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
 
   cdd_transform_msvc(tree, &config);

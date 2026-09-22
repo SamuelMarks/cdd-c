@@ -4,6 +4,8 @@ my_empty_dir/
 out2.json
 out_dir/
 out_dir_io/
+out_sdk/
+out_server/
 test_dummy_dir_for_makedirs/
 test_m_dir/
 test_napi_dir/
@@ -402,6 +404,7 @@ c2o_global_*/
 *.mock.h
 mock_*.c
 mock_*.h
+!src/tests/cdd_test_helpers/mock_server.*
 
 # Other common artifacts
 .gemini/
@@ -442,6 +445,7 @@ test_codegen_enum_io
 
 # Test code generation outputs
 test_*_out/
+test_*_out*/
 
 # Temporary and scratch files
 dummy_stl.h

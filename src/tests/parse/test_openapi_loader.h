@@ -28,11 +28,14 @@ extern "C" {
 static cdd_c_error_t load_spec_str(const char *json_str,
                                    struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
-  int rc;
-  (void)rc;
+  cdd_c_error_t rc;
   if (!dyn)
-    return -1;
-  (void)openapi_spec_init(spec);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = openapi_spec_init(spec);
+  if (rc != CDD_C_SUCCESS) {
+    json_value_free(dyn);
+    return rc;
+  }
   rc = openapi_load_from_json(dyn, spec);
   json_value_free(dyn);
   return rc;
@@ -43,11 +46,14 @@ load_spec_str_with_context(const char *json_str, const char *retrieval_uri,
                            struct OpenAPI_DocRegistry *registry,
                            struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
-  int rc;
-  (void)rc;
+  cdd_c_error_t rc;
   if (!dyn)
-    return -1;
-  (void)openapi_spec_init(spec);
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = openapi_spec_init(spec);
+  if (rc != CDD_C_SUCCESS) {
+    json_value_free(dyn);
+    return rc;
+  }
   rc = openapi_load_from_json_with_context(dyn, retrieval_uri, spec, registry);
   json_value_free(dyn);
   return rc;
@@ -4009,61 +4015,77 @@ TEST test_load_additional_operations(void) {
 }
 
 TEST test_load_component_media_type_ref(void) {
-
-  const char json[] = {
-      123, 34,  111, 112, 101, 110, 97,  112, 105, 34,  58,  34,  51,  46,  50,
-      46,  48,  34,  44,  34,  99,  111, 109, 112, 111, 110, 101, 110, 116, 115,
-      34,  58,  123, 32,  32,  34,  115, 99,  104, 101, 109, 97,  115, 34,  58,
-      123, 34,  80,  101, 116, 34,  58,  123, 34,  116, 121, 112, 101, 34,  58,
-      34,  111, 98,  106, 101, 99,  116, 34,  125, 125, 44,  32,  32,  34,  109,
-      101, 100, 105, 97,  84,  121, 112, 101, 115, 34,  58,  123, 32,  32,  32,
-      32,  34,  97,  112, 112, 108, 105, 99,  97,  116, 105, 111, 110, 47,  118,
-      110, 100, 46,  97,  99,  109, 101, 43,  106, 115, 111, 110, 34,  58,  123,
-      32,  32,  32,  32,  32,  32,  34,  115, 99,  104, 101, 109, 97,  34,  58,
-      123, 34,  36,  114, 101, 102, 34,  58,  34,  35,  47,  99,  111, 109, 112,
-      111, 110, 101, 110, 116, 115, 47,  115, 99,  104, 101, 109, 97,  115, 47,
-      80,  101, 116, 34,  125, 32,  32,  32,  32,  125, 32,  32,  125, 125, 44,
-      34,  112, 97,  116, 104, 115, 34,  58,  123, 32,  32,  34,  47,  112, 101,
-      116, 115, 34,  58,  123, 32,  32,  32,  32,  34,  103, 101, 116, 34,  58,
-      123, 32,  32,  32,  32,  32,  32,  34,  114, 101, 115, 112, 111, 110, 115,
-      101, 115, 34,  58,  123, 32,  32,  32,  32,  32,  32,  32,  32,  34,  50,
-      48,  48,  34,  58,  123, 32,  32,  32,  32,  32,  32,  32,  32,  32,  32,
-      34,  100, 101, 115, 99,  114, 105, 112, 116, 105, 111, 110, 34,  58,  34,
-      111, 107, 34,  44,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  34,
-      99,  111, 110, 116, 101, 110, 116, 34,  58,  123, 32,  32,  32,  32,  32,
-      32,  32,  32,  32,  32,  32,  32,  34,  97,  112, 112, 108, 105, 99,  97,
-      116, 105, 111, 110, 47,  118, 110, 100, 46,  97,  99,  109, 101, 43,  106,
-      115, 111, 110, 34,  58,  123, 32,  32,  32,  32,  32,  32,  32,  32,  32,
-      32,  32,  32,  32,  32,  34,  36,  114, 101, 102, 34,  58,  34,  35,  47,
-      99,  111, 109, 112, 111, 110, 101, 110, 116, 115, 47,  109, 101, 100, 105,
-      97,  84,  121, 112, 101, 115, 47,  97,  112, 112, 108, 105, 99,  97,  116,
-      105, 111, 110, 126, 49,  118, 110, 100, 46,  97,  99,  109, 101, 43,  106,
-      115, 111, 110, 34,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,
-      32,  125, 32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  125, 32,  32,
-      32,  32,  32,  32,  32,  32,  125, 32,  32,  32,  32,  32,  32,  125, 32,
-      32,  32,  32,  125, 32,  32,  125, 125, 125, 0};
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"components\":{\"schemas\":{\"P\":{\"type\":\"object\"}},"
+      "\"mediaTypes\":{\"M1\":{\"schema\":{\"$ref\":\"#/components/schemas/"
+      "P\"},"
+      "\"prefixEncoding\":[{\"style\":\"form\"}],"
+      "\"itemEncoding\":{\"style\":\"form\"}},"
+      "\"M2\":{\"schema\":{\"$ref\":\"#/components/schemas/P\"},"
+      "\"encoding\":{\"f\":{\"style\":\"form\"}}}}},"
+      "\"paths\":{\"/"
+      "p\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\","
+      "\"content\":{\"a/1\":{\"$ref\":\"#/components/mediaTypes/M1\"},"
+      "\"a/2\":{\"$ref\":\"#/components/mediaTypes/M2\"}}}}}}}}";
 
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  if (rc != 0) {
-    openapi_spec_free(&spec);
-    g_fail_io_after = -1;
-    PASS();
-  }
   ASSERT_EQ(0, rc);
 
-  ASSERT_EQ(1, spec.n_component_media_types);
-  ASSERT_STR_EQ("application/vnd.acme+json",
-                spec.component_media_type_names[0]);
+  ASSERT_EQ(2, spec.n_component_media_types);
+  ASSERT_STR_EQ("M1", spec.component_media_type_names[0]);
+  ASSERT_STR_EQ("M2", spec.component_media_type_names[1]);
 
   {
     struct OpenAPI_Response *resp = &spec.paths[0].operations[0].responses[0];
-    ASSERT_STR_EQ("#/components/mediaTypes/application~1vnd.acme+json",
-                  resp->content_ref);
-    ASSERT_STR_EQ("application/vnd.acme+json", resp->content_type);
-    ASSERT_STR_EQ("Pet", resp->schema.ref_name);
+    ASSERT_STR_EQ("#/components/mediaTypes/M1", resp->content_ref);
+    ASSERT_STR_EQ("a/1", resp->content_type);
+    ASSERT_STR_EQ("P", resp->schema.ref_name);
   }
 
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_load_schema_conditional_keywords(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/"
+      "test\":{\"get\":{\"parameters\":[{\"name\":\"p\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\",\"not\":{\"type\":\"integer\"},"
+      "\"if\":{\"maxLength\":10},\"then\":{\"minLength\":2},\"else\":{"
+      "\"pattern\":\"^[a-z]+$\"}}}"
+      "],\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}";
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_paths);
+  ASSERT_EQ(1, spec.paths[0].operations[0].n_parameters);
+  ASSERT(spec.paths[0].operations[0].parameters[0].schema.not_schema != NULL);
+  ASSERT(spec.paths[0].operations[0].parameters[0].schema.if_schema != NULL);
+  ASSERT(spec.paths[0].operations[0].parameters[0].schema.then_schema != NULL);
+  ASSERT(spec.paths[0].operations[0].parameters[0].schema.else_schema != NULL);
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_load_path_item_ref_with_operation_security(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"components\":{\"securitySchemes\":{\"myKey\":{\"type\":\"apiKey\","
+      "\"name\":\"k\",\"in\":\"header\"}},"
+      "\"pathItems\":{\"MyPath\":{\"get\":{\"security\":[{\"myKey\":[]}],"
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}}}},"
+      "\"paths\":{\"/test\":{\"$ref\":\"#/components/pathItems/MyPath\"}}}";
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_paths);
+  ASSERT_EQ(1, spec.paths[0].n_operations);
+  ASSERT_EQ(1, spec.paths[0].operations[0].n_security);
   openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
@@ -4969,7 +4991,135 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
   PASS();
 }
 
+TEST test_load_link_full_fields(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"components\":{\"links\":{\"FullLink\":{"
+      "\"operationId\":\"getFoo\","
+      "\"summary\":\"Link summary\","
+      "\"description\":\"Link desc\","
+      "\"parameters\":{\"p1\":\"$response.body#/id\",\"p2\":\"const\"},"
+      "\"requestBody\":\"$request.body\","
+      "\"server\":{\"url\":\"http://link-server.com\"}"
+      "}}},"
+      "\"paths\":{\"/"
+      "x\":{\"get\":{\"operationId\":\"getFoo\",\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}}}";
+
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_component_links);
+  ASSERT_STR_EQ("FullLink", spec.component_links[0].name);
+  ASSERT_STR_EQ("Link summary", spec.component_links[0].summary);
+  ASSERT_STR_EQ("Link desc", spec.component_links[0].description);
+  ASSERT_EQ(2, spec.component_links[0].n_parameters);
+  ASSERT_EQ(1, spec.component_links[0].request_body_set);
+  ASSERT_EQ(1, spec.component_links[0].server_set);
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_load_schema_content_schema(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/x\":{\"get\":{\"parameters\":[{"
+      "\"name\":\"p1\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\",\"contentMediaType\":\"application/"
+      "json\","
+      "\"contentEncoding\":\"base64\","
+      "\"contentSchema\":{\"type\":\"object\"},"
+      "\"examples\":[\"ex1\",\"ex2\"],\"const\":\"myconst\"}},{"
+      "\"name\":\"p2\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\","
+      "\"items\":{\"type\":\"string\",\"contentSchema\":{\"type\":\"string\"}}}"
+      "}"
+      "],"
+      "\"responses\":{\"200\":{\"summary\":\"s\",\"description\":\"ok\"}}}}}}";
+
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_paths);
+  ASSERT_EQ(2, spec.paths[0].operations[0].n_parameters);
+  ASSERT(spec.paths[0].operations[0].parameters[0].schema.content_schema !=
+         NULL);
+  ASSERT(
+      spec.paths[0].operations[0].parameters[1].schema.items_content_schema !=
+      NULL);
+  ASSERT_EQ(2, spec.paths[0].operations[0].parameters[0].schema.n_examples);
+  ASSERT_EQ(1,
+            spec.paths[0].operations[0].parameters[0].schema.const_value_set);
+  ASSERT_STR_EQ("s", spec.paths[0].operations[0].responses[0].summary);
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_load_nested_encoding_fields(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/x\":{\"post\":{\"requestBody\":{\"content\":{\"multipart/"
+      "form-data\":{"
+      "\"encoding\":{\"f1\":{\"contentType\":\"image/png\","
+      "\"headers\":{\"X-Hdr\":{\"description\":\"h\",\"schema\":{\"type\":"
+      "\"string\"}}},"
+      "\"prefixEncoding\":[{\"style\":\"form\"}],\"itemEncoding\":{\"style\":"
+      "\"form\"}}}"
+      "}}},"
+      "\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}";
+
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_paths);
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_load_parameter_and_header_content_media_types(void) {
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/x\":{\"get\":{\"parameters\":[{"
+      "\"name\":\"p\",\"in\":\"query\","
+      "\"content\":{\"a/j\":{\"schema\":{\"type\":\"string\"}}},"
+      "\"examples\":{\"e1\":{\"value\":\"v1\"}}"
+      "}],"
+      "\"responses\":{\"200\":{\"description\":\"ok\","
+      "\"headers\":{\"X-H\":{"
+      "\"content\":{\"t/p\":{\"schema\":{\"type\":\"string\"}}},"
+      "\"examples\":{\"e1\":{\"value\":\"hello\"}}"
+      "}},"
+      "\"content\":{\"a/j\":{\"schema\":{\"type\":\"string\"}}},"
+      "\"links\":{\"L1\":{\"operationId\":\"op\",\"description\":\"ld\"}}"
+      "}}}}}}";
+
+  struct OpenAPI_Spec spec = {0};
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, spec.n_paths);
+  ASSERT_EQ(1, spec.paths[0].operations[0].parameters[0].n_content_media_types);
+  ASSERT_EQ(1, spec.paths[0].operations[0].parameters[0].n_examples);
+  ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].n_headers);
+  ASSERT_EQ(1, spec.paths[0]
+                   .operations[0]
+                   .responses[0]
+                   .headers[0]
+                   .n_content_media_types);
+  ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].headers[0].n_examples);
+  ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].n_links);
+  openapi_spec_free(&spec);
+  g_fail_io_after = -1;
+  PASS();
+}
+
 SUITE(openapi_loader_suite) {
+  RUN_TEST(test_load_link_full_fields);
+  RUN_TEST(test_load_schema_content_schema);
+  RUN_TEST(test_load_nested_encoding_fields);
+  RUN_TEST(test_load_parameter_and_header_content_media_types);
   RUN_TEST(test_load_parameter_array);
   RUN_TEST(test_load_parameter_metadata);
   RUN_TEST(test_load_allow_empty_value);
@@ -5096,6 +5246,8 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_load_component_response_and_headers);
   RUN_TEST(test_load_additional_operations);
   RUN_TEST(test_load_component_media_type_ref);
+  RUN_TEST(test_load_schema_conditional_keywords);
+  RUN_TEST(test_load_path_item_ref_with_operation_security);
   RUN_TEST(test_load_component_path_items);
   RUN_TEST(test_load_response_links_and_component_links);
   RUN_TEST(test_load_callbacks_and_component_callbacks);

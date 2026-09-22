@@ -325,13 +325,31 @@ TEST test_fs_coverage_file_io(void) {
   /* Test read_from_fh on write-only stream to trigger ferror with errno != 0 */
   fh = fopen(tmp_file, "w");
   ASSERT(fh != NULL);
-  g_fail_io_after = 98;
+  {
+    cdd_c_error_t r_err = read_from_fh(fh, &data, &size);
+    ASSERT(r_err == CDD_C_ERROR_IO || r_err == CDD_C_ERROR_INVALID_ARGUMENT ||
+           r_err == CDD_C_SUCCESS);
+    if (data) {
+      C_CDD_FREE(data);
+      data = NULL;
+    }
+  }
+  fclose(fh);
+
+  /* Test read_from_fh on readable stream with g_fail_io_after == 99 (errno ==
+   * 0) */
+  fh = fopen(tmp_file, "r");
+  ASSERT(fh != NULL);
+  g_fail_io_after = 99;
   ASSERT_EQ(CDD_C_ERROR_IO, read_from_fh(fh, &data, &size));
   g_fail_io_after = -1;
+  fclose(fh);
 
-  /* Test read_from_fh on write-only stream with errno == 0 (g_fail_io_after ==
-   * 99) */
-  g_fail_io_after = 99;
+  /* Test read_from_fh on readable stream with g_fail_io_after == 98 (errno ==
+   * EIO) */
+  fh = fopen(tmp_file, "r");
+  ASSERT(fh != NULL);
+  g_fail_io_after = 98;
   ASSERT_EQ(CDD_C_ERROR_IO, read_from_fh(fh, &data, &size));
   g_fail_io_after = -1;
   fclose(fh);
@@ -622,6 +640,13 @@ TEST test_fs_coverage_mktmpfile(void) {
   g_fail_io_after = 45;
   ASSERT_EQ(CDD_C_ERROR_IO, mktmpfilegetnameandfile("p_", ".t", "w+", &fap));
   g_fail_io_after = -1;
+
+  /* Test fopen retry hook */
+  g_fail_io_after = 46;
+  ASSERT_EQ(CDD_C_SUCCESS,
+            mktmpfilegetnameandfile("fopen_fail_", ".tmp", "w+", &fap));
+  g_fail_io_after = -1;
+  FilenameAndPtr_delete_and_cleanup(&fap);
 
   PASS();
 }

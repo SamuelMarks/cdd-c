@@ -257,7 +257,6 @@ TEST test_cbuild_io_failure(void) {
   (void)content_str;
   /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
 
-  (void)rc;
   memset(&config, 0, sizeof(config));
   config.project_name = (char *)(size_t)(size_t) "PetStore";
   config.target_name = (char *)(size_t)(size_t) "petstore_lib";
