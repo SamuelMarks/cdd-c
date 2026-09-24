@@ -680,10 +680,7 @@ write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 
   name = p->name ? p->name : "param";
   style = (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_FORM : p->style;
-  explode =
-      p->explode_set
-          ? p->explode
-          : ((style == OA_STYLE_FORM || style == OA_STYLE_COOKIE) ? 1 : 0);
+  explode = p->explode_set ? p->explode : (style == OA_STYLE_FORM ? 1 : 0);
   allow_reserved = p->allow_reserved_set && p->allow_reserved;
 
   CHECK_IO(fprintf(fp, "  /* Query Object Parameter: %s */\n", name));
@@ -1051,10 +1048,7 @@ write_path_object_serialization(FILE *fp, const struct OpenAPI_Parameter *p) {
 
   name = p->name ? p->name : "param";
   style = (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_SIMPLE : p->style;
-  explode =
-      p->explode_set
-          ? p->explode
-          : ((style == OA_STYLE_FORM || style == OA_STYLE_COOKIE) ? 1 : 0);
+  explode = p->explode_set ? p->explode : 0;
 
   if (style == OA_STYLE_LABEL) {
     prefix = ".";
@@ -1743,11 +1737,7 @@ cdd_c_error_t codegen_url_write_builder(FILE *fp, const char *path_template,
         const char *name = p->name;
         enum OpenAPI_Style style =
             (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_SIMPLE : p->style;
-        int explode =
-            p->explode_set
-                ? p->explode
-                : ((style == OA_STYLE_FORM || style == OA_STYLE_COOKIE) ? 1
-                                                                        : 0);
+        int explode = p->explode_set ? p->explode : 0;
         if (p->type && strcmp(p->type, "object") == 0 && !p->is_array) {
           if (write_path_object_serialization(fp, p) != 0)
             return CDD_C_ERROR_IO;
@@ -2318,9 +2308,7 @@ cdd_c_error_t codegen_url_write_query_params(FILE *fp,
       enum OpenAPI_Style style =
           (p->style == OA_STYLE_UNKNOWN) ? OA_STYLE_FORM : p->style;
       int explode =
-          p->explode_set
-              ? p->explode
-              : ((style == OA_STYLE_FORM || style == OA_STYLE_COOKIE) ? 1 : 0);
+          p->explode_set ? p->explode : (style == OA_STYLE_FORM ? 1 : 0);
 
       if (!has_query) {
         if (qp_tracking) {

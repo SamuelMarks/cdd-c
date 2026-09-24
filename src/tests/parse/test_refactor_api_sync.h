@@ -54,10 +54,21 @@ TEST test_sync_signature_update(void) {
       "\"parameters\":[{\"name\":\"id\",\"in\":\"path\",\"required\":true,"
       "\"schema\":{\"type\":\"integer\"}}]"
       "}}}}";
+  struct OpenAPI_Spec spec_err;
   struct OpenAPI_Spec spec;
   char *content = NULL;
   size_t sz;
   int rc;
+
+  /* Exercise load_spec error branches */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            load_spec("{invalid_json", &spec_err));
+  {
+    extern C_CDD_EXPORT int g_openapi_spec_init_fail;
+    g_openapi_spec_init_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, load_spec("{}", &spec_err));
+    g_openapi_spec_init_fail = 0;
+  }
 
   (void)rc;
   write_to_file(src_file, old_code);

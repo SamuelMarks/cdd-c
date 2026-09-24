@@ -33,22 +33,12 @@ TEST parsing_test(const char *const test_name, const az_span source,
   struct CstNodeList *cst_nodes =
       (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
-  int rc = EXIT_SUCCESS;
 
   (void)expected_whitespace;
   printf("Running test: %s\n", test_name);
 
-  if (tokenize(source, &tokens) != 0) {
-    fprintf(stderr, "tokenize() failed in test %s\n", test_name);
-    rc = EXIT_FAILURE;
-    goto cleanup;
-  }
-
-  if (parse_tokens(tokens, cst_nodes) != 0) {
-    fprintf(stderr, "parse_tokens() failed in test %s\n", test_name);
-    rc = EXIT_FAILURE;
-    goto cleanup;
-  }
+  ASSERT_EQ(0, tokenize(source, &tokens));
+  ASSERT_EQ(0, parse_tokens(tokens, cst_nodes));
 
   /* Count node kinds */
   for (i = 0; i < cst_nodes->size; i++) {
@@ -82,13 +72,10 @@ TEST parsing_test(const char *const test_name, const az_span source,
 
   printf("Test '%s' passed.\n", test_name);
 
-cleanup:
   free_token_list(tokens);
   free_cst_node_list(cst_nodes);
   free(cst_nodes);
-  if (rc == EXIT_SUCCESS)
-    PASS();
-  FAIL();
+  PASS();
 }
 
 TEST test_precondition_failure(void) {

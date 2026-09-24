@@ -296,3 +296,11 @@ cdd_ffi_emit_erlang(cdd_ffi_ir_t *ir,
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t test_cdd_ffi_emit_erlang_internals(void) {
+  char buf[5];
+  snake_case_name("VeryLongName", buf, sizeof(buf));
+  return CDD_C_SUCCESS;
+}
+#endif

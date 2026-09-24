@@ -238,6 +238,8 @@ TEST test_strategy_injection(void) {
                            "10);"),
       &tl);
 
+  ASSERT_EQ(0, find_token_index(tl, "non_existent_token"));
+
   allocs.sites = calloc(6, sizeof(struct AllocationSite));
   allocs.capacity = 6;
   allocs.size = 6;

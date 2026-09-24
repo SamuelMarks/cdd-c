@@ -3389,7 +3389,7 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
       return CDD_C_ERROR_INVALID_ARGUMENT;
     *json_out =
         (c_cdd_strdup(spec->schema_root_json, &_ast_strdup_4), _ast_strdup_4);
-    return *json_out ? 0 : ENOMEM;
+    return *json_out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
   if (license_fields_invalid(&spec->info.license))
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -3459,5 +3459,5 @@ cdd_c_error_t openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
   *json_out = json_serialize_to_string_pretty(root_val);
   json_value_free(root_val);
 
-  return *json_out ? 0 : ENOMEM;
+  return *json_out ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }

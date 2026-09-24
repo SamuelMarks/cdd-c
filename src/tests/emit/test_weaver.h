@@ -338,9 +338,6 @@ TEST test_weaver_translate_gcc_attributes(void) {
         rc_wattr =
             weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
         g_cdd_alloc_fail = 0;
-        if (rc_wattr != CDD_C_ERROR_MEMORY) {
-          printf("FAILED OOM test: i=%d rc_wattr=%d\n", i, rc_wattr);
-        }
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_wattr);
       }
       g_cdd_alloc_fail = 0;

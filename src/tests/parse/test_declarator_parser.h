@@ -645,6 +645,7 @@ TEST test_declarator_unit_helpers(void) {
   struct DeclType *tail = NULL;
   int is_group = 0;
   int is_abstract = 0;
+  struct TokenList *tl_comment = NULL;
 
   tl = setup_tokens("int x;");
   ASSERT(tl != NULL);
@@ -679,6 +680,14 @@ TEST test_declarator_unit_helpers(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_test_skip_ws(NULL, 0, 1, &val));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_test_skip_ws(tl, 0, 1, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_skip_ws(tl, 0, tl->size, &val));
+
+  tl_comment = setup_tokens("int /* c1 */ * /* c2 */ x;");
+  ASSERT(tl_comment != NULL);
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_skip_ws(tl_comment, 1, tl_comment->size, &val));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_skip_ws_back(tl_comment, 3, 0, &val));
+  free_token_list(tl_comment);
+  tl_comment = NULL;
 
   /* skip_ws_back */
   g_cdd_fail_skip_ws_back = 1;
@@ -718,7 +727,7 @@ TEST test_declarator_unit_helpers(void) {
 
   /* add_type_node */
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_create_node(DECL_BASE, &node));
-  (void)decl_info_init(&info);
+  ASSERT_EQ(CDD_C_SUCCESS, decl_info_init(&info));
   g_cdd_fail_add_type_node = 1;
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, add_type_node(&info, &tail, node));
   reset_decl_mocks();

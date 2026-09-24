@@ -37,11 +37,7 @@ TEST test_cli_cst_extern_c_audit(void) {
   (void)rc;
   /* void foo */
 
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   /* Audit should fail because it needs extern "C" */
   rc = cli_cst_transformer_main(argc - 1, argv);
@@ -66,11 +62,7 @@ TEST test_cli_cst_extern_c_fix(void) {
   (void)rc;
   /* void foo */
 
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   /* Fix should succeed */
   rc = cli_cst_transformer_main(argc - 1, argv);
@@ -110,22 +102,14 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   (void)rc;
   /* void foo */
 
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
   rc = cli_cst_transformer_main(argc - 1, argv);
   /* ASSERT_EQ(0, rc); */
   /* Test dry-run with no changes needed */
   /* content */
   /* void foo */
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
   rc = cli_cst_transformer_main(argc - 1, argv);
   /* ASSERT_EQ(0, rc); */
 
@@ -295,11 +279,7 @@ TEST test_cli_cst_process_errors(void) {
       (char *)(size_t)(size_t) "test_cli_cst_file.h", (char *)(size_t)NULL};
   /* void foo */
 
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -351,11 +331,7 @@ TEST test_cli_cst_process_errors(void) {
   rmdir("test_cli_cst_file.h");
 #endif
 
-  {
-    cdd_c_error_t w_rc = write_to_file("test_cli_cst_file.h", "void foo();");
-    if (w_rc != CDD_C_SUCCESS)
-      printf("write_to_file failed with %d\n", w_rc);
-  }
+  ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_cli_cst_file.h", "void foo();"));
 #if (defined(__unix__) || defined(__APPLE__) || defined(__linux__) ||          \
      defined(__MACH__)) &&                                                     \
     !defined(__CYGWIN__)

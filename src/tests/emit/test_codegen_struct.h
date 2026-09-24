@@ -632,7 +632,7 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 200; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -652,7 +652,7 @@ TEST test_struct_exhaustive_io(void) {
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
-  for (i = 0; i < 50; ++i) {
+  for (i = 0; i < 200; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))
@@ -722,7 +722,7 @@ TEST test_struct_exhaustive_io(void) {
     if (rc == 0)
       break;
   }
-  for (i = 0; i < 120; ++i) {
+  for (i = 0; i < 200; ++i) {
     FILE *tmp;
 #if defined(_MSC_VER)
     if (((tmp = cdd_test_tmpfile_global()) == NULL))

@@ -67,6 +67,14 @@ extern C_CDD_EXPORT /**
     codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
                            const struct CodegenBuildConfig *config);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Expose negative mock test for code coverage.
+ * @return Error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t test_build_fprintf_mock_negative(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

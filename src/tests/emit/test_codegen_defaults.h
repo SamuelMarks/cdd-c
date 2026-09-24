@@ -384,7 +384,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
     struct StructFields empty_sf;
     int j;
     struct_fields_init(&empty_sf);
-    for (j = 0; j < 5; j++) {
+    for (j = 1; j < 20; j++) {
       g_fail_io_after = j;
       g_io_calls = 0;
       rc = write_struct_declaration_h(tmp, "Empty", &empty_sf, &cfg);
@@ -496,6 +496,12 @@ TEST test_def_errors(void) {
   g_fail_io_after = 2; /* write_struct_default_func fails */
   ASSERT_EQ(0, generate_def_code("Prim", &sf, &_out));
   ASSERT_EQ(NULL, _out);
+
+  g_io_calls = 0;
+  g_fail_io_after = 998; /* FREAD returns 0 */
+  ASSERT_EQ(0, generate_def_code("Prim", &sf, &_out));
+  if (_out)
+    C_CDD_FREE(_out);
 
   g_io_calls = 0;
   g_fail_io_after = 999; /* FTELL returns 0 */

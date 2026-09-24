@@ -23,57 +23,9 @@ static void *mock_c2o_oom_malloc(size_t sz) {
 }
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
-static const char *get_mocks_dir(void) {
-  FILE *f;
-#if defined(_MSC_VER)
-  if (fopen_s(&f, "src/tests/mocks/emit/simple.schema.json", "r") == 0 && f) {
-    fclose(f);
-    return "src/tests/mocks";
-  }
-  if (fopen_s(&f, "../src/tests/mocks/emit/simple.schema.json", "r") == 0 &&
-      f) {
-    fclose(f);
-    return "../src/tests/mocks";
-  }
-#else
-  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "src/tests/mocks";
-  }
-  f = fopen("../src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "../src/tests/mocks";
-  }
-#endif
-  return "src/tests/mocks";
-}
+static const char *get_mocks_dir(void) { return "src/tests/mocks"; }
 
 static const char *get_simple_schema(void) {
-  FILE *f;
-#if defined(_MSC_VER)
-  if (fopen_s(&f, "src/tests/mocks/emit/simple.schema.json", "r") == 0 && f) {
-    fclose(f);
-    return "src/tests/mocks/emit/simple.schema.json";
-  }
-  if (fopen_s(&f, "../src/tests/mocks/emit/simple.schema.json", "r") == 0 &&
-      f) {
-    fclose(f);
-    return "../src/tests/mocks/emit/simple.schema.json";
-  }
-#else
-  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "src/tests/mocks/emit/simple.schema.json";
-  }
-  f = fopen("../src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "../src/tests/mocks/emit/simple.schema.json";
-  }
-#endif
   return "src/tests/mocks/emit/simple.schema.json";
 }
 
@@ -109,11 +61,6 @@ TEST test_c2openapi_cli_main_valid_args_with_options(void) {
   argv1[8] = (char *)(size_t)(size_t) "out2.json";
   rc = c2openapi_cli_main(9, argv1);
   (void)rc;
-  if (rc != CDD_C_SUCCESS) {
-    printf(
-        "test_c2openapi_cli_main_valid_args_with_options failed with rc=%d\n",
-        rc);
-  }
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   PASS();
 }
@@ -738,6 +685,14 @@ TEST test_c2openapi_helpers_signature_parsing(void) {
   ASSERT_STR_EQ("const char *", sig.args[1].type);
   ASSERT_STR_EQ("arr", sig.args[2].name);
   ASSERT_STR_EQ("double []", sig.args[2].type);
+  c2openapi_free_parsed_sig(&sig);
+
+  rc = c2openapi_parse_c_signature_string("int tabbed(\tint a)", &sig);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_STR_EQ("tabbed", sig.name);
+  ASSERT_EQ(1, sig.n_args);
+  ASSERT_STR_EQ("a", sig.args[0].name);
+  ASSERT_STR_EQ("int", sig.args[0].type);
   c2openapi_free_parsed_sig(&sig);
 
   PASS();
@@ -2348,9 +2303,9 @@ TEST test_c2openapi_full_coverage_100(void) {
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, merge_scopes(&flow_dst, &doc_flow));
   g_cdd_strdup_fail = 0;
-  /* success with null name and null desc */
-  doc_scopes[0].name = NULL;
-  doc_scopes[0].description = NULL;
+  /* success with non-null name and desc */
+  doc_scopes[0].name = (char *)(size_t)(size_t) "read";
+  doc_scopes[0].description = (char *)(size_t)(size_t) "read desc";
   ASSERT_EQ(CDD_C_SUCCESS, merge_scopes(&flow_dst, &doc_flow));
   if (flow_dst.scopes) {
     size_t si;
@@ -3966,11 +3921,15 @@ TEST test_c2openapi_reach_100_percent(void) {
     struct C2OpenAPI_ParsedSig sig;
     const char *test_code = "int my_fn(int a, int b);";
     memset(&sig, 0, sizeof(sig));
-    g_cdd_fail_token_find_next = 1;
+    g_cdd_fail_token_find_next = 2;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              c2openapi_parse_c_signature_string(test_code, &sig));
+    c2openapi_free_parsed_sig(&sig);
+    memset(&sig, 0, sizeof(sig));
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               c2openapi_parse_c_signature_string(test_code, &sig));
     g_cdd_fail_token_find_next = 0;
-    free_parsed_sig(&sig);
+    c2openapi_free_parsed_sig(&sig);
   }
 
   /* 8. walker_cb is_source_file error */

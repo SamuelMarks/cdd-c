@@ -340,6 +340,10 @@ TEST test_audit_extras(void) {
   struct AuditStats stats;
   (void)audit_stats_init(&stats);
 
+#ifdef CDD_BUILD_TESTS
+  ASSERT_EQ(CDD_C_SUCCESS, test_audit_get_line_col_boundary());
+#endif
+
   /* test tokenize failing */
   {
     char *sys_tmp = NULL;

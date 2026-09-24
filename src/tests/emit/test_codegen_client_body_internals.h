@@ -1411,8 +1411,6 @@ TEST test_client_body_all_operation_patterns(void) {
     int io_f;
     for (io_f = 0; io_f < 600; ++io_f) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_f;
       rc = codegen_client_write_body(fp, &op, &spec, "/items/{path_id}", NULL);
@@ -1429,10 +1427,8 @@ TEST test_client_body_all_operation_patterns(void) {
   op.n_req_body_media_types = 1;
   {
     int io_f;
-    for (io_f = 0; io_f < 600; ++io_f) {
+    for (io_f = 0; io_f < 1200; ++io_f) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_f;
       rc = codegen_client_write_body(fp, &op, &spec, "/items/{path_id}", NULL);
@@ -1740,8 +1736,6 @@ TEST test_client_body_direct_part_headers_and_form_edge_cases(void) {
     int io_fail;
     for (io_fail = 0; io_fail < 50; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_multipart_part_headers(fp, &enc);
@@ -2014,8 +2008,6 @@ TEST test_client_body_systematic_io_failures(void) {
   for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2030,8 +2022,6 @@ TEST test_client_body_systematic_io_failures(void) {
   for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2046,8 +2036,6 @@ TEST test_client_body_systematic_io_failures(void) {
   for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2063,11 +2051,9 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[0].content_type = C_CDD_STR_LIT("application/octet-stream");
   responses[0].schema.ref_name = NULL;
   responses[0].schema.inline_type = NULL;
-  for (io_fail = 0; io_fail < 100; ++io_fail) {
+  for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2080,11 +2066,9 @@ TEST test_client_body_systematic_io_failures(void) {
   /* Loop with 200 text/plain response */
   responses[0].content_type = C_CDD_STR_LIT("text/plain");
   responses[0].schema.inline_type = C_CDD_STR_LIT("string");
-  for (io_fail = 0; io_fail < 100; ++io_fail) {
+  for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2102,11 +2086,9 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[3].code = C_CDD_STR_LIT("default");
   responses[3].content_type = C_CDD_STR_LIT("text/plain");
   responses[3].schema.inline_type = C_CDD_STR_LIT("string");
-  for (io_fail = 0; io_fail < 100; ++io_fail) {
+  for (io_fail = 0; io_fail < 300; ++io_fail) {
     cdd_c_error_t rc;
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     rc = codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2126,8 +2108,6 @@ TEST test_client_body_systematic_io_failures(void) {
   responses[3].schema.is_array = 1;
   for (io_fail = 0; io_fail < 100; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2174,8 +2154,6 @@ TEST test_client_body_systematic_io_failures(void) {
 
     for (io_fail = 0; io_fail < 40; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_form_urlencoded_body(fp, &pipe_op, &pipe_spec);
@@ -2201,8 +2179,6 @@ TEST test_client_body_systematic_io_failures(void) {
     op.security_set = 0;
     for (io_fail = 0; io_fail < 40; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       codegen_client_write_body(fp, &op, &spec, "/items/{id}", NULL);
@@ -2331,8 +2307,6 @@ TEST test_client_body_targeted_remaining_branches(void) {
    * write_multipart_part_headers return error */
   for (io_fail = 0; io_fail < 350; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     client_body_write_multipart_body(fp, &op, &spec);
@@ -2383,8 +2357,6 @@ TEST test_client_body_targeted_remaining_branches(void) {
 
     for (io_fail = 0; io_fail < 150; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
@@ -2397,8 +2369,6 @@ TEST test_client_body_targeted_remaining_branches(void) {
         C_CDD_STR_LIT("application/x-www-form-urlencoded");
     for (io_fail = 0; io_fail < 150; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       codegen_client_write_body(fp, &t_op, &spec, "/test", NULL);
@@ -2453,8 +2423,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
 
   for (io_fail = 0; io_fail < 30; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2476,8 +2444,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
 
   for (io_fail = 0; io_fail < 40; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2491,8 +2457,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
   responses[0].schema.inline_type = C_CDD_STR_LIT("integer");
   for (io_fail = 0; io_fail < 40; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2512,8 +2476,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
 
   for (io_fail = 0; io_fail < 50; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2527,8 +2489,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
   responses[1].schema.inline_type = C_CDD_STR_LIT("string");
   for (io_fail = 0; io_fail < 50; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2542,8 +2502,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
   responses[1].schema.inline_type = C_CDD_STR_LIT("integer");
   for (io_fail = 0; io_fail < 50; ++io_fail) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = io_fail;
     codegen_client_write_body(fp, &op, &spec, "/test", NULL);
@@ -2566,8 +2524,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       sch_ref.is_array = 0;
       for (io_fail = 0; io_fail < 25; ++io_fail) {
         fp = cdd_test_tmpfile_global();
-        if (!fp)
-          break;
         g_io_calls = 0;
         g_fail_io_after = io_fail;
         client_body_write_inline_json_parse(fp, &sch_ref);
@@ -2577,8 +2533,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
       sch_ref.is_array = 1;
       for (io_fail = 0; io_fail < 50; ++io_fail) {
         fp = cdd_test_tmpfile_global();
-        if (!fp)
-          break;
         g_io_calls = 0;
         g_fail_io_after = io_fail;
         client_body_write_inline_json_parse(fp, &sch_ref);
@@ -2592,8 +2546,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
   {
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "tags", "n_tags", "string", ',',
@@ -2603,8 +2555,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "tags", "n_tags", "string", ',',
@@ -2614,8 +2564,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "items", "n_items", "Item", '&',
@@ -2625,8 +2573,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "ints", "n_ints", "integer", '|',
@@ -2636,8 +2582,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "nums", "n_nums", "number", '|',
@@ -2647,8 +2591,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "bools", "n_bools", "boolean",
@@ -2658,8 +2600,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
     }
     for (io_fail = 0; io_fail < 70; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_joined_form_array(fp, "str_raw", "n_str_raw", "string",
@@ -2755,8 +2695,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
 
     for (io_fail = 0; io_fail < 150; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_header_param_logic(fp, &hdr_op);
@@ -2837,8 +2775,6 @@ TEST test_client_body_all_remaining_sub_writer_io_failures(void) {
 
     for (io_fail = 0; io_fail < 200; ++io_fail) {
       fp = cdd_test_tmpfile_global();
-      if (!fp)
-        break;
       g_io_calls = 0;
       g_fail_io_after = io_fail;
       client_body_write_cookie_param_logic(fp, &ck_op);
@@ -2869,8 +2805,6 @@ static void test_helper_run_io_client_body(const struct OpenAPI_Operation *op,
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   codegen_client_write_body(fp, op, spec, path, NULL);
@@ -2878,8 +2812,6 @@ static void test_helper_run_io_client_body(const struct OpenAPI_Operation *op,
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     codegen_client_write_body(fp, op, spec, path, NULL);
@@ -2899,8 +2831,6 @@ static void test_helper_run_io_hdr(const struct OpenAPI_Operation *op) {
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_header_param_logic(fp, op);
@@ -2908,8 +2838,6 @@ static void test_helper_run_io_hdr(const struct OpenAPI_Operation *op) {
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_header_param_logic(fp, op);
@@ -2929,8 +2857,6 @@ static void test_helper_run_io_cookie(const struct OpenAPI_Operation *op) {
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_cookie_param_logic(fp, op);
@@ -2938,8 +2864,6 @@ static void test_helper_run_io_cookie(const struct OpenAPI_Operation *op) {
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_cookie_param_logic(fp, op);
@@ -2961,8 +2885,6 @@ static void test_helper_run_io_form(const struct OpenAPI_Operation *op,
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_form_urlencoded_body(fp, op, spec);
@@ -2970,8 +2892,6 @@ static void test_helper_run_io_form(const struct OpenAPI_Operation *op,
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_form_urlencoded_body(fp, op, spec);
@@ -2993,8 +2913,6 @@ static void test_helper_run_io_multipart(const struct OpenAPI_Operation *op,
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_multipart_body(fp, op, spec);
@@ -3002,8 +2920,6 @@ static void test_helper_run_io_multipart(const struct OpenAPI_Operation *op,
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_multipart_body(fp, op, spec);
@@ -3024,8 +2940,6 @@ test_helper_run_io_part_headers(const struct OpenAPI_Encoding *enc) {
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_multipart_part_headers(fp, enc);
@@ -3033,8 +2947,6 @@ test_helper_run_io_part_headers(const struct OpenAPI_Encoding *enc) {
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_multipart_part_headers(fp, enc);
@@ -3062,8 +2974,6 @@ static void test_helper_run_io_joined_form_array(
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_joined_form_array(fp, field, len_field, items_type, delim,
@@ -3072,8 +2982,6 @@ static void test_helper_run_io_joined_form_array(
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_joined_form_array(fp, field, len_field, items_type, delim,
@@ -3101,8 +3009,6 @@ test_helper_run_io_inline_json_parse(const struct OpenAPI_SchemaRef *schema) {
   int total_calls;
   int i;
   fp = cdd_test_tmpfile_global();
-  if (!fp)
-    return;
   g_fail_io_after = 100000;
   g_io_calls = 0;
   client_body_write_inline_json_parse(fp, schema);
@@ -3110,8 +3016,6 @@ test_helper_run_io_inline_json_parse(const struct OpenAPI_SchemaRef *schema) {
   fclose(fp);
   for (i = 0; i <= total_calls; ++i) {
     fp = cdd_test_tmpfile_global();
-    if (!fp)
-      break;
     g_io_calls = 0;
     g_fail_io_after = i;
     client_body_write_inline_json_parse(fp, schema);

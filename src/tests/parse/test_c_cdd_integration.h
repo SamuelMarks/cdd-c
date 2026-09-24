@@ -77,10 +77,7 @@ TEST test_integration_full_pipeline(void) {
     const char *expected_snippet =
         (char *)(size_t)(size_t)(size_t) "if (!p) { return CDD_C_ERROR_MEMORY; "
                                          "}";
-    if (!strstr(final_output, expected_snippet)) {
-      fprintf(stderr, "Output missing check:\n%s\n", final_output);
-      FAIL();
-    }
+    ASSERT(strstr(final_output, expected_snippet) != NULL);
   }
 
   /* Cleanup */
@@ -312,11 +309,7 @@ TEST test_end_to_end_project_lifecycle(void) {
                rand())) {
   }
   /* Use makedirs to safely handle existence/parent issues */
-  if (makedirs(project_root) != 0) {
-    free(sys_tmp);
-    free(project_root);
-    FAILm("Failed to create project root");
-  }
+  ASSERT_EQ(0, makedirs(project_root));
 
   if (asprintf(&src_c, "%s%ssrc.c", project_root, PATH_SEP)) {
   }

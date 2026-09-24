@@ -29,8 +29,6 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   enum Tank tank_val;
   int rc;
   (void)rc;
-  if (g_cdd_wine_skip)
-    SKIPm("Wine Parson Crash");
 
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
@@ -64,8 +62,6 @@ TEST test_HazE_to_json_and_from_json(void) {
   haz.tank = Tank_BIG;
   json_str = NULL;
   haz_out = NULL;
-  if (g_cdd_wine_skip)
-    SKIPm("Wine Parson Crash");
 
   rc = HazE_to_json(&haz, &json_str);
   ASSERT_EQ(0, rc);
@@ -100,8 +96,6 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   foo.haz = NULL;
   json_str = NULL;
   foo_out = NULL;
-  if (g_cdd_wine_skip)
-    SKIPm("Wine Parson Crash");
 
   rc = FooE_to_json(&foo, &json_str);
   ASSERT_EQ(0, rc);
@@ -139,8 +133,6 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   foo_in.haz = NULL;
   json_str = NULL;
   foo_out = NULL;
-  if (g_cdd_wine_skip)
-    SKIPm("Wine Parson Crash");
 
   foo_in.haz = &haz_in;
 

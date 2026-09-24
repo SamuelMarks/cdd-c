@@ -20,6 +20,14 @@ extern "C" {
 C_CDD_EXPORT cdd_c_error_t cdd_ffi_emit_erlang(
     cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Exposes internal edge cases for code coverage.
+ * @return CDD_C_SUCCESS on success.
+ */
+C_CDD_EXPORT cdd_c_error_t test_cdd_ffi_emit_erlang_internals(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -40,50 +40,74 @@ char *strdup(const char *s);
 
 #ifdef CDD_BUILD_TESTS
 SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc = 0;
-#if 0
+
 static void *test_malloc(size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
   }
   return malloc(size);
 }
+
 static void *test_calloc(size_t count, size_t size) {
   if (g_simple_json_fail_alloc > 0) {
     g_simple_json_fail_alloc--;
-    if (g_simple_json_fail_alloc == 0) return NULL;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
   }
   return calloc(count, size);
 }
-#if defined(__clang__)
-#endif
-#if defined(__GNUC__) || defined(__clang__)
-#endif
 
-extern int g_fail_alloc_after;
-extern int g_alloc_calls;
+static char *test_strdup(const char *s) {
+  if (g_simple_json_fail_alloc > 0) {
+    g_simple_json_fail_alloc--;
+    if (g_simple_json_fail_alloc == 0)
+      return NULL;
+  }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  return _strdup(s);
+#else
+  return strdup(s);
+#endif
+}
 
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 2, 3)))
 #endif
+static int test_jasprintf(char **unto, const char *fmt, ...) {
+  va_list args;
+  char *new_part = NULL;
+  int rc;
 
-static int test_jasprintf(char **strp, const char *fmt, ...) {
-  int ret;
-  va_list ap;
-  va_start(ap, fmt);
-#if 0
-  if (0) {
-      va_end(ap);
+  if (g_simple_json_fail_alloc > 0) {
+    g_simple_json_fail_alloc--;
+    if (g_simple_json_fail_alloc == 0) {
+      if (*unto) {
+        free(*unto);
+        *unto = NULL;
+      }
       return -1;
+    }
   }
-#endif
-  ret = c89stringutils_vasprintf(strp, fmt, ap);
-  va_end(ap);
-  return ret;
+
+  va_start(args, fmt);
+  c89stringutils_vasprintf(&new_part, fmt, args);
+  va_end(args);
+
+  rc = c89stringutils_jasprintf(unto, "%s", new_part);
+  free(new_part);
+  return rc;
 }
-#endif
 
-
+#undef malloc
+#define malloc test_malloc
+#undef calloc
+#define calloc test_calloc
+#undef strdup
+#define strdup test_strdup
+#undef c89stringutils_jasprintf
+#define c89stringutils_jasprintf test_jasprintf
 #endif
 
 /* clang-format on */
@@ -129,19 +153,14 @@ cdd_c_error_t Tank_to_str(const enum Tank tank, char **str) {
   switch (tank) {
   case Tank_BIG:
     *str = strdup("BIG");
-    if (!*str)
-      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_SMALL:
     *str = strdup("SMALL");
-    if (!*str)
-      return CDD_C_ERROR_MEMORY;
     break;
   case Tank_UNKNOWN:
   default:
     *str = strdup("UNKNOWN");
-    if (!*str)
-      return CDD_C_ERROR_MEMORY;
+    break;
   }
 
   if (*str == NULL)
@@ -180,14 +199,7 @@ cdd_c_error_t HazE_default(struct HazE **haz_e) {
   *haz_e = malloc(sizeof(**haz_e));
   if (*haz_e == NULL)
     return CDD_C_ERROR_MEMORY;
-  {
-    cdd_c_error_t rc = Tank_default(&(*haz_e)->tank);
-    if (rc != CDD_C_SUCCESS) {
-      free(*haz_e);
-      *haz_e = NULL;
-      return rc;
-    }
-  }
+  (*haz_e)->tank = Tank_BIG;
   (*haz_e)->bzr = NULL;
   return CDD_C_SUCCESS;
 }
@@ -220,47 +232,38 @@ cdd_c_error_t HazE_deepcopy(const struct HazE *haz_e_original,
 
 cdd_c_error_t HazE_display(const struct HazE *haz_e, FILE *fh) {
   char *s = NULL;
-  int rc = HazE_to_json(haz_e, &s);
-  if (rc != 0) {
+  cdd_c_error_t rc = HazE_to_json(haz_e, &s);
+  if (rc != CDD_C_SUCCESS) {
     free(s);
     return rc;
   }
-  rc = fprintf(fh, "%s\n", s);
-  if (rc >= 0) {
-    if (fflush(fh) != 0)
-      rc = -1;
-    else
-      rc = 0;
-  }
+  rc = (cdd_c_error_t)fprintf(fh, "%s\n", s);
+  if (rc > 0)
+    rc = CDD_C_SUCCESS;
   free(s);
   return rc;
 }
 
 cdd_c_error_t HazE_debug(const struct HazE *haz_e, FILE *fh) {
-  int rc;
-  (void)rc;
+  cdd_c_error_t rc;
   if (haz_e == NULL) {
-    rc = fputs("<null HazE>\n", fh);
-    return rc < 0 ? rc : 0;
+    rc = (cdd_c_error_t)fputs("<null HazE>\n", fh);
+    return rc < 0 ? rc : CDD_C_SUCCESS;
   }
-  rc = fputs("struct HazE dbg = {\n", fh);
+  rc = (cdd_c_error_t)fputs("struct HazE dbg = {\n", fh);
   if (rc < 0)
     return rc;
   {
     char *quoted = NULL;
     rc = quote_or_null(haz_e->bzr, &quoted);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = fprintf(fh, "  /* const char * */ bzr = %s,\n", quoted);
+    fprintf(fh, "  /* const char * */ bzr = %s,\n", quoted);
     free(quoted);
-    if (rc < 0)
-      return rc;
   }
-  rc = fprintf(fh, "  /* enum Tank */ tank = %d\n", haz_e->tank);
-  if (rc < 0)
-    return rc;
-  rc = fputs("};\n", fh);
-  return rc < 0 ? rc : 0;
+  fprintf(fh, "  /* enum Tank */ tank = %d\n", (int)haz_e->tank);
+  rc = (cdd_c_error_t)fputs("};\n", fh);
+  return rc < 0 ? rc : CDD_C_SUCCESS;
 }
 
 cdd_c_error_t HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
@@ -276,7 +279,6 @@ cdd_c_error_t HazE_eq(const struct HazE *haz_e0, const struct HazE *haz_e1) {
 cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
-  int need_comma = 0;
 
   if (json == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -293,21 +295,18 @@ cdd_c_error_t HazE_to_json(const struct HazE *haz_e, char **json) {
 
   if (haz_e->bzr) {
     c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
-    need_comma = 1;
   } else {
     c89stringutils_jasprintf(json, "\"bzr\": null");
-    need_comma = 1;
   }
   if (*json == NULL) {
     rc = CDD_C_ERROR_MEMORY;
     goto cleanup;
   }
 
-  if (need_comma) {
-    c89stringutils_jasprintf(json, ",");
-    if (*json == NULL)
-      goto cleanup;
-  }
+  c89stringutils_jasprintf(json, ",");
+  if (*json == NULL)
+    goto cleanup;
+
   {
     rc = Tank_to_str(haz_e->tank, &tank_str);
     if (rc != CDD_C_SUCCESS) {
@@ -333,7 +332,6 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
                                    struct HazE **haz_e) {
   const char *bzr_str = NULL;
   const char *tank_str;
-  int rc = 0;
   enum Tank tank_val;
   struct HazE *new_haz;
 
@@ -343,9 +341,7 @@ cdd_c_error_t HazE_from_jsonObject(const JSON_Object *jsonObject,
   tank_str = json_object_get_string(jsonObject, "tank");
   if (tank_str == NULL)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  rc = Tank_from_str(tank_str, &tank_val);
-  if (rc != 0)
-    return rc;
+  Tank_from_str(tank_str, &tank_val);
 
   new_haz = malloc(sizeof(*new_haz));
   if (new_haz == NULL)
@@ -394,11 +390,7 @@ cdd_c_error_t FooE_cleanup(struct FooE *foo_e) {
   if (foo_e == NULL)
     return CDD_C_SUCCESS;
   free((void *)(size_t)foo_e->bar);
-  {
-    cdd_c_error_t rc = HazE_cleanup(foo_e->haz);
-    if (rc != CDD_C_SUCCESS)
-      return rc;
-  }
+  HazE_cleanup(foo_e->haz);
   free(foo_e);
   return CDD_C_SUCCESS;
 }
@@ -449,12 +441,10 @@ cdd_c_error_t FooE_deepcopy(const struct FooE *foo_e_original,
 
   new_foo->can = foo_e_original->can;
 
-  {
+  if (foo_e_original->haz) {
     cdd_c_error_t deep_rc = HazE_deepcopy(foo_e_original->haz, &new_foo->haz);
     if (deep_rc != CDD_C_SUCCESS) {
-      cdd_c_error_t cleanup_rc = FooE_cleanup(new_foo);
-      if (cleanup_rc != CDD_C_SUCCESS)
-        return cleanup_rc;
+      FooE_cleanup(new_foo);
       return deep_rc;
     }
   }
@@ -465,53 +455,45 @@ cdd_c_error_t FooE_deepcopy(const struct FooE *foo_e_original,
 
 cdd_c_error_t FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
-  int rc = FooE_to_json(foo_e, &s);
-  if (rc != 0) {
+  cdd_c_error_t rc = FooE_to_json(foo_e, &s);
+  if (rc != CDD_C_SUCCESS) {
     free(s);
     return rc;
   }
-  rc = fprintf(fh, "%s\n", s);
-  if (rc >= 0) {
-    if (fflush(fh) != 0)
-      rc = -1;
-    else
-      rc = 0;
-  }
+  rc = (cdd_c_error_t)fprintf(fh, "%s\n", s);
+  if (rc > 0)
+    rc = CDD_C_SUCCESS;
   free(s);
   return rc;
 }
 
 cdd_c_error_t FooE_debug(const struct FooE *foo_e, FILE *fh) {
-  int rc;
-  (void)rc;
+  cdd_c_error_t rc;
   if (foo_e == NULL) {
-    rc = fputs("<null FooE>\n", fh);
-    return rc < 0 ? rc : 0;
+    rc = (cdd_c_error_t)fputs("<null FooE>\n", fh);
+    return rc < 0 ? rc : CDD_C_SUCCESS;
   }
-  rc = fputs("struct FooE dbg = {\n", fh);
+  rc = (cdd_c_error_t)fputs("struct FooE dbg = {\n", fh);
   if (rc < 0)
     return rc;
 
   {
     char *quoted = NULL;
     rc = quote_or_null(foo_e->bar, &quoted);
-    if (rc != 0)
+    if (rc != CDD_C_SUCCESS)
       return rc;
-    rc = fprintf(fh, "  /* const char * */ bar = %s,\n", quoted);
+    fprintf(fh, "  /* const char * */ bar = %s,\n", quoted);
     free(quoted);
-    if (rc < 0)
-      return rc;
   }
-  rc = fprintf(fh, "  /* int can */ can = %d,\n", foo_e->can);
-  if (rc < 0)
-    return rc;
+  fprintf(fh, "  /* int can */ can = %d,\n", foo_e->can);
 
+  fputs("  /* struct HazE * */ haz = ", fh);
   rc = HazE_debug(foo_e->haz, fh);
-  if (rc < 0)
+  if (rc != CDD_C_SUCCESS)
     return rc;
 
-  rc = fputs("};\n", fh);
-  return rc < 0 ? rc : 0;
+  rc = (cdd_c_error_t)fputs("};\n", fh);
+  return rc < 0 ? rc : CDD_C_SUCCESS;
 }
 
 cdd_c_error_t FooE_eq(const struct FooE *foo_e0, const struct FooE *foo_e1) {
@@ -606,10 +588,7 @@ cdd_c_error_t FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (haz_obj != NULL) {
     rc = HazE_from_jsonObject(haz_obj, &new_foo->haz);
     if (rc != 0) {
-      cdd_c_error_t cleanup_rc = FooE_cleanup(new_foo);
-      if (cleanup_rc != CDD_C_SUCCESS) {
-        return cleanup_rc;
-      }
+      FooE_cleanup(new_foo);
       return rc;
     }
   }
@@ -640,4 +619,58 @@ cdd_c_error_t FooE_from_json(const char *json, struct FooE **foo_e) {
   rc = FooE_from_jsonObject(jsonObject, foo_e);
   json_value_free(root);
   return rc;
+}
+
+cdd_c_error_t run_mocks_test(void) {
+  const enum Tank t = Tank_BIG;
+  cdd_c_error_t rc;
+  char *tank_as_str = NULL;
+  struct HazE haz_e;
+  struct FooE foo_e;
+  char *haz_e_json = NULL;
+  char *foo_e_json = NULL;
+  struct HazE *haz_e0 = NULL;
+  struct FooE *foo_e0 = NULL;
+
+  static const char *const haz_e_mock0 =
+      "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
+  static const char *const foo_e_mock0 =
+      "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
+      "\"some_bzr\",\"tank\": \"SMALL\"}}";
+
+  haz_e.bzr = "some_bzr";
+  haz_e.tank = Tank_SMALL;
+
+  foo_e.bar = "some_bar";
+  foo_e.can = 5;
+  foo_e.haz = &haz_e;
+
+  rc = Tank_to_str(t, &tank_as_str);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  free(tank_as_str);
+
+  rc = HazE_to_json(&haz_e, &haz_e_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  free(haz_e_json);
+
+  rc = HazE_from_json(haz_e_mock0, &haz_e0);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  HazE_eq(haz_e0, &haz_e);
+  HazE_cleanup(haz_e0);
+
+  rc = FooE_to_json(&foo_e, &foo_e_json);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  free(foo_e_json);
+
+  rc = FooE_from_json(foo_e_mock0, &foo_e0);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  FooE_eq(foo_e0, &foo_e);
+  FooE_cleanup(foo_e0);
+
+  return CDD_C_SUCCESS;
 }

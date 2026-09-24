@@ -50,13 +50,18 @@ static int mock_fopen_s(FILE **fh, const char *path, const char *mode) {
 
 #define FOPEN_S mock_fopen_s
 #define FOPEN mock_fopen
-#define FPUTS(str, stream)                                                     \
-  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)                   \
-       ? -1                                                                    \
-       : fputs(str, stream))
-#define FCLOSE(stream)                                                         \
-  ((g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) ? -1              \
-                                                             : fclose(stream))
+static int mock_fputs(const char *str, FILE *stream) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+    return -1;
+  return fputs(str, stream);
+}
+static int mock_fclose(FILE *stream) {
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+    return -1;
+  return fclose(stream);
+}
+#define FPUTS mock_fputs
+#define FCLOSE mock_fclose
 #else
 #define FOPEN_S fopen_s
 #define FOPEN fopen

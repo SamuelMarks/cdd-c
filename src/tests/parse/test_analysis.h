@@ -55,6 +55,15 @@ TEST test_analysis_find_malloc(void) {
   rc = find_allocs(code, &sites);
   (void)rc;
   ASSERT_EQ(0, rc);
+
+  /* Exercise tokenize failure branch in find_allocs */
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(-1, find_allocs(code, &sites));
+    g_cdd_alloc_fail = 0;
+  }
+
   ASSERT_EQ(1, sites.size);
   ASSERT(strcmp(sites.sites[0].spec->name, "malloc") == 0);
 

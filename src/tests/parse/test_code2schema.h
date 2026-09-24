@@ -78,9 +78,7 @@ TEST test_write_enum_functions(void) {
 #else
   tmp_fh = fopen("tmp_enum_func.c", "w");
 #endif
-  if (!tmp_fh)
-
-    FAILm("Failed to open file for writing");
+  ASSERT(tmp_fh != NULL);
 
 #endif
 
@@ -210,9 +208,7 @@ TEST test_write_struct_functions(void) {
   tmpf = cdd_test_tmpfile_global();
 #endif
 
-  if (!tmpf)
-
-    FAILm("Failed to open tmpfile");
+  ASSERT(tmpf != NULL);
 
   struct_fields_init(&test_struct_fields);
 

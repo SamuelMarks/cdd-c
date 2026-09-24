@@ -65,11 +65,7 @@ TEST test_cli_parser_getopt(void) {
     az_span span;
     span = az_span_create((uint8_t *)(size_t)src, strlen(src));
     rc = tokenize(span, &tokens);
-    (void)rc;
-    if (rc != 0) {
-      free(nodes);
-      FAILm("tokenize failed");
-    }
+    ASSERT_EQ(0, rc);
 
     rc = parse_tokens(tokens, nodes);
     ASSERT_EQ(0, rc);

@@ -19,7 +19,7 @@ repos:
   hooks:
   - id: cppcheck
     name: Cppcheck
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       cppcheck
     language: python
     pass_filenames: false
@@ -33,73 +33,73 @@ repos:
     pass_filenames: false
   - id: build-gcc
     name: Build (GCC)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       build gcc
     language: python
     pass_filenames: false
   - id: test-gcc
     name: Test (GCC)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       test gcc
     language: python
     pass_filenames: false
   - id: build-clang
     name: Build (Clang)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       build clang
     language: python
     pass_filenames: false
   - id: test-clang
     name: Test (Clang)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       test clang
     language: python
     pass_filenames: false
   - id: build-msvc
     name: Build (MSVC)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       build msvc
     language: python
     pass_filenames: false
   - id: test-msvc
     name: Test (MSVC)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       test msvc
     language: python
     pass_filenames: false
   - id: build-mingw
     name: Build (MinGW)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       build mingw
     language: python
     pass_filenames: false
   - id: test-mingw
     name: Test (MinGW)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       test mingw
     language: python
     pass_filenames: false
   - id: build-emscripten
     name: Build (Emscripten)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       build emscripten
     language: python
     pass_filenames: false
   - id: test-emscripten
     name: Test (Emscripten)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       test emscripten
     language: python
     pass_filenames: false
   - id: valgrind
     name: Valgrind (GCC)
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       valgrind gcc
     language: python
     pass_filenames: false
   - id: audit-error-percolator
     name: Audit Error Percolator
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       audit error_percolator
     language: python
     pass_filenames: false
@@ -117,9 +117,10 @@ repos:
     types: [c]
   - id: update-shields
     name: Update README Shields
-    entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())"
+    entry: python -c "import os, urllib.request; p = 'scripts/precommit_matrix.py'; p2 = os.path.expanduser('~/repos/c-ci/precommit_matrix.py'); src = open(p).read() if os.path.exists(p) else (open(p2).read() if os.path.exists(p2) else urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read().decode('utf-8')); exec(src)"
       shields
     language: python
     additional_dependencies:
     - gcovr
     pass_filenames: false
+    always_run: true

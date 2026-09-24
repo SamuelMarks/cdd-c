@@ -1,90 +1,40 @@
-#include <c_cdd_export.h>
-int g_cdd_alloc_fail = 0;
-#include "cdd_c_error.h"
 /**
  * @file main.c
  * @brief Main mock runner for simple JSON serialization testing.
  */
 
-/* clang-format off */#include "c_cdd/safe_crt_msvc.h"
+/* clang-format off */
+#include "c_cdd/safe_crt_msvc.h"
 
-#include <assert.h>
-#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#else
-#include <errno.h>
-#endif
-
+#include "c_cdd_export.h"
+#include "cdd_c_error.h"
 #include "../emit/simple_json.h"
+#include "simple_mocks_export.h"
 /* clang-format on */
 
-static const char *const haz_e_mock0 =
-    "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
-static const char *const foo_e_mock0 =
-    "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
-    "\"some_bzr\",\"tank\": \"SMALL\"}}";
+extern SIMPLE_MOCKS_EXPORT int g_simple_json_fail_alloc;
 
 /**
  * @brief Entry point for the JSON serialization mock runner.
  *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument array.
  * @return EXIT_SUCCESS on success, error code otherwise.
  */
-int main(void) {
-  const enum Tank t = Tank_BIG;
-  enum cdd_c_error rc;
+int main(int argc, char **argv) {
+  cdd_c_error_t rc;
 
-  char *tank_as_str = NULL;
-  struct HazE haz_e = {"some_bzr", Tank_SMALL};
-  struct FooE foo_e = {"some_bar", 5, NULL};
-  char *haz_e_json = NULL;
-  char *foo_e_json = NULL;
+  if (argc > 1 && strcmp(argv[1], "--fail-alloc") == 0) {
+    g_simple_json_fail_alloc = 1;
+  }
 
-  struct HazE *haz_e0 = (struct HazE *)malloc(sizeof(*haz_e0));
-  struct FooE *foo_e0 = (struct FooE *)malloc(sizeof(*foo_e0));
-
-  if (!haz_e0 || !foo_e0)
-    return CDD_C_ERROR_MEMORY;
-  foo_e.haz = &haz_e;
-
-  if (haz_e0 == NULL || foo_e0 == NULL)
-    return CDD_C_ERROR_MEMORY;
-
-  rc = Tank_to_str(t, &tank_as_str);
+  rc = run_mocks_test();
   if (rc != CDD_C_SUCCESS)
     return (int)rc;
-  assert(strcmp(tank_as_str, "BIG") == 0);
-  free(tank_as_str);
-
-  rc = HazE_to_json(&haz_e, &haz_e_json);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  assert(strcmp(haz_e_json, haz_e_mock0) == 0);
-  free(haz_e_json);
-
-  rc = HazE_from_json(haz_e_mock0, &haz_e0);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  rc = HazE_eq(haz_e0, &haz_e);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  free(haz_e0);
-
-  rc = FooE_to_json(&foo_e, &foo_e_json);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  assert(strcmp(foo_e_json, foo_e_mock0) == 0);
-  free(foo_e_json);
-
-  rc = FooE_from_json(foo_e_mock0, &foo_e0);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  rc = FooE_eq(foo_e0, &foo_e);
-  if (rc != CDD_C_SUCCESS)
-    return (int)rc;
-  free(foo_e0);
 
   return EXIT_SUCCESS;
 }

@@ -199,8 +199,7 @@ cdd_c_error_t vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
           if (k < tokens->size) {
             size_t end_inc = k;
             while (end_inc < tokens->size &&
-                   tokens->tokens[end_inc].kind != TOKEN_WHITESPACE &&
-                   tokens->tokens[end_inc].start[0] != '\n') {
+                   tokens->tokens[end_inc].kind != TOKEN_WHITESPACE) {
               end_inc++;
             }
 

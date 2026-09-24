@@ -289,11 +289,8 @@ TEST test_mapping_coverage(void) {
     int i;
     g_cdd_strdup_fail = 1;
     rc_oom = c_mapping_map_type("int", "x", &m);
-    if (rc_oom != CDD_C_ERROR_MEMORY) {
-      g_cdd_strdup_fail = 0;
-      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
-    }
     g_cdd_strdup_fail = 0;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
     c_mapping_free(&m);
 
     /* Trigger inner_type/inner_ref duplication OOM */

@@ -866,14 +866,14 @@ TEST test_schema_codegen_main_paths(void) {
   {
     int io_i = 1;
     /* extern C_CDD_EXPORT int g_schema_codegen_force_fail; (moved to global) */
-    for (io_i = 1; io_i < 50; io_i++) {
-      g_fail_io_after = io_i;
-      g_io_calls = 0;
+    for (io_i = 1; io_i < 200; io_i++) {
+      g_schema_fail_io_after = io_i;
+      g_schema_io_calls = 0;
       rc = schema2code_main(5, (char **)(size_t)argv);
       if (rc == 0)
         break;
     }
-    g_fail_io_after = -1;
+    g_schema_fail_io_after = -1;
 
     for (io_i = 1; io_i < 150; io_i++) {
       g_schema_codegen_force_fail = io_i;
@@ -1155,6 +1155,30 @@ TEST test_schema_codegen_main_errors(void) {
   remove("file.json");
   PASS();
 }
+
+TEST test_schema_codegen_non_object_no_props(void) {
+  void *root;
+  void *schemas;
+  int rc;
+  const char *schema_json =
+      "{\"components\": {\"schemas\": {"
+      "\"SimpleStr\": {\"type\": \"string\"},"
+      "\"NoTypeWithProps\": {\"properties\": {\"bar\": {\"type\": \"string\"}}}"
+      "}}}";
+  root = json_parse_string(schema_json);
+  ASSERT_NEQ(NULL, root);
+  schemas = json_object_get_object(json_value_get_object(root), "components");
+  schemas = json_object_get_object(schemas, "schemas");
+  rc = generate_header("test_simple_str", "test_simple_str", schemas, NULL);
+  ASSERT_EQ(0, rc);
+  rc = generate_source("test_simple_str", "test_simple_str", schemas, NULL);
+  ASSERT_EQ(0, rc);
+  json_value_free(root);
+  remove("test_simple_str.h");
+  remove("test_simple_str.c");
+  PASS();
+}
+
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_cli_exhaustive_io);
   RUN_TEST(test_schema_constraints_bounds);
@@ -1173,6 +1197,7 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_source_fail);
   RUN_TEST(test_schema_codegen_system_error);
   RUN_TEST(test_schema_codegen_main_errors);
+  RUN_TEST(test_schema_codegen_non_object_no_props);
 }
 
 #ifdef __cplusplus

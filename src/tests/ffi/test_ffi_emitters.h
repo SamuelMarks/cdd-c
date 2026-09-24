@@ -1255,6 +1255,19 @@ TEST test_ffi_emit_swift_io_fail(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+TEST test_ffi_emit_elixir_internals(void) {
+  free_dummy_ir(NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, test_cdd_ffi_emit_elixir_internals());
+  PASS();
+}
+
+TEST test_ffi_emit_erlang_internals(void) {
+  ASSERT_EQ(CDD_C_SUCCESS, test_cdd_ffi_emit_erlang_internals());
+  PASS();
+}
+#endif
+
 SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_ada);
   RUN_TEST(test_ffi_emit_clojure);
@@ -1270,6 +1283,10 @@ SUITE(ffi_emitters_suite) {
   RUN_TEST(test_ffi_emit_delphi);
   RUN_TEST(test_ffi_emit_elixir);
   RUN_TEST(test_ffi_emit_erlang);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_ffi_emit_elixir_internals);
+  RUN_TEST(test_ffi_emit_erlang_internals);
+#endif
   RUN_TEST(test_ffi_emit_fortran);
   RUN_TEST(test_ffi_emit_fsharp);
   RUN_TEST(test_ffi_emit_go);

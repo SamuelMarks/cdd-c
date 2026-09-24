@@ -62,7 +62,7 @@ typedef struct {
 } macro_lexer_t;
 
 static void free_tok(macro_tok_t *tok) {
-  if ((tok->kind == TOK_STR || tok->kind == TOK_IDENT) && tok->str_val) {
+  if (tok->kind == TOK_STR || tok->kind == TOK_IDENT) {
     C_CDD_FREE(tok->str_val);
     tok->str_val = NULL;
   }

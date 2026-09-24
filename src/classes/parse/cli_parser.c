@@ -245,7 +245,7 @@ C_CDD_EXPORT cdd_c_error_t test_cli_parser_internal_errors(void) {
   g_cdd_alloc_fail = 0;
 
   g_cdd_alloc_fail = 2;
-  err_extra = cdd_strndup2("abc", 3, &out);
+  err_extra = cdd_strndup2("abc", 10, &out);
   free(out);
   out = NULL;
   err6 = cdd_strndup2("abc", 3, &out);

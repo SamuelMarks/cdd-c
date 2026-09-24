@@ -90,52 +90,41 @@ TEST test_cdd_serve_json_rpc(void) {
 }
 
 TEST test_bin_cdd(void) {
-  int rc;
+  int rc = 1;
   const char *env_bin = getenv("CDD_C_BIN");
+  const char *candidates[7];
+  size_t n_cands = 0;
+  size_t i;
   if (env_bin != NULL && env_bin[0] != '\0') {
+    candidates[n_cands++] = env_bin;
+  }
+#if defined(_WIN32)
+  candidates[n_cands++] = "cdd-c.exe";
+  candidates[n_cands++] = ".\\cdd-c.exe";
+  candidates[n_cands++] = "..\\cdd-c.exe";
+  candidates[n_cands++] = ".\\bin\\cdd-c.exe";
+#else
+  candidates[n_cands++] = "./bin/cdd-c";
+  candidates[n_cands++] = "./build_gcc/bin/cdd-c";
+  candidates[n_cands++] = "./build_clang/bin/cdd-c";
+  candidates[n_cands++] = "./build/bin/cdd-c";
+  candidates[n_cands++] = "./build_cov/bin/cdd-c";
+  candidates[n_cands++] = "../bin/cdd-c";
+#endif
+  for (i = 0; i < n_cands; ++i) {
     char cmd[1024];
 #if defined(_MSC_VER)
-    sprintf_s(cmd, sizeof(cmd), "\"%s\" --help > NUL 2>&1", env_bin);
+    sprintf_s(cmd, sizeof(cmd), "\"%s\" --help > NUL 2>&1", candidates[i]);
 #elif defined(_WIN32)
-    sprintf(cmd, "\"%s\" --help > NUL 2>&1", env_bin);
+    sprintf(cmd, "\"%s\" --help > NUL 2>&1", candidates[i]);
 #else
-    sprintf(cmd, "\"%s\" --help > /dev/null 2>&1", env_bin);
+    sprintf(cmd, "\"%s\" --help > /dev/null 2>&1", candidates[i]);
 #endif
     rc = system(cmd);
     if (rc == 0) {
-      ASSERT_EQ(0, rc);
-      PASS();
+      break;
     }
   }
-#if defined(_WIN32)
-  rc = system("cdd-c.exe --help > NUL 2>&1");
-  if (rc != 0) {
-    rc = system(".\\cdd-c.exe --help > NUL 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("..\\cdd-c.exe --help > NUL 2>&1");
-  }
-  if (rc != 0) {
-    rc = system(".\\bin\\cdd-c.exe --help > NUL 2>&1");
-  }
-#else
-  rc = system("./bin/cdd-c --help > /dev/null 2>&1");
-  if (rc != 0) {
-    rc = system("./build_gcc/bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("./build_clang/bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("./build/bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("./build_cov/bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("../bin/cdd-c --help > /dev/null 2>&1");
-  }
-#endif
   ASSERT_EQ(0, rc);
   PASS();
 }
@@ -212,6 +201,15 @@ TEST test_cdd_generate_bindings(void) {
     config.target_langs = langs[i];
     ASSERT_EQ(0, cdd_generate_bindings(&config));
   }
+
+  config.target_langs = (char *)(size_t)(size_t) "python,wasm";
+  ASSERT_EQ(0, cdd_generate_bindings(&config));
+
+  config.target_langs = (char *)(size_t)(size_t) "wasm,python";
+  ASSERT_EQ(0, cdd_generate_bindings(&config));
+
+  config.target_langs = (char *)(size_t)(size_t) "xyzwasmAbc";
+  ASSERT_EQ(0, cdd_generate_bindings(&config));
 
   remove("test_dummy_bindings.h");
 

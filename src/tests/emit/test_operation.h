@@ -32,8 +32,11 @@ extern C_CDD_EXPORT int g_op_fail_doc_style_to_openapi;
 extern C_CDD_EXPORT int g_op_fail_ensure_response_null;
 extern C_CDD_EXPORT int g_op_fail_ensure_response_for_code;
 
+static void reset_operation_test(struct OpenAPI_Operation *op);
+
 TEST test_operation_is_reserved_header_name(void) {
   int out = -1;
+  reset_operation_test(NULL);
   ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name(NULL, &out));
   ASSERT_EQ(0, out);
   ASSERT_EQ(CDD_C_SUCCESS, is_reserved_header_name("", &out));
@@ -171,10 +174,7 @@ TEST test_operation_parse_link_params_json(void) {
 
   for (i = 0; i < count; i++) {
     free(out[i].name);
-    if (out[i].value.type == OA_ANY_STRING)
-      free(out[i].value.string);
-    if (out[i].value.type == OA_ANY_JSON)
-      free(out[i].value.json);
+    free(out[i].value.string);
   }
   free(out);
   g_fail_io_after = -1;
@@ -364,8 +364,7 @@ TEST test_operation_apply_example(void) {
   ASSERT_EQ(0, resp.example_set);
 
   /* Content type provided and matches */
-  if (resp.content_media_types[0].example.string)
-    free(resp.content_media_types[0].example.string);
+  free(resp.content_media_types[0].example.string);
   resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test6", "application/json"));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
@@ -740,213 +739,126 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
   size_t i;
   if (!op)
     return;
-  if (op->operation_id)
-    free(op->operation_id);
-  if (op->summary)
-    free(op->summary);
-  if (op->description)
-    free(op->description);
-  if (op->method)
-    free(op->method);
+  free(op->operation_id);
+  free(op->summary);
+  free(op->description);
+  free(op->method);
   if (op->parameters) {
     for (i = 0; i < op->n_parameters; i++) {
-      if (op->parameters[i].name)
-        free(op->parameters[i].name);
-      if (op->parameters[i].type)
-        free(op->parameters[i].type);
-      if (op->parameters[i].description)
-        free(op->parameters[i].description);
-      if (op->parameters[i].content_type)
-        free(op->parameters[i].content_type);
-      if (op->parameters[i].items_type)
-        free(op->parameters[i].items_type);
-      if (op->parameters[i].example.type == OA_ANY_STRING &&
-          op->parameters[i].example.string)
-        free(op->parameters[i].example.string);
-      if (op->parameters[i].example.type == OA_ANY_JSON &&
-          op->parameters[i].example.json)
-        free(op->parameters[i].example.json);
-      if (op->parameters[i].schema.ref_name)
-        free(op->parameters[i].schema.ref_name);
-      if (op->parameters[i].schema.ref)
-        free(op->parameters[i].schema.ref);
-      if (op->parameters[i].schema.inline_type)
-        free(op->parameters[i].schema.inline_type);
-      if (op->parameters[i].schema.items_ref)
-        free(op->parameters[i].schema.items_ref);
-      if (op->parameters[i].schema.format)
-        free(op->parameters[i].schema.format);
-      if (op->parameters[i].schema.items_format)
-        free(op->parameters[i].schema.items_format);
-      if (op->parameters[i].schema.content_media_type)
-        free(op->parameters[i].schema.content_media_type);
-      if (op->parameters[i].schema.content_encoding)
-        free(op->parameters[i].schema.content_encoding);
-      if (op->parameters[i].schema.items_content_media_type)
-        free(op->parameters[i].schema.items_content_media_type);
-      if (op->parameters[i].schema.items_content_encoding)
-        free(op->parameters[i].schema.items_content_encoding);
+      free(op->parameters[i].name);
+      free(op->parameters[i].type);
+      free(op->parameters[i].description);
+      free(op->parameters[i].content_type);
+      free(op->parameters[i].items_type);
+      free(op->parameters[i].example.string);
+      free(op->parameters[i].example.json);
+      free(op->parameters[i].schema.ref_name);
+      free(op->parameters[i].schema.ref);
+      free(op->parameters[i].schema.inline_type);
+      free(op->parameters[i].schema.items_ref);
+      free(op->parameters[i].schema.format);
+      free(op->parameters[i].schema.items_format);
+      free(op->parameters[i].schema.content_media_type);
+      free(op->parameters[i].schema.content_encoding);
+      free(op->parameters[i].schema.items_content_media_type);
+      free(op->parameters[i].schema.items_content_encoding);
     }
     free(op->parameters);
   }
   if (op->tags) {
     for (i = 0; i < op->n_tags; ++i) {
-      if (op->tags[i])
-        free(op->tags[i]);
+      free(op->tags[i]);
     }
     free(op->tags);
   }
-  if (op->external_docs.url)
-    free(op->external_docs.url);
-  if (op->external_docs.description)
-    free(op->external_docs.description);
-  if (op->req_body.ref_name)
-    free(op->req_body.ref_name);
-  if (op->req_body.inline_type)
-    free(op->req_body.inline_type);
-  if (op->req_body.content_type)
-    free(op->req_body.content_type);
-  if (op->req_body.format)
-    free(op->req_body.format);
-  if (op->req_body.items_ref)
-    free(op->req_body.items_ref);
-  if (op->req_body.items_format)
-    free(op->req_body.items_format);
+  free(op->external_docs.url);
+  free(op->external_docs.description);
+  free(op->req_body.ref_name);
+  free(op->req_body.inline_type);
+  free(op->req_body.content_type);
+  free(op->req_body.format);
+  free(op->req_body.items_ref);
+  free(op->req_body.items_format);
   if (op->req_body_media_types) {
     for (i = 0; i < op->n_req_body_media_types; ++i) {
       struct OpenAPI_MediaType *mt = &op->req_body_media_types[i];
       size_t e;
-      if (mt->name)
-        free(mt->name);
-      if (mt->ref)
-        free(mt->ref);
-      if (mt->extensions_json)
-        free(mt->extensions_json);
-      if (mt->schema.ref_name)
-        free(mt->schema.ref_name);
-      if (mt->schema.ref)
-        free(mt->schema.ref);
-      if (mt->schema.inline_type)
-        free(mt->schema.inline_type);
-      if (mt->schema.items_ref)
-        free(mt->schema.items_ref);
-      if (mt->schema.format)
-        free(mt->schema.format);
-      if (mt->schema.items_format)
-        free(mt->schema.items_format);
-      if (mt->schema.content_media_type)
-        free(mt->schema.content_media_type);
-      if (mt->schema.content_encoding)
-        free(mt->schema.content_encoding);
-      if (mt->schema.items_content_media_type)
-        free(mt->schema.items_content_media_type);
-      if (mt->schema.items_content_encoding)
-        free(mt->schema.items_content_encoding);
-      if (mt->example.type == OA_ANY_STRING && mt->example.string)
-        free(mt->example.string);
-      if (mt->example.type == OA_ANY_JSON && mt->example.json)
-        free(mt->example.json);
+      free(mt->name);
+      free(mt->ref);
+      free(mt->extensions_json);
+      free(mt->schema.ref_name);
+      free(mt->schema.ref);
+      free(mt->schema.inline_type);
+      free(mt->schema.items_ref);
+      free(mt->schema.format);
+      free(mt->schema.items_format);
+      free(mt->schema.content_media_type);
+      free(mt->schema.content_encoding);
+      free(mt->schema.items_content_media_type);
+      free(mt->schema.items_content_encoding);
+      free(mt->example.string);
+      free(mt->example.json);
       if (mt->encoding) {
         for (e = 0; e < mt->n_encoding; ++e) {
-          if (mt->encoding[e].name)
-            free(mt->encoding[e].name);
-          if (mt->encoding[e].content_type)
-            free(mt->encoding[e].content_type);
+          free(mt->encoding[e].name);
+          free(mt->encoding[e].content_type);
         }
         free(mt->encoding);
       }
       if (mt->prefix_encoding) {
         for (e = 0; e < mt->n_prefix_encoding; ++e) {
-          if (mt->prefix_encoding[e].name)
-            free(mt->prefix_encoding[e].name);
-          if (mt->prefix_encoding[e].content_type)
-            free(mt->prefix_encoding[e].content_type);
+          free(mt->prefix_encoding[e].name);
+          free(mt->prefix_encoding[e].content_type);
         }
         free(mt->prefix_encoding);
       }
       if (mt->item_encoding) {
-        if (mt->item_encoding->name)
-          free(mt->item_encoding->name);
-        if (mt->item_encoding->content_type)
-          free(mt->item_encoding->content_type);
+        free(mt->item_encoding->name);
+        free(mt->item_encoding->content_type);
         free(mt->item_encoding);
       }
     }
     free(op->req_body_media_types);
   }
-  if (op->req_body_description)
-    free(op->req_body_description);
-  if (op->req_body_extensions_json)
-    free(op->req_body_extensions_json);
-  if (op->req_body_ref)
-    free(op->req_body_ref);
-  if (op->req_body.example.type == OA_ANY_STRING && op->req_body.example.string)
-    free(op->req_body.example.string);
-  if (op->req_body.example.type == OA_ANY_JSON && op->req_body.example.json)
-    free(op->req_body.example.json);
+  free(op->req_body_description);
+  free(op->req_body_extensions_json);
+  free(op->req_body_ref);
+  free(op->req_body.example.string);
+  free(op->req_body.example.json);
   if (op->responses) {
     for (i = 0; i < op->n_responses; i++) {
       size_t m;
-      if (op->responses[i].code)
-        free(op->responses[i].code);
-      if (op->responses[i].summary)
-        free(op->responses[i].summary);
-      if (op->responses[i].description)
-        free(op->responses[i].description);
-      if (op->responses[i].content_type)
-        free(op->responses[i].content_type);
-      if (op->responses[i].example.type == OA_ANY_STRING &&
-          op->responses[i].example.string)
-        free(op->responses[i].example.string);
-      if (op->responses[i].example.type == OA_ANY_JSON &&
-          op->responses[i].example.json)
-        free(op->responses[i].example.json);
-      if (op->responses[i].schema.ref_name)
-        free(op->responses[i].schema.ref_name);
-      if (op->responses[i].schema.ref)
-        free(op->responses[i].schema.ref);
-      if (op->responses[i].schema.inline_type)
-        free(op->responses[i].schema.inline_type);
-      if (op->responses[i].schema.items_ref)
-        free(op->responses[i].schema.items_ref);
-      if (op->responses[i].schema.format)
-        free(op->responses[i].schema.format);
-      if (op->responses[i].schema.items_format)
-        free(op->responses[i].schema.items_format);
+      free(op->responses[i].code);
+      free(op->responses[i].summary);
+      free(op->responses[i].description);
+      free(op->responses[i].content_type);
+      free(op->responses[i].example.string);
+      free(op->responses[i].example.json);
+      free(op->responses[i].schema.ref_name);
+      free(op->responses[i].schema.ref);
+      free(op->responses[i].schema.inline_type);
+      free(op->responses[i].schema.items_ref);
+      free(op->responses[i].schema.format);
+      free(op->responses[i].schema.items_format);
       if (op->responses[i].content_media_types) {
         for (m = 0; m < op->responses[i].n_content_media_types; ++m) {
           struct OpenAPI_MediaType *mt =
               &op->responses[i].content_media_types[m];
-          if (mt->name)
-            free(mt->name);
-          if (mt->schema.ref_name)
-            free(mt->schema.ref_name);
-          if (mt->schema.ref)
-            free(mt->schema.ref);
-          if (mt->schema.inline_type)
-            free(mt->schema.inline_type);
-          if (mt->schema.items_ref)
-            free(mt->schema.items_ref);
-          if (mt->schema.format)
-            free(mt->schema.format);
-          if (mt->schema.items_format)
-            free(mt->schema.items_format);
-          if (mt->item_schema.ref_name)
-            free(mt->item_schema.ref_name);
-          if (mt->item_schema.ref)
-            free(mt->item_schema.ref);
-          if (mt->item_schema.inline_type)
-            free(mt->item_schema.inline_type);
-          if (mt->item_schema.items_ref)
-            free(mt->item_schema.items_ref);
-          if (mt->item_schema.format)
-            free(mt->item_schema.format);
-          if (mt->item_schema.items_format)
-            free(mt->item_schema.items_format);
-          if (mt->example.type == OA_ANY_STRING && mt->example.string)
-            free(mt->example.string);
-          if (mt->example.type == OA_ANY_JSON && mt->example.json)
-            free(mt->example.json);
+          free(mt->name);
+          free(mt->schema.ref_name);
+          free(mt->schema.ref);
+          free(mt->schema.inline_type);
+          free(mt->schema.items_ref);
+          free(mt->schema.format);
+          free(mt->schema.items_format);
+          free(mt->item_schema.ref_name);
+          free(mt->item_schema.ref);
+          free(mt->item_schema.inline_type);
+          free(mt->item_schema.items_ref);
+          free(mt->item_schema.format);
+          free(mt->item_schema.items_format);
+          free(mt->example.string);
+          free(mt->example.json);
         }
         free(op->responses[i].content_media_types);
       }
@@ -954,22 +866,14 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
         size_t h;
         for (h = 0; h < op->responses[i].n_headers; ++h) {
           struct OpenAPI_Header *hdr = &op->responses[i].headers[h];
-          if (hdr->name)
-            free(hdr->name);
-          if (hdr->description)
-            free(hdr->description);
-          if (hdr->content_type)
-            free(hdr->content_type);
-          if (hdr->type)
-            free(hdr->type);
-          if (hdr->schema.inline_type)
-            free(hdr->schema.inline_type);
-          if (hdr->schema.format)
-            free(hdr->schema.format);
-          if (hdr->example.type == OA_ANY_STRING && hdr->example.string)
-            free(hdr->example.string);
-          if (hdr->example.type == OA_ANY_JSON && hdr->example.json)
-            free(hdr->example.json);
+          free(hdr->name);
+          free(hdr->description);
+          free(hdr->content_type);
+          free(hdr->type);
+          free(hdr->schema.inline_type);
+          free(hdr->schema.format);
+          free(hdr->example.string);
+          free(hdr->example.json);
         }
         free(op->responses[i].headers);
       }
@@ -977,42 +881,26 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
         size_t l;
         for (l = 0; l < op->responses[i].n_links; ++l) {
           struct OpenAPI_Link *lnk = &op->responses[i].links[l];
-          if (lnk->name)
-            free(lnk->name);
-          if (lnk->summary)
-            free(lnk->summary);
-          if (lnk->description)
-            free(lnk->description);
-          if (lnk->operation_id)
-            free(lnk->operation_id);
-          if (lnk->operation_ref)
-            free(lnk->operation_ref);
+          free(lnk->name);
+          free(lnk->summary);
+          free(lnk->description);
+          free(lnk->operation_id);
+          free(lnk->operation_ref);
           if (lnk->parameters) {
             size_t p;
             for (p = 0; p < lnk->n_parameters; ++p) {
-              if (lnk->parameters[p].name)
-                free(lnk->parameters[p].name);
-              if (lnk->parameters[p].value.type == OA_ANY_STRING &&
-                  lnk->parameters[p].value.string)
-                free(lnk->parameters[p].value.string);
-              if (lnk->parameters[p].value.type == OA_ANY_JSON &&
-                  lnk->parameters[p].value.json)
-                free(lnk->parameters[p].value.json);
+              free(lnk->parameters[p].name);
+              free(lnk->parameters[p].value.string);
+              free(lnk->parameters[p].value.json);
             }
             free(lnk->parameters);
           }
-          if (lnk->request_body.type == OA_ANY_STRING &&
-              lnk->request_body.string)
-            free(lnk->request_body.string);
-          if (lnk->request_body.type == OA_ANY_JSON && lnk->request_body.json)
-            free(lnk->request_body.json);
+          free(lnk->request_body.string);
+          free(lnk->request_body.json);
           if (lnk->server) {
-            if (lnk->server->url)
-              free(lnk->server->url);
-            if (lnk->server->name)
-              free(lnk->server->name);
-            if (lnk->server->description)
-              free(lnk->server->description);
+            free(lnk->server->url);
+            free(lnk->server->name);
+            free(lnk->server->description);
             free(lnk->server);
           }
         }
@@ -1028,12 +916,10 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
         size_t r;
         for (r = 0; r < set->n_requirements; ++r) {
           size_t s;
-          if (set->requirements[r].scheme)
-            free(set->requirements[r].scheme);
+          free(set->requirements[r].scheme);
           if (set->requirements[r].scopes) {
             for (s = 0; s < set->requirements[r].n_scopes; ++s) {
-              if (set->requirements[r].scopes[s])
-                free(set->requirements[r].scopes[s]);
+              free(set->requirements[r].scopes[s]);
             }
             free(set->requirements[r].scopes);
           }
@@ -1046,12 +932,9 @@ static void reset_operation_test(struct OpenAPI_Operation *op) {
   if (op->servers) {
     for (i = 0; i < op->n_servers; ++i) {
       free_openapi_server_variables_op(&op->servers[i]);
-      if (op->servers[i].url)
-        free(op->servers[i].url);
-      if (op->servers[i].name)
-        free(op->servers[i].name);
-      if (op->servers[i].description)
-        free(op->servers[i].description);
+      free(op->servers[i].url);
+      free(op->servers[i].name);
+      free(op->servers[i].description);
     }
     free(op->servers);
   }
@@ -1647,16 +1530,11 @@ TEST test_operation_add_link_to_response_advanced(void) {
   g_cdd_strdup_fail = 5;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, add_link_to_response(&resp, &dl));
   g_cdd_strdup_fail = 0;
-
   if (resp.links) {
-    if (resp.links[0].name)
-      free(resp.links[0].name);
-    if (resp.links[0].summary)
-      free(resp.links[0].summary);
-    if (resp.links[0].description)
-      free(resp.links[0].description);
-    if (resp.links[0].operation_ref)
-      free(resp.links[0].operation_ref);
+    free(resp.links[0].name);
+    free(resp.links[0].summary);
+    free(resp.links[0].description);
+    free(resp.links[0].operation_id);
     free(resp.links);
     resp.links = NULL;
     resp.n_links = 0;
@@ -1972,10 +1850,8 @@ TEST test_operation_init_and_add_response_media_type(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_response(&mt, "app/json", &resp, 0));
   g_cdd_strdup_fail = 0;
-  if (mt.name) {
-    free(mt.name);
-    mt.name = NULL;
-  }
+  free(mt.name);
+  mt.name = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, add_response_media_type(NULL, "app/json", 0));
   ASSERT_EQ(CDD_C_SUCCESS, add_response_media_type(&resp, NULL, 0));
@@ -2097,10 +1973,8 @@ TEST test_operation_request_body_media_types(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_request_body(&mt, "app/json", &op, 0));
   g_cdd_strdup_fail = 0;
-  if (mt.name) {
-    free(mt.name);
-    mt.name = NULL;
-  }
+  free(mt.name);
+  mt.name = NULL;
   op.req_body.ref_name = NULL;
 
   ASSERT_EQ(CDD_C_SUCCESS, add_request_body_media_type(NULL, "app/json", 0));
@@ -2165,20 +2039,16 @@ TEST test_operation_media_types_item_schema_oom(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_response(&mt, "app/json", &resp, 1));
   g_cdd_strdup_fail = 0;
-  if (mt.name) {
-    free(mt.name);
-    mt.name = NULL;
-  }
+  free(mt.name);
+  mt.name = NULL;
 
   op.req_body.ref_name = (char *)(size_t) "BodyRef";
   g_cdd_strdup_fail = 2;
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             init_media_type_from_request_body(&mt, "app/json", &op, 1));
   g_cdd_strdup_fail = 0;
-  if (mt.name) {
-    free(mt.name);
-    mt.name = NULL;
-  }
+  free(mt.name);
+  mt.name = NULL;
 
   resp.schema.ref_name = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, add_response_media_type(&resp, "app/json", 0));
@@ -5208,7 +5078,43 @@ TEST test_operation_reach_100_percent(void) {
   PASS();
 }
 
+TEST test_operation_reset_with_link_details(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response *resp;
+  struct OpenAPI_Link *lnk;
+  struct OpenAPI_Server *srv;
+  struct OpenAPI_LinkParam *lp;
+
+  memset(&op, 0, sizeof(op));
+  resp = (struct OpenAPI_Response *)calloc(1, sizeof(*resp));
+  lnk = (struct OpenAPI_Link *)calloc(1, sizeof(*lnk));
+  srv = (struct OpenAPI_Server *)calloc(1, sizeof(*srv));
+  lp = (struct OpenAPI_LinkParam *)calloc(1, sizeof(*lp));
+
+  lp->name = strdup("param1");
+  lp->value.string = strdup("val1");
+  lp->value.json = strdup("{\"a\":1}");
+
+  srv->url = strdup("http://example.com");
+  srv->name = strdup("srv");
+  srv->description = strdup("desc");
+
+  lnk->n_parameters = 1;
+  lnk->parameters = lp;
+  lnk->server = srv;
+
+  resp->n_links = 1;
+  resp->links = lnk;
+
+  op.n_responses = 1;
+  op.responses = resp;
+
+  reset_operation_test(&op);
+  PASS();
+}
+
 SUITE(operation_suite) {
+  RUN_TEST(test_operation_reset_with_link_details);
   RUN_TEST(test_operation_reach_100_percent);
   RUN_TEST(test_operation_100_percent_coverage);
   RUN_TEST(test_operation_100_percent_coverage_part2);

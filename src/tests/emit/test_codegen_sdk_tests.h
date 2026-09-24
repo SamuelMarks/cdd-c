@@ -41,8 +41,7 @@ TEST test_gen_sdk_test_basic(void) {
     long sz;
     char *content = NULL;
 
-    if (!tmp)
-      return -1;
+    ASSERT(tmp != NULL);
 
     /* Setup Spec */
     memset(&spec, 0, sizeof(spec));

@@ -69,6 +69,14 @@ TEST test_gen_client_basic(void) {
   size_t sz;
   int rc;
 
+  /* Exercise setup_minimal_spec error path */
+  {
+    extern C_CDD_EXPORT int g_openapi_spec_init_fail;
+    g_openapi_spec_init_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, setup_minimal_spec(&spec, &op));
+    g_openapi_spec_init_fail = 0;
+  }
+
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
 
   memset(&config, 0, sizeof(config));
@@ -1451,6 +1459,295 @@ TEST test_client_gen_mock_errors(void) {
     g_client_gen_fail = 9;
     rc = build_effective_parameters(&p_path, NULL, &p_out, &p_count);
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    g_client_gen_fail = 0;
+  }
+
+  {
+    const struct OpenAPI_ServerVariable *sv_out = NULL;
+    struct OpenAPI_Server srv_nullvarname;
+    struct OpenAPI_ServerVariable var_noname;
+    ASSERT_EQ(CDD_C_SUCCESS, find_server_variable(NULL, "v", &sv_out));
+    ASSERT(sv_out == NULL);
+    ASSERT_EQ(CDD_C_SUCCESS, find_server_variable(&srv, NULL, &sv_out));
+    ASSERT(sv_out == NULL);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_server_variable(&srv, "nonexistent", &sv_out));
+    ASSERT(sv_out == NULL);
+    {
+      struct OpenAPI_Server srv_novars;
+      memset(&srv_novars, 0, sizeof(srv_novars));
+      ASSERT_EQ(CDD_C_SUCCESS, find_server_variable(&srv_novars, "v", &sv_out));
+      ASSERT(sv_out == NULL);
+    }
+    memset(&srv_nullvarname, 0, sizeof(srv_nullvarname));
+    memset(&var_noname, 0, sizeof(var_noname));
+    var_noname.name = NULL;
+    srv_nullvarname.variables = &var_noname;
+    srv_nullvarname.n_variables = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              find_server_variable(&srv_nullvarname, "v", &sv_out));
+    ASSERT(sv_out == NULL);
+  }
+
+  {
+    ASSERT_EQ(CDD_C_SUCCESS, render_server_url_default(NULL, &out));
+    ASSERT(out == NULL);
+    {
+      struct OpenAPI_Server srv_nourl;
+      memset(&srv_nourl, 0, sizeof(srv_nourl));
+      ASSERT_EQ(CDD_C_SUCCESS, render_server_url_default(&srv_nourl, &out));
+      ASSERT(out == NULL);
+    }
+    {
+      struct OpenAPI_Server srv_novarval;
+      struct OpenAPI_ServerVariable var_nodef;
+      memset(&srv_novarval, 0, sizeof(srv_novarval));
+      memset(&var_nodef, 0, sizeof(var_nodef));
+      var_nodef.name = (char *)(size_t)(size_t) "v";
+      var_nodef.default_value = NULL;
+      srv_novarval.url = (char *)(size_t)(size_t) "http://api.com/{v}";
+      srv_novarval.variables = &var_nodef;
+      srv_novarval.n_variables = 1;
+      ASSERT_EQ(CDD_C_SUCCESS, render_server_url_default(&srv_novarval, &out));
+      ASSERT(out == NULL);
+    }
+  }
+
+  {
+    struct OpenAPI_Server *s_out = NULL;
+    struct OpenAPI_Operation op_empty;
+    struct OpenAPI_Path path_empty;
+    struct OpenAPI_Server srv_dummy;
+    memset(&op_empty, 0, sizeof(op_empty));
+    memset(&path_empty, 0, sizeof(path_empty));
+    ASSERT_EQ(CDD_C_SUCCESS, select_operation_server(NULL, NULL, &s_out));
+    ASSERT(s_out == NULL);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              select_operation_server(&path_empty, &op_empty, &s_out));
+    ASSERT(s_out == NULL);
+
+    op_empty.servers = &srv_dummy;
+    op_empty.n_servers = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, select_operation_server(NULL, &op_empty, &s_out));
+    ASSERT(s_out == NULL);
+  }
+
+  {
+    ASSERT_EQ(CDD_C_SUCCESS, sanitize_tag("", &out));
+    ASSERT(out != NULL);
+    ASSERT_STR_EQ("", out);
+    free(out);
+    out = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS, sanitize_tag("Upper", &out));
+    ASSERT(out != NULL);
+    ASSERT_STR_EQ("Upper", out);
+    free(out);
+    out = NULL;
+  }
+
+  {
+    struct OpenAPI_Parameter p_a, p_b;
+    memset(&p_a, 0, sizeof(p_a));
+    memset(&p_b, 0, sizeof(p_b));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, NULL));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(NULL, &p_b));
+    ASSERT_EQ(CDD_C_SUCCESS, param_keys_match(&p_a, &p_b));
+  }
+
+  {
+    struct OpenAPI_Parameter *p_out = NULL;
+    size_t p_cnt = 0;
+    struct OpenAPI_Path p_empty;
+    struct OpenAPI_Operation op_with_p;
+    struct OpenAPI_Parameter p_single;
+    memset(&p_empty, 0, sizeof(p_empty));
+    memset(&op_with_p, 0, sizeof(op_with_p));
+    memset(&p_single, 0, sizeof(p_single));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              build_effective_parameters(&p_empty, NULL, &p_out, &p_cnt));
+    ASSERT_EQ(0, p_cnt);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              build_effective_parameters(NULL, NULL, NULL, NULL));
+
+    op_with_p.parameters = &p_single;
+    op_with_p.n_parameters = 1;
+    p_empty.parameters = NULL;
+    p_empty.n_parameters = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              build_effective_parameters(&p_empty, &op_with_p, &p_out, &p_cnt));
+    ASSERT_EQ(1, p_cnt);
+    free(p_out);
+  }
+
+  {
+    FILE *devnull = cdd_test_tmpfile_global();
+    ASSERT_EQ(CDD_C_SUCCESS, write_header_preamble(devnull, "MY_GUARD", NULL));
+    fclose(devnull);
+  }
+
+  {
+    struct OpenAPI_Operation doc_op;
+    struct OpenAPI_Path doc_path;
+    struct OpenAPI_Callback doc_cb;
+    struct OpenAPI_Response doc_resp;
+    struct OpenAPI_Link doc_link;
+    struct OpenAPI_SecurityRequirementSet doc_sec;
+    struct OpenAPI_Parameter doc_params[2];
+    FILE *devnull = cdd_test_tmpfile_global();
+
+    memset(&doc_op, 0, sizeof(doc_op));
+    memset(&doc_path, 0, sizeof(doc_path));
+    memset(&doc_cb, 0, sizeof(doc_cb));
+    memset(&doc_resp, 0, sizeof(doc_resp));
+    memset(&doc_link, 0, sizeof(doc_link));
+    memset(&doc_sec, 0, sizeof(doc_sec));
+    memset(doc_params, 0, sizeof(doc_params));
+
+    doc_path.route = (char *)(size_t) "/doc_test";
+    doc_op.summary = (char *)(size_t) "Summary";
+    doc_op.description = (char *)(size_t) "Description";
+    doc_op.operation_id = (char *)(size_t) "docOp";
+    doc_op.external_docs.url = (char *)(size_t) "http://example.com/docs";
+    doc_op.callbacks = &doc_cb;
+    doc_resp.links = &doc_link;
+    doc_op.responses = &doc_resp;
+    doc_op.n_responses = 1;
+    doc_op.security = &doc_sec;
+    doc_op.deprecated = 1;
+
+    doc_params[0].name = (char *)(size_t) "p0";
+    doc_params[0].in = OA_PARAM_IN_QUERY;
+    doc_params[0].allow_empty_value = 1;
+    doc_params[0].allow_reserved = 1;
+
+    doc_params[1].name = (char *)(size_t) "p1";
+    doc_params[1].in = OA_PARAM_IN_UNKNOWN;
+
+    doc_op.parameters = doc_params;
+    doc_op.n_parameters = 2;
+
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, &doc_path, &doc_op));
+    fclose(devnull);
+  }
+
+  {
+    struct OpenAPI_Spec spec_srv;
+    struct OpenAPI_Server srv_nourl[1];
+    FILE *h_devnull = cdd_test_tmpfile_global();
+    FILE *c_devnull = cdd_test_tmpfile_global();
+
+    memset(&spec_srv, 0, sizeof(spec_srv));
+    memset(srv_nourl, 0, sizeof(srv_nourl));
+    spec_srv.servers = srv_nourl;
+    spec_srv.n_servers = 1;
+    srv_nourl[0].url = NULL;
+
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_lifecycle_funcs(h_devnull, c_devnull, "test_", NULL));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_lifecycle_funcs(h_devnull, c_devnull, "test_", &spec_srv));
+
+    spec_srv.n_servers = 0;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_lifecycle_funcs(h_devnull, c_devnull, "test_", &spec_srv));
+
+    /* unclosed variable -> default_url is NULL */
+    spec_srv.n_servers = 1;
+    srv_nourl[0].url = (char *)(size_t) "http://api.com/{unclosed";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              write_lifecycle_funcs(h_devnull, c_devnull, "test_", &spec_srv));
+
+    fclose(h_devnull);
+    fclose(c_devnull);
+  }
+
+  {
+    FILE *devnull = cdd_test_tmpfile_global();
+    struct OpenAPI_Operation doc_op2;
+    struct OpenAPI_Parameter doc_p;
+    struct OpenAPI_Response r_nocode;
+    struct OpenAPI_Path path_noroute;
+    memset(&doc_op2, 0, sizeof(doc_op2));
+    memset(&doc_p, 0, sizeof(doc_p));
+    memset(&r_nocode, 0, sizeof(r_nocode));
+    memset(&path_noroute, 0, sizeof(path_noroute));
+
+    /* 1. summary == NULL, operation_id != NULL */
+    doc_op2.operation_id = (char *)(size_t) "myOp";
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
+
+    /* 2. summary == NULL, operation_id == NULL */
+    doc_op2.operation_id = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
+
+    /* 3. parameter name == NULL */
+    doc_p.name = NULL;
+    doc_op2.parameters = &doc_p;
+    doc_op2.n_parameters = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
+
+    /* 4. responses == NULL */
+    doc_op2.parameters = NULL;
+    doc_op2.n_parameters = 0;
+    doc_op2.responses = NULL;
+    doc_op2.n_responses = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
+
+    /* 5. response code == NULL */
+    r_nocode.code = NULL;
+    doc_op2.responses = &r_nocode;
+    doc_op2.n_responses = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, NULL, &doc_op2));
+
+    /* 6. path without route */
+    path_noroute.route = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, write_docblock(devnull, &path_noroute, &doc_op2));
+
+    /* 7. IO fail on unnamed operation */
+    doc_op2.summary = NULL;
+    doc_op2.operation_id = NULL;
+    g_io_calls = 0;
+    g_fail_io_after = 1;
+    write_docblock(devnull, NULL, &doc_op2);
+    g_fail_io_after = -1;
+
+    /* 8. IO fail on operation with operation_id */
+    doc_op2.summary = NULL;
+    doc_op2.operation_id = (char *)(size_t) "myOp";
+    g_io_calls = 0;
+    g_fail_io_after = 1;
+    write_docblock(devnull, NULL, &doc_op2);
+    g_fail_io_after = -1;
+
+    fclose(devnull);
+  }
+
+  {
+    struct OpenAPI_Path p_nosrv;
+    struct OpenAPI_Server srv_dummy;
+    struct OpenAPI_Server *s_out = NULL;
+    memset(&p_nosrv, 0, sizeof(p_nosrv));
+    p_nosrv.servers = &srv_dummy;
+    p_nosrv.n_servers = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, select_operation_server(&p_nosrv, NULL, &s_out));
+    ASSERT(s_out == NULL);
+  }
+
+  {
+    struct OpenAPI_Parameter *p_out = NULL;
+    size_t p_cnt = 0;
+    struct OpenAPI_Operation op_with_p;
+    struct OpenAPI_Parameter p_single;
+    memset(&op_with_p, 0, sizeof(op_with_p));
+    memset(&p_single, 0, sizeof(p_single));
+    op_with_p.parameters = &p_single;
+    op_with_p.n_parameters = 1;
+    ASSERT_EQ(CDD_C_SUCCESS,
+              build_effective_parameters(NULL, &op_with_p, &p_out, &p_cnt));
+    ASSERT_EQ(1, p_cnt);
+    free(p_out);
   }
 
   /* openapi_client_generate mocks */
@@ -1500,13 +1797,27 @@ TEST test_client_gen_mock_errors(void) {
   /* mock 12: filenames malloc fail */
   g_client_gen_fail = 12;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 75;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 76;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 77;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
 
   /* mock 16: file open fail */
   g_client_gen_fail = 16;
   ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 78;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 79;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 80;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
 
   /* mock 17: guard fail */
   g_client_gen_fail = 17;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 81;
   ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_client_generate(&spec, &config));
 
   /* mock 18: model_guard fail */
@@ -1652,7 +1963,8 @@ TEST test_client_gen_mock_errors(void) {
 
   /* mock 74: endif guard fprintf fail */
   g_client_gen_fail = 74;
-  ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+  g_client_gen_fail = 0;
 
   /* emit_operation mocks 40..46, 56..60 */
   {
@@ -1718,6 +2030,58 @@ TEST test_client_gen_mock_errors(void) {
     g_client_gen_fail = 46;
     ASSERT_EQ(CDD_C_ERROR_IO,
               emit_operation(hf, cf, spec.paths, &op, &spec, &config, "api_"));
+
+    /* emit_operation invalid args */
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        emit_operation(NULL, cf, spec.paths, &op, &spec, &config, "api_"));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        emit_operation(hf, NULL, spec.paths, &op, &spec, &config, "api_"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              emit_operation(hf, cf, NULL, &op, &spec, &config, "api_"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              emit_operation(hf, cf, spec.paths, NULL, &spec, &config, "api_"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              emit_operation(hf, cf, spec.paths, &op, &spec, NULL, "api_"));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              emit_operation(hf, cf, spec.paths, &op, &spec, &config, NULL));
+
+    /* tags[0] == NULL */
+    {
+      char *null_t = NULL;
+      op.tags = &null_t;
+      op.n_tags = 1;
+      g_client_gen_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, emit_operation(hf, cf, spec.paths, &op, &spec,
+                                              &config, "api_"));
+      op.tags = NULL;
+      op.n_tags = 0;
+    }
+
+    /* server_override with url == NULL */
+    {
+      struct OpenAPI_Server s_nourl;
+      memset(&s_nourl, 0, sizeof(s_nourl));
+      s_nourl.url = NULL;
+      op.servers = &s_nourl;
+      op.n_servers = 1;
+      g_client_gen_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, emit_operation(hf, cf, spec.paths, &op, &spec,
+                                              &config, "api_"));
+    }
+
+    /* server_override with url containing unclosed brace */
+    {
+      struct OpenAPI_Server s_unclosed;
+      memset(&s_unclosed, 0, sizeof(s_unclosed));
+      s_unclosed.url = (char *)(size_t) "http://api.com/{unclosed";
+      op.servers = &s_unclosed;
+      op.n_servers = 1;
+      g_client_gen_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, emit_operation(hf, cf, spec.paths, &op, &spec,
+                                              &config, "api_"));
+    }
 
     if (hf)
       fclose(hf);
@@ -1788,6 +2152,54 @@ TEST test_client_gen_extra_cases(void) {
     rc = select_operation_server(NULL, NULL, &res_srv);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     ASSERT(res_srv == NULL);
+  }
+
+  {
+    struct OpenAPI_Spec s_extra;
+    struct OpenAPI_Path p_extra;
+    struct OpenAPI_Operation ops_extra[2];
+    struct OpenApiClientConfig cfg_extra;
+    struct OpenAPI_Response resp_extra;
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_spec_init(&s_extra));
+    memset(&p_extra, 0, sizeof(p_extra));
+    memset(ops_extra, 0, sizeof(ops_extra));
+    memset(&cfg_extra, 0, sizeof(cfg_extra));
+    memset(&resp_extra, 0, sizeof(resp_extra));
+    resp_extra.code = (char *)(size_t) "200";
+
+    /* op 0: operation_id != NULL, description == NULL, summary == NULL */
+    ops_extra[0].verb = OA_VERB_GET;
+    ops_extra[0].operation_id = (char *)(size_t) "op_no_desc_no_sum";
+    ops_extra[0].description = NULL;
+    ops_extra[0].summary = NULL;
+    ops_extra[0].responses = &resp_extra;
+    ops_extra[0].n_responses = 1;
+
+    /* op 1: description == NULL, summary != NULL */
+    ops_extra[1].verb = OA_VERB_POST;
+    ops_extra[1].operation_id = (char *)(size_t) "op_summary_only";
+    ops_extra[1].summary = (char *)(size_t) "Only summary";
+    ops_extra[1].description = NULL;
+    ops_extra[1].responses = &resp_extra;
+    ops_extra[1].n_responses = 1;
+
+    p_extra.route = (char *)(size_t) "/extra/valid";
+    p_extra.operations = ops_extra;
+    p_extra.n_operations = 2;
+
+    s_extra.paths = &p_extra;
+    s_extra.n_paths = 1;
+
+    cfg_extra.filename_base = (char *)(size_t) "build/test_out/test_extra_ops";
+    cfg_extra.no_installable_package = 1;
+
+    rc = openapi_client_generate(&s_extra, &cfg_extra);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+    remove("build/test_out/src/test_extra_ops.h");
+    remove("build/test_out/src/test_extra_ops.c");
+    remove("build/test_out/src/test_extra_ops_models.h");
+    remove("build/test_out/src/test_extra_ops_models.c");
   }
 
   PASS();
@@ -1904,6 +2316,163 @@ TEST test_client_gen_create_tests_mocks_expanded(void) {
   remove("build/test_out/src/test_client_sdk_exp4.h");
   remove("build/test_out/src/test_client_sdk_exp4.c");
 
+  /* Swagger 2.0 basePath: "/v2" and is_array = 1 */
+  spec.servers = NULL;
+  spec.n_servers = 0;
+  spec.basePath = (char *)(size_t)(size_t) "/v2";
+  resps[0].schema.is_array = 1;
+  config.filename_base =
+      (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp5";
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  remove("build/test_out/src/test/test_sdk.c");
+  remove("build/test_out/src/test_client_sdk_exp5_models.h");
+  remove("build/test_out/src/test_client_sdk_exp5_models.c");
+  remove("build/test_out/src/test_client_sdk_exp5.h");
+  remove("build/test_out/src/test_client_sdk_exp5.c");
+
+  /* Long route and unclosed brace */
+  {
+    char long_route[300];
+    struct OpenAPI_Path long_path;
+    memset(long_route, 'a', 280);
+    long_route[0] = '/';
+    long_route[275] = '{';
+    long_route[276] = 'x';
+    long_route[277] = '}';
+    long_route[278] = '\0';
+    memset(&long_path, 0, sizeof(long_path));
+    long_path.route = long_route;
+    long_path.operations = &op;
+    long_path.n_operations = 1;
+    spec.paths = &long_path;
+    config.filename_base =
+        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp_long";
+    rc = openapi_client_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+
+    remove("build/test_out/src/test/test_sdk.c");
+    remove("build/test_out/src/test_client_sdk_exp_long_models.h");
+    remove("build/test_out/src/test_client_sdk_exp_long_models.c");
+    remove("build/test_out/src/test_client_sdk_exp_long.h");
+    remove("build/test_out/src/test_client_sdk_exp_long.c");
+  }
+
+  /* Test response with default code and null ref_name, plus spec without
+   * basePath or servers */
+  {
+    struct OpenAPI_Response def_resp;
+    memset(&def_resp, 0, sizeof(def_resp));
+    def_resp.code = (char *)(size_t)(size_t) "default";
+    def_resp.schema.ref_name = NULL;
+
+    op.responses = &def_resp;
+    op.n_responses = 1;
+    spec.paths = &path;
+    spec.n_paths = 1;
+    spec.servers = NULL;
+    spec.n_servers = 0;
+    spec.basePath = NULL;
+    path.route = (char *)(size_t)(size_t) "/items";
+    config.filename_base =
+        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp6";
+    rc = openapi_client_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+
+    remove("build/test_out/src/test/test_sdk.c");
+    remove("build/test_out/src/test_client_sdk_exp6_models.h");
+    remove("build/test_out/src/test_client_sdk_exp6_models.c");
+    remove("build/test_out/src/test_client_sdk_exp6.h");
+    remove("build/test_out/src/test_client_sdk_exp6.c");
+  }
+
+  /* Test response with ref_name and is_array = 1 */
+  {
+    struct OpenAPI_Response arr_resp;
+    memset(&arr_resp, 0, sizeof(arr_resp));
+    arr_resp.code = (char *)(size_t)(size_t) "200";
+    arr_resp.schema.ref_name = (char *)(size_t)(size_t) "Item";
+    arr_resp.schema.is_array = 1;
+
+    op.responses = &arr_resp;
+    op.n_responses = 1;
+    spec.paths = &path;
+    spec.n_paths = 1;
+    spec.servers = NULL;
+    spec.n_servers = 0;
+    config.filename_base =
+        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp7";
+    rc = openapi_client_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+
+    remove("build/test_out/src/test/test_sdk.c");
+    remove("build/test_out/src/test_client_sdk_exp7_models.h");
+    remove("build/test_out/src/test_client_sdk_exp7_models.c");
+    remove("build/test_out/src/test_client_sdk_exp7.h");
+    remove("build/test_out/src/test_client_sdk_exp7.c");
+  }
+
+  /* Test spec with servers > 0 but servers[0].url == NULL, and op with
+   * n_responses == 0 */
+  {
+    struct OpenAPI_Server null_srv[1];
+    memset(null_srv, 0, sizeof(null_srv));
+    null_srv[0].url = NULL;
+
+    op.responses = NULL;
+    op.n_responses = 0;
+    spec.paths = &path;
+    spec.n_paths = 1;
+    spec.servers = null_srv;
+    spec.n_servers = 1;
+    spec.basePath = NULL;
+    config.filename_base =
+        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp8";
+    rc = openapi_client_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+
+    remove("build/test_out/src/test/test_sdk.c");
+    remove("build/test_out/src/test_client_sdk_exp8_models.h");
+    remove("build/test_out/src/test_client_sdk_exp8_models.c");
+    remove("build/test_out/src/test_client_sdk_exp8.h");
+    remove("build/test_out/src/test_client_sdk_exp8.c");
+  }
+
+  /* Test spec with param in header, and response with code == NULL */
+  {
+    struct OpenAPI_Parameter hdr_param;
+    struct OpenAPI_Response nocode_resp;
+    memset(&hdr_param, 0, sizeof(hdr_param));
+    memset(&nocode_resp, 0, sizeof(nocode_resp));
+
+    hdr_param.name = (char *)(size_t)(size_t) "X-Header";
+    hdr_param.in = OA_PARAM_IN_HEADER;
+    hdr_param.type = (char *)(size_t)(size_t) "string";
+
+    nocode_resp.code = NULL;
+
+    op.parameters = &hdr_param;
+    op.n_parameters = 1;
+    op.responses = &nocode_resp;
+    op.n_responses = 1;
+    spec.paths = &path;
+    spec.n_paths = 1;
+    spec.servers = NULL;
+    spec.n_servers = 0;
+    spec.basePath = NULL;
+    config.filename_base =
+        (char *)(size_t)(size_t) "build/test_out/test_client_sdk_exp9";
+    rc = openapi_client_generate(&spec, &config);
+    ASSERT_EQ(0, rc);
+
+    remove("build/test_out/src/test/test_sdk.c");
+    remove("build/test_out/src/test_client_sdk_exp9_models.h");
+    remove("build/test_out/src/test_client_sdk_exp9_models.c");
+    remove("build/test_out/src/test_client_sdk_exp9.h");
+    remove("build/test_out/src/test_client_sdk_exp9.c");
+  }
+
   g_fail_io_after = -1;
   PASS();
 }
@@ -1916,11 +2485,29 @@ TEST test_client_gen_io_failures(void) {
   char *snames[1];
   int i;
   int rc;
+  static struct OpenAPI_Callback cb;
+  static struct OpenAPI_Link link;
+  static struct OpenAPI_SecurityRequirementSet sec;
+  static struct OpenAPI_Parameter p_io;
 
   memset(&op, 0, sizeof(op));
   ASSERT_EQ(CDD_C_SUCCESS, setup_minimal_spec(&spec, &op));
+  memset(&p_io, 0, sizeof(p_io));
+  p_io.name = (char *)(size_t)(size_t) "param1";
+  p_io.in = OA_PARAM_IN_QUERY;
+  p_io.type = (char *)(size_t)(size_t) "string";
+  op.parameters = &p_io;
+  op.n_parameters = 1;
   op.description = (char *)(size_t)(size_t) "Operation description";
   op.summary = (char *)(size_t)(size_t) "Operation summary";
+  memset(&cb, 0, sizeof(cb));
+  memset(&link, 0, sizeof(link));
+  memset(&sec, 0, sizeof(sec));
+  op.external_docs.url = (char *)(size_t)(size_t) "http://example.com";
+  op.callbacks = &cb;
+  op.responses[0].links = &link;
+  op.security = &sec;
+  op.deprecated = 1;
 
   memset(sf, 0, sizeof(sf));
   snames[0] = (char *)(size_t)(size_t) "SampleSchema";
@@ -1932,11 +2519,12 @@ TEST test_client_gen_io_failures(void) {
   config.filename_base = (char *)(size_t)(size_t) "build/test_out/test_cg_io";
   config.no_installable_package = 1;
 
-  for (i = 0; i <= 350; ++i) {
+  for (i = 0; i <= 450; ++i) {
     g_io_calls = 0;
     g_fail_io_after = i;
     rc = openapi_client_generate(&spec, &config);
-    (void)rc;
+    if (rc != CDD_C_SUCCESS) {
+    }
   }
 
   config.no_installable_package = 0;
@@ -1944,7 +2532,17 @@ TEST test_client_gen_io_failures(void) {
     g_io_calls = 0;
     g_fail_io_after = i;
     rc = openapi_client_generate(&spec, &config);
-    (void)rc;
+    if (rc != CDD_C_SUCCESS) {
+    }
+  }
+
+  config.create_tests_and_mocks = 1;
+  for (i = 0; i <= 100; ++i) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    rc = openapi_client_generate(&spec, &config);
+    if (rc != CDD_C_SUCCESS) {
+    }
   }
 
   g_fail_io_after = -1;

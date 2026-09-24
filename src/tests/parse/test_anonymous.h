@@ -46,33 +46,10 @@ TEST test_lift_anonymous_struct(void) {
     /* Check JSON */
     {
       char *content = NULL;
-      size_t sz;
-      FILE *f = NULL;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      if (fopen_s(&f, "anon.json", "r") != 0)
-        f = NULL;
-#elif defined(_MSC_VER)
-      fopen_s(&f, "anon.json", "r");
-#else
-#if defined(_MSC_VER)
-      if (fopen_s(&f, "anon.json", "r") != 0)
-        f = NULL;
-#else
-      f = fopen("anon.json", "r");
-#endif
-#endif
-      ASSERT(f);
-      fseek(f, 0, SEEK_END);
-      sz = (size_t)ftell(f);
-      rewind(f);
-      content = (char *)(size_t)malloc(sz + 1);
-      if (!content)
-        FAILm("OOM");
-      fread(content, 1, sz, f);
-      content[sz] = 0;
-      if (f)
-        fclose(f);
+      size_t sz = 0;
+
+      ASSERT_EQ(CDD_C_SUCCESS, read_to_file("anon.json", "r", &content, &sz));
+      ASSERT(content != NULL);
 
       /* We expect a definition for Parent */
       ASSERT(strstr(content, "\"Parent\":"));

@@ -1882,9 +1882,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, ";");
               cdd_cst_bld_newline(&bld);
             }
-            if (indent[0] != '\0')
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                              safe_crt_pool_string_safe(tree, indent));
             cdd_cst_bld_space(&bld);
           }
 
@@ -1899,9 +1898,8 @@ cdd_c_error_t cdd_transform_safe_crt(cdd_cst_tree_t *tree,
               msc_ctx.needs_fcvtbuf || msc_ctx.needs_getenv_ptr ||
               msc_ctx.needs_wgetenv_ptr) {
             cdd_cst_bld_newline(&bld);
-            if (indent[0] != '\0')
-              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
-                                safe_crt_pool_string_safe(tree, indent));
+            cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                              safe_crt_pool_string_safe(tree, indent));
             cdd_cst_bld_punct(&bld, "}");
           }
           cdd_cst_bld_newline(&bld);

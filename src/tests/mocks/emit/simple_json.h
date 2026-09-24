@@ -117,6 +117,8 @@ FooE_from_jsonObject(const JSON_Object *, struct FooE **);
 extern SIMPLE_MOCKS_EXPORT cdd_c_error_t FooE_from_json(const char *,
                                                         struct FooE **);
 
+extern SIMPLE_MOCKS_EXPORT cdd_c_error_t run_mocks_test(void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

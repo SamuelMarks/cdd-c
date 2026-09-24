@@ -30,20 +30,27 @@ extern "C" {
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_fail_io_after;
 
+static int g_client_body_fail_tmpfile = 0;
+
 static cdd_c_error_t gen_body(const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec, const char *tmpl,
                               const char *base_url_expr, char **_out_val) {
   FILE *tmp;
   long sz;
   char *content = NULL;
+
   cdd_c_error_t rc;
 
-#if defined(_MSC_VER)
-  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+  if (g_client_body_fail_tmpfile) {
     tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
 #else
-  tmp = cdd_test_tmpfile_global();
+    tmp = cdd_test_tmpfile_global();
 #endif
+  }
   if (!tmp)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
@@ -88,6 +95,11 @@ TEST test_body_basic_get(void) {
   resp.code = (char *)(size_t)(size_t) "200";
   op.responses = &resp;
   op.n_responses = 1;
+
+  g_client_body_fail_tmpfile = 1;
+  ASSERT(gen_body(&op, &spec, "/", NULL, &code) ==
+         CDD_C_ERROR_INVALID_ARGUMENT);
+  g_client_body_fail_tmpfile = 0;
 
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_0), _ast_gen_body_0);
   ASSERT(code);
@@ -4421,8 +4433,6 @@ TEST test_body_header_param_boolean(void) {
 TEST test_client_body_all_primitive_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
-    if (g_io_calls > 0 && g_io_calls < io_fail)
-      break;
     /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
     /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
     {
@@ -4600,8 +4610,6 @@ TEST test_client_body_all_primitive_types(void) {
 TEST test_client_body_inline_response_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
-    if (g_io_calls > 0 && g_io_calls < io_fail)
-      break;
     /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
     /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
     {
@@ -4776,45 +4784,48 @@ TEST test_client_body_inline_response_types(void) {
       if (rc != CDD_C_SUCCESS)
         all_success = 0;
 
-      /* invalid response inline type */
-      memset(&op, 0, sizeof(op));
-      memset(&resp, 0, sizeof(resp));
-      resp.code = (char *)(size_t)(size_t) "200";
-      resp.schema.inline_type = (char *)(size_t)(size_t) "invalid_type";
-      op.responses = &resp;
-      op.n_responses = 1;
-      op.n_req_body_media_types = 1;
-      op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
-      op.req_body_media_types[0].name =
-          (char *)(size_t)(size_t) "application/json";
-#if defined(_MSC_VER)
-      if (((fp = cdd_test_tmpfile_global()) == NULL))
-        fp = NULL;
-#else
-      fp = cdd_test_tmpfile_global();
-#endif
-      g_io_calls = 0;
-      g_fail_io_after = io_fail;
-      rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
-      g_fail_io_after = -1;
-      if (fp)
-        fclose(fp);
-      free(op.req_body_media_types);
-      if (rc != CDD_C_SUCCESS)
-        all_success = 0;
-
       if (all_success)
         break;
     }
   }
+
+  /* invalid response inline type */
+  {
+    struct OpenAPI_Spec spec = {0};
+    struct OpenAPI_Operation op = {0};
+    struct OpenAPI_Response resp = {0};
+    FILE *fp;
+    int rc;
+
+    memset(&op, 0, sizeof(op));
+    memset(&resp, 0, sizeof(resp));
+    resp.code = (char *)(size_t)(size_t) "200";
+    resp.schema.inline_type = (char *)(size_t)(size_t) "invalid_type";
+    op.responses = &resp;
+    op.n_responses = 1;
+    op.n_req_body_media_types = 1;
+    op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+    op.req_body_media_types[0].name =
+        (char *)(size_t)(size_t) "application/json";
+#if defined(_MSC_VER)
+    if (((fp = cdd_test_tmpfile_global()) == NULL))
+      fp = NULL;
+#else
+    fp = cdd_test_tmpfile_global();
+#endif
+    rc = codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+    if (fp)
+      fclose(fp);
+    free(op.req_body_media_types);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+  }
+
   PASS();
 }
 
 TEST test_client_body_inline_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
-    if (g_io_calls > 0 && g_io_calls < io_fail)
-      break;
     /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
     /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
     {
@@ -4931,8 +4942,6 @@ TEST test_client_body_inline_types(void) {
 TEST test_client_body_form_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
-    if (g_io_calls > 0 && g_io_calls < io_fail)
-      break;
     /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
     /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
     {
@@ -4983,8 +4992,6 @@ TEST test_client_body_form_types(void) {
 TEST test_client_body_multipart_types(void) {
   int io_fail;
   for (io_fail = 0; io_fail < 3000; ++io_fail) {
-    if (g_io_calls > 0 && g_io_calls < io_fail)
-      break;
     /* extern C_CDD_EXPORT int g_fail_io_after; (moved to global) */
     /* extern C_CDD_EXPORT int g_io_calls; (moved to global) */
     {

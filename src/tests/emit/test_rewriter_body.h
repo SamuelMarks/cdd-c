@@ -2824,10 +2824,7 @@ TEST test_rewrite_body_error_percolation(void) {
   g_cdd_fail_find_refactored_func = 2;
   rc = rewrite_body(tl, NULL, funcs2, 2, NULL, &out_code);
   g_cdd_fail_find_refactored_func = 0;
-  if (out_code) {
-    C_CDD_FREE(out_code);
-    out_code = NULL;
-  }
+  ASSERT(rc != CDD_C_SUCCESS);
   free_token_list(tl);
 
   rc = tokenize(az_span_create_from_str(

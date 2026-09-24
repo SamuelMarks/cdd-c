@@ -19,6 +19,10 @@ static cdd_c_error_t pool_string(cdd_cst_tree_t *tree, const char *str,
 static cdd_c_error_t get_last_token(cdd_cst_node_t *node,
                                     cdd_token_t **out_tok);
 
+#ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT volatile int g_gnu_bld_fail;
+#endif
+
 cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
                                    cdd_cst_tree_t *tree,
                                    cdd_cst_node_t *target_node) {
@@ -29,6 +33,11 @@ cdd_c_error_t cdd_cst_builder_init(cdd_cst_builder_t *builder,
   builder->tree = tree;
   builder->target_node = target_node;
   builder->error_state = 0;
+#ifdef CDD_BUILD_TESTS
+  if (g_gnu_bld_fail > 0 && --g_gnu_bld_fail == 0) {
+    builder->error_state = 1;
+  }
+#endif
   builder->indent_level = 0;
   return CDD_C_SUCCESS;
 }

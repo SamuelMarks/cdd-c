@@ -105,7 +105,6 @@ TEST test_code2schema_obj_array_detection(void) {
       "  size_t n_items;\n"
       "};\n";
   const char *json_out_file = (char *)(size_t)(size_t)"test_obj_array_detect.json";
-  FILE *f;
   char *json_content;
   size_t len;
 
@@ -125,32 +124,10 @@ extern C_CDD_EXPORT int g_fail_io_after;
     ASSERT_EQ(CDD_C_SUCCESS, code2schema_main(2, argv));
   }
 
-/* Read JSON output */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  if (fopen_s(&f, json_out_file, "r") != 0)
-    f = NULL;
-#elif defined(_MSC_VER)
-  fopen_s(&f, json_out_file, "r");
-#else
-#if defined(_MSC_VER)
-  if (fopen_s(&f, json_out_file, "r") != 0)
-    f = NULL;
-#else
-  f = fopen(json_out_file, "r");
-#endif
-#endif
-  ASSERT(f);
-  fseek(f, 0, SEEK_END);
-  len = (size_t)ftell(f);
-  rewind(f);
-  json_content = (char *)(size_t)malloc(len + 1);
-  if (!json_content)
-    FAILm("OOM");
-  fread(json_content, 1, len, f);
-  json_content[len] = 0;
-  if (f)
-    fclose(f);
+  /* Read JSON output */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            read_to_file(json_out_file, "r", &json_content, &len));
+  ASSERT(json_content != NULL);
 
   printf("JSON_CONTENT:\n%s\n", json_content);
 
@@ -194,8 +171,7 @@ TEST test_arrays_object_cleanup_generation(void) {
   rewind(tmp);
 
   output_buf = malloc(output_len + 1);
-  if (!output_buf)
-    FAILm("OOM");
+  ASSERT(output_buf != NULL);
   fread(output_buf, 1, output_len, tmp);
   output_buf[output_len] = 0;
 

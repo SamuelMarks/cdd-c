@@ -57,7 +57,19 @@ TEST test_loader_enum_and_required(void) {
       "}}}";
 
   struct OpenAPI_Spec spec;
-  int rc = load_spec_string(json, &spec);
+  extern C_CDD_EXPORT int g_openapi_spec_init_fail;
+  int rc;
+
+  /* Exercise error handling in load_spec_string */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string(NULL, &spec));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string(json, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, load_spec_string("{bad_json", &spec));
+
+  g_openapi_spec_init_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, load_spec_string(json, &spec));
+  g_openapi_spec_init_fail = 0;
+
+  rc = load_spec_string(json, &spec);
   ASSERT_EQ(0, rc);
 
   {

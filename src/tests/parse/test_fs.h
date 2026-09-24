@@ -105,10 +105,8 @@ TEST test_walk_directory(void) {
   ASSERT_EQ(0, rc);
 
   /* Create a unique subdirectory to avoid counting other temp files */
-  if (asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()) == -1) {
-    free(sys_tmp);
-    FAILm("asprintf failed");
-  }
+  ASSERT_NEQ(-1,
+             asprintf(&root, "%s%swalk_test_%d", sys_tmp, PATH_SEP, rand()));
   free(sys_tmp);
 
   rc = makedir(root);
@@ -233,6 +231,11 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_dirname("foo", NULL));
 
   ASSERT_EQ(0, get_dirname("foo///", &out));
+  ASSERT_STR_EQ(".", out);
+  free(out);
+  out = NULL;
+
+  ASSERT_EQ(0, get_dirname("foo\\\\\\", &out));
   ASSERT_STR_EQ(".", out);
   free(out);
   out = NULL;

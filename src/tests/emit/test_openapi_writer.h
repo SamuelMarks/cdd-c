@@ -1115,6 +1115,7 @@ TEST test_writer_preserves_composed_component_schema(void) {
   out_json = NULL;
 
   ASSERT(load_spec_str2("{", &spec) != 0);
+  ASSERT(load_spec_str2("{}", NULL) != 0);
   rc = load_spec_str2(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1199,9 +1200,8 @@ TEST test_writer_preserves_inline_composed_schema(void) {
     schemas = json_object_get_object(comps, "schemas");
     inline_schema =
         json_object_get_object(schemas, "Inline_GetPets_Response_200");
-    one_of =
-        inline_schema ? json_object_get_array(inline_schema, "oneOf") : NULL;
     ASSERT(inline_schema != NULL);
+    one_of = json_object_get_array(inline_schema, "oneOf");
     ASSERT(one_of != NULL);
     ASSERT_EQ(2, json_array_get_count(one_of));
     json_value_free(root);
@@ -5353,9 +5353,58 @@ TEST test_openapi_writer_null_and_defensive(void) {
 
   ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(NULL));
+  ASSERT_EQ(1, server_url_has_query_or_fragment("https://example.com#frag"));
   ASSERT_EQ(CDD_C_SUCCESS, clone_json_value(NULL, &val));
   ASSERT(val == NULL);
   ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(NULL));
+
+  {
+    struct OpenAPI_Spec s_webhooks;
+    char *out_j = NULL;
+    memset(&s_webhooks, 0, sizeof(s_webhooks));
+    s_webhooks.openapi_version = (char *)(size_t)(size_t) "3.1.0";
+    s_webhooks.info.title = (char *)(size_t)(size_t) "Test";
+    s_webhooks.info.version = (char *)(size_t)(size_t) "1.0";
+    s_webhooks.n_webhooks = 1;
+    s_webhooks.webhooks = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, openapi_write_spec_to_json(&s_webhooks, &out_j));
+    if (out_j) {
+      free(out_j);
+      out_j = NULL;
+    }
+  }
+
+  {
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
+    struct OpenAPI_Spec s_doc;
+    char *out_j = NULL;
+    memset(&s_doc, 0, sizeof(s_doc));
+    s_doc.is_schema_document = 1;
+    s_doc.schema_root_json = (char *)(size_t)(size_t) "{}";
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_write_spec_to_json(&s_doc, &out_j));
+    g_cdd_strdup_fail = 0;
+  }
+
+  {
+    int k;
+    struct OpenAPI_Spec s_empty;
+    memset(&s_empty, 0, sizeof(s_empty));
+    s_empty.openapi_version = (char *)(size_t)(size_t) "3.1.0";
+    s_empty.info.title = (char *)(size_t)(size_t) "A";
+    s_empty.info.version = (char *)(size_t)(size_t) "1";
+    json_set_allocation_functions(mock_parson_oom_malloc, mock_parson_oom_free);
+    for (k = 0; k < 20; ++k) {
+      char *out_j = NULL;
+      g_parson_oom_fail_at = k;
+      openapi_write_spec_to_json(&s_empty, &out_j);
+      if (out_j) {
+        free(out_j);
+        out_j = NULL;
+      }
+    }
+    json_set_allocation_functions(malloc, free);
+  }
   ASSERT_EQ(CDD_C_SUCCESS, schema_ref_keyword(0, &str));
   ASSERT_STR_EQ("$ref", str);
   ASSERT_EQ(CDD_C_SUCCESS, schema_ref_keyword(1, &str));

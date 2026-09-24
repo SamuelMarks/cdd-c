@@ -329,10 +329,14 @@ TEST test_fs_coverage_file_io(void) {
     cdd_c_error_t r_err = read_from_fh(fh, &data, &size);
     ASSERT(r_err == CDD_C_ERROR_IO || r_err == CDD_C_ERROR_INVALID_ARGUMENT ||
            r_err == CDD_C_SUCCESS);
-    if (data) {
-      C_CDD_FREE(data);
-      data = NULL;
-    }
+  }
+  fclose(fh);
+
+  fh = fopen(tmp_file, "r");
+  ASSERT(fh != NULL);
+  if (read_from_fh(fh, &data, &size) == CDD_C_SUCCESS && data) {
+    C_CDD_FREE(data);
+    data = NULL;
   }
   fclose(fh);
 
@@ -493,6 +497,10 @@ TEST test_fs_coverage_tempdir(void) {
   g_cdd_strdup_fail = 0;
 
   /* Save environment variables */
+#if !defined(_WIN32)
+  test_setenv("TMP", "/init_tmp");
+  test_setenv("TEMP", "/init_temp");
+#endif
   env_val = getenv("TMPDIR");
   if (env_val)
     CDD_STRCPY(orig_tmpdir, sizeof(orig_tmpdir), env_val);
@@ -551,12 +559,12 @@ TEST test_fs_coverage_tempdir(void) {
     test_setenv("TMPDIR", orig_tmpdir);
   if (orig_tmp[0])
     test_setenv("TMP", orig_tmp);
-  else
-    test_unsetenv("TMP");
   if (orig_temp[0])
     test_setenv("TEMP", orig_temp);
-  else
-    test_unsetenv("TEMP");
+#if !defined(_WIN32)
+  test_unsetenv("TMP");
+  test_unsetenv("TEMP");
+#endif
 
   PASS();
 }

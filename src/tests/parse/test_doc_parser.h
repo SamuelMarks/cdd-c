@@ -1726,10 +1726,7 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
       if (sc) {
         size_t s_i;
         for (s_i = 0; s_i < n_sc; ++s_i) {
-          if (sc[s_i].name)
-            free(sc[s_i].name);
-          if (sc[s_i].description)
-            free(sc[s_i].description);
+          free(sc[s_i].name);
         }
         free(sc);
       }
@@ -1796,6 +1793,18 @@ TEST test_doc_parser_100_percent_coverage_boost(void) {
   PASS();
 }
 
+TEST test_doc_crlf_and_non_bracket_tags(void) {
+  struct DocMetadata meta;
+  const char *comment = "/**\r\n"
+                        " * @tagmeta mytag extra_text_not_bracket\r\n"
+                        " * @securityscheme MyAuth extra_text_not_bracket\r\n"
+                        " */";
+  doc_metadata_init(&meta);
+  ASSERT_EQ(CDD_C_SUCCESS, doc_parse_block(comment, &meta));
+  doc_metadata_free(&meta);
+  PASS();
+}
+
 SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parser_100_percent_coverage_boost);
   RUN_TEST(test_doc_100_percent_coverage);
@@ -1837,6 +1846,7 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_dupes_and_extras);
   RUN_TEST(test_doc_parse_more_branches);
   RUN_TEST(test_doc_parse_equal_signs);
+  RUN_TEST(test_doc_crlf_and_non_bracket_tags);
 }
 
 #ifdef __cplusplus

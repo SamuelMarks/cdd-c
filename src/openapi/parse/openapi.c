@@ -2125,6 +2125,19 @@ static cdd_c_error_t component_key_is_valid(const char *name) {
   return CDD_C_ERROR_UNKNOWN;
 }
 
+static cdd_c_error_t media_type_key_is_valid(const char *name) {
+  size_t i;
+  if (!name || !*name)
+    return CDD_C_SUCCESS;
+  for (i = 0; name[i]; ++i) {
+    const unsigned char c = (unsigned char)name[i];
+    if (!(isalnum(c) || c == '.' || c == '-' || c == '_' || c == '/' ||
+          c == '+' || c == '*'))
+      return CDD_C_SUCCESS;
+  }
+  return CDD_C_ERROR_UNKNOWN;
+}
+
 /**
  * @brief Executes the validate component key map operation.
  */
@@ -2136,6 +2149,19 @@ static cdd_c_error_t validate_component_key_map(const JSON_Object *obj) {
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(obj, i);
     if (!component_key_is_valid(name))
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+  return CDD_C_SUCCESS;
+}
+
+static cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
+  size_t i, count;
+  if (!obj)
+    return CDD_C_SUCCESS;
+  count = json_object_get_count(obj);
+  for (i = 0; i < count; ++i) {
+    const char *name = json_object_get_name(obj, i);
+    if (!media_type_key_is_valid(name))
       return CDD_C_ERROR_INVALID_ARGUMENT;
   }
   return CDD_C_SUCCESS;
@@ -6813,15 +6839,6 @@ static cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   int *state;
   if (!spec || !spec->tags || spec->n_tags == 0)
     return CDD_C_SUCCESS;
-
-  for (i = 0; i < spec->n_tags; ++i) {
-    const char *parent = spec->tags[i].parent;
-    if (parent && *parent) {
-      size_t parent_idx = 0;
-      if (tag_index_by_name(spec, parent, &parent_idx) != CDD_C_SUCCESS)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-    }
-  }
 
   state = (int *)calloc(spec->n_tags, sizeof(int));
   if (!state)
@@ -11833,7 +11850,7 @@ static cdd_c_error_t parse_component_media_types(const JSON_Object *components,
   if (!media_types)
     return CDD_C_SUCCESS;
 
-  if (validate_component_key_map(media_types) != 0)
+  if (validate_media_type_key_map(media_types) != 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   count = json_object_get_count(media_types);
@@ -11854,7 +11871,7 @@ static cdd_c_error_t parse_component_media_types(const JSON_Object *components,
     struct OpenAPI_MediaType *curr = &out->component_media_types[i];
 
     if (name) {
-      if (!component_key_is_valid(name))
+      if (!media_type_key_is_valid(name))
         return CDD_C_ERROR_INVALID_ARGUMENT;
       out->component_media_type_names[i] =
           (c_cdd_strdup(name, &_ast_strdup_274), _ast_strdup_274);
@@ -12480,7 +12497,8 @@ static cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
           if (strcmp(verb, "parameters") == 0 || strcmp(verb, "servers") == 0 ||
               strcmp(verb, "summary") == 0 ||
               strcmp(verb, "description") == 0 || strcmp(verb, "$ref") == 0 ||
-              strcmp(verb, "additionalOperations") == 0) {
+              strcmp(verb, "additionalOperations") == 0 ||
+              strncmp(verb, "x-", 2) == 0) {
             continue;
           }
           err = parse_operation(verb, op_obj, &curr_path->operations[valid_ops],

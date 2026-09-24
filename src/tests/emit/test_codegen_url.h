@@ -24,16 +24,22 @@ extern "C" {
 #include "routes/emit/url.h"
 /* clang-format on */
 
+static int g_url_fail_tmpfile = 0;
+
 static cdd_c_error_t gen_url_code(const char *tmpl,
                                   const struct OpenAPI_Parameter *params,
                                   size_t n_params, char **_out_val) {
   FILE *tmp;
-#if defined(_MSC_VER)
-  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+  if (g_url_fail_tmpfile) {
     tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
 #else
-  tmp = cdd_test_tmpfile_global();
+    tmp = cdd_test_tmpfile_global();
 #endif
+  }
   {
     long sz;
     char *content = NULL;
@@ -69,12 +75,16 @@ static cdd_c_error_t gen_url_code(const char *tmpl,
 static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
                                     char **_out_val) {
   FILE *tmp;
-#if defined(_MSC_VER)
-  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+  if (g_url_fail_tmpfile) {
     tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
 #else
-  tmp = cdd_test_tmpfile_global();
+    tmp = cdd_test_tmpfile_global();
 #endif
+  }
   {
     long sz;
     char *content = NULL;
@@ -110,8 +120,8 @@ static cdd_c_error_t gen_query_code(const struct OpenAPI_Operation *op,
 static void run_io_loop(const struct OpenAPI_Operation *op, const char *tmpl,
                         const struct OpenAPI_Parameter *params,
                         size_t n_params) {
-  int i = 1;
-  while (1) {
+  int i;
+  for (i = 1; i <= 1000; i++) {
     char *code = NULL;
     g_io_calls = 0;
     g_fail_io_after = i;
@@ -124,9 +134,6 @@ static void run_io_loop(const struct OpenAPI_Operation *op, const char *tmpl,
       free(code);
       break;
     }
-    i++;
-    if (i > 1000)
-      break;
   }
   g_fail_io_after = -1;
 }
@@ -136,6 +143,7 @@ TEST test_query_gen_scalar(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
+  char *err_code = NULL;
 
   memset(&op, 0, sizeof(op));
   memset(&param, 0, sizeof(param));
@@ -151,6 +159,15 @@ TEST test_query_gen_scalar(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_0), _ast_gen_query_code_0);
   ASSERT(code);
   run_io_loop(&op, NULL, NULL, 0);
+  run_io_loop(NULL, "/users", NULL, 0);
+
+  g_url_fail_tmpfile = 1;
+  ASSERT_EQ(0, gen_url_code("/test", NULL, 0, &err_code));
+  ASSERT_EQ(NULL, err_code);
+  ASSERT_EQ(0, gen_query_code(&op, &err_code));
+  ASSERT_EQ(NULL, err_code);
+  g_url_fail_tmpfile = 0;
+
   /* Check scalar integer logic */
   ASSERT(strstr(code, "spr"
                       "intf(num_buf, \"%d\", page)") != NULL);
@@ -1165,6 +1182,28 @@ TEST test_media_type_ieq_url_extra(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               querystring_param_json_array_item_type(&p, &out_val));
     ASSERT_EQ(0, strcmp(out_val, "string"));
+    p.type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT(out_val == NULL);
+  }
+
+  /* querystring_param_json_array_item_ref type array check */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = (char *)(size_t)(size_t) "application/json";
+    p.type = (char *)(size_t)(size_t) "array";
+    p.items_type = (char *)(size_t)(size_t) "MyRef";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_ref(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "MyRef"));
+    p.type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_ref(&p, &out_val));
+    ASSERT(out_val == NULL);
   }
 
   /* Test via gen_query_code */

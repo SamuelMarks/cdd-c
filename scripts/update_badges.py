@@ -74,6 +74,34 @@ def get_test_coverage():
 
     build_dirs = ["build_gcc", "build_cov", "build"]
 
+    existing_dirs = [
+        d for d in build_dirs if os.path.isdir(os.path.join(repo_root, d))
+    ]
+    if not existing_dirs:
+        bdir = os.path.join(repo_root, "build_gcc")
+        os.makedirs(bdir, exist_ok=True)
+        env = os.environ.copy()
+        for k in ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"]:
+            env.pop(k, None)
+        if not env.get("CC") and shutil.which("gcc"):
+            env["CC"] = "gcc"
+        subprocess.run(
+            [
+                "cmake",
+                "..",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCMAKE_C_FLAGS=--coverage",
+                "-DCMAKE_EXE_LINKER_FLAGS=--coverage",
+                "-DBUILD_TESTING=ON",
+            ],
+            cwd=bdir,
+            env=env,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["cmake", "--build", "."], cwd=bdir, env=env, capture_output=True
+        )
+
     for bdir_name in build_dirs:
         bdir = os.path.join(repo_root, bdir_name)
         if not os.path.isdir(bdir):
@@ -173,24 +201,26 @@ def get_test_coverage():
             return cov
 
         # If coverage failed, maybe tests need to be run first
-        test_bin = os.path.join(bdir, "bin", "test_c_cdd")
         has_run = False
-        if os.path.exists(test_bin):
+        if shutil.which("ctest"):
             try:
-                subprocess.run([test_bin], cwd=bdir, capture_output=True)
-                has_run = True
-            except Exception:
-                pass
-        elif shutil.which("ctest"):
-            try:
-                subprocess.run(
+                res = subprocess.run(
                     ["ctest", "--output-on-failure"],
                     cwd=bdir,
                     capture_output=True,
                 )
-                has_run = True
+                if res.returncode == 0:
+                    has_run = True
             except Exception:
                 pass
+        if not has_run:
+            test_bin = os.path.join(bdir, "bin", "test_c_cdd")
+            if os.path.exists(test_bin):
+                try:
+                    subprocess.run([test_bin], cwd=bdir, capture_output=True)
+                    has_run = True
+                except Exception:
+                    pass
 
         if has_run:
             cov = try_run_gcovr()

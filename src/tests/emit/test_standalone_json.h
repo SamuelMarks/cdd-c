@@ -69,6 +69,19 @@ TEST test_standalone_json_gen(void) {
       f1.max_len = 10;
       sf.fields[sf.size++] = f1;
 
+      {
+        struct StructField f1_2 = {0};
+#if defined(_MSC_VER)
+        strcpy_s(f1_2.name, sizeof(f1_2.name), "my_str2");
+        strcpy_s(f1_2.type, sizeof(f1_2.type), "string");
+#else
+        strcpy(f1_2.name, "my_str2");
+        strcpy(f1_2.type, "string");
+#endif
+        f1_2.required = 0;
+        sf.fields[sf.size++] = f1_2;
+      }
+
 #if defined(_MSC_VER)
       strcpy_s(f2.name, sizeof(f2.name), "my_int");
 #else
@@ -152,6 +165,25 @@ TEST test_standalone_json_gen(void) {
 
     free(content);
     struct_fields_free(&sf);
+
+    {
+      struct StructFields sf_bool;
+      struct StructField fb = {0};
+      ASSERT_EQ(0, struct_fields_init(&sf_bool));
+#if defined(_MSC_VER)
+      strcpy_s(fb.name, sizeof(fb.name), "only_bool");
+      strcpy_s(fb.type, sizeof(fb.type), "boolean");
+#else
+      strcpy(fb.name, "only_bool");
+      strcpy(fb.type, "boolean");
+#endif
+      fb.required = 1;
+      sf_bool.fields[sf_bool.size++] = fb;
+      ASSERT_EQ(
+          0, write_struct_from_json_standalone_func(tmp, "BoolOnly", &sf_bool));
+      struct_fields_free(&sf_bool);
+    }
+
     if (tmp)
       fclose(tmp);
     g_fail_io_after = -1;

@@ -432,6 +432,13 @@ TEST test_gen_cmake_io_fail(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+TEST test_build_system_mock_io_neg(void) {
+  ASSERT_EQ(CDD_C_ERROR_IO, test_build_system_mock_io_negative());
+  PASS();
+}
+#endif
+
 /**
  * @brief generate_build_system_suite
  */
@@ -451,6 +458,9 @@ SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_cmake_io_fail);
   RUN_TEST(test_gen_cmake_readonly);
   RUN_TEST(test_gen_cmake_readonly2);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_build_system_mock_io_neg);
+#endif
 }
 
 #ifdef __cplusplus

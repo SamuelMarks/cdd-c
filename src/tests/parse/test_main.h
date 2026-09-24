@@ -477,19 +477,8 @@ TEST test_main_to_openapi_cli_options(void) {
  */
 TEST test_bin_cdd_executable(void) {
   /* Run the actual executable to cover bin_cdd.c's main() */
-  /* The tests might be run from build dir or root dir, so we check both */
-  int rc;
+  int rc = system("./bin/cdd-c --help > /dev/null 2>&1");
   (void)rc;
-  rc = system("build_coverage/bin/cdd-c --help > /dev/null 2>&1");
-  if (rc != 0) {
-    rc = system("./bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("../bin/cdd-c --help > /dev/null 2>&1");
-  }
-  if (rc != 0) {
-    rc = system("../../bin/cdd-c --help > /dev/null 2>&1");
-  }
   g_fail_io_after = -1;
   PASS();
 }

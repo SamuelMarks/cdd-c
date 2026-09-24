@@ -676,7 +676,7 @@ cdd_c_error_t parse_declaration(const struct TokenList *tokens, size_t start,
       size_t qual_end = (left != SIZE_MAX) ? left + 1 : 0;
       size_t qual_start = qual_end;
 
-      while (left != SIZE_MAX && left >= left_limit) {
+      while (left != SIZE_MAX) {
         enum TokenKind k = tokens->tokens[left].kind;
 
         if (k == TOKEN_STAR) {

@@ -130,10 +130,15 @@ TEST test_main_coverage_from_openapi_opts(void) {
                       (char *)(size_t)(size_t) "missing.json",
                       (char *)(size_t)(size_t) "-o",
                       (char *)(size_t)(size_t) "out_dir"};
+  char *argv_trailing_o[] = {
+      (char *)(size_t)(size_t) "from_openapi",
+      (char *)(size_t)(size_t) "to_sdk", (char *)(size_t)(size_t) "-i",
+      (char *)(size_t)(size_t) "missing.json", (char *)(size_t)(size_t) "-o"};
 
   ASSERT_EQ(CDD_C_SUCCESS, from_openapi_cli_main(2, argv_help));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(7, argv_opts));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(6, argv_out));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(5, argv_trailing_o));
   PASS();
 }
 
@@ -272,9 +277,15 @@ TEST test_main_coverage_to_openapi(void) {
       (char *)(size_t)(size_t) "to_openapi", (char *)(size_t)(size_t) "-i",
       (char *)(size_t)(size_t) "my_empty_dir", (char *)(size_t)(size_t) "-o",
       (char *)(size_t)(size_t) "out.json"};
+  char *argv_trailing_i[] = {(char *)(size_t)(size_t) "to_openapi",
+                             (char *)(size_t)(size_t) "-i"};
+  char *argv_trailing_o[] = {(char *)(size_t)(size_t) "to_openapi",
+                             (char *)(size_t)(size_t) "-o"};
 
   ASSERT_EQ(CDD_C_SUCCESS, to_openapi_cli_main(2, argv_help));
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(1, argv_no_args));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(2, argv_trailing_i));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, to_openapi_cli_main(2, argv_trailing_o));
   to_openapi_cli_main(5, argv_args);
   PASS();
 }

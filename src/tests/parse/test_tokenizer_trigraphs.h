@@ -29,8 +29,12 @@ extern "C" {
 static cdd_c_error_t tokenize_string(const char *s,
                                      struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  az_span span = az_span_create_from_str((char *)(size_t)s);
-  cdd_c_error_t rc = tokenize(span, &tl);
+  az_span span;
+  cdd_c_error_t rc;
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  span = az_span_create_from_str((char *)(size_t)s);
+  rc = tokenize(span, &tl);
   if (rc != CDD_C_SUCCESS) {
     return rc;
   }
@@ -40,12 +44,20 @@ static cdd_c_error_t tokenize_string(const char *s,
 
 TEST test_trigraph_basic(void) {
   struct TokenList *_ast_tokenize_string_0;
+  struct TokenList *tl = NULL;
+  extern C_CDD_EXPORT int g_cdd_alloc_fail;
+
+  /* Test tokenize_string error handling */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, tokenize_string("test", NULL));
+
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, tokenize_string("test", &tl));
+  g_cdd_alloc_fail = 0;
 
   /* ??= is # */
 
-  struct TokenList *tl =
-      (tokenize_string("?\?= include", &_ast_tokenize_string_0),
-       _ast_tokenize_string_0);
+  tl = (tokenize_string("?\?= include", &_ast_tokenize_string_0),
+        _ast_tokenize_string_0);
 
   ASSERT(tl);
 

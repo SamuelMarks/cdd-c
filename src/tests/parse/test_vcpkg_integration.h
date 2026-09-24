@@ -309,9 +309,7 @@ TEST test_vcpkg_builder_oom(void) {
   {
     int rc = vcpkg_builder_generate(&builder, &json);
     g_cdd_alloc_fail = 0;
-    if (rc != CDD_C_ERROR_MEMORY) {
-      printf("GENERATE RC: %d\n", rc);
-    }
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     vcpkg_builder_free(&builder);
 
 #endif

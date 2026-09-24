@@ -72,7 +72,13 @@ def has_cygwin():
 
 
 def has_emscripten():
-    return is_tool("emcc")
+    if not is_tool("emcc"):
+        return False
+    try:
+        res = subprocess.run(["emcmake", "--version"], capture_output=True, text=True)
+        return res.returncode == 0
+    except Exception:
+        return False
 
 
 def main():
@@ -330,6 +336,9 @@ def main():
         sys.exit(0)
 
     elif job == "audit":
+        if os.path.exists("scripts/pre_commit.py"):
+            run_cmd([sys.executable, "scripts/pre_commit.py", "audit"])
+            sys.exit(0)
         print("=== Auditing with Transformer ===")
         tool = sys.argv[2]
         cdd_c_bin = (

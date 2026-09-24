@@ -122,7 +122,6 @@ TEST test_code2schema_array_detection(void) {
       "  size_t n_strs;\n"
       "};\n";
   const char *json_out_file = (char *)(size_t)(size_t)"test_array_detect.json";
-  FILE *f;
   char *json_content;
   size_t len;
 
@@ -145,32 +144,10 @@ TEST test_code2schema_array_detection(void) {
     ASSERT_EQ(CDD_C_SUCCESS, result);
   }
 
-/* Read JSON output */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  if (fopen_s(&f, json_out_file, "r") != 0)
-    f = NULL;
-#elif defined(_MSC_VER)
-  fopen_s(&f, json_out_file, "r");
-#else
-#if defined(_MSC_VER)
-  if (fopen_s(&f, json_out_file, "r") != 0)
-    f = NULL;
-#else
-  f = fopen(json_out_file, "r");
-#endif
-#endif
-  ASSERT(f);
-  fseek(f, 0, SEEK_END);
-  len = (size_t)ftell(f);
-  rewind(f);
-  json_content = (char *)(size_t)malloc(len + 1);
-  if (!json_content)
-    FAILm("OOM");
-  fread(json_content, 1, len, f);
-  json_content[len] = 0;
-  if (f)
-    fclose(f);
+  /* Read JSON output */
+  ASSERT_EQ(CDD_C_SUCCESS,
+            read_to_file(json_out_file, "r", &json_content, &len));
+  ASSERT(json_content != NULL);
 
   printf("JSON_CONTENT:\n%s\n", json_content);
 

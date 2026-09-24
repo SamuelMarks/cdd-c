@@ -286,10 +286,8 @@ TEST test_cdd_lexer_oom(void) {
   rc_t5 = cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
-  if (tl) {
-    cdd_lexer_free_token_list(tl);
-    tl = NULL;
-  }
+  ASSERT(rc_t5 != 0);
+  ASSERT_EQ(NULL, tl);
   (void)cdd_lexer_tokenize(
       az_span_create_from_str((char *)(size_t)(size_t) "int x;"), &tl);
   if (tl) {

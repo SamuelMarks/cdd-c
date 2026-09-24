@@ -1094,6 +1094,8 @@ extern C {
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     /* Trigger capacity realloc failure on search_paths */
+    rc = pp_add_search_path(&ctx, "init_path");
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
     while (ctx.size < ctx.capacity) {
       rc = pp_add_search_path(&ctx, "filler");
       ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -2659,6 +2661,8 @@ extern C {
 
     /* pp_resolve_path with NULL ctx */
     rc = pp_resolve_path(NULL, "dir", "header.h", 0, &out);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    rc = pp_resolve_path(NULL, ".", "CMakeLists.txt", 0, &out);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
     if (out) {
       C_CDD_FREE(out);

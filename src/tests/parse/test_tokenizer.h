@@ -116,10 +116,13 @@ TEST tokenize_c23_digit_separators(void) {
   struct TokenList *tl = NULL;
   int rc;
   char buf[32];
+  char *str_out = NULL;
 
   rc = tokenize(code, &tl);
   ASSERT_EQ(0, rc);
   ASSERT(tl);
+  ASSERT_EQ(0, token_to_cstr(buf, 0, &tl->tokens[0], &str_out));
+  ASSERT_EQ(NULL, str_out);
   ASSERT_EQ(5, tl->size); /* num WS num WS num */
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);

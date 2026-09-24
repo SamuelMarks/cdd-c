@@ -1039,6 +1039,7 @@ TEST test_cdd_transform_safe_crt_needs_buffers(void) {
   cdd_transform_config_t config;
   cdd_cst_tree_t *tree = NULL;
   const char *snippets[] = {
+      "void test_err_noindent(void){\nchar *msg = strerror(1);\n}\n",
       "void test_err(void) {\n  char *msg = strerror(1);\n}\n",
       "void test_wcserr(void) {\n  wchar_t *msg = _wcserror(1);\n}\n",
       "void test_strtok(void) {\n  char buf[32];\n  char *tok = strtok(buf, "
@@ -1066,10 +1067,6 @@ TEST test_cdd_transform_safe_crt_needs_buffers(void) {
         0, cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
                          &tree));
     rc_t = cdd_transform_safe_crt(tree, &config);
-    if (rc_t != 0) {
-      fprintf(stderr, "Snippet %d failed with rc=%d: %s\n", (int)i, (int)rc_t,
-              snippets[i]);
-    }
     ASSERT_EQ(0, rc_t);
     cdd_cst_tree_free(tree);
     tree = NULL;
@@ -1216,10 +1213,6 @@ TEST test_cdd_transform_safe_crt_more_cases(void) {
       t_rc = cdd_transform_safe_crt(tree, &config);
       cdd_cst_tree_free(tree);
       tree = NULL;
-    }
-    if (p_rc != 0 || t_rc != 0) {
-      fprintf(stderr, "Snippet %d failed: parse=%d, trans=%d: %s\n", (int)i,
-              p_rc, t_rc, snippets[i]);
     }
     ASSERT_EQ(0, p_rc);
     ASSERT_EQ(0, t_rc);

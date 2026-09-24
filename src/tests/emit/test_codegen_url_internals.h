@@ -489,6 +489,11 @@ TEST test_url_write_query_and_path_object_serialization(void) {
   p.allow_reserved_set = 1;
   ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
 
+  /* Query object with allow_reserved=0 and allow_reserved_set=1 */
+  p.allow_reserved = 0;
+  p.allow_reserved_set = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
+
   /* Unsupported object style */
   p.style = OA_STYLE_MATRIX;
   ASSERT_EQ(CDD_C_SUCCESS, write_query_object_param(fp, &p));
@@ -538,6 +543,11 @@ TEST test_url_write_query_and_path_object_serialization(void) {
 
   /* Path object with allow_reserved=1 */
   p.allow_reserved = 1;
+  p.allow_reserved_set = 1;
+  ASSERT_EQ(CDD_C_SUCCESS, write_path_object_serialization(fp, &p));
+
+  /* Path object with allow_reserved=0 and allow_reserved_set=1 */
+  p.allow_reserved = 0;
   p.allow_reserved_set = 1;
   ASSERT_EQ(CDD_C_SUCCESS, write_path_object_serialization(fp, &p));
 
@@ -601,6 +611,7 @@ TEST test_url_write_path_array_and_joined_array(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             write_joined_query_array(fp, &p, ',', "url_encode", 1));
   ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array(fp, &p, ' ', NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, write_joined_query_array(fp, &p, ',', "", 0));
 
   /* write_joined_query_array_encoded_delim invalid args */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -929,11 +940,37 @@ TEST test_url_builder_and_query_branches(void) {
   params[3].in = OA_PARAM_IN_PATH;
   params[3].type = (char *)(size_t) "string";
   params[3].style = OA_STYLE_LABEL;
+  params[3].allow_reserved = 1;
+  params[3].allow_reserved_set = 1;
 
-  ASSERT_EQ(CDD_C_SUCCESS,
-            codegen_url_write_builder(
-                fp, "/api/{arr_mat}/{arr_mat_noexp}/{arr_simple}/{scalar_lbl}",
-                params, 4, NULL));
+  /* Path param: array of objects */
+  params[4].name = (char *)(size_t) "arr_obj";
+  params[4].in = OA_PARAM_IN_PATH;
+  params[4].type = (char *)(size_t) "object";
+  params[4].is_array = 1;
+  params[4].items_type = (char *)(size_t) "object";
+
+  ASSERT_EQ(
+      CDD_C_SUCCESS,
+      codegen_url_write_builder(
+          fp,
+          "/api/{arr_mat}/{arr_mat_noexp}/{arr_simple}/{scalar_lbl}/{arr_obj}",
+          params, 5, NULL));
+
+  /* Path param: array with OA_STYLE_LABEL and explode=1 */
+  {
+    struct OpenAPI_Parameter p_lbl;
+    memset(&p_lbl, 0, sizeof(p_lbl));
+    p_lbl.name = (char *)(size_t) "arr_lbl_exp";
+    p_lbl.in = OA_PARAM_IN_PATH;
+    p_lbl.is_array = 1;
+    p_lbl.items_type = (char *)(size_t) "string";
+    p_lbl.style = OA_STYLE_LABEL;
+    p_lbl.explode = 1;
+    p_lbl.explode_set = 1;
+    ASSERT_EQ(CDD_C_SUCCESS, codegen_url_write_builder(fp, "/api/{arr_lbl_exp}",
+                                                       &p_lbl, 1, NULL));
+  }
 
   /* Querystring primitive: string */
   memset(&op, 0, sizeof(op));
@@ -1283,6 +1320,7 @@ TEST test_url_io_failure_branches(void) {
   p.name = (char *)(size_t) "path_obj";
   p.type = (char *)(size_t) "object";
   p.style = OA_STYLE_SIMPLE;
+  p.explode_set = 1;
   p.explode = 1;
   rc = test_run_io_exhaustive_path_obj(fp, &p);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -1490,7 +1528,8 @@ TEST test_url_io_failure_branches(void) {
   builder_params[10].in = OA_PARAM_IN_PATH;
   builder_params[10].type = (char *)(size_t) "string";
   builder_params[10].style = OA_STYLE_UNKNOWN;
-  builder_params[10].allow_reserved_set = 0;
+  builder_params[10].allow_reserved_set = 1;
+  builder_params[10].allow_reserved = 0;
 
   builder_params[11].name = (char *)(size_t) "p_custom";
   builder_params[11].in = OA_PARAM_IN_PATH;

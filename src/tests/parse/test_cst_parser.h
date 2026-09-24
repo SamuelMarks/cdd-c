@@ -1225,8 +1225,7 @@ TEST test_cst_parser_extra(void) {
   {
     cdd_cst_tree_t *t_stray = NULL;
     cdd_cst_parse(az_span_create_from_str((char *)(size_t) "{"), &t_stray);
-    if (t_stray)
-      cdd_cst_tree_free(t_stray);
+    cdd_cst_tree_free(t_stray);
   }
   {
     cdd_cst_tree_t *t_empty = NULL;
@@ -1383,54 +1382,29 @@ TEST test_cst_parser_extra(void) {
         g_cdd_cst_parser_fast_grow = 1;
 
         for (i = 1; i < 50; i++) {
-          cdd_c_error_t rc;
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
-          if (tree)
-            cdd_cst_tree_free(tree);
-          if (rc == CDD_C_SUCCESS)
-            break;
+          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
+                        &tree);
+          cdd_cst_tree_free(tree);
         }
         g_cdd_alloc_fail = 0;
 
         for (i = 1; i < 50; i++) {
-          cdd_c_error_t rc;
-          tree = NULL;
-          g_cdd_alloc_fail = (int)i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
-          if (tree)
-            cdd_cst_tree_free(tree);
-          if (rc == CDD_C_SUCCESS)
-            break;
-        }
-        g_cdd_alloc_fail = 0;
-
-        for (i = 1; i < 50; i++) {
-          cdd_c_error_t rc;
           tree = NULL;
           g_cdd_cst_alloc_token_fail = i;
-          rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
-                             &tree);
-          if (tree)
-            cdd_cst_tree_free(tree);
-          if (rc == CDD_C_SUCCESS)
-            break;
+          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
+                        &tree);
+          cdd_cst_tree_free(tree);
         }
         g_cdd_cst_alloc_token_fail = 0;
 
         for (i = 1; i < 50; i++) {
-          cdd_c_error_t parse_rc;
           tree = NULL;
           g_cdd_cst_realloc_fail = i;
-          parse_rc = cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)snippet), &tree);
-          if (tree)
-            cdd_cst_tree_free(tree);
-          if (parse_rc == CDD_C_SUCCESS)
-            break;
+          cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippet),
+                        &tree);
+          cdd_cst_tree_free(tree);
         }
         g_cdd_cst_realloc_fail = 0;
 
@@ -2178,6 +2152,17 @@ TEST test_cst_full_coverage(void) {
   rc = parse_tokens(tl, &list);
   ASSERT(rc != CDD_C_SUCCESS);
   g_cdd_fail_cst_list_add = 0;
+  free_cst_node_list(&list);
+  free_token_list(tl);
+  tl = NULL;
+
+  rc = tokenize(
+      az_span_create_from_str((char *)(size_t) "generic_selection(1, int: 2);"),
+      &tl);
+  ASSERT_EQ(0, rc);
+  memset(&list, 0, sizeof(list));
+  rc = parse_tokens(tl, &list);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
   free_cst_node_list(&list);
   free_token_list(tl);
   tl = NULL;

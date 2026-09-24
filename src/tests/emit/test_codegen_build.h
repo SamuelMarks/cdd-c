@@ -104,6 +104,15 @@ TEST test_cbuild_basic_output(void) {
   ASSERT(strstr(content_str,
                 "option(BUILD_SHARED_LIBS \"Build shared libs\" ON)"));
 
+  /* Test with build_shared_libs = 0 */
+  config.build_shared_libs = 0;
+  rewind(tmp);
+  ASSERT_EQ(0, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
+
+#ifdef CDD_BUILD_TESTS
+  ASSERT_EQ(CDD_C_ERROR_IO, test_build_fprintf_mock_negative());
+#endif
+
   /* Backend logic check */
   ASSERT(
       strstr(content_str,

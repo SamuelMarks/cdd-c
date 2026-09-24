@@ -28,21 +28,34 @@ extern "C" {
 static cdd_c_error_t setup_patch_tokens(const char *code,
                                         struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
-  int rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
+  int rc;
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   if (rc != 0) {
     *_out_val = NULL;
-    return 0;
+    return rc;
   }
-  {
-    *_out_val = tl;
-    return 0;
-  }
+  *_out_val = tl;
+  return CDD_C_SUCCESS;
 }
 
 TEST test_patch_init_free(void) {
   char *_ast_strdup_0 = NULL;
   struct PatchList pl;
-  int rc = patch_list_init(&pl);
+  struct TokenList *tl_dummy = NULL;
+  int rc;
+
+  /* Exercise setup_patch_tokens error branches */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, setup_patch_tokens("code", NULL));
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, setup_patch_tokens("code", &tl_dummy));
+    g_cdd_alloc_fail = 0;
+  }
+
+  rc = patch_list_init(&pl);
   ASSERT_EQ(0, rc);
   ASSERT(pl.patches != NULL);
   ASSERT_EQ(0, pl.size);

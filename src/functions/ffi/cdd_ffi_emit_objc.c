@@ -212,12 +212,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
                     node->fields[j].name);
           } else {
             /* First arg format: + (void)doSomethingWithArg:(int)arg; */
-            fprintf(h_file, "%s%s:(%s%s)%s",
-                    node->fields_count > 1
-                        ? "With"
-                        : (strlen(node->name) > 0 ? "With" : ""),
-                    node->fields_count > 1 ? arg_name_cap : arg_name_cap,
-                    arg_type, arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
+            fprintf(h_file, "With%s:(%s%s)%s", arg_name_cap, arg_type,
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
                     node->fields[j].name);
           }
         }
@@ -278,12 +274,8 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
                     arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
                     node->fields[j].name);
           } else {
-            fprintf(m_file, "%s%s:(%s%s)%s",
-                    node->fields_count > 1
-                        ? "With"
-                        : (strlen(node->name) > 0 ? "With" : ""),
-                    node->fields_count > 1 ? arg_name_cap : arg_name_cap,
-                    arg_type, arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
+            fprintf(m_file, "With%s:(%s%s)%s", arg_name_cap, arg_type,
+                    arg_is_obj && !strstr(arg_type, "*") ? " *" : "",
                     node->fields[j].name);
           }
         }

@@ -284,6 +284,8 @@ TEST test_cdd_math_casts(void) {
   double d;
 
   cdd_uint64_to_uint128(10, &u);
+  cdd_int64_to_int128(10, &i);
+  ASSERT_EQ(0, i.high);
   cdd_int64_to_int128(-10, &i);
   cdd_uint128_to_uint64(u, &u64);
   cdd_int128_to_int64(i, &i64);

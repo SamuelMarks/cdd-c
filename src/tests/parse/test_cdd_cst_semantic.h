@@ -698,10 +698,7 @@ TEST test_cdd_cst_semantic_missing_branches_3(void) {
           for (i = 1; i < 6; ++i) {
             g_cdd_alloc_fail = i;
             rc = cdd_cst_build_semantic_info(tree, &env);
-            if (rc == CDD_C_SUCCESS) {
-              g_cdd_alloc_fail = 0;
-              break;
-            }
+            (void)rc;
           }
           g_cdd_alloc_fail = 0;
 
@@ -750,10 +747,6 @@ TEST test_cdd_cst_semantic_missing_branches_4(void) {
     for (i = 1; i < 6; ++i) {
       g_cdd_alloc_fail = i;
       rc = cdd_cst_build_semantic_info(tree, &env);
-      if (rc == CDD_C_SUCCESS) {
-        g_cdd_alloc_fail = 0;
-        break;
-      }
       (void)id_node2;
       (void)decl2;
       ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
@@ -804,10 +797,6 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
       for (i = 1; i < 6; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_build_semantic_info(tree, &env);
-        if (rc == CDD_C_SUCCESS) {
-          g_cdd_alloc_fail = 0;
-          break;
-        }
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
       g_cdd_alloc_fail = 0;
@@ -826,10 +815,6 @@ TEST test_cdd_cst_semantic_missing_branches_5(void) {
       for (i = 1; i < 6; ++i) {
         g_cdd_alloc_fail = i;
         rc = cdd_cst_build_semantic_info(tree, &env);
-        if (rc == CDD_C_SUCCESS) {
-          g_cdd_alloc_fail = 0;
-          break;
-        }
         ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
       g_cdd_alloc_fail = 0;
@@ -1160,13 +1145,9 @@ TEST test_cdd_cst_parser_oom_new(void) {
     {
       int rc = cdd_cst_parse(
           az_span_create_from_str((char *)(size_t)(size_t)code), &tree);
+      (void)rc;
       g_cdd_alloc_fail = 0;
-
-      if (rc == 0) {
-        if (tree)
-          cdd_cst_tree_free(tree);
-        break;
-      }
+      cdd_cst_tree_free(tree);
     }
   }
   PASS();

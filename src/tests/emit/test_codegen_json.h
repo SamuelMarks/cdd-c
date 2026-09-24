@@ -52,8 +52,7 @@ TEST test_json_to_plain(void) {
     long sz;
     char *content = NULL;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -103,8 +102,7 @@ TEST test_json_from_plain(void) {
     long sz;
     char *content = NULL;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -151,8 +149,7 @@ TEST test_json_recursive_obj(void) {
     char *content = NULL;
     long sz;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     struct_fields_init(&sf);
     struct_fields_add(&sf, "child", "object", "ChildType", NULL, NULL);
 
@@ -196,8 +193,7 @@ TEST test_json_array_logic(void) {
     char *content = NULL;
     long sz;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     struct_fields_init(&sf);
     /* Array of strings */
     struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
@@ -243,8 +239,7 @@ TEST test_json_guards(void) {
     char *content = NULL;
     long sz;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -395,8 +390,7 @@ TEST test_struct_array_from_json(void) {
     char *content = NULL;
     long sz;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", NULL));
 
     fseek(tmp, 0, SEEK_END);
@@ -625,8 +619,7 @@ TEST test_standalone_json_func(void) {
     char *content = NULL;
     long sz;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     setup_json_fields(&sf);
     printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
            sf.fields[0].has_max, sf.fields[0].exclusive_min,
@@ -822,12 +815,6 @@ TEST test_json_exhaustive_io(void) {
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
     if (tmp)
       fclose(tmp);
-    if (rc == 0)
-      break;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
@@ -888,12 +875,6 @@ TEST test_json_exhaustive_io(void) {
     rc = write_struct_from_jsonObject_func(tmp, "Data", &sf, &config);
     if (tmp)
       fclose(tmp);
-    if (rc == 0)
-      break;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
@@ -911,12 +892,6 @@ TEST test_json_exhaustive_io(void) {
     rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
     if (tmp)
       fclose(tmp);
-    if (rc == 0)
-      break;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
-    g_fail_io_after = 0;
-    g_io_calls = 0;
     ASSERT_EQ(CDD_C_ERROR_IO, rc);
   }
 
@@ -939,8 +914,7 @@ TEST test_codegen_json_extra(void) {
     struct StructFields sf;
     struct CodegenJsonConfig config;
 
-    if (!tmp)
-      FAIL();
+    ASSERT(tmp != NULL);
     struct_fields_init(&sf);
 
     /* Add fields for missing coverage:
@@ -1306,12 +1280,12 @@ TEST test_codegen_json_comprehensive(void) {
         }
         g_fail_io_after = -1;
       }
-      for (i = 0; i < 150; ++i) {
+      for (i = 0; i < 300; ++i) {
         cdd_c_error_t rc_io;
         g_fail_io_after = i;
         g_io_calls = 0;
         rc_io = write_struct_to_json_func(tmp, "CompStruct", &sf, &config);
-        if (rc_io == 0) {
+        if (rc_io == CDD_C_SUCCESS) {
           g_fail_io_after = -1;
           break;
         }
@@ -1319,13 +1293,13 @@ TEST test_codegen_json_comprehensive(void) {
       }
       g_fail_io_after = -1;
 
-      for (i = 0; i < 150; ++i) {
+      for (i = 0; i < 300; ++i) {
         cdd_c_error_t rc_io;
         g_fail_io_after = i;
         g_io_calls = 0;
         rc_io =
             write_struct_from_jsonObject_func(tmp, "CompStruct", &sf, &config);
-        if (rc_io == 0) {
+        if (rc_io == CDD_C_SUCCESS) {
           g_fail_io_after = -1;
           break;
         }

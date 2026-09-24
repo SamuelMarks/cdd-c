@@ -567,6 +567,25 @@ TEST test_safe_crt_oom(void) {
   int fail_count;
   cdd_c_error_t rc;
 
+  /* Exercise helper_generate_patches error branches */
+  {
+    int k;
+    struct CstNodeList *n_err = NULL;
+    struct TokenList *t_err = NULL;
+    rc = helper_generate_patches(src, NULL, &n_err, &t_err);
+    helper_cleanup(NULL, n_err, t_err);
+
+    for (k = 1; k <= 10; ++k) {
+      struct SafeCrtPatchList p_err;
+      n_err = NULL;
+      t_err = NULL;
+      g_cdd_alloc_fail = k;
+      rc = helper_generate_patches(src, &p_err, &n_err, &t_err);
+      g_cdd_alloc_fail = 0;
+      helper_cleanup(&p_err, n_err, t_err);
+    }
+  }
+
   nodes = (struct CstNodeList *)calloc(1, sizeof(struct CstNodeList));
   span = az_span_create((uint8_t *)(size_t)src, strlen(src));
   rc = tokenize(span, &tokens);

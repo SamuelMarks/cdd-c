@@ -445,14 +445,14 @@ cdd_c_error_t patch_list_to_diff(struct PatchList *list,
     keep_end_count =
         (b->old_end_line > max_mod_line) ? b->old_end_line - max_mod_line : 0;
 
-    for (i = b->old_start_line; i < min_mod_line && i <= b->old_end_line; i++) {
+    for (i = b->old_start_line; i < min_mod_line; i++) {
       rc = append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
                           (int)old_lines[i - 1].len, old_lines[i - 1].text);
       if (rc != CDD_C_SUCCESS)
         goto cleanup;
     }
 
-    for (i = min_mod_line; i <= max_mod_line && i <= b->old_end_line; i++) {
+    for (i = min_mod_line; i <= max_mod_line; i++) {
       rc = append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
                           (int)old_lines[i - 1].len, old_lines[i - 1].text);
       if (rc != CDD_C_SUCCESS)

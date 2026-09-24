@@ -39,27 +39,22 @@ TEST test_simple_cleanup_and_null(void) {
 
   {
     struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
-    if (foo) {
-      foo->bar = NULL;
-      foo->can = 0;
-      foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
-      if (foo->haz) {
-        Foo_cleanup(foo);
-      } else {
-        free(foo);
-      }
-    }
+    ASSERT(foo != NULL);
+    foo->bar = NULL;
+    foo->can = 0;
+    foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
+    ASSERT(foo->haz != NULL);
+    Foo_cleanup(foo);
   }
 
   {
     struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
-    if (foo) {
-      cdd_c_error_t rc;
-      foo->haz = NULL;
-      rc = Foo_cleanup(foo);
-      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
-      free(foo);
-    }
+    cdd_c_error_t rc;
+    ASSERT(foo != NULL);
+    foo->haz = NULL;
+    rc = Foo_cleanup(foo);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    free(foo);
   }
 
   PASS();
@@ -258,6 +253,8 @@ TEST test_foo_e_full_coverage(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, HazE_from_jsonObject(NULL, &haz_e));
     v = json_parse_string("{}");
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              HazE_from_jsonObject(json_value_get_object(v), NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               HazE_from_jsonObject(json_value_get_object(v), &haz_e));
     json_value_free(v);
   }
@@ -269,6 +266,9 @@ TEST test_foo_e_full_coverage(void) {
     JSON_Value *v = json_parse_string("{\"can\": 1}");
     ASSERT_EQ(0, FooE_from_jsonObject(json_value_get_object(v), &foo_e));
     FooE_cleanup(foo_e);
+
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              FooE_from_jsonObject(json_value_get_object(v), NULL));
     json_value_free(v);
 
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, FooE_from_jsonObject(NULL, &foo_e));
@@ -448,6 +448,59 @@ TEST test_foo_e_full_coverage(void) {
   PASS();
 }
 
+TEST test_run_mocks_test(void) {
+  int i;
+  cdd_c_error_t rc;
+
+  rc = run_mocks_test();
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+  for (i = 1; i <= 35; ++i) {
+    g_simple_json_fail_alloc = i;
+    run_mocks_test();
+    g_simple_json_fail_alloc = 0;
+  }
+
+#if !defined(_WIN32) && !defined(_MSC_VER) && !defined(__APPLE__)
+  {
+    FILE *ro = fopen("test_ro.txt", "w");
+    if (ro) {
+      fputs("data\n", ro);
+      fclose(ro);
+      ro = fopen("test_ro.txt", "r");
+      if (ro) {
+        struct HazE hz;
+        struct FooE fe;
+        hz.bzr = "test";
+        hz.tank = Tank_BIG;
+        fe.bar = "test";
+        fe.can = 1;
+        fe.haz = &hz;
+        ASSERT_NEQ(CDD_C_SUCCESS, HazE_display(&hz, ro));
+        ASSERT_NEQ(CDD_C_SUCCESS, FooE_display(&fe, ro));
+        fclose(ro);
+        remove("test_ro.txt");
+      }
+    }
+  }
+#endif
+
+  {
+    struct HazE *h = NULL;
+    rc = HazE_from_json("invalid json {", &h);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    rc = HazE_from_json("{\"bzr\": \"bar\"}", &h);
+    ASSERT_NEQ(CDD_C_SUCCESS, rc);
+    rc = HazE_from_json("{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}", &h);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    if (h) {
+      HazE_cleanup(h);
+    }
+  }
+
+  PASS();
+}
+
 /**
  * @brief Suite for simple mocks
  */
@@ -456,6 +509,7 @@ SUITE(simple_mocks_suite) {
 
   RUN_TEST(test_foo_e_json);
   RUN_TEST(test_foo_e_full_coverage);
+  RUN_TEST(test_run_mocks_test);
 }
 
 #ifdef __cplusplus

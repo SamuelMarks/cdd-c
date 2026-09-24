@@ -333,7 +333,7 @@ TEST test_cdd_transform_extern_c_bot_insert_idx(void) {
 
 TEST test_cdd_transform_extern_c_close_node_fails(void) {
   int i;
-  for (i = 0; i < 50; i++) {
+  for (i = 0; i <= 50; i++) {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
     cdd_cst_node_t *decl = calloc(1, sizeof(cdd_cst_node_t));
@@ -372,7 +372,7 @@ TEST test_cdd_transform_extern_c_close_node_fails(void) {
 
 TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
   int i;
-  for (i = 0; i < 50; i++) {
+  for (i = 0; i <= 50; i++) {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
     cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
@@ -411,7 +411,7 @@ TEST test_cdd_transform_extern_c_bot_append_dead_code(void) {
 
 TEST test_cdd_transform_extern_c_target_parent_no_eof(void) {
   int i;
-  for (i = 0; i < 50; i++) {
+  for (i = 0; i <= 50; i++) {
     cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
     cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
     int rc;
@@ -864,7 +864,6 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   const char *code = "#ifdef __cplusplus\n#endif\n#include <stdio.h>\nint "
                      "main() { return 0; }\n";
   int rc;
-  int final_rc = 0;
   cdd_transform_config_t config = {0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
@@ -876,20 +875,17 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
   g_extern_c_helper_fail = -1;
   rc = cdd_transform_extern_c(tree, &config);
   g_extern_c_helper_fail = 0;
-  if (rc != CDD_C_ERROR_MEMORY)
-    final_rc |= 1;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
   g_extern_c_helper_fail = 1;
   rc = cdd_transform_extern_c(tree, &config);
   g_extern_c_helper_fail = 0;
-  if (rc != CDD_C_ERROR_MEMORY)
-    final_rc |= 2;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
   g_extern_c_helper_fail = 2;
   rc = cdd_transform_extern_c(tree, &config);
   g_extern_c_helper_fail = 0;
-  if (rc != CDD_C_ERROR_MEMORY)
-    final_rc |= 4;
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 #endif
 
   cdd_cst_tree_free(tree);
@@ -906,8 +902,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
     g_extern_c_helper_fail = -1;
     rc = cdd_transform_extern_c(tree2, &config);
     g_extern_c_helper_fail = 0;
-    if (rc != CDD_C_ERROR_MEMORY)
-      final_rc |= 16;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
 
     cdd_cst_tree_free(tree2);
   }
@@ -922,8 +917,7 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
     g_extern_c_helper_fail = -2;
     rc = cdd_transform_extern_c(tree_cond, &config);
     g_extern_c_helper_fail = 0;
-    if (rc != CDD_C_ERROR_MEMORY)
-      final_rc |= 32;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     cdd_cst_tree_free(tree_cond);
   }
 
@@ -937,13 +931,11 @@ TEST test_cdd_transform_extern_c_helper_fails(void) {
     g_extern_c_helper_fail = -3;
     rc = cdd_transform_extern_c(tree_dir, &config);
     g_extern_c_helper_fail = 0;
-    if (rc != CDD_C_ERROR_MEMORY)
-      final_rc |= 64;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
     cdd_cst_tree_free(tree_dir);
   }
 #endif
 
-  ASSERT_EQ(0, final_rc);
   PASS();
 }
 

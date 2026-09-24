@@ -44,6 +44,10 @@ static enum cdd_c_error _cdd_test_mock_io(int x) {
   }
   return x < 0 ? CDD_C_ERROR_IO : CDD_C_SUCCESS;
 }
+C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void);
+C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void) {
+  return _cdd_test_mock_io(-1);
+}
 /** @brief Check I/O return code with mock support */
 #define CHECK_IO_RC(x) (_cdd_test_mock_io(x) != CDD_C_SUCCESS)
 #else
@@ -496,9 +500,8 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
 #endif
 
   if (!fp) {
-    rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
     C_CDD_FREE(full_path);
-    return rc;
+    return CDD_C_ERROR_IO;
   }
   C_CDD_FREE(full_path);
   full_path = NULL;
@@ -582,7 +585,7 @@ cdd_c_error_t generate_cmake_project(const char *output_path,
     rc = write_cmake_content(fp, project_name, has_tests);
     fclose(fp);
   } else {
-    rc = (errno == ENOMEM) ? CDD_C_ERROR_MEMORY : CDD_C_ERROR_IO;
+    rc = CDD_C_ERROR_IO;
   }
   C_CDD_FREE(src_dir);
   src_dir = NULL;

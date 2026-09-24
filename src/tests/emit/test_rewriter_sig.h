@@ -92,6 +92,14 @@ TEST test_rewrite_failures(void) {
  */
 TEST test_rewrite_void_ret(void) {
   /* void f() -> int f() */
+  /* Exercise tokenize failure branch */
+  {
+    extern C_CDD_EXPORT int g_cdd_alloc_fail;
+    g_cdd_alloc_fail = 1;
+    ASSERT_EQ(CDD_C_ERROR_UNKNOWN, test_rewrite("void f()", ""));
+    g_cdd_alloc_fail = 0;
+  }
+
   ASSERT_EQ(0, test_rewrite("void f()", "int f()"));
   ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
   /* Space padding checks */

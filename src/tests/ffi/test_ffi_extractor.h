@@ -294,10 +294,14 @@ TEST test_ffi_ir_extract_includes(void) {
     write_to_file(err_main, code_em);
     remove(err_main);
     (void)cdd_ffi_ir_extract_exports(err_main, code_em, &config, &err_ir);
-    if (err_ir) {
+    write_to_file("ok_v.h", "int foo_clean(void);\n");
+    if (cdd_ffi_ir_extract_exports("ok_v.h", "int foo_clean(void);\n", &config,
+                                   &err_ir) == CDD_C_SUCCESS &&
+        err_ir) {
       cdd_ffi_ir_free(err_ir);
       free(err_ir);
     }
+    remove("ok_v.h");
   }
 
   PASS();
@@ -2616,6 +2620,12 @@ TEST test_ffi_ir_extractor_helpers(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_ffi_int64_to_str_test(987654321, buf, sizeof(buf)));
   ASSERT_STR_EQ("987654321", buf);
+
+  {
+    char small_buf[3];
+    ASSERT_EQ(CDD_C_SUCCESS, cdd_ffi_int64_to_str_test(987654321, small_buf,
+                                                       sizeof(small_buf)));
+  }
 
   /* map_c_type_to_ffi_kind coverage */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,

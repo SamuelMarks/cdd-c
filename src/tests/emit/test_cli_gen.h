@@ -265,9 +265,6 @@ TEST test_cli_gen_malloc_fail(void) {
     g_cdd_alloc_fail = i;
     rc = openapi_cli_generate(&spec, &config);
     g_cdd_alloc_fail = 0;
-    if (rc == CDD_C_SUCCESS) {
-      break;
-    }
     ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
   }
 

@@ -58,16 +58,22 @@ extern C_CDD_EXPORT int g_cdd_fail_schema_has_inline;
 extern C_CDD_EXPORT int g_cdd_fail_map_type_to_c_out;
 extern C_CDD_EXPORT int g_cdd_fail_map_array_item_type_out;
 
+static int g_sig_fail_tmpfile = 0;
+
 static cdd_c_error_t gen_sig(const struct OpenAPI_Operation *op,
                              const struct CodegenSigConfig *cfg,
                              char **_out_val) {
   FILE *tmp;
-#if defined(_MSC_VER)
-  if (((tmp = cdd_test_tmpfile_global()) == NULL))
+  if (g_sig_fail_tmpfile) {
     tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
 #else
-  tmp = cdd_test_tmpfile_global();
+    tmp = cdd_test_tmpfile_global();
 #endif
+  }
   {
     long sz;
     char *content = NULL;
@@ -2213,6 +2219,9 @@ TEST test_sig_null_args(void) {
   ASSERT(codegen_client_write_signature(NULL, NULL, NULL) ==
          CDD_C_ERROR_INVALID_ARGUMENT);
   ASSERT(gen_sig(NULL, NULL, &code) != CDD_C_SUCCESS);
+  g_sig_fail_tmpfile = 1;
+  ASSERT(gen_sig(NULL, NULL, &code) == CDD_C_ERROR_IO);
+  g_sig_fail_tmpfile = 0;
   PASS();
 }
 
@@ -2648,6 +2657,17 @@ TEST test_sig_helpers_coverage_2(void) {
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT(str_val == NULL);
   p.is_array = 0;
+  p.type = (char *)(size_t)(size_t) "string";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
+  ASSERT(str_val == NULL);
+  p.type = (char *)(size_t)(size_t) "array";
+  p.items_type = (char *)(size_t)(size_t) "integer";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
+  ASSERT_STR_EQ("integer", str_val);
+  p.items_type = NULL;
+  p.type = NULL;
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_type(&p, &str_val));
   ASSERT(str_val == NULL);
@@ -2678,6 +2698,18 @@ TEST test_sig_helpers_coverage_2(void) {
   ASSERT_EQ(CDD_C_SUCCESS,
             cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
   ASSERT(str_val == NULL);
+  p.is_array = 0;
+  p.type = (char *)(size_t)(size_t) "string";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
+  ASSERT(str_val == NULL);
+  p.type = (char *)(size_t)(size_t) "array";
+  p.items_type = (char *)(size_t)(size_t) "MyItemRef";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_sig_querystring_param_json_array_item_ref(&p, &str_val));
+  ASSERT_STR_EQ("MyItemRef", str_val);
+  p.items_type = NULL;
+  p.type = NULL;
 
   /* querystring_param_raw_primitive_type */
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -4172,6 +4204,19 @@ TEST test_sig_ultra_coverage(void) {
       char med[3];
       ASSERT_EQ(CDD_C_SUCCESS, cdd_test_sig_sanitize_ident(med, 3, "9a"));
       ASSERT_STR_EQ("_a", med);
+    }
+    {
+      char small_non_digit[3];
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_sig_sanitize_ident(small_non_digit, 3, "abcdef"));
+      ASSERT_STR_EQ("ab", small_non_digit);
+    }
+    {
+      char tilde_buf[16];
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_sig_sanitize_ident(tilde_buf, sizeof(tilde_buf),
+                                            "foo~bar{baz}"));
+      ASSERT_STR_EQ("foo_bar_baz_", tilde_buf);
     }
   }
 

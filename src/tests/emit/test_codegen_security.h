@@ -576,6 +576,9 @@ TEST test_scheme_ref_matches_name(void) {
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             scheme_ref_matches_name_test(
                 "http://x#/components/securitySchemes/abc", "abc", &spec));
+  ASSERT_EQ(CDD_C_SUCCESS, scheme_ref_matches_name_test(
+                               "http://x#/components/securitySchemes/abc",
+                               "different", &spec));
 
   spec.self_uri = (char *)(size_t)(size_t) "http://y";
   ASSERT_EQ(CDD_C_SUCCESS,
@@ -988,18 +991,12 @@ TEST test_security_errors(void) {
   g_io_calls = 0;
   g_fail_io_after = 1; /* TMPFILE fails */
   ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));
-  if (_out) {
-    C_CDD_FREE(_out);
-    _out = NULL;
-  }
+  ASSERT_EQ(NULL, _out);
+  g_fail_io_after = -1;
 
-  g_io_calls = 0;
-  g_fail_io_after = 2; /* codegen_security_write_apply fails */
-  ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));
-  if (_out) {
-    C_CDD_FREE(_out);
-    _out = NULL;
-  }
+  /* spec == NULL triggers codegen_security_write_apply error */
+  ASSERT_EQ(0, gen_sec_code(NULL, NULL, &_out));
+  ASSERT_EQ(NULL, _out);
 
   g_fail_io_after = 999; /* FTELL returns 0 */
   ASSERT_EQ(0, gen_sec_code(&spec, NULL, &_out));

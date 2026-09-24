@@ -94,9 +94,8 @@ static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
   uint64_t p11 = a_hi * b_hi;
 
   uint64_t mid1 = p01 + (p00 >> 32);
-  uint64_t carry = (mid1 < p01) ? ((uint64_t)1) : ((uint64_t)0);
   uint64_t mid2 = mid1 + p10;
-  carry += (mid2 < mid1) ? ((uint64_t)1) : ((uint64_t)0);
+  uint64_t carry = (mid2 < mid1) ? ((uint64_t)1) : ((uint64_t)0);
 
   out->low = (mid2 << 32) | (p00 & 0xFFFFFFFF);
   out->high =

@@ -305,14 +305,11 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
        */
       int parse_rc = cdd_cst_parse(
           az_span_create_from_str((char *)(size_t)fails[i]), &tree);
-      if (parse_rc != 0 || tree == NULL) {
-        printf("PARSE FAILED FOR %s\n", fails[i]);
-      }
+      ASSERT_EQ(0, parse_rc);
+      ASSERT(tree != NULL);
       g_cdd_cst_alloc_token_fail = 1;
       rc = cdd_transform_msvc(tree, &config);
-      if (rc != CDD_C_ERROR_MEMORY) {
-        printf("TRANSFORM DID NOT RETURN OOM FOR %s (rc=%d)\n", fails[i], rc);
-      }
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       g_cdd_cst_alloc_token_fail = 0;
       cdd_cst_tree_free(tree);
       tree = NULL;

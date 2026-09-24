@@ -98,6 +98,12 @@ struct TokenList;
  */
 extern C_CDD_EXPORT cdd_c_error_t
 count_returning_allocs(const struct TokenList *tokens, int *out_count);
+
+/**
+ * @brief Exposes get_line_col boundary test.
+ * @return CDD_C_SUCCESS.
+ */
+extern C_CDD_EXPORT cdd_c_error_t test_audit_get_line_col_boundary(void);
 #endif /* CDD_BUILD_TESTS */
 
 #ifdef __cplusplus

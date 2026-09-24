@@ -248,17 +248,12 @@ TEST test_cdd_cst_parse_format_oom(void) {
 
   g_cdd_cst_alloc_token_fail = 2;
   cdd_cst_parse_format(tree, &node, "int x;");
-  if (node) {
-    cdd_cst_free_node(node);
-    node = NULL;
-  }
+  cdd_cst_free_node(node);
+  node = NULL;
   g_cdd_cst_alloc_token_fail = 1;
   {
     int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
-    if (rc_tmp != CDD_C_ERROR_MEMORY) {
-      printf("rc_tmp = %d, expected CDD_C_ERROR_MEMORY\n", rc_tmp);
-    }
-    ASSERT(rc_tmp != 0);
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
   }
   g_cdd_cst_alloc_token_fail = 0;
 

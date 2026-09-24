@@ -175,6 +175,7 @@ if(MSVC)
 
 endif()
 add_subdirectory(src)
+target_link_libraries(test_c_cdd PUBLIC "generated_client")
 
 target_include_directories(
         test_simple_json
@@ -185,6 +186,11 @@ target_include_directories(
 add_test(NAME test_cdd_c_help COMMAND cdd-c --help)
 add_test(NAME test_cdd_c_fail COMMAND cdd-c non_existent_command)
 set_tests_properties(test_cdd_c_fail PROPERTIES WILL_FAIL TRUE)
+
+add_test(NAME test_mocks COMMAND mocks WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_mocks_arg COMMAND mocks --foo WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+add_test(NAME test_mocks_fail COMMAND mocks --fail-alloc WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_tests_properties(test_mocks_fail PROPERTIES WILL_FAIL TRUE)
 
 if(TARGET test_c_cdd)
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")

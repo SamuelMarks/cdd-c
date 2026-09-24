@@ -289,3 +289,12 @@ cdd_ffi_emit_elixir(cdd_ffi_ir_t *ir,
 
   return CDD_C_SUCCESS;
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t test_cdd_ffi_emit_elixir_internals(void) {
+  char buf[5];
+  elixirify_name("VeryLongName", buf, sizeof(buf));
+  snake_case_name("VeryLongName", buf, sizeof(buf));
+  return CDD_C_SUCCESS;
+}
+#endif

@@ -261,7 +261,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_cli_c2openapi.h"
 #include "parse/test_fs_coverage.h"
 
-#include "cdd_test_helpers/test_mock_server.h"
 #include "parse/test_cdd_cst_cfg.h"
 #include "parse/test_cdd_cst_escape.h"
 #include "parse/test_cdd_cst_scope.h"
@@ -280,7 +279,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_c_mapping.h"
 #include "parse/test_doc_parser.h"
 
-#include "cdd_test_helpers/test_mock_server.h"
 /* #include "parse/test_c2openapi_schema.h"
 #include "../transformers/gnu_standardizer/test_gnu_standardizer_internals.h"
 #include "emit/test_diff.h"
@@ -293,7 +291,6 @@ static FILE *mock_tmpfile_fuzzer(void) {
 #include "parse/test_query_projection.h"
 #include "parse/test_to_docs_json.h"
 
-#include "cdd_test_helpers/test_mock_server.h"
 #include "parse/test_cdd_cst_builder.h"
 #include "parse/test_cdd_cst_factory.h"
 #include "parse/test_cli_cst.h"
@@ -306,6 +303,8 @@ static FILE *mock_tmpfile_fuzzer(void) {
 
 #include "transformers/safe_crt/test_safe_crt.h"
 GREATEST_MAIN_DEFS();
+
+extern cdd_c_error_t dummy_client(void);
 
 TEST test_cdd_helpers(void) {
   cdd_precondition_failed();
@@ -362,6 +361,11 @@ TEST test_cdd_helpers(void) {
     /* extern C_CDD_EXPORT int g_cdd_helpers_fopen_err; (moved to global) */
     g_io_calls = 0;
     g_fail_io_after = 1;
+    g_cdd_helpers_fopen_err = ENOENT;
+    ASSERT_EQ(CDD_C_ERROR_NOT_FOUND, write_to_file("test_helpers.txt", "abc"));
+
+    g_io_calls = 0;
+    g_fail_io_after = 1;
     g_cdd_helpers_fopen_err = ENOMEM;
     {
       cdd_c_error_t rc = write_to_file("test_helpers.txt", "abc");
@@ -388,6 +392,16 @@ TEST test_cdd_helpers(void) {
     g_io_calls = 0;
     g_fail_io_after = 3; /* FCLOSE fails */
     ASSERT_EQ(CDD_C_ERROR_IO, write_to_file("test_helpers.txt", "abc"));
+
+    g_io_calls = 0;
+    g_fail_io_after = -1; /* Success case where both FPUTS and FCLOSE succeed */
+    ASSERT_EQ(CDD_C_SUCCESS, write_to_file("test_helpers.txt", "abc"));
+    remove("test_helpers.txt");
+
+    {
+      cdd_c_error_t dummy_rc = dummy_client();
+      ASSERT_EQ(CDD_C_SUCCESS, dummy_rc);
+    }
 
     g_fail_io_after = -1;
     PASS();
@@ -458,6 +472,10 @@ static void reset_mocks(void) {
   g_accept_fail = 0;
   /*  (moved to global) */
   g_bind_fail = 0;
+  g_listen_fail = 0;
+  g_getsockname_fail = 0;
+  g_pthread_create_fail = 0;
+  g_socket_fail = 0;
   /*  (moved to global) */
   g_fail_io_after = -1;
   g_io_calls = 0;
@@ -871,7 +889,7 @@ int main(int argc, char **argv) {
   reset_mocks();
   RUN_SUITE(diff_suite);
   reset_mocks();
-  /* RUN_SUITE(c_cdd_mock_server_suite); */
+  RUN_SUITE(c_cdd_mock_server_suite);
   reset_mocks();
   RUN_SUITE(cli_c2openapi_suite);
   reset_mocks();
@@ -886,6 +904,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(ffi_extractor_suite);
   reset_mocks();
   RUN_SUITE(parsing_suite);
+  reset_mocks();
+  RUN_SUITE(simple_mocks_suite);
   reset_mocks();
   RUN_SUITE(transformer_gnu_standardizer_suite);
   reset_mocks();

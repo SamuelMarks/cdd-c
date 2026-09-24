@@ -53,6 +53,15 @@ extern C_CDD_EXPORT /**
     generate_cmake_project(const char *output_path, const char *project_name,
                            int has_tests);
 
+#ifdef CDD_BUILD_TESTS
+/**
+ * @brief Helper function to test mock IO negative return in tests.
+ *
+ * @return CDD_C_ERROR_IO on success.
+ */
+extern C_CDD_EXPORT cdd_c_error_t test_build_system_mock_io_negative(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

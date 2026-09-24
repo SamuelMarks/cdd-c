@@ -418,12 +418,36 @@ TEST test_macro_evaluator_uncovered(void) {
   int rc;
   struct MacroDef def;
 
-  (void)rc;
   pp_context_init(&ctx);
 
   /* float + int */
   rc = cdd_macro_evaluate(&ctx, "1.5 + 2", &res);
   ASSERT_EQ(0, rc);
+
+  /* logical OR & AND branches with 0 and 0.0 */
+  rc = cdd_macro_evaluate(&ctx, "1 || 0", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, res.int_val);
+
+  rc = cdd_macro_evaluate(&ctx, "0 || 1", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(1, res.int_val);
+
+  rc = cdd_macro_evaluate(&ctx, "0 || 0", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, res.int_val);
+
+  rc = cdd_macro_evaluate(&ctx, "0 || 0.0", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, res.int_val);
+
+  rc = cdd_macro_evaluate(&ctx, "0.0 && 1", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, res.int_val);
+
+  rc = cdd_macro_evaluate(&ctx, "1.0 && 0.0", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, res.int_val);
 
   /* escaped string */
   rc = cdd_macro_evaluate(&ctx, "\"foo\\\"bar\"", &res);
@@ -459,16 +483,15 @@ TEST test_macro_evaluator_uncovered(void) {
     int fail_idx;
     for (fail_idx = 1; fail_idx < 15; fail_idx++) {
       g_cdd_alloc_fail = fail_idx;
-      if (cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res) == 0)
-        cdd_macro_eval_result_free(&res);
+      rc = cdd_macro_evaluate(&ctx, "123U + _foo + \"abc\"", &res);
+      ASSERT(rc != 0);
       g_cdd_alloc_fail = 0;
     }
 
     g_cdd_alloc_fail = 1;
     rc = cdd_macro_evaluate(&ctx, "\"str\"", &res);
+    ASSERT(rc != 0);
     g_cdd_alloc_fail = 0;
-    if (rc == 0)
-      cdd_macro_eval_result_free(&res);
 
     rc = cdd_macro_evaluate(&ctx, "\"success_str\"", &res);
     cdd_macro_eval_result_free(&res);

@@ -353,14 +353,8 @@ TEST test_type_eval_branches(void) {
   /* Test OOM */
 #ifdef CDD_BUILD_TESTS
   g_cdd_alloc_fail = 1;
-  /* Also test the malloc failure inside eval_alignof since it calls
-   * extract_type_name too */
-  g_cdd_alloc_fail = 1;
   rc = cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz);
-  if (rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_MEMORY) { /* passed */
-  } else {
-    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
-  }
+  ASSERT(rc == CDD_C_ERROR_SYSTEM || rc == CDD_C_ERROR_MEMORY);
   g_cdd_alloc_fail = 0;
 #endif
 

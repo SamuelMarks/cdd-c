@@ -112,6 +112,29 @@ C_CDD_EXPORT cdd_c_error_t cdd_pool_string_safe_len(cdd_cst_tree_t *tree,
 C_CDD_EXPORT cdd_c_error_t cdd_append_int(char *p, int v, char **out_p);
 
 /**
+ * @brief Allocates memory using safe wrapper.
+ * @param[in] sz Number of bytes to allocate.
+ * @param[out] out_ptr Pointer receiving allocated memory.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t gnu_malloc(size_t sz, void **out_ptr);
+
+/**
+ * @brief Replaces a token child in the CST with a new token holding text.
+ * @param[in,out] tree CST tree.
+ * @param[in,out] tok Existing token in CST to replace.
+ * @param[in] kind Token kind for replacement token.
+ * @param[in] text Replacement text.
+ * @param[in] len Length of replacement text.
+ * @return CDD_C_SUCCESS on success, error code on failure.
+ */
+C_CDD_EXPORT cdd_c_error_t replace_token_with_text(cdd_cst_tree_t *tree,
+                                                   cdd_token_t *tok,
+                                                   enum cdd_token_kind_t kind,
+                                                   const char *text,
+                                                   size_t len);
+
+/**
  * @brief Parses a 128-bit decimal literal into high and low 64-bit halves.
  * @param[in] str Decimal literal string.
  * @param[in] len Length of string.

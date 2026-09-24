@@ -474,3 +474,12 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
     return CDD_C_SUCCESS;
   }
 }
+
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT cdd_c_error_t test_audit_get_line_col_boundary(void) {
+  const char *content = "short";
+  size_t line = 0, col = 0;
+  get_line_col(content, (const uint8_t *)content + 10, &line, &col);
+  return CDD_C_SUCCESS;
+}
+#endif

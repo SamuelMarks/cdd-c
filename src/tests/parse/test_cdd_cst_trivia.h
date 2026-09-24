@@ -179,26 +179,17 @@ TEST test_cdd_cst_trivia_oom(void) {
 
   g_cdd_cst_alloc_node_fail = 1;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
-  if (rc_tmp != CDD_C_ERROR_MEMORY) {
-    printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
-           rc_tmp);
-  }
-  ASSERT(rc_tmp != 0);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
 
   g_cdd_cst_alloc_node_fail = 2;
   rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
-  if (rc_tmp != CDD_C_ERROR_MEMORY) {
-    printf("cdd_cst_generate_indent_trivia = %d, expected CDD_C_ERROR_MEMORY\n",
-           rc_tmp);
-  }
-  ASSERT(rc_tmp != 0);
+  ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_tmp);
 
   g_cdd_cst_alloc_node_fail = 3;
   rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
   g_cdd_cst_alloc_node_fail = 0;
   g_fail_io_after = -1;
-
   PASS();
 }
 #endif

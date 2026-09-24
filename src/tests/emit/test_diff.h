@@ -543,7 +543,7 @@ TEST test_diff_append_errors(void) {
   }
 
   /* Del and ins with no trailing newline */
-  for (i = 1; i <= 8; ++i) {
+  for (i = 1; i <= 20; ++i) {
     struct PatchList list;
     struct TokenList *tokens = NULL;
     char *diff_str = NULL;
@@ -742,25 +742,17 @@ TEST test_diff_alloc_failures(void) {
     rc = tokenize(az_span_create_from_str(
                       ((char *)(size_t) "int x = 10;\nint y = 20;\n")),
                   &tokens);
-    if (rc != CDD_C_SUCCESS)
-      continue;
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     rc = patch_list_init(&list);
-    if (rc != CDD_C_SUCCESS) {
-      free_token_list(tokens);
-      continue;
-    }
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     rep = (char *)malloc(80);
     memset(rep, 'z', 78);
     rep[78] = '\n';
     rep[79] = '\0';
     rc = patch_list_add(&list, 3, 4, rep);
-    if (rc != CDD_C_SUCCESS) {
-      patch_list_free(&list);
-      free_token_list(tokens);
-      continue;
-    }
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
 
     g_cdd_alloc_fail = fail_count;
     rc = patch_list_to_diff(&list, tokens, "x.c", &diff_str);
