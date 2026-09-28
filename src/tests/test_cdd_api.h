@@ -92,7 +92,7 @@ TEST test_cdd_serve_json_rpc(void) {
 TEST test_bin_cdd(void) {
   int rc = 1;
   const char *env_bin = getenv("CDD_C_BIN");
-  const char *candidates[7];
+  const char *candidates[16];
   size_t n_cands = 0;
   size_t i;
   if (env_bin != NULL && env_bin[0] != '\0') {

@@ -37,7 +37,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
 
-  (void)hoist_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(&list));
   ASSERT_EQ(0, scan_for_mixed_declarations(tokens, &list));
 
   /* Should find 1 mixed declaration: `int b = 3;` */
@@ -77,7 +77,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
   struct HoistSiteList list;
   tokenize(az_span_create_from_str((char *)(size_t) "int a = 1;"), &tl);
 
-  (void)hoist_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(&list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             scan_for_mixed_declarations(NULL, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -110,7 +110,7 @@ TEST test_decl_hoist_branches(void) {
   struct HoistSiteList list;
 
   /* RBRACE with depth == 0 */
-  (void)hoist_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(&list));
   ASSERT_EQ(0, check_hoist("}", &list));
 
   /* EOF immediately */
@@ -184,7 +184,7 @@ TEST test_decl_hoist_branches(void) {
 TEST test_decl_hoist_edges(void) {
   struct HoistSiteList list = {0};
   struct TokenList *tl = NULL;
-  (void)hoist_site_list_init(NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, hoist_site_list_init(NULL));
   hoist_site_list_free(NULL);
 
   hoist_site_list_free(&list);

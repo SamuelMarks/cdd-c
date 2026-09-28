@@ -34,7 +34,7 @@ TEST test_audit_stats_init(void) {
   struct AuditStats stats;
   /* Set to garbage */
   memset(&stats, 0xFF, sizeof(stats));
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   printf("FILES_SCANNED=%d\n", (int)stats.files_scanned);
   ASSERT_EQ(0, stats.files_scanned);
@@ -53,7 +53,7 @@ TEST test_audit_single_file(void) {
   char *root = NULL;
   char *f_unchecked = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   /* Create explicit subdir to avoid walking /tmp */
   (void)rc;
@@ -104,7 +104,7 @@ TEST test_audit_ignored_files(void) {
   char *root = NULL;
   char *f_h = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand())) {
@@ -139,7 +139,7 @@ TEST test_audit_return_alloc(void) {
   char *root = NULL;
   char *f_ret = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand())) {
@@ -188,7 +188,7 @@ TEST test_audit_json_output(void) {
   char *json = NULL;
   struct AuditStats stats;
   (void)rc;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   stats.files_scanned = 10;
   stats.allocations_checked = 20;
@@ -238,10 +238,11 @@ TEST test_audit_json_output(void) {
 TEST test_audit_stats_null(void) {
   char *_test_json = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
-  (void)audit_stats_init(NULL); /* Should do nothing safely */
-  audit_stats_free(NULL);       /* Should return safely */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            audit_stats_init(NULL)); /* Should do nothing safely */
+  audit_stats_free(NULL);            /* Should return safely */
 
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project(NULL, &stats));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, audit_project("dummy", NULL));
@@ -261,7 +262,7 @@ TEST test_audit_edge_cases(void) {
   char *f_bad_token = NULL;
   char *f_unreadable = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
   tempdir(&sys_tmp);
   if (asprintf(&root, "%s%saudit_edge_%d", sys_tmp, PATH_SEP, rand())) {
@@ -338,7 +339,7 @@ TEST test_audit_edge_cases(void) {
 TEST test_audit_extras(void) {
   char *json = NULL;
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
 #ifdef CDD_BUILD_TESTS
   ASSERT_EQ(CDD_C_SUCCESS, test_audit_get_line_col_boundary());
@@ -350,9 +351,9 @@ TEST test_audit_extras(void) {
     char *root = NULL;
     char *f_tok = NULL;
     struct AuditStats stats_tok;
-    (void)audit_stats_init(&stats_tok);
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_tok));
 
-    (void)audit_stats_init(&stats_tok);
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_tok));
     tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failtok_%d", sys_tmp, PATH_SEP,
                  rand())) {
@@ -382,8 +383,8 @@ TEST test_audit_extras(void) {
     char *root = NULL;
     char *f_find = NULL;
     struct AuditStats stats_find;
-    (void)audit_stats_init(&stats_find);
-    (void)audit_stats_init(&stats_find);
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_find));
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats_find));
     tempdir(&sys_tmp);
     if (asprintf(&root, "%s%saudit_test_failfind_%d", sys_tmp, PATH_SEP,
                  rand())) {
@@ -419,7 +420,7 @@ TEST test_audit_extras(void) {
 
 TEST test_audit_oom(void) {
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
 #ifdef CDD_BUILD_TESTS
   {
@@ -485,7 +486,7 @@ TEST test_audit_oom(void) {
 
 TEST test_audit_capacity(void) {
   struct AuditStats stats;
-  (void)audit_stats_init(&stats);
+  ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
 
 #ifdef CDD_BUILD_TESTS
   {

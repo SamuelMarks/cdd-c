@@ -24,7 +24,7 @@ TEST test_macro_overlay_basic(void) {
   cst.capacity = 0;
   cst.nodes = NULL;
 
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_build_macro_overlay(NULL, tl, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -41,7 +41,7 @@ TEST test_macro_overlay_basic(void) {
 }
 
 TEST test_macro_overlay_null_args(void) {
-  (void)macro_overlay_list_init(NULL);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, macro_overlay_list_init(NULL));
   macro_overlay_list_free(NULL);
   g_fail_io_after = -1;
   PASS();
@@ -60,7 +60,7 @@ TEST test_macro_overlay_with_nodes(void) {
   cst.nodes = calloc(1, sizeof(struct CstNode));
   cst.nodes[0].kind = CST_NODE_MACRO;
 
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cst_build_macro_overlay(NULL, tl, &list));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -79,7 +79,7 @@ TEST test_macro_overlay_with_nodes(void) {
   }
 
   macro_overlay_list_free(&list);
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
   ASSERT_EQ(10, list.size);
 
@@ -104,7 +104,7 @@ TEST test_macro_overlay_free_with_expanded(void) {
   expanded->capacity = 1;
 
   /* Manually add a node to hit the free_cst_node_list branch */
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   list.capacity = 2;
   list.size = 2;
   list.nodes = calloc(2, sizeof(struct MacroOverlayNode));
@@ -121,7 +121,7 @@ TEST test_macro_overlay_non_macro(void) {
   struct TokenList *tl = setup_tokens("int a;");
   struct CstNodeList cst = {0};
 
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   cst.capacity = 1;
   cst.size = 1;
   cst.nodes = calloc(1, sizeof(struct CstNode));
@@ -147,7 +147,7 @@ TEST test_macro_overlay_oom(void) {
   struct TokenList *tl = setup_tokens("MACRO(1)");
   struct CstNodeList cst = {0};
 
-  (void)macro_overlay_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, macro_overlay_list_init(&list));
   cst.capacity = 2;
   cst.size = 2;
   cst.nodes = calloc(2, sizeof(struct CstNode));

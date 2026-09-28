@@ -295,7 +295,7 @@ TEST test_init_oom(void) {
 
   for (i = 1; i < 30; ++i) {
     g_cdd_alloc_fail = i;
-    (void)tokenize_str(code, &tl);
+    rc = tokenize_str(code, &tl);
     if (!tl) {
       g_cdd_alloc_fail = 0;
       continue;
@@ -325,7 +325,7 @@ TEST test_init_more_errors(void) {
   int rc;
 
   /* Invalid designator ending */
-  (void)tokenize_str("{ .x , }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ .x , }", &tl));
   init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -333,7 +333,7 @@ TEST test_init_more_errors(void) {
   free_token_list(tl);
 
   /* Empty expression */
-  (void)tokenize_str("{ , }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ , }", &tl));
   init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -341,7 +341,7 @@ TEST test_init_more_errors(void) {
   free_token_list(tl);
 
   /* Designator invalid syntax limit */
-  (void)tokenize_str("{ .x }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ .x }", &tl));
   init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
@@ -349,7 +349,7 @@ TEST test_init_more_errors(void) {
   free_token_list(tl);
 
   /* Empty list? */
-  (void)tokenize_str("{ }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ }", &tl));
   init_list_init(&list);
   rc = parse_initializer(tl, 0, tl->size, &list, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
@@ -372,7 +372,7 @@ TEST test_init_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, init_list_init(NULL));
   init_list_free(NULL);
 
-  (void)tokenize_str("{ 1 }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ 1 }", &tl));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(NULL, 0, tl->size, &list, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
@@ -380,14 +380,14 @@ TEST test_init_branches(void) {
   free_token_list(tl);
 
   /* Expression with brackets */
-  (void)tokenize_str("{ .x = a[0] }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ .x = a[0] }", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
   init_list_free(&list);
   free_token_list(tl);
 
   /* Designator reaching limit without = */
-  (void)tokenize_str("{ .x", &tl);
+  ASSERT_EQ(0, tokenize_str("{ .x", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
@@ -395,7 +395,7 @@ TEST test_init_branches(void) {
   free_token_list(tl);
 
   /* Trailing whitespace EOF */
-  (void)tokenize_str("{ 1,   ", &tl);
+  ASSERT_EQ(0, tokenize_str("{ 1,   ", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
@@ -403,7 +403,7 @@ TEST test_init_branches(void) {
   free_token_list(tl);
 
   /* Semicolon in designator */
-  (void)tokenize_str("{ .x ; }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ .x ; }", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
@@ -411,7 +411,7 @@ TEST test_init_branches(void) {
   free_token_list(tl);
 
   /* Empty tokens to hit i >= end_idx for LBRACE */
-  (void)tokenize_str("", &tl);
+  ASSERT_EQ(0, tokenize_str("", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             parse_initializer(tl, 0, tl->size, &list, NULL));
@@ -419,7 +419,7 @@ TEST test_init_branches(void) {
   free_token_list(tl);
 
   /* Resize list > 4 */
-  (void)tokenize_str("{ 1, 2, 3, 4, 5, 6 }", &tl);
+  ASSERT_EQ(0, tokenize_str("{ 1, 2, 3, 4, 5, 6 }", &tl));
   init_list_init(&list);
   ASSERT_EQ(CDD_C_SUCCESS, parse_initializer(tl, 0, tl->size, &list, NULL));
   ASSERT_EQ(6, list.count);

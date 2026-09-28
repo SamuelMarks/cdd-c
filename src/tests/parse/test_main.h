@@ -254,7 +254,8 @@ TEST test_main_subcommands(void) {
 /* Close stdin or redirect to /dev/null so mcp does not block waiting for
  * input */
 #if defined(_WIN32)
-  (void)CDD_FREOPEN("NUL", "r", stdin);
+  if (CDD_FREOPEN("NUL", "r", stdin)) {
+  }
 #else
   if (CDD_FREOPEN("/dev/null", "r", stdin)) {
   }

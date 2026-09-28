@@ -82,6 +82,8 @@ TEST test_client_gui_gen_basic(void) {
     if (dummy)
       fclose(dummy);
 #endif
+    remove("src/test_gui_gui.c");
+    remove("src/test_gui_gui.h");
   }
   g_fail_io_after = -1;
 

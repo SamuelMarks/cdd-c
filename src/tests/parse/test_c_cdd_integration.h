@@ -327,7 +327,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   /* 2. Initial Audit: Expect Violations */
   {
     struct AuditStats stats;
-    (void)audit_stats_init(&stats);
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
     rc = audit_project(project_root, &stats);
     ASSERT_EQ(0, rc);                          /* Audit tool ran successfully */
     ASSERT_EQ(1, stats.allocations_unchecked); /* malloc in make_data */
@@ -348,7 +348,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   /* 4. Verification Audit: Expect Clean */
   {
     struct AuditStats stats;
-    (void)audit_stats_init(&stats);
+    ASSERT_EQ(CDD_C_SUCCESS, audit_stats_init(&stats));
     rc = audit_project(project_root, &stats);
     ASSERT_EQ(0, rc);
     /* Failure point previously: allocations_unchecked should be 0 */

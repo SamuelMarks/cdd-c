@@ -48,7 +48,7 @@ TEST test_scan_for_vlas_basic(void) {
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
 
-  (void)vla_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
 
   ASSERT_EQ(5, list.count);
@@ -87,7 +87,7 @@ TEST test_scan_for_vlas_basic(void) {
 TEST test_scan_for_vlas_errors(void) {
   struct TokenList *tl = NULL;
   struct VLASiteList list;
-  (void)vla_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(
       0, tokenize(az_span_create_from_str((char *)(size_t) "int x[n];"), &tl));
 
@@ -170,7 +170,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
   const char *src1 = (char *)(size_t)(size_t) "int arr[]; int arr2[ ];";
   ASSERT_EQ(0,
             tokenize(az_span_create_from_str((char *)(size_t)src1), &tokens));
-  (void)vla_site_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
   ASSERT_EQ(0, list.count); /* Not a VLA */
   vla_site_list_free(&list);
@@ -184,7 +184,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
                                                 "*arr2[n]; MyType   arr3[n];";
     ASSERT_EQ(0,
               tokenize(az_span_create_from_str((char *)(size_t)src2), &tokens));
-    (void)vla_site_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
     ASSERT_EQ(0, scan_for_vlas(tokens, &list));
     ASSERT_EQ(3, list.count);
     vla_site_list_free(&list);
@@ -196,7 +196,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
       const char *src3 = (char *)(size_t)(size_t) "int [n];";
       ASSERT_EQ(
           0, tokenize(az_span_create_from_str((char *)(size_t)src3), &tokens));
-      (void)vla_site_list_init(&list);
+      ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
       ASSERT_EQ(0, scan_for_vlas(tokens, &list));
       vla_site_list_free(&list);
       free_token_list(tokens);
@@ -207,7 +207,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
         const char *src4 = (char *)(size_t)(size_t) "int arr[n]";
         ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src4),
                               &tokens));
-        (void)vla_site_list_init(&list);
+        ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
         ASSERT_EQ(0, scan_for_vlas(tokens, &list));
         vla_site_list_free(&list);
         free_token_list(tokens);
@@ -218,7 +218,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
           const char *src5 = (char *)(size_t)(size_t) "int arr[n";
           ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src5),
                                 &tokens));
-          (void)vla_site_list_init(&list);
+          ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
           ASSERT_EQ(0, scan_for_vlas(tokens, &list));
           vla_site_list_free(&list);
           free_token_list(tokens);
@@ -230,7 +230,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
                 (char *)(size_t)(size_t) "const  int  arr [ n ] ;";
             ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src6),
                                   &tokens));
-            (void)vla_site_list_init(&list);
+            ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
             ASSERT_EQ(0, scan_for_vlas(tokens, &list));
             ASSERT_EQ(1, list.count);
             vla_site_list_free(&list);
@@ -245,7 +245,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
               ASSERT_EQ(0,
                         tokenize(az_span_create_from_str((char *)(size_t)src7),
                                  &tokens));
-              (void)vla_site_list_init(&list);
+              ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
               ASSERT_EQ(0, scan_for_vlas(tokens, &list));
               ASSERT_EQ(6, list.count);
               vla_site_list_free(&list);
@@ -266,7 +266,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
                                             (char *)(size_t)(char *)(size_t)
                                                 abrupt_cases[i]),
                                         &tokens));
-                  (void)vla_site_list_init(&list);
+                  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   ASSERT_EQ(0, scan_for_vlas(tokens, &list));
                   vla_site_list_free(&list);
                   free_token_list(tokens);
@@ -288,20 +288,20 @@ TEST test_scan_for_vlas_edge_cases(void) {
                   mock_tokens.tokens = mock_toks;
                   mock_tokens.size = 3;
                   mock_tokens.capacity = 4;
-                  (void)vla_site_list_init(&list);
+                  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   scan_for_vlas(&mock_tokens, &list);
                   vla_site_list_free(&list);
 
                   /* Test 2: Ends exactly at identifier */
                   mock_tokens.size = 2; /* INT, IDENTIFIER */
-                  (void)vla_site_list_init(&list);
+                  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   scan_for_vlas(&mock_tokens, &list);
                   vla_site_list_free(&list);
 
                   /* Test 3: Ends with LBRACKET */
                   mock_toks[2].kind = TOKEN_LBRACKET;
                   mock_tokens.size = 3;
-                  (void)vla_site_list_init(&list);
+                  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   scan_for_vlas(&mock_tokens, &list);
                   vla_site_list_free(&list);
 
@@ -311,7 +311,7 @@ TEST test_scan_for_vlas_edge_cases(void) {
                       tokenize(az_span_create_from_str(
                                    (char *)(size_t) "int a[; int a[{ int a[}"),
                                &tokens));
-                  (void)vla_site_list_init(&list);
+                  ASSERT_EQ(CDD_C_SUCCESS, vla_site_list_init(&list));
                   scan_for_vlas(tokens, &list);
                   vla_site_list_free(&list);
                   free_token_list(tokens);

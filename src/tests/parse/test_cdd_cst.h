@@ -476,8 +476,9 @@ TEST test_cdd_cst_parser_oom(void) {
   for (i = 1; i < 120; i++) {
     tree = NULL;
     g_cdd_alloc_fail = (int)i;
-    (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                        &tree);
+    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                      &tree) != CDD_C_SUCCESS) {
+    }
     cdd_cst_tree_free(tree);
   }
   g_cdd_alloc_fail = 0;
@@ -485,8 +486,9 @@ TEST test_cdd_cst_parser_oom(void) {
   for (i = 1; i < 150; i++) {
     tree = NULL;
     g_cdd_cst_realloc_fail = (int)i;
-    (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                        &tree);
+    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                      &tree) != CDD_C_SUCCESS) {
+    }
     cdd_cst_tree_free(tree);
   }
   g_cdd_cst_realloc_fail = 0;
@@ -497,8 +499,9 @@ TEST test_cdd_cst_parser_oom(void) {
     for (i = 1; i < 150; i++) {
       tree = NULL;
       g_cdd_fail_cst_advance = (int)i;
-      (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree);
+      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
     }
     g_cdd_fail_cst_advance = 0;
@@ -506,8 +509,9 @@ TEST test_cdd_cst_parser_oom(void) {
     for (i = 1; i < 150; i++) {
       tree = NULL;
       g_cdd_fail_cst_peek = (int)i;
-      (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
-                          &tree);
+      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)(size_t)code),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
     }
     g_cdd_fail_cst_peek = 0;
@@ -532,9 +536,10 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_alloc_fail = (int)i;
-          (void)cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-              &tree);
+          if (cdd_cst_parse(
+                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
+                  &tree) != CDD_C_SUCCESS) {
+          }
           if (tree)
             cdd_cst_tree_free(tree);
         }
@@ -543,9 +548,10 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_cst_realloc_fail = (int)i;
-          (void)cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-              &tree);
+          if (cdd_cst_parse(
+                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
+                  &tree) != CDD_C_SUCCESS) {
+          }
           if (tree)
             cdd_cst_tree_free(tree);
         }
@@ -554,9 +560,10 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_fail_cst_advance = (int)i;
-          (void)cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-              &tree);
+          if (cdd_cst_parse(
+                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
+                  &tree) != CDD_C_SUCCESS) {
+          }
           if (tree)
             cdd_cst_tree_free(tree);
         }
@@ -565,9 +572,10 @@ TEST test_cdd_cst_parser_oom(void) {
         for (i = 1; i <= 35; i++) {
           tree = NULL;
           g_cdd_fail_cst_peek = (int)i;
-          (void)cdd_cst_parse(
-              az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
-              &tree);
+          if (cdd_cst_parse(
+                  az_span_create_from_str((char *)(size_t)oom_snippets[s_idx]),
+                  &tree) != CDD_C_SUCCESS) {
+          }
           if (tree)
             cdd_cst_tree_free(tree);
         }
@@ -580,16 +588,18 @@ TEST test_cdd_cst_parser_oom(void) {
       ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, get_class_name(NULL, NULL));
       g_cdd_fail_get_class_name = 1;
       tree = NULL;
-      (void)cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "class C { void f() { } };"),
-          &tree);
+      if (cdd_cst_parse(az_span_create_from_str(
+                            (char *)(size_t) "class C { void f() { } };"),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
 
       g_cdd_fail_get_class_name = 2;
       tree = NULL;
-      (void)cdd_cst_parse(
-          az_span_create_from_str((char *)(size_t) "class C { void f() { } };"),
-          &tree);
+      if (cdd_cst_parse(az_span_create_from_str(
+                            (char *)(size_t) "class C { void f() { } };"),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
       g_cdd_fail_get_class_name = 0;
     }
@@ -597,15 +607,17 @@ TEST test_cdd_cst_parser_oom(void) {
     {
       g_cdd_fail_cst_advance = 1;
       tree = NULL;
-      (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
-                          &tree);
+      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
       g_cdd_fail_cst_advance = 0;
 
       g_cdd_cst_realloc_fail = 1;
       tree = NULL;
-      (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
-                          &tree);
+      if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) "/* eof */"),
+                        &tree) != CDD_C_SUCCESS) {
+      }
       cdd_cst_tree_free(tree);
       g_cdd_cst_realloc_fail = 0;
     }
@@ -949,8 +961,9 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
 
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
     tree = NULL;
-    (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
-                        &tree);
+    if (cdd_cst_parse(az_span_create_from_str((char *)(size_t)snippets[i]),
+                      &tree) != CDD_C_SUCCESS) {
+    }
     if (tree) {
       cdd_cst_tree_free(tree);
       tree = NULL;
@@ -959,7 +972,9 @@ TEST test_cdd_cst_parser_exhaustive_coverage(void) {
 
   /* Empty string snippet -> hits CDD_TOKEN_EOF */
   tree = NULL;
-  (void)cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree);
+  if (cdd_cst_parse(az_span_create_from_str((char *)(size_t) ""), &tree) !=
+      CDD_C_SUCCESS) {
+  }
   if (tree) {
     cdd_cst_tree_free(tree);
     tree = NULL;

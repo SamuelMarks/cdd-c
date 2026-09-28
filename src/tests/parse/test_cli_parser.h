@@ -80,7 +80,7 @@ TEST test_cli_parser_getopt(void) {
     ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
               cst_extract_cli_command(nodes, tokens, NULL));
 
-    (void)cli_command_init(&cmd);
+    ASSERT_EQ(CDD_C_SUCCESS, cli_command_init(&cmd));
     rc = cst_extract_cli_command(nodes, tokens, &cmd);
     ASSERT_EQ(CDD_C_SUCCESS, rc);
 
@@ -108,7 +108,7 @@ TEST test_cli_parser_getopt(void) {
     cli_command_free(&cmd);
 
     /* Test free with cmd.name == NULL */
-    (void)cli_command_init(&cmd);
+    ASSERT_EQ(CDD_C_SUCCESS, cli_command_init(&cmd));
     cli_command_free(&cmd);
 
 #ifdef CDD_BUILD_TESTS
@@ -139,7 +139,10 @@ TEST test_cli_parser_getopt(void) {
       /* mapped_struct_field cdd_strndup2 failure */
       for (i = 1; i <= 20; i++) {
         g_cdd_alloc_fail = i;
-        (void)cst_extract_cli_command(nodes, tokens, &cmd_oom);
+        rc = cst_extract_cli_command(nodes, tokens, &cmd_oom);
+        if (rc != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+        }
         g_cdd_alloc_fail = 0;
         cli_command_free(&cmd_oom);
       }

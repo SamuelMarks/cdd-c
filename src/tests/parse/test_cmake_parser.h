@@ -165,7 +165,10 @@ TEST test_cmake_parser_oom(void) {
   for (i = 1; i <= 5; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_fail_alloc = i;
-    (void)cmake_modifier_add_compile_opt(&mod, "/W4");
+    rc = cmake_modifier_add_compile_opt(&mod, "/W4");
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     g_cdd_fail_alloc = 0;
     cmake_modifier_free(&mod);
   }
@@ -173,7 +176,10 @@ TEST test_cmake_parser_oom(void) {
   for (i = 1; i <= 5; i++) {
     cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
     g_cdd_fail_alloc = i;
-    (void)cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+    rc = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     g_cdd_fail_alloc = 0;
     cmake_modifier_free(&mod);
   }
@@ -184,7 +190,10 @@ TEST test_cmake_parser_oom(void) {
     cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
 
     g_cdd_fail_alloc = i;
-    (void)cmake_modifier_apply_diff(&mod, &diff_str);
+    rc = cmake_modifier_apply_diff(&mod, &diff_str);
+    if (rc != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+    }
     g_cdd_fail_alloc = 0;
     if (diff_str) {
       free(diff_str);
@@ -196,7 +205,10 @@ TEST test_cmake_parser_oom(void) {
   /* Test non-existent file with OOM on empty string dupe */
   cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test");
   g_cdd_fail_alloc = 1;
-  (void)cmake_modifier_apply_diff(&mod, &diff_str);
+  rc = cmake_modifier_apply_diff(&mod, &diff_str);
+  if (rc != CDD_C_SUCCESS) {
+    ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+  }
   g_cdd_fail_alloc = 0;
   free(diff_str);
   diff_str = NULL;

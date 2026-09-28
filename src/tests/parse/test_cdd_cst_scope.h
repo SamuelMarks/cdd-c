@@ -47,6 +47,7 @@ TEST test_cdd_cst_scope_basic(void) {
   {
     /*  (moved to global) */
     int i;
+    cdd_c_error_t rc_oom;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
       g_cdd_alloc_fail = i;
@@ -61,7 +62,10 @@ TEST test_cdd_cst_scope_basic(void) {
       cdd_cst_scope_env_init(&env_oom);
       g_cdd_alloc_fail = i;
       {
-        (void)cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        rc_oom = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        if (rc_oom != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
+        }
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -72,8 +76,11 @@ TEST test_cdd_cst_scope_basic(void) {
       cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
       g_cdd_alloc_fail = i;
       {
-        (void)cdd_cst_scope_add_symbol(env_oom, "foo", CDD_CST_SYMBOL_VARIABLE,
-                                       NULL);
+        rc_oom = cdd_cst_scope_add_symbol(env_oom, "foo",
+                                          CDD_CST_SYMBOL_VARIABLE, NULL);
+        if (rc_oom != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
+        }
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -292,6 +299,7 @@ TEST test_cdd_cst_scope_oom(void) {
   {
     /*  (moved to global) */
     int i;
+    cdd_c_error_t rc_oom;
     for (i = 1; i < 5; i++) {
       cdd_cst_scope_env_t *env_oom = NULL;
       g_cdd_alloc_fail = i;
@@ -306,7 +314,10 @@ TEST test_cdd_cst_scope_oom(void) {
       cdd_cst_scope_env_init(&env_oom);
       g_cdd_alloc_fail = i;
       {
-        (void)cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        rc_oom = cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
+        if (rc_oom != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
+        }
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }
@@ -317,8 +328,11 @@ TEST test_cdd_cst_scope_oom(void) {
       cdd_cst_scope_enter(env_oom, CDD_CST_SCOPE_BLOCK);
       g_cdd_alloc_fail = i;
       {
-        (void)cdd_cst_scope_add_symbol(env_oom, "foo", CDD_CST_SYMBOL_VARIABLE,
-                                       NULL);
+        rc_oom = cdd_cst_scope_add_symbol(env_oom, "foo",
+                                          CDD_CST_SYMBOL_VARIABLE, NULL);
+        if (rc_oom != CDD_C_SUCCESS) {
+          ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_oom);
+        }
         g_cdd_alloc_fail = 0;
         cdd_cst_scope_env_free(env_oom);
       }

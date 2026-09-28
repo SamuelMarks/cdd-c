@@ -93,10 +93,14 @@ TEST test_sync_code_simple_struct_enum(void) {
   {
     extern C_CDD_EXPORT int g_io_calls;
     int k;
+    cdd_c_error_t rc_sync;
     for (k = 0; k <= 120; k++) {
       g_io_calls = 0;
       g_fail_io_after = k;
-      (void)sync_code_main(2, argv);
+      rc_sync = sync_code_main(2, argv);
+      if (rc_sync != CDD_C_SUCCESS) {
+        /* I/O failure injected */
+      }
       g_fail_io_after = -1;
     }
   }
@@ -478,7 +482,10 @@ TEST test_sync_oom(void) {
       int k;
       for (k = 0; k <= 30; k++) {
         g_fail_io_after = k;
-        (void)sync_code_main(2, (char **)(size_t)argv);
+        rc_s = sync_code_main(2, (char **)(size_t)argv);
+        if (rc_s != CDD_C_SUCCESS) {
+          /* I/O failure injected */
+        }
         g_fail_io_after = -1;
       }
     }
@@ -492,7 +499,10 @@ TEST test_sync_oom(void) {
     }
 
     g_cdd_alloc_fail = 1;
-    (void)sync_code_main(2, (char **)(size_t)argv);
+    rc_s = sync_code_main(2, (char **)(size_t)argv);
+    if (rc_s != CDD_C_SUCCESS) {
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc_s);
+    }
     g_cdd_alloc_fail = 0;
 
     g_cdd_fprintf_fail = 8001;

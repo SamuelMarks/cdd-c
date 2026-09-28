@@ -56,8 +56,11 @@ static int mock_fputs(const char *str, FILE *stream) {
   return fputs(str, stream);
 }
 static int mock_fclose(FILE *stream) {
-  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after)
+  if (g_fail_io_after >= 0 && ++g_io_calls == g_fail_io_after) {
+    if (stream)
+      fclose(stream);
     return -1;
+  }
   return fclose(stream);
 }
 #define FPUTS mock_fputs

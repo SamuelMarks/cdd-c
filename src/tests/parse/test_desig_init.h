@@ -41,7 +41,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
       "} } } } } } } } };";
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
-  (void)desig_init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   ASSERT_EQ(3, list.count);
   desig_init_list_free(&list);
@@ -50,7 +50,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
   tokens = NULL;
   ASSERT_EQ(
       0, tokenize(az_span_create_from_str((char *)(size_t)long_src), &tokens));
-  (void)desig_init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(0, scan_for_designated_initializers(tokens, &list));
   desig_init_list_free(&list);
   free_token_list(tokens);
@@ -62,7 +62,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
 TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
-  (void)desig_init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   ASSERT_EQ(
       0, tokenize(az_span_create_from_str((char *)(size_t) "int x = 1;"), &tl));
 
@@ -89,7 +89,7 @@ TEST test_scan_for_designated_initializers_oom(void) {
   ASSERT_EQ(0, tokenize(az_span_create_from_str((char *)(size_t)src), &tokens));
 
   for (i = 1; i < 20; ++i) {
-    (void)desig_init_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
     g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(tokens, &list);
     g_cdd_alloc_fail = 0;
@@ -118,7 +118,7 @@ TEST test_scan_for_designated_initializers_oom_long(void) {
       0, tokenize(az_span_create_from_str((char *)(size_t)long_src), &tokens));
 
   for (i = 1; i < 30; ++i) {
-    (void)desig_init_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
     g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(tokens, &list);
     g_cdd_alloc_fail = 0;
@@ -145,7 +145,7 @@ TEST test_scan_for_designated_initializers_edge_cases(void) {
   {
     struct DesigInitList list;
 
-    (void)desig_init_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
     tokens.tokens = t;
     tokens.size = 0;
     tokens.capacity = 10;
@@ -249,7 +249,7 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   tokens.capacity = 10;
 
   for (i = 1; i <= 10; ++i) {
-    (void)desig_init_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
     g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(&tokens, &list);
     g_cdd_alloc_fail = 0;
@@ -263,7 +263,7 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
   /* Also test empty expr OOM */
   tokens.size = 4;
   for (i = 1; i <= 10; ++i) {
-    (void)desig_init_list_init(&list);
+    ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
     g_cdd_alloc_fail = i;
     res = scan_for_designated_initializers(&tokens, &list);
     g_cdd_alloc_fail = 0;
@@ -279,7 +279,7 @@ TEST test_scan_for_designated_initializers_oom_empty(void) {
 
 TEST test_desig_init_list_free_nulls(void) {
   struct DesigInitList list;
-  (void)desig_init_list_init(&list);
+  ASSERT_EQ(CDD_C_SUCCESS, desig_init_list_init(&list));
   list.count = 2;
   list.capacity = 2;
   list.sites = (struct DesigInitSite *)calloc(2, sizeof(struct DesigInitSite));

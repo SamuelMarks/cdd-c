@@ -20,6 +20,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+#include "functions/parse/tokenizer_punct.h"
 /* clang-format on */
 
 static cdd_c_error_t token_to_cstr(char *buf, size_t buf_len,
@@ -178,6 +179,17 @@ TEST test_tokenizer_error_handling(void) {
             identify_keyword_or_id(NULL, 5, NULL));
   ASSERT_EQ(0, identify_keyword_or_id(NULL, 5, &kind));
   ASSERT_EQ(TOKEN_IDENTIFIER, kind);
+
+  {
+    size_t dummy_pos = 0;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              tokenize_punct(NULL, 0, NULL, 0, ';', 1, NULL));
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              tokenize_punct((const uint8_t *)";", 1, NULL, 0, ';', 1, NULL));
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        tokenize_punct((const uint8_t *)";", 1, &dummy_pos, 0, ';', 1, NULL));
+  }
   g_fail_io_after = -1;
 
   PASS();

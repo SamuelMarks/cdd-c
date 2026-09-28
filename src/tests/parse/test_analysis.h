@@ -450,7 +450,7 @@ TEST test_analysis_failure_hooks(void) {
   extern C_CDD_EXPORT int g_cdd_fail_is_dereference_use;
   extern C_CDD_EXPORT int g_cdd_fail_is_checked;
 
-  (void)allocation_site_list_init(&sites);
+  ASSERT_EQ(CDD_C_SUCCESS, allocation_site_list_init(&sites));
   tokenize(
       az_span_create_from_str((char *)(size_t) "p = malloc(10); if (p) 0;"),
       &tl);

@@ -32,7 +32,7 @@ TEST test_scrape_makefile_basic(void) {
                          "CFLAGS=-I./include -DDEBUG=1 -I -D a b\n"
                          "SRCS=main.c util.c main.c .c";
 
-  (void)build_info_init(&info);
+  ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
   ASSERT_EQ(0, scrape_makefile(&info, makefile));
 
   ASSERT_EQ(2, info.source_files_n);
@@ -60,7 +60,7 @@ TEST test_scrape_makefile_basic(void) {
   build_info_free(&info);
 
   /* Test empty cmake generation */
-  (void)build_info_init(&info);
+  ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
   ASSERT_EQ(0, scrape_makefile(&info, "SRCS=main.c"));
   ASSERT_EQ(0, build_info_to_cmake(&info, "my_proj_empty", &cmake_str));
   ASSERT(cmake_str != NULL);
@@ -84,7 +84,7 @@ TEST test_scrape_errors(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
 
-  (void)build_info_init(&info);
+  ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, build_info_init(NULL));
   build_info_free(NULL);
 
@@ -117,7 +117,7 @@ TEST test_scrape_configure_ac_basic(void) {
                        "AC_CONFIG_SRCDIR([main.c])\n"
                        "CFLAGS=\"-Iinc -DTEST\"\n";
 
-  (void)build_info_init(&info);
+  ASSERT_EQ(CDD_C_SUCCESS, build_info_init(&info));
   ASSERT_EQ(0, scrape_configure_ac(&info, config));
 
   ASSERT_EQ(1, info.source_files_n);

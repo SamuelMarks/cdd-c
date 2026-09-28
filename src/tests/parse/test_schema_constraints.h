@@ -27,11 +27,11 @@ extern C_CDD_EXPORT int g_cdd_strdup_fail;
 TEST test_schema_constraints_roundtrip(void) {
   JSON_Value *val;
   JSON_Object *obj;
-  struct StructField *_ast_struct_fields_get_0;
-  struct StructField *_ast_struct_fields_get_1;
-  struct StructField *_ast_struct_fields_get_2;
-  struct StructField *_ast_struct_fields_get_3;
-  struct StructField *_ast_struct_fields_get_4;
+  struct StructField *_ast_struct_fields_get_0 = NULL;
+  struct StructField *_ast_struct_fields_get_1 = NULL;
+  struct StructField *_ast_struct_fields_get_2 = NULL;
+  struct StructField *_ast_struct_fields_get_3 = NULL;
+  struct StructField *_ast_struct_fields_get_4 = NULL;
   struct StructFields sf;
   const char schema[] = {
       123, 34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101, 99,  116,
@@ -205,9 +205,9 @@ TEST test_schema_annotations_roundtrip(void) {
   struct StructFields sf;
   JSON_Value *val;
   JSON_Object *obj;
-  struct StructField *_ast_struct_fields_get_5;
-  struct StructField *_ast_struct_fields_get_6;
-  struct StructField *_ast_struct_fields_get_7;
+  struct StructField *_ast_struct_fields_get_5 = NULL;
+  struct StructField *_ast_struct_fields_get_6 = NULL;
+  struct StructField *_ast_struct_fields_get_7 = NULL;
   const char schema[] = {
       123, 34,  116, 121, 112, 101, 34,  58,  34,  111, 98,  106, 101, 99,  116,
       34,  44,  34,  112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 34,  58,
@@ -320,9 +320,9 @@ TEST test_schema_annotations_roundtrip(void) {
 TEST test_schema_allof_merge(void) {
   JSON_Value *root_val;
   JSON_Value *schema_val;
-  struct StructField *_ast_struct_fields_get_8;
-  struct StructField *_ast_struct_fields_get_9;
-  struct StructField *_ast_struct_fields_get_10;
+  struct StructField *_ast_struct_fields_get_8 = NULL;
+  struct StructField *_ast_struct_fields_get_9 = NULL;
+  struct StructField *_ast_struct_fields_get_10 = NULL;
   const char *schemas = "{"
                         "\"Base\":{\"type\":\"object\",\"properties\":{"
                         "\"name\":{\"type\":\"string\",\"minLength\":2}"
@@ -401,8 +401,8 @@ TEST test_schema_allof_merge(void) {
 
 TEST test_schema_anyof_first_object(void) {
   JSON_Value *schema_val;
-  struct StructField *_ast_struct_fields_get_11;
-  struct StructField *_ast_struct_fields_get_12;
+  struct StructField *_ast_struct_fields_get_11 = NULL;
+  struct StructField *_ast_struct_fields_get_12 = NULL;
   const char *schema =
       "{"
       "\"anyOf\":["
@@ -436,8 +436,8 @@ TEST test_schema_anyof_first_object(void) {
 
 TEST test_schema_oneof_first_object(void) {
   JSON_Value *schema_val;
-  struct StructField *_ast_struct_fields_get_13;
-  struct StructField *_ast_struct_fields_get_14;
+  struct StructField *_ast_struct_fields_get_13 = NULL;
+  struct StructField *_ast_struct_fields_get_14 = NULL;
   const char *schema =
       "{"
       "\"oneOf\":["
@@ -683,9 +683,9 @@ TEST test_schema_type_union_roundtrip(void) {
   struct StructFields sf;
   JSON_Value *val;
   JSON_Object *obj;
-  struct StructField *_ast_struct_fields_get_15;
-  struct StructField *_ast_struct_fields_get_16;
-  struct StructField *_ast_struct_fields_get_17;
+  struct StructField *_ast_struct_fields_get_15 = NULL;
+  struct StructField *_ast_struct_fields_get_16 = NULL;
+  struct StructField *_ast_struct_fields_get_17 = NULL;
   const char *schema =
       "{"
       "\"type\":\"object\","

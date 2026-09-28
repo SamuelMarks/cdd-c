@@ -1,0 +1,786 @@
+#include "cdd_test_helpers_export.h"
+CDD_TEST_HELPERS_EXPORT FILE *cdd_test_tmpfile_global(void);
+/**
+ * @file test_codegen_url_objects.h
+ * @brief Unit tests for URL Code Generator objects and complex query
+ * parameters.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef TEST_CODEGEN_URL_OBJECTS_H
+#define TEST_CODEGEN_URL_OBJECTS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* clang-format off */
+#include "c_cdd_export.h"
+#include "cdd_c_error.h"
+#include <greatest.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "openapi/parse/openapi.h"
+#include "routes/emit/url.h"
+/* clang-format on */
+
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+
+static int g_url_obj_fail_tmpfile = 0;
+
+static cdd_c_error_t gen_url_obj_code(const char *tmpl,
+                                      const struct OpenAPI_Parameter *params,
+                                      size_t n_params, char **_out_val) {
+  FILE *tmp;
+  if (g_url_obj_fail_tmpfile) {
+    tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
+#else
+    tmp = cdd_test_tmpfile_global();
+#endif
+  }
+  {
+    long sz;
+    char *content = NULL;
+
+    if (!tmp) {
+      *_out_val = NULL;
+      return 0;
+    }
+    if (codegen_url_write_builder(tmp, tmpl, params, n_params, NULL) != 0) {
+      if (tmp)
+        fclose(tmp);
+      {
+        *_out_val = NULL;
+        return 0;
+      }
+    }
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    if (sz > 0)
+      if (fread(content, 1, (size_t)sz, tmp)) {
+      }
+    if (tmp)
+      fclose(tmp);
+    {
+      *_out_val = content;
+      return 0;
+    }
+  }
+}
+
+static cdd_c_error_t gen_query_obj_code(const struct OpenAPI_Operation *op,
+                                        char **_out_val) {
+  FILE *tmp;
+  if (g_url_obj_fail_tmpfile) {
+    tmp = NULL;
+  } else {
+#if defined(_MSC_VER)
+    if (((tmp = cdd_test_tmpfile_global()) == NULL))
+      tmp = NULL;
+#else
+    tmp = cdd_test_tmpfile_global();
+#endif
+  }
+  {
+    long sz;
+    char *content = NULL;
+
+    if (!tmp) {
+      *_out_val = NULL;
+      return 0;
+    }
+    if (codegen_url_write_query_params(tmp, op, 0) != 0) {
+      if (tmp)
+        fclose(tmp);
+      {
+        *_out_val = NULL;
+        return 0;
+      }
+    }
+    fseek(tmp, 0, SEEK_END);
+    sz = ftell(tmp);
+    rewind(tmp);
+    content = (char *)(size_t)calloc(1, (size_t)sz + 1);
+    if (sz > 0)
+      if (fread(content, 1, (size_t)sz, tmp)) {
+      }
+    if (tmp)
+      fclose(tmp);
+    {
+      *_out_val = content;
+      return 0;
+    }
+  }
+}
+
+static void run_io_obj_loop(const struct OpenAPI_Operation *op,
+                            const char *tmpl,
+                            const struct OpenAPI_Parameter *params,
+                            size_t n_params) {
+  int i;
+  for (i = 1; i <= 1000; i++) {
+    char *code = NULL;
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    if (op) {
+      gen_query_obj_code(op, &code);
+    } else {
+      gen_url_obj_code(tmpl, params, n_params, &code);
+    }
+    if (code) {
+      free(code);
+      break;
+    }
+  }
+  g_fail_io_after = -1;
+}
+
+TEST test_query_gen_object_form_explode(void) {
+  char *_ast_gen_query_code_19 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_FORM;
+  param.explode = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_19),
+          _ast_gen_query_code_19);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "for(i=0; i < filter_len; ++i)") != NULL);
+  ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &filter[i]") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, kv_key, kv_raw)") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_object_form_explode_false(void) {
+  char *_ast_gen_query_code_20 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_FORM;
+  param.explode = 0;
+  param.explode_set = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_20),
+          _ast_gen_query_code_20);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "url_encode(kv_key, &key_enc)") != NULL);
+  ASSERT(strstr(code, "url_encode(kv_raw, &val_enc)") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
+         NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_object_deep_object(void) {
+  char *_ast_gen_query_code_21 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_DEEP_OBJECT;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_21),
+          _ast_gen_query_code_21);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "asprintf(&deep_key") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, deep_key, kv_raw)") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_object_space_delimited(void) {
+  char *_ast_gen_query_code_22 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_22),
+          _ast_gen_query_code_22);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_object_pipe_delimited(void) {
+  char *_ast_gen_query_code_23 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_PIPE_DELIMITED;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_23),
+          _ast_gen_query_code_23);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_object_space_delimited_allow_reserved(void) {
+  char *_ast_gen_query_code_24 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+  param.allow_reserved_set = 1;
+  param.allow_reserved = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_24),
+          _ast_gen_query_code_24);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "url_encode_allow_reserved(kv_key, &key_enc)") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
+         NULL);
+  ASSERT(strstr(code, "\"%20\"") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_array_space_delimited_allow_reserved(void) {
+  char *_ast_gen_query_code_25 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "tags";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "array";
+  param.is_array = 1;
+  param.items_type = (char *)(size_t)(size_t) "string";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+  param.allow_reserved_set = 1;
+  param.allow_reserved = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_25),
+          _ast_gen_query_code_25);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+
+  ASSERT(strstr(code, "url_encode_allow_reserved(raw, &enc)") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
+  ASSERT(strstr(code, "\"%20\"") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_path_matrix_param_string(void) {
+  char *_ast_gen_url_code_26 = NULL;
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&param, 0, sizeof(param));
+  param.name = (char *)(size_t)(size_t) "id";
+  param.in = OA_PARAM_IN_PATH;
+  param.type = (char *)(size_t)(size_t) "string";
+  param.style = OA_STYLE_MATRIX;
+  param.explode = 0;
+
+  code = (gen_url_obj_code("/pets/{id}", &param, 1, &_ast_gen_url_code_26),
+          _ast_gen_url_code_26);
+  ASSERT(code);
+  ASSERT(strstr(code, "path_id") != NULL);
+  ASSERT(strstr(code, "\";id=%s\"") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_path_label_array_explode(void) {
+  char *_ast_gen_url_code_27 = NULL;
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&param, 0, sizeof(param));
+  param.name = (char *)(size_t)(size_t) "tags";
+  param.in = OA_PARAM_IN_PATH;
+  param.type = (char *)(size_t)(size_t) "array";
+  param.is_array = 1;
+  param.items_type = (char *)(size_t)(size_t) "string";
+  param.style = OA_STYLE_LABEL;
+  param.explode = 1;
+
+  code = (gen_url_obj_code("/tags/{tags}", &param, 1, &_ast_gen_url_code_27),
+          _ast_gen_url_code_27);
+  ASSERT(code);
+  ASSERT(strstr(code, "path_tags") != NULL);
+  ASSERT(strstr(code, "memcpy(path_tags + path_len, \".\", 1)") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_path_matrix_object_explode_false(void) {
+  char *_ast_gen_url_code_28 = NULL;
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&param, 0, sizeof(param));
+  param.name = (char *)(size_t)(size_t) "color";
+  param.in = OA_PARAM_IN_PATH;
+  param.type = (char *)(size_t)(size_t) "object";
+  param.style = OA_STYLE_MATRIX;
+  param.explode = 0;
+  param.explode_set = 1;
+
+  code = (gen_url_obj_code("/pets/{color}", &param, 1, &_ast_gen_url_code_28),
+          _ast_gen_url_code_28);
+  ASSERT(code);
+  ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &color[i]") != NULL);
+  ASSERT(strstr(code, "\";color=\"") != NULL);
+  ASSERT(strstr(code, "path_color") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_path_simple_param_number(void) {
+  char *_ast_gen_url_code_29 = NULL;
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&param, 0, sizeof(param));
+  param.name = (char *)(size_t)(size_t) "id";
+  param.in = OA_PARAM_IN_PATH;
+  param.type = (char *)(size_t)(size_t) "number";
+  param.style = OA_STYLE_SIMPLE;
+
+  code = (gen_url_obj_code("/items/{id}", &param, 1, &_ast_gen_url_code_29),
+          _ast_gen_url_code_29);
+  ASSERT(code);
+  ASSERT(strstr(code, "spr"
+                      "intf(num_buf, \"%g\", id)") != NULL);
+  ASSERT(strstr(code, "asprintf(&path_id") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_query_gen_json_content_ref(void) {
+  char *_ast_gen_query_code_30 = NULL;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.content_type = (char *)(size_t)(size_t) "application/json";
+  param.schema.ref_name = (char *)(size_t)(size_t) "Filter";
+  param.type = (char *)(size_t)(size_t) "Filter";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = (gen_query_obj_code(&op, &_ast_gen_query_code_30),
+          _ast_gen_query_code_30);
+  ASSERT(code);
+  run_io_obj_loop(&op, NULL, NULL, 0);
+  ASSERT(strstr(code, "Query Parameter (json): filter") != NULL);
+  ASSERT(strstr(code, "Filter_to_json") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\"") != NULL);
+
+  free(code);
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_media_type_is_json_url(void) {
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url(NULL));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_json_url("application/vnd.api+json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("APPLICATION/JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("application/JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_json_url("application/vnd.api+JSON"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_json_url("application/vnd.api+json; charset=utf-8"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/xml"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("text/plain"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/json+xml"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN, media_type_is_json_url("+json"));
+  g_fail_io_after = -1;
+  PASS();
+}
+
+TEST test_querystring_param_null_checks(void) {
+  const char *out_val;
+  struct OpenAPI_Parameter p;
+  ASSERT_EQ(0, querystring_param_is_form_object(NULL));
+  ASSERT_EQ(0, querystring_param_is_json_ref(NULL));
+  ASSERT_EQ(0, querystring_param_json_primitive_type(NULL, &out_val));
+  ASSERT_EQ(NULL, out_val);
+
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_HEADER; /* not query */
+
+  ASSERT_EQ(0, querystring_param_is_form_object(&p));
+  ASSERT_EQ(0, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(0, querystring_param_json_primitive_type(&p, &out_val));
+  ASSERT_EQ(NULL, out_val);
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
+TEST test_media_type_ieq_url_extra(void) {
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_form_url("application/json"));
+  ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
+            media_type_is_form_url("APPLICATION/x-www-form-urlencoded"));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            media_type_is_form_url("application/x-www-form-urlencodex"));
+  ASSERT_EQ(CDD_C_SUCCESS, media_type_is_json_url("application/jsox"));
+
+  /* querystring_param_json_array_item_type */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = (char *)(size_t)(size_t) "application/json";
+    p.schema.is_array = 1;
+
+    p.schema.inline_type = (char *)(size_t)(size_t) "boolean";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "boolean"));
+
+    p.schema.inline_type = (char *)(size_t)(size_t) "number";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "number"));
+
+    p.schema.inline_type = (char *)(size_t)(size_t) "invalid";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(NULL, out_val);
+
+    p.schema.inline_type = NULL;
+    p.items_type = (char *)(size_t)(size_t) "invalid";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(NULL, out_val);
+  }
+
+  /* querystring_param_json_array_item_type type array check */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = (char *)(size_t)(size_t) "application/json";
+    p.type = (char *)(size_t)(size_t) "array";
+    p.items_type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "string"));
+    p.type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_type(&p, &out_val));
+    ASSERT(out_val == NULL);
+  }
+
+  /* querystring_param_json_array_item_ref type array check */
+  {
+    struct OpenAPI_Parameter p;
+    const char *out_val;
+    memset(&p, 0, sizeof(p));
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = (char *)(size_t)(size_t) "application/json";
+    p.type = (char *)(size_t)(size_t) "array";
+    p.items_type = (char *)(size_t)(size_t) "MyRef";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_ref(&p, &out_val));
+    ASSERT_EQ(0, strcmp(out_val, "MyRef"));
+    p.type = (char *)(size_t)(size_t) "string";
+    ASSERT_EQ(CDD_C_SUCCESS,
+              querystring_param_json_array_item_ref(&p, &out_val));
+    ASSERT(out_val == NULL);
+  }
+
+  /* Test via gen_query_code */
+  {
+    struct OpenAPI_Operation op = {0};
+    struct OpenAPI_Parameter p = {0};
+    char *out = NULL;
+
+    p.name = (char *)(size_t)(size_t) "qs";
+    p.in = OA_PARAM_IN_QUERYSTRING;
+    p.content_type = (char *)(size_t)(size_t) "text/plain";
+    p.type = (char *)(size_t)(size_t) "boolean";
+    op.parameters = &p;
+    op.n_parameters = 1;
+    gen_query_obj_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.type = (char *)(size_t)(size_t) "invalid";
+    gen_query_obj_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.type = NULL;
+    p.schema.inline_type = (char *)(size_t)(size_t) "integer";
+    gen_query_obj_code(&op, &out);
+    if (out)
+      free(out);
+
+    p.content_type =
+        (char *)(size_t)(size_t) "application/x-www-form-urlencoded";
+    gen_query_obj_code(&op, &out);
+    if (out)
+      free(out);
+  }
+  PASS();
+}
+
+TEST test_codegen_url_coverage_extras(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter p;
+  char *out = NULL;
+  size_t len = 0;
+
+  memset(&op, 0, sizeof(op));
+  memset(&p, 0, sizeof(p));
+
+  /* media_type_base_len_url with NULL */
+  media_type_base_len_url(NULL, &len);
+
+  /* querystring_param_json_array_item_ref with object */
+  p.in = OA_PARAM_IN_QUERYSTRING;
+  p.content_type = (char *)(size_t)(size_t) "application/json";
+  p.schema.is_array = 1;
+  p.items_type = (char *)(size_t)(size_t) "object";
+  {
+    const char *out_str = NULL;
+    querystring_param_json_array_item_ref(&p, &out_str);
+  }
+
+  op.n_parameters = 1;
+  op.parameters = &p;
+
+  p.name = (char *)(size_t)(size_t) "test_param";
+  p.in = OA_PARAM_IN_QUERYSTRING;
+
+  p.content_type = NULL;
+
+  p.schema.inline_type = NULL;
+  p.type = (char *)(size_t)(size_t) "invalid_type";
+  gen_query_obj_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = (char *)(size_t)(size_t) "number";
+  gen_query_obj_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = (char *)(size_t)(size_t) "boolean";
+  gen_query_obj_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  p.type = NULL;
+  gen_query_obj_code(&op, &out);
+  if (out) {
+    free(out);
+    out = NULL;
+  }
+
+  /* 1733: missing path param */
+  {
+    FILE *fp;
+#if defined(_MSC_VER)
+    if (((fp = cdd_test_tmpfile_global()) == NULL))
+      fp = NULL;
+#else
+    fp = cdd_test_tmpfile_global();
+#endif
+    if (fp) {
+      codegen_url_write_builder(fp, "/users/{id}", NULL, 0, NULL);
+      if (fp)
+        fclose(fp);
+    }
+  }
+
+  PASS();
+}
+
+TEST test_codegen_url_io_errors(void) {
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  char *code = NULL;
+  int i;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = (char *)(size_t)(size_t) "page";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = (char *)(size_t)(size_t) "integer";
+  param.is_array = 0;
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  for (i = 1; i < 15; ++i) {
+    g_io_calls = 0;
+    g_fail_io_after = i;
+    gen_query_obj_code(&op, &code);
+    free(code);
+  }
+
+  /* Exercise builder failure */
+  g_io_calls = 0;
+  g_fail_io_after = 1;
+  gen_url_obj_code("/users/{page}", &param, 1, &code);
+  free(code);
+
+  g_fail_io_after = -1;
+  PASS();
+}
+SUITE(codegen_url_objects_suite) {
+  RUN_TEST(test_query_gen_object_form_explode);
+  RUN_TEST(test_query_gen_object_form_explode_false);
+  RUN_TEST(test_query_gen_object_deep_object);
+  RUN_TEST(test_query_gen_object_space_delimited);
+  RUN_TEST(test_query_gen_object_pipe_delimited);
+  RUN_TEST(test_query_gen_object_space_delimited_allow_reserved);
+  RUN_TEST(test_query_gen_array_space_delimited_allow_reserved);
+  RUN_TEST(test_path_matrix_param_string);
+  RUN_TEST(test_path_label_array_explode);
+  RUN_TEST(test_path_matrix_object_explode_false);
+  RUN_TEST(test_path_simple_param_number);
+  RUN_TEST(test_query_gen_json_content_ref);
+  RUN_TEST(test_media_type_is_json_url);
+  RUN_TEST(test_querystring_param_null_checks);
+  RUN_TEST(test_media_type_ieq_url_extra);
+  RUN_TEST(test_codegen_url_coverage_extras);
+  RUN_TEST(test_codegen_url_io_errors);
+}
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !TEST_CODEGEN_URL_OBJECTS_H */

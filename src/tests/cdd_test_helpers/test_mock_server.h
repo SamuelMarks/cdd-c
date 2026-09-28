@@ -66,26 +66,22 @@ static cdd_c_error_t http_get(int port) {
   server_addr.sin_port = htons((unsigned short)port);
   server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 #if defined(_WIN32)
-    closesocket(sock);
-#else
-    close(sock);
-#endif
+  if (connect((SOCKET)sock, (struct sockaddr *)&server_addr,
+              sizeof(server_addr)) < 0) {
+    closesocket((SOCKET)sock);
     return CDD_C_ERROR_UNKNOWN;
   }
-
-#if defined(_WIN32)
-  send(sock, msg, (int)strlen(msg), 0);
+  send((SOCKET)sock, msg, (int)strlen(msg), 0);
+  recv((SOCKET)sock, buf, (int)(sizeof(buf) - 1), 0);
+  closesocket((SOCKET)sock);
 #else
+  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    close(sock);
+    return CDD_C_ERROR_UNKNOWN;
+  }
   send(sock, msg, strlen(msg), 0);
-#endif
-
   recv(sock, buf, sizeof(buf) - 1, 0);
-
-#if defined(_WIN32)
-  closesocket(sock);
-#else
   close(sock);
 #endif
   return CDD_C_SUCCESS;
@@ -109,18 +105,18 @@ static cdd_c_error_t http_connect_only(int port) {
   server_addr.sin_port = htons((unsigned short)port);
   server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 #if defined(_WIN32)
-    closesocket(sock);
-#else
-    close(sock);
-#endif
+  if (connect((SOCKET)sock, (struct sockaddr *)&server_addr,
+              sizeof(server_addr)) < 0) {
+    closesocket((SOCKET)sock);
     return CDD_C_ERROR_UNKNOWN;
   }
-
-#if defined(_WIN32)
-  closesocket(sock);
+  closesocket((SOCKET)sock);
 #else
+  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    close(sock);
+    return CDD_C_ERROR_UNKNOWN;
+  }
   close(sock);
 #endif
   return CDD_C_SUCCESS;
