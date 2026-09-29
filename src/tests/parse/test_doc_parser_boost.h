@@ -21,6 +21,7 @@ extern "C" {
 
 #include "c_cdd/safe_crt.h"
 #include "docstrings/parse/doc.h"
+#include "docstrings/parse/doc_internal.h"
 /* clang-format on */
 
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
@@ -579,9 +580,1003 @@ TEST test_doc_crlf_and_non_bracket_tags(void) {
   PASS();
 }
 
+TEST test_doc_parser_extra_branches(void) {
+  char dummy_buf[16];
+  const char *p = NULL;
+  const char *next = NULL;
+  char *word = NULL;
+  char *trimmed = NULL;
+  char *tok_val = NULL;
+  size_t klen = 0;
+  enum DocSecurityType sec_type;
+  enum DocSecurityIn sec_in;
+  enum DocOAuthFlowType flow_type;
+  struct DocMetadata meta;
+  cdd_c_error_t rc;
+  const char *s_abc = "abc";
+
+  /* 1. NULL checks on scanner / helper functions */
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_skip_ws("abc", NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, doc_skip_ws(NULL, &p));
+  ASSERT(p == NULL);
+  ASSERT_EQ(CDD_C_SUCCESS, doc_skip_ws(" \r\n", &p));
+  ASSERT(*p == '\r');
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_extract_word("abc", s_abc + 3, NULL, &word));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_extract_word("abc", s_abc + 3, &next, NULL));
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_extract_rest("abc", s_abc + 3, NULL));
+
+  memcpy(dummy_buf, "abc", 4);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_trim_segment(dummy_buf, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, doc_trim_segment(NULL, &trimmed));
+  ASSERT(trimmed == NULL);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_find_key_token(dummy_buf, "b", &klen, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, doc_find_key_token(NULL, NULL, &klen, &tok_val));
+  ASSERT(tok_val == NULL);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_parse_security_type_text("apiKey", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_parse_security_in_text("query", NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            doc_parse_oauth_flow_type_text("implicit", NULL));
+
+  ASSERT_EQ(CDD_C_SUCCESS, doc_parse_security_type_text(NULL, &sec_type));
+  ASSERT_EQ(DOC_SEC_UNSET, sec_type);
+  ASSERT_EQ(CDD_C_SUCCESS, doc_parse_security_in_text(NULL, &sec_in));
+  ASSERT_EQ(DOC_SEC_IN_UNSET, sec_in);
+  ASSERT_EQ(CDD_C_SUCCESS, doc_parse_oauth_flow_type_text(NULL, &flow_type));
+  ASSERT_EQ(DOC_OAUTH_FLOW_UNSET, flow_type);
+
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(NULL, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(NULL, "tag"));
+  doc_metadata_init(&meta);
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_add_tag(&meta, NULL));
+  doc_metadata_free(&meta);
+
+  /* 2. License with both url and identifier returns invalid argument */
+  {
+    const char *lic_comment =
+        "/**\n * @license MIT [url:https://mit.edu] [identifier:MIT]\n */";
+    doc_metadata_init(&meta);
+    rc = doc_parse_block(lic_comment, &meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
+    doc_metadata_free(&meta);
+  }
+
+  /* 3. Comprehensive tags, operations, security comments with examples and OOM
+   */
+  {
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              doc_parse_block("/**\n * @route POST /pets\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              doc_parse_block("/**\n * @param id [in:path]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              doc_parse_block("/**\n * @param id [example:123]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block("/**\n * @param id [deprecated:false]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    rc = doc_parse_block(
+        "/**\n * @return 200 [summary:OK] [example:ok] [itemSchema:true]\n */",
+        &meta);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block(
+            "/**\n * @responseHeader 200 X-Ex [example:hdr] [required]\n */",
+            &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block("/**\n * @requestBody [contentType:application/json] "
+                        "[example:mybody] [required:true]\n */",
+                        &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              doc_parse_block("/**\n * @tagmeta mytag [summary:sum] "
+                              "[description:desc] [parent:par] [kind:k]\n */",
+                              &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              doc_parse_block(
+                  "/**\n * @contact [name:Owner] [url:https://owner.com]\n */",
+                  &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block(
+            "/**\n * @tagmeta mytag2 [externalDocs:https://example.com/docs] "
+            "[externalDocsDescription:docdesc]\n */",
+            &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block(
+            "/**\n * @securityScheme oauthSec [type:oauth2] "
+            "[openIdConnectUrl:https://example.com/oidc] "
+            "[oauth2MetadataUrl:https://example.com/meta] [flow:implicit]\n */",
+            &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block(
+            "/**\n * @license [name:Apache] [url:https://apache.org]\n */",
+            &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        doc_parse_block("/**\n * @security oauthSec read:pets, write:pets\n */",
+                        &meta));
+    doc_metadata_free(&meta);
+  }
+
+  /* 4. Test error percolation via g_doc_fail_skip_ws and
+   * g_doc_fail_trim_segment */
+  {
+    extern C_CDD_EXPORT int g_doc_fail_skip_ws;
+    extern C_CDD_EXPORT int g_doc_fail_trim_segment;
+    char *word_out = NULL;
+    char *rest_out = NULL;
+    char **scopes_out = NULL;
+    size_t n_scopes_out = 0;
+    const char *next_ptr = NULL;
+    int b_set = 0;
+    int b_val = 0;
+    char *ex_val = NULL;
+    const char *s_sp_abc = "   abc";
+
+    g_doc_fail_skip_ws = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_extract_word("   abc", s_sp_abc + 6, &next_ptr, &word_out));
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_extract_rest("   abc", s_sp_abc + 6, &rest_out));
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_trim_segment = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_split_scopes("read,write", &scopes_out, &n_scopes_out));
+    g_doc_fail_trim_segment = 0;
+
+    g_doc_fail_trim_segment = 2;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_split_scopes("read,write", &scopes_out, &n_scopes_out));
+    g_doc_fail_trim_segment = 0;
+
+    g_doc_fail_trim_segment = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_parse_optional_bool_attr("deprecated:true", "deprecated",
+                                           &b_set, &b_val));
+    g_doc_fail_trim_segment = 0;
+
+    g_doc_fail_trim_segment = 1;
+    ASSERT_EQ(CDD_C_ERROR_MEMORY,
+              doc_parse_optional_example_attr("example:123", &ex_val));
+    g_doc_fail_trim_segment = 0;
+  }
+
+  /* 5. Test error percolation in security schemes */
+  {
+    extern C_CDD_EXPORT int g_doc_fail_sec_text;
+    const char *sec_line = "/**\n * @securityScheme auth1 [type:apiKey] "
+                           "[in:header] [flow:implicit]\n */";
+
+    g_doc_fail_sec_text = 1;
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
+    doc_metadata_free(&meta);
+    g_doc_fail_sec_text = 0;
+
+    g_doc_fail_sec_text = 2;
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
+    doc_metadata_free(&meta);
+    g_doc_fail_sec_text = 0;
+
+    g_doc_fail_sec_text = 3;
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, doc_parse_block(sec_line, &meta));
+    doc_metadata_free(&meta);
+    g_doc_fail_sec_text = 0;
+  }
+
+  /* 6. Test OOM percolation across all directives */
+  {
+    const char *doc_oom1 =
+        "/**\n"
+        " * @param id [in:path] [example:123] [deprecated:false]\n"
+        " * @return 200 [summary:OK] [example:ok] [itemSchema:true]\n"
+        " * @responseHeader 200 X-Ex [example:hdr] [required]\n"
+        " * @requestBody [contentType:application/json] [example:mybody] "
+        "[required:true]\n"
+        " * @tagmeta mytag [summary:sum] [description:desc] [parent:par] "
+        "[kind:k] "
+        "[externalDocs:https://example.com/docs] "
+        "[externalDocsDescription:docdesc]\n"
+        " */";
+    const char *doc_oom2 =
+        "/**\n"
+        " * @contact [name:Owner] [url:https://owner.com] "
+        "[email:owner@example.com]\n"
+        " * @license [name:Apache] [url:https://apache.org]\n"
+        " * @securityScheme oauthSec [type:oauth2] "
+        "[openIdConnectUrl:https://example.com/oidc] "
+        "[oauth2MetadataUrl:https://example.com/meta] [flow:implicit]\n"
+        " * @security oauthSec read:pets, write:pets\n"
+        " */";
+    const char *doc_oom3 =
+        "/**\n"
+        " * @serverVar varName [default:val] [description:desc] [enum:a,b,c]\n"
+        " * @encoding encName [contentType:app/json] [style:form] "
+        "[explode:true] [allowReserved:true]\n"
+        " * @infoTitle MyTitle\n"
+        " * @infoVersion 1.0.0\n"
+        " * @infoSummary MySummary\n"
+        " * @infoDescription MyDesc\n"
+        " * @termsOfService https://example.com/tos\n"
+        " */";
+    doc_parse_block_with_oom(doc_oom1, &meta);
+    doc_parse_block_with_oom(doc_oom2, &meta);
+    doc_parse_block_with_oom(doc_oom3, &meta);
+  }
+
+  /* 7. Test skip_ws failure across directive lines */
+  {
+    extern C_CDD_EXPORT int g_doc_fail_skip_ws;
+    int k;
+
+    for (k = 1; k <= 4; ++k) {
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @securityScheme auth1 [type:apiKey]\n */",
+                        &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @param id [in:path]\n */", &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @return 200 [summary:OK]\n */", &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @responseHeader 200 X-Hdr [required]\n */",
+                        &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @link myLink [operationId:op1]\n */", &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @requestBody [required:true]\n */", &meta);
+      doc_metadata_free(&meta);
+
+      g_doc_fail_skip_ws = k;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @tagmeta mytag [summary:sum]\n */", &meta);
+      doc_metadata_free(&meta);
+    }
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 4;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @link myLink op1 [operationId:op1]\n */", &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 3;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @requestBody [contentType:app/json] "
+                      "[example:mybody] [required:true]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+  }
+
+  /* 8. Single-line OOM across directives */
+  {
+    doc_parse_block_with_oom("/**\n * @return 200 [summary:OK]\n */", &meta);
+    doc_parse_block_with_oom("/**\n * @responseHeader 200 X-Hdr\n */", &meta);
+    doc_parse_block_with_oom("/**\n * @link myLink op1\n */", &meta);
+    doc_parse_block_with_oom("/**\n * @securityScheme auth1\n */", &meta);
+    doc_parse_block_with_oom("/**\n * @requestBody [required:true]\n */",
+                             &meta);
+    doc_parse_block_with_oom("/**\n * @tags a,b,c\n */", &meta);
+  }
+
+  /* 9. Incomplete / malformed directive lines (empty fields) */
+  {
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @return\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @responseHeader\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @responseHeader 200\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @link\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @link myLink\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @securityScheme\n */", &meta));
+    doc_metadata_free(&meta);
+  }
+
+  /* 10. Tags error percolation */
+  {
+    extern C_CDD_EXPORT int g_doc_fail_find_key_token;
+    extern C_CDD_EXPORT int g_doc_fail_skip_ws;
+    extern C_CDD_EXPORT int g_doc_fail_trim_segment;
+    int j;
+
+    g_doc_fail_find_key_token = 1;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @server http://localhost name=srv\n */", &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_find_key_token = 0;
+
+    g_doc_fail_find_key_token = 2;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @server http://localhost name=srv description=desc\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_find_key_token = 0;
+
+    g_doc_fail_skip_ws = 2;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 3;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 1;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 2;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 3;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    /* Duplicate attributes */
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n"
+        " * @tagmeta t1 [summary:s1] [summary:s2] [description:d1] "
+        "[description:d2] [parent:p1] [parent:p2]\n"
+        " * @tagmeta t2 [kind:k1] [kind:k2] [externalDocs:u1] "
+        "[externalDocs:u2] [externalDocsDescription:e1] "
+        "[externalDocsDescription:e2]\n"
+        " * @contact [name:n1] [name:n2] [url:u1] [url:u2] [email:e1] "
+        "[email:e2]\n"
+        " * @contact [name:n3]\n"
+        " * @license [name:l1] [name:l2] [url:u1] [url:u2]\n"
+        " * @license [name:l3] [identifier:MIT]\n"
+        " */",
+        &meta);
+    doc_metadata_free(&meta);
+
+    for (j = 1; j <= 6; ++j) {
+      g_cdd_strdup_fail = j;
+      doc_metadata_init(&meta);
+      (doc_parse_block)(
+          "/**\n * @tagmeta mytag [summary:s] [description:d] [parent:p] "
+          "[kind:k] [externalDocs:http://ex] [externalDocsDescription:ed]\n */",
+          &meta);
+      doc_metadata_free(&meta);
+    }
+    g_cdd_strdup_fail = 0;
+
+    for (j = 1; j <= 4; ++j) {
+      g_cdd_strdup_fail = j;
+      doc_metadata_init(&meta);
+      (doc_parse_block)(
+          "/**\n * @contact [name:Owner] [url:http://ex] [email:o@ex]\n */",
+          &meta);
+      doc_metadata_free(&meta);
+    }
+    g_cdd_strdup_fail = 0;
+
+    for (j = 1; j <= 4; ++j) {
+      g_cdd_strdup_fail = j;
+      doc_metadata_init(&meta);
+      (doc_parse_block)("/**\n * @server http://localhost\n * @serverVar v1 "
+                        "[default:d] [enum:a] [description:desc]\n */",
+                        &meta);
+      doc_metadata_free(&meta);
+    }
+    g_cdd_strdup_fail = 0;
+
+    g_cdd_strdup_fail = 1;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_cdd_strdup_fail = 0;
+
+    /* Test contact name strdup failures with url & email present */
+    g_cdd_strdup_fail = 3;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @contact [url:http://ex] [email:o@ex] [name:Owner]\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_cdd_strdup_fail = 0;
+
+    g_cdd_strdup_fail = 3;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @contact [url:http://ex] [email:o@ex] Owner\n */", &meta);
+    doc_metadata_free(&meta);
+    g_cdd_strdup_fail = 0;
+
+    /* Test serverVar skip_ws failure */
+    g_doc_fail_skip_ws = 4;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 5;
+    doc_metadata_init(&meta);
+    (doc_parse_block)(
+        "/**\n * @server http://localhost\n * @serverVar v1 [default:d]\n */",
+        &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    /* Test encoding skip_ws failure */
+    g_doc_fail_skip_ws = 1;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    g_doc_fail_skip_ws = 4;
+    doc_metadata_init(&meta);
+    (doc_parse_block)("/**\n * @encoding prop1 [contentType:app/json]\n */",
+                      &meta);
+    doc_metadata_free(&meta);
+    g_doc_fail_skip_ws = 0;
+
+    /* Test tags trim_segment failure on line 83 */
+    {
+      const char *s_tags = " t1";
+      g_doc_fail_trim_segment = 1;
+      doc_metadata_init(&meta);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_tags_line(s_tags, s_tags + strlen(s_tags), &meta));
+      doc_metadata_free(&meta);
+      g_doc_fail_trim_segment = 0;
+    }
+
+    /* Test serverVar cleanup on skip_ws failure with description */
+    {
+      const char *s_srv = " http://localhost";
+      const char *s_var = " v1 [description:d] [default:val]";
+      doc_metadata_init(&meta);
+      rc = doc_parse_server_line(s_srv, s_srv + strlen(s_srv), &meta);
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      ASSERT_EQ(1, meta.n_servers);
+      g_doc_fail_skip_ws = 3;
+      rc = doc_parse_server_var_line(s_var, s_var + strlen(s_var), &meta);
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
+      doc_metadata_free(&meta);
+      g_doc_fail_skip_ws = 0;
+    }
+
+    /* Test encoding bracket skip_ws failure on line 878 */
+    {
+      const char *s_enc = " prop1 [contentType:app/json]";
+      doc_metadata_init(&meta);
+      g_doc_fail_skip_ws = 5;
+      ASSERT_EQ(
+          CDD_C_ERROR_MEMORY,
+          doc_parse_encoding_line(s_enc, s_enc + strlen(s_enc), &meta, 0));
+      doc_metadata_free(&meta);
+      g_doc_fail_skip_ws = 0;
+    }
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        (doc_parse_block)("/**\n * @license [url:http://ex]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        (doc_parse_block)("/**\n * @license [identifier:MIT]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    /* Empty attributes and multiple content_type attributes for
+     * doc_operations.c */
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n"
+                                " * @param p [format:] [format=uuid] int\n"
+                                " * @return 200 [contentType:] [summary:] "
+                                "[contentType=app/json] [summary=OK] desc\n"
+                                " * @responseHeader 200 X-H [format:] "
+                                "[contentType:] [content:] "
+                                "[contentType:text/plain] "
+                                "[content:application/json] hdesc\n"
+                                " */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n"
+                                " * @link L [operationId:] [operationRef:] "
+                                "[parameters:] [requestBody:] [summary:] "
+                                "[description:] [serverUrl:] [serverName:] "
+                                "[serverDescription:] ldesc\n"
+                                " * @requestBody [contentType:] [content:] "
+                                "[contentType:text/plain] "
+                                "[content:application/json] btype\n"
+                                " */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    /* Test memory error in body example attribute parsing */
+    {
+      const char *s_body = " [example=val] type";
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(
+          CDD_C_ERROR_MEMORY,
+          doc_parse_request_body_line(s_body, s_body + strlen(s_body), &meta));
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+    }
+
+    /* Test trim_segment failure on link operationId */
+    {
+      const char *s_link = " L op1 [operationId:op1]";
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_link_line(s_link, s_link + strlen(s_link), &meta));
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+    }
+
+    /* Test trim_segment failure on requestBody contentType and content */
+    {
+      const char *s_body_ct = " [contentType:app/json] type";
+      const char *s_body_ct2 =
+          " [contentType:text/plain] [contentType:app/json] type";
+      const char *s_body_c = " [content:app/json] type";
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_request_body_line(
+                    s_body_ct, s_body_ct + strlen(s_body_ct), &meta));
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 2;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_request_body_line(
+                    s_body_ct2, s_body_ct2 + strlen(s_body_ct2), &meta));
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                doc_parse_request_body_line(
+                    s_body_c, s_body_c + strlen(s_body_c), &meta));
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+    }
+
+    /* Test content: with no prior contentType: set */
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        (doc_parse_block)("/**\n"
+                          " * @responseHeader 200 X-H1 "
+                          "[content:application/json] hdesc\n"
+                          " * @requestBody [content:application/json] btype1\n"
+                          " */",
+                          &meta));
+    doc_metadata_free(&meta);
+
+    /* Test trim_segment failure across operation attributes */
+    {
+      int t;
+      for (t = 1; t <= 12; ++t) {
+        g_doc_fail_trim_segment = t;
+        doc_metadata_init(&meta);
+        (doc_parse_block)(
+            "/**\n"
+            " * @param p [format:uuid] int\n"
+            " * @return 200 [contentType:app/json] [summary:OK] desc\n"
+            " * @responseHeader 200 X-H [format:uuid] [contentType:text/plain] "
+            "[content:application/json] hdesc\n"
+            " */",
+            &meta);
+        doc_metadata_free(&meta);
+      }
+      for (t = 1; t <= 20; ++t) {
+        g_doc_fail_trim_segment = t;
+        doc_metadata_init(&meta);
+        (doc_parse_block)(
+            "/**\n"
+            " * @link L [operationId:op1] [operationRef:ref1] "
+            "[parameters:p1] [requestBody:rb1] "
+            "[summary:sum] [serverUrl:url1] [serverName:name1] "
+            "[serverDescription:sdesc] [description:ldesc] ldesc\n"
+            " * @requestBody [contentType:text/plain] "
+            "[content:application/json] btype\n"
+            " */",
+            &meta);
+        doc_metadata_free(&meta);
+      }
+      g_doc_fail_trim_segment = 0;
+    }
+
+    /* Security empty line and branches */
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @security\n */", &meta));
+    doc_metadata_free(&meta);
+
+    {
+      const char *s_sec =
+          " s [type:http] [description:d] [scheme:s] [bearerFormat:b] "
+          "[paramName:p] [in:header] [openIdConnectUrl:u] "
+          "[oauth2MetadataUrl:m] "
+          "[flow:implicit] [authorizationUrl:a] [tokenUrl:t] [refreshUrl:r] "
+          "[deviceAuthorizationUrl:d] [scopes:s1]";
+      const char *s_sec_empty =
+          " s [flow:implicit] [description:] [scheme:] [bearerFormat:] "
+          "[paramName:] [openIdConnectUrl:] [oauth2MetadataUrl:] "
+          "[authorizationUrl:] [tokenUrl:] [refreshUrl:] "
+          "[deviceAuthorizationUrl:]";
+      const char *s_sec_noflow =
+          " s [authorizationUrl:http://ex] [tokenUrl:http://ex] "
+          "[refreshUrl:http://ex] [deviceAuthorizationUrl:http://ex] "
+          "[scopes:read]";
+      int t;
+
+      for (t = 1; t <= 15; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_security_scheme_line(s_sec, s_sec + strlen(s_sec), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+
+      doc_metadata_init(&meta);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                doc_parse_security_scheme_line(
+                    s_sec_empty, s_sec_empty + strlen(s_sec_empty), &meta));
+      doc_metadata_free(&meta);
+
+      doc_metadata_init(&meta);
+      ASSERT_EQ(CDD_C_SUCCESS,
+                doc_parse_security_scheme_line(
+                    s_sec_noflow, s_sec_noflow + strlen(s_sec_noflow), &meta));
+      doc_metadata_free(&meta);
+    }
+
+    /* doc_tags.c branch coverage */
+    {
+      const char *s_tag = " t [summary:s] [description:d] [parent:p] [kind:k] "
+                          "[externalDocs:e] [externalDocsDescription:ed]";
+      const char *s_con = " [name:n] [url:u] [email:e]";
+      const char *s_con_rest = " John Doe";
+      const char *s_lic = " [name:n] [identifier:i] [url:u]";
+      const char *s_lic_rest = " MIT";
+      const char *s_srv1 = " http://ex name=prod description=Production";
+      const char *s_srv2 = " http://ex OnlyDescription";
+      const char *s_svar = " v [default:d] [enum:a,b] [description:desc]";
+      const char *s_enc = " prop [contentType:text/plain] [style:form]";
+      int t;
+
+      for (t = 1; t <= 10; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_tag_meta_line(s_tag, s_tag + strlen(s_tag), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+      for (t = 1; t <= 10; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_contact_line(s_con, s_con + strlen(s_con), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      doc_parse_contact_line(s_con_rest, s_con_rest + strlen(s_con_rest),
+                             &meta);
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+
+      for (t = 1; t <= 10; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_license_line(s_lic, s_lic + strlen(s_lic), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      doc_parse_license_line(s_lic_rest, s_lic_rest + strlen(s_lic_rest),
+                             &meta);
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+
+      for (t = 1; t <= 3; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_server_line(s_srv1, s_srv1 + strlen(s_srv1), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+      doc_metadata_init(&meta);
+      g_doc_fail_trim_segment = 1;
+      doc_parse_server_line(s_srv2, s_srv2 + strlen(s_srv2), &meta);
+      g_doc_fail_trim_segment = 0;
+      doc_metadata_free(&meta);
+
+      for (t = 1; t <= 5; ++t) {
+        doc_metadata_init(&meta);
+        (doc_parse_block)("/**\n * @server http://ex\n */", &meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_server_var_line(s_svar, s_svar + strlen(s_svar), &meta);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+      for (t = 1; t <= 5; ++t) {
+        doc_metadata_init(&meta);
+        g_doc_fail_trim_segment = t;
+        doc_parse_encoding_line(s_enc, s_enc + strlen(s_enc), &meta, 0);
+        g_doc_fail_trim_segment = 0;
+        doc_metadata_free(&meta);
+      }
+    }
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @contact\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        (doc_parse_block)("/**\n"
+                          " * @tag t [summary:] [description:] [parent:] "
+                          "[kind:] [externalDocs:] [externalDocsDescription:]\n"
+                          " * @tag t [summary:s1] [summary:s2] "
+                          "[description:d1] "
+                          "[description:d2] [parent:p1] [parent:p2] [kind:k1] "
+                          "[kind:k2] [externalDocs:e1] [externalDocs:e2] "
+                          "[externalDocsDescription:ed1] "
+                          "[externalDocsDescription:ed2]\n"
+                          " */",
+                          &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        (doc_parse_block)("/**\n * @contact [] [name:] [url:] [email:]\n */",
+                          &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @contact [url:http://u] John Doe\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @contact [url:http://u]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @contact [name:n1] "
+                                               "[name:n2] [url:u1] [url:u2] "
+                                               "[email:e1] [email:e2]\n */",
+                                               &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license [] [name:] "
+                                               "[identifier:] [url:] MIT\n */",
+                                               &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @license [url:http://u] Apache\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS, (doc_parse_block)("/**\n * @license [name:n1] "
+                                               "[name:n2] [identifier:i1] "
+                                               "[identifier:i2]\n */",
+                                               &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @license [name:n1] [name:n2] [url:u1] "
+                                "[url:u2]\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              (doc_parse_block)("/**\n * @license [name:n1] [identifier:i1] "
+                                "[url:u1]\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              (doc_parse_block)("/**\n * @license [url:http://u]\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_ERROR_INVALID_ARGUMENT,
+        (doc_parse_block)("/**\n"
+                          " * @server http://ex name= description=\n"
+                          " * @serverVar v1 [default:] [enum:] [description:]\n"
+                          " */",
+                          &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(
+        CDD_C_SUCCESS,
+        (doc_parse_block)("/**\n"
+                          " * @server http://ex2 MyDescriptionOnly\n"
+                          " * @server http://ex3    \n"
+                          " * @serverVar v2 [default:d1] [default:d2] "
+                          "[enum:e1] "
+                          "[enum:e2] [description:desc1] [description:desc2]\n"
+                          " */",
+                          &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n"
+                                " * @encoding prop []\n"
+                                " * @encoding prop [contentType:] [style:]\n"
+                                " */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @externalDocs\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @route GET\n * @route GET /p1\n * "
+                                "@route GET /p2\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+
+    /* Error cases: @serverVar with no server and with no name */
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              (doc_parse_block)("/**\n * @serverVar v\n */", &meta));
+    doc_metadata_free(&meta);
+
+    doc_metadata_init(&meta);
+    ASSERT_EQ(CDD_C_SUCCESS,
+              (doc_parse_block)("/**\n * @server http://ex\n * @serverVar\n */",
+                                &meta));
+    doc_metadata_free(&meta);
+  }
+
+  PASS();
+}
+
 SUITE(doc_parser_boost_suite) {
   RUN_TEST(test_doc_parser_100_percent_coverage_boost);
   RUN_TEST(test_doc_crlf_and_non_bracket_tags);
+  RUN_TEST(test_doc_parser_extra_branches);
 }
 
 #ifdef __cplusplus

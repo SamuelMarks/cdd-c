@@ -386,7 +386,12 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     char cpath[512];
     FILE *uc = NULL;
 
-    rc = client_gen_emit_url_utils_h(dir_name);
+#ifdef CDD_BUILD_TESTS
+    if (g_client_gen_fail == 84)
+      rc = CDD_C_ERROR_IO;
+    else
+#endif
+      rc = client_gen_emit_url_utils_h(dir_name);
     if (rc != CDD_C_SUCCESS) {
       goto cleanup;
     }
@@ -405,12 +410,22 @@ openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
 #endif
     if (uc) {
-      rc = client_gen_emit_url_utils_c1(uc);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 82)
+        rc = CDD_C_ERROR_IO;
+      else
+#endif
+        rc = client_gen_emit_url_utils_c1(uc);
       if (rc != CDD_C_SUCCESS) {
         fclose(uc);
         goto cleanup;
       }
-      rc = client_gen_emit_url_utils_c2(uc);
+#ifdef CDD_BUILD_TESTS
+      if (g_client_gen_fail == 83)
+        rc = CDD_C_ERROR_IO;
+      else
+#endif
+        rc = client_gen_emit_url_utils_c2(uc);
       if (rc != CDD_C_SUCCESS) {
         fclose(uc);
         goto cleanup;

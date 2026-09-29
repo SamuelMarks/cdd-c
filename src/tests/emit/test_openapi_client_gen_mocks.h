@@ -721,6 +721,18 @@ TEST test_client_gen_mock_errors(void) {
   g_client_gen_fail = 54;
   ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));
 
+  /* mock 84: client_gen_emit_url_utils_h fail */
+  g_client_gen_fail = 84;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+
+  /* mock 82: client_gen_emit_url_utils_c1 fail */
+  g_client_gen_fail = 82;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+
+  /* mock 83: client_gen_emit_url_utils_c2 fail */
+  g_client_gen_fail = 83;
+  ASSERT_EQ(CDD_C_ERROR_IO, openapi_client_generate(&spec, &config));
+
   /* mock 55: uc fopen fail */
   g_client_gen_fail = 55;
   ASSERT_EQ(CDD_C_SUCCESS, openapi_client_generate(&spec, &config));

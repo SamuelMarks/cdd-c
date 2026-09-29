@@ -35,24 +35,10 @@ static void *mock_c2o_oom_malloc(size_t sz) {
 }
 static void mock_c2o_oom_free(void *ptr) { free(ptr); }
 
-static const char *get_mocks_dir(void) {
-  FILE *f;
-  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "src/tests/mocks";
-  }
-  return "../src/tests/mocks";
-}
+static const char *get_mocks_dir(void) { return "src/tests/mocks"; }
 
 static const char *get_simple_schema(void) {
-  FILE *f;
-  f = fopen("src/tests/mocks/emit/simple.schema.json", "r");
-  if (f) {
-    fclose(f);
-    return "src/tests/mocks/emit/simple.schema.json";
-  }
-  return "../src/tests/mocks/emit/simple.schema.json";
+  return "src/tests/mocks/emit/simple.schema.json";
 }
 #endif /* CDD_TEST_CLI_C2OPENAPI_HELPERS_DEFINED */
 

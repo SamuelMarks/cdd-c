@@ -50,7 +50,7 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  out->security_schemes = (struct OpenAPI_SecurityScheme *)calloc(
+  out->security_schemes = (struct OpenAPI_SecurityScheme *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_SecurityScheme));
   if (!out->security_schemes)
     return CDD_C_ERROR_MEMORY;
@@ -60,10 +60,8 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
     const char *name = json_object_get_name(schemes, i);
     const JSON_Object *sec_obj =
         json_value_get_object(json_object_get_value_at(schemes, i));
-    if (!component_key_is_valid(name))
-      return CDD_C_ERROR_INVALID_ARGUMENT;
     out->security_schemes[i].name =
-        (c_cdd_strdup(name ? name : "", &_ast_strdup_209), _ast_strdup_209);
+        (c_cdd_strdup(name, &_ast_strdup_209), _ast_strdup_209);
     if (!out->security_schemes[i].name)
       return CDD_C_ERROR_MEMORY;
     out->security_schemes[i].type = OA_SEC_UNKNOWN;
@@ -77,6 +75,8 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
         out->security_schemes[i].type = OA_SEC_HTTP;
         out->security_schemes[i].scheme =
             (c_cdd_strdup("basic", &_ast_strdup_210), _ast_strdup_210);
+        if (!out->security_schemes[i].scheme)
+          return CDD_C_ERROR_MEMORY;
       } else {
         out->security_schemes[i].type =
             (parse_security_type(type, &_ast_parse_security_type_51),
@@ -116,40 +116,36 @@ cdd_c_error_t parse_security_schemes(const JSON_Object *components,
       if (!key_name || !*key_name ||
           out->security_schemes[i].in == OA_SEC_IN_UNKNOWN)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      if (key_name) {
-        out->security_schemes[i].key_name =
-            (c_cdd_strdup(key_name, &_ast_strdup_211), _ast_strdup_211);
-        if (!out->security_schemes[i].key_name)
-          return CDD_C_ERROR_MEMORY;
-      }
+      out->security_schemes[i].key_name =
+          (c_cdd_strdup(key_name, &_ast_strdup_211), _ast_strdup_211);
+      if (!out->security_schemes[i].key_name)
+        return CDD_C_ERROR_MEMORY;
     } else if (out->security_schemes[i].type == OA_SEC_HTTP) {
-      const char *scheme = json_object_get_string(sec_obj, "scheme");
-      const char *bearer_format =
-          json_object_get_string(sec_obj, "bearerFormat");
-      if (!scheme || !*scheme)
-        return CDD_C_ERROR_INVALID_ARGUMENT;
-      if (scheme) {
+      if (!out->security_schemes[i].scheme) {
+        const char *scheme = json_object_get_string(sec_obj, "scheme");
+        const char *bearer_format =
+            json_object_get_string(sec_obj, "bearerFormat");
+        if (!scheme || !*scheme)
+          return CDD_C_ERROR_INVALID_ARGUMENT;
         out->security_schemes[i].scheme =
             (c_cdd_strdup(scheme, &_ast_strdup_212), _ast_strdup_212);
         if (!out->security_schemes[i].scheme)
           return CDD_C_ERROR_MEMORY;
-      }
-      if (bearer_format) {
-        out->security_schemes[i].bearer_format =
-            (c_cdd_strdup(bearer_format, &_ast_strdup_213), _ast_strdup_213);
-        if (!out->security_schemes[i].bearer_format)
-          return CDD_C_ERROR_MEMORY;
+        if (bearer_format) {
+          out->security_schemes[i].bearer_format =
+              (c_cdd_strdup(bearer_format, &_ast_strdup_213), _ast_strdup_213);
+          if (!out->security_schemes[i].bearer_format)
+            return CDD_C_ERROR_MEMORY;
+        }
       }
     } else if (out->security_schemes[i].type == OA_SEC_OPENID) {
       const char *oid_url = json_object_get_string(sec_obj, "openIdConnectUrl");
       if (!oid_url || !*oid_url)
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      if (oid_url) {
-        out->security_schemes[i].open_id_connect_url =
-            (c_cdd_strdup(oid_url, &_ast_strdup_214), _ast_strdup_214);
-        if (!out->security_schemes[i].open_id_connect_url)
-          return CDD_C_ERROR_MEMORY;
-      }
+      out->security_schemes[i].open_id_connect_url =
+          (c_cdd_strdup(oid_url, &_ast_strdup_214), _ast_strdup_214);
+      if (!out->security_schemes[i].open_id_connect_url)
+        return CDD_C_ERROR_MEMORY;
     } else if (out->security_schemes[i].type == OA_SEC_OAUTH2) {
       cdd_c_error_t flow_rc;
       const char *meta_url =
@@ -196,7 +192,7 @@ parse_security_requirements(const JSON_Array *arr,
     return CDD_C_SUCCESS;
   }
 
-  *out = (struct OpenAPI_SecurityRequirementSet *)calloc(
+  *out = (struct OpenAPI_SecurityRequirementSet *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_SecurityRequirementSet));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
@@ -213,7 +209,7 @@ parse_security_requirements(const JSON_Array *arr,
       key_count = json_object_get_count(sec_obj);
       for (j = 0; j < key_count; ++j) {
         const char *name = json_object_get_name(sec_obj, j);
-        if (name && strncmp(name, "x-", 2) != 0)
+        if (strncmp(name, "x-", 2) != 0)
           req_count++;
       }
       if (collect_extensions(sec_obj, &set->extensions_json) != 0) {
@@ -228,7 +224,7 @@ parse_security_requirements(const JSON_Array *arr,
       continue;
     }
 
-    set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
+    set->requirements = (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
         req_count, sizeof(struct OpenAPI_SecurityRequirement));
     if (!set->requirements) {
       rc = CDD_C_ERROR_MEMORY;
@@ -242,12 +238,11 @@ parse_security_requirements(const JSON_Array *arr,
         const char *scheme = json_object_get_name(sec_obj, j);
         const JSON_Array *scopes_arr = json_object_get_array(sec_obj, scheme);
         struct OpenAPI_SecurityRequirement *req;
-        if (!scheme || strncmp(scheme, "x-", 2) == 0)
+        if (strncmp(scheme, "x-", 2) == 0)
           continue;
         req = &set->requirements[req_idx++];
 
-        req->scheme = (c_cdd_strdup(scheme ? scheme : "", &_ast_strdup_178),
-                       _ast_strdup_178);
+        req->scheme = (c_cdd_strdup(scheme, &_ast_strdup_178), _ast_strdup_178);
         if (!req->scheme) {
           rc = CDD_C_ERROR_MEMORY;
           goto fail;
@@ -262,7 +257,7 @@ parse_security_requirements(const JSON_Array *arr,
           continue;
         }
 
-        req->scopes = (char **)calloc(n_scopes, sizeof(char *));
+        req->scopes = (char **)C_CDD_CALLOC(n_scopes, sizeof(char *));
         if (!req->scopes) {
           rc = CDD_C_ERROR_MEMORY;
           goto fail;
@@ -285,13 +280,11 @@ parse_security_requirements(const JSON_Array *arr,
   return CDD_C_SUCCESS;
 
 fail:
-  if (*out) {
-    for (i = 0; i < count; ++i) {
-      free_security_requirement_set(&(*out)[i]);
-    }
-    free(*out);
-    *out = NULL;
+  for (i = 0; i < count; ++i) {
+    free_security_requirement_set(&(*out)[i]);
   }
+  free(*out);
+  *out = NULL;
   *out_count = 0;
   return rc;
 }

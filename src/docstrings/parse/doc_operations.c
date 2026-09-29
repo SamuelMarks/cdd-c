@@ -90,7 +90,11 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
                    strncmp(attr, "format=", 7) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 7, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (p->format)
               C_CDD_FREE(p->format);
             rc = c_cdd_strdup(val, &p->format);
@@ -137,7 +141,8 @@ cdd_c_error_t doc_parse_param_line(const char *line, const char *end,
             C_CDD_FREE(attr);
             return rc_opt;
           }
-          if (doc_parse_optional_example_attr(attr, &p->example) == ENOMEM) {
+          if (doc_parse_optional_example_attr(attr, &p->example) ==
+              CDD_C_ERROR_MEMORY) {
             C_CDD_FREE(attr);
             return CDD_C_ERROR_MEMORY;
           }
@@ -206,7 +211,11 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
             strncmp(attr, "contentType=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (r->content_type)
               C_CDD_FREE(r->content_type);
             rc = c_cdd_strdup(val, &r->content_type);
@@ -219,7 +228,11 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
                    strncmp(attr, "summary=", 8) == 0) {
           char *val = NULL;
           rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (r->summary)
               C_CDD_FREE(r->summary);
             rc = c_cdd_strdup(val, &r->summary);
@@ -233,7 +246,7 @@ cdd_c_error_t doc_parse_return_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema=true") == 0) {
           r->item_schema = 1;
         } else if (doc_parse_optional_example_attr(attr, &r->example) ==
-                   ENOMEM) {
+                   CDD_C_ERROR_MEMORY) {
           C_CDD_FREE(attr);
           return CDD_C_ERROR_MEMORY;
         }
@@ -320,7 +333,11 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
                    strncmp(attr, "format=", 7) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 7, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (h->format)
               C_CDD_FREE(h->format);
             rc = c_cdd_strdup(val, &h->format);
@@ -333,7 +350,11 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
                    strncmp(attr, "contentType=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (h->content_type)
               C_CDD_FREE(h->content_type);
             rc = c_cdd_strdup(val, &h->content_type);
@@ -346,7 +367,11 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
                    strncmp(attr, "content=", 8) == 0) {
           char *val = NULL;
           rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (h->content_type)
               C_CDD_FREE(h->content_type);
             rc = c_cdd_strdup(val, &h->content_type);
@@ -356,7 +381,7 @@ cdd_c_error_t doc_parse_response_header_line(const char *line, const char *end,
             }
           }
         } else if (doc_parse_optional_example_attr(attr, &h->example) ==
-                   ENOMEM) {
+                   CDD_C_ERROR_MEMORY) {
           C_CDD_FREE(attr);
           return CDD_C_ERROR_MEMORY;
         } else {
@@ -438,7 +463,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
             strncmp(attr, "operationId=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->operation_id)
               C_CDD_FREE(link->operation_id);
             rc = c_cdd_strdup(val, &link->operation_id);
@@ -451,7 +480,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "operationRef=", 13) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 13, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->operation_ref)
               C_CDD_FREE(link->operation_ref);
             rc = c_cdd_strdup(val, &link->operation_ref);
@@ -464,7 +497,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "parameters=", 11) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 11, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->parameters_json)
               C_CDD_FREE(link->parameters_json);
             rc = c_cdd_strdup(val, &link->parameters_json);
@@ -477,7 +514,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "requestBody=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->request_body_json)
               C_CDD_FREE(link->request_body_json);
             rc = c_cdd_strdup(val, &link->request_body_json);
@@ -490,7 +531,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "summary=", 8) == 0) {
           char *val = NULL;
           rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->summary)
               C_CDD_FREE(link->summary);
             rc = c_cdd_strdup(val, &link->summary);
@@ -503,7 +548,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "serverUrl=", 10) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 10, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->server_url)
               C_CDD_FREE(link->server_url);
             rc = c_cdd_strdup(val, &link->server_url);
@@ -516,7 +565,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "serverName=", 11) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 11, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->server_name)
               C_CDD_FREE(link->server_name);
             rc = c_cdd_strdup(val, &link->server_name);
@@ -529,7 +582,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "serverDescription=", 18) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 18, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->server_description)
               C_CDD_FREE(link->server_description);
             rc = c_cdd_strdup(val, &link->server_description);
@@ -542,7 +599,11 @@ cdd_c_error_t doc_parse_link_line(const char *line, const char *end,
                    strncmp(attr, "description=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (link->description)
               C_CDD_FREE(link->description);
             rc = c_cdd_strdup(val, &link->description);
@@ -615,7 +676,13 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
             strncmp(attr, "contentType=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            if (content_type)
+              C_CDD_FREE(content_type);
+            return rc;
+          }
+          if (*val) {
             if (content_type)
               C_CDD_FREE(content_type);
             rc = c_cdd_strdup(val, &content_type);
@@ -628,7 +695,13 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
                    strncmp(attr, "content=", 8) == 0) {
           char *val = NULL;
           rc = doc_trim_segment((char *)(size_t)(attr + 8), &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            if (content_type)
+              C_CDD_FREE(content_type);
+            return rc;
+          }
+          if (*val) {
             if (content_type)
               C_CDD_FREE(content_type);
             rc = c_cdd_strdup(val, &content_type);
@@ -641,7 +714,8 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
                    strcmp(attr, "itemSchema:true") == 0 ||
                    strcmp(attr, "itemSchema=true") == 0) {
           item_schema = 1;
-        } else if (doc_parse_optional_example_attr(attr, &example) == ENOMEM) {
+        } else if (doc_parse_optional_example_attr(attr, &example) ==
+                   CDD_C_ERROR_MEMORY) {
           C_CDD_FREE(attr);
           if (content_type)
             C_CDD_FREE(content_type);
@@ -703,7 +777,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
     if (out->request_body_content_type)
       C_CDD_FREE(out->request_body_content_type);
     rc = c_cdd_strdup(entry->content_type, &out->request_body_content_type);
-    if (rc != CDD_C_SUCCESS || !out->request_body_content_type) {
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }
@@ -712,7 +786,7 @@ cdd_c_error_t doc_parse_request_body_line(const char *line, const char *end,
     if (out->request_body_description)
       C_CDD_FREE(out->request_body_description);
     rc = c_cdd_strdup(entry->description, &out->request_body_description);
-    if (rc != CDD_C_SUCCESS || !out->request_body_description) {
+    if (rc != CDD_C_SUCCESS) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
     }

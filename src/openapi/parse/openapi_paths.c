@@ -6,6 +6,7 @@
 
 /* clang-format off */
 #include "openapi/parse/openapi_internal.h"
+#include "c_cdd/memory.h"
 /* clang-format on */
 
 /**
@@ -34,7 +35,7 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
   n_paths = 0;
   for (i = 0; i < raw_count; ++i) {
     const char *name = json_object_get_name(paths_obj, i);
-    if (name && strncmp(name, "x-", 2) == 0)
+    if (strncmp(name, "x-", 2) == 0)
       continue;
     n_paths++;
   }
@@ -45,7 +46,7 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
   }
 
   *out_paths =
-      (struct OpenAPI_Path *)calloc(n_paths, sizeof(struct OpenAPI_Path));
+      (struct OpenAPI_Path *)C_CDD_CALLOC(n_paths, sizeof(struct OpenAPI_Path));
   if (!*out_paths)
     return CDD_C_ERROR_MEMORY;
   *out_count = n_paths;
@@ -59,20 +60,15 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
     size_t n_ops_in_obj = p_obj ? json_object_get_count(p_obj) : 0;
     size_t k, valid_ops = 0;
 
-    if (route && strncmp(route, "x-", 2) == 0)
+    if (strncmp(route, "x-", 2) == 0)
       continue;
-    if (out_idx >= n_paths)
-      break;
     curr_path = &(*out_paths)[out_idx++];
 
-    if (require_leading_slash && (!route || route[0] != '/'))
+    if (require_leading_slash && route[0] != '/')
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    if (route) {
-      curr_path->route =
-          (c_cdd_strdup(route, &_ast_strdup_286), _ast_strdup_286);
-      if (!curr_path->route)
-        return CDD_C_ERROR_MEMORY;
-    }
+    curr_path->route = (c_cdd_strdup(route, &_ast_strdup_286), _ast_strdup_286);
+    if (!curr_path->route)
+      return CDD_C_ERROR_MEMORY;
 
     if (p_obj) {
       const char *path_ref = json_object_get_string(p_obj, "$ref");
@@ -159,7 +155,7 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
     }
 
     if (n_ops_in_obj > 0) {
-      curr_path->operations = (struct OpenAPI_Operation *)calloc(
+      curr_path->operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
           n_ops_in_obj, sizeof(struct OpenAPI_Operation));
 
       curr_path->n_operations = n_ops_in_obj;
@@ -167,29 +163,24 @@ cdd_c_error_t parse_paths_object(const JSON_Object *paths_obj,
         return CDD_C_ERROR_MEMORY;
       }
 
-      if (p_obj) {
-        for (k = 0; k < n_ops_in_obj; ++k) {
-          cdd_c_error_t err;
-          const char *verb = json_object_get_name(p_obj, k);
-          const JSON_Object *op_obj =
-              json_value_get_object(json_object_get_value_at(p_obj, k));
-          if (!verb)
-            continue;
-          if (strcmp(verb, "parameters") == 0 || strcmp(verb, "servers") == 0 ||
-              strcmp(verb, "summary") == 0 ||
-              strcmp(verb, "description") == 0 || strcmp(verb, "$ref") == 0 ||
-              strcmp(verb, "additionalOperations") == 0 ||
-              strncmp(verb, "x-", 2) == 0) {
-            continue;
-          }
-          err = parse_operation(verb, op_obj, &curr_path->operations[valid_ops],
-                                spec, 0, curr_path->route);
-          if (err != 0) {
-            return err;
-          }
-          if (curr_path->operations[valid_ops].verb != OA_VERB_UNKNOWN) {
-            valid_ops++;
-          }
+      for (k = 0; k < n_ops_in_obj; ++k) {
+        cdd_c_error_t err;
+        const char *verb = json_object_get_name(p_obj, k);
+        const JSON_Object *op_obj =
+            json_value_get_object(json_object_get_value_at(p_obj, k));
+        if (strcmp(verb, "parameters") == 0 || strcmp(verb, "servers") == 0 ||
+            strcmp(verb, "summary") == 0 || strcmp(verb, "description") == 0 ||
+            strcmp(verb, "additionalOperations") == 0 ||
+            strncmp(verb, "x-", 2) == 0) {
+          continue;
+        }
+        err = parse_operation(verb, op_obj, &curr_path->operations[valid_ops],
+                              spec, 0, curr_path->route);
+        if (err != 0) {
+          return err;
+        }
+        if (curr_path->operations[valid_ops].verb != OA_VERB_UNKNOWN) {
+          valid_ops++;
         }
       }
       curr_path->n_operations = valid_ops;
@@ -248,7 +239,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
       }
       {
         size_t len = end - start;
-        char *name = (char *)(size_t)malloc(len + 1);
+        char *name = (char *)(size_t)C_CDD_MALLOC(len + 1);
         if (!name) {
           free_name_list(names, count);
           return CDD_C_ERROR_MEMORY;
@@ -262,7 +253,7 @@ cdd_c_error_t collect_path_template_names(const char *route, char ***out_names,
         }
         if (count == cap) {
           size_t new_cap = cap ? cap * 2 : 4;
-          char **tmp = (char **)realloc(names, new_cap * sizeof(char *));
+          char **tmp = (char **)C_CDD_REALLOC(names, new_cap * sizeof(char *));
           if (!tmp) {
             free(name);
             free_name_list(names, count);
@@ -440,6 +431,8 @@ cdd_c_error_t normalize_path_template_route(const char *route,
   size_t len = 0;
   char *out;
   size_t pos = 0;
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!route) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -460,7 +453,7 @@ cdd_c_error_t normalize_path_template_route(const char *route,
       ++i;
     }
   }
-  out = (char *)(size_t)calloc(len + 1, sizeof(char));
+  out = (char *)(size_t)C_CDD_CALLOC(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -469,15 +462,8 @@ cdd_c_error_t normalize_path_template_route(const char *route,
   while (route[i]) {
     if (route[i] == '{') {
       size_t j = i + 1;
-      while (route[j] && route[j] != '}')
+      while (route[j] != '}')
         ++j;
-      if (!route[j]) {
-        free(out);
-        {
-          *_out_val = NULL;
-          return CDD_C_SUCCESS;
-        }
-      }
       out[pos++] = '{';
       out[pos++] = '}';
       i = j + 1;
@@ -568,17 +554,16 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
   if (!verb_str || !op_obj || !out_op)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  (void)route_hint;
+  if (route_hint && *route_hint) {
+    /* Optional route hint */
+  }
 
   out_op->verb =
       (parse_verb(verb_str, &_ast_parse_verb_79), _ast_parse_verb_79);
   out_op->is_additional = is_additional;
-  if (verb_str) {
-    out_op->method =
-        (c_cdd_strdup(verb_str, &_ast_strdup_262), _ast_strdup_262);
-    if (!out_op->method)
-      return CDD_C_ERROR_MEMORY;
-  }
+  out_op->method = (c_cdd_strdup(verb_str, &_ast_strdup_262), _ast_strdup_262);
+  if (!out_op->method)
+    return CDD_C_ERROR_MEMORY;
   if (out_op->verb == OA_VERB_UNKNOWN && !is_additional)
     return CDD_C_SUCCESS;
 
@@ -672,7 +657,7 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
       free_request_body(&rb);
       return CDD_C_ERROR_MEMORY;
     }
-    if (rb.content_media_types && rb.n_content_media_types > 0) {
+    if (rb.n_content_media_types > 0) {
       if (copy_media_type_array(
               &out_op->req_body_media_types, &out_op->n_req_body_media_types,
               rb.content_media_types, rb.n_content_media_types) != 0) {
@@ -711,7 +696,7 @@ cdd_c_error_t parse_operation(const char *verb_str, const JSON_Object *op_obj,
     out_op->n_tags = t_count;
     if (t_count > 0) {
       size_t k;
-      out_op->tags = (char **)calloc(t_count, sizeof(char *));
+      out_op->tags = (char **)C_CDD_CALLOC(t_count, sizeof(char *));
       if (!out_op->tags)
         return CDD_C_ERROR_MEMORY;
       for (k = 0; k < t_count; ++k) {
@@ -754,7 +739,7 @@ cdd_c_error_t parse_additional_operations(const JSON_Object *path_obj,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  path->additional_operations = (struct OpenAPI_Operation *)calloc(
+  path->additional_operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_Operation));
   if (!path->additional_operations)
     return CDD_C_ERROR_MEMORY;

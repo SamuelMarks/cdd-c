@@ -90,20 +90,18 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
   content = json_object_get_object(rb_obj, "content");
   if (!content || json_object_get_count(content) == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (content) {
+  {
     cdd_c_error_t rc = parse_content_object(
         content, &out_rb->content_media_types, &out_rb->n_content_media_types,
         spec, resolve_refs);
     if (rc != CDD_C_SUCCESS) {
-      if (out_rb->content_media_types) {
-        size_t k;
-        for (k = 0; k < out_rb->n_content_media_types; k++) {
-          free_media_type(&out_rb->content_media_types[k]);
-        }
-        free(out_rb->content_media_types);
-        out_rb->content_media_types = NULL;
-        out_rb->n_content_media_types = 0;
+      size_t k;
+      for (k = 0; k < out_rb->n_content_media_types; k++) {
+        free_media_type(&out_rb->content_media_types[k]);
       }
+      free(out_rb->content_media_types);
+      out_rb->content_media_types = NULL;
+      out_rb->n_content_media_types = 0;
       return rc;
     }
     select_primary_media_type_index(out_rb->content_media_types,
@@ -118,59 +116,31 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
             (find_media_object_by_name(content, primary->name,
                                        &_ast_find_media_object_by_name_69),
              _ast_find_media_object_by_name_69);
-        if (media_obj) {
-          const JSON_Value *schema_val =
-              json_object_get_value(media_obj, "schema");
-          const JSON_Value *item_schema_val =
-              json_object_get_value(media_obj, "itemSchema");
-          const JSON_Object *schema_obj =
-              schema_val ? json_value_get_object(schema_val) : NULL;
-          const JSON_Object *item_schema_obj =
-              item_schema_val ? json_value_get_object(item_schema_val) : NULL;
-          if (primary->schema_set && schema_obj) {
-            if (primary->schema.is_array) {
-              const JSON_Value *items_val =
-                  json_object_get_value(schema_obj, "items");
-              const JSON_Object *items_obj =
-                  items_val ? json_value_get_object(items_val) : NULL;
-              if (items_obj && schema_object_is_object_like(items_obj)) {
-                char *base = (build_inline_request_name(
-                                  op_id, 1, &_ast_build_inline_request_name_70),
-                              _ast_build_inline_request_name_70);
-                char *registered = NULL;
-                if (base) {
-                  if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                             items_obj, items_val,
-                                             &registered) == 0 &&
-                      registered) {
-                    if (primary->schema.inline_type) {
-                      free(primary->schema.inline_type);
-                      primary->schema.inline_type = NULL;
-                    }
-                    {
-                      cdd_c_error_t _rc =
-                          assign_schema_ref_name(&primary->schema, registered);
-                      if (_rc != CDD_C_SUCCESS)
-                        return _rc;
-                    }
-                  }
-                  free(base);
-                }
-              }
-            } else if (schema_object_is_object_like(schema_obj)) {
+        const JSON_Value *schema_val =
+            json_object_get_value(media_obj, "schema");
+        const JSON_Value *item_schema_val =
+            json_object_get_value(media_obj, "itemSchema");
+        const JSON_Object *schema_obj =
+            schema_val ? json_value_get_object(schema_val) : NULL;
+        const JSON_Object *item_schema_obj =
+            item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+        if (primary->schema_set && schema_obj) {
+          if (primary->schema.is_array) {
+            const JSON_Value *items_val =
+                json_object_get_value(schema_obj, "items");
+            const JSON_Object *items_obj =
+                items_val ? json_value_get_object(items_val) : NULL;
+            if (items_obj && schema_object_is_object_like(items_obj)) {
               char *base = (build_inline_request_name(
-                                op_id, 0, &_ast_build_inline_request_name_71),
-                            _ast_build_inline_request_name_71);
+                                op_id, 1, &_ast_build_inline_request_name_70),
+                            _ast_build_inline_request_name_70);
               char *registered = NULL;
               if (base) {
                 if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                           schema_obj, schema_val,
-                                           &registered) == 0 &&
-                    registered) {
-                  if (primary->schema.inline_type) {
-                    free(primary->schema.inline_type);
-                    primary->schema.inline_type = NULL;
-                  }
+                                           items_obj, items_val,
+                                           &registered) == CDD_C_SUCCESS) {
+                  free(primary->schema.inline_type);
+                  primary->schema.inline_type = NULL;
                   {
                     cdd_c_error_t _rc =
                         assign_schema_ref_name(&primary->schema, registered);
@@ -181,31 +151,52 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
                 free(base);
               }
             }
-          }
-          if (primary->item_schema_set && item_schema_obj &&
-              schema_object_is_object_like(item_schema_obj)) {
+          } else if (schema_object_is_object_like(schema_obj)) {
             char *base = (build_inline_request_name(
-                              op_id, 1, &_ast_build_inline_request_name_72),
-                          _ast_build_inline_request_name_72);
+                              op_id, 0, &_ast_build_inline_request_name_71),
+                          _ast_build_inline_request_name_71);
             char *registered = NULL;
             if (base) {
               if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                         item_schema_obj, item_schema_val,
-                                         &registered) == 0 &&
-                  registered) {
-                if (primary->item_schema.inline_type) {
-                  free(primary->item_schema.inline_type);
-                  primary->item_schema.inline_type = NULL;
+                                         schema_obj, schema_val,
+                                         &registered) == CDD_C_SUCCESS) {
+                if (primary->schema.inline_type) {
+                  free(primary->schema.inline_type);
+                  primary->schema.inline_type = NULL;
                 }
                 {
                   cdd_c_error_t _rc =
-                      assign_schema_ref_name(&primary->item_schema, registered);
+                      assign_schema_ref_name(&primary->schema, registered);
                   if (_rc != CDD_C_SUCCESS)
                     return _rc;
                 }
               }
               free(base);
             }
+          }
+        }
+        if (primary->item_schema_set && item_schema_obj &&
+            schema_object_is_object_like(item_schema_obj)) {
+          char *base = (build_inline_request_name(
+                            op_id, 1, &_ast_build_inline_request_name_72),
+                        _ast_build_inline_request_name_72);
+          char *registered = NULL;
+          if (base) {
+            if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                       item_schema_obj, item_schema_val,
+                                       &registered) == CDD_C_SUCCESS) {
+              if (primary->item_schema.inline_type) {
+                free(primary->item_schema.inline_type);
+                primary->item_schema.inline_type = NULL;
+              }
+              {
+                cdd_c_error_t _rc =
+                    assign_schema_ref_name(&primary->item_schema, registered);
+                if (_rc != CDD_C_SUCCESS)
+                  return _rc;
+              }
+            }
+            free(base);
           }
         }
       }
@@ -230,8 +221,8 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
             return _rc;
         }
       }
-      if (primary->examples && primary->n_examples > 0) {
-        out_rb->examples = (struct OpenAPI_Example *)calloc(
+      if (primary->examples) {
+        out_rb->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
             primary->n_examples, sizeof(struct OpenAPI_Example));
         if (!out_rb->examples)
           return CDD_C_ERROR_MEMORY;
@@ -256,12 +247,10 @@ cdd_c_error_t parse_request_body_object(const JSON_Object *rb_obj,
         }
         out_rb->example_set = 1;
       }
-      if (primary->name) {
-        out_rb->schema.content_type =
-            (c_cdd_strdup(primary->name, &_ast_strdup_247), _ast_strdup_247);
-        if (!out_rb->schema.content_type)
-          return CDD_C_ERROR_MEMORY;
-      }
+      out_rb->schema.content_type =
+          (c_cdd_strdup(primary->name, &_ast_strdup_247), _ast_strdup_247);
+      if (!out_rb->schema.content_type)
+        return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -402,61 +391,32 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
             (find_media_object_by_name(content, primary->name,
                                        &_ast_find_media_object_by_name_74),
              _ast_find_media_object_by_name_74);
-        if (media_obj) {
-          const JSON_Value *schema_val =
-              json_object_get_value(media_obj, "schema");
-          const JSON_Value *item_schema_val =
-              json_object_get_value(media_obj, "itemSchema");
-          const JSON_Object *schema_obj =
-              schema_val ? json_value_get_object(schema_val) : NULL;
-          const JSON_Object *item_schema_obj =
-              item_schema_val ? json_value_get_object(item_schema_val) : NULL;
-          if (primary->schema_set && schema_obj) {
-            if (primary->schema.is_array) {
-              const JSON_Value *items_val =
-                  json_object_get_value(schema_obj, "items");
-              const JSON_Object *items_obj =
-                  items_val ? json_value_get_object(items_val) : NULL;
-              if (items_obj && schema_object_is_object_like(items_obj)) {
-                char *base = (build_inline_response_name(
-                                  op_id, resp_code, 1,
-                                  &_ast_build_inline_response_name_75),
-                              _ast_build_inline_response_name_75);
-                char *registered = NULL;
-                if (base) {
-                  if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                             items_obj, items_val,
-                                             &registered) == 0 &&
-                      registered) {
-                    if (primary->schema.inline_type) {
-                      free(primary->schema.inline_type);
-                      primary->schema.inline_type = NULL;
-                    }
-                    {
-                      cdd_c_error_t _rc =
-                          assign_schema_ref_name(&primary->schema, registered);
-                      if (_rc != CDD_C_SUCCESS)
-                        return _rc;
-                    }
-                  }
-                  free(base);
-                }
-              }
-            } else if (schema_object_is_object_like(schema_obj)) {
+        const JSON_Value *schema_val =
+            json_object_get_value(media_obj, "schema");
+        const JSON_Value *item_schema_val =
+            json_object_get_value(media_obj, "itemSchema");
+        const JSON_Object *schema_obj =
+            schema_val ? json_value_get_object(schema_val) : NULL;
+        const JSON_Object *item_schema_obj =
+            item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+        if (primary->schema_set && schema_obj) {
+          if (primary->schema.is_array) {
+            const JSON_Value *items_val =
+                json_object_get_value(schema_obj, "items");
+            const JSON_Object *items_obj =
+                items_val ? json_value_get_object(items_val) : NULL;
+            if (items_obj && schema_object_is_object_like(items_obj)) {
               char *base = (build_inline_response_name(
-                                op_id, resp_code, 0,
-                                &_ast_build_inline_response_name_76),
-                            _ast_build_inline_response_name_76);
+                                op_id, resp_code, 1,
+                                &_ast_build_inline_response_name_75),
+                            _ast_build_inline_response_name_75);
               char *registered = NULL;
               if (base) {
                 if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                           schema_obj, schema_val,
-                                           &registered) == 0 &&
-                    registered) {
-                  if (primary->schema.inline_type) {
-                    free(primary->schema.inline_type);
-                    primary->schema.inline_type = NULL;
-                  }
+                                           items_obj, items_val,
+                                           &registered) == CDD_C_SUCCESS) {
+                  free(primary->schema.inline_type);
+                  primary->schema.inline_type = NULL;
                   {
                     cdd_c_error_t _rc =
                         assign_schema_ref_name(&primary->schema, registered);
@@ -467,26 +427,23 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
                 free(base);
               }
             }
-          }
-          if (primary->item_schema_set && item_schema_obj &&
-              schema_object_is_object_like(item_schema_obj)) {
+          } else if (schema_object_is_object_like(schema_obj)) {
             char *base =
                 (build_inline_response_name(
-                     op_id, resp_code, 1, &_ast_build_inline_response_name_77),
-                 _ast_build_inline_response_name_77);
+                     op_id, resp_code, 0, &_ast_build_inline_response_name_76),
+                 _ast_build_inline_response_name_76);
             char *registered = NULL;
             if (base) {
               if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                         item_schema_obj, item_schema_val,
-                                         &registered) == 0 &&
-                  registered) {
-                if (primary->item_schema.inline_type) {
-                  free(primary->item_schema.inline_type);
-                  primary->item_schema.inline_type = NULL;
+                                         schema_obj, schema_val,
+                                         &registered) == CDD_C_SUCCESS) {
+                if (primary->schema.inline_type) {
+                  free(primary->schema.inline_type);
+                  primary->schema.inline_type = NULL;
                 }
                 {
                   cdd_c_error_t _rc =
-                      assign_schema_ref_name(&primary->item_schema, registered);
+                      assign_schema_ref_name(&primary->schema, registered);
                   if (_rc != CDD_C_SUCCESS)
                     return _rc;
                 }
@@ -495,13 +452,36 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
             }
           }
         }
+        if (primary->item_schema_set && item_schema_obj &&
+            schema_object_is_object_like(item_schema_obj)) {
+          char *base =
+              (build_inline_response_name(op_id, resp_code, 1,
+                                          &_ast_build_inline_response_name_77),
+               _ast_build_inline_response_name_77);
+          char *registered = NULL;
+          if (base) {
+            if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                       item_schema_obj, item_schema_val,
+                                       &registered) == CDD_C_SUCCESS) {
+              if (primary->item_schema.inline_type) {
+                free(primary->item_schema.inline_type);
+                primary->item_schema.inline_type = NULL;
+              }
+              {
+                cdd_c_error_t _rc =
+                    assign_schema_ref_name(&primary->item_schema, registered);
+                if (_rc != CDD_C_SUCCESS)
+                  return _rc;
+              }
+            }
+            free(base);
+          }
+        }
       }
-      if (primary->name) {
-        out_resp->content_type =
-            (c_cdd_strdup(primary->name, &_ast_strdup_255), _ast_strdup_255);
-        if (!out_resp->content_type)
-          return CDD_C_ERROR_MEMORY;
-      }
+      out_resp->content_type =
+          (c_cdd_strdup(primary->name, &_ast_strdup_255), _ast_strdup_255);
+      if (!out_resp->content_type)
+        return CDD_C_ERROR_MEMORY;
       if (primary->ref) {
         out_resp->content_ref =
             (c_cdd_strdup(primary->ref, &_ast_strdup_256), _ast_strdup_256);
@@ -523,8 +503,8 @@ cdd_c_error_t parse_response_object(const JSON_Object *resp_obj,
             return _rc;
         }
       }
-      if (primary->examples && primary->n_examples > 0) {
-        out_resp->examples = (struct OpenAPI_Example *)calloc(
+      if (primary->examples) {
+        out_resp->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
             primary->n_examples, sizeof(struct OpenAPI_Example));
         if (!out_resp->examples)
           return CDD_C_ERROR_MEMORY;
@@ -600,14 +580,14 @@ cdd_c_error_t parse_responses(const JSON_Object *responses,
 
   for (i = 0; i < count; ++i) {
     const char *code = json_object_get_name(responses, i);
-    if (code && strncmp(code, "x-", 2) != 0)
+    if (strncmp(code, "x-", 2) != 0)
       valid++;
   }
   if (valid == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  out_op->responses =
-      (struct OpenAPI_Response *)calloc(valid, sizeof(struct OpenAPI_Response));
+  out_op->responses = (struct OpenAPI_Response *)C_CDD_CALLOC(
+      valid, sizeof(struct OpenAPI_Response));
   if (!out_op->responses)
     return CDD_C_ERROR_MEMORY;
   out_op->n_responses = valid;
@@ -618,11 +598,9 @@ cdd_c_error_t parse_responses(const JSON_Object *responses,
     const JSON_Object *resp_obj = json_value_get_object(val);
     struct OpenAPI_Response *curr;
 
-    if (code && strncmp(code, "x-", 2) == 0)
+    if (strncmp(code, "x-", 2) == 0)
       continue;
     if (!is_valid_response_code_key(code))
-      return CDD_C_ERROR_INVALID_ARGUMENT;
-    if (resp_idx >= valid)
       return CDD_C_ERROR_INVALID_ARGUMENT;
     curr = &out_op->responses[resp_idx++];
     curr->code = (c_cdd_strdup(code, &_ast_strdup_257), _ast_strdup_257);
@@ -728,8 +706,8 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_callbacks =
-      (struct OpenAPI_Callback *)calloc(count, sizeof(struct OpenAPI_Callback));
+  *out_callbacks = (struct OpenAPI_Callback *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_Callback));
   if (!*out_callbacks)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
@@ -739,11 +717,9 @@ cdd_c_error_t parse_callbacks_object(const JSON_Object *callbacks,
     const JSON_Object *cb_obj =
         json_value_get_object(json_object_get_value_at(callbacks, i));
     struct OpenAPI_Callback *curr = &(*out_callbacks)[i];
-    if (name) {
-      curr->name = (c_cdd_strdup(name, &_ast_strdup_261), _ast_strdup_261);
-      if (!curr->name)
-        return CDD_C_ERROR_MEMORY;
-    }
+    curr->name = (c_cdd_strdup(name, &_ast_strdup_261), _ast_strdup_261);
+    if (!curr->name)
+      return CDD_C_ERROR_MEMORY;
     if (cb_obj) {
       {
         cdd_c_error_t _rc =

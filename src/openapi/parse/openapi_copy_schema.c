@@ -172,8 +172,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->const_value_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
-    dst->examples = (struct OpenAPI_Any *)calloc(src->n_examples,
-                                                 sizeof(struct OpenAPI_Any));
+    dst->examples = (struct OpenAPI_Any *)C_CDD_CALLOC(
+        src->n_examples, sizeof(struct OpenAPI_Any));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;
     dst->n_examples = src->n_examples;
@@ -204,8 +204,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->default_value_set = 1;
   }
   if (src->enum_values && src->n_enum_values > 0) {
-    dst->enum_values = (struct OpenAPI_Any *)calloc(src->n_enum_values,
-                                                    sizeof(struct OpenAPI_Any));
+    dst->enum_values = (struct OpenAPI_Any *)C_CDD_CALLOC(
+        src->n_enum_values, sizeof(struct OpenAPI_Any));
     if (!dst->enum_values)
       return CDD_C_ERROR_MEMORY;
     dst->n_enum_values = src->n_enum_values;
@@ -267,8 +267,10 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->discriminator.mapping && src->discriminator.n_mapping > 0) {
-    dst->discriminator.mapping = (struct OpenAPI_DiscriminatorMap *)calloc(
-        src->discriminator.n_mapping, sizeof(struct OpenAPI_DiscriminatorMap));
+    dst->discriminator.mapping =
+        (struct OpenAPI_DiscriminatorMap *)C_CDD_CALLOC(
+            src->discriminator.n_mapping,
+            sizeof(struct OpenAPI_DiscriminatorMap));
     if (!dst->discriminator.mapping)
       return CDD_C_ERROR_MEMORY;
     dst->discriminator.n_mapping = src->discriminator.n_mapping;
@@ -324,7 +326,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->xml.wrapped_set = src->xml.wrapped_set;
   dst->xml_set = src->xml_set;
   if (src->items_enum_values && src->n_items_enum_values > 0) {
-    dst->items_enum_values = (struct OpenAPI_Any *)calloc(
+    dst->items_enum_values = (struct OpenAPI_Any *)C_CDD_CALLOC(
         src->n_items_enum_values, sizeof(struct OpenAPI_Any));
     if (!dst->items_enum_values)
       return CDD_C_ERROR_MEMORY;
@@ -390,7 +392,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->items_example_set = 1;
   }
   if (src->items_examples && src->n_items_examples > 0) {
-    dst->items_examples = (struct OpenAPI_Any *)calloc(
+    dst->items_examples = (struct OpenAPI_Any *)C_CDD_CALLOC(
         src->n_items_examples, sizeof(struct OpenAPI_Any));
     if (!dst->items_examples)
       return CDD_C_ERROR_MEMORY;
@@ -438,7 +440,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->max_properties = src->max_properties;
 
   if (src->all_of && src->n_all_of > 0) {
-    dst->all_of = (struct OpenAPI_SchemaRef *)calloc(
+    dst->all_of = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
         src->n_all_of, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->all_of)
       return CDD_C_ERROR_MEMORY;
@@ -450,7 +452,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->any_of && src->n_any_of > 0) {
-    dst->any_of = (struct OpenAPI_SchemaRef *)calloc(
+    dst->any_of = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
         src->n_any_of, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->any_of)
       return CDD_C_ERROR_MEMORY;
@@ -462,7 +464,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->one_of && src->n_one_of > 0) {
-    dst->one_of = (struct OpenAPI_SchemaRef *)calloc(
+    dst->one_of = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
         src->n_one_of, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->one_of)
       return CDD_C_ERROR_MEMORY;
@@ -474,8 +476,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->not_schema) {
-    dst->not_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->not_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->not_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -485,8 +487,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->if_schema) {
-    dst->if_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->if_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->if_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -496,8 +498,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->then_schema) {
-    dst->then_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->then_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->then_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -507,8 +509,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->else_schema) {
-    dst->else_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->else_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->else_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -518,8 +520,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->content_schema) {
-    dst->content_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->content_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->content_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -530,8 +532,8 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->items_content_schema) {
-    dst->items_content_schema =
-        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    dst->items_content_schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_SchemaRef));
     if (!dst->items_content_schema)
       return CDD_C_ERROR_MEMORY;
     {
@@ -543,7 +545,7 @@ cdd_c_error_t copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   }
 
   if (src->n_multipart_fields > 0 && src->multipart_fields) {
-    dst->multipart_fields = (struct OpenAPI_MultipartField *)calloc(
+    dst->multipart_fields = (struct OpenAPI_MultipartField *)C_CDD_CALLOC(
         src->n_multipart_fields, sizeof(struct OpenAPI_MultipartField));
     if (!dst->multipart_fields)
       return CDD_C_ERROR_MEMORY;

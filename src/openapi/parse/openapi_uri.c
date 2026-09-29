@@ -19,7 +19,7 @@ cdd_c_error_t json_pointer_unescape(const char *in, char **_out_val) {
     return CDD_C_SUCCESS;
   }
   len = strlen(in);
-  out = (char *)(size_t)malloc(len + 1);
+  out = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -109,7 +109,7 @@ cdd_c_error_t dup_substr(const char *src, size_t len, char **_out_val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
-  out = (char *)(size_t)malloc(len + 1);
+  out = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

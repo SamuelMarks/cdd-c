@@ -61,9 +61,7 @@ TEST test_rewrite_body_all_branches(void) {
   struct TokenList *tl = NULL;
   char *out_code = NULL;
   cdd_c_error_t rc;
-  extern C_CDD_EXPORT int g_cdd_fail_find_semicolon;
   extern C_CDD_EXPORT int g_cdd_fail_find_stmt_start;
-  extern C_CDD_EXPORT int g_cdd_fail_find_refactored_func;
 
   funcs[0].name = "my_strdup";
   funcs[0].type = REF_PTR_TO_INT_OUT;

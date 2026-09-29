@@ -266,6 +266,13 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
   write_paths(obj, NULL);
   ASSERT_EQ(CDD_C_SUCCESS, write_servers(obj, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, write_webhooks(obj, NULL));
+  {
+    struct OpenAPI_Spec spec_no_hooks;
+    memset(&spec_no_hooks, 0, sizeof(spec_no_hooks));
+    spec_no_hooks.n_webhooks = 1;
+    spec_no_hooks.webhooks = NULL;
+    ASSERT_EQ(CDD_C_SUCCESS, write_webhooks(obj, &spec_no_hooks));
+  }
   ASSERT_EQ(CDD_C_SUCCESS, write_request_body(obj, NULL));
 
   /* 2. Empty count on security requirements */
@@ -351,6 +358,45 @@ TEST test_openapi_writer_close_all_remaining_branches(void) {
       g_parson_oom_fail_at = k;
       write_media_type_object(obj, &mt_item);
       write_media_type_map(obj, "content", &mt_item, 1);
+    }
+    {
+      struct OpenAPI_Parameter p_fail;
+      struct OpenAPI_Header h_fail;
+      struct OpenAPI_Encoding enc_fail;
+      struct OpenAPI_Response resp_fail;
+
+      memset(&p_fail, 0, sizeof(p_fail));
+      p_fail.content_media_types = &mt_item;
+      p_fail.n_content_media_types = 1;
+
+      memset(&h_fail, 0, sizeof(h_fail));
+      h_fail.content_media_types = &mt_item;
+      h_fail.n_content_media_types = 1;
+
+      memset(&enc_fail, 0, sizeof(enc_fail));
+      enc_fail.headers = &h_fail;
+      enc_fail.n_headers = 1;
+
+      memset(&resp_fail, 0, sizeof(resp_fail));
+      resp_fail.content_media_types = &mt_item;
+      resp_fail.n_content_media_types = 1;
+
+      for (k = 0; k < 10; ++k) {
+        g_parson_oom_fail_at = k;
+        write_parameter_object(obj, &p_fail);
+      }
+      for (k = 0; k < 10; ++k) {
+        g_parson_oom_fail_at = k;
+        write_header_object(obj, &h_fail);
+      }
+      for (k = 0; k < 10; ++k) {
+        g_parson_oom_fail_at = k;
+        write_encoding_object(obj, &enc_fail);
+      }
+      for (k = 0; k < 10; ++k) {
+        g_parson_oom_fail_at = k;
+        write_response_object(obj, &resp_fail);
+      }
     }
     json_set_allocation_functions(malloc, free);
   }

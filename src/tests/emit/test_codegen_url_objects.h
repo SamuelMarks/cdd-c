@@ -756,6 +756,20 @@ TEST test_codegen_url_io_errors(void) {
   gen_url_obj_code("/users/{page}", &param, 1, &code);
   free(code);
 
+  /* Exercise run_io_obj_loop with op and without op */
+  run_io_obj_loop(&op, NULL, NULL, 0);
+  run_io_obj_loop(NULL, "/users/{page}", &param, 1);
+
+  /* Exercise g_url_obj_fail_tmpfile */
+  g_url_obj_fail_tmpfile = 1;
+  gen_url_obj_code("/users/{page}", &param, 1, &code);
+  gen_query_obj_code(&op, &code);
+  g_url_obj_fail_tmpfile = 0;
+
+  /* Exercise codegen_url_write failure in helpers */
+  gen_url_obj_code(NULL, NULL, 0, &code);
+  gen_query_obj_code(NULL, &code);
+
   g_fail_io_after = -1;
   PASS();
 }

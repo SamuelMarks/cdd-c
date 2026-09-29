@@ -882,6 +882,58 @@ struct OpenAPI_Spec {
   size_t n_defined_schemas;              /**< Count of defined schemas */
 };
 
+/** @brief SchemaConstraintTarget structure */
+struct SchemaConstraintTarget {
+  /** @brief has_multiple_of */
+  int *has_multiple_of;
+  /** @brief multiple_of */
+  double *multiple_of;
+  /** @brief has_min_properties */
+  int *has_min_properties;
+  /** @brief min_properties */
+  size_t *min_properties;
+  /** @brief has_max_properties */
+  int *has_max_properties;
+  /** @brief max_properties */
+  size_t *max_properties;
+  /** @brief has_min */
+  int *has_min;
+  /** @brief min_val */
+  double *min_val;
+  /** @brief exclusive_min */
+  int *exclusive_min;
+  /** @brief has_max */
+  int *has_max;
+  /** @brief max_val */
+  double *max_val;
+  /** @brief exclusive_max */
+  int *exclusive_max;
+  /** @brief has_min_len */
+  int *has_min_len;
+  /** @brief min_len */
+  size_t *min_len;
+  /** @brief has_max_len */
+  int *has_max_len;
+  /** @brief max_len */
+  size_t *max_len;
+  /** @brief pattern */
+  char **pattern;
+  /** @brief has_min_items */
+  int *has_min_items;
+  /** @brief min_items */
+  size_t *min_items;
+  /** @brief has_max_items */
+  int *has_max_items;
+  /** @brief max_items */
+  size_t *max_items;
+  /** @brief unique_items */
+  int *unique_items;
+  /** @brief example */
+  struct OpenAPI_Any *example;
+  /** @brief example_set */
+  int *example_set;
+};
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

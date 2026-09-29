@@ -12,6 +12,7 @@ extern "C" {
 
 /* clang-format off */
 #include "parse/test_openapi_loader_common.h"
+#include "openapi/parse/openapi_test_helpers.h"
 /* clang-format on */
 
 TEST test_load_operation_tags(void) {
@@ -673,6 +674,625 @@ TEST test_load_openapi_version_unsupported_rejected(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, rc);
   g_fail_io_after = -1;
   openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_openapi_parameters_full_coverage(void) {
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_Parameter param2;
+  struct OpenAPI_Parameter *out_params = NULL;
+  size_t out_count = 0;
+  JSON_Value *jv = NULL;
+  JSON_Object *jo = NULL;
+  struct OpenAPI_Spec spec;
+  char q_buf[8];
+  char other_buf[8];
+  int k;
+  size_t i;
+
+  q_buf[0] = 'q';
+  q_buf[1] = '\0';
+  other_buf[0] = 'o';
+  other_buf[1] = '\0';
+
+  /* 1. NULL checks */
+  memset(&param, 0, sizeof(param));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_parse_parameter_object(NULL, &param, NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_parameter_object(
+                               (const JSON_Object *)(size_t)1, NULL, NULL, 0));
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_parse_parameters_array(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_parameters_array(NULL, &out_params,
+                                                           &out_count, NULL));
+
+  /* 2. param_key_equals branches */
+  memset(&param, 0, sizeof(param));
+  memset(&param2, 0, sizeof(param2));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_param_key_equals(NULL, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_param_key_equals(&param, NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_param_key_equals(NULL, &param2));
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_param_key_equals(&param, &param2));
+
+  param.name = q_buf;
+  param.in = OA_PARAM_IN_QUERY;
+  param2.name = q_buf;
+  param2.in = OA_PARAM_IN_HEADER;
+  ASSERT_EQ(0, cdd_test_param_key_equals(&param, &param2));
+
+  param2.in = OA_PARAM_IN_QUERY;
+  ASSERT_EQ(1, cdd_test_param_key_equals(&param, &param2));
+
+  param2.name = other_buf;
+  ASSERT_EQ(0, cdd_test_param_key_equals(&param, &param2));
+
+  param2.name = NULL;
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_param_key_equals(&param, &param2));
+
+  /* 3. Ref with description and ref resolution */
+  memset(&spec, 0, sizeof(spec));
+  spec.n_component_parameters = 1;
+  spec.component_parameter_names = (char **)calloc(1, sizeof(char *));
+  spec.component_parameter_names[0] = strdup("MyParam");
+  spec.component_parameters =
+      (struct OpenAPI_Parameter *)calloc(1, sizeof(struct OpenAPI_Parameter));
+  spec.component_parameters[0].name = strdup("resolved_name");
+  spec.component_parameters[0].in = OA_PARAM_IN_QUERY;
+
+  jv = json_parse_string("{\"$ref\":\"#/components/parameters/"
+                         "MyParam\",\"description\":\"desc\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    ASSERT_STR_EQ("resolved_name", param.name);
+    ASSERT_STR_EQ("desc", param.description);
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* 4. Invalid name/in / schema and content / querystring without content */
+  {
+    const char *bad_params[11];
+    size_t n_bad = 11;
+    bad_params[0] = "{}";
+    bad_params[1] = "{\"name\":\"\"}";
+    bad_params[2] = "{\"name\":\"p\"}";
+    bad_params[3] = "{\"name\":\"p\",\"in\":\"unknown\"}";
+    bad_params[4] =
+        "{\"name\":\"p\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},"
+        "\"content\":{\"application/"
+        "json\":{\"schema\":{\"type\":\"string\"}}}}";
+    bad_params[5] = "{\"name\":\"p\",\"in\":\"querystring\"}";
+    bad_params[6] =
+        "{\"name\":\"p\",\"in\":\"header\",\"allowEmptyValue\":true,"
+        "\"schema\":{\"type\":\"string\"}}";
+    bad_params[7] =
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"a\":{},\"b\":{}}}";
+    bad_params[8] = "{\"name\":\"p\",\"in\":\"query\",\"style\":\"unknown\","
+                    "\"schema\":{\"type\":\"string\"}}";
+    bad_params[9] = "{\"name\":\"p\",\"in\":\"query\",\"example\":\"ex\","
+                    "\"examples\":{\"ex1\":{\"value\":\"v\"}},"
+                    "\"schema\":{\"type\":\"string\"}}";
+    bad_params[10] =
+        "{\"name\":\"p_no_schema\",\"in\":\"query\",\"example\":\"a\","
+        "\"examples\":{\"b\":{\"value\":\"c\"}}}";
+
+    for (i = 0; i < n_bad; ++i) {
+      jv = json_parse_string(bad_params[i]);
+      if (jv) {
+        jo = json_value_get_object(jv);
+        memset(&param, 0, sizeof(param));
+        ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                  cdd_test_parse_parameter_object(jo, &param, NULL, 0));
+        cdd_test_free_parameter(&param);
+        json_value_free(jv);
+      }
+    }
+  }
+
+  /* 5. Boolean schema */
+  jv = json_parse_string("{\"name\":\"b\",\"in\":\"query\",\"schema\":false}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, NULL, 0));
+    ASSERT_EQ(1, param.schema.schema_is_boolean);
+    ASSERT_EQ(0, param.schema.schema_boolean_value);
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  /* 6. Media ref resolution in content (schema_set, item_schema_set, neither)
+   */
+  memset(&spec, 0, sizeof(spec));
+  spec.n_component_media_types = 3;
+  spec.component_media_type_names = (char **)calloc(3, sizeof(char *));
+  spec.component_media_type_names[0] = strdup("Mt1");
+  spec.component_media_type_names[1] = strdup("Mt2");
+  spec.component_media_type_names[2] = strdup("Mt3");
+  spec.component_media_types =
+      (struct OpenAPI_MediaType *)calloc(3, sizeof(struct OpenAPI_MediaType));
+  spec.component_media_types[0].schema_set = 1;
+  spec.component_media_types[0].schema.ref_name = strdup("SchemaRef1");
+  spec.component_media_types[1].item_schema_set = 1;
+  spec.component_media_types[1].item_schema.ref_name = strdup("SchemaRef2");
+
+  jv = json_parse_string(
+      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+      "{\"$ref\":\"#/components/mediaTypes/Mt1\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  jv = json_parse_string(
+      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+      "{\"$ref\":\"#/components/mediaTypes/Mt2\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  jv = json_parse_string(
+      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+      "{\"$ref\":\"#/components/mediaTypes/Mt3\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* 7. Swagger 2.0 type on parameter without schema */
+  memset(&spec, 0, sizeof(spec));
+  spec.swagger_version = strdup("2.0");
+  jv = json_parse_string(
+      "{\"name\":\"sw_p\",\"in\":\"query\",\"type\":\"integer\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  jv = json_parse_string(
+      "{\"name\":\"sw_b\",\"in\":\"body\",\"type\":\"integer\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* 7b. Ref not found and Querystring variations */
+  memset(&spec, 0, sizeof(spec));
+  jv = json_parse_string("{\"$ref\":\"#/components/parameters/NotFound\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  /* Querystring with form-urlencoded */
+  jv = json_parse_string(
+      "{\"name\":\"q_form\",\"in\":\"querystring\",\"content\":{\"application/"
+      "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\","
+      "\"properties\":{\"k\":{\"type\":\"string\"}}}}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  /* Querystring with non-object json */
+  jv = json_parse_string(
+      "{\"name\":\"q_str\",\"in\":\"querystring\",\"content\":{\"application/"
+      "json\":{\"schema\":{\"type\":\"string\"}}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* 8. Style defaults and explode variations */
+  {
+    const char *styles[6];
+    size_t n_st = 6;
+    styles[0] =
+        "{\"name\":\"p\",\"in\":\"path\",\"schema\":{\"type\":\"string\"}}";
+    styles[1] =
+        "{\"name\":\"p\",\"in\":\"cookie\",\"schema\":{\"type\":\"string\"}}";
+    styles[2] =
+        "{\"name\":\"p\",\"in\":\"header\",\"schema\":{\"type\":\"string\"}}";
+    styles[3] = "{\"name\":\"p\",\"in\":\"query\",\"explode\":true,\"schema\":{"
+                "\"type\":"
+                "\"string\"}}";
+    styles[4] = "{\"name\":\"p\",\"in\":\"query\",\"explode\":false,\"schema\":"
+                "{\"type\":"
+                "\"string\"}}";
+    styles[5] =
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"string\"},\"example\":\"ex\"}}}";
+
+    for (i = 0; i < n_st; ++i) {
+      jv = json_parse_string(styles[i]);
+      if (jv) {
+        jo = json_value_get_object(jv);
+        memset(&param, 0, sizeof(param));
+        ASSERT_EQ(CDD_C_SUCCESS,
+                  cdd_test_parse_parameter_object(jo, &param, NULL, 0));
+        cdd_test_free_parameter(&param);
+        json_value_free(jv);
+      }
+    }
+  }
+
+  /* 9. parse_parameters_array edge cases */
+  {
+    /* Empty array */
+    jv = json_parse_string("[]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      ASSERT_EQ(0, out_count);
+      json_value_free(jv);
+    }
+
+    /* Array with null / non-object element */
+    jv = json_parse_string("[null, 42]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      ASSERT_EQ(0, out_count);
+      json_value_free(jv);
+    }
+
+    /* Array with reserved header parameter only */
+    jv = json_parse_string("[{\"name\":\"Authorization\",\"in\":\"header\","
+                           "\"schema\":{\"type\":\"string\"}}]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      ASSERT_EQ(0, out_count);
+      json_value_free(jv);
+    }
+
+    /* Array with reserved header + valid query param (realloc valid < count) */
+    jv = json_parse_string(
+        "[{\"name\":\"Authorization\",\"in\":\"header\","
+        "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
+        "\"schema\":{\"type\":\"string\"}}]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      ASSERT_EQ(1, out_count);
+      cdd_test_free_parameter(&out_params[0]);
+      free(out_params);
+      json_value_free(jv);
+    }
+
+    /* Array with duplicate parameters */
+    jv = json_parse_string(
+        "[{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}},"
+        "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      free(out_params);
+      json_value_free(jv);
+    }
+
+    /* Array with invalid parameter */
+    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"unknown\"}]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      free(out_params);
+      json_value_free(jv);
+    }
+
+    /* Array with ref parameter without name */
+    jv = json_parse_string("[{\"$ref\":\"#/components/parameters/NotFound\"}]");
+    if (jv) {
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      if (out_params) {
+        cdd_test_free_parameter(&out_params[0]);
+        free(out_params);
+      }
+      json_value_free(jv);
+    }
+
+    /* Array with null out_count */
+    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]");
+    if (jv) {
+      out_params = NULL;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, NULL, NULL));
+      json_value_free(jv);
+    }
+  }
+
+  /* 9b. Additional branches: swagger 2 without type, querystring with schema
+   * ref */
+  memset(&spec, 0, sizeof(spec));
+  spec.swagger_version = strdup("2.0");
+  jv = json_parse_string("{\"name\":\"p_notype\",\"in\":\"query\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  memset(&spec, 0, sizeof(spec));
+  jv = json_parse_string(
+      "{\"name\":\"q_ref\",\"in\":\"querystring\",\"content\":{\"application/"
+      "json\":{\"schema\":{\"type\":\"object\",\"$ref\":\"#/components/schemas/"
+      "Existing\"}}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* Media type ref with empty schema */
+  memset(&spec, 0, sizeof(spec));
+  spec.n_component_media_types = 1;
+  spec.component_media_type_names = (char **)calloc(1, sizeof(char *));
+  spec.component_media_type_names[0] = strdup("MtEmpty");
+  spec.component_media_types =
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
+  jv = json_parse_string(
+      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+      "{\"$ref\":\"#/components/mediaTypes/MtEmpty\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* Querystring with resolved media ref */
+  memset(&spec, 0, sizeof(spec));
+  spec.n_component_media_types = 1;
+  spec.component_media_type_names = (char **)calloc(1, sizeof(char *));
+  spec.component_media_type_names[0] = strdup("MtQs");
+  spec.component_media_types =
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
+  spec.component_media_types[0].schema_set = 1;
+  spec.component_media_types[0].schema.ref_name = strdup("QsRef");
+  jv = json_parse_string(
+      "{\"name\":\"p_qs\",\"in\":\"querystring\",\"content\":{\"application/"
+      "json\":{\"$ref\":\"#/components/mediaTypes/MtQs\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* Edge cases: ref with resolve_refs=0, content non-object value, media ref
+   * resolve_refs=0 or spec=NULL or NotFound */
+  jv = json_parse_string("{\"$ref\":\"#/components/parameters/"
+                         "MyParam\",\"description\":\"desc\"}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, NULL, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  jv = json_parse_string("{\"name\":\"p\",\"in\":\"query\",\"content\":{"
+                         "\"application/json\":123}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, NULL, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+
+  memset(&spec, 0, sizeof(spec));
+  jv = json_parse_string(
+      "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+      "{\"$ref\":\"#/components/mediaTypes/NotFound\"}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 1));
+    cdd_test_free_parameter(&param);
+
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, NULL, 1));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  memset(&spec, 0, sizeof(spec));
+  jv = json_parse_string(
+      "{\"name\":\"p_prop\",\"in\":\"querystring\",\"content\":{\"application/"
+      "json\":{\"schema\":{\"properties\":{\"a\":{\"type\":\"string\"}}}}}}");
+  if (jv) {
+    jo = json_value_get_object(jv);
+    memset(&param, 0, sizeof(param));
+    ASSERT_EQ(CDD_C_SUCCESS,
+              cdd_test_parse_parameter_object(jo, &param, &spec, 0));
+    cdd_test_free_parameter(&param);
+    json_value_free(jv);
+  }
+  openapi_spec_free(&spec);
+
+  /* 10. OOM paths */
+  {
+    const char *oom_jsons[9];
+    size_t n_oom = 9;
+    oom_jsons[0] = "{\"name\":\"q\",\"in\":\"query\",\"description\":\"desc\","
+                   "\"schema\":{\"type\":\"string\"},\"x-ext\":\"val\"}";
+    oom_jsons[1] = "{\"name\":\"p\",\"in\":\"query\",\"examples\":{\"ex1\":{"
+                   "\"value\":\"v1\"},"
+                   "\"ex2\":{\"value\":\"v2\"}}}";
+    oom_jsons[2] =
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"schema\":{\"type\":\"string\"},\"example\":\"ex\"}}}";
+    oom_jsons[3] = "{\"name\":\"p\",\"in\":\"querystring\",\"content\":{"
+                   "\"application/json\":"
+                   "{\"schema\":{\"type\":\"object\",\"properties\":{\"a\":{"
+                   "\"type\":\"string\"}}}}}}";
+    oom_jsons[4] =
+        "{\"name\":\"p\",\"in\":\"query\",\"content\":{\"application/json\":"
+        "{\"$ref\":\"#/components/mediaTypes/Mt1\"}}}";
+    oom_jsons[5] = "{\"name\":\"p_ex\",\"in\":\"query\",\"example\":\"foo\"}";
+    oom_jsons[6] = "{\"name\":\"p_ex2\",\"in\":\"query\",\"example\":\"foo\","
+                   "\"schema\":{\"type\":\"string\"}}";
+    oom_jsons[7] =
+        "{\"name\":\"q_no_schema\",\"in\":\"query\",\"x-ext\":\"val\"}";
+    oom_jsons[8] =
+        "{\"name\":\"p_no_sch\",\"in\":\"query\",\"content\":{\"application/"
+        "json\":{\"example\":\"ex\"}}}";
+
+    memset(&spec, 0, sizeof(spec));
+    spec.n_component_media_types = 1;
+    spec.component_media_type_names = (char **)calloc(1, sizeof(char *));
+    spec.component_media_type_names[0] = strdup("Mt1");
+    spec.component_media_types =
+        (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
+    spec.component_media_types[0].schema_set = 1;
+    spec.component_media_types[0].schema.ref_name = strdup("SchemaRef1");
+
+    for (i = 0; i < n_oom; ++i) {
+      jv = json_parse_string(oom_jsons[i]);
+      if (jv) {
+        jo = json_value_get_object(jv);
+        for (k = 1; k <= 30; ++k) {
+          g_cdd_alloc_fail = k;
+          memset(&param, 0, sizeof(param));
+          cdd_test_parse_parameter_object(jo, &param, &spec, 1);
+          cdd_test_free_parameter(&param);
+          g_cdd_alloc_fail = 0;
+
+          g_cdd_strdup_fail = k;
+          memset(&param, 0, sizeof(param));
+          cdd_test_parse_parameter_object(jo, &param, &spec, 1);
+          cdd_test_free_parameter(&param);
+          g_cdd_strdup_fail = 0;
+        }
+        json_value_free(jv);
+      }
+    }
+    openapi_spec_free(&spec);
+
+    /* Array calloc failure */
+    jv = json_parse_string("[{\"name\":\"q\",\"in\":\"query\"}]");
+    if (jv) {
+      g_cdd_alloc_fail = 1;
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      g_cdd_alloc_fail = 0;
+      json_value_free(jv);
+    }
+
+    /* Array shrinking realloc failure (keeps original pointer) */
+    jv = json_parse_string(
+        "[{\"name\":\"Authorization\",\"in\":\"header\","
+        "\"schema\":{\"type\":\"string\"}},{\"name\":\"q\",\"in\":\"query\","
+        "\"schema\":{\"type\":\"string\"}}]");
+    if (jv) {
+      g_cdd_alloc_fail = 2;
+      out_params = NULL;
+      out_count = 0;
+      ASSERT_EQ(CDD_C_SUCCESS,
+                cdd_test_parse_parameters_array(json_value_get_array(jv),
+                                                &out_params, &out_count, NULL));
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(1, out_count);
+      cdd_test_free_parameter(&out_params[0]);
+      free(out_params);
+      json_value_free(jv);
+    }
+  }
+
+  g_cdd_alloc_fail = 0;
+  g_cdd_strdup_fail = 0;
   PASS();
 }
 

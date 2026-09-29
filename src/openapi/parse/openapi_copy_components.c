@@ -95,7 +95,7 @@ cdd_c_error_t copy_parameter_fields(struct OpenAPI_Parameter *dst,
   }
   if (src->examples && src->n_examples > 0) {
     size_t i;
-    dst->examples = (struct OpenAPI_Example *)calloc(
+    dst->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
         src->n_examples, sizeof(struct OpenAPI_Example));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;
@@ -189,7 +189,7 @@ cdd_c_error_t copy_header_fields(struct OpenAPI_Header *dst,
   }
   if (src->examples && src->n_examples > 0) {
     size_t i;
-    dst->examples = (struct OpenAPI_Example *)calloc(
+    dst->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
         src->n_examples, sizeof(struct OpenAPI_Example));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;
@@ -235,7 +235,7 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->headers && src->n_headers > 0) {
-    dst->headers = (struct OpenAPI_Header *)calloc(
+    dst->headers = (struct OpenAPI_Header *)C_CDD_CALLOC(
         src->n_headers, sizeof(struct OpenAPI_Header));
     if (!dst->headers)
       return CDD_C_ERROR_MEMORY;
@@ -257,7 +257,7 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
     }
   }
   if (src->encoding && src->n_encoding > 0) {
-    dst->encoding = (struct OpenAPI_Encoding *)calloc(
+    dst->encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
         src->n_encoding, sizeof(struct OpenAPI_Encoding));
     if (!dst->encoding)
       return CDD_C_ERROR_MEMORY;
@@ -272,7 +272,7 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
     }
   }
   if (src->prefix_encoding && src->n_prefix_encoding > 0) {
-    dst->prefix_encoding = (struct OpenAPI_Encoding *)calloc(
+    dst->prefix_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
         src->n_prefix_encoding, sizeof(struct OpenAPI_Encoding));
     if (!dst->prefix_encoding)
       return CDD_C_ERROR_MEMORY;
@@ -287,8 +287,8 @@ cdd_c_error_t copy_encoding_fields(struct OpenAPI_Encoding *dst,
     }
   }
   if (src->item_encoding) {
-    dst->item_encoding =
-        (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
+    dst->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_Encoding));
     if (!dst->item_encoding)
       return CDD_C_ERROR_MEMORY;
     dst->item_encoding_set = 1;
@@ -350,7 +350,7 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
-    dst->examples = (struct OpenAPI_Example *)calloc(
+    dst->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
         src->n_examples, sizeof(struct OpenAPI_Example));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;
@@ -365,7 +365,7 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
     }
   }
   if (src->encoding && src->n_encoding > 0) {
-    dst->encoding = (struct OpenAPI_Encoding *)calloc(
+    dst->encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
         src->n_encoding, sizeof(struct OpenAPI_Encoding));
     if (!dst->encoding)
       return CDD_C_ERROR_MEMORY;
@@ -380,7 +380,7 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
     }
   }
   if (src->prefix_encoding && src->n_prefix_encoding > 0) {
-    dst->prefix_encoding = (struct OpenAPI_Encoding *)calloc(
+    dst->prefix_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
         src->n_prefix_encoding, sizeof(struct OpenAPI_Encoding));
     if (!dst->prefix_encoding)
       return CDD_C_ERROR_MEMORY;
@@ -395,8 +395,8 @@ cdd_c_error_t copy_media_type_fields(struct OpenAPI_MediaType *dst,
     }
   }
   if (src->item_encoding) {
-    dst->item_encoding =
-        (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
+    dst->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_Encoding));
     if (!dst->item_encoding)
       return CDD_C_ERROR_MEMORY;
     dst->item_encoding_set = 1;
@@ -424,8 +424,8 @@ cdd_c_error_t copy_media_type_array(struct OpenAPI_MediaType **dst,
   *dst_count = 0;
   if (!src || src_count == 0)
     return CDD_C_SUCCESS;
-  *dst = (struct OpenAPI_MediaType *)calloc(src_count,
-                                            sizeof(struct OpenAPI_MediaType));
+  *dst = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+      src_count, sizeof(struct OpenAPI_MediaType));
   if (!*dst)
     return CDD_C_ERROR_MEMORY;
   *dst_count = src_count;
@@ -493,7 +493,7 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
-    dst->examples = (struct OpenAPI_Example *)calloc(
+    dst->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
         src->n_examples, sizeof(struct OpenAPI_Example));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;
@@ -508,7 +508,7 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
     }
   }
   if (src->n_headers > 0 && src->headers) {
-    dst->headers = (struct OpenAPI_Header *)calloc(
+    dst->headers = (struct OpenAPI_Header *)C_CDD_CALLOC(
         src->n_headers, sizeof(struct OpenAPI_Header));
     if (!dst->headers)
       return CDD_C_ERROR_MEMORY;
@@ -530,8 +530,8 @@ cdd_c_error_t copy_response_fields(struct OpenAPI_Response *dst,
     }
   }
   if (src->n_links > 0 && src->links) {
-    dst->links = (struct OpenAPI_Link *)calloc(src->n_links,
-                                               sizeof(struct OpenAPI_Link));
+    dst->links = (struct OpenAPI_Link *)C_CDD_CALLOC(
+        src->n_links, sizeof(struct OpenAPI_Link));
     if (!dst->links)
       return CDD_C_ERROR_MEMORY;
     dst->n_links = src->n_links;

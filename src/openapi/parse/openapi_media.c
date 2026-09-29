@@ -114,8 +114,8 @@ cdd_c_error_t parse_media_type_object(const JSON_Object *media_obj,
 
   item_encoding_obj = json_object_get_object(media_obj, "itemEncoding");
   if (item_encoding_obj) {
-    out->item_encoding =
-        (struct OpenAPI_Encoding *)calloc(1, sizeof(struct OpenAPI_Encoding));
+    out->item_encoding = (struct OpenAPI_Encoding *)C_CDD_CALLOC(
+        1, sizeof(struct OpenAPI_Encoding));
     if (!out->item_encoding)
       return CDD_C_ERROR_MEMORY;
     out->item_encoding_set = 1;
@@ -222,7 +222,7 @@ cdd_c_error_t media_type_specificity(const char *name, int *out_spec) {
     return CDD_C_SUCCESS;
   }
   type_len = (size_t)(slash - name);
-  if (type_len == 0 || type_len >= len)
+  if (type_len == 0)
     return CDD_C_SUCCESS;
   sub_len = len - type_len - 1;
   if (type_len == 1 && name[0] == '*' && sub_len == 1 && slash[1] == '*') {
@@ -322,8 +322,6 @@ cdd_c_error_t find_media_object_by_name(const JSON_Object *content,
   count = json_object_get_count(content);
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(content, i);
-    if (!name)
-      continue;
     if (media_type_base_equal(name, media_name)) {
       {
         *_out_val = json_object_get_object(content, name);
@@ -358,8 +356,8 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
     return CDD_C_SUCCESS;
 
   *out_count = count;
-  *out = (struct OpenAPI_MediaType *)calloc(count,
-                                            sizeof(struct OpenAPI_MediaType));
+  *out = (struct OpenAPI_MediaType *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_MediaType));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
 
@@ -368,7 +366,7 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
     const JSON_Object *media_obj =
         json_value_get_object(json_object_get_value_at(content, i));
     struct OpenAPI_MediaType *curr = &(*out)[valid];
-    if (!name || !media_obj)
+    if (!media_obj)
       continue;
     curr->name = (c_cdd_strdup(name, &_ast_strdup_242), _ast_strdup_242);
     if (!curr->name)
@@ -383,7 +381,7 @@ cdd_c_error_t parse_content_object(const JSON_Object *content,
   }
 
   if (valid == 0) {
-    free(*out);
+    C_CDD_FREE(*out);
     *out = NULL;
     *out_count = 0;
     return CDD_C_SUCCESS;

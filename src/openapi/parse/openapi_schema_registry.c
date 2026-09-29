@@ -512,10 +512,10 @@ cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *suffix = is_item ? "Request_Item" : "Request";
   size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
-  char *out = (char *)(size_t)malloc(len);
+  char *out = (char *)(size_t)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_%s_%s", op, suffix);
@@ -538,10 +538,10 @@ cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
   const char *suffix = is_item ? "Item" : "";
   size_t len = strlen("Inline_") + strlen(op) + strlen("_Response_") +
                strlen(resp) + (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
-  char *out = (char *)(size_t)malloc(len);
+  char *out = (char *)(size_t)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (suffix[0]) {
@@ -568,10 +568,10 @@ cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
 cdd_c_error_t build_inline_param_name(const char *param_name, char **_out_val) {
   const char *p = (param_name && *param_name) ? param_name : "param";
   size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
-  char *out = (char *)(size_t)malloc(len);
+  char *out = (char *)(size_t)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_Querystring_%s", p);

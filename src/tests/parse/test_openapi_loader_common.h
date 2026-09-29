@@ -48,6 +48,25 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_schema_ref(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_example_fields(
     struct OpenAPI_Example *dst, const struct OpenAPI_Example *src);
 extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_copy_any_value(struct OpenAPI_Any *dst, const struct OpenAPI_Any *src);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_item_schema_as_array(
+    struct OpenAPI_SchemaRef *dst, const struct OpenAPI_SchemaRef *item);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_security_requirement_sets(
+    struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
+    const struct OpenAPI_SecurityRequirementSet *src, size_t src_count);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_media_type_array(
+    struct OpenAPI_MediaType **dst, size_t *dst_count,
+    const struct OpenAPI_MediaType *src, size_t src_count);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_security_schemes(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_parse_security_field(const JSON_Object *obj, const char *key,
+                              struct OpenAPI_SecurityRequirementSet **out,
+                              size_t *out_count, int *out_set);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_security_requirements(
+    const JSON_Array *arr, struct OpenAPI_SecurityRequirementSet **out,
+    size_t *out_count);
+extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_free_encoding(struct OpenAPI_Encoding *enc);
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_free_media_type(struct OpenAPI_MediaType *mt);
@@ -60,6 +79,8 @@ cdd_test_free_any_value(struct OpenAPI_Any *val);
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_free_link(struct OpenAPI_Link *link);
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_free_security_requirement(struct OpenAPI_SecurityRequirement *req);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_free_security_requirement_set(
+    struct OpenAPI_SecurityRequirementSet *set);
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_free_path_item(struct OpenAPI_Path *p);
 extern C_CDD_EXPORT cdd_c_error_t
@@ -85,6 +106,30 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_component_callback_is_referenced(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_media_type(
     const struct OpenAPI_Spec *spec, const char *ref,
     struct OpenAPI_MediaType **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_parameter(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Parameter **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_response(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Response **out_val);
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_find_component_header(const struct OpenAPI_Spec *spec, const char *ref,
+                               struct OpenAPI_Header **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_request_body(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_RequestBody **out_val);
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
+                             struct OpenAPI_Link **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_callback(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Callback **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_path_item(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Path **out_val);
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_example(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Example **out_val);
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_media_object_by_name(
     const JSON_Object *content, const char *media_name, JSON_Object **out_val);
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_schema_ref(

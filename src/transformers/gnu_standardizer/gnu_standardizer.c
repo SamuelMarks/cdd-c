@@ -7,7 +7,7 @@
 #include "gnu_standardizer_internal.h"
 /* clang-format on */
 
-cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree) {
   size_t i;
   cdd_c_error_t rc = CDD_C_SUCCESS;
   cdd_cst_query_result_t res = {0};

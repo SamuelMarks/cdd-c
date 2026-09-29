@@ -685,7 +685,7 @@ cdd_c_error_t parse_schema_ref(const JSON_Object *schema,
       if (item_type) {
         out->inline_type =
             (c_cdd_strdup(item_type, &_ast_strdup_190), _ast_strdup_190);
-        return out->inline_type ? 0 : ENOMEM;
+        return out->inline_type ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
       }
     }
     return CDD_C_SUCCESS;
@@ -693,7 +693,7 @@ cdd_c_error_t parse_schema_ref(const JSON_Object *schema,
 
   if (type) {
     out->inline_type = (c_cdd_strdup(type, &_ast_strdup_191), _ast_strdup_191);
-    return out->inline_type ? 0 : ENOMEM;
+    return out->inline_type ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
   }
 
   return CDD_C_SUCCESS;

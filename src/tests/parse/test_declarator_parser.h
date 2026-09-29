@@ -64,7 +64,6 @@ static void reset_decl_mocks(void) {
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc;
-  reset_decl_mocks();
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   if (rc != CDD_C_SUCCESS) {
     return NULL;
@@ -99,11 +98,15 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
  */
 TEST test_parse_basic_int(void) {
   const char *code = (char *)(size_t)(size_t) "int x";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl;
   struct DeclInfo info;
   int rc;
 
-  (void)rc;
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(NULL, setup_tokens(code));
+  g_cdd_alloc_fail = 0;
+
+  tl = setup_tokens(code);
   ASSERT(tl);
   rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);

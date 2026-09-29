@@ -284,8 +284,7 @@ cdd_c_error_t code2schema_main(int argc, char **argv) {
   ret_rc = CDD_C_SUCCESS;
 
 cleanup:
-  if (fp)
-    fclose(fp);
+  fclose(fp);
   json_value_free(root);
   return ret_rc;
 }

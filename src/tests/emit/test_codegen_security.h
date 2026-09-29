@@ -52,24 +52,19 @@ static cdd_c_error_t gen_sec_code(const struct OpenAPI_Spec *spec,
   const struct OpenAPI_Operation *op = op_in;
   long sz;
   char *content = NULL;
-
-  if (!tmp) {
-    *_out_val = NULL;
-    return 0;
-  }
+  cdd_c_error_t rc;
 
   /* Op is unused currently but required by signature */
   if (!op) {
     memset(&op_local, 0, sizeof(op_local));
     op = &op_local;
   }
-  if (codegen_security_write_apply(tmp, op, spec) != 0) {
+  rc = codegen_security_write_apply(tmp, op, spec);
+  if (rc != CDD_C_SUCCESS) {
     if (tmp)
       fclose(tmp);
-    {
-      *_out_val = NULL;
-      return 0;
-    }
+    *_out_val = NULL;
+    return rc;
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -382,10 +377,13 @@ TEST test_sec_multiple_schemes(void) {
 }
 
 TEST test_sec_null_safety(void) {
+  char *code = NULL;
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_security_write_apply(NULL, NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             codegen_security_write_server_apply(NULL, NULL, NULL));
+  ASSERT_NEQ(CDD_C_SUCCESS, gen_sec_code(NULL, NULL, &code));
+  ASSERT(code == NULL);
   g_fail_io_after = -1;
   PASS();
 }

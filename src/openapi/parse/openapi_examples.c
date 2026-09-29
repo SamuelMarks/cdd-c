@@ -18,7 +18,6 @@ cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
   char *_ast_strdup_22 = NULL;
   char *_ast_strdup_23 = NULL;
   char *_ast_strdup_24 = NULL;
-  char *_ast_strdup_25 = NULL;
   char *_ast_strdup_26 = NULL;
   char *_ast_strdup_27 = NULL;
   if (!dst || !src)
@@ -49,12 +48,6 @@ cdd_c_error_t copy_example_fields(struct OpenAPI_Example *dst,
     dst->description =
         (c_cdd_strdup(src->description, &_ast_strdup_24), _ast_strdup_24);
     if (!dst->description)
-      return CDD_C_ERROR_MEMORY;
-  }
-  if (src->extensions_json && !dst->extensions_json) {
-    dst->extensions_json =
-        (c_cdd_strdup(src->extensions_json, &_ast_strdup_25), _ast_strdup_25);
-    if (!dst->extensions_json)
       return CDD_C_ERROR_MEMORY;
   }
   if (src->data_value_set && !dst->data_value_set) {
@@ -117,23 +110,17 @@ cdd_c_error_t find_component_example(const struct OpenAPI_Spec *spec,
   }
   name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_4),
               _ast_json_pointer_unescape_4);
-  if (!name_dec) {
-    if (resolved.resolved_ref)
-      free(resolved.resolved_ref);
-    {
-      *_out_val = NULL;
-      return CDD_C_SUCCESS;
-    }
-  }
-  for (i = 0; i < target->n_component_examples; ++i) {
-    if (target->component_example_names && target->component_example_names[i] &&
-        strcmp(target->component_example_names[i], name_dec) == 0) {
-      free(name_dec);
-      if (resolved.resolved_ref)
-        free(resolved.resolved_ref);
-      {
-        *_out_val = &target->component_examples[i];
-        return CDD_C_SUCCESS;
+  if (name_dec && target->component_example_names) {
+    for (i = 0; i < target->n_component_examples; ++i) {
+      if (target->component_example_names[i] &&
+          strcmp(target->component_example_names[i], name_dec) == 0) {
+        free(name_dec);
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
+        {
+          *_out_val = &target->component_examples[i];
+          return CDD_C_SUCCESS;
+        }
       }
     }
   }
@@ -271,8 +258,8 @@ cdd_c_error_t parse_examples_object(const JSON_Object *examples,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out =
-      (struct OpenAPI_Example *)calloc(count, sizeof(struct OpenAPI_Example));
+  *out = (struct OpenAPI_Example *)C_CDD_CALLOC(count,
+                                                sizeof(struct OpenAPI_Example));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
@@ -334,19 +321,17 @@ cdd_c_error_t parse_oauth_scopes(const JSON_Object *scopes_obj,
   count = json_object_get_count(scopes_obj);
   if (count == 0)
     return CDD_C_SUCCESS;
-  *out = (struct OpenAPI_OAuthScope *)calloc(count,
-                                             sizeof(struct OpenAPI_OAuthScope));
+  *out = (struct OpenAPI_OAuthScope *)C_CDD_CALLOC(
+      count, sizeof(struct OpenAPI_OAuthScope));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(scopes_obj, i);
     const char *desc = json_object_get_string(scopes_obj, name);
-    if (name) {
-      (*out)[i].name = (c_cdd_strdup(name, &_ast_strdup_34), _ast_strdup_34);
-      if (!(*out)[i].name)
-        return CDD_C_ERROR_MEMORY;
-    }
+    (*out)[i].name = (c_cdd_strdup(name, &_ast_strdup_34), _ast_strdup_34);
+    if (!(*out)[i].name)
+      return CDD_C_ERROR_MEMORY;
     if (desc) {
       (*out)[i].description =
           (c_cdd_strdup(desc, &_ast_strdup_35), _ast_strdup_35);
@@ -373,7 +358,7 @@ cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
   count = json_object_get_count(flows_obj);
   if (count == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  out->flows = (struct OpenAPI_OAuthFlow *)calloc(
+  out->flows = (struct OpenAPI_OAuthFlow *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_OAuthFlow));
   if (!out->flows)
     return CDD_C_ERROR_MEMORY;
@@ -383,12 +368,11 @@ cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
     const JSON_Object *flow_obj =
         json_value_get_object(json_object_get_value_at(flows_obj, i));
     struct OpenAPI_OAuthFlow *flow = &out->flows[i];
-    if (name)
-      flow->type = (parse_oauth_flow_type(name, &_ast_parse_oauth_flow_type_6),
-                    _ast_parse_oauth_flow_type_6);
-    if (flow->type == OA_OAUTH_FLOW_UNKNOWN)
+    flow->type = (parse_oauth_flow_type(name, &_ast_parse_oauth_flow_type_6),
+                  _ast_parse_oauth_flow_type_6);
+    if (!flow_obj)
       return CDD_C_ERROR_INVALID_ARGUMENT;
-    if (flow_obj) {
+    {
       const char *authorization_url =
           json_object_get_string(flow_obj, "authorizationUrl");
       const char *token_url = json_object_get_string(flow_obj, "tokenUrl");
@@ -408,6 +392,9 @@ cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
           return CDD_C_ERROR_INVALID_ARGUMENT;
         break;
       case OA_OAUTH_FLOW_PASSWORD:
+        if (!token_url)
+          return CDD_C_ERROR_INVALID_ARGUMENT;
+        break;
       case OA_OAUTH_FLOW_CLIENT_CREDENTIALS:
         if (!token_url)
           return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -420,7 +407,6 @@ cdd_c_error_t parse_oauth_flows(const JSON_Object *flows_obj,
         if (!device_authorization_url || !token_url)
           return CDD_C_ERROR_INVALID_ARGUMENT;
         break;
-      case OA_OAUTH_FLOW_UNKNOWN:
       default:
         return CDD_C_ERROR_INVALID_ARGUMENT;
       }

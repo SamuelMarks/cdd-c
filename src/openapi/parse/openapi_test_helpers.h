@@ -562,6 +562,102 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_media_type(
     struct OpenAPI_MediaType **out_val);
 
 /**
+ * @brief Test helper to find component parameter.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Parameter reference.
+ * @param[out] out_val Pointer to found parameter.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_parameter(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Parameter **out_val);
+
+/**
+ * @brief Test helper to find component response.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Response reference.
+ * @param[out] out_val Pointer to found response.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_response(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Response **out_val);
+
+/**
+ * @brief Test helper to find component header.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Header reference.
+ * @param[out] out_val Pointer to found header.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_find_component_header(const struct OpenAPI_Spec *spec, const char *ref,
+                               struct OpenAPI_Header **out_val);
+
+/**
+ * @brief Test helper to find component request body.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Request body reference.
+ * @param[out] out_val Pointer to found request body.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_request_body(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_RequestBody **out_val);
+
+/**
+ * @brief Test helper to find component link.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Link reference.
+ * @param[out] out_val Pointer to found link.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
+                             struct OpenAPI_Link **out_val);
+
+/**
+ * @brief Test helper to find component callback.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Callback reference.
+ * @param[out] out_val Pointer to found callback.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_callback(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Callback **out_val);
+
+/**
+ * @brief Test helper to find component path item.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Path item reference.
+ * @param[out] out_val Pointer to found path item.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_path_item(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Path **out_val);
+
+/**
+ * @brief Test helper to find component example.
+ *
+ * @param[in] spec OpenAPI specification.
+ * @param[in] ref Example reference.
+ * @param[out] out_val Pointer to found example.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_component_example(
+    const struct OpenAPI_Spec *spec, const char *ref,
+    struct OpenAPI_Example **out_val);
+
+/**
  * @brief Test helper to find media object by name.
  *
  * @param[in] content JSON content object.
@@ -582,6 +678,412 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_find_media_object_by_name(
  */
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_schema_ref(
     const JSON_Object *schema, struct OpenAPI_SchemaRef *out,
+    const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper to free security requirement set.
+ *
+ * @param[in,out] set Security requirement set to free.
+ * @return CDD_C_SUCCESS on success.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_free_security_requirement_set(
+    struct OpenAPI_SecurityRequirementSet *set);
+
+/**
+ * @brief Test helper to copy any value.
+ *
+ * @param[out] dst Destination any value.
+ * @param[in] src Source any value.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_copy_any_value(struct OpenAPI_Any *dst, const struct OpenAPI_Any *src);
+
+/**
+ * @brief Test helper to copy item schema as array.
+ *
+ * @param[out] dst Destination schema ref.
+ * @param[in] item Source item schema ref.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_item_schema_as_array(
+    struct OpenAPI_SchemaRef *dst, const struct OpenAPI_SchemaRef *item);
+
+/**
+ * @brief Test helper to copy security requirement sets.
+ *
+ * @param[out] dst Destination security requirement set array.
+ * @param[out] dst_count Pointer to store destination count.
+ * @param[in] src Source security requirement set array.
+ * @param[in] src_count Source count.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_security_requirement_sets(
+    struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
+    const struct OpenAPI_SecurityRequirementSet *src, size_t src_count);
+
+/**
+ * @brief Test helper to copy media type array.
+ *
+ * @param[out] dst Destination media type array.
+ * @param[out] dst_count Pointer to store destination count.
+ * @param[in] src Source media type array.
+ * @param[in] src_count Source count.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_media_type_array(
+    struct OpenAPI_MediaType **dst, size_t *dst_count,
+    const struct OpenAPI_MediaType *src, size_t src_count);
+
+/**
+ * @brief Test helper to parse security schemes.
+ *
+ * @param[in] components Components JSON object.
+ * @param[out] out OpenAPI spec to populate.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_security_schemes(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
+
+/**
+ * @brief Test helper to parse security field.
+ *
+ * @param[in] obj JSON object containing security field.
+ * @param[in] key Key name for security field.
+ * @param[out] out Security requirement set array to populate.
+ * @param[out] out_count Pointer to store count.
+ * @param[out] out_set Flag indicating whether field was set.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_parse_security_field(const JSON_Object *obj, const char *key,
+                              struct OpenAPI_SecurityRequirementSet **out,
+                              size_t *out_count, int *out_set);
+
+/**
+ * @brief Test helper to parse security requirements.
+ *
+ * @param[in] arr JSON array of security requirements.
+ * @param[out] out Security requirement set array to populate.
+ * @param[out] out_count Pointer to store count.
+ * @return CDD_C_SUCCESS on success, error enum on failure.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_security_requirements(
+    const JSON_Array *arr, struct OpenAPI_SecurityRequirementSet **out,
+    size_t *out_count);
+
+/**
+ * @brief Test helper to parse parameter object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_parameter_object(
+    const JSON_Object *p_obj, struct OpenAPI_Parameter *out_param,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper to parse parameters array.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_parameters_array(
+    const JSON_Array *arr, struct OpenAPI_Parameter **out_params,
+    size_t *out_count, const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper to parse request body object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_request_body_object(
+    const JSON_Object *rb_obj, struct OpenAPI_RequestBody *out_rb,
+    const struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id);
+
+/**
+ * @brief Test helper to parse response object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_response_object(
+    const JSON_Object *resp_obj, struct OpenAPI_Response *out_resp,
+    const struct OpenAPI_Spec *spec, int resolve_refs, const char *op_id,
+    const char *resp_code);
+
+/**
+ * @brief Test helper to parse responses.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_responses(
+    const JSON_Object *responses, struct OpenAPI_Operation *out_op,
+    const struct OpenAPI_Spec *spec, const char *op_id);
+
+/**
+ * @brief Test helper to parse callback object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_callback_object(
+    const JSON_Object *cb_obj, struct OpenAPI_Callback *out_cb,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper to parse callbacks object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_callbacks_object(
+    const JSON_Object *callbacks, struct OpenAPI_Callback **out_callbacks,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for media_type_specificity.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_media_type_specificity(const char *name, int *out_spec);
+
+/**
+ * @brief Test helper for media_type_preference_rank.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_media_type_preference_rank(const char *name, int *out_rank);
+
+/**
+ * @brief Test helper for select_primary_media_type_index.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_select_primary_media_type_index(
+    const struct OpenAPI_MediaType *mts, size_t n, int *out_idx);
+
+/**
+ * @brief Test helper for parse_media_type_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_media_type_object(
+    const JSON_Object *media_obj, struct OpenAPI_MediaType *out,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for parse_content_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_content_object(
+    const JSON_Object *content, struct OpenAPI_MediaType **out,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for parse_schema_constraints.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_schema_constraints(
+    const JSON_Object *schema, struct SchemaConstraintTarget *target);
+
+/**
+ * @brief Test helper for parse_string_enum_array.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_string_enum_array(
+    const JSON_Array *arr, char ***out, size_t *out_count);
+
+/**
+ * @brief Test helper for copy_string_array.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_copy_string_array(char ***dst,
+                                                             size_t *dst_count,
+                                                             char **src,
+                                                             size_t src_count);
+
+/**
+ * @brief Test helper for schema_is_string_enum_only.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_schema_is_string_enum_only(const JSON_Object *schema_obj);
+
+/**
+ * @brief Test helper for schema_is_struct_compatible.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_schema_is_struct_compatible(
+    const JSON_Value *schema_val, const JSON_Object *schema_obj);
+
+/**
+ * @brief Test helper for parse_schema_array_ref.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_schema_array_ref(
+    const JSON_Array *arr, struct OpenAPI_SchemaRef **out, size_t *out_count,
+    const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for parse_schema_ref_ptr.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_schema_ref_ptr(
+    const JSON_Object *obj, struct OpenAPI_SchemaRef **out,
+    const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for parse_example_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_example_object(
+    const JSON_Object *ex_obj, const char *name, struct OpenAPI_Example *out,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for parse_examples_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_examples_object(
+    const JSON_Object *examples, struct OpenAPI_Example **out,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for parse_media_examples.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_media_examples(
+    const JSON_Object *media_obj, struct OpenAPI_Any *example, int *example_set,
+    struct OpenAPI_Example **examples, size_t *n_examples,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
+
+/**
+ * @brief Test helper for parse_oauth_scopes.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_parse_oauth_scopes(const JSON_Object *scopes_obj,
+                            struct OpenAPI_OAuthScope **out, size_t *out_count);
+
+/**
+ * @brief Test helper for parse_oauth_flows.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_oauth_flows(
+    const JSON_Object *flows_obj, struct OpenAPI_SecurityScheme *out);
+
+/**
+ * @brief Test helper for validate_querystring_usage_in_callbacks.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_querystring_usage_in_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks);
+
+/**
+ * @brief Test helper for validate_querystring_usage_in_operations.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_querystring_usage_in_operations(
+    const struct OpenAPI_Operation *ops, size_t n_ops);
+
+/**
+ * @brief Test helper for validate_querystring_usage_in_paths_callbacks.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_querystring_usage_in_paths_callbacks(
+    const struct OpenAPI_Path *paths, size_t n_paths);
+
+/**
+ * @brief Test helper for validate_querystring_usage_in_component_callbacks.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_querystring_usage_in_component_callbacks(
+    const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for add_unique_operation_id.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_add_unique_operation_id(
+    char ***ids, size_t *count, size_t *cap, const char *op_id);
+
+/**
+ * @brief Test helper for collect_operation_ids.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_collect_operation_ids(const struct OpenAPI_Path *paths, size_t n_paths,
+                               char ***ids, size_t *count, size_t *cap);
+
+/**
+ * @brief Test helper for path_item_ref_matches_component.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_path_item_ref_matches_component(
+    const struct OpenAPI_Spec *spec, const char *ref, const char *name);
+
+/**
+ * @brief Test helper for component_path_item_is_referenced.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_component_path_item_is_referenced(
+    const struct OpenAPI_Spec *spec, const char *name);
+
+/**
+ * @brief Test helper for callback_ref_matches_component.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_callback_ref_matches_component(
+    const struct OpenAPI_Spec *spec, const char *ref, const char *name);
+
+/**
+ * @brief Test helper for component_callback_is_referenced_in_ops.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_component_callback_is_referenced_in_ops(
+    const struct OpenAPI_Operation *ops, size_t n_ops,
+    const struct OpenAPI_Spec *spec, const char *name);
+
+/**
+ * @brief Test helper for collect_callback_operation_ids_from_callbacks.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_collect_callback_operation_ids_from_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
+    size_t *count, size_t *cap);
+
+/**
+ * @brief Test helper for collect_callback_operation_ids_from_operations.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_collect_callback_operation_ids_from_operations(
+    const struct OpenAPI_Operation *ops, size_t n_ops, char ***ids,
+    size_t *count, size_t *cap);
+
+/**
+ * @brief Test helper for collect_callback_operation_ids_from_paths.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_collect_callback_operation_ids_from_paths(
+    const struct OpenAPI_Path *paths, size_t n_paths, char ***ids,
+    size_t *count, size_t *cap);
+
+/**
+ * @brief Test helper for validate_unique_operation_ids.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for parse_paths_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_paths_object(
+    const JSON_Object *paths_obj, struct OpenAPI_Path **out_paths,
+    size_t *out_n_paths, const struct OpenAPI_Spec *spec, int is_root_paths,
+    int validate_refs);
+
+/**
+ * @brief Test helper for name_in_list.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_name_in_list(const char *name,
+                                                        char **names,
+                                                        size_t count);
+
+/**
+ * @brief Test helper for collect_path_template_names.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_collect_path_template_names(
+    const char *route, char ***out_names, size_t *out_count);
+
+/**
+ * @brief Test helper for validate_path_params_list.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_validate_path_params_list(
+    const struct OpenAPI_Parameter *params, size_t n_params,
+    char **template_names, size_t n_template_names);
+
+/**
+ * @brief Test helper for validate_path_template_for_operation.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_validate_path_template_for_operation(
+    const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
+    char **template_names, size_t n_template_names);
+
+/**
+ * @brief Test helper for validate_path_templates.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_validate_path_templates(
+    const struct OpenAPI_Path *paths, size_t n_paths);
+
+/**
+ * @brief Test helper for validate_path_template_collisions.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_validate_path_template_collisions(
+    const struct OpenAPI_Path *paths, size_t n_paths);
+
+/**
+ * @brief Test helper for parse_additional_operations.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_additional_operations(
+    const JSON_Object *path_obj, struct OpenAPI_Path *path,
     const struct OpenAPI_Spec *spec);
 
 #endif /* CDD_BUILD_TESTS */

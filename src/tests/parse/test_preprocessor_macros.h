@@ -441,6 +441,10 @@ TEST test_macro_evaluator_uncovered(void) {
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, res.int_val);
 
+  rc = cdd_macro_evaluate(&ctx, "0.0 || 0", &res);
+  ASSERT_EQ(CDD_C_SUCCESS, rc);
+  ASSERT_EQ(0, res.int_val);
+
   rc = cdd_macro_evaluate(&ctx, "0.0 && 1", &res);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_EQ(0, res.int_val);

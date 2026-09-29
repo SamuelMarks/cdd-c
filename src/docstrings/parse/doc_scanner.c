@@ -23,6 +23,14 @@
 /* clang-format on */
 
 cdd_c_error_t doc_skip_ws(const char *p, const char **out_pos) {
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_doc_fail_skip_ws;
+  if (g_doc_fail_skip_ws > 0) {
+    g_doc_fail_skip_ws--;
+    if (g_doc_fail_skip_ws == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (!out_pos) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -69,7 +77,7 @@ cdd_c_error_t doc_extract_word(const char *str, const char *end,
   res = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!res) {
     *out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   memcpy(res, word_start, len);
@@ -111,7 +119,7 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
   res = (char *)(size_t)C_CDD_MALLOC(len + 1);
   if (!res) {
     *out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   memcpy(res, p, len);
@@ -123,6 +131,14 @@ cdd_c_error_t doc_extract_rest(const char *str, const char *end,
 cdd_c_error_t doc_trim_segment(char *s, char **out_val) {
   char *start;
   char *end;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_doc_fail_trim_segment;
+  if (g_doc_fail_trim_segment > 0) {
+    g_doc_fail_trim_segment--;
+    if (g_doc_fail_trim_segment == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (!out_val) {
     return CDD_C_ERROR_INVALID_ARGUMENT;
   }
@@ -327,17 +343,25 @@ cdd_c_error_t doc_parse_optional_example_attr(const char *attr,
     C_CDD_FREE(*out_example);
 
   rc = c_cdd_strdup(val, &dup_val);
-  if (rc != CDD_C_SUCCESS || !dup_val)
+  if (rc != CDD_C_SUCCESS)
     return CDD_C_ERROR_MEMORY;
 
   *out_example = dup_val;
-  return 1;
+  return CDD_C_SUCCESS;
 }
 
 cdd_c_error_t doc_find_key_token(char *s, const char *key, size_t *key_len,
                                  char **out_val) {
   char *p;
   size_t klen;
+#ifdef CDD_BUILD_TESTS
+  extern C_CDD_EXPORT int g_doc_fail_find_key_token;
+  if (g_doc_fail_find_key_token > 0) {
+    g_doc_fail_find_key_token--;
+    if (g_doc_fail_find_key_token == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
   if (!out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!s || !key) {
@@ -377,7 +401,7 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
     return CDD_C_SUCCESS;
 
   rc = c_cdd_strdup(input, &buf);
-  if (rc != CDD_C_SUCCESS || !buf) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }
@@ -418,7 +442,7 @@ cdd_c_error_t doc_split_scopes(const char *input, char ***out_scopes,
     }
     scopes = new_scopes;
     rc = c_cdd_strdup(trimmed, &scopes[n]);
-    if (rc != CDD_C_SUCCESS || !scopes[n]) {
+    if (rc != CDD_C_SUCCESS) {
       size_t i;
       for (i = 0; i < n; ++i)
         C_CDD_FREE(scopes[i]);
@@ -454,7 +478,7 @@ cdd_c_error_t doc_split_enum_values(const char *input, char ***out_vals,
     return CDD_C_SUCCESS;
 
   rc = c_cdd_strdup(input, &buf);
-  if (rc != CDD_C_SUCCESS || !buf) {
+  if (rc != CDD_C_SUCCESS) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return CDD_C_ERROR_MEMORY;
   }

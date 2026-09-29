@@ -48,7 +48,7 @@ cdd_c_error_t copy_server_object(struct OpenAPI_Server *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->n_variables > 0 && src->variables) {
-    dst->variables = (struct OpenAPI_ServerVariable *)calloc(
+    dst->variables = (struct OpenAPI_ServerVariable *)C_CDD_CALLOC(
         src->n_variables, sizeof(struct OpenAPI_ServerVariable));
     if (!dst->variables)
       return CDD_C_ERROR_MEMORY;
@@ -85,7 +85,7 @@ cdd_c_error_t copy_server_object(struct OpenAPI_Server *dst,
       }
       if (src_var->n_enum_values > 0 && src_var->enum_values) {
         dst_var->enum_values =
-            (char **)calloc(src_var->n_enum_values, sizeof(char *));
+            (char **)C_CDD_CALLOC(src_var->n_enum_values, sizeof(char *));
         if (!dst_var->enum_values)
           return CDD_C_ERROR_MEMORY;
         dst_var->n_enum_values = src_var->n_enum_values;
@@ -149,7 +149,7 @@ cdd_c_error_t copy_link_fields(struct OpenAPI_Link *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->n_parameters > 0 && src->parameters) {
-    dst->parameters = (struct OpenAPI_LinkParam *)calloc(
+    dst->parameters = (struct OpenAPI_LinkParam *)C_CDD_CALLOC(
         src->n_parameters, sizeof(struct OpenAPI_LinkParam));
     if (!dst->parameters)
       return CDD_C_ERROR_MEMORY;
@@ -181,7 +181,7 @@ cdd_c_error_t copy_link_fields(struct OpenAPI_Link *dst,
   }
   if (src->server_set && src->server) {
     dst->server =
-        (struct OpenAPI_Server *)calloc(1, sizeof(struct OpenAPI_Server));
+        (struct OpenAPI_Server *)C_CDD_CALLOC(1, sizeof(struct OpenAPI_Server));
     if (!dst->server)
       return CDD_C_ERROR_MEMORY;
     dst->server_set = 1;
@@ -210,7 +210,7 @@ cdd_c_error_t copy_security_requirement_sets(
   *dst_count = 0;
   if (!src || src_count == 0)
     return CDD_C_SUCCESS;
-  *dst = (struct OpenAPI_SecurityRequirementSet *)calloc(
+  *dst = (struct OpenAPI_SecurityRequirementSet *)C_CDD_CALLOC(
       src_count, sizeof(struct OpenAPI_SecurityRequirementSet));
   if (!*dst)
     return CDD_C_ERROR_MEMORY;
@@ -226,8 +226,10 @@ cdd_c_error_t copy_security_requirement_sets(
         return CDD_C_ERROR_MEMORY;
     }
     if (src_set->n_requirements > 0 && src_set->requirements) {
-      dst_set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
-          src_set->n_requirements, sizeof(struct OpenAPI_SecurityRequirement));
+      dst_set->requirements =
+          (struct OpenAPI_SecurityRequirement *)C_CDD_CALLOC(
+              src_set->n_requirements,
+              sizeof(struct OpenAPI_SecurityRequirement));
       if (!dst_set->requirements)
         return CDD_C_ERROR_MEMORY;
       dst_set->n_requirements = src_set->n_requirements;
@@ -242,7 +244,8 @@ cdd_c_error_t copy_security_requirement_sets(
             return CDD_C_ERROR_MEMORY;
         }
         if (src_req->n_scopes > 0 && src_req->scopes) {
-          dst_req->scopes = (char **)calloc(src_req->n_scopes, sizeof(char *));
+          dst_req->scopes =
+              (char **)C_CDD_CALLOC(src_req->n_scopes, sizeof(char *));
           if (!dst_req->scopes)
             return CDD_C_ERROR_MEMORY;
           dst_req->n_scopes = src_req->n_scopes;
@@ -304,8 +307,8 @@ cdd_c_error_t copy_callback_fields(struct OpenAPI_Callback *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->n_paths > 0 && src->paths && !dst->paths) {
-    dst->paths = (struct OpenAPI_Path *)calloc(src->n_paths,
-                                               sizeof(struct OpenAPI_Path));
+    dst->paths = (struct OpenAPI_Path *)C_CDD_CALLOC(
+        src->n_paths, sizeof(struct OpenAPI_Path));
     if (!dst->paths)
       return CDD_C_ERROR_MEMORY;
     dst->n_paths = src->n_paths;
@@ -383,7 +386,7 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
     }
   }
   if (src->n_parameters > 0 && src->parameters) {
-    dst->parameters = (struct OpenAPI_Parameter *)calloc(
+    dst->parameters = (struct OpenAPI_Parameter *)C_CDD_CALLOC(
         src->n_parameters, sizeof(struct OpenAPI_Parameter));
     if (!dst->parameters)
       return CDD_C_ERROR_MEMORY;
@@ -398,7 +401,7 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
     }
   }
   if (src->n_tags > 0 && src->tags) {
-    dst->tags = (char **)calloc(src->n_tags, sizeof(char *));
+    dst->tags = (char **)C_CDD_CALLOC(src->n_tags, sizeof(char *));
     if (!dst->tags)
       return CDD_C_ERROR_MEMORY;
     dst->n_tags = src->n_tags;
@@ -469,7 +472,7 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->n_servers > 0 && src->servers) {
-    dst->servers = (struct OpenAPI_Server *)calloc(
+    dst->servers = (struct OpenAPI_Server *)C_CDD_CALLOC(
         src->n_servers, sizeof(struct OpenAPI_Server));
     if (!dst->servers)
       return CDD_C_ERROR_MEMORY;
@@ -484,7 +487,7 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
     }
   }
   if (src->n_responses > 0 && src->responses) {
-    dst->responses = (struct OpenAPI_Response *)calloc(
+    dst->responses = (struct OpenAPI_Response *)C_CDD_CALLOC(
         src->n_responses, sizeof(struct OpenAPI_Response));
     if (!dst->responses)
       return CDD_C_ERROR_MEMORY;
@@ -499,7 +502,7 @@ cdd_c_error_t copy_operation_fields(struct OpenAPI_Operation *dst,
     }
   }
   if (src->n_callbacks > 0 && src->callbacks) {
-    dst->callbacks = (struct OpenAPI_Callback *)calloc(
+    dst->callbacks = (struct OpenAPI_Callback *)C_CDD_CALLOC(
         src->n_callbacks, sizeof(struct OpenAPI_Callback));
     if (!dst->callbacks)
       return CDD_C_ERROR_MEMORY;
@@ -558,7 +561,7 @@ cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
       return CDD_C_ERROR_MEMORY;
   }
   if (src->n_parameters > 0 && src->parameters && !dst->parameters) {
-    dst->parameters = (struct OpenAPI_Parameter *)calloc(
+    dst->parameters = (struct OpenAPI_Parameter *)C_CDD_CALLOC(
         src->n_parameters, sizeof(struct OpenAPI_Parameter));
     if (!dst->parameters)
       return CDD_C_ERROR_MEMORY;
@@ -573,7 +576,7 @@ cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
     }
   }
   if (src->n_servers > 0 && src->servers && !dst->servers) {
-    dst->servers = (struct OpenAPI_Server *)calloc(
+    dst->servers = (struct OpenAPI_Server *)C_CDD_CALLOC(
         src->n_servers, sizeof(struct OpenAPI_Server));
     if (!dst->servers)
       return CDD_C_ERROR_MEMORY;
@@ -588,7 +591,7 @@ cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
     }
   }
   if (src->n_operations > 0 && src->operations && !dst->operations) {
-    dst->operations = (struct OpenAPI_Operation *)calloc(
+    dst->operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
         src->n_operations, sizeof(struct OpenAPI_Operation));
     if (!dst->operations)
       return CDD_C_ERROR_MEMORY;
@@ -604,7 +607,7 @@ cdd_c_error_t copy_path_fields(struct OpenAPI_Path *dst,
   }
   if (src->n_additional_operations > 0 && src->additional_operations &&
       !dst->additional_operations) {
-    dst->additional_operations = (struct OpenAPI_Operation *)calloc(
+    dst->additional_operations = (struct OpenAPI_Operation *)C_CDD_CALLOC(
         src->n_additional_operations, sizeof(struct OpenAPI_Operation));
     if (!dst->additional_operations)
       return CDD_C_ERROR_MEMORY;
@@ -678,7 +681,7 @@ cdd_c_error_t copy_request_body_fields(struct OpenAPI_RequestBody *dst,
   }
   if (src->examples && src->n_examples > 0) {
     size_t i;
-    dst->examples = (struct OpenAPI_Example *)calloc(
+    dst->examples = (struct OpenAPI_Example *)C_CDD_CALLOC(
         src->n_examples, sizeof(struct OpenAPI_Example));
     if (!dst->examples)
       return CDD_C_ERROR_MEMORY;

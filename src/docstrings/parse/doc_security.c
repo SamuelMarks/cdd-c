@@ -26,6 +26,13 @@ cdd_c_error_t doc_parse_security_type_text(const char *text,
                                            enum DocSecurityType *out_val) {
   if (!out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_doc_fail_sec_text;
+    if (g_doc_fail_sec_text == 1)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (!text) {
     *out_val = DOC_SEC_UNSET;
     return CDD_C_SUCCESS;
@@ -58,6 +65,13 @@ cdd_c_error_t doc_parse_security_in_text(const char *text,
                                          enum DocSecurityIn *out_val) {
   if (!out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_doc_fail_sec_text;
+    if (g_doc_fail_sec_text == 2)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (!text) {
     *out_val = DOC_SEC_IN_UNSET;
     return CDD_C_SUCCESS;
@@ -82,6 +96,13 @@ cdd_c_error_t doc_parse_oauth_flow_type_text(const char *text,
                                              enum DocOAuthFlowType *out_val) {
   if (!out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_doc_fail_sec_text;
+    if (g_doc_fail_sec_text == 3)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (!text) {
     *out_val = DOC_OAUTH_FLOW_UNSET;
     return CDD_C_SUCCESS;
@@ -174,8 +195,7 @@ cdd_c_error_t doc_parse_security_line(const char *line, const char *end,
   rc = doc_split_scopes(rest, &scopes, &n_scopes);
   if (rc != CDD_C_SUCCESS) {
     C_CDD_FREE(scheme);
-    if (rest)
-      C_CDD_FREE(rest);
+    C_CDD_FREE(rest);
     return rc;
   }
 
@@ -254,18 +274,24 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
         if (strncmp(attr, "type:", 5) == 0 || strncmp(attr, "type=", 5) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 5, &val);
-          if (rc == CDD_C_SUCCESS) {
-            rc = doc_parse_security_type_text(val, &scheme->type);
-            if (rc != CDD_C_SUCCESS) {
-              C_CDD_FREE(attr);
-              return rc;
-            }
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          rc = doc_parse_security_type_text(val, &scheme->type);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
           }
         } else if (strncmp(attr, "description:", 12) == 0 ||
                    strncmp(attr, "description=", 12) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 12, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->description)
               C_CDD_FREE(scheme->description);
             rc = c_cdd_strdup(val, &scheme->description);
@@ -278,7 +304,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "scheme=", 7) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 7, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->scheme)
               C_CDD_FREE(scheme->scheme);
             rc = c_cdd_strdup(val, &scheme->scheme);
@@ -291,7 +321,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "bearerFormat=", 13) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 13, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->bearer_format)
               C_CDD_FREE(scheme->bearer_format);
             rc = c_cdd_strdup(val, &scheme->bearer_format);
@@ -304,7 +338,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "paramName=", 10) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 10, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->param_name)
               C_CDD_FREE(scheme->param_name);
             rc = c_cdd_strdup(val, &scheme->param_name);
@@ -317,18 +355,24 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "in=", 3) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 3, &val);
-          if (rc == CDD_C_SUCCESS) {
-            rc = doc_parse_security_in_text(val, &scheme->in);
-            if (rc != CDD_C_SUCCESS) {
-              C_CDD_FREE(attr);
-              return rc;
-            }
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          rc = doc_parse_security_in_text(val, &scheme->in);
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
           }
         } else if (strncmp(attr, "openIdConnectUrl:", 17) == 0 ||
                    strncmp(attr, "openIdConnectUrl=", 17) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 17, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->open_id_connect_url)
               C_CDD_FREE(scheme->open_id_connect_url);
             rc = c_cdd_strdup(val, &scheme->open_id_connect_url);
@@ -341,7 +385,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "oauth2MetadataUrl=", 18) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 18, &val);
-          if (rc == CDD_C_SUCCESS && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (*val) {
             if (scheme->oauth2_metadata_url)
               C_CDD_FREE(scheme->oauth2_metadata_url);
             rc = c_cdd_strdup(val, &scheme->oauth2_metadata_url);
@@ -354,7 +402,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "flow=", 5) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 5, &val);
-          if (rc == CDD_C_SUCCESS) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          {
             enum DocOAuthFlowType flow_type = DOC_OAUTH_FLOW_UNSET;
             rc = doc_parse_oauth_flow_type_text(val, &flow_type);
             if (rc != CDD_C_SUCCESS) {
@@ -381,7 +433,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "authorizationUrl=", 17) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 17, &val);
-          if (rc == CDD_C_SUCCESS && current_flow && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (current_flow && *val) {
             if (current_flow->authorization_url)
               C_CDD_FREE(current_flow->authorization_url);
             rc = c_cdd_strdup(val, &current_flow->authorization_url);
@@ -394,7 +450,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "tokenUrl=", 9) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 9, &val);
-          if (rc == CDD_C_SUCCESS && current_flow && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (current_flow && *val) {
             if (current_flow->token_url)
               C_CDD_FREE(current_flow->token_url);
             rc = c_cdd_strdup(val, &current_flow->token_url);
@@ -407,7 +467,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "refreshUrl=", 11) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 11, &val);
-          if (rc == CDD_C_SUCCESS && current_flow && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (current_flow && *val) {
             if (current_flow->refresh_url)
               C_CDD_FREE(current_flow->refresh_url);
             rc = c_cdd_strdup(val, &current_flow->refresh_url);
@@ -420,7 +484,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "deviceAuthorizationUrl=", 23) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 23, &val);
-          if (rc == CDD_C_SUCCESS && current_flow && *val) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (current_flow && *val) {
             if (current_flow->device_authorization_url)
               C_CDD_FREE(current_flow->device_authorization_url);
             rc = c_cdd_strdup(val, &current_flow->device_authorization_url);
@@ -433,7 +501,11 @@ cdd_c_error_t doc_parse_security_scheme_line(const char *line, const char *end,
                    strncmp(attr, "scopes=", 7) == 0) {
           char *val = NULL;
           rc = doc_trim_segment(attr + 7, &val);
-          if (rc == CDD_C_SUCCESS && current_flow) {
+          if (rc != CDD_C_SUCCESS) {
+            C_CDD_FREE(attr);
+            return rc;
+          }
+          if (current_flow) {
             struct DocOAuthScope *scopes = NULL;
             size_t n_scopes = 0;
             if (doc_parse_oauth_scopes(val, &scopes, &n_scopes) ==

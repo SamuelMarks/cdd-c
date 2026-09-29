@@ -337,7 +337,8 @@ TEST test_doc_100_percent_coverage(void) {
       ASSERT(ex_out != NULL);
       CDD_STRCPY(ex_out, 5, "prev");
       CDD_STRCPY(ex_buf, sizeof(ex_buf), "example:new_ex");
-      ASSERT_EQ(1, parse_optional_example_attr_test(ex_buf, &ex_out));
+      ASSERT_EQ(CDD_C_SUCCESS,
+                parse_optional_example_attr_test(ex_buf, &ex_out));
       if (ex_out)
         free(ex_out);
     }

@@ -23,6 +23,9 @@ extern "C" {
 #include "parse/test_openapi_loader_coverage.h"
 #include "parse/test_openapi_loader_copy_free.h"
 #include "parse/test_openapi_loader_branches.h"
+#include "parse/test_openapi_find_coverage.h"
+#include "parse/test_openapi_schema_ref_coverage.h"
+#include "parse/test_openapi_paths_coverage.h"
 /* clang-format on */
 
 SUITE(openapi_loader_suite) {
@@ -32,6 +35,7 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_load_nested_encoding_fields);
   RUN_TEST(test_load_parameter_and_header_content_media_types);
   RUN_TEST(test_load_parameter_array);
+  RUN_TEST(test_openapi_parameters_full_coverage);
   RUN_TEST(test_load_parameter_metadata);
   RUN_TEST(test_load_allow_empty_value);
   RUN_TEST(test_load_allow_empty_value_non_query_rejected);
@@ -110,6 +114,7 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_load_request_body_metadata_and_response_description);
   RUN_TEST(test_load_request_body_component_ref);
   RUN_TEST(test_load_response_multiple_content);
+  RUN_TEST(test_openapi_responses_full_coverage);
   RUN_TEST(test_load_request_body_multiple_content_with_ref);
   RUN_TEST(test_load_media_type_encoding);
   RUN_TEST(test_load_media_type_prefix_item_encoding);
@@ -207,6 +212,17 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_openapi_loader_uri_and_schema_ref_branches);
   RUN_TEST(test_openapi_loader_media_type_and_response_examples);
   RUN_TEST(test_openapi_loader_swagger2_and_schema_ref_branches);
+  RUN_TEST(test_openapi_find_all_components);
+  RUN_TEST(test_openapi_loader_security_branches);
+  RUN_TEST(test_openapi_media_all_branches);
+  RUN_TEST(test_openapi_schemas_all_branches);
+  RUN_TEST(test_openapi_examples_all_branches);
+  RUN_TEST(test_openapi_validation_all_branches);
+  RUN_TEST(test_openapi_schema_ref_all_branches);
+  RUN_TEST(test_openapi_paths_name_list_and_template_names);
+  RUN_TEST(test_openapi_paths_normalize_and_collisions);
+  RUN_TEST(test_openapi_paths_validation_branches);
+  RUN_TEST(test_openapi_paths_parsing_branches);
 }
 
 #ifdef __cplusplus

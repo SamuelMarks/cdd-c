@@ -726,6 +726,58 @@ TEST test_code2schema_merge_struct_field_exhaustive(void) {
   rc = merge_struct_field(&dest, &src);
   ASSERT_EQ(8, dest.max_items);
 
+  /* Test merge_struct_field schema_extra_json, items_extra_json, type_union
+   * failure branches */
+  {
+    memset(&dest, 0, sizeof(dest));
+    memset(&src, 0, sizeof(src));
+    src.schema_extra_json = (char *)(size_t) "{bad_json";
+    dest.schema_extra_json = (char *)(size_t) "{bad_json_dest";
+    rc = merge_struct_field(&dest, &src);
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+
+    dest.schema_extra_json = NULL;
+    src.schema_extra_json = NULL;
+    dest.items_extra_json = (char *)(size_t) "{\"a\":1}";
+    src.items_extra_json = (char *)(size_t) "{\"b\":2}";
+    g_cdd_fail_json_serialize = 1;
+    rc = merge_struct_field(&dest, &src);
+    g_cdd_fail_json_serialize = 0;
+    ASSERT_EQ(CDD_C_SUCCESS, rc);
+    dest.items_extra_json = NULL;
+    src.items_extra_json = NULL;
+
+    /* type_union copy failure via OOM */
+    {
+      char *u[] = {(char *)(size_t) "str"};
+      src.type_union = u;
+      src.n_type_union = 1;
+      dest.type_union = NULL;
+      dest.n_type_union = 0;
+      g_cdd_alloc_fail = 1;
+      rc = merge_struct_field(&dest, &src);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      src.type_union = NULL;
+      src.n_type_union = 0;
+    }
+
+    /* items_type_union copy failure via OOM */
+    {
+      char *iu[] = {(char *)(size_t) "str"};
+      src.items_type_union = iu;
+      src.n_items_type_union = 1;
+      dest.items_type_union = NULL;
+      dest.n_items_type_union = 0;
+      g_cdd_alloc_fail = 1;
+      rc = merge_struct_field(&dest, &src);
+      g_cdd_alloc_fail = 0;
+      ASSERT_EQ(CDD_C_SUCCESS, rc);
+      src.items_type_union = NULL;
+      src.n_items_type_union = 0;
+    }
+  }
+
   PASS();
 }
 SUITE(code2schema_internals_exhaustive_p4_suite) {

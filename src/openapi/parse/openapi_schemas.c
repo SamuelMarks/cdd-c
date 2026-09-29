@@ -133,12 +133,10 @@ cdd_c_error_t parse_schema_constraints(const JSON_Object *schema,
   if (target->pattern) {
     if (json_object_has_value_of_type(schema, "pattern", JSONString)) {
       const char *pattern = json_object_get_string(schema, "pattern");
-      if (pattern) {
-        *target->pattern =
-            (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
-        if (!*target->pattern)
-          return CDD_C_ERROR_MEMORY;
-      }
+      *target->pattern =
+          (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
+      if (!*target->pattern)
+        return CDD_C_ERROR_MEMORY;
     }
   }
 
@@ -189,21 +187,19 @@ cdd_c_error_t parse_string_enum_array(const JSON_Array *arr, char ***out,
       return CDD_C_SUCCESS;
   }
 
-  *out = (char **)calloc(count, sizeof(char *));
+  *out = (char **)C_CDD_CALLOC(count, sizeof(char *));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
     const char *val = json_array_get_string(arr, i);
-    if (!val)
-      continue;
     (*out)[i] = (c_cdd_strdup(val, &_ast_strdup_18), _ast_strdup_18);
     if (!(*out)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
-        free((*out)[j]);
-      free(*out);
+        C_CDD_FREE((*out)[j]);
+      C_CDD_FREE(*out);
       *out = NULL;
       *out_count = 0;
       return CDD_C_ERROR_MEMORY;
@@ -226,7 +222,7 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
   *dst_count = 0;
   if (!src || src_count == 0)
     return CDD_C_SUCCESS;
-  *dst = (char **)calloc(src_count, sizeof(char *));
+  *dst = (char **)C_CDD_CALLOC(src_count, sizeof(char *));
   if (!*dst)
     return CDD_C_ERROR_MEMORY;
   *dst_count = src_count;
@@ -237,8 +233,8 @@ cdd_c_error_t copy_string_array(char ***dst, size_t *dst_count, char **src,
     if (!(*dst)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
-        free((*dst)[j]);
-      free(*dst);
+        C_CDD_FREE((*dst)[j]);
+      C_CDD_FREE(*dst);
       *dst = NULL;
       *dst_count = 0;
       return CDD_C_ERROR_MEMORY;
@@ -332,7 +328,7 @@ cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
     *out_count = 0;
     return CDD_C_SUCCESS;
   }
-  schemas = (struct OpenAPI_SchemaRef *)calloc(
+  schemas = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_SchemaRef));
   if (!schemas)
     return CDD_C_ERROR_MEMORY;
@@ -344,7 +340,7 @@ cdd_c_error_t parse_schema_array_ref(const JSON_Array *arr,
       for (j = 0; j < i; ++j) {
         free_schema_ref_content(&schemas[j]);
       }
-      free(schemas);
+      C_CDD_FREE(schemas);
       return rc;
     }
   }
@@ -363,13 +359,13 @@ cdd_c_error_t parse_schema_ref_ptr(const JSON_Object *obj,
   cdd_c_error_t rc;
   if (!obj || !out)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  schema =
-      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+  schema = (struct OpenAPI_SchemaRef *)C_CDD_CALLOC(
+      1, sizeof(struct OpenAPI_SchemaRef));
   if (!schema)
     return CDD_C_ERROR_MEMORY;
   rc = parse_schema_ref(obj, schema, spec);
   if (rc != CDD_C_SUCCESS) {
-    free(schema);
+    C_CDD_FREE(schema);
     return rc;
   }
   *out = schema;

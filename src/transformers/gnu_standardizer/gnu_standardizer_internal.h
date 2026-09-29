@@ -106,7 +106,7 @@ cdd_c_error_t cdd_asm_visitor(cdd_cst_node_t *node, void *user_data);
 cdd_c_error_t cdd_infer_type(const cdd_token_t *tokens, size_t num_tokens,
                              const char **out_type);
 
-cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
+C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
 cdd_c_error_t gnu_standardize_types(cdd_cst_tree_t *tree);
 cdd_c_error_t gnu_standardize_expr(cdd_cst_tree_t *tree);
 cdd_c_error_t gnu_standardize_unroll(cdd_cst_tree_t *tree,

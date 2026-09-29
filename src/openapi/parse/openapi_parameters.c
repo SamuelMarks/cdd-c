@@ -18,7 +18,8 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   struct OpenAPI_Parameter *_ast_find_component_parameter_58;
   enum OpenAPI_ParamIn _ast_parse_param_in_59;
   struct OpenAPI_MediaType *_ast_find_component_media_type_60;
-  char *_ast_build_inline_param_name_61 = NULL;
+  char *base = NULL;
+  char *registered = NULL;
   enum OpenAPI_Style _ast_parse_param_style_62;
   char *_ast_strdup_234 = NULL;
   char *_ast_strdup_235 = NULL;
@@ -90,8 +91,18 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   in = json_object_get_string(p_obj, "in");
   if (!name || !*name || !in)
     return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  out_param->name = (c_cdd_strdup(name, &_ast_strdup_236), _ast_strdup_236);
+  if (!out_param->name)
+    return CDD_C_ERROR_MEMORY;
+  out_param->in =
+      (parse_param_in(in, &_ast_parse_param_in_59), _ast_parse_param_in_59);
+  if (out_param->in == OA_PARAM_IN_UNKNOWN)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   desc = json_object_get_string(p_obj, "description");
   req = json_object_get_boolean(p_obj, "required");
+  out_param->required = (req == 1);
   deprecated_present = json_object_has_value(p_obj, "deprecated");
   deprecated_val = json_object_get_boolean(p_obj, "deprecated");
   allow_reserved_present = json_object_has_value(p_obj, "allowReserved");
@@ -131,15 +142,6 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   explode_present = json_object_has_value(p_obj, "explode");
   explode_val = json_object_get_boolean(p_obj, "explode");
 
-  out_param->name =
-      (c_cdd_strdup(name ? name : "", &_ast_strdup_236), _ast_strdup_236);
-  out_param->in =
-      in ? (parse_param_in(in, &_ast_parse_param_in_59), _ast_parse_param_in_59)
-         : OA_PARAM_IN_UNKNOWN;
-  if (out_param->in == OA_PARAM_IN_UNKNOWN)
-    return CDD_C_ERROR_INVALID_ARGUMENT;
-  out_param->required = (req == 1);
-
   {
     const int has_schema = (schema_val != NULL);
     int has_content = (content != NULL);
@@ -160,20 +162,13 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
       }
     }
     if (!media_obj) {
-      size_t ccount = json_object_get_count(content);
-      if (ccount > 0) {
-        media_type = json_object_get_name(content, 0);
-        if (media_type) {
-          media_obj = json_object_get_object(content, media_type);
-        }
-      }
+      media_type = json_object_get_name(content, 0);
+      media_obj = json_object_get_object(content, media_type);
     }
-    if (media_type) {
-      out_param->content_type =
-          (c_cdd_strdup(media_type, &_ast_strdup_237), _ast_strdup_237);
-      if (!out_param->content_type)
-        return CDD_C_ERROR_MEMORY;
-    }
+    out_param->content_type =
+        (c_cdd_strdup(media_type, &_ast_strdup_237), _ast_strdup_237);
+    if (!out_param->content_type)
+      return CDD_C_ERROR_MEMORY;
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
@@ -267,29 +262,33 @@ cdd_c_error_t parse_parameter_object(const JSON_Object *p_obj,
   }
 
   if (spec && out_param->in == OA_PARAM_IN_QUERYSTRING &&
-      out_param->content_type && media_type_is_json(out_param->content_type) &&
-      effective_schema && schema_object_is_object_like(effective_schema) &&
+      media_type_is_json(out_param->content_type) && effective_schema &&
+      schema_object_is_object_like(effective_schema) &&
       !out_param->schema.ref_name) {
-    char *base = (build_inline_param_name(out_param->name,
-                                          &_ast_build_inline_param_name_61),
-                  _ast_build_inline_param_name_61);
-    char *registered = NULL;
-    if (base) {
-      if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
-                                 effective_schema, effective_schema_val,
-                                 &registered) == 0 &&
-          registered) {
-        if (out_param->schema.inline_type) {
-          free(out_param->schema.inline_type);
-          out_param->schema.inline_type = NULL;
-        }
-        if (assign_schema_ref_name(&out_param->schema, registered) != 0) {
-          free(base);
-          return CDD_C_ERROR_MEMORY;
-        }
-      }
-      free(base);
+    cdd_c_error_t _rc;
+    base = NULL;
+    registered = NULL;
+    _rc = build_inline_param_name(out_param->name, &base);
+    if (_rc != CDD_C_SUCCESS) {
+      free_schema_ref_content(&parsed_schema);
+      return _rc;
     }
+    _rc = register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                 effective_schema, effective_schema_val,
+                                 &registered);
+    if (_rc == CDD_C_SUCCESS) {
+      if (out_param->schema.inline_type) {
+        free(out_param->schema.inline_type);
+        out_param->schema.inline_type = NULL;
+      }
+      if (assign_schema_ref_name(&out_param->schema, registered) !=
+          CDD_C_SUCCESS) {
+        free(base);
+        free_schema_ref_content(&parsed_schema);
+        return CDD_C_ERROR_MEMORY;
+      }
+    }
+    free(base);
   }
 
   if (!out_param->type) {
@@ -429,7 +428,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_params = (struct OpenAPI_Parameter *)calloc(
+  *out_params = (struct OpenAPI_Parameter *)C_CDD_CALLOC(
       count, sizeof(struct OpenAPI_Parameter));
   if (!*out_params)
     return CDD_C_ERROR_MEMORY;
@@ -447,7 +446,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
         free_parameter(&tmp);
         continue;
       }
-      if (tmp.name && *tmp.name && tmp.in != OA_PARAM_IN_UNKNOWN) {
+      if (tmp.name) {
         size_t k;
         for (k = 0; k < valid; ++k) {
           if (param_key_equals(&tmp, &(*out_params)[k])) {
@@ -467,7 +466,7 @@ cdd_c_error_t parse_parameters_array(const JSON_Array *arr,
     return CDD_C_SUCCESS;
   }
   if (valid < count) {
-    struct OpenAPI_Parameter *tmp = (struct OpenAPI_Parameter *)realloc(
+    struct OpenAPI_Parameter *tmp = (struct OpenAPI_Parameter *)C_CDD_REALLOC(
         *out_params, valid * sizeof(struct OpenAPI_Parameter));
     if (tmp)
       *out_params = tmp;

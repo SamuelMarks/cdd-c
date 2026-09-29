@@ -676,7 +676,7 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_15), _ast_strdup_15);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
-  return *out_json ? 0 : ENOMEM;
+  return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**
@@ -734,7 +734,7 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
   *out_json = (c_cdd_strdup(serialized, &_ast_strdup_16), _ast_strdup_16);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
-  return *out_json ? 0 : ENOMEM;
+  return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
 }
 
 /**

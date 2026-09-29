@@ -411,6 +411,20 @@ TEST test_security_errors(void) {
   struct OpenAPI_Spec spec;
   memset(&spec, 0, sizeof(spec));
 
+  {
+    struct OpenAPI_SecurityScheme sch;
+    memset(&sch, 0, sizeof(sch));
+    sch.name = (char *)(size_t) "bearerAuth";
+    sch.type = OA_SEC_HTTP;
+    sch.scheme = (char *)(size_t) "bearer";
+    spec.security_schemes = &sch;
+    spec.n_security_schemes = 1;
+    ASSERT_EQ(0, gen_sec_nulls_code(&spec, NULL, &_out));
+    ASSERT_NEQ(NULL, _out);
+    C_CDD_FREE(_out);
+    memset(&spec, 0, sizeof(spec));
+  }
+
   g_io_calls = 0;
   g_fail_io_after = 1; /* TMPFILE fails */
   ASSERT_EQ(0, gen_sec_nulls_code(&spec, NULL, &_out));

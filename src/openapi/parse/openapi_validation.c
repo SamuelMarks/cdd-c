@@ -15,7 +15,7 @@ cdd_c_error_t scan_querystring_usage(const struct OpenAPI_Parameter *params,
                                      size_t n_params, size_t *qs_count,
                                      int *has_query) {
   size_t i;
-  if (!qs_count || !has_query)
+  if (!qs_count || !has_query || (!params && n_params > 0))
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < n_params; ++i) {
     const struct OpenAPI_Parameter *p = &params[i];
@@ -190,7 +190,7 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
   }
   if (*count == *cap) {
     size_t new_cap = *cap ? (*cap * 2) : 8;
-    tmp = (char **)realloc(*ids, new_cap * sizeof(char *));
+    tmp = (char **)C_CDD_REALLOC(*ids, new_cap * sizeof(char *));
     if (!tmp)
       return CDD_C_ERROR_MEMORY;
     *ids = tmp;

@@ -26,6 +26,14 @@ extern "C" {
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 extern C_CDD_EXPORT int g_client_gen_fail;
+extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c1(FILE *uc);
+extern C_CDD_EXPORT cdd_c_error_t client_gen_emit_url_utils_c2(FILE *uc);
+
+TEST test_client_gen_emit_url_utils_null(void) {
+  ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_c1(NULL));
+  ASSERT_EQ(CDD_C_SUCCESS, client_gen_emit_url_utils_c2(NULL));
+  PASS();
+}
 
 TEST test_client_gen_find_server_variable(void) {
   struct OpenAPI_Server srv;
@@ -507,6 +515,7 @@ SUITE(openapi_client_gen_helpers_suite) {
   RUN_TEST(test_client_gen_verb_to_string);
   RUN_TEST(test_client_gen_write_docblock);
   RUN_TEST(test_client_gen_emit_operation);
+  RUN_TEST(test_client_gen_emit_url_utils_null);
 }
 
 #ifdef __cplusplus

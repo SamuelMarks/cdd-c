@@ -50,7 +50,6 @@ static void reset_decl_helpers_mocks(void) {
 static struct TokenList *setup_tokens_helpers(const char *code) {
   struct TokenList *tl = NULL;
   cdd_c_error_t rc;
-  reset_decl_helpers_mocks();
   rc = tokenize(az_span_create_from_str((char *)(size_t)(size_t)code), &tl);
   if (rc != CDD_C_SUCCESS) {
     return NULL;
@@ -71,6 +70,10 @@ TEST test_declarator_unit_helpers(void) {
   int is_group = 0;
   int is_abstract = 0;
   struct TokenList *tl_comment = NULL;
+
+  g_cdd_alloc_fail = 1;
+  ASSERT_EQ(NULL, setup_tokens_helpers("int x;"));
+  g_cdd_alloc_fail = 0;
 
   tl = setup_tokens_helpers("int x;");
   ASSERT(tl != NULL);

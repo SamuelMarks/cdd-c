@@ -348,7 +348,6 @@ cdd_c_error_t client_gen_emit_url_utils_h(const char *dir_name) {
           "\n",
           uh);
     fclose(uh);
-    fclose(uh);
   }
 
   return CDD_C_SUCCESS;

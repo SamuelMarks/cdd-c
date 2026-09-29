@@ -593,6 +593,74 @@ TEST test_struct_fields_init_oom(void) {
           }
           ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
         }
+        for (fail_step = 0; fail_step < 50; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_debug_func(tmp, "TestArrDbgG", &sf_arr_prim, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_eq_func(tmp, "TestArrEqG", &sf_arr_prim, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_cleanup_func(tmp, "TestNoArrCleanG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_deepcopy_func(tmp, "TestNoArrDeepG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step = write_struct_eq_func(tmp, "TestNoArrEqG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_default_func(tmp, "TestNoArrDefG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
+        for (fail_step = 0; fail_step < 20; ++fail_step) {
+          g_fail_io_after = fail_step;
+          g_io_calls = 0;
+          rc_step =
+              write_struct_display_func(tmp, "TestNoArrDispG", &sf_str, &cfg);
+          if (rc_step == CDD_C_SUCCESS) {
+            break;
+          }
+          ASSERT_EQ(CDD_C_ERROR_IO, rc_step);
+        }
       }
       g_fail_io_after = -1;
       g_io_calls = 0;

@@ -23,12 +23,15 @@ extern "C" {
 
 extern C_CDD_EXPORT int g_gnu_standardizer_fail;
 extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT cdd_c_error_t gnu_standardize_fn(cdd_cst_tree_t *tree);
 
 TEST test_gnu_standardizer_invalid_args(void) {
   cdd_cst_tree_t tree;
   memset(&tree, 0, sizeof(tree));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_gnu(NULL, NULL));
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, cdd_transform_gnu(&tree, NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, gnu_standardize_fn(NULL));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, gnu_standardize_fn(&tree));
   PASS();
 }
 
@@ -774,6 +777,24 @@ TEST test_gnu_standardizer_error_branches(void) {
     g_cdd_cst_alloc_node_fail = 0;
     cdd_cst_tree_free(tree);
     tree = NULL;
+  }
+  {
+    char long_num[300];
+    memset(long_num, '9', 280);
+    long_num[280] = '\0';
+    {
+      char code[400];
+#if defined(_MSC_VER)
+      sprintf_s(code, sizeof(code), "int x = %s;\n", long_num);
+#else
+      sprintf(code, "int x = %s;\n", long_num);
+#endif
+      if (cdd_cst_parse(az_span_create_from_str(code), &tree) == 0) {
+        cdd_transform_gnu(tree, &config);
+        cdd_cst_tree_free(tree);
+        tree = NULL;
+      }
+    }
   }
 
   PASS();

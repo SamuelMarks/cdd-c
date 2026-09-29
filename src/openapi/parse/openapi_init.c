@@ -19,70 +19,69 @@ cdd_c_error_t openapi_spec_init(struct OpenAPI_Spec *spec) {
 #endif
   if (!spec)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  if (spec) {
-    memset(spec, 0, sizeof(struct OpenAPI_Spec));
-    spec->openapi_version = NULL;
-    spec->is_schema_document = 0;
-    spec->schema_root_json = NULL;
-    spec->self_uri = NULL;
-    spec->retrieval_uri = NULL;
-    spec->document_uri = NULL;
-    spec->doc_registry = NULL;
-    spec->json_schema_dialect = NULL;
-    spec->extensions_json = NULL;
-    memset(&spec->info, 0, sizeof(spec->info));
-    memset(&spec->external_docs, 0, sizeof(spec->external_docs));
-    spec->paths_extensions_json = NULL;
-    spec->webhooks_extensions_json = NULL;
-    spec->components_extensions_json = NULL;
-    spec->tags = NULL;
-    spec->n_tags = 0;
-    spec->security = NULL;
-    spec->n_security = 0;
-    spec->security_set = 0;
-    spec->servers = NULL;
-    spec->n_servers = 0;
-    spec->paths = NULL;
-    spec->n_paths = 0;
-    spec->webhooks = NULL;
-    spec->n_webhooks = 0;
-    spec->component_path_items = NULL;
-    spec->component_path_item_names = NULL;
-    spec->n_component_path_items = 0;
-    spec->security_schemes = NULL;
-    spec->n_security_schemes = 0;
-    spec->component_parameters = NULL;
-    spec->component_parameter_names = NULL;
-    spec->n_component_parameters = 0;
-    spec->component_responses = NULL;
-    spec->component_response_names = NULL;
-    spec->n_component_responses = 0;
-    spec->component_headers = NULL;
-    spec->component_header_names = NULL;
-    spec->n_component_headers = 0;
-    spec->component_request_bodies = NULL;
-    spec->component_request_body_names = NULL;
-    spec->n_component_request_bodies = 0;
-    spec->component_media_types = NULL;
-    spec->component_media_type_names = NULL;
-    spec->n_component_media_types = 0;
-    spec->component_examples = NULL;
-    spec->component_example_names = NULL;
-    spec->n_component_examples = 0;
-    spec->component_links = NULL;
-    spec->n_component_links = 0;
-    spec->component_callbacks = NULL;
-    spec->n_component_callbacks = 0;
-    spec->raw_schema_names = NULL;
-    spec->raw_schema_json = NULL;
-    spec->n_raw_schemas = 0;
-    spec->defined_schemas = NULL;
-    spec->defined_schema_names = NULL;
-    spec->defined_schema_ids = NULL;
-    spec->defined_schema_anchors = NULL;
-    spec->defined_schema_dynamic_anchors = NULL;
-    spec->n_defined_schemas = 0;
-  }
+
+  memset(spec, 0, sizeof(struct OpenAPI_Spec));
+  spec->openapi_version = NULL;
+  spec->is_schema_document = 0;
+  spec->schema_root_json = NULL;
+  spec->self_uri = NULL;
+  spec->retrieval_uri = NULL;
+  spec->document_uri = NULL;
+  spec->doc_registry = NULL;
+  spec->json_schema_dialect = NULL;
+  spec->extensions_json = NULL;
+  memset(&spec->info, 0, sizeof(spec->info));
+  memset(&spec->external_docs, 0, sizeof(spec->external_docs));
+  spec->paths_extensions_json = NULL;
+  spec->webhooks_extensions_json = NULL;
+  spec->components_extensions_json = NULL;
+  spec->tags = NULL;
+  spec->n_tags = 0;
+  spec->security = NULL;
+  spec->n_security = 0;
+  spec->security_set = 0;
+  spec->servers = NULL;
+  spec->n_servers = 0;
+  spec->paths = NULL;
+  spec->n_paths = 0;
+  spec->webhooks = NULL;
+  spec->n_webhooks = 0;
+  spec->component_path_items = NULL;
+  spec->component_path_item_names = NULL;
+  spec->n_component_path_items = 0;
+  spec->security_schemes = NULL;
+  spec->n_security_schemes = 0;
+  spec->component_parameters = NULL;
+  spec->component_parameter_names = NULL;
+  spec->n_component_parameters = 0;
+  spec->component_responses = NULL;
+  spec->component_response_names = NULL;
+  spec->n_component_responses = 0;
+  spec->component_headers = NULL;
+  spec->component_header_names = NULL;
+  spec->n_component_headers = 0;
+  spec->component_request_bodies = NULL;
+  spec->component_request_body_names = NULL;
+  spec->n_component_request_bodies = 0;
+  spec->component_media_types = NULL;
+  spec->component_media_type_names = NULL;
+  spec->n_component_media_types = 0;
+  spec->component_examples = NULL;
+  spec->component_example_names = NULL;
+  spec->n_component_examples = 0;
+  spec->component_links = NULL;
+  spec->n_component_links = 0;
+  spec->component_callbacks = NULL;
+  spec->n_component_callbacks = 0;
+  spec->raw_schema_names = NULL;
+  spec->raw_schema_json = NULL;
+  spec->n_raw_schemas = 0;
+  spec->defined_schemas = NULL;
+  spec->defined_schema_names = NULL;
+  spec->defined_schema_ids = NULL;
+  spec->defined_schema_anchors = NULL;
+  spec->defined_schema_dynamic_anchors = NULL;
+  spec->n_defined_schemas = 0;
   return CDD_C_SUCCESS;
 }
 
@@ -155,7 +154,7 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
 
   if (registry->count == registry->capacity) {
     size_t new_cap = registry->capacity ? registry->capacity * 2 : 4;
-    tmp = (struct OpenAPI_DocRegistryEntry *)realloc(
+    tmp = (struct OpenAPI_DocRegistryEntry *)C_CDD_REALLOC(
         registry->entries, new_cap * sizeof(*registry->entries));
     if (!tmp) {
       free(base);
