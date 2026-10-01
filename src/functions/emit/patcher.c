@@ -135,6 +135,10 @@ static int compare_patches(const void *a, const void *b) {
     return -1;
   if (pa->start_token_idx > pb->start_token_idx)
     return 1;
+  if (pa->end_token_idx < pb->end_token_idx)
+    return -1;
+  if (pa->end_token_idx > pb->end_token_idx)
+    return 1;
   return 0;
 }
 

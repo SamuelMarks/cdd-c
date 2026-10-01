@@ -25,7 +25,14 @@ extern "C" {
 #include "parse/test_openapi_loader_branches.h"
 #include "parse/test_openapi_find_coverage.h"
 #include "parse/test_openapi_schema_ref_coverage.h"
+#include "parse/test_openapi_schema_registry_coverage.h"
+#include "parse/test_openapi_utils_coverage.h"
 #include "parse/test_openapi_paths_coverage.h"
+#include "parse/test_openapi_top_level_coverage.h"
+#include "parse/test_openapi_components_coverage.h"
+#include "parse/test_openapi_metadata_coverage.h"
+#include "parse/test_openapi_uri_coverage.h"
+#include "parse/test_openapi_headers_links_coverage.h"
 /* clang-format on */
 
 SUITE(openapi_loader_suite) {
@@ -223,6 +230,13 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_openapi_paths_normalize_and_collisions);
   RUN_TEST(test_openapi_paths_validation_branches);
   RUN_TEST(test_openapi_paths_parsing_branches);
+  OPENAPI_SCHEMA_REGISTRY_TESTS();
+  OPENAPI_UTILS_COVERAGE_TESTS();
+  OPENAPI_TOP_LEVEL_COVERAGE_TESTS();
+  OPENAPI_COMPONENTS_COVERAGE_TESTS();
+  OPENAPI_HEADERS_LINKS_COVERAGE_TESTS();
+  OPENAPI_METADATA_COVERAGE_TESTS();
+  OPENAPI_URI_COVERAGE_TESTS();
 }
 
 #ifdef __cplusplus

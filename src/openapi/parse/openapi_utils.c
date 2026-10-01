@@ -5,12 +5,22 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
 /* --- Parsing Helpers --- */
 
+/**
+ * @brief Parses HTTP verb string to enum.
+ */
 cdd_c_error_t parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!v) {
+    *_out_val = OA_VERB_UNKNOWN;
+    return CDD_C_SUCCESS;
+  }
   if (strcmp(v, "get") == 0) {
     *_out_val = OA_VERB_GET;
     return CDD_C_SUCCESS;
@@ -47,44 +57,42 @@ cdd_c_error_t parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
     *_out_val = OA_VERB_QUERY;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_VERB_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_VERB_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Checks if fixed operation method.
  */
 cdd_c_error_t is_fixed_operation_method(const char *method) {
-  int _ast_iequal_0 = false;
-  int _ast_iequal_1 = false;
-  int _ast_iequal_2 = false;
-  int _ast_iequal_3 = false;
-  int _ast_iequal_4 = false;
-  int _ast_iequal_5 = false;
-  int _ast_iequal_6 = false;
-  int _ast_iequal_7 = false;
-  int _ast_iequal_8 = false;
+  size_t i;
+  int eq = 0;
+  cdd_c_error_t rc;
+  static const char *const fixed_methods[] = {"get",     "post",  "put",
+                                              "delete",  "patch", "head",
+                                              "options", "trace", "query"};
   if (!method)
     return CDD_C_SUCCESS;
-  return (c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0) !=
-             0 ||
-         (c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1) !=
-             0 ||
-         (c_cdd_str_iequal(method, "put", &_ast_iequal_2), _ast_iequal_2) ||
-         (c_cdd_str_iequal(method, "delete", &_ast_iequal_3), _ast_iequal_3) ||
-         (c_cdd_str_iequal(method, "patch", &_ast_iequal_4), _ast_iequal_4) ||
-         (c_cdd_str_iequal(method, "head", &_ast_iequal_5), _ast_iequal_5) ||
-         (c_cdd_str_iequal(method, "options", &_ast_iequal_6), _ast_iequal_6) ||
-         (c_cdd_str_iequal(method, "trace", &_ast_iequal_7), _ast_iequal_7) ||
-         (c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8);
+  for (i = 0; i < sizeof(fixed_methods) / sizeof(fixed_methods[0]); ++i) {
+    rc = c_cdd_str_iequal(method, fixed_methods[i], &eq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (eq)
+      return CDD_C_ERROR_UNKNOWN;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses param in from the given input.
  */
 cdd_c_error_t parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!in) {
+    *_out_val = OA_PARAM_IN_UNKNOWN;
+    return CDD_C_SUCCESS;
+  }
   if (strcmp(in, "path") == 0) {
     *_out_val = OA_PARAM_IN_PATH;
     return CDD_C_SUCCESS;
@@ -113,16 +121,16 @@ cdd_c_error_t parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
     *_out_val = OA_PARAM_IN_FORM_DATA;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_PARAM_IN_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_PARAM_IN_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses param style from the given input.
  */
 cdd_c_error_t parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!s) {
     *_out_val = OA_STYLE_UNKNOWN;
     return CDD_C_SUCCESS;
@@ -159,10 +167,8 @@ cdd_c_error_t parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
     *_out_val = OA_STYLE_COOKIE;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_STYLE_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_STYLE_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -303,28 +309,37 @@ cdd_c_error_t validate_media_type_key_map(const JSON_Object *obj) {
  * @brief Executes the header name is content type operation.
  */
 cdd_c_error_t header_name_is_content_type(const char *name) {
-  int _ast_iequal_9 = false;
+  int eq = 0;
+  cdd_c_error_t rc;
   if (!name)
     return CDD_C_SUCCESS;
-  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_9),
-          _ast_iequal_9) != 0;
+  rc = c_cdd_str_iequal(name, "Content-Type", &eq);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
+  if (eq)
+    return CDD_C_ERROR_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the header param is reserved operation.
  */
 cdd_c_error_t header_param_is_reserved(const struct OpenAPI_Parameter *param) {
-  int _ast_iequal_10 = false;
-  int _ast_iequal_11 = false;
-  int _ast_iequal_12 = false;
+  size_t i;
+  int eq = 0;
+  cdd_c_error_t rc;
+  static const char *const reserved_headers[] = {"Accept", "Content-Type",
+                                                 "Authorization"};
   if (!param || param->in != OA_PARAM_IN_HEADER || !param->name)
     return CDD_C_SUCCESS;
-  return (c_cdd_str_iequal(param->name, "Accept", &_ast_iequal_10),
-          _ast_iequal_10) != 0 ||
-         (c_cdd_str_iequal(param->name, "Content-Type", &_ast_iequal_11),
-          _ast_iequal_11) ||
-         (c_cdd_str_iequal(param->name, "Authorization", &_ast_iequal_12),
-          _ast_iequal_12);
+  for (i = 0; i < sizeof(reserved_headers) / sizeof(reserved_headers[0]); ++i) {
+    rc = c_cdd_str_iequal(param->name, reserved_headers[i], &eq);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+    if (eq)
+      return CDD_C_ERROR_UNKNOWN;
+  }
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -332,6 +347,8 @@ cdd_c_error_t header_param_is_reserved(const struct OpenAPI_Parameter *param) {
  */
 cdd_c_error_t parse_security_type(const char *type,
                                   enum OpenAPI_SecurityType *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!type) {
     *_out_val = OA_SEC_UNKNOWN;
     return CDD_C_SUCCESS;
@@ -356,10 +373,8 @@ cdd_c_error_t parse_security_type(const char *type,
     *_out_val = OA_SEC_OPENID;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_SEC_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_SEC_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -367,6 +382,8 @@ cdd_c_error_t parse_security_type(const char *type,
  */
 cdd_c_error_t parse_security_in(const char *in,
                                 enum OpenAPI_SecurityIn *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!in) {
     *_out_val = OA_SEC_IN_UNKNOWN;
     return CDD_C_SUCCESS;
@@ -383,10 +400,8 @@ cdd_c_error_t parse_security_in(const char *in,
     *_out_val = OA_SEC_IN_COOKIE;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_SEC_IN_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_SEC_IN_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -394,6 +409,8 @@ cdd_c_error_t parse_security_in(const char *in,
  */
 cdd_c_error_t parse_oauth_flow_type(const char *flow,
                                     enum OpenAPI_OAuthFlowType *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!flow) {
     *_out_val = OA_OAUTH_FLOW_UNKNOWN;
     return CDD_C_SUCCESS;
@@ -418,10 +435,8 @@ cdd_c_error_t parse_oauth_flow_type(const char *flow,
     *_out_val = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_OAUTH_FLOW_UNKNOWN;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_OAUTH_FLOW_UNKNOWN;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -429,6 +444,8 @@ cdd_c_error_t parse_oauth_flow_type(const char *flow,
  */
 cdd_c_error_t parse_xml_node_type(const char *node_type,
                                   enum OpenAPI_XmlNodeType *_out_val) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!node_type) {
     *_out_val = OA_XML_NODE_UNSET;
     return CDD_C_SUCCESS;
@@ -453,21 +470,18 @@ cdd_c_error_t parse_xml_node_type(const char *node_type,
     *_out_val = OA_XML_NODE_NONE;
     return CDD_C_SUCCESS;
   }
-  {
-    *_out_val = OA_XML_NODE_UNSET;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = OA_XML_NODE_UNSET;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Parses any value from the given input.
  */
 cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
-  char *_ast_strdup_13 = NULL;
-  char *_ast_strdup_14 = NULL;
   JSON_Value_Type t;
   const char *s;
   char *json_str;
+  cdd_c_error_t rc;
 
   if (!val || !out)
     return CDD_C_SUCCESS;
@@ -475,38 +489,39 @@ cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   t = json_value_get_type(val);
   out->type = OA_ANY_UNSET;
 
-  switch (t) {
-  case JSONString:
+  if (t == JSONString) {
     s = json_value_get_string(val);
     out->type = OA_ANY_STRING;
-    out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_13), _ast_strdup_13);
-    if (!out->string)
-      return CDD_C_ERROR_MEMORY;
-    break;
-  case JSONNumber:
+    rc = c_cdd_strdup(s, &out->string);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  } else if (t == JSONNumber) {
     out->type = OA_ANY_NUMBER;
     out->number = json_value_get_number(val);
-    break;
-  case JSONBoolean:
+  } else if (t == JSONBoolean) {
     out->type = OA_ANY_BOOL;
     out->boolean = json_value_get_boolean(val);
-    break;
-  case JSONNull:
+  } else if (t == JSONNull) {
     out->type = OA_ANY_NULL;
-    break;
-  case JSONObject:
-  case JSONArray:
+  } else {
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_any_serialize;
+      if (g_cdd_fail_any_serialize && --g_cdd_fail_any_serialize == 0)
+        json_str = NULL;
+      else
+        json_str = json_serialize_to_string(val);
+    }
+#else
     json_str = json_serialize_to_string(val);
+#endif
     if (!json_str)
       return CDD_C_ERROR_MEMORY;
     out->type = OA_ANY_JSON;
-    out->json = (c_cdd_strdup(json_str, &_ast_strdup_14), _ast_strdup_14);
+    rc = c_cdd_strdup(json_str, &out->json);
     json_free_serialized_string(json_str);
-    if (!out->json)
-      return CDD_C_ERROR_MEMORY;
-    break;
-  default:
-    break;
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   return CDD_C_SUCCESS;
@@ -518,18 +533,16 @@ cdd_c_error_t parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
 cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
                               struct OpenAPI_Any *out, int *out_set) {
   const JSON_Value *val;
+  cdd_c_error_t rc;
+
   if (!obj || !key || !out || !out_set)
     return CDD_C_SUCCESS;
   if (!json_object_has_value(obj, key))
     return CDD_C_SUCCESS;
   val = json_object_get_value(obj, key);
-  if (!val)
-    return CDD_C_SUCCESS;
-  {
-    cdd_c_error_t _rc = parse_any_value(val, out);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = parse_any_value(val, out);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   *out_set = 1;
   return CDD_C_SUCCESS;
 }
@@ -552,14 +565,14 @@ cdd_c_error_t parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out = (struct OpenAPI_Any *)calloc(count, sizeof(struct OpenAPI_Any));
+  *out = (struct OpenAPI_Any *)C_CDD_CALLOC(count, sizeof(struct OpenAPI_Any));
   if (!*out)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;
 
   for (i = 0; i < count; ++i) {
     const JSON_Value *val = json_array_get_value(arr, i);
-    if (parse_any_value(val, &(*out)[i]) != 0) {
+    if (parse_any_value(val, &(*out)[i]) != CDD_C_SUCCESS) {
       size_t j;
       for (j = 0; j < i; ++j)
         free_any_value(&(*out)[j]);
@@ -591,7 +604,8 @@ cdd_c_error_t key_in_list(const char *key, const char **list, size_t count) {
  * @brief Checks if extension key.
  */
 cdd_c_error_t is_extension_key(const char *key) {
-  return key && key[0] == 'x' && key[1] == '-';
+  return (key && key[0] == 'x' && key[1] == '-') ? CDD_C_ERROR_UNKNOWN
+                                                 : CDD_C_SUCCESS;
 }
 
 /**
@@ -601,21 +615,47 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   if (!val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_clone_json_serialize;
+    if (g_cdd_fail_clone_json_serialize &&
+        --g_cdd_fail_clone_json_serialize == 0)
+      serialized = NULL;
+    else
+      serialized = json_serialize_to_string((JSON_Value *)val);
+  }
+#else
   serialized = json_serialize_to_string((JSON_Value *)val);
+#endif
   if (!serialized) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
-  copy = json_parse_string(serialized);
-  json_free_serialized_string(serialized);
+#ifdef CDD_BUILD_TESTS
   {
-    *_out_val = copy;
-    return CDD_C_SUCCESS;
+    extern C_CDD_EXPORT int g_cdd_fail_clone_json_parse;
+    if (g_cdd_fail_clone_json_parse && --g_cdd_fail_clone_json_parse == 0)
+      copy = NULL;
+    else
+      copy = json_parse_string(serialized);
   }
+#else
+  copy = json_parse_string(serialized);
+#endif
+  json_free_serialized_string(serialized);
+  if (!copy) {
+    *_out_val = NULL;
+    return CDD_C_ERROR_MEMORY;
+  }
+  *_out_val = copy;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -624,19 +664,28 @@ cdd_c_error_t clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
                                     const char **skip_keys, size_t skip_count,
                                     char **out_json) {
-  JSON_Value *_ast_clone_json_value_0;
-  char *_ast_strdup_15 = NULL;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
   char *serialized;
+  cdd_c_error_t rc;
 
   if (out_json)
     *out_json = NULL;
   if (!obj || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_extras_init;
+    if (g_cdd_fail_extras_init && --g_cdd_fail_extras_init == 0)
+      extras_val = NULL;
+    else
+      extras_val = json_value_init_object();
+  }
+#else
   extras_val = json_value_init_object();
+#endif
   if (!extras_val)
     return CDD_C_ERROR_MEMORY;
   extras_obj = json_value_get_object(extras_val);
@@ -645,22 +694,27 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
   for (i = 0; i < count; ++i) {
     const char *key = json_object_get_name(obj, i);
     const JSON_Value *val;
-    JSON_Value *copy;
+    JSON_Value *copy = NULL;
 
-    if (!key || key_in_list(key, skip_keys, skip_count))
+    if (key_in_list(key, skip_keys, skip_count) != CDD_C_SUCCESS)
       continue;
     val = json_object_get_value(obj, key);
-    copy = (clone_json_value(val, &_ast_clone_json_value_0),
-            _ast_clone_json_value_0);
-    if (!copy) {
+    rc = clone_json_value(val, &copy);
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
-    if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
-      json_value_free(copy);
-      json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+      if (g_cdd_fail_json_set_value && --g_cdd_fail_json_set_value == 0) {
+        json_value_free(copy);
+        json_value_free(extras_val);
+        return CDD_C_ERROR_MEMORY;
+      }
     }
+#endif
+    json_object_set_value(extras_obj, key, copy);
   }
 
   if (json_object_get_count(extras_obj) == 0) {
@@ -668,34 +722,53 @@ cdd_c_error_t collect_schema_extras(const JSON_Object *obj,
     return CDD_C_SUCCESS;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_extras_serialize;
+    if (g_cdd_fail_extras_serialize && --g_cdd_fail_extras_serialize == 0)
+      serialized = NULL;
+    else
+      serialized = json_serialize_to_string(extras_val);
+  }
+#else
   serialized = json_serialize_to_string(extras_val);
+#endif
   if (!serialized) {
     json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
   }
-  *out_json = (c_cdd_strdup(serialized, &_ast_strdup_15), _ast_strdup_15);
+  rc = c_cdd_strdup(serialized, out_json);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
-  return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  return rc;
 }
 
 /**
  * @brief Collects extensions.
  */
 cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
-  JSON_Value *_ast_clone_json_value_1;
-  char *_ast_strdup_16 = NULL;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
   char *serialized;
+  cdd_c_error_t rc;
 
   if (out_json)
     *out_json = NULL;
   if (!obj || !out_json)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_extensions_init;
+    if (g_cdd_fail_extensions_init && --g_cdd_fail_extensions_init == 0)
+      extras_val = NULL;
+    else
+      extras_val = json_value_init_object();
+  }
+#else
   extras_val = json_value_init_object();
+#endif
   if (!extras_val)
     return CDD_C_ERROR_MEMORY;
   extras_obj = json_value_get_object(extras_val);
@@ -704,21 +777,26 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
   for (i = 0; i < count; ++i) {
     const char *key = json_object_get_name(obj, i);
     const JSON_Value *val;
-    JSON_Value *copy;
-    if (!is_extension_key(key))
+    JSON_Value *copy = NULL;
+    if (is_extension_key(key) == CDD_C_SUCCESS)
       continue;
     val = json_object_get_value(obj, key);
-    copy = (clone_json_value(val, &_ast_clone_json_value_1),
-            _ast_clone_json_value_1);
-    if (!copy) {
+    rc = clone_json_value(val, &copy);
+    if (rc != CDD_C_SUCCESS) {
       json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+      return rc;
     }
-    if (json_object_set_value(extras_obj, key, copy) != JSONSuccess) {
-      json_value_free(copy);
-      json_value_free(extras_val);
-      return CDD_C_ERROR_MEMORY;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern C_CDD_EXPORT volatile int g_cdd_fail_json_set_value;
+      if (g_cdd_fail_json_set_value && --g_cdd_fail_json_set_value == 0) {
+        json_value_free(copy);
+        json_value_free(extras_val);
+        return CDD_C_ERROR_MEMORY;
+      }
     }
+#endif
+    json_object_set_value(extras_obj, key, copy);
   }
 
   if (json_object_get_count(extras_obj) == 0) {
@@ -726,15 +804,26 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
     return CDD_C_SUCCESS;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_extensions_serialize;
+    if (g_cdd_fail_extensions_serialize &&
+        --g_cdd_fail_extensions_serialize == 0)
+      serialized = NULL;
+    else
+      serialized = json_serialize_to_string(extras_val);
+  }
+#else
   serialized = json_serialize_to_string(extras_val);
+#endif
   if (!serialized) {
     json_value_free(extras_val);
     return CDD_C_ERROR_MEMORY;
   }
-  *out_json = (c_cdd_strdup(serialized, &_ast_strdup_16), _ast_strdup_16);
+  rc = c_cdd_strdup(serialized, out_json);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
-  return *out_json ? CDD_C_SUCCESS : CDD_C_ERROR_MEMORY;
+  return rc;
 }
 
 /**
@@ -743,7 +832,9 @@ cdd_c_error_t collect_extensions(const JSON_Object *obj, char **out_json) {
 cdd_c_error_t url_has_query_or_fragment(const char *url) {
   if (!url)
     return CDD_C_SUCCESS;
-  return (strchr(url, '?') != NULL || strchr(url, '#') != NULL);
+  return (strchr(url, '?') != NULL || strchr(url, '#') != NULL)
+             ? CDD_C_ERROR_UNKNOWN
+             : CDD_C_SUCCESS;
 }
 
 /**
@@ -753,7 +844,9 @@ cdd_c_error_t openapi_version_supported(const char *version) {
   if (!version || !*version)
     return CDD_C_SUCCESS;
   return (version[0] == '3' && version[1] == '.' &&
-          (version[2] == '0' || version[2] == '1' || version[2] == '2'));
+          (version[2] == '0' || version[2] == '1' || version[2] == '2'))
+             ? CDD_C_ERROR_UNKNOWN
+             : CDD_C_SUCCESS;
 }
 
 /**

@@ -20,12 +20,22 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cdd/memory.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/parse/openapi.h"
 #include "openapi/parse/openapi_types.h"
 #include "win_compat_sym.h"
 /* clang-format on */
+
+#ifdef CDD_BUILD_TESTS
+#undef malloc
+#define malloc(sz) C_CDD_MALLOC(sz)
+#undef realloc
+#define realloc(ptr, sz) C_CDD_REALLOC(ptr, sz)
+#undef calloc
+#define calloc(n, sz) C_CDD_CALLOC(n, sz)
+#endif
 
 #define media_type_is_json openapi_media_type_is_json
 #define media_type_base_len openapi_media_type_base_len
@@ -34,6 +44,8 @@ extern "C" {
 
 #ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_openapi_spec_init_fail;
+extern C_CDD_EXPORT int g_cdd_fail_find_schema_by_anchor;
+extern C_CDD_EXPORT int g_cdd_fail_find_schema_by_id;
 #endif
 
 /** @brief ResolvedRefTarget structure */
@@ -177,7 +189,8 @@ extern void free_name_list(char **names, size_t count);
 /* --- openapi_utils.c declarations --- */
 
 /* --- Parsing Helpers --- */
-extern cdd_c_error_t parse_verb(const char *v, enum OpenAPI_Verb *_out_val);
+extern C_CDD_EXPORT cdd_c_error_t parse_verb(const char *v,
+                                             enum OpenAPI_Verb *_out_val);
 
 /**
  * @brief Checks if fixed operation method.
@@ -199,12 +212,12 @@ extern cdd_c_error_t parse_param_style(const char *s,
 /**
  * @brief Executes the param type is primitive operation.
  */
-extern cdd_c_error_t param_type_is_primitive(const char *type);
+extern C_CDD_EXPORT cdd_c_error_t param_type_is_primitive(const char *type);
 
 /**
  * @brief Executes the param type is object like operation.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 param_type_is_object_like(const struct OpenAPI_Parameter *p);
 
 /**
@@ -216,17 +229,18 @@ extern cdd_c_error_t validate_parameter_style(const struct OpenAPI_Parameter *p,
 /**
  * @brief Executes the component key is valid operation.
  */
-extern cdd_c_error_t component_key_is_valid(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t component_key_is_valid(const char *name);
 
 /**
  * @brief media type key is valid.
  */
-extern cdd_c_error_t media_type_key_is_valid(const char *name);
+extern C_CDD_EXPORT cdd_c_error_t media_type_key_is_valid(const char *name);
 
 /**
  * @brief Executes the validate component key map operation.
  */
-extern cdd_c_error_t validate_component_key_map(const JSON_Object *obj);
+extern C_CDD_EXPORT cdd_c_error_t
+validate_component_key_map(const JSON_Object *obj);
 
 /**
  * @brief validate media type key map.
@@ -241,7 +255,7 @@ extern cdd_c_error_t header_name_is_content_type(const char *name);
 /**
  * @brief Executes the header param is reserved operation.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 header_param_is_reserved(const struct OpenAPI_Parameter *param);
 
 /**
@@ -259,7 +273,7 @@ extern cdd_c_error_t parse_security_in(const char *in,
 /**
  * @brief Parses oauth flow type from the given input.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 parse_oauth_flow_type(const char *flow, enum OpenAPI_OAuthFlowType *_out_val);
 
 /**
@@ -271,32 +285,34 @@ extern cdd_c_error_t parse_xml_node_type(const char *node_type,
 /**
  * @brief Parses any value from the given input.
  */
-extern cdd_c_error_t parse_any_value(const JSON_Value *val,
-                                     struct OpenAPI_Any *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_any_value(const JSON_Value *val,
+                                                  struct OpenAPI_Any *out);
 
 /**
  * @brief Parses any field from the given input.
  */
-extern cdd_c_error_t parse_any_field(const JSON_Object *obj, const char *key,
-                                     struct OpenAPI_Any *out, int *out_set);
+extern C_CDD_EXPORT cdd_c_error_t parse_any_field(const JSON_Object *obj,
+                                                  const char *key,
+                                                  struct OpenAPI_Any *out,
+                                                  int *out_set);
 
 /**
  * @brief Parses any array from the given input.
  */
-extern cdd_c_error_t parse_any_array(const JSON_Array *arr,
-                                     struct OpenAPI_Any **out,
-                                     size_t *out_count);
+extern C_CDD_EXPORT cdd_c_error_t parse_any_array(const JSON_Array *arr,
+                                                  struct OpenAPI_Any **out,
+                                                  size_t *out_count);
 
 /**
  * @brief Executes the key in list operation.
  */
-extern cdd_c_error_t key_in_list(const char *key, const char **list,
-                                 size_t count);
+extern C_CDD_EXPORT cdd_c_error_t key_in_list(const char *key,
+                                              const char **list, size_t count);
 
 /**
  * @brief Checks if extension key.
  */
-extern cdd_c_error_t is_extension_key(const char *key);
+extern C_CDD_EXPORT cdd_c_error_t is_extension_key(const char *key);
 
 /**
  * @brief Executes the clone json value operation.

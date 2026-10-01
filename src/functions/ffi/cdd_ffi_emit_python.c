@@ -1,4 +1,8 @@
+#ifdef CDD_BUILD_TESTS
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -112,6 +116,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
 #endif
 #endif
 
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 1) {
       if (f) {
@@ -120,6 +125,7 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
       f = NULL;
     }
   }
+#endif
 
   if (!f)
     return CDD_C_ERROR_IO;
@@ -428,12 +434,14 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     fc = fopen(filepath, "w");
 #endif
 #endif
+#ifdef CDD_BUILD_TESTS
     {
       if (g_fail_io_after == 2) {
         fclose(fc);
         fc = NULL;
       }
     }
+#endif
     if (fc) {
       fprintf(fc, "/* Auto-generated Python C API Wrapper */\n");
       fprintf(fc, "#define PY_SSIZE_T_CLEAN\n");
@@ -473,12 +481,14 @@ cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
     f = fopen(filepath, "w");
 #endif
 #endif
+#ifdef CDD_BUILD_TESTS
     {
       if (g_fail_io_after == 3) {
         fclose(f);
         f = NULL;
       }
     }
+#endif
     if (f) {
       fprintf(f, "# Auto-generated pytest harness for cdd-c bindings\n");
       fprintf(f, "import pytest\n");

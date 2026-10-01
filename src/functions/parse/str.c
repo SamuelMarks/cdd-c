@@ -27,19 +27,19 @@
 #include "functions/parse/str.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
 /**
  * @brief Executes the c cdd strdup operation.
  */
 extern C_CDD_EXPORT int g_cdd_strdup_fail;
-
-extern C_CDD_EXPORT int g_cdd_strdup_fail;
+#endif
 
 cdd_c_error_t c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
     return CDD_C_SUCCESS;
   }
-#if 1
+#ifdef CDD_BUILD_TESTS
   if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
     *out_s = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -98,6 +98,13 @@ cdd_c_error_t c_cdd_str_equal(const char *a, const char *b, int *out_b) {
  * @brief Executes the c cdd str iequal operation.
  */
 cdd_c_error_t c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_str_iequal;
+    if (g_cdd_fail_str_iequal && --g_cdd_fail_str_iequal == 0)
+      return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+#endif
   if (a == b) {
     *out_b = true;
     return CDD_C_SUCCESS;

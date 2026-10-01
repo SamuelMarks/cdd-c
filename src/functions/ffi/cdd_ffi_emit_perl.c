@@ -1,4 +1,8 @@
+#ifdef CDD_BUILD_TESTS
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -226,6 +230,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(f);
     return CDD_C_ERROR_UNKNOWN;
   }
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 2) {
       fclose(xs_f);
@@ -233,6 +238,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
   CDD_SNPRINTF(make_filepath, sizeof(make_filepath), "%s/Makefile.PL",
                config->output_dir);
 #if defined(_MSC_VER)
@@ -246,6 +252,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(xs_f);
     return CDD_C_ERROR_UNKNOWN;
   }
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 3) {
       fclose(make_f);
@@ -254,6 +261,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
   CDD_SNPRINTF(typemap_filepath, sizeof(typemap_filepath), "%s/typemap",
                config->output_dir);
 #if defined(_MSC_VER)
@@ -268,6 +276,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
     fclose(make_f);
     return CDD_C_ERROR_UNKNOWN;
   }
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 4) {
       fclose(typemap_f);
@@ -277,6 +286,7 @@ cdd_c_error_t cdd_ffi_emit_perl(cdd_ffi_ir_t *ir,
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
 #endif
 
   fprintf(f, "# Auto-generated Perl FFI::Platypus bindings for %s\n", lib_name);

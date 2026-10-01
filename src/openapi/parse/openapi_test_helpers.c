@@ -314,6 +314,133 @@ cdd_test_schema_name_in_use(const struct OpenAPI_Spec *spec, const char *name) {
 }
 
 /**
+ * @brief cdd test apply schema ref to param.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
+                                   const struct OpenAPI_SchemaRef *schema_ref) {
+  return apply_schema_ref_to_param(out_param, schema_ref);
+}
+
+/**
+ * @brief cdd test apply schema ref to header.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_apply_schema_ref_to_header(
+    struct OpenAPI_Header *out_hdr,
+    const struct OpenAPI_SchemaRef *schema_ref) {
+  return apply_schema_ref_to_header(out_hdr, schema_ref);
+}
+
+/**
+ * @brief cdd test sanitize component name.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_sanitize_component_name(const char *name,
+                                                            char **_out_val) {
+  return sanitize_component_name(name, _out_val);
+}
+
+/**
+ * @brief cdd test make unique schema name.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_make_unique_schema_name(
+    const struct OpenAPI_Spec *spec, const char *base, char **_out_val) {
+  return make_unique_schema_name(spec, base, _out_val);
+}
+
+/**
+ * @brief cdd test schema type array includes.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_schema_type_array_includes(const JSON_Array *arr, const char *type) {
+  return schema_type_array_includes(arr, type);
+}
+
+/**
+ * @brief cdd test schema object is object like.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_schema_object_is_object_like(const JSON_Object *schema_obj) {
+  return schema_object_is_object_like(schema_obj);
+}
+
+/**
+ * @brief cdd test append defined schema.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
+                               struct StructFields *schema_fields) {
+  return append_defined_schema(spec, schema_name, schema_fields);
+}
+
+/**
+ * @brief cdd test raw schema name exists.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_raw_schema_name_exists(
+    const struct OpenAPI_Spec *spec, const char *name) {
+  return raw_schema_name_exists(spec, name);
+}
+
+/**
+ * @brief cdd test append raw schema.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_append_raw_schema(
+    struct OpenAPI_Spec *spec, const char *name, const JSON_Value *schema_val) {
+  return append_raw_schema(spec, name, schema_val);
+}
+
+/**
+ * @brief cdd test register inline schema.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_register_inline_schema(
+    struct OpenAPI_Spec *spec, const char *base_name,
+    const JSON_Object *schema_obj, const JSON_Value *schema_val,
+    char **out_name) {
+  return register_inline_schema(spec, base_name, schema_obj, schema_val,
+                                out_name);
+}
+
+/**
+ * @brief cdd test assign schema ref name.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_assign_schema_ref_name(
+    struct OpenAPI_SchemaRef *schema_ref, const char *name) {
+  return assign_schema_ref_name(schema_ref, name);
+}
+
+/**
+ * @brief cdd test build inline request name.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_build_inline_request_name(const char *op_id,
+                                                              int is_item,
+                                                              char **_out_val) {
+  return build_inline_request_name(op_id, is_item, _out_val);
+}
+
+/**
+ * @brief cdd test build inline response name.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_build_inline_response_name(
+    const char *op_id, const char *code, int is_item, char **_out_val) {
+  return build_inline_response_name(op_id, code, is_item, _out_val);
+}
+
+/**
+ * @brief cdd test build inline param name.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_build_inline_param_name(const char *param_name, char **_out_val) {
+  return build_inline_param_name(param_name, _out_val);
+}
+
+/**
+ * @brief cdd test clone json value.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_clone_json_value(const JSON_Value *val,
+                                                     JSON_Value **_out_val) {
+  return clone_json_value(val, _out_val);
+}
+
+/**
  * @brief cdd test server variable defined.
  */
 C_CDD_EXPORT cdd_c_error_t cdd_test_server_variable_defined(
@@ -1364,6 +1491,112 @@ C_CDD_EXPORT cdd_c_error_t cdd_test_parse_additional_operations(
     const JSON_Object *path_obj, struct OpenAPI_Path *path,
     const struct OpenAPI_Spec *spec) {
   return parse_additional_operations(path_obj, path, spec);
+}
+
+/**
+ * @brief Test helper for parse_external_docs.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_external_docs(
+    const JSON_Object *obj, struct OpenAPI_ExternalDocs *out) {
+  return parse_external_docs(obj, out);
+}
+
+/**
+ * @brief Test helper for parse_discriminator_object.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_discriminator_object(
+    const JSON_Object *obj, struct OpenAPI_Discriminator *out) {
+  return parse_discriminator_object(obj, out);
+}
+
+/**
+ * @brief Test helper for parse_xml_object.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_xml_object(const JSON_Object *obj,
+                                                     struct OpenAPI_Xml *out) {
+  return parse_xml_object(obj, out);
+}
+
+/**
+ * @brief Test helper for parse_tags.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_tags(const JSON_Object *root_obj,
+                                               struct OpenAPI_Spec *out) {
+  return parse_tags(root_obj, out);
+}
+
+/**
+ * @brief Test helper for validate_server_url_variables.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_server_url_variables(const struct OpenAPI_Server *srv) {
+  return validate_server_url_variables(srv);
+}
+
+/**
+ * @brief Test helper for parse_server_object.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_server_object(
+    const JSON_Object *srv_obj, struct OpenAPI_Server *out_srv) {
+  return parse_server_object(srv_obj, out_srv);
+}
+
+/**
+ * @brief Test helper for parse_servers_array.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_parse_servers_array(
+    const JSON_Object *parent, const char *key,
+    struct OpenAPI_Server **out_servers, size_t *out_count) {
+  return parse_servers_array(parent, key, out_servers, out_count);
+}
+
+/**
+ * @brief Test helper for uri_base_len.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_uri_base_len(const char *uri,
+                                                 size_t *_out_val) {
+  return uri_base_len(uri, _out_val);
+}
+
+/**
+ * @brief Test helper for uri_scheme_len.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_uri_scheme_len(const char *uri, size_t len,
+                                                   size_t *_out_val) {
+  return uri_scheme_len(uri, len, _out_val);
+}
+
+/**
+ * @brief Test helper for dup_substr.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_dup_substr(const char *src, size_t len,
+                                               char **_out_val) {
+  return dup_substr(src, len, _out_val);
+}
+
+/**
+ * @brief Test helper for compute_document_uri.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_compute_document_uri(
+    const char *self_uri, const char *retrieval_uri, char **_out_val) {
+  return compute_document_uri(self_uri, retrieval_uri, _out_val);
+}
+
+/**
+ * @brief Test helper for store_schema_root_json.
+ */
+C_CDD_EXPORT cdd_c_error_t cdd_test_store_schema_root_json(
+    struct OpenAPI_Spec *spec, const JSON_Value *root) {
+  return store_schema_root_json(spec, root);
+}
+
+/**
+ * @brief Test helper for resolve_ref_target.
+ */
+C_CDD_EXPORT cdd_c_error_t
+cdd_test_resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
+                            struct ResolvedRefTarget *_out_val) {
+  return resolve_ref_target(spec, ref, _out_val);
 }
 
 #endif /* CDD_BUILD_TESTS */

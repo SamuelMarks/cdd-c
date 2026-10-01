@@ -22,6 +22,9 @@ extern "C" {
 #include "routes/parse/cli.h"
 /* clang-format on */
 
+struct CstNode;
+struct TokenList;
+
 /**
  * @brief Sets a dynamically allocated string if destination pointer is NULL.
  *
@@ -46,5 +49,24 @@ spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/**
+ * @brief Test helper for c2openapi_infer_client_route.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_infer_client_route(
+    const struct CstNode *func_node, const struct TokenList *tokens,
+    char **out_route);
+
+/**
+ * @brief Test helper for c2openapi_scan_server_routes.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_server_routes(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for c2openapi_scan_gui_views.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_c2openapi_scan_gui_views(
+    const struct TokenList *tokens, struct OpenAPI_Spec *spec);
 
 #endif /* C_CDD_ROUTES_PARSE_CLI_INTERNAL_H */

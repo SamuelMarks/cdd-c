@@ -566,19 +566,25 @@ cdd_c_error_t c2s_json_object_to_struct_fields_internal(
   return CDD_C_SUCCESS;
 }
 
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
+#endif
+
 /**
  * @brief Extended function to convert a JSON Schema object to StructFields.
  */
 cdd_c_error_t json_object_to_struct_fields_ex(
     const JSON_Object *schema_obj, struct StructFields *fields,
     const JSON_Object *schemas_obj_root, const char *schema_name) {
+#ifdef CDD_BUILD_TESTS
+  if (g_json_object_to_struct_fields_fail &&
+      --g_json_object_to_struct_fields_fail == 0) {
+    return CDD_C_ERROR_MEMORY;
+  }
+#endif
   return c2s_json_object_to_struct_fields_internal(
       schema_obj, fields, (JSON_Object *)schemas_obj_root, schema_name, 0);
 }
-
-#ifdef CDD_BUILD_TESTS
-C_CDD_EXPORT int g_json_object_to_struct_fields_fail = 0;
-#endif
 
 /**
  * @brief Extended code generation function to convert JSON Schema to

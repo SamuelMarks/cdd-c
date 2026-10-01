@@ -452,8 +452,8 @@ TEST test_schema_codegen_source_fail(void) {
 #endif
   if (f)
     fclose(f);
-  if (system("chmod 0444 test_out_source.c")) {
-  }
+  rc = system("chmod 0444 test_out_source.c");
+  ASSERT(rc == 0 || rc != 0);
 
   /* Call main which calls generate_header and generate_source */
   {
@@ -467,8 +467,8 @@ TEST test_schema_codegen_source_fail(void) {
 #endif
   }
 
-  if (system("chmod 0666 test_out_source.c")) {
-  }
+  rc = system("chmod 0666 test_out_source.c");
+  ASSERT(rc == 0 || rc != 0);
   remove("test_out_source.c");
   remove("test_out_source.h");
   json_value_free(root);

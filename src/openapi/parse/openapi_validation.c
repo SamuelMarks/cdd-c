@@ -193,6 +193,7 @@ cdd_c_error_t add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
     tmp = (char **)C_CDD_REALLOC(*ids, new_cap * sizeof(char *));
     if (!tmp)
       return CDD_C_ERROR_MEMORY;
+    memset(tmp + *cap, 0, (new_cap - *cap) * sizeof(char *));
     *ids = tmp;
     *cap = new_cap;
   }

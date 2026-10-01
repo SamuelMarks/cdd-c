@@ -31,11 +31,7 @@
 #endif
 #endif
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_primary(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_primary(struct ExprState *s, long *out_val) {
-#endif
   int matched = 0;
   int is_id_or_kw = 0;
   cdd_c_error_t rc;
@@ -162,11 +158,7 @@ static cdd_c_error_t parse_primary(struct ExprState *s, long *out_val) {
   return CDD_C_ERROR_INVALID_ARGUMENT;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_unary(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_unary(struct ExprState *s, long *out_val) {
-#endif
   int matched = 0;
   cdd_c_error_t rc;
 
@@ -287,11 +279,7 @@ static cdd_c_error_t parse_unary(struct ExprState *s, long *out_val) {
   return parse_primary(s, out_val);
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_multiplicative(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_multiplicative(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -360,11 +348,7 @@ static cdd_c_error_t parse_multiplicative(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_additive(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_additive(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -415,11 +399,7 @@ static cdd_c_error_t parse_additive(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_shift(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_shift(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -470,11 +450,7 @@ static cdd_c_error_t parse_shift(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_relational(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_relational(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   enum TokenKind k;
   int matched = 0;
@@ -544,11 +520,7 @@ static cdd_c_error_t parse_relational(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_equality(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_equality(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -599,11 +571,7 @@ static cdd_c_error_t parse_equality(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_logic_and(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_logic_and(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -641,11 +609,7 @@ static cdd_c_error_t parse_logic_and(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_logic_or(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_logic_or(struct ExprState *s, long *out_val) {
-#endif
   long val = 0;
   int matched = 0;
   cdd_c_error_t rc;
@@ -678,11 +642,7 @@ static cdd_c_error_t parse_logic_or(struct ExprState *s, long *out_val) {
   return CDD_C_SUCCESS;
 }
 
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_parse_expr(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t parse_expr(struct ExprState *s, long *out_val) {
-#endif
   if (!s || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   return parse_logic_or(s, out_val);

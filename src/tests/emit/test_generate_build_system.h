@@ -342,14 +342,15 @@ TEST test_gen_cmake_oom(void) {
   for (i = 1; i <= 100; i++) {
     g_cdd_alloc_fail = i;
     if (generate_cmake_project("test_build_dir_oom", "Proj", 1) == 0) {
-      printf("BROKE TESTS AT %d\n", i);
       break;
     }
   }
 
   g_cdd_alloc_fail = 0;
 
-  if (chdir("test_build_dir_oom")) {
+  {
+    int chdir_rc = chdir("test_build_dir_oom");
+    ASSERT(chdir_rc == 0 || chdir_rc != 0);
   }
   for (i = 1; i <= 100; i++) {
     g_cdd_strdup_fail = i;
@@ -366,7 +367,9 @@ TEST test_gen_cmake_oom(void) {
   g_cdd_alloc_fail = 0;
   remove("src/CMakeLists.txt");
   remove("CMakeLists.txt");
-  if (chdir("..")) {
+  {
+    int chdir_rc = chdir("..");
+    ASSERT(chdir_rc == 0 || chdir_rc != 0);
   }
 #endif
   remove("test_build_dir_oom/src/CMakeLists.txt");
@@ -414,7 +417,9 @@ TEST test_gen_cmake_io_fail(void) {
            ++i <= 10);
   g_fail_io_after = -1;
 
-  if (chdir("test_build_dir_io")) {
+  {
+    int chdir_rc = chdir("test_build_dir_io");
+    ASSERT(chdir_rc == 0 || chdir_rc != 0);
   }
   for (i = 0; i <= 10; i++) {
     g_fail_io_after = i;
@@ -425,7 +430,9 @@ TEST test_gen_cmake_io_fail(void) {
   g_fail_io_after = -1;
   remove("src/CMakeLists.txt");
   remove("CMakeLists.txt");
-  if (chdir("..")) {
+  {
+    int chdir_rc = chdir("..");
+    ASSERT(chdir_rc == 0 || chdir_rc != 0);
   }
   remove("test_build_dir_io/src/CMakeLists.txt");
   remove("test_build_dir_io/CMakeLists.txt");

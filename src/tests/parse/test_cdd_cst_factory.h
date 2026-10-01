@@ -377,10 +377,14 @@ TEST test_cst_parse_format_extra(void) {
     /* fail node alloc inside format parser (use a high value to avoid parser
      * failing first) */
     int k;
-    for (k = 1; k < 10; k++) {
-      g_cdd_cst_alloc_node_fail = k;
-      rc = cdd_cst_parse_format(tree, &node, "int x;");
-      g_cdd_cst_alloc_node_fail = 0;
+    for (k = 0; k < 10; k++) {
+      if (k == 0) {
+        rc = CDD_C_SUCCESS;
+      } else {
+        g_cdd_cst_alloc_node_fail = k;
+        rc = cdd_cst_parse_format(tree, &node, "int x;");
+        g_cdd_cst_alloc_node_fail = 0;
+      }
       if (rc == CDD_C_ERROR_MEMORY)
         break;
     }

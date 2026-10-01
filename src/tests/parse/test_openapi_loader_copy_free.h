@@ -353,6 +353,13 @@ TEST test_openapi_loader_copy_and_free_helpers(void) {
     op_src.security[0].extensions_json = strdup("{\"x-s\":1}");
   }
 
+  op_src.n_callbacks = 1;
+  op_src.callbacks =
+      (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
+  if (op_src.callbacks) {
+    op_src.callbacks[0].name = strdup("my_cb");
+  }
+
   rc = cdd_test_copy_operation_fields(&op_dst, &op_src);
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT_STR_EQ("op1", op_dst.operation_id);
@@ -362,6 +369,17 @@ TEST test_openapi_loader_copy_and_free_helpers(void) {
   ASSERT_STR_EQ("{\"x-rb\":1}", op_dst.req_body_extensions_json);
 
   cdd_test_free_operation(&op_dst);
+
+  {
+    int k;
+    for (k = 1; k <= 20; ++k) {
+      memset(&op_dst, 0, sizeof(op_dst));
+      g_cdd_alloc_fail = k;
+      cdd_test_copy_operation_fields(&op_dst, &op_src);
+      cdd_test_free_operation(&op_dst);
+    }
+    g_cdd_alloc_fail = 0;
+  }
 
   {
     int k;
@@ -1785,6 +1803,7 @@ TEST test_openapi_loader_copy_and_free_advanced(void) {
     ASSERT_EQ(CDD_C_ERROR_MEMORY, openapi_doc_registry_add(&reg, &s2));
     g_cdd_alloc_fail = 0;
     free(s2.document_uri);
+    reg.count = 1;
 
     openapi_doc_registry_free(&reg);
     openapi_spec_free(&s1);

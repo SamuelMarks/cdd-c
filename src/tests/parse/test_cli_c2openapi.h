@@ -803,6 +803,9 @@ SUITE(cli_c2openapi_suite) {
   RUN_TEST(test_generate_bindings_cli_main);
   RUN_TEST(test_generate_bindings_cli_main_help);
   RUN_TEST(test_c2openapi_cli_main_doc_tags);
+  RUN_TEST(test_c2openapi_infer_routes_and_views);
+  RUN_TEST(test_cli_c2openapi_unit_internals);
+  RUN_TEST(test_cli_c2openapi_aggregator_errors);
 }
 
 #ifdef __cplusplus

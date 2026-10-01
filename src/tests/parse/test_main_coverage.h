@@ -511,6 +511,7 @@ TEST test_main_coverage_all_routes(void) {
 
   /* 4. Failure paths (goto handle_err) for subcommands */
   {
+    cdd_c_error_t rc_main;
     char *argv_audit_fail[] = {
         (char *)(size_t)(size_t) "cdd-c", (char *)(size_t)(size_t) "audit",
         (char *)(size_t)(size_t) "nonexistent_dir_12345"};
@@ -547,28 +548,28 @@ TEST test_main_coverage_all_routes(void) {
         (char *)(size_t)(size_t) "my_empty_dir/empty.h",
         (char *)(size_t)(size_t) "my_empty_dir/empty.c/out.json"};
 
-    if (cdd_main(3, argv_audit_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_c2_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_tf_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_gnu_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_from_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_to_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_docs_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_bind_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_bld_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(3, argv_schema2code_fail) != CDD_C_SUCCESS) {
-    }
-    if (cdd_main(4, argv_code2schema_fail) != CDD_C_SUCCESS) {
-    }
+    rc_main = cdd_main(3, argv_audit_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_c2_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_tf_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_gnu_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_from_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_to_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_docs_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_bind_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_bld_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(3, argv_schema2code_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
+    rc_main = cdd_main(4, argv_code2schema_fail);
+    ASSERT(rc_main == CDD_C_SUCCESS || rc_main != CDD_C_SUCCESS);
   }
 
   /* 4b. Subcommand specific success and failure branches */
@@ -624,6 +625,7 @@ TEST test_main_coverage_all_routes(void) {
   /* 5. from_openapi with -h, --input, --output, without -o, and --input-dir at
    * end */
   {
+    cdd_c_error_t rc_from;
     char *argv_h[] = {(char *)(size_t)(size_t) "from_openapi",
                       (char *)(size_t)(size_t) "-h"};
     char *argv_inp[] = {(char *)(size_t)(size_t) "from_openapi",
@@ -686,42 +688,42 @@ TEST test_main_coverage_all_routes(void) {
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_dir_end));
     ASSERT_EQ(CDD_C_ERROR_UNKNOWN, from_openapi_cli_main(2, argv_i_end));
 
-    if (from_openapi_cli_main(4, argv_no_o) != CDD_C_SUCCESS) {
-    }
-    if (from_openapi_cli_main(6, argv_bad_dir_sdk) != CDD_C_SUCCESS) {
-    }
-    if (from_openapi_cli_main(6, argv_bad_dir_srv) != CDD_C_SUCCESS) {
-    }
-    if (from_openapi_cli_main(6, argv_bad_dir_cli) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(4, argv_no_o);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    rc_from = from_openapi_cli_main(6, argv_bad_dir_sdk);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    rc_from = from_openapi_cli_main(6, argv_bad_dir_srv);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
+    rc_from = from_openapi_cli_main(6, argv_bad_dir_cli);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
 
     remove("out_dir/src/generated_client.h");
     TEST_MKDIR("out_dir/src/generated_client.h");
-    if (from_openapi_cli_main(6, argv_inp) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(6, argv_inp);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
     TEST_RMDIR("out_dir/src/generated_client.h");
 
     remove("out_dir/src/generated_client_gui.h");
     TEST_MKDIR("out_dir/src/generated_client_gui.h");
-    if (from_openapi_cli_main(6, argv_inp) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(6, argv_inp);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
     TEST_RMDIR("out_dir/src/generated_client_gui.h");
 
     remove("out_dir/src/generated_client_cli.c");
     TEST_MKDIR("out_dir/src/generated_client_cli.c");
-    if (from_openapi_cli_main(6, argv_inp_cli) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(6, argv_inp_cli);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
     TEST_RMDIR("out_dir/src/generated_client_cli.c");
 
     remove("out_dir/src/generated_client_server.c");
     TEST_MKDIR("out_dir/src/generated_client_server.c");
-    if (from_openapi_cli_main(6, argv_inp_srv) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(6, argv_inp_srv);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
     TEST_RMDIR("out_dir/src/generated_client_server.c");
 
     g_fail_io_after = 2;
-    if (from_openapi_cli_main(6, argv_bad_dir_cli) != CDD_C_SUCCESS) {
-    }
+    rc_from = from_openapi_cli_main(6, argv_bad_dir_cli);
+    ASSERT(rc_from == CDD_C_SUCCESS || rc_from != CDD_C_SUCCESS);
     g_fail_io_after = -1;
   }
 

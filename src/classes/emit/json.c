@@ -1,7 +1,3 @@
-/** @brief Counter threshold to simulate I/O failure */
-extern int g_fail_io_after;
-/** @brief Current I/O call counter */
-extern int g_io_calls;
 /**
  * @file json.c
  * @brief Implementation of JSON generation logic.
@@ -28,6 +24,11 @@ extern int g_io_calls;
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+/** @brief Counter threshold to simulate I/O failure */
+extern int g_fail_io_after;
+/** @brief Current I/O call counter */
+extern int g_io_calls;
+
 static int test_cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));

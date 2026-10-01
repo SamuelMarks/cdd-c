@@ -1,4 +1,8 @@
+#ifdef CDD_BUILD_TESTS
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -127,6 +131,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
     printf("Successfully opened %s (which is weird if it's a directory)\n",
            m_filepath);
   }
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 2) {
       fclose(m_file);
@@ -134,6 +139,7 @@ cdd_c_error_t cdd_ffi_emit_objc(cdd_ffi_ir_t *ir,
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
 #endif
 
   /* Header File (.h) */

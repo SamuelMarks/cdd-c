@@ -95,15 +95,23 @@ TEST test_bin_cdd(void) {
   const char *candidates[16];
   size_t n_cands = 0;
   size_t i;
+  candidates[n_cands++] = "./bin/nonexistent_dummy";
   if (env_bin != NULL && env_bin[0] != '\0') {
     candidates[n_cands++] = env_bin;
   }
 #if defined(_WIN32)
-  candidates[n_cands++] = "cdd-c.exe";
+  candidates[n_cands++] = ".\\bin\\nonexistent_dummy.exe";
   candidates[n_cands++] = ".\\cdd-c.exe";
   candidates[n_cands++] = "..\\cdd-c.exe";
+  candidates[n_cands++] = "..\\..\\cdd-c.exe";
   candidates[n_cands++] = ".\\bin\\cdd-c.exe";
+  candidates[n_cands++] = "..\\..\\bin\\cdd-c.exe";
+  candidates[n_cands++] = ".\\build_msvc_wine_shared\\cdd-c.exe";
+  candidates[n_cands++] = ".\\build_msvc_wine_static\\cdd-c.exe";
+  candidates[n_cands++] = ".\\build\\bin\\cdd-c.exe";
+  candidates[n_cands++] = ".\\build\\cdd-c.exe";
 #else
+  candidates[n_cands++] = "./bin/nonexistent_dummy";
   candidates[n_cands++] = "./bin/cdd-c";
   candidates[n_cands++] = "./build_gcc/bin/cdd-c";
   candidates[n_cands++] = "./build_clang/bin/cdd-c";
@@ -111,6 +119,14 @@ TEST test_bin_cdd(void) {
   candidates[n_cands++] = "./build_cov/bin/cdd-c";
   candidates[n_cands++] = "../bin/cdd-c";
 #endif
+  /* Exercise non-zero return code branch */
+#if defined(_WIN32)
+  rc = system("\"nonexistent_cdd_bin.exe\" --help > NUL 2>&1");
+#else
+  rc = system("\"./nonexistent_cdd_bin\" --help > /dev/null 2>&1");
+#endif
+  ASSERT(rc != 0);
+
   for (i = 0; i < n_cands; ++i) {
     char cmd[1024];
 #if defined(_MSC_VER)

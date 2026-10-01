@@ -18,6 +18,8 @@ extern "C" {
 #include "cdd_c_error.h"
 /* clang-format on */
 
+struct ResolvedRefTarget;
+
 #ifdef CDD_BUILD_TESTS
 
 /**
@@ -243,9 +245,150 @@ cdd_test_schema_has_composition(const JSON_Object *schema_obj);
 
 /**
  * @brief cdd test schema name in use.
+ * @param[in] spec Specification.
+ * @param[in] name Schema name.
+ * @return CDD_C_SUCCESS if not in use, error code if in use.
  */
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_schema_name_in_use(const struct OpenAPI_Spec *spec, const char *name);
+
+/**
+ * @brief cdd test apply schema ref to param.
+ * @param[out] out_param Parameter to update.
+ * @param[in] schema_ref Schema reference.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
+                                   const struct OpenAPI_SchemaRef *schema_ref);
+
+/**
+ * @brief cdd test apply schema ref to header.
+ * @param[out] out_hdr Header to update.
+ * @param[in] schema_ref Schema reference.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_apply_schema_ref_to_header(
+    struct OpenAPI_Header *out_hdr, const struct OpenAPI_SchemaRef *schema_ref);
+
+/**
+ * @brief cdd test sanitize component name.
+ * @param[in] name Original name.
+ * @param[out] _out_val Sanitized name output.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_sanitize_component_name(const char *name, char **_out_val);
+
+/**
+ * @brief cdd test make unique schema name.
+ * @param[in] spec Specification.
+ * @param[in] base Base name.
+ * @param[out] _out_val Unique name output.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_make_unique_schema_name(
+    const struct OpenAPI_Spec *spec, const char *base, char **_out_val);
+
+/**
+ * @brief cdd test schema type array includes.
+ * @param[in] arr JSON Array.
+ * @param[in] type Type name to check.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_schema_type_array_includes(const JSON_Array *arr, const char *type);
+
+/**
+ * @brief cdd test schema object is object like.
+ * @param[in] schema_obj Schema JSON object.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_schema_object_is_object_like(const JSON_Object *schema_obj);
+
+/**
+ * @brief cdd test append defined schema.
+ * @param[in,out] spec Specification.
+ * @param[in] schema_name Name of schema.
+ * @param[in] schema_fields Schema struct fields.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
+                               struct StructFields *schema_fields);
+
+/**
+ * @brief cdd test raw schema name exists.
+ * @param[in] spec Specification.
+ * @param[in] name Name to check.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_raw_schema_name_exists(
+    const struct OpenAPI_Spec *spec, const char *name);
+
+/**
+ * @brief cdd test append raw schema.
+ * @param[in,out] spec Specification.
+ * @param[in] name Name of schema.
+ * @param[in] schema_val JSON Value of schema.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_append_raw_schema(
+    struct OpenAPI_Spec *spec, const char *name, const JSON_Value *schema_val);
+
+/**
+ * @brief cdd test register inline schema.
+ * @param[in,out] spec Specification.
+ * @param[in] base_name Base name for inline schema.
+ * @param[in] schema_obj Schema JSON object.
+ * @param[in] schema_val Schema JSON value.
+ * @param[out] out_name Pointer to output generated schema name.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_register_inline_schema(
+    struct OpenAPI_Spec *spec, const char *base_name,
+    const JSON_Object *schema_obj, const JSON_Value *schema_val,
+    char **out_name);
+
+/**
+ * @brief cdd test assign schema ref name.
+ * @param[in,out] schema_ref Schema reference.
+ * @param[in] name Name to assign.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_assign_schema_ref_name(
+    struct OpenAPI_SchemaRef *schema_ref, const char *name);
+
+/**
+ * @brief cdd test build inline request name.
+ * @param[in] op_id Operation ID.
+ * @param[in] is_item Flag indicating item.
+ * @param[out] _out_val Output name.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_build_inline_request_name(
+    const char *op_id, int is_item, char **_out_val);
+
+/**
+ * @brief cdd test build inline response name.
+ * @param[in] op_id Operation ID.
+ * @param[in] code Status code.
+ * @param[in] is_item Flag indicating item.
+ * @param[out] _out_val Output name.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_build_inline_response_name(
+    const char *op_id, const char *code, int is_item, char **_out_val);
+
+/**
+ * @brief cdd test build inline param name.
+ * @param[in] param_name Parameter name.
+ * @param[out] _out_val Output name.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_build_inline_param_name(const char *param_name, char **_out_val);
 
 /**
  * @brief cdd test server variable defined.
@@ -276,6 +419,128 @@ cdd_test_uri_has_scheme_prefix(const char *uri, size_t len);
  */
 extern C_CDD_EXPORT cdd_c_error_t
 cdd_test_url_has_query_or_fragment(const char *url);
+
+/**
+ * @brief cdd test parse verb.
+ * @param[in] v Verb string.
+ * @param[out] _out_val Verb enum.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_verb(const char *v,
+                                             enum OpenAPI_Verb *_out_val);
+
+/**
+ * @brief cdd test param type is primitive.
+ * @param[in] type Type name.
+ * @return Non-zero if primitive, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t param_type_is_primitive(const char *type);
+
+/**
+ * @brief cdd test param type is object like.
+ * @param[in] p Parameter pointer.
+ * @return Non-zero if object-like, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+param_type_is_object_like(const struct OpenAPI_Parameter *p);
+
+/**
+ * @brief cdd test component key is valid.
+ * @param[in] name Component key.
+ * @return CDD_C_ERROR_UNKNOWN if valid, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t component_key_is_valid(const char *name);
+
+/**
+ * @brief cdd test media type key is valid.
+ * @param[in] name Media type key.
+ * @return CDD_C_ERROR_UNKNOWN if valid, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t media_type_key_is_valid(const char *name);
+
+/**
+ * @brief cdd test validate component key map.
+ * @param[in] obj JSON object.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+validate_component_key_map(const JSON_Object *obj);
+
+/**
+ * @brief cdd test header param is reserved.
+ * @param[in] param Parameter.
+ * @return CDD_C_ERROR_UNKNOWN if reserved, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+header_param_is_reserved(const struct OpenAPI_Parameter *param);
+
+/**
+ * @brief cdd test parse oauth flow type.
+ * @param[in] flow Flow string.
+ * @param[out] _out_val Flow enum.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+parse_oauth_flow_type(const char *flow, enum OpenAPI_OAuthFlowType *_out_val);
+
+/**
+ * @brief cdd test parse any value.
+ * @param[in] val JSON Value.
+ * @param[out] out OpenAPI Any struct.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_any_value(const JSON_Value *val,
+                                                  struct OpenAPI_Any *out);
+
+/**
+ * @brief cdd test parse any field.
+ * @param[in] obj JSON Object.
+ * @param[in] key Key name.
+ * @param[out] out OpenAPI Any struct.
+ * @param[out] out_set Output set flag.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_any_field(const JSON_Object *obj,
+                                                  const char *key,
+                                                  struct OpenAPI_Any *out,
+                                                  int *out_set);
+
+/**
+ * @brief cdd test parse any array.
+ * @param[in] arr JSON Array.
+ * @param[out] out Pointer to allocated Any array.
+ * @param[out] out_count Pointer to array count.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t parse_any_array(const JSON_Array *arr,
+                                                  struct OpenAPI_Any **out,
+                                                  size_t *out_count);
+
+/**
+ * @brief cdd test key in list.
+ * @param[in] key Key to find.
+ * @param[in] list Array of keys.
+ * @param[in] count Number of keys.
+ * @return CDD_C_ERROR_UNKNOWN if found, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t key_in_list(const char *key,
+                                              const char **list, size_t count);
+
+/**
+ * @brief cdd test is extension key.
+ * @param[in] key Key string.
+ * @return CDD_C_ERROR_UNKNOWN if extension, CDD_C_SUCCESS otherwise.
+ */
+extern C_CDD_EXPORT cdd_c_error_t is_extension_key(const char *key);
+
+/**
+ * @brief cdd test clone json value.
+ * @param[in] val JSON value to clone.
+ * @param[out] _out_val Cloned JSON value.
+ * @return CDD_C_SUCCESS or error code.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_clone_json_value(const JSON_Value *val, JSON_Value **_out_val);
 
 /**
  * @brief cdd test validate media type key map.
@@ -1085,6 +1350,113 @@ extern C_CDD_EXPORT cdd_c_error_t cdd_test_validate_path_template_collisions(
 extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_additional_operations(
     const JSON_Object *path_obj, struct OpenAPI_Path *path,
     const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Test helper for parse_external_docs.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_external_docs(
+    const JSON_Object *obj, struct OpenAPI_ExternalDocs *out);
+
+/**
+ * @brief Test helper for parse_discriminator_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_discriminator_object(
+    const JSON_Object *obj, struct OpenAPI_Discriminator *out);
+
+/**
+ * @brief Test helper for parse_xml_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out);
+
+/**
+ * @brief Test helper for parse_tags.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
+
+/**
+ * @brief Test helper for validate_server_url_variables.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_validate_server_url_variables(const struct OpenAPI_Server *srv);
+
+/**
+ * @brief Test helper for parse_server_object.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_server_object(
+    const JSON_Object *srv_obj, struct OpenAPI_Server *out_srv);
+
+/**
+ * @brief Test helper for parse_servers_array.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_parse_servers_array(
+    const JSON_Object *parent, const char *key,
+    struct OpenAPI_Server **out_servers, size_t *out_count);
+
+/**
+ * @brief Test helper for json_pointer_unescape.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_json_pointer_unescape(const char *in, char **_out_val);
+
+/**
+ * @brief Test helper for uri_base_len.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_uri_base_len(const char *uri,
+                                                        size_t *_out_val);
+
+/**
+ * @brief Test helper for uri_scheme_len.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_uri_scheme_len(const char *uri,
+                                                          size_t len,
+                                                          size_t *_out_val);
+
+/**
+ * @brief Test helper for dup_substr.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_dup_substr(const char *src,
+                                                      size_t len,
+                                                      char **_out_val);
+
+/**
+ * @brief Test helper for compute_document_uri.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_compute_document_uri(
+    const char *self_uri, const char *retrieval_uri, char **_out_val);
+
+/**
+ * @brief Test helper for root_has_openapi_fields.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_root_has_openapi_fields(const JSON_Object *root_obj);
+
+/**
+ * @brief Test helper for store_schema_root_json.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_store_schema_root_json(
+    struct OpenAPI_Spec *spec, const JSON_Value *root);
+
+/**
+ * @brief Test helper for resolve_ref_target.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
+                            struct ResolvedRefTarget *_out_val);
+
+/**
+ * @brief Test helper for ref_base_matches_self.
+ */
+extern C_CDD_EXPORT cdd_c_error_t cdd_test_ref_base_matches_self(
+    const struct OpenAPI_Spec *spec, const char *ref, const char *hash);
+
+/**
+ * @brief Test helper for ref_name_from_prefix.
+ */
+extern C_CDD_EXPORT cdd_c_error_t
+cdd_test_ref_name_from_prefix(const struct OpenAPI_Spec *spec, const char *ref,
+                              const char *prefix, char **_out_val);
 
 #endif /* CDD_BUILD_TESTS */
 

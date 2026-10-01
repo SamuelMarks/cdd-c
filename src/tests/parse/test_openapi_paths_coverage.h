@@ -175,6 +175,12 @@ TEST test_openapi_paths_normalize_and_collisions(void) {
   ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
             cdd_test_validate_path_template_collisions(bad_paths, 2));
 
+  /* 11b. unclosed brace in first path */
+  bad_paths[0].route = (char *)(size_t) "/users/{id";
+  bad_paths[1].route = (char *)(size_t) "/users/{id}";
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+            cdd_test_validate_path_template_collisions(bad_paths, 2));
+
   /* 12. non-slash start in first path */
   bad_paths[0].route = (char *)(size_t) "users/{id}";
   bad_paths[1].route = (char *)(size_t) "/users/{id}";

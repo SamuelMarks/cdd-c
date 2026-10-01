@@ -38,12 +38,10 @@
  * @param[in,out] s Expression state.
  * @return CDD_C_SUCCESS.
  */
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_expr_skip_ws(struct ExprState *s) {
+#ifdef CDD_BUILD_TESTS
   if (g_cdd_pp_skip_ws_fail && --g_cdd_pp_skip_ws_fail == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#else
-static cdd_c_error_t skip_ws(struct ExprState *s) {
 #endif
   if (!s || !s->tokens)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -60,16 +58,12 @@ static cdd_c_error_t skip_ws(struct ExprState *s) {
  * @param[out] out_val Pointer to store 1 if matched, 0 otherwise.
  * @return CDD_C_SUCCESS.
  */
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_expr_match(struct ExprState *s, enum TokenKind kind,
                             int *out_val) {
   cdd_c_error_t rc;
+#ifdef CDD_BUILD_TESTS
   if (g_cdd_pp_match_fail && --g_cdd_pp_match_fail == 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-#else
-static cdd_c_error_t match(struct ExprState *s, enum TokenKind kind,
-                           int *out_val) {
-  cdd_c_error_t rc;
 #endif
   if (!s || !out_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -149,12 +143,7 @@ cdd_c_error_t pp_is_defined_macro(const struct PreprocessorContext *ctx,
  * @param[out] out_val Pointer to store evaluation result (1 or 0).
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_handle_has_include_embed(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
-                                              long *out_val) {
-#endif
   int is_header = 0;
   char *path = NULL;
   char *resolved = NULL;
@@ -260,12 +249,7 @@ static cdd_c_error_t handle_has_include_embed(struct ExprState *s,
  * @param[out] out_val Pointer to store attribute version or 0.
  * @return CDD_C_SUCCESS on success, error code on failure.
  */
-#ifdef CDD_BUILD_TESTS
 cdd_c_error_t pp_handle_has_c_attribute(struct ExprState *s, long *out_val) {
-#else
-static cdd_c_error_t handle_has_c_attribute(struct ExprState *s,
-                                            long *out_val) {
-#endif
   long result = 0;
   char *attr_name = NULL;
   int matched = 0;

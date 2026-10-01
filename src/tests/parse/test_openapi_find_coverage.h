@@ -1930,6 +1930,7 @@ TEST test_openapi_validation_all_branches(void) {
   ASSERT_EQ(CDD_C_ERROR_MEMORY,
             cdd_test_add_unique_operation_id(&ids, &id_count, &id_cap, "op2"));
   g_cdd_strdup_fail = 0;
+  id_count = 1;
 
   free_test_str_array(ids, id_count);
   ids = NULL;
@@ -1992,6 +1993,9 @@ TEST test_openapi_validation_all_branches(void) {
   paths[0].ref = (char *)(size_t) "#/components/pathItems/my_item";
   ASSERT_EQ(CDD_C_ERROR_UNKNOWN,
             cdd_test_component_path_item_is_referenced(&spec, "my_item"));
+  paths[0].ref = (char *)(size_t) "#/components/pathItems/other_item";
+  ASSERT_EQ(CDD_C_SUCCESS,
+            cdd_test_component_path_item_is_referenced(&spec, "my_item"));
   paths[0].ref = NULL;
   spec.webhooks = &paths[1];
   spec.n_webhooks = 1;
@@ -2033,6 +2037,9 @@ TEST test_openapi_validation_all_branches(void) {
   ASSERT_EQ(
       CDD_C_ERROR_UNKNOWN,
       cdd_test_component_callback_is_referenced_in_ops(ops, 1, &spec, "my_cb"));
+  cbs[0].ref = (char *)(size_t) "#/components/callbacks/other_cb";
+  ASSERT_EQ(CDD_C_SUCCESS, cdd_test_component_callback_is_referenced_in_ops(
+                               ops, 1, &spec, "my_cb"));
   cbs[0].ref = NULL;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_component_callback_is_referenced_in_ops(
                                ops, 1, &spec, "my_cb"));
@@ -2365,6 +2372,27 @@ TEST test_openapi_validation_all_branches(void) {
   spec.component_callbacks = cbs;
   spec.n_component_callbacks = 1;
   ASSERT_EQ(CDD_C_SUCCESS, cdd_test_validate_unique_operation_ids(&spec));
+
+  /* Spec with component_path_items having duplicate operation IDs */
+  {
+    struct OpenAPI_Operation dup_ops[2];
+    memset(dup_ops, 0, sizeof(dup_ops));
+    dup_ops[0].operation_id = (char *)(size_t) "dup_id";
+    dup_ops[1].operation_id = (char *)(size_t) "dup_id";
+    paths[0].operations = dup_ops;
+    paths[0].n_operations = 2;
+    paths[0].additional_operations = NULL;
+    paths[0].n_additional_operations = 0;
+    spec.component_path_items = paths;
+    spec.n_component_path_items = 1;
+    spec.component_path_item_names = NULL;
+    ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT,
+              cdd_test_validate_unique_operation_ids(&spec));
+    spec.component_path_items = NULL;
+    spec.n_component_path_items = 0;
+    paths[0].operations = NULL;
+    paths[0].n_operations = 0;
+  }
 
   PASS();
 }

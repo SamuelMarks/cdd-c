@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd/memory.h"
 #include "openapi/parse/openapi_internal.h"
 /* clang-format on */
 
@@ -14,11 +15,7 @@
 cdd_c_error_t
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                           const struct OpenAPI_SchemaRef *schema_ref) {
-  char *_ast_strdup_192 = NULL;
-  char *_ast_strdup_193 = NULL;
-  char *_ast_strdup_194 = NULL;
-  char *_ast_strdup_195 = NULL;
-  char *_ast_strdup_196 = NULL;
+  cdd_c_error_t rc;
   if (!out_param || !schema_ref)
     return CDD_C_SUCCESS;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
@@ -36,40 +33,42 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
 
   if (schema_ref->is_array) {
     out_param->is_array = 1;
-    out_param->type =
-        (c_cdd_strdup("array", &_ast_strdup_192), _ast_strdup_192);
-    if (!out_param->type)
-      return CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup("array", &out_param->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (schema_ref->inline_type) {
-      out_param->items_type =
-          (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_193),
-           _ast_strdup_193);
-      if (!out_param->items_type) {
+      rc = c_cdd_strdup(schema_ref->inline_type, &out_param->items_type);
+      if (rc != CDD_C_SUCCESS) {
         free(out_param->type);
         out_param->type = NULL;
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
     if (schema_ref->ref_name) {
-      out_param->items_type =
-          (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_194),
-           _ast_strdup_194);
-      if (!out_param->items_type)
-        return CDD_C_ERROR_MEMORY;
+      if (out_param->items_type) {
+        free(out_param->items_type);
+        out_param->items_type = NULL;
+      }
+      rc = c_cdd_strdup(schema_ref->ref_name, &out_param->items_type);
+      if (rc != CDD_C_SUCCESS) {
+        free(out_param->type);
+        out_param->type = NULL;
+        return rc;
+      }
     }
     return CDD_C_SUCCESS;
   }
 
   out_param->is_array = 0;
   if (schema_ref->inline_type) {
-    out_param->type = (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_195),
-                       _ast_strdup_195);
-  } else if (schema_ref->ref_name) {
-    out_param->type =
-        (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_196), _ast_strdup_196);
+    rc = c_cdd_strdup(schema_ref->inline_type, &out_param->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  } else {
+    rc = c_cdd_strdup(schema_ref->ref_name, &out_param->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  if (!out_param->type)
-    return CDD_C_ERROR_MEMORY;
 
   return CDD_C_SUCCESS;
 }
@@ -80,11 +79,7 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
 cdd_c_error_t
 apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
                            const struct OpenAPI_SchemaRef *schema_ref) {
-  char *_ast_strdup_197 = NULL;
-  char *_ast_strdup_198 = NULL;
-  char *_ast_strdup_199 = NULL;
-  char *_ast_strdup_200 = NULL;
-  char *_ast_strdup_201 = NULL;
+  cdd_c_error_t rc;
   if (!out_hdr || !schema_ref)
     return CDD_C_SUCCESS;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
@@ -102,39 +97,42 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
 
   if (schema_ref->is_array) {
     out_hdr->is_array = 1;
-    out_hdr->type = (c_cdd_strdup("array", &_ast_strdup_197), _ast_strdup_197);
-    if (!out_hdr->type)
-      return CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup("array", &out_hdr->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
     if (schema_ref->inline_type) {
-      out_hdr->items_type =
-          (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_198),
-           _ast_strdup_198);
-      if (!out_hdr->items_type) {
+      rc = c_cdd_strdup(schema_ref->inline_type, &out_hdr->items_type);
+      if (rc != CDD_C_SUCCESS) {
         free(out_hdr->type);
         out_hdr->type = NULL;
-        return CDD_C_ERROR_MEMORY;
+        return rc;
       }
     }
     if (schema_ref->ref_name) {
-      out_hdr->items_type =
-          (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_199),
-           _ast_strdup_199);
-      if (!out_hdr->items_type)
-        return CDD_C_ERROR_MEMORY;
+      if (out_hdr->items_type) {
+        free(out_hdr->items_type);
+        out_hdr->items_type = NULL;
+      }
+      rc = c_cdd_strdup(schema_ref->ref_name, &out_hdr->items_type);
+      if (rc != CDD_C_SUCCESS) {
+        free(out_hdr->type);
+        out_hdr->type = NULL;
+        return rc;
+      }
     }
     return CDD_C_SUCCESS;
   }
 
   out_hdr->is_array = 0;
   if (schema_ref->inline_type) {
-    out_hdr->type = (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_200),
-                     _ast_strdup_200);
-  } else if (schema_ref->ref_name) {
-    out_hdr->type =
-        (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_201), _ast_strdup_201);
+    rc = c_cdd_strdup(schema_ref->inline_type, &out_hdr->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
+  } else {
+    rc = c_cdd_strdup(schema_ref->ref_name, &out_hdr->type);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
-  if (!out_hdr->type)
-    return CDD_C_ERROR_MEMORY;
 
   return CDD_C_SUCCESS;
 }
@@ -164,20 +162,22 @@ cdd_c_error_t schema_name_in_use(const struct OpenAPI_Spec *spec,
  * @brief Executes the sanitize component name operation.
  */
 cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
-  char *_ast_strdup_202 = NULL;
-  char *_ast_strdup_203 = NULL;
   size_t i, len;
   char *out;
+  cdd_c_error_t rc;
+
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   if (!name || !*name) {
-    *_out_val =
-        (c_cdd_strdup("InlineSchema", &_ast_strdup_202), _ast_strdup_202);
-    return CDD_C_SUCCESS;
+    rc = c_cdd_strdup("InlineSchema", _out_val);
+    return rc;
   }
   len = strlen(name);
-  out = (char *)(size_t)calloc(len + 1, sizeof(char));
+  out = (char *)C_CDD_CALLOC(len + 1, sizeof(char));
   if (!out) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
   for (i = 0; i < len; ++i) {
     const char c = name[i];
@@ -188,18 +188,8 @@ cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
       out[i] = '_';
     }
   }
-  if (!out[0]) {
-    free(out);
-    {
-      *_out_val =
-          (c_cdd_strdup("InlineSchema", &_ast_strdup_203), _ast_strdup_203);
-      return CDD_C_SUCCESS;
-    }
-  }
-  {
-    *_out_val = out;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = out;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -207,33 +197,34 @@ cdd_c_error_t sanitize_component_name(const char *name, char **_out_val) {
  */
 cdd_c_error_t make_unique_schema_name(const struct OpenAPI_Spec *spec,
                                       const char *base, char **_out_val) {
-  char *_ast_strdup_204 = NULL;
-  char *_ast_strdup_205 = NULL;
   size_t attempt = 0;
+  cdd_c_error_t rc;
+
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   if (!base) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   }
-  if (!schema_name_in_use(spec, base)) {
-    *_out_val = (c_cdd_strdup(base, &_ast_strdup_204), _ast_strdup_204);
-    return CDD_C_SUCCESS;
+  if (schema_name_in_use(spec, base) == CDD_C_SUCCESS) {
+    rc = c_cdd_strdup(base, _out_val);
+    return rc;
   }
-  for (attempt = 1; attempt < 10000; ++attempt) {
+  for (attempt = 1; attempt < 5; ++attempt) {
     char buf[256];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
 #else
     sprintf(buf, "%s_%lu", base, (unsigned long)attempt);
 #endif
-    if (!schema_name_in_use(spec, buf)) {
-      *_out_val = (c_cdd_strdup(buf, &_ast_strdup_205), _ast_strdup_205);
-      return CDD_C_SUCCESS;
+    if (schema_name_in_use(spec, buf) == CDD_C_SUCCESS) {
+      rc = c_cdd_strdup(buf, _out_val);
+      return rc;
     }
   }
-  {
-    *_out_val = NULL;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = NULL;
+  return CDD_C_ERROR_NOT_FOUND;
 }
 
 /**
@@ -265,7 +256,7 @@ cdd_c_error_t schema_object_is_object_like(const JSON_Object *schema_obj) {
   if (type && strcmp(type, "object") == 0)
     return CDD_C_ERROR_UNKNOWN;
   type_arr = json_object_get_array(schema_obj, "type");
-  if (schema_type_array_includes(type_arr, "object"))
+  if (schema_type_array_includes(type_arr, "object") != CDD_C_SUCCESS)
     return CDD_C_ERROR_UNKNOWN;
   if (json_object_get_object(schema_obj, "properties"))
     return CDD_C_ERROR_UNKNOWN;
@@ -294,12 +285,12 @@ cdd_c_error_t append_defined_schema(struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   new_count = spec->n_defined_schemas + 1;
-  new_names = (char **)calloc(new_count, sizeof(char *));
-  new_ids = (char **)calloc(new_count, sizeof(char *));
-  new_anchors = (char **)calloc(new_count, sizeof(char *));
-  new_dyn_anchors = (char **)calloc(new_count, sizeof(char *));
-  new_schemas =
-      (struct StructFields *)calloc(new_count, sizeof(struct StructFields));
+  new_names = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
+  new_ids = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
+  new_anchors = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
+  new_dyn_anchors = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
+  new_schemas = (struct StructFields *)C_CDD_CALLOC(
+      new_count, sizeof(struct StructFields));
   if (!new_names || !new_ids || !new_anchors || !new_dyn_anchors ||
       !new_schemas) {
     free(new_names);
@@ -310,17 +301,25 @@ cdd_c_error_t append_defined_schema(struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_MEMORY;
   }
 
-  for (i = 0; i < spec->n_defined_schemas; ++i) {
-    new_names[i] =
-        spec->defined_schema_names ? spec->defined_schema_names[i] : NULL;
-    new_ids[i] = spec->defined_schema_ids ? spec->defined_schema_ids[i] : NULL;
-    new_anchors[i] =
-        spec->defined_schema_anchors ? spec->defined_schema_anchors[i] : NULL;
-    new_dyn_anchors[i] = spec->defined_schema_dynamic_anchors
-                             ? spec->defined_schema_dynamic_anchors[i]
-                             : NULL;
-    new_schemas[i] =
-        spec->defined_schemas ? spec->defined_schemas[i] : new_schemas[i];
+  if (spec->defined_schema_names) {
+    for (i = 0; i < spec->n_defined_schemas; ++i)
+      new_names[i] = spec->defined_schema_names[i];
+  }
+  if (spec->defined_schema_ids) {
+    for (i = 0; i < spec->n_defined_schemas; ++i)
+      new_ids[i] = spec->defined_schema_ids[i];
+  }
+  if (spec->defined_schema_anchors) {
+    for (i = 0; i < spec->n_defined_schemas; ++i)
+      new_anchors[i] = spec->defined_schema_anchors[i];
+  }
+  if (spec->defined_schema_dynamic_anchors) {
+    for (i = 0; i < spec->n_defined_schemas; ++i)
+      new_dyn_anchors[i] = spec->defined_schema_dynamic_anchors[i];
+  }
+  if (spec->defined_schemas) {
+    for (i = 0; i < spec->n_defined_schemas; ++i)
+      new_schemas[i] = spec->defined_schemas[i];
   }
 
   new_names[new_count - 1] = schema_name;
@@ -364,8 +363,6 @@ cdd_c_error_t raw_schema_name_exists(const struct OpenAPI_Spec *spec,
  */
 cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
                                 const JSON_Value *schema_val) {
-  char *_ast_strdup_206 = NULL;
-  char *_ast_strdup_207 = NULL;
   size_t i;
   size_t new_count;
   char **new_names = NULL;
@@ -373,30 +370,42 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   char *dup_name = NULL;
   char *dup_json = NULL;
   char *raw_json = NULL;
+  cdd_c_error_t rc;
 
   if (!spec || !name || !schema_val)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (raw_schema_name_exists(spec, name))
+  if (raw_schema_name_exists(spec, name) != CDD_C_SUCCESS)
     return CDD_C_SUCCESS;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_raw_schema_serialize;
+    if (g_cdd_fail_raw_schema_serialize &&
+        --g_cdd_fail_raw_schema_serialize == 0)
+      raw_json = NULL;
+    else
+      raw_json = json_serialize_to_string(schema_val);
+  }
+#else
   raw_json = json_serialize_to_string(schema_val);
+#endif
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
-  dup_json = (c_cdd_strdup(raw_json, &_ast_strdup_206), _ast_strdup_206);
+  rc = c_cdd_strdup(raw_json, &dup_json);
   json_free_serialized_string(raw_json);
-  if (!dup_json)
-    return CDD_C_ERROR_MEMORY;
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
-  dup_name = (c_cdd_strdup(name, &_ast_strdup_207), _ast_strdup_207);
-  if (!dup_name) {
+  rc = c_cdd_strdup(name, &dup_name);
+  if (rc != CDD_C_SUCCESS) {
     free(dup_json);
-    return CDD_C_ERROR_MEMORY;
+    return rc;
   }
 
   new_count = spec->n_raw_schemas + 1;
-  new_names = (char **)calloc(new_count, sizeof(char *));
-  new_json = (char **)calloc(new_count, sizeof(char *));
+  new_names = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
+  new_json = (char **)C_CDD_CALLOC(new_count, sizeof(char *));
   if (!new_names || !new_json) {
     free(new_names);
     free(new_json);
@@ -405,9 +414,13 @@ cdd_c_error_t append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
     return CDD_C_ERROR_MEMORY;
   }
 
-  for (i = 0; i < spec->n_raw_schemas; ++i) {
-    new_names[i] = spec->raw_schema_names ? spec->raw_schema_names[i] : NULL;
-    new_json[i] = spec->raw_schema_json ? spec->raw_schema_json[i] : NULL;
+  if (spec->raw_schema_names) {
+    for (i = 0; i < spec->n_raw_schemas; ++i)
+      new_names[i] = spec->raw_schema_names[i];
+  }
+  if (spec->raw_schema_json) {
+    for (i = 0; i < spec->n_raw_schemas; ++i)
+      new_json[i] = spec->raw_schema_json[i];
   }
   new_names[new_count - 1] = dup_name;
   new_json[new_count - 1] = dup_json;
@@ -428,8 +441,6 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
                                      const JSON_Object *schema_obj,
                                      const JSON_Value *schema_val,
                                      char **out_name) {
-  char *_ast_sanitize_component_name_49 = NULL;
-  char *_ast_make_unique_schema_name_50 = NULL;
   struct StructFields tmp;
   char *sanitized = NULL;
   char *unique = NULL;
@@ -438,11 +449,9 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
   if (!spec || !schema_obj || !out_name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  {
-    cdd_c_error_t _rc = struct_fields_init(&tmp);
-    if (_rc != CDD_C_SUCCESS)
-      return _rc;
-  }
+  rc = struct_fields_init(&tmp);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
 
   rc = json_object_to_struct_fields_ex(schema_obj, &tmp, NULL, base_name);
   if (rc != CDD_C_SUCCESS) {
@@ -450,27 +459,16 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
     return rc;
   }
 
-  sanitized =
-      (sanitize_component_name(base_name, &_ast_sanitize_component_name_49),
-       _ast_sanitize_component_name_49);
-  if (!sanitized) {
-    struct_fields_free(&tmp);
-    return CDD_C_ERROR_MEMORY;
-  }
-
-  unique = (make_unique_schema_name(spec, sanitized,
-                                    &_ast_make_unique_schema_name_50),
-            _ast_make_unique_schema_name_50);
-  free(sanitized);
-  if (!unique) {
-    struct_fields_free(&tmp);
-    return CDD_C_ERROR_MEMORY;
-  }
-
-  rc = append_defined_schema(spec, unique, &tmp);
+  rc = sanitize_component_name(base_name, &sanitized);
   if (rc != CDD_C_SUCCESS) {
     struct_fields_free(&tmp);
-    free(unique);
+    return rc;
+  }
+
+  rc = make_unique_schema_name(spec, sanitized, &unique);
+  free(sanitized);
+  if (rc != CDD_C_SUCCESS) {
+    struct_fields_free(&tmp);
     return rc;
   }
 
@@ -478,8 +476,16 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
     cdd_c_error_t raw_rc = append_raw_schema(spec, unique, schema_val);
     if (raw_rc != CDD_C_SUCCESS) {
       struct_fields_free(&tmp);
+      free(unique);
       return raw_rc;
     }
+  }
+
+  rc = append_defined_schema(spec, unique, &tmp);
+  if (rc != CDD_C_SUCCESS) {
+    struct_fields_free(&tmp);
+    free(unique);
+    return rc;
   }
 
   *out_name = unique;
@@ -491,13 +497,21 @@ cdd_c_error_t register_inline_schema(struct OpenAPI_Spec *spec,
  */
 cdd_c_error_t assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
                                      const char *name) {
-  char *_ast_strdup_208 = NULL;
   char *dup;
+  cdd_c_error_t rc;
+
   if (!schema_ref || !name)
     return CDD_C_ERROR_INVALID_ARGUMENT;
-  dup = (c_cdd_strdup(name, &_ast_strdup_208), _ast_strdup_208);
-  if (!dup)
-    return CDD_C_ERROR_MEMORY;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+    if (g_cdd_fail_assign_ref_name && --g_cdd_fail_assign_ref_name == 0)
+      return CDD_C_ERROR_MEMORY;
+  }
+#endif
+  rc = c_cdd_strdup(name, &dup);
+  if (rc != CDD_C_SUCCESS)
+    return rc;
   if (schema_ref->ref_name)
     free(schema_ref->ref_name);
   schema_ref->ref_name = dup;
@@ -509,10 +523,18 @@ cdd_c_error_t assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
  */
 cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
                                         char **_out_val) {
-  const char *op = (op_id && *op_id) ? op_id : "unnamed";
-  const char *suffix = is_item ? "Request_Item" : "Request";
-  size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
-  char *out = (char *)(size_t)C_CDD_MALLOC(len);
+  const char *op;
+  const char *suffix;
+  size_t len;
+  char *out;
+
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  op = (op_id && *op_id) ? op_id : "unnamed";
+  suffix = is_item ? "Request_Item" : "Request";
+  len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
+  out = (char *)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -522,10 +544,8 @@ cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
 #else
   sprintf(out, "Inline_%s_%s", op, suffix);
 #endif
-  {
-    *_out_val = out;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = out;
+  return CDD_C_SUCCESS;
 }
 
 /**
@@ -533,12 +553,21 @@ cdd_c_error_t build_inline_request_name(const char *op_id, int is_item,
  */
 cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
                                          int is_item, char **_out_val) {
-  const char *op = (op_id && *op_id) ? op_id : "unnamed";
-  const char *resp = (code && *code) ? code : "default";
-  const char *suffix = is_item ? "Item" : "";
-  size_t len = strlen("Inline_") + strlen(op) + strlen("_Response_") +
-               strlen(resp) + (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
-  char *out = (char *)(size_t)C_CDD_MALLOC(len);
+  const char *op;
+  const char *resp;
+  const char *suffix;
+  size_t len;
+  char *out;
+
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  op = (op_id && *op_id) ? op_id : "unnamed";
+  resp = (code && *code) ? code : "default";
+  suffix = is_item ? "Item" : "";
+  len = strlen("Inline_") + strlen(op) + strlen("_Response_") + strlen(resp) +
+        (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
+  out = (char *)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -556,19 +585,24 @@ cdd_c_error_t build_inline_response_name(const char *op_id, const char *code,
     sprintf(out, "Inline_%s_Response_%s", op, resp);
   }
 #endif
-  {
-    *_out_val = out;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = out;
+  return CDD_C_SUCCESS;
 }
 
 /**
  * @brief Executes the build inline param name operation.
  */
 cdd_c_error_t build_inline_param_name(const char *param_name, char **_out_val) {
-  const char *p = (param_name && *param_name) ? param_name : "param";
-  size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
-  char *out = (char *)(size_t)C_CDD_MALLOC(len);
+  const char *p;
+  size_t len;
+  char *out;
+
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
+  p = (param_name && *param_name) ? param_name : "param";
+  len = strlen("Inline_Querystring_") + strlen(p) + 1;
+  out = (char *)C_CDD_MALLOC(len);
   if (!out) {
     *_out_val = NULL;
     return CDD_C_ERROR_MEMORY;
@@ -578,8 +612,6 @@ cdd_c_error_t build_inline_param_name(const char *param_name, char **_out_val) {
 #else
   sprintf(out, "Inline_Querystring_%s", p);
 #endif
-  {
-    *_out_val = out;
-    return CDD_C_SUCCESS;
-  }
+  *_out_val = out;
+  return CDD_C_SUCCESS;
 }

@@ -1,4 +1,8 @@
+#ifdef CDD_BUILD_TESTS
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -88,12 +92,14 @@ emit_odin_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 #endif
 
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 1) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
 
   fprintf(f, "// Auto-generated Odin bindings for %s\n\n", lib_name);
   fprintf(f, "package %s\n\n", lib_name);

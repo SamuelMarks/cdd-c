@@ -137,8 +137,6 @@ TEST test_pp_scan_defines_edge_cases(void) {
                            "#define UNCLOSED(a, b\n");
 
   rc = pp_scan_defines(&ctx, test_file);
-  if (rc != CDD_C_SUCCESS) {
-  }
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(ctx.macro_count >= 5);
 
@@ -291,8 +289,6 @@ TEST test_pp_scan_defines_whitespace_trimming(void) {
 
   pp_context_init(&ctx);
   rc = pp_scan_defines(&ctx, test_file);
-  if (rc != CDD_C_SUCCESS) {
-  }
   ASSERT_EQ(CDD_C_SUCCESS, rc);
   ASSERT(ctx.macro_count >= 1);
 
@@ -435,8 +431,6 @@ TEST test_pp_scan_defines_oom_and_trimming(void) {
                            "#define EMPTY_TRIM   /* c */\n"
                            "#define FN_OOM(a, b) a + b\n");
   rc = pp_scan_defines(&ctx, test_file);
-  if (rc != CDD_C_SUCCESS) {
-  }
   ASSERT_EQ(CDD_C_SUCCESS, rc);
 
   /* OOM tests for pp_scan_defines args and macro addition */

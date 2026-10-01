@@ -1,6 +1,6 @@
 import json
 
-with open("build_cov/cov_brief.json") as f:
+with open("build_cov/cov_summary.json") as f:
     data = json.load(f)
 
 files = data.get("files", [])

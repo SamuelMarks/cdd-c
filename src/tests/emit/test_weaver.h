@@ -749,7 +749,7 @@ TEST test_weaver_interactive(void) {
     res = weaver_vla_to_alloca(&patches, tl, 0, 1, "int", "a", "n", 1);
     ASSERT_EQ(CDD_C_SUCCESS, res);
 
-    if (freopen("/dev/tty", "r", stdin)) {
+    if (freopen("/dev/null", "r", stdin)) {
     } /* restore roughly */
   }
 

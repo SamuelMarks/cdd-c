@@ -1,4 +1,8 @@
+#ifdef CDD_BUILD_TESTS
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 
@@ -110,12 +114,14 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
   }
 #endif
 
+#ifdef CDD_BUILD_TESTS
   {
     if (g_fail_io_after == 1) {
       fclose(f);
       return CDD_C_ERROR_UNKNOWN;
     }
   }
+#endif
 
   fprintf(f, "# Auto-generated Ruby Fiddle bindings for %s\n\n", lib_name);
   fprintf(f, "require 'fiddle'\n");
@@ -208,12 +214,14 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     fc = fopen(filepath_c, "w");
 #endif
 #endif
+#ifdef CDD_BUILD_TESTS
     {
       if (g_fail_io_after == 2) {
         fclose(fc);
         fc = NULL;
       }
     }
+#endif
     if (fc) {
       fprintf(fc, "/* Auto-generated Ruby C Extension Wrapper */\n");
       fprintf(fc, "#include <ruby.h>\n");
@@ -256,12 +264,14 @@ emit_ruby_file(cdd_ffi_ir_t *ir, const cdd_generate_bindings_config_t *config) {
     f = fopen(filepath_test, "w");
 #endif
 #endif
+#ifdef CDD_BUILD_TESTS
     {
       if (g_fail_io_after == 3) {
         fclose(f);
         f = NULL;
       }
     }
+#endif
     if (f) {
       fprintf(f, "# Auto-generated tests for %s\n", lib_name);
       fprintf(f, "require_relative '%s'\n\n", lib_name);

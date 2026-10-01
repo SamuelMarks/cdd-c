@@ -307,6 +307,9 @@ C_CDD_EXPORT cdd_c_error_t clone_json_value(const JSON_Value *val,
   char *serialized;
   JSON_Value *copy;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+
   if (!val) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;

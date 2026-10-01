@@ -458,13 +458,12 @@ TEST test_audit_oom(void) {
     /* Also test OOM for audit_print_json */
     rc = audit_project("test_audit_dir", &stats);
 
-    printf("i=%d rc=%d\n", i, rc);
     for (i = 1; i < 50; i++) {
       g_cdd_fail_alloc_audit = i;
       json = NULL;
       rc = audit_print_json(&stats, &json);
       if (rc == CDD_C_ERROR_MEMORY) {
-        /* test passed for OOM */
+        ASSERT_EQ(CDD_C_ERROR_MEMORY, rc);
       }
       g_cdd_fail_alloc_audit = 0;
       if (rc == 0) {

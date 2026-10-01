@@ -303,6 +303,7 @@ TEST test_openapi_writer_null_and_defensive(void) {
   ASSERT_EQ(CDD_C_SUCCESS, license_fields_invalid(NULL));
   ASSERT_EQ(CDD_C_SUCCESS, server_url_has_query_or_fragment(NULL));
   ASSERT_EQ(1, server_url_has_query_or_fragment("https://example.com#frag"));
+  ASSERT_EQ(CDD_C_ERROR_INVALID_ARGUMENT, clone_json_value(NULL, NULL));
   ASSERT_EQ(CDD_C_SUCCESS, clone_json_value(NULL, &val));
   ASSERT(val == NULL);
   ASSERT_EQ(CDD_C_SUCCESS, schema_ref_has_data(NULL));

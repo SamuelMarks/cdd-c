@@ -897,6 +897,28 @@ TEST test_openapi_responses_full_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_parse_request_body_object(jo, &rb, &spec, 0, "myOp"));
     cdd_test_free_request_body(&rb);
+
+    for (k = 1; k < 30; ++k) {
+      cdd_c_error_t rc_rb;
+      g_cdd_strdup_fail = k;
+      memset(&rb, 0, sizeof(rb));
+      rc_rb = cdd_test_parse_request_body_object(jo, &rb, &spec, 0, "myOp");
+      cdd_test_free_request_body(&rb);
+      g_cdd_strdup_fail = 0;
+      if (rc_rb == CDD_C_SUCCESS)
+        break;
+    }
+
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_fail_assign_ref_name = 1;
+      memset(&rb, 0, sizeof(rb));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                cdd_test_parse_request_body_object(jo, &rb, &spec, 0, "myOp"));
+      cdd_test_free_request_body(&rb);
+      g_cdd_fail_assign_ref_name = 0;
+    }
+
     json_value_free(jv);
   }
 
@@ -1038,6 +1060,17 @@ TEST test_openapi_responses_full_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_parse_request_body_object(jo, &rb, &spec, 0, "myOp"));
     cdd_test_free_request_body(&rb);
+
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_fail_assign_ref_name = 1;
+      memset(&rb, 0, sizeof(rb));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY,
+                cdd_test_parse_request_body_object(jo, &rb, &spec, 0, "myOp"));
+      cdd_test_free_request_body(&rb);
+      g_cdd_fail_assign_ref_name = 0;
+    }
+
     json_value_free(jv);
   }
 
@@ -1206,6 +1239,29 @@ TEST test_openapi_responses_full_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_parse_response_object(jo, &resp, &spec, 0, "op", "200"));
     cdd_test_free_response(&resp);
+
+    for (k = 1; k < 30; ++k) {
+      cdd_c_error_t rc_resp;
+      g_cdd_strdup_fail = k;
+      memset(&resp, 0, sizeof(resp));
+      rc_resp =
+          cdd_test_parse_response_object(jo, &resp, &spec, 0, "op", "200");
+      cdd_test_free_response(&resp);
+      g_cdd_strdup_fail = 0;
+      if (rc_resp == CDD_C_SUCCESS)
+        break;
+    }
+
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_fail_assign_ref_name = 1;
+      memset(&resp, 0, sizeof(resp));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_response_object(
+                                        jo, &resp, &spec, 0, "op", "200"));
+      cdd_test_free_response(&resp);
+      g_cdd_fail_assign_ref_name = 0;
+    }
+
     json_value_free(jv);
   }
 
@@ -1230,6 +1286,29 @@ TEST test_openapi_responses_full_coverage(void) {
     ASSERT_EQ(CDD_C_SUCCESS,
               cdd_test_parse_response_object(jo, &resp, &spec, 0, "op", "200"));
     cdd_test_free_response(&resp);
+
+    for (k = 1; k < 30; ++k) {
+      cdd_c_error_t rc_resp;
+      g_cdd_strdup_fail = k;
+      memset(&resp, 0, sizeof(resp));
+      rc_resp =
+          cdd_test_parse_response_object(jo, &resp, &spec, 0, "op", "200");
+      cdd_test_free_response(&resp);
+      g_cdd_strdup_fail = 0;
+      if (rc_resp == CDD_C_SUCCESS)
+        break;
+    }
+
+    {
+      extern C_CDD_EXPORT int g_cdd_fail_assign_ref_name;
+      g_cdd_fail_assign_ref_name = 1;
+      memset(&resp, 0, sizeof(resp));
+      ASSERT_EQ(CDD_C_ERROR_MEMORY, cdd_test_parse_response_object(
+                                        jo, &resp, &spec, 0, "op", "200"));
+      cdd_test_free_response(&resp);
+      g_cdd_fail_assign_ref_name = 0;
+    }
+
     json_value_free(jv);
   }
 
@@ -1435,6 +1514,13 @@ TEST test_openapi_responses_full_coverage(void) {
     /* ref with resolve_refs = 0 and spec = NULL */
     memset(&cb, 0, sizeof(cb));
     ASSERT_EQ(CDD_C_SUCCESS, cdd_test_parse_callback_object(jo, &cb, NULL, 0));
+    cdd_test_free_callback(&cb);
+
+    g_cdd_strdup_fail = 2;
+    memset(&cb, 0, sizeof(cb));
+    ASSERT_NEQ(CDD_C_SUCCESS,
+               cdd_test_parse_callback_object(jo, &cb, &spec, 1));
+    g_cdd_strdup_fail = 0;
     cdd_test_free_callback(&cb);
 
     memset(&cb, 0, sizeof(cb));

@@ -50,11 +50,6 @@ static void *url_segment_realloc_impl(void *ptr, size_t sz) {
     return NULL;
   return realloc(ptr, sz);
 }
-#else
-static void *url_segment_malloc_impl(size_t sz) { return malloc(sz); }
-static void *url_segment_realloc_impl(void *ptr, size_t sz) {
-  return realloc(ptr, sz);
-}
 #endif
 
 /** @brief CHECK_IO definition */

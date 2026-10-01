@@ -11,10 +11,10 @@
 /**
  * @brief Parses header object from the given input.
  */
-cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
-                                  struct OpenAPI_Header *out_hdr,
-                                  const struct OpenAPI_Spec *spec,
-                                  int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
+                                               struct OpenAPI_Header *out_hdr,
+                                               const struct OpenAPI_Spec *spec,
+                                               int resolve_refs) {
   struct OpenAPI_Header *_ast_find_component_header_53;
   enum OpenAPI_Style _ast_parse_param_style_54;
   struct OpenAPI_MediaType *_ast_find_component_media_type_55;
@@ -45,7 +45,6 @@ cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   const struct OpenAPI_SchemaRef *resolved_schema;
   struct OpenAPI_SchemaRef parsed_schema = {0};
   int parsed_schema_set;
-  const char *type;
 
   if (!hdr_obj || !out_hdr)
     return CDD_C_SUCCESS;
@@ -152,19 +151,12 @@ cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   parsed_schema_set = 0;
 
   if (content) {
-    size_t ccount = json_object_get_count(content);
-    if (ccount > 0) {
-      media_type = json_object_get_name(content, 0);
-      if (media_type) {
-        media_obj = json_object_get_object(content, media_type);
-      }
-    }
-    if (media_type) {
-      out_hdr->content_type =
-          (c_cdd_strdup(media_type, &_ast_strdup_219), _ast_strdup_219);
-      if (!out_hdr->content_type)
-        return CDD_C_ERROR_MEMORY;
-    }
+    media_type = json_object_get_name(content, 0);
+    media_obj = json_object_get_object(content, media_type);
+    out_hdr->content_type =
+        (c_cdd_strdup(media_type, &_ast_strdup_219), _ast_strdup_219);
+    if (!out_hdr->content_type)
+      return CDD_C_ERROR_MEMORY;
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
@@ -192,9 +184,6 @@ cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
       }
     }
   }
-
-  type = effective_schema ? json_object_get_string(effective_schema, "type")
-                          : NULL;
 
   if (resolved_schema) {
     {
@@ -234,8 +223,7 @@ cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
   }
 
   if (!out_hdr->type) {
-    out_hdr->type = (c_cdd_strdup(type ? type : "string", &_ast_strdup_221),
-                     _ast_strdup_221);
+    out_hdr->type = (c_cdd_strdup("string", &_ast_strdup_221), _ast_strdup_221);
     if (!out_hdr->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
@@ -306,9 +294,9 @@ cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
 /**
  * @brief Parses link parameters from the given input.
  */
-cdd_c_error_t parse_link_parameters(const JSON_Object *params_obj,
-                                    struct OpenAPI_LinkParam **out_params,
-                                    size_t *out_count) {
+C_CDD_EXPORT cdd_c_error_t parse_link_parameters(
+    const JSON_Object *params_obj, struct OpenAPI_LinkParam **out_params,
+    size_t *out_count) {
   char *_ast_strdup_222 = NULL;
   size_t count, i;
   if (!out_params || !out_count)
@@ -331,16 +319,12 @@ cdd_c_error_t parse_link_parameters(const JSON_Object *params_obj,
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(params_obj, i);
     const JSON_Value *val = json_object_get_value_at(params_obj, i);
-    if (name) {
-      (*out_params)[i].name =
-          (c_cdd_strdup(name, &_ast_strdup_222), _ast_strdup_222);
-      if (!(*out_params)[i].name)
-        return CDD_C_ERROR_MEMORY;
-    }
-    if (val) {
-      if (parse_any_value(val, &(*out_params)[i].value) != 0)
-        return CDD_C_ERROR_MEMORY;
-    }
+    (*out_params)[i].name =
+        (c_cdd_strdup(name, &_ast_strdup_222), _ast_strdup_222);
+    if (!(*out_params)[i].name)
+      return CDD_C_ERROR_MEMORY;
+    if (parse_any_value(val, &(*out_params)[i].value) != 0)
+      return CDD_C_ERROR_MEMORY;
   }
 
   return CDD_C_SUCCESS;
@@ -349,10 +333,10 @@ cdd_c_error_t parse_link_parameters(const JSON_Object *params_obj,
 /**
  * @brief Parses link object from the given input.
  */
-cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
-                                struct OpenAPI_Link *out_link,
-                                const struct OpenAPI_Spec *spec,
-                                int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
+                                             struct OpenAPI_Link *out_link,
+                                             const struct OpenAPI_Spec *spec,
+                                             int resolve_refs) {
   struct OpenAPI_Link *_ast_find_component_link_56;
   char *_ast_strdup_223 = NULL;
   char *_ast_strdup_224 = NULL;
@@ -484,11 +468,11 @@ cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
 /**
  * @brief Parses links object from the given input.
  */
-cdd_c_error_t parse_links_object(const JSON_Object *links,
-                                 struct OpenAPI_Link **out_links,
-                                 size_t *out_count,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t parse_links_object(const JSON_Object *links,
+                                              struct OpenAPI_Link **out_links,
+                                              size_t *out_count,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs) {
   char *_ast_strdup_230 = NULL;
   size_t i, count;
   if (!out_links || !out_count)
@@ -515,11 +499,9 @@ cdd_c_error_t parse_links_object(const JSON_Object *links,
     const JSON_Object *link_obj =
         json_value_get_object(json_object_get_value_at(links, i));
     struct OpenAPI_Link *curr = &(*out_links)[i];
-    if (name) {
-      curr->name = (c_cdd_strdup(name, &_ast_strdup_230), _ast_strdup_230);
-      if (!curr->name)
-        return CDD_C_ERROR_MEMORY;
-    }
+    curr->name = (c_cdd_strdup(name, &_ast_strdup_230), _ast_strdup_230);
+    if (!curr->name)
+      return CDD_C_ERROR_MEMORY;
     if (link_obj) {
       {
         cdd_c_error_t _rc =
@@ -536,11 +518,10 @@ cdd_c_error_t parse_links_object(const JSON_Object *links,
 /**
  * @brief Parses headers object from the given input.
  */
-cdd_c_error_t parse_headers_object(const JSON_Object *headers,
-                                   struct OpenAPI_Header **out_headers,
-                                   size_t *out_count,
-                                   const struct OpenAPI_Spec *spec,
-                                   int resolve_refs, int ignore_content_type) {
+C_CDD_EXPORT cdd_c_error_t parse_headers_object(
+    const JSON_Object *headers, struct OpenAPI_Header **out_headers,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs,
+    int ignore_content_type) {
   char *_ast_strdup_231 = NULL;
   size_t i, count, valid = 0;
   if (!out_headers || !out_count)
@@ -568,12 +549,10 @@ cdd_c_error_t parse_headers_object(const JSON_Object *headers,
     struct OpenAPI_Header *curr = &(*out_headers)[valid];
     if (ignore_content_type && header_name_is_content_type(name))
       continue;
-    if (name) {
-      curr->name = (c_cdd_strdup(name, &_ast_strdup_231), _ast_strdup_231);
-      if (!curr->name) {
-        *out_count = valid;
-        return CDD_C_ERROR_MEMORY;
-      }
+    curr->name = (c_cdd_strdup(name, &_ast_strdup_231), _ast_strdup_231);
+    if (!curr->name) {
+      *out_count = valid;
+      return CDD_C_ERROR_MEMORY;
     }
     if (h_obj) {
       cdd_c_error_t rc = parse_header_object(h_obj, curr, spec, resolve_refs);
@@ -604,10 +583,9 @@ cdd_c_error_t parse_headers_object(const JSON_Object *headers,
 /**
  * @brief Parses encoding object from the given input.
  */
-cdd_c_error_t parse_encoding_object(const JSON_Object *enc_obj,
-                                    struct OpenAPI_Encoding *out,
-                                    const struct OpenAPI_Spec *spec,
-                                    int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t
+parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
+                      const struct OpenAPI_Spec *spec, int resolve_refs) {
   enum OpenAPI_Style _ast_parse_param_style_57;
   char *_ast_strdup_232 = NULL;
   const char *content_type;
@@ -716,11 +694,11 @@ cdd_c_error_t parse_encoding_object(const JSON_Object *enc_obj,
 /**
  * @brief Parses encoding map from the given input.
  */
-cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
-                                 struct OpenAPI_Encoding **out,
-                                 size_t *out_count,
-                                 const struct OpenAPI_Spec *spec,
-                                 int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
+                                              struct OpenAPI_Encoding **out,
+                                              size_t *out_count,
+                                              const struct OpenAPI_Spec *spec,
+                                              int resolve_refs) {
   char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
@@ -743,7 +721,7 @@ cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
     const JSON_Object *enc_def =
         json_value_get_object(json_object_get_value_at(enc_obj, i));
     struct OpenAPI_Encoding *curr = &(*out)[valid];
-    if (!name || !enc_def)
+    if (!enc_def)
       continue;
     curr->name = (c_cdd_strdup(name, &_ast_strdup_233), _ast_strdup_233);
     if (!curr->name)
@@ -772,11 +750,11 @@ cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
 /**
  * @brief Parses encoding array from the given input.
  */
-cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
-                                   struct OpenAPI_Encoding **out,
-                                   size_t *out_count,
-                                   const struct OpenAPI_Spec *spec,
-                                   int resolve_refs) {
+C_CDD_EXPORT cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
+                                                struct OpenAPI_Encoding **out,
+                                                size_t *out_count,
+                                                const struct OpenAPI_Spec *spec,
+                                                int resolve_refs) {
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return CDD_C_SUCCESS;

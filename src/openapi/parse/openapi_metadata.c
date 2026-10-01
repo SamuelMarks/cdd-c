@@ -219,12 +219,12 @@ cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
     used = 0;
     for (i = 0; i < count; ++i) {
       const char *name = json_object_get_name(mapping_obj, i);
-      if (!name || strncmp(name, "x-", 2) == 0)
+      if (strncmp(name, "x-", 2) == 0)
         continue;
       used++;
     }
     if (used > 0) {
-      out->mapping = (struct OpenAPI_DiscriminatorMap *)calloc(
+      out->mapping = (struct OpenAPI_DiscriminatorMap *)c_cdd_calloc(
           used, sizeof(struct OpenAPI_DiscriminatorMap));
       if (!out->mapping)
         return CDD_C_ERROR_MEMORY;
@@ -233,7 +233,7 @@ cdd_c_error_t parse_discriminator_object(const JSON_Object *obj,
       for (i = 0; i < count; ++i) {
         const char *name = json_object_get_name(mapping_obj, i);
         const char *val;
-        if (!name || strncmp(name, "x-", 2) == 0)
+        if (strncmp(name, "x-", 2) == 0)
           continue;
         val = json_object_get_string(mapping_obj, name);
         if (!val)
@@ -350,7 +350,8 @@ cdd_c_error_t parse_tags(const JSON_Object *root_obj,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  out->tags = (struct OpenAPI_Tag *)calloc(count, sizeof(struct OpenAPI_Tag));
+  out->tags =
+      (struct OpenAPI_Tag *)c_cdd_calloc(count, sizeof(struct OpenAPI_Tag));
   if (!out->tags)
     return CDD_C_ERROR_MEMORY;
   out->n_tags = count;
@@ -370,7 +371,7 @@ cdd_c_error_t parse_tags(const JSON_Object *root_obj,
     {
       size_t k;
       for (k = 0; k < i; ++k) {
-        if (out->tags[k].name && strcmp(out->tags[k].name, name) == 0)
+        if (strcmp(out->tags[k].name, name) == 0)
           return CDD_C_ERROR_INVALID_ARGUMENT;
       }
     }
@@ -426,7 +427,7 @@ cdd_c_error_t tag_index_by_name(const struct OpenAPI_Spec *spec,
   if (!spec || !name || !out_idx)
     return CDD_C_ERROR_INVALID_ARGUMENT;
   for (i = 0; i < spec->n_tags; ++i) {
-    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0) {
+    if (strcmp(spec->tags[i].name, name) == 0) {
       *out_idx = i;
       return CDD_C_SUCCESS;
     }
@@ -468,7 +469,7 @@ cdd_c_error_t validate_tag_parents(const struct OpenAPI_Spec *spec) {
   if (!spec || !spec->tags || spec->n_tags == 0)
     return CDD_C_SUCCESS;
 
-  state = (int *)calloc(spec->n_tags, sizeof(int));
+  state = (int *)c_cdd_calloc(spec->n_tags, sizeof(int));
   if (!state)
     return CDD_C_ERROR_MEMORY;
   for (i = 0; i < spec->n_tags; ++i) {
@@ -490,7 +491,7 @@ cdd_c_error_t server_variable_defined(const struct OpenAPI_Server *srv,
   if (!srv || !name || !srv->variables)
     return CDD_C_SUCCESS;
   for (i = 0; i < srv->n_variables; ++i) {
-    if (srv->variables[i].name && strcmp(srv->variables[i].name, name) == 0)
+    if (strcmp(srv->variables[i].name, name) == 0)
       return CDD_C_ERROR_UNKNOWN;
   }
   return CDD_C_SUCCESS;
@@ -505,7 +506,7 @@ cdd_c_error_t server_variable_seen(char **seen, size_t seen_count,
   if (!seen || !name)
     return CDD_C_SUCCESS;
   for (i = 0; i < seen_count; ++i) {
-    if (seen[i] && strcmp(seen[i], name) == 0)
+    if (strcmp(seen[i], name) == 0)
       return CDD_C_ERROR_UNKNOWN;
   }
   return CDD_C_SUCCESS;
@@ -536,7 +537,7 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
       len = (size_t)(end - (url + i + 1));
       if (len == 0)
         goto invalid;
-      name = (char *)(size_t)malloc(len + 1);
+      name = (char *)(size_t)c_cdd_malloc(len + 1);
       if (!name)
         goto oom;
       memcpy(name, url + i + 1, len);
@@ -551,7 +552,7 @@ cdd_c_error_t validate_server_url_variables(const struct OpenAPI_Server *srv) {
       }
       if (seen_count == seen_cap) {
         size_t new_cap = seen_cap ? seen_cap * 2 : 4;
-        tmp = (char **)realloc(seen, new_cap * sizeof(char *));
+        tmp = (char **)c_cdd_realloc(seen, new_cap * sizeof(char *));
         if (!tmp) {
           free(name);
           goto oom;
@@ -613,7 +614,7 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
   if (!url || !*url)
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
-  if (url && url_has_query_or_fragment(url))
+  if (url_has_query_or_fragment(url))
     return CDD_C_ERROR_INVALID_ARGUMENT;
 
   out_srv->url = (c_cdd_strdup(url, &_ast_strdup_171), _ast_strdup_171);
@@ -642,7 +643,7 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
     size_t vcount = json_object_get_count(vars);
     size_t v;
     if (vcount > 0) {
-      out_srv->variables = (struct OpenAPI_ServerVariable *)calloc(
+      out_srv->variables = (struct OpenAPI_ServerVariable *)c_cdd_calloc(
           vcount, sizeof(struct OpenAPI_ServerVariable));
       if (!out_srv->variables)
         return CDD_C_ERROR_MEMORY;
@@ -652,23 +653,19 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
         const JSON_Object *v_obj =
             json_value_get_object(json_object_get_value_at(vars, v));
         struct OpenAPI_ServerVariable *curr = &out_srv->variables[v];
-        if (vname) {
-          curr->name = (c_cdd_strdup(vname, &_ast_strdup_174), _ast_strdup_174);
-          if (!curr->name)
-            return CDD_C_ERROR_MEMORY;
-        }
+        curr->name = (c_cdd_strdup(vname, &_ast_strdup_174), _ast_strdup_174);
+        if (!curr->name)
+          return CDD_C_ERROR_MEMORY;
         if (v_obj) {
           const char *def_val = json_object_get_string(v_obj, "default");
           const char *v_desc = json_object_get_string(v_obj, "description");
           const JSON_Array *enum_arr = json_object_get_array(v_obj, "enum");
           if (!def_val || !*def_val)
             return CDD_C_ERROR_INVALID_ARGUMENT;
-          if (def_val) {
-            curr->default_value =
-                (c_cdd_strdup(def_val, &_ast_strdup_175), _ast_strdup_175);
-            if (!curr->default_value)
-              return CDD_C_ERROR_MEMORY;
-          }
+          curr->default_value =
+              (c_cdd_strdup(def_val, &_ast_strdup_175), _ast_strdup_175);
+          if (!curr->default_value)
+            return CDD_C_ERROR_MEMORY;
           if (v_desc) {
             curr->description =
                 (c_cdd_strdup(v_desc, &_ast_strdup_176), _ast_strdup_176);
@@ -681,8 +678,8 @@ cdd_c_error_t parse_server_object(const JSON_Object *srv_obj,
             int found_default = 0;
             if (ecount == 0)
               return CDD_C_ERROR_INVALID_ARGUMENT;
-            if (ecount > 0) {
-              curr->enum_values = (char **)calloc(ecount, sizeof(char *));
+            {
+              curr->enum_values = (char **)c_cdd_calloc(ecount, sizeof(char *));
               if (!curr->enum_values)
                 return CDD_C_ERROR_MEMORY;
               curr->n_enum_values = ecount;
@@ -744,8 +741,8 @@ cdd_c_error_t parse_servers_array(const JSON_Object *parent, const char *key,
   if (count == 0)
     return CDD_C_SUCCESS;
 
-  *out_servers =
-      (struct OpenAPI_Server *)calloc(count, sizeof(struct OpenAPI_Server));
+  *out_servers = (struct OpenAPI_Server *)c_cdd_calloc(
+      count, sizeof(struct OpenAPI_Server));
   if (!*out_servers)
     return CDD_C_ERROR_MEMORY;
   *out_count = count;

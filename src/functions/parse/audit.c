@@ -405,6 +405,10 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
   JSON_Object *root_obj;
   char *str = NULL;
   size_t i;
+  if (!stats || !out_json) {
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  }
+
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
@@ -418,12 +422,9 @@ cdd_c_error_t audit_print_json(const struct AuditStats *stats,
   root_val = json_value_init_object();
 #endif
 
-  if (!stats || !out_json || !root_val) {
-    if (out_json)
-      *out_json = NULL;
-    if (root_val)
-      json_value_free(root_val);
-    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!root_val) {
+    *out_json = NULL;
+    return CDD_C_ERROR_MEMORY;
   }
 
   root_obj = json_value_get_object(root_val);

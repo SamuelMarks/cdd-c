@@ -155,8 +155,7 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
       ++i;
     seg_len = i - start;
     if (seg_len == 0) {
-      if (path[i] == '/')
-        ++i;
+      ++i;
       continue;
     }
     if (seg_len == 1 && path[start] == '.') {
@@ -164,14 +163,15 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
         ++i;
       continue;
     }
-    if (seg_len == 2 && path[start] == '.' && path[start + 1] == '.') {
+    if (seg_len == 2 && memcmp(path + start, "..", 2) == 0) {
       if (count > 0 && strcmp(segments[count - 1], "..") != 0) {
         free(segments[count - 1]);
         count--;
       } else if (!absolute) {
         if (count == cap) {
           size_t new_cap = cap ? cap * 2 : 4;
-          char **tmp = (char **)realloc(segments, new_cap * sizeof(*segments));
+          char **tmp =
+              (char **)c_cdd_realloc(segments, new_cap * sizeof(*segments));
           if (!tmp)
             goto cleanup;
           segments = tmp;
@@ -186,7 +186,8 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
     }
     if (count == cap) {
       size_t new_cap = cap ? cap * 2 : 4;
-      char **tmp = (char **)realloc(segments, new_cap * sizeof(*segments));
+      char **tmp =
+          (char **)c_cdd_realloc(segments, new_cap * sizeof(*segments));
       if (!tmp)
         goto cleanup;
       segments = tmp;
@@ -226,10 +227,10 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
     if (i + 1 < count)
       out_len += 1;
   }
-  if (trailing && out_len > 0 && (!absolute || out_len > 1))
+  if (trailing)
     out_len += 1;
 
-  out = (char *)(size_t)malloc(out_len + 1);
+  out = (char *)(size_t)c_cdd_malloc(out_len + 1);
   if (!out)
     goto cleanup;
   {
@@ -243,7 +244,7 @@ cdd_c_error_t normalize_path(const char *path, char **_out_val) {
       if (i + 1 < count)
         out[pos++] = '/';
     }
-    if (trailing && pos > 0 && out[pos - 1] != '/')
+    if (trailing)
       out[pos++] = '/';
     out[pos] = '\0';
   }
@@ -305,7 +306,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     return CDD_C_SUCCESS;
   }
 
-  if (ref_len >= 2 && ref[0] == '/' && ref[1] == '/') {
+  if (ref_len >= 2 && memcmp(ref, "//", 2) == 0) {
     size_t scheme_len =
         (uri_scheme_len(base_uri,
                         (uri_base_len(base_uri, &_ast_uri_base_len_9),
@@ -314,7 +315,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
          _ast_uri_scheme_len_8);
     if (scheme_len > 0) {
       size_t out_len = scheme_len + 1 + ref_len;
-      out = (char *)(size_t)malloc(out_len + 1);
+      out = (char *)(size_t)c_cdd_malloc(out_len + 1);
       if (!out) {
         *_out_val = NULL;
         return CDD_C_SUCCESS;
@@ -339,8 +340,8 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     size_t scheme_len =
         (uri_scheme_len(base_uri, base_len, &_ast_uri_scheme_len_11),
          _ast_uri_scheme_len_11);
-    if (scheme_len > 0 && scheme_len + 2 < base_len &&
-        base_uri[scheme_len + 1] == '/' && base_uri[scheme_len + 2] == '/') {
+    if (scheme_len + 2 < base_len &&
+        memcmp(base_uri + scheme_len + 1, "//", 2) == 0) {
       size_t auth_start = scheme_len + 3;
       size_t i = auth_start;
       while (i < base_len && base_uri[i] != '/')
@@ -357,12 +358,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
     normalized =
         (normalize_path(ref, &_ast_normalize_path_12), _ast_normalize_path_12);
   } else {
-    if (path_len == 0) {
-      if (prefix_len > 0) {
-        base_dir = "/";
-        base_dir_len = 1;
-      }
-    } else {
+    {
       size_t i = path_len;
       while (i > 0 && base_path[i - 1] != '/')
         --i;
@@ -374,7 +370,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
       }
     }
 
-    combined = (char *)(size_t)malloc(base_dir_len + ref_len + 1);
+    combined = (char *)(size_t)c_cdd_malloc(base_dir_len + ref_len + 1);
     if (!combined) {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
@@ -396,7 +392,7 @@ cdd_c_error_t resolve_uri_reference(const char *base_uri, const char *ref,
   {
     size_t norm_len = strlen(normalized);
     size_t out_len = prefix_len + norm_len;
-    out = (char *)(size_t)malloc(out_len + 1);
+    out = (char *)(size_t)c_cdd_malloc(out_len + 1);
     if (!out) {
       free(normalized);
       {
@@ -429,6 +425,11 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
   char *resolved = NULL;
   char *out = NULL;
 
+  if ((!self_uri || !*self_uri) && (!retrieval_uri || !*retrieval_uri)) {
+    *_out_val = NULL;
+    return CDD_C_SUCCESS;
+  }
+
   if (self_uri && *self_uri) {
     if (retrieval_uri && *retrieval_uri) {
       resolved = (resolve_uri_reference(retrieval_uri, self_uri,
@@ -437,13 +438,13 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
     } else {
       resolved = (c_cdd_strdup(self_uri, &_ast_strdup_47), _ast_strdup_47);
     }
-  } else if (retrieval_uri && *retrieval_uri) {
+  } else {
     resolved = (c_cdd_strdup(retrieval_uri, &_ast_strdup_48), _ast_strdup_48);
   }
 
   if (!resolved) {
     *_out_val = NULL;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   {
@@ -452,6 +453,10 @@ cdd_c_error_t compute_document_uri(const char *self_uri,
     out = (dup_substr(resolved, len, &_ast_dup_substr_16), _ast_dup_substr_16);
   }
   free(resolved);
+  if (!out) {
+    *_out_val = NULL;
+    return CDD_C_ERROR_MEMORY;
+  }
   {
     *_out_val = out;
     return CDD_C_SUCCESS;
@@ -487,7 +492,7 @@ cdd_c_error_t root_is_schema_document(const JSON_Value *root,
   type = json_value_get_type(root);
   if (type == JSONBoolean)
     return CDD_C_ERROR_UNKNOWN;
-  if (type != JSONObject || !root_obj)
+  if (type != JSONObject)
     return CDD_C_SUCCESS;
   if (json_object_has_value(root_obj, "openapi") ||
       json_object_has_value(root_obj, "swagger"))
@@ -508,7 +513,19 @@ cdd_c_error_t store_schema_root_json(struct OpenAPI_Spec *spec,
     return CDD_C_ERROR_INVALID_ARGUMENT;
   if (spec->schema_root_json)
     return CDD_C_SUCCESS;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern C_CDD_EXPORT int g_cdd_fail_json_serialize;
+    if (g_cdd_fail_json_serialize) {
+      g_cdd_fail_json_serialize = 0;
+      raw_json = NULL;
+    } else {
+      raw_json = json_serialize_to_string(root);
+    }
+  }
+#else
   raw_json = json_serialize_to_string(root);
+#endif
   if (!raw_json)
     return CDD_C_ERROR_MEMORY;
   spec->schema_root_json =
@@ -553,7 +570,7 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
       (dup_substr(ref, base_len, &_ast_dup_substr_17), _ast_dup_substr_17);
   if (!base_part) {
     *_out_val = out;
-    return CDD_C_SUCCESS;
+    return CDD_C_ERROR_MEMORY;
   }
 
   if (spec->document_uri && *spec->document_uri) {
@@ -569,7 +586,7 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
     resolved_base = base_part;
   }
 
-  if (spec->doc_registry && resolved_base) {
+  if (spec->doc_registry) {
     size_t i;
     for (i = 0; i < spec->doc_registry->count; ++i) {
       const struct OpenAPI_DocRegistryEntry *entry =
@@ -581,18 +598,21 @@ cdd_c_error_t resolve_ref_target(const struct OpenAPI_Spec *spec,
     }
   }
 
-  if (resolved_base) {
-    size_t resolved_len = strlen(resolved_base);
-    if (resolved_len != base_len ||
-        strncmp(ref, resolved_base, base_len) != 0) {
+  {
+    if (resolved_base != base_part) {
+      size_t resolved_len = strlen(resolved_base);
       size_t hash_len = strlen(hash);
-      out.resolved_ref = (char *)(size_t)malloc(resolved_len + hash_len + 1);
-      if (out.resolved_ref) {
-        memcpy(out.resolved_ref, resolved_base, resolved_len);
-        memcpy(out.resolved_ref + resolved_len, hash, hash_len);
-        out.resolved_ref[resolved_len + hash_len] = '\0';
-        out.ref = out.resolved_ref;
+      out.resolved_ref =
+          (char *)(size_t)c_cdd_malloc(resolved_len + hash_len + 1);
+      if (!out.resolved_ref) {
+        free(resolved_base);
+        *_out_val = out;
+        return CDD_C_ERROR_MEMORY;
       }
+      memcpy(out.resolved_ref, resolved_base, resolved_len);
+      memcpy(out.resolved_ref + resolved_len, hash, hash_len);
+      out.resolved_ref[resolved_len + hash_len] = '\0';
+      out.ref = out.resolved_ref;
     }
     free(resolved_base);
   }
@@ -639,14 +659,10 @@ cdd_c_error_t ref_base_matches_self(const struct OpenAPI_Spec *spec,
       if (rel_len == 0)
         return CDD_C_SUCCESS;
       if (base_len >= rel_len &&
-          strncmp(ref + (base_len - rel_len), rel, rel_len) == 0) {
-        if (rel[0] == '/')
-          return CDD_C_ERROR_UNKNOWN;
-        if (base_len == rel_len)
-          return CDD_C_ERROR_UNKNOWN;
-        if (ref[base_len - rel_len - 1] == '/')
-          return CDD_C_ERROR_UNKNOWN;
-      }
+          strncmp(ref + (base_len - rel_len), rel, rel_len) == 0 &&
+          (rel[0] == '/' || base_len == rel_len ||
+           ref[base_len - rel_len - 1] == '/'))
+        return CDD_C_ERROR_UNKNOWN;
     }
     return CDD_C_SUCCESS;
   }
@@ -702,7 +718,7 @@ cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
   prefix_len = strlen(prefix);
   if (strncmp(ref, prefix, prefix_len) == 0) {
     name = ref + prefix_len;
-    if (!name || !*name) {
+    if (!*name) {
       *_out_val = NULL;
       return CDD_C_SUCCESS;
     }
@@ -729,7 +745,7 @@ cdd_c_error_t ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     return CDD_C_SUCCESS;
   }
   name = hash + prefix_len;
-  if (!name || !*name) {
+  if (!*name) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }

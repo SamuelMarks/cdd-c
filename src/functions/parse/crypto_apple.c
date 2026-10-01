@@ -19,11 +19,7 @@
 #include <CommonCrypto/CommonHMAC.h>
 /* clang-format on */
 
-/**
- * @brief Executes the crypto sha256 operation.
- *
- * least 32 bytes).
- */
+#ifdef CDD_BUILD_TESTS
 extern C_CDD_EXPORT int g_crypto_fail_sha256;
 extern C_CDD_EXPORT int g_crypto_fail_mdctx_new;
 extern C_CDD_EXPORT int g_crypto_fail_digestinit;
@@ -32,15 +28,18 @@ extern C_CDD_EXPORT int g_crypto_fail_digestfinal;
 extern C_CDD_EXPORT int g_crypto_fail_digestfinal_len;
 extern C_CDD_EXPORT int g_crypto_fail_hmac;
 extern C_CDD_EXPORT int g_crypto_fail_hmac_len;
+#endif
 
 cdd_c_error_t crypto_sha256(const void *data, size_t data_len,
                             unsigned char *out_digest) {
+#ifdef CDD_BUILD_TESTS
   if (g_crypto_fail_sha256 || g_crypto_fail_digestinit ||
       g_crypto_fail_digestupdate || g_crypto_fail_digestfinal ||
       g_crypto_fail_digestfinal_len)
     return CDD_C_ERROR_IO;
   if (g_crypto_fail_mdctx_new)
     return CDD_C_ERROR_MEMORY;
+#endif
 
   if (!data && data_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;
@@ -59,8 +58,10 @@ cdd_c_error_t crypto_hmac_sha256(const void *key, size_t key_len,
                                  const void *data, size_t data_len,
                                  unsigned char *out_mac) {
 
+#ifdef CDD_BUILD_TESTS
   if (g_crypto_fail_hmac || g_crypto_fail_hmac_len)
     return CDD_C_ERROR_IO;
+#endif
 
   if (!key && key_len > 0)
     return CDD_C_ERROR_INVALID_ARGUMENT;

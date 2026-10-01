@@ -14,12 +14,6 @@
 cdd_c_error_t openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
     struct OpenAPI_DocRegistry *registry) {
-  char *_ast_compute_document_uri_89 = NULL;
-  char *_ast_compute_document_uri_90 = NULL;
-  char *_ast_strdup_293 = NULL;
-  char *_ast_strdup_294 = NULL;
-  char *_ast_strdup_295 = NULL;
-  char *_ast_strdup_296 = NULL;
   const JSON_Object *root_obj;
   const JSON_Object *paths_obj;
   const JSON_Object *webhooks_obj;
@@ -35,10 +29,9 @@ cdd_c_error_t openapi_load_from_json_internal(
 
   out->doc_registry = registry;
   if (retrieval_uri && *retrieval_uri) {
-    out->retrieval_uri =
-        (c_cdd_strdup(retrieval_uri, &_ast_strdup_293), _ast_strdup_293);
-    if (!out->retrieval_uri)
-      return CDD_C_ERROR_MEMORY;
+    rc = c_cdd_strdup(retrieval_uri, &out->retrieval_uri);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
   }
 
   {
@@ -55,11 +48,9 @@ cdd_c_error_t openapi_load_from_json_internal(
             root_obj ? json_object_get_string(root_obj, "$id") : NULL;
         if ((schema_id && *schema_id) ||
             (out->retrieval_uri && *out->retrieval_uri)) {
-          out->document_uri =
-              (compute_document_uri(schema_id, out->retrieval_uri,
-                                    &_ast_compute_document_uri_89),
-               _ast_compute_document_uri_89);
-          if (!out->document_uri)
+          rc = compute_document_uri(schema_id, out->retrieval_uri,
+                                    &out->document_uri);
+          if (rc != CDD_C_SUCCESS)
             return CDD_C_ERROR_MEMORY;
         }
       }
@@ -80,16 +71,14 @@ cdd_c_error_t openapi_load_from_json_internal(
     if (version) {
       if (!openapi_version_supported(version))
         return CDD_C_ERROR_INVALID_ARGUMENT;
-      out->openapi_version =
-          (c_cdd_strdup(version, &_ast_strdup_294), _ast_strdup_294);
-      if (!out->openapi_version)
-        return CDD_C_ERROR_MEMORY;
+      rc = c_cdd_strdup(version, &out->openapi_version);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
     if (swagger_version) {
-      out->swagger_version =
-          (c_cdd_strdup(swagger_version, &_ast_strdup_294), _ast_strdup_294);
-      if (!out->swagger_version)
-        return CDD_C_ERROR_MEMORY;
+      rc = c_cdd_strdup(swagger_version, &out->swagger_version);
+      if (rc != CDD_C_SUCCESS)
+        return rc;
     }
 
     if (out->swagger_version) {
@@ -102,45 +91,54 @@ cdd_c_error_t openapi_load_from_json_internal(
 
       host = json_object_get_string(root_obj, "host");
       if (host) {
-        out->host = strdup(host);
-        if (!out->host)
-          return CDD_C_ERROR_MEMORY;
+        rc = c_cdd_strdup(host, &out->host);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
       basePath = json_object_get_string(root_obj, "basePath");
       if (basePath) {
-        out->basePath = strdup(basePath);
-        if (!out->basePath)
-          return CDD_C_ERROR_MEMORY;
+        rc = c_cdd_strdup(basePath, &out->basePath);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
 
       schemes_arr = json_object_get_array(root_obj, "schemes");
       if (schemes_arr) {
         out->n_schemes = json_array_get_count(schemes_arr);
-        out->schemes = calloc(out->n_schemes, sizeof(char *));
+        out->schemes = (char **)c_cdd_calloc(out->n_schemes, sizeof(char *));
         if (!out->schemes)
           return CDD_C_ERROR_MEMORY;
         for (i = 0; i < out->n_schemes; i++) {
-          out->schemes[i] = strdup(json_array_get_string(schemes_arr, i));
+          rc = c_cdd_strdup(json_array_get_string(schemes_arr, i),
+                            &out->schemes[i]);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
       consumes_arr = json_object_get_array(root_obj, "consumes");
       if (consumes_arr) {
         out->n_consumes = json_array_get_count(consumes_arr);
-        out->consumes = calloc(out->n_consumes, sizeof(char *));
+        out->consumes = (char **)c_cdd_calloc(out->n_consumes, sizeof(char *));
         if (!out->consumes)
           return CDD_C_ERROR_MEMORY;
         for (i = 0; i < out->n_consumes; i++) {
-          out->consumes[i] = strdup(json_array_get_string(consumes_arr, i));
+          rc = c_cdd_strdup(json_array_get_string(consumes_arr, i),
+                            &out->consumes[i]);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
       produces_arr = json_object_get_array(root_obj, "produces");
       if (produces_arr) {
         out->n_produces = json_array_get_count(produces_arr);
-        out->produces = calloc(out->n_produces, sizeof(char *));
+        out->produces = (char **)c_cdd_calloc(out->n_produces, sizeof(char *));
         if (!out->produces)
           return CDD_C_ERROR_MEMORY;
         for (i = 0; i < out->n_produces; i++) {
-          out->produces[i] = strdup(json_array_get_string(produces_arr, i));
+          rc = c_cdd_strdup(json_array_get_string(produces_arr, i),
+                            &out->produces[i]);
+          if (rc != CDD_C_SUCCESS)
+            return rc;
         }
       }
     }
@@ -148,35 +146,29 @@ cdd_c_error_t openapi_load_from_json_internal(
     {
       const char *self_uri = json_object_get_string(root_obj, "$self");
       if (self_uri) {
-        out->self_uri =
-            (c_cdd_strdup(self_uri, &_ast_strdup_295), _ast_strdup_295);
-        if (!out->self_uri)
-          return CDD_C_ERROR_MEMORY;
+        rc = c_cdd_strdup(self_uri, &out->self_uri);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
     if (out->self_uri || out->retrieval_uri) {
-      out->document_uri =
-          (compute_document_uri(out->self_uri, out->retrieval_uri,
-                                &_ast_compute_document_uri_90),
-           _ast_compute_document_uri_90);
-      if (!out->document_uri)
+      rc = compute_document_uri(out->self_uri, out->retrieval_uri,
+                                &out->document_uri);
+      if (rc != CDD_C_SUCCESS)
         return CDD_C_ERROR_MEMORY;
     }
     {
       const char *dialect =
           json_object_get_string(root_obj, "jsonSchemaDialect");
       if (dialect) {
-        out->json_schema_dialect =
-            (c_cdd_strdup(dialect, &_ast_strdup_296), _ast_strdup_296);
-        if (!out->json_schema_dialect)
-          return CDD_C_ERROR_MEMORY;
+        rc = c_cdd_strdup(dialect, &out->json_schema_dialect);
+        if (rc != CDD_C_SUCCESS)
+          return rc;
       }
     }
-    {
-      cdd_c_error_t _rc = collect_extensions(root_obj, &out->extensions_json);
-      if (_rc != CDD_C_SUCCESS)
-        return _rc;
-    }
+    rc = collect_extensions(root_obj, &out->extensions_json);
+    if (rc != CDD_C_SUCCESS)
+      return rc;
 
     rc = parse_info(root_obj, out);
     if (rc != CDD_C_SUCCESS) {
@@ -276,7 +268,16 @@ cdd_c_error_t openapi_load_from_json_internal(
         JSON_Object *mut_comps = (JSON_Object *)comps_obj;
         JSON_Object *schemas = json_object_get_object(mut_comps, "schemas");
         if (!schemas) {
-          json_object_set_value(mut_comps, "schemas", json_value_init_object());
+          JSON_Value *schemas_val;
+#ifdef CDD_BUILD_TESTS
+          if (g_cdd_alloc_fail && --g_cdd_alloc_fail == 0)
+            schemas_val = NULL;
+          else
+#endif
+            schemas_val = json_value_init_object();
+          if (!schemas_val)
+            return CDD_C_ERROR_MEMORY;
+          json_object_set_value(mut_comps, "schemas", schemas_val);
           schemas = json_object_get_object(mut_comps, "schemas");
         }
         if (!json_object_has_value(schemas, "OAuth2TokenRequest")) {
@@ -423,7 +424,7 @@ cdd_c_error_t openapi_load_from_json_internal(
       }
     }
 
-    if (out->component_path_items && out->n_component_path_items > 0) {
+    if (out->n_component_path_items > 0) {
       rc = validate_querystring_usage(out->component_path_items,
                                       out->n_component_path_items);
       if (rc != CDD_C_SUCCESS) {
@@ -486,7 +487,9 @@ cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
                                        const char *name,
                                        struct StructFields **_out_val) {
   size_t i;
-  if (!spec || !name) {
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+  if (!spec || !name || !spec->defined_schema_names) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
   }
@@ -515,6 +518,12 @@ cdd_c_error_t openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
   const char *hash;
   size_t base_len;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_find_schema_by_id && --g_cdd_fail_find_schema_by_id == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!spec || !ref || !spec->defined_schema_ids) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -565,6 +574,13 @@ openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
   const char *anchor;
   char **anchors;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_fail_find_schema_by_anchor &&
+      --g_cdd_fail_find_schema_by_anchor == 0)
+    return CDD_C_ERROR_MEMORY;
+#endif
   if (!spec || !ref) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -611,17 +627,12 @@ cdd_c_error_t
 openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
                                  const struct OpenAPI_SchemaRef *ref,
                                  struct StructFields **_out_val) {
-  struct ResolvedRefTarget _ast_resolve_ref_target_91;
-  struct StructFields *_ast_openapi_spec_find_schema_92;
-  struct ResolvedRefTarget _ast_resolve_ref_target_93;
-  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_94;
-  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_95;
-  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_96;
-  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_97;
-  struct StructFields *_ast_openapi_spec_find_schema_by_id_98;
   struct ResolvedRefTarget resolved;
   const struct OpenAPI_Spec *target;
+  cdd_c_error_t rc;
 
+  if (!_out_val)
+    return CDD_C_ERROR_INVALID_ARGUMENT;
   if (!spec || !ref) {
     *_out_val = NULL;
     return CDD_C_SUCCESS;
@@ -663,64 +674,80 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
   }
   if (ref->ref_name) {
     if (ref->ref) {
-      resolved =
-          (resolve_ref_target(spec, ref->ref, &_ast_resolve_ref_target_91),
-           _ast_resolve_ref_target_91);
-      target = resolved.spec ? resolved.spec : spec;
+      rc = resolve_ref_target(spec, ref->ref, &resolved);
+      if (rc != CDD_C_SUCCESS) {
+        *_out_val = NULL;
+        return rc;
+      }
+      target = resolved.spec;
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
     } else {
       target = spec;
     }
-    {
-      *_out_val = (openapi_spec_find_schema(target, ref->ref_name,
-                                            &_ast_openapi_spec_find_schema_92),
-                   _ast_openapi_spec_find_schema_92);
-      return CDD_C_SUCCESS;
-    }
+    return openapi_spec_find_schema(target, ref->ref_name, _out_val);
   }
 
   if (ref->ref) {
-    const struct StructFields *found = NULL;
-    resolved = (resolve_ref_target(spec, ref->ref, &_ast_resolve_ref_target_93),
-                _ast_resolve_ref_target_93);
-    target = resolved.spec ? resolved.spec : spec;
-    if (ref->ref_is_dynamic) {
-      found = (openapi_spec_find_schema_by_anchor(
-                   target, resolved.ref, 1,
-                   &_ast_openapi_spec_find_schema_by_anchor_94),
-               _ast_openapi_spec_find_schema_by_anchor_94);
-      if (!found)
-        found = (openapi_spec_find_schema_by_anchor(
-                     target, resolved.ref, 0,
-                     &_ast_openapi_spec_find_schema_by_anchor_95),
-                 _ast_openapi_spec_find_schema_by_anchor_95);
-    } else {
-      found = (openapi_spec_find_schema_by_anchor(
-                   target, resolved.ref, 0,
-                   &_ast_openapi_spec_find_schema_by_anchor_96),
-               _ast_openapi_spec_find_schema_by_anchor_96);
-      if (!found)
-        found = (openapi_spec_find_schema_by_anchor(
-                     target, resolved.ref, 1,
-                     &_ast_openapi_spec_find_schema_by_anchor_97),
-                 _ast_openapi_spec_find_schema_by_anchor_97);
+    struct StructFields *found = NULL;
+    rc = resolve_ref_target(spec, ref->ref, &resolved);
+    if (rc != CDD_C_SUCCESS) {
+      *_out_val = NULL;
+      return rc;
     }
-    if (!found)
-      found =
-          (openapi_spec_find_schema_by_id(
-               target, resolved.ref, &_ast_openapi_spec_find_schema_by_id_98),
-           _ast_openapi_spec_find_schema_by_id_98);
+    target = resolved.spec;
+    if (ref->ref_is_dynamic) {
+      rc = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1, &found);
+      if (rc != CDD_C_SUCCESS) {
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
+        *_out_val = NULL;
+        return rc;
+      }
+      if (!found) {
+        rc =
+            openapi_spec_find_schema_by_anchor(target, resolved.ref, 0, &found);
+        if (rc != CDD_C_SUCCESS) {
+          if (resolved.resolved_ref)
+            free(resolved.resolved_ref);
+          *_out_val = NULL;
+          return rc;
+        }
+      }
+    } else {
+      rc = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0, &found);
+      if (rc != CDD_C_SUCCESS) {
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
+        *_out_val = NULL;
+        return rc;
+      }
+      if (!found) {
+        rc =
+            openapi_spec_find_schema_by_anchor(target, resolved.ref, 1, &found);
+        if (rc != CDD_C_SUCCESS) {
+          if (resolved.resolved_ref)
+            free(resolved.resolved_ref);
+          *_out_val = NULL;
+          return rc;
+        }
+      }
+    }
+    if (!found) {
+      rc = openapi_spec_find_schema_by_id(target, resolved.ref, &found);
+      if (rc != CDD_C_SUCCESS) {
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
+        *_out_val = NULL;
+        return rc;
+      }
+    }
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    {
-      *_out_val = (struct StructFields *)(found);
-      return CDD_C_SUCCESS;
-    }
-  }
-
-  {
-    *_out_val = NULL;
+    *_out_val = found;
     return CDD_C_SUCCESS;
   }
+
+  *_out_val = NULL;
+  return CDD_C_SUCCESS;
 }

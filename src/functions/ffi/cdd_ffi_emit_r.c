@@ -1,4 +1,6 @@
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
 /* clang-format off */
 #include "c_cdd/safe_crt_msvc.h"
 

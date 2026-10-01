@@ -367,7 +367,6 @@ set(Source_Files
         "functions/ffi/cdd_ffi_emit_zig.c"
         "functions/ffi/cdd_ffi_variadic.c"
         "functions/parse/main.c"
-        "g_fail_io_after.c"
 )
 
 # Platform specific source selection to avoid duplicate symbols
@@ -398,8 +397,9 @@ if(DEFINED STRICT_COMPILER_FLAGS)
     target_compile_options("${LIBRARY_NAME}" PRIVATE ${STRICT_COMPILER_FLAGS})
 endif()
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
-    target_compile_definitions("${LIBRARY_NAME}" PRIVATE CDD_BUILD_TESTS)
+    target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
     target_include_directories("${LIBRARY_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_sources("${LIBRARY_NAME}" PRIVATE "tests/mocks/g_fail_io_after.c")
 endif()
 
 set(cdd_c_RESOLVED ON CACHE BOOL "Prevent c-abstract-http from fetching cdd-c" FORCE)

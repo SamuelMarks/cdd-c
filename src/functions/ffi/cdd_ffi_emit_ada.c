@@ -1,4 +1,6 @@
+#ifdef CDD_BUILD_TESTS
 extern volatile int g_fail_io_after;
+#endif
 #ifdef CDD_BUILD_TESTS
 #endif
 /* clang-format off */

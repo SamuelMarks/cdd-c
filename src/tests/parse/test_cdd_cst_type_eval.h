@@ -61,9 +61,8 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
-    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE && decl == NULL) {
       decl = tree->root->children[i].val.node;
-      break;
     }
   }
   ASSERT(decl != NULL);
@@ -98,9 +97,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
-    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE && decl == NULL) {
       decl = tree->root->children[i].val.node;
-      break;
     }
   }
   ASSERT(decl != NULL);
@@ -118,9 +116,8 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree2->root->num_children; i++) {
-    if (tree2->root->children[i].kind == CDD_CST_CHILD_NODE) {
+    if (tree2->root->children[i].kind == CDD_CST_CHILD_NODE && decl2 == NULL) {
       decl2 = tree2->root->children[i].val.node;
-      break;
     }
   }
   ASSERT(decl2 != NULL);
@@ -142,9 +139,9 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
         &tree3);
     ASSERT_EQ(0, rc);
     for (i = 0; i < tree3->root->num_children; i++) {
-      if (tree3->root->children[i].kind == CDD_CST_CHILD_NODE) {
+      if (tree3->root->children[i].kind == CDD_CST_CHILD_NODE &&
+          decl3 == NULL) {
         decl3 = tree3->root->children[i].val.node;
-        break;
       }
     }
     ASSERT(decl3 != NULL);
@@ -175,9 +172,9 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
                        &tree4);
     ASSERT_EQ(0, rc);
     for (i = 0; i < tree4->root->num_children; i++) {
-      if (tree4->root->children[i].kind == CDD_CST_CHILD_NODE) {
+      if (tree4->root->children[i].kind == CDD_CST_CHILD_NODE &&
+          decl4 == NULL) {
         decl4 = tree4->root->children[i].val.node;
-        break;
       }
     }
     ASSERT(decl4 != NULL);

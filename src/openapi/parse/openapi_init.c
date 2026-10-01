@@ -160,6 +160,8 @@ cdd_c_error_t openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
       free(base);
       return CDD_C_ERROR_MEMORY;
     }
+    memset(tmp + registry->capacity, 0,
+           (new_cap - registry->capacity) * sizeof(*registry->entries));
     registry->entries = tmp;
     registry->capacity = new_cap;
   }

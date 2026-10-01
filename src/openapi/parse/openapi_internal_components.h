@@ -153,70 +153,59 @@ parse_security_field(const JSON_Object *obj, const char *key,
 /**
  * @brief Parses header object from the given input.
  */
-extern cdd_c_error_t parse_header_object(const JSON_Object *hdr_obj,
-                                         struct OpenAPI_Header *out_hdr,
-                                         const struct OpenAPI_Spec *spec,
-                                         int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_header_object(const JSON_Object *hdr_obj, struct OpenAPI_Header *out_hdr,
+                    const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses link parameters from the given input.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 parse_link_parameters(const JSON_Object *params_obj,
                       struct OpenAPI_LinkParam **out_params, size_t *out_count);
 
 /**
  * @brief Parses link object from the given input.
  */
-extern cdd_c_error_t parse_link_object(const JSON_Object *link_obj,
-                                       struct OpenAPI_Link *out_link,
-                                       const struct OpenAPI_Spec *spec,
-                                       int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_link_object(const JSON_Object *link_obj, struct OpenAPI_Link *out_link,
+                  const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses links object from the given input.
  */
-extern cdd_c_error_t parse_links_object(const JSON_Object *links,
-                                        struct OpenAPI_Link **out_links,
-                                        size_t *out_count,
-                                        const struct OpenAPI_Spec *spec,
-                                        int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t parse_links_object(
+    const JSON_Object *links, struct OpenAPI_Link **out_links,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses headers object from the given input.
  */
-extern cdd_c_error_t parse_headers_object(const JSON_Object *headers,
-                                          struct OpenAPI_Header **out_headers,
-                                          size_t *out_count,
-                                          const struct OpenAPI_Spec *spec,
-                                          int resolve_refs,
-                                          int ignore_content_type);
+extern C_CDD_EXPORT cdd_c_error_t parse_headers_object(
+    const JSON_Object *headers, struct OpenAPI_Header **out_headers,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs,
+    int ignore_content_type);
 
 /**
  * @brief Parses encoding object from the given input.
  */
-extern cdd_c_error_t parse_encoding_object(const JSON_Object *enc_obj,
-                                           struct OpenAPI_Encoding *out,
-                                           const struct OpenAPI_Spec *spec,
-                                           int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_encoding_object(const JSON_Object *enc_obj, struct OpenAPI_Encoding *out,
+                      const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses encoding map from the given input.
  */
-extern cdd_c_error_t parse_encoding_map(const JSON_Object *enc_obj,
-                                        struct OpenAPI_Encoding **out,
-                                        size_t *out_count,
-                                        const struct OpenAPI_Spec *spec,
-                                        int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t parse_encoding_map(
+    const JSON_Object *enc_obj, struct OpenAPI_Encoding **out,
+    size_t *out_count, const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /**
  * @brief Parses encoding array from the given input.
  */
-extern cdd_c_error_t parse_encoding_array(const JSON_Array *enc_arr,
-                                          struct OpenAPI_Encoding **out,
-                                          size_t *out_count,
-                                          const struct OpenAPI_Spec *spec,
-                                          int resolve_refs);
+extern C_CDD_EXPORT cdd_c_error_t parse_encoding_array(
+    const JSON_Array *enc_arr, struct OpenAPI_Encoding **out, size_t *out_count,
+    const struct OpenAPI_Spec *spec, int resolve_refs);
 
 /* --- openapi_parameters.c declarations --- */
 
@@ -352,63 +341,62 @@ extern cdd_c_error_t parse_callbacks_object(
 /**
  * @brief Parses component parameters from the given input.
  */
-extern cdd_c_error_t parse_component_parameters(const JSON_Object *components,
-                                                struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_parameters(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component responses from the given input.
  */
-extern cdd_c_error_t parse_component_responses(const JSON_Object *components,
-                                               struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_responses(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component headers from the given input.
  */
-extern cdd_c_error_t parse_component_headers(const JSON_Object *components,
-                                             struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_headers(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component request bodies from the given input.
  */
-extern cdd_c_error_t
-parse_component_request_bodies(const JSON_Object *components,
-                               struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_request_bodies(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component media types from the given input.
  */
-extern cdd_c_error_t parse_component_media_types(const JSON_Object *components,
-                                                 struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_media_types(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component examples from the given input.
  */
-extern cdd_c_error_t parse_component_examples(const JSON_Object *components,
-                                              struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_examples(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component links from the given input.
  */
-extern cdd_c_error_t parse_component_links(const JSON_Object *components,
-                                           struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_component_links(const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component callbacks from the given input.
  */
-extern cdd_c_error_t parse_component_callbacks(const JSON_Object *components,
-                                               struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_callbacks(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses component path items from the given input.
  */
-extern cdd_c_error_t parse_component_path_items(const JSON_Object *components,
-                                                struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t parse_component_path_items(
+    const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /**
  * @brief Parses components from the given input.
  */
-extern cdd_c_error_t parse_components(const JSON_Object *components,
-                                      struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT cdd_c_error_t
+parse_components(const JSON_Object *components, struct OpenAPI_Spec *out);
 
 /* --- openapi_paths.c declarations --- */
 
@@ -617,52 +605,23 @@ validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
 /**
  * @brief Executes the openapi load from json internal operation.
  */
-extern cdd_c_error_t openapi_load_from_json_internal(
+extern C_CDD_EXPORT cdd_c_error_t openapi_load_from_json_internal(
     const JSON_Value *root, struct OpenAPI_Spec *out, const char *retrieval_uri,
     struct OpenAPI_DocRegistry *registry);
 
 /**
- * @brief Executes the openapi load from json operation.
- */
-extern cdd_c_error_t openapi_load_from_json(const JSON_Value *root,
-                                            struct OpenAPI_Spec *out);
-
-/**
- * @brief Executes the openapi load from json with context operation.
- */
-extern cdd_c_error_t openapi_load_from_json_with_context(
-    const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
-    struct OpenAPI_DocRegistry *registry);
-
-/**
- * @brief Executes the openapi spec find schema operation.
- */
-extern cdd_c_error_t openapi_spec_find_schema(const struct OpenAPI_Spec *spec,
-                                              const char *name,
-                                              struct StructFields **_out_val);
-
-/**
  * @brief Executes the openapi spec find schema by id operation.
  */
-extern cdd_c_error_t
+extern C_CDD_EXPORT cdd_c_error_t
 openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec, const char *ref,
                                struct StructFields **_out_val);
 
 /**
  * @brief Executes the openapi spec find schema by anchor operation.
  */
-extern cdd_c_error_t
-openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
-                                   const char *ref, int dynamic_anchor,
-                                   struct StructFields **_out_val);
-
-/**
- * @brief Executes the openapi spec find schema for ref operation.
- */
-extern cdd_c_error_t
-openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
-                                 const struct OpenAPI_SchemaRef *ref,
-                                 struct StructFields **_out_val);
+extern C_CDD_EXPORT cdd_c_error_t openapi_spec_find_schema_by_anchor(
+    const struct OpenAPI_Spec *spec, const char *ref, int dynamic_anchor,
+    struct StructFields **_out_val);
 
 #ifdef __cplusplus
 }

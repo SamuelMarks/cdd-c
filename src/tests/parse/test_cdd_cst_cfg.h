@@ -37,12 +37,10 @@ TEST test_cdd_cst_cfg_basic(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
-    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
-      if (tree->root->children[i].val.node->kind ==
-          CDD_CST_FUNCTION_DEFINITION) {
-        func = tree->root->children[i].val.node;
-        break;
-      }
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE &&
+        tree->root->children[i].val.node->kind == CDD_CST_FUNCTION_DEFINITION &&
+        func == NULL) {
+      func = tree->root->children[i].val.node;
     }
   }
   ASSERT(func != NULL);
@@ -164,12 +162,10 @@ TEST test_cdd_cst_cfg_empty(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
-    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
-      if (tree->root->children[i].val.node->kind ==
-          CDD_CST_FUNCTION_DEFINITION) {
-        func = tree->root->children[i].val.node;
-        break;
-      }
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE &&
+        tree->root->children[i].val.node->kind == CDD_CST_FUNCTION_DEFINITION &&
+        func == NULL) {
+      func = tree->root->children[i].val.node;
     }
   }
   ASSERT(func != NULL);
@@ -209,12 +205,10 @@ TEST test_cdd_cst_cfg_no_return(void) {
   ASSERT_EQ(0, rc);
 
   for (i = 0; i < tree->root->num_children; i++) {
-    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
-      if (tree->root->children[i].val.node->kind ==
-          CDD_CST_FUNCTION_DEFINITION) {
-        func = tree->root->children[i].val.node;
-        break;
-      }
+    if (tree->root->children[i].kind == CDD_CST_CHILD_NODE &&
+        tree->root->children[i].val.node->kind == CDD_CST_FUNCTION_DEFINITION &&
+        func == NULL) {
+      func = tree->root->children[i].val.node;
     }
   }
   ASSERT(func != NULL);

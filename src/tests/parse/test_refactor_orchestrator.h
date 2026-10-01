@@ -312,69 +312,81 @@ TEST test_orchestrator_edge_cases(void) {
     }
     g_cdd_strdup_fail = 0;
 
-    for (i = 1; i < 50; ++i) {
-      g_cdd_cst_alloc_node_fail = i;
-      rc = orchestrate_fix("void A() { malloc(1); }\n"
-                           "void B() { A(); }\n"
-                           "void C() { A(); }\n"
-                           "void D() { A(); }\n"
-                           "void E() { A(); }\n"
-                           "void F() { A(); }\n"
-                           "void G() { A(); }\n"
-                           "void H() { A(); }\n"
-                           "void I() { A(); }\n"
-                           "int main() { A(); return 0; }",
-                           &out);
-      if (out) {
-        free(out);
-        out = NULL;
+    for (i = 0; i < 50; ++i) {
+      if (i == 0) {
+        rc = CDD_C_ERROR_MEMORY;
+      } else {
+        g_cdd_cst_alloc_node_fail = i;
+        rc = orchestrate_fix("void A() { malloc(1); }\n"
+                             "void B() { A(); }\n"
+                             "void C() { A(); }\n"
+                             "void D() { A(); }\n"
+                             "void E() { A(); }\n"
+                             "void F() { A(); }\n"
+                             "void G() { A(); }\n"
+                             "void H() { A(); }\n"
+                             "void I() { A(); }\n"
+                             "int main() { A(); return 0; }",
+                             &out);
+        if (out) {
+          free(out);
+          out = NULL;
+        }
       }
       if (rc == CDD_C_SUCCESS)
         break;
     }
     g_cdd_cst_alloc_node_fail = 0;
 
-    for (i = 1; i < 50; ++i) {
+    for (i = 0; i < 50; ++i) {
       /* extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail; (moved to global)
        */
-      g_cdd_cst_alloc_token_fail = i;
-      rc = orchestrate_fix("void A() { malloc(1); }\n"
-                           "void B() { A(); }\n"
-                           "void C() { A(); }\n"
-                           "void D() { A(); }\n"
-                           "void E() { A(); }\n"
-                           "void F() { A(); }\n"
-                           "void G() { A(); }\n"
-                           "void H() { A(); }\n"
-                           "void I() { A(); }\n"
-                           "int main() { A(); return 0; }",
-                           &out);
-      if (out) {
-        free(out);
-        out = NULL;
+      if (i == 0) {
+        rc = CDD_C_ERROR_MEMORY;
+      } else {
+        g_cdd_cst_alloc_token_fail = i;
+        rc = orchestrate_fix("void A() { malloc(1); }\n"
+                             "void B() { A(); }\n"
+                             "void C() { A(); }\n"
+                             "void D() { A(); }\n"
+                             "void E() { A(); }\n"
+                             "void F() { A(); }\n"
+                             "void G() { A(); }\n"
+                             "void H() { A(); }\n"
+                             "void I() { A(); }\n"
+                             "int main() { A(); return 0; }",
+                             &out);
+        if (out) {
+          free(out);
+          out = NULL;
+        }
       }
       if (rc == CDD_C_SUCCESS)
         break;
     }
     g_cdd_cst_alloc_token_fail = 0;
 
-    for (i = 1; i < 50; ++i) {
+    for (i = 0; i < 50; ++i) {
       /* extern C_CDD_EXPORT int g_cdd_cst_realloc_fail; (moved to global) */
-      g_cdd_cst_realloc_fail = i;
-      rc = orchestrate_fix("void A() { malloc(1); }\n"
-                           "void B() { A(); }\n"
-                           "void C() { A(); }\n"
-                           "void D() { A(); }\n"
-                           "void E() { A(); }\n"
-                           "void F() { A(); }\n"
-                           "void G() { A(); }\n"
-                           "void H() { A(); }\n"
-                           "void I() { A(); }\n"
-                           "int main() { A(); return 0; }",
-                           &out);
-      if (out) {
-        free(out);
-        out = NULL;
+      if (i == 0) {
+        rc = CDD_C_ERROR_MEMORY;
+      } else {
+        g_cdd_cst_realloc_fail = i;
+        rc = orchestrate_fix("void A() { malloc(1); }\n"
+                             "void B() { A(); }\n"
+                             "void C() { A(); }\n"
+                             "void D() { A(); }\n"
+                             "void E() { A(); }\n"
+                             "void F() { A(); }\n"
+                             "void G() { A(); }\n"
+                             "void H() { A(); }\n"
+                             "void I() { A(); }\n"
+                             "int main() { A(); return 0; }",
+                             &out);
+        if (out) {
+          free(out);
+          out = NULL;
+        }
       }
       if (rc == CDD_C_SUCCESS)
         break;
